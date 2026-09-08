@@ -1,5 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import {mergeGeometries} from './vendor/utils/BufferGeometryUtils.js';
+import {applyWeaponMaterialProfile, stabilizeWeaponVertexWear, tagWeaponMechanism} from './weapon-materials.js';
 
 // Image-guided stylized reconstruction: a ribcage / skull rocket launcher.
 // Coordinate contract: +Y up, -Z is the projectile direction.
@@ -180,6 +181,7 @@ export function createReliquary(options = {}) {
   const materials = makeMaterials();
   const textures = getSurfaceMaps();
   applySurfaceMaps(materials, textures);
+  applyWeaponMaterialProfile(materials,{iron:{roughness:.58,metalness:.74,envMapIntensity:.44},ironEdge:{roughness:.5,metalness:.8,envMapIntensity:.4},bone:{roughness:.92,envMapIntensity:.24},brass:{roughness:.5,metalness:.76,envMapIntensity:.38},muzzle:{roughness:.25,metalness:.12,envMapIntensity:.12}});
   const part = (name, parent = root) => {
     const g = new THREE.Group();
     g.name = name;
@@ -263,6 +265,13 @@ export function createReliquary(options = {}) {
     const z = .22 - i * .09;
     add(sternum, new THREE.SphereGeometry(1, 9, 7), 'boneDark', [0, .145, z], [.052, .055, .06]);
   }
+  const heatVents = part('heat-vents', recoilCarriage);
+  tagWeaponMechanism(heatVents, 'pressure-shutters', 'z');
+  for (const side of [-1, 1]) {
+    add(heatVents, new THREE.CylinderGeometry(.026, .026, .16, 8), 'ironEdge', [side * .16, .205, -.73], [1, 1, 1], [0, 0, side * .12], 'heat-vent-' + side);
+    add(heatVents, new THREE.TorusGeometry(.035, .007, 6, 14), 'brass', [side * .16, .205, -.73], [1, 1, 1], [Math.PI / 2, 0, 0], 'heat-vent-ring-' + side);
+  }
+
   const core = part('core');
   add(core, new THREE.SphereGeometry(.095, 16, 10), 'ember', [0, .06, -.025], [1.0, .8, .8], [0, 0, 0], 'reactor-core');
   add(core, new THREE.TorusGeometry(.125, .011, 7, 20), 'brass', [0, .06, -.025], [1, .85, 1], [Math.PI / 2, 0, 0], 'reactor-ring');
@@ -400,7 +409,7 @@ export function createReliquary(options = {}) {
   root.userData.reliquary = {
     kind: 'reliquary',
     variant: options.variant || 'bone-rocket',
-    parts, sockets, materials, textures, recoilCarriage, core, barrel,
+    parts, sockets, materials, textures, recoilCarriage, core, barrel, heatVents,
     recoil: 0, flash: 0, heat: 0, charge: 0, lastShot: 0
   };
   return root;
@@ -423,6 +432,8 @@ export function animateReliquary(root, shot = 0, time = 0, dt = .016, state = {}
   meta.recoilCarriage.position.z = meta.recoil * .065;
   meta.recoilCarriage.rotation.x = meta.recoil * -.018;
   meta.core.rotation.z += delta * (1.4 + meta.heat * 5.2);
+  meta.heatVents.rotation.z = Math.sin(time * 4.2) * .045 + meta.heat * .12;
+  meta.heatVents.position.z = -meta.heat * .025;
   meta.core.scale.setScalar(1 + meta.heat * .08 + Math.sin(time * 5.5) * .018);
   meta.materials.ember.emissiveIntensity = 2.2 + meta.heat * 4.4 + Math.sin(time * 6.5) * .18;
   meta.materials.muzzle.emissiveIntensity = 2.2 + meta.flash * 8;

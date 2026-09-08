@@ -20,6 +20,8 @@ export const RUNTIME_FILES = [
   'npc-warden.js',
   'weapon-ossuary.js',
   'combat-vfx.js',
+  'impact-vfx.js',
+  'weapon-materials.js',
   'explosion-vfx.js',
   'weapon-reliquary.js',
   'npc-bellwraith.js',
@@ -33,7 +35,7 @@ export const RUNTIME_FILES = [
   'style.css',
 ];
 export const RUNTIME_DIRECTORIES = ['vendor', 'assets', 'public'];
-export const REQUIRED_RUNTIME_FILES = ['index.html', 'main.js', 'peer.js', 'engine.js', 'renderer.js', 'ui.js', 'audio.js', 'styles.css', 'campaign.js', 'explosion-vfx.js', 'weapon-reliquary.js', 'npc-bellwraith.js', 'world-polish.js', 'world-authored.js', 'horror-ui.css', 'weapon-breach.js', 'weapon-arc.js'];
+export const REQUIRED_RUNTIME_FILES = ['index.html', 'main.js', 'peer.js', 'engine.js', 'renderer.js', 'ui.js', 'audio.js', 'styles.css', 'campaign.js', 'explosion-vfx.js', 'weapon-reliquary.js', 'npc-bellwraith.js', 'world-polish.js', 'world-authored.js', 'horror-ui.css', 'weapon-breach.js', 'weapon-arc.js', 'impact-vfx.js', 'weapon-materials.js'];
 
 function isInside(root, candidate) {
   const relative = path.relative(root, candidate);

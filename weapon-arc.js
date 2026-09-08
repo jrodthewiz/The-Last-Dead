@@ -1,4 +1,5 @@
 import * as THREE from './vendor/three.module.js';
+import {applyWeaponMaterialProfile, stabilizeWeaponVertexWear, tagWeaponMechanism} from './weapon-materials.js';
 
 // Image-guided Arc Lance: a long coil weapon with a caged plasma chamber,
 // bone claw emitter and mechanical side frame.  +Y is up, -Z is the firing
@@ -147,6 +148,7 @@ export function createArc(options = {}) {
     mats[key].bumpScale = key === 'bone' ? .016 : key === 'leather' ? .011 : .006;
     mats[key].needsUpdate = true;
   }
+  applyWeaponMaterialProfile(mats,{frame:{roughness:.58,metalness:.78,envMapIntensity:.46},frameEdge:{roughness:.5,metalness:.82,envMapIntensity:.4},bone:{roughness:.92,envMapIntensity:.24},brass:{roughness:.5,metalness:.76,envMapIntensity:.4},glass:{roughness:.22,metalness:.14,envMapIntensity:.32}});
   const part = (name, parent = root) => {
     const group = new THREE.Group();
     group.name = name;
@@ -187,6 +189,10 @@ export function createArc(options = {}) {
   add(reactor, sweep(helix(-.82, -.12, .126, 2.2, 36).map(p => [p[0], -p[1], p[2]]), [.009, .011], 7), 'brass', [0, .03, 0], [1, 1, 1], [0, 0, 0], 'coil-helix-b');
   const glowShell = add(reactor, new THREE.CylinderGeometry(.17, .17, .76, 20, 1, true), 'energySoft', [0, .03, -.47], [1, 1, 1], [Math.PI / 2, 0, 0], 'reactor-glow');
   glowShell.renderOrder = 2;
+  const chargeSlider = part('charge-slider', reactor);
+  tagWeaponMechanism(chargeSlider, 'plasma-charge-slider', 'z');
+  add(chargeSlider, new THREE.CylinderGeometry(.018, .018, .18, 8), 'frameEdge', [0, .205, -.47], [1, 1, 1], [0, 0, 0], 'charge-slider-rod');
+  add(chargeSlider, new THREE.TorusGeometry(.035, .007, 6, 16), 'brass', [0, .205, -.47], [1, 1, 1], [Math.PI / 2, 0, 0], 'charge-slider-ring');
 
   const rails = part('rails');
   for (const side of [-1, 1]) {
@@ -270,8 +276,9 @@ export function createArc(options = {}) {
     explode,
     pick(raycaster) { const hit = raycaster.intersectObject(root, true)[0]; return hit?.object?.parent?.name || hit?.object?.name || null; },
   };
-  root.userData.arc = { kind: 'arc', parts, sockets, materials: mats, textures, reactor, emitter, recoil: 0, flash: 0, heat: 0, lastShot: 0 };
+  root.userData.arc = { kind: 'arc', parts, sockets, materials: mats, textures, reactor, emitter, chargeSlider, recoil: 0, flash: 0, heat: 0, lastShot: 0 };
   addWear(root);
+  stabilizeWeaponVertexWear(root, 47);
   return root;
 }
 
@@ -290,6 +297,8 @@ export function animateArc(root, time = 0, shot = 0, dt = .016, state = {}) {
   meta.flash = Math.max(0, meta.flash - delta * 11);
   meta.heat = THREE.MathUtils.damp(meta.heat, 0, 1.25, delta);
   meta.reactor.rotation.z = time * (.45 + meta.heat * 2.2);
+  meta.chargeSlider.position.z = Math.sin(time * 3.2) * .14 - meta.heat * .035;
+  meta.chargeSlider.rotation.y = meta.heat * .22;
   meta.recoil *= 1;
   root.position.z = meta.recoil * .028;
   root.rotation.x = meta.recoil * -.012;

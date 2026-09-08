@@ -1,0 +1,259 @@
+{
+  "processed": [
+    {
+      "file": "assets/audio/sfx/processed/ossuary-shot.wav",
+      "bytes": 30798,
+      "exists": true
+    },
+    {
+      "file": "assets/audio/sfx/processed/breach-shot.wav",
+      "bytes": 36584,
+      "exists": true
+    },
+    {
+      "file": "assets/audio/sfx/processed/arc-lance.wav",
+      "bytes": 26984,
+      "exists": true
+    },
+    {
+      "file": "assets/audio/sfx/processed/reliquary-launch.wav",
+      "bytes": 51918,
+      "exists": true
+    },
+    {
+      "file": "assets/audio/sfx/processed/impact-metal-flesh.wav",
+      "bytes": 16192,
+      "exists": true
+    },
+    {
+      "file": "assets/audio/sfx/processed/blood-burst.wav",
+      "bytes": 23144,
+      "exists": true
+    }
+  ],
+  "browser": {
+    "loaded": true,
+    "decoded": 37,
+    "manifestEntries": 37,
+    "loadErrors": [],
+    "signals": [
+      {
+        "type": "shot",
+        "weapon": 0,
+        "peak": 0.29658257961273193,
+        "rms": 0.01261751460522885,
+        "finite": true
+      },
+      {
+        "type": "shot",
+        "weapon": 1,
+        "peak": 0.287945419549942,
+        "rms": 0.018036715233453786,
+        "finite": true
+      },
+      {
+        "type": "shot",
+        "weapon": 2,
+        "peak": 0.26199662685394287,
+        "rms": 0.013985221235685272,
+        "finite": true
+      },
+      {
+        "type": "shot",
+        "weapon": 3,
+        "peak": 0.25142115354537964,
+        "rms": 0.02336185537229914,
+        "finite": true
+      },
+      {
+        "type": "enemyattack",
+        "weapon": 0,
+        "enemyKind": 0,
+        "peak": 0.12217951565980911,
+        "rms": 0.009882461816714365,
+        "finite": true
+      },
+      {
+        "type": "kill",
+        "weapon": 0,
+        "enemyKind": 0,
+        "peak": 0.17722219228744507,
+        "rms": 0.013921979250373008,
+        "finite": true
+      },
+      {
+        "type": "hit",
+        "weapon": 0,
+        "enemyKind": 0,
+        "peak": 0.20517024397850037,
+        "rms": 0.012156800860084065,
+        "finite": true
+      },
+      {
+        "type": "enemyattack",
+        "weapon": 0,
+        "enemyKind": 1,
+        "peak": 0.1339821219444275,
+        "rms": 0.010707891333332923,
+        "finite": true
+      },
+      {
+        "type": "kill",
+        "weapon": 0,
+        "enemyKind": 1,
+        "peak": 0.1701955497264862,
+        "rms": 0.013366201781037807,
+        "finite": true
+      },
+      {
+        "type": "hit",
+        "weapon": 0,
+        "enemyKind": 1,
+        "peak": 0.19090262055397034,
+        "rms": 0.012509272258415664,
+        "finite": true
+      },
+      {
+        "type": "enemyattack",
+        "weapon": 0,
+        "enemyKind": 2,
+        "peak": 0.16291259229183197,
+        "rms": 0.012721426108989548,
+        "finite": true
+      },
+      {
+        "type": "kill",
+        "weapon": 0,
+        "enemyKind": 2,
+        "peak": 0.2029571831226349,
+        "rms": 0.014878108756329339,
+        "finite": true
+      },
+      {
+        "type": "hit",
+        "weapon": 0,
+        "enemyKind": 2,
+        "peak": 0.1981300413608551,
+        "rms": 0.01156049952143231,
+        "finite": true
+      },
+      {
+        "type": "explosion",
+        "weapon": 3,
+        "peak": 0.33203867077827454,
+        "rms": 0.025726789382182827,
+        "finite": true
+      }
+    ]
+  },
+  "accentSignals": [
+    {
+      "type": "shot",
+      "weapon": 0,
+      "peak": 0.29658257961273193,
+      "rms": 0.01261751460522885,
+      "finite": true
+    },
+    {
+      "type": "shot",
+      "weapon": 1,
+      "peak": 0.287945419549942,
+      "rms": 0.018036715233453786,
+      "finite": true
+    },
+    {
+      "type": "shot",
+      "weapon": 2,
+      "peak": 0.26199662685394287,
+      "rms": 0.013985221235685272,
+      "finite": true
+    },
+    {
+      "type": "shot",
+      "weapon": 3,
+      "peak": 0.25142115354537964,
+      "rms": 0.02336185537229914,
+      "finite": true
+    },
+    {
+      "type": "enemyattack",
+      "weapon": 0,
+      "enemyKind": 0,
+      "peak": 0.12217951565980911,
+      "rms": 0.009882461816714365,
+      "finite": true
+    },
+    {
+      "type": "kill",
+      "weapon": 0,
+      "enemyKind": 0,
+      "peak": 0.17722219228744507,
+      "rms": 0.013921979250373008,
+      "finite": true
+    },
+    {
+      "type": "hit",
+      "weapon": 0,
+      "enemyKind": 0,
+      "peak": 0.20517024397850037,
+      "rms": 0.012156800860084065,
+      "finite": true
+    },
+    {
+      "type": "enemyattack",
+      "weapon": 0,
+      "enemyKind": 1,
+      "peak": 0.1339821219444275,
+      "rms": 0.010707891333332923,
+      "finite": true
+    },
+    {
+      "type": "kill",
+      "weapon": 0,
+      "enemyKind": 1,
+      "peak": 0.1701955497264862,
+      "rms": 0.013366201781037807,
+      "finite": true
+    },
+    {
+      "type": "hit",
+      "weapon": 0,
+      "enemyKind": 1,
+      "peak": 0.19090262055397034,
+      "rms": 0.012509272258415664,
+      "finite": true
+    },
+    {
+      "type": "enemyattack",
+      "weapon": 0,
+      "enemyKind": 2,
+      "peak": 0.16291259229183197,
+      "rms": 0.012721426108989548,
+      "finite": true
+    },
+    {
+      "type": "kill",
+      "weapon": 0,
+      "enemyKind": 2,
+      "peak": 0.2029571831226349,
+      "rms": 0.014878108756329339,
+      "finite": true
+    },
+    {
+      "type": "hit",
+      "weapon": 0,
+      "enemyKind": 2,
+      "peak": 0.1981300413608551,
+      "rms": 0.01156049952143231,
+      "finite": true
+    },
+    {
+      "type": "explosion",
+      "weapon": 3,
+      "peak": 0.33203867077827454,
+      "rms": 0.025726789382182827,
+      "finite": true
+    }
+  ],
+  "errors": []
+}

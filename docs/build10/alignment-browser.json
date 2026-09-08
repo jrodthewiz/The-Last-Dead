@@ -1,0 +1,78 @@
+{
+  "checks": [
+    {
+      "pitch": -0.8,
+      "weapon": 0,
+      "crosshairError": 1.577638816215273e-15,
+      "flashError": 7.131616785230269e-15
+    },
+    {
+      "pitch": -0.8,
+      "weapon": 2,
+      "crosshairError": 1.577638816215273e-15,
+      "flashError": 4.440892098500626e-15
+    },
+    {
+      "pitch": 0,
+      "weapon": 0,
+      "crosshairError": 5.105380535299387e-17,
+      "flashError": 0
+    },
+    {
+      "pitch": 0,
+      "weapon": 2,
+      "crosshairError": 5.105380535299387e-17,
+      "flashError": 4.440892098500626e-16
+    },
+    {
+      "pitch": 0.8,
+      "weapon": 0,
+      "crosshairError": 3.5569528727135054e-17,
+      "flashError": 8.881784197001252e-16
+    },
+    {
+      "pitch": 0.8,
+      "weapon": 2,
+      "crosshairError": 3.5569528727135054e-17,
+      "flashError": 8.881784197001252e-16
+    }
+  ],
+  "arms": [
+    1,
+    2,
+    2,
+    2
+  ],
+  "canvas": [
+    1280,
+    800
+  ],
+  "calls": 316,
+  "effects": {
+    "impacts": {
+      "marks": 9,
+      "smoke": 0,
+      "capacity": {
+        "marks": 96,
+        "smoke": 96
+      }
+    },
+    "rockets": 1
+  },
+  "effectCost": [
+    {
+      "enabled": false,
+      "fps": 20.48780487804878
+    },
+    {
+      "enabled": true,
+      "fps": 22.807504660717917
+    },
+    {
+      "enabled": false,
+      "fps": 21.76126494836597
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

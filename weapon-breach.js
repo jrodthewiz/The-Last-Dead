@@ -1,4 +1,5 @@
 import * as THREE from './vendor/three.module.js';
+import {applyWeaponMaterialProfile, stabilizeWeaponVertexWear, tagWeaponMechanism} from './weapon-materials.js';
 
 // Image-guided Breach: a paired infernal shotgun built from the bone-wrapped
 // receiver and twin muzzle silhouette in docs/build08-art/references.  The
@@ -138,6 +139,7 @@ export function createBreach(options = {}) {
     materials[key].bumpScale = key === 'bone' ? .018 : key === 'leather' ? .012 : .007;
     materials[key].needsUpdate = true;
   }
+  applyWeaponMaterialProfile(materials,{steel:{roughness:.55,metalness:.78,envMapIntensity:.45},steelEdge:{roughness:.5,metalness:.82,envMapIntensity:.42},bone:{roughness:.92,envMapIntensity:.24},brass:{roughness:.5,metalness:.76,envMapIntensity:.4}});
   const part = (name, parent = root) => {
     const group = new THREE.Group();
     group.name = name;
@@ -178,6 +180,16 @@ export function createBreach(options = {}) {
     add(barrels, new THREE.CircleGeometry(.07, 18), 'black', [side * .12, .045, -.941], [1, 1, 1], [0, Math.PI, 0], `muzzle-bore-${side}`);
   }
   add(barrels, new THREE.BoxGeometry(.34, .09, .73), 'steelEdge', [0, .19, -.52], [1, 1, 1], [0, 0, 0], 'barrel-top-rail');
+  const breechBlock = part('breech-block', recoilCarriage);
+  tagWeaponMechanism(breechBlock, 'sliding-breech', 'z');
+  add(breechBlock, new THREE.BoxGeometry(.22, .055, .18), 'steel', [0, .13, -.18], [1, 1, 1], [0, 0, 0], 'breech-carrier');
+  for (const side of [-1, 1]) {
+    add(breechBlock, new THREE.CylinderGeometry(.012, .016, .24, 8), 'steelEdge', [side * .14, .13, -.18], [1, 1, 1], [Math.PI / 2, 0, 0], 'breech-guide-' + side);
+    add(breechBlock, new THREE.TorusGeometry(.026, .006, 6, 12), 'brass', [side * .14, .13, -.18], [1, 1, 1], [Math.PI / 2, 0, 0], 'breech-ring-' + side);
+  }
+  const extractors = part('shell-extractors', recoilCarriage);
+  tagWeaponMechanism(extractors, 'dual-shell-extractor', 'z');
+  for (const side of [-1, 1]) add(extractors, sweep([[side * .09, .02, -.27], [side * .12, .055, -.2], [side * .105, .09, -.13]], [.012, .014, .005], 7), 'steelEdge', [0, 0, 0], [1, 1, 1], [0, 0, 0], 'extractor-' + side);
   const ribcage = part('ribcage', recoilCarriage);
   for (let i = 0; i < 6; i++) {
     const z = -.22 - i * .12;
@@ -263,8 +275,9 @@ export function createBreach(options = {}) {
     explode,
     pick(raycaster) { const hit = raycaster.intersectObject(root, true)[0]; return hit?.object?.parent?.name || hit?.object?.name || null; },
   };
-  root.userData.breach = { kind: 'breach', parts, sockets, materials, textures, recoilCarriage, barrels, recoil: 0, flash: 0, heat: 0, lastShot: 0 };
+  root.userData.breach = { kind: 'breach', parts, sockets, materials, textures, recoilCarriage, barrels, breechBlock, extractors, recoil: 0, flash: 0, heat: 0, lastShot: 0 };
   addVertexWear(root);
+  stabilizeWeaponVertexWear(root, 43);
   return root;
 }
 
@@ -284,6 +297,10 @@ export function animateBreach(root, time = 0, shot = 0, dt = .016, state = {}) {
   meta.heat = THREE.MathUtils.damp(meta.heat, 0, 1.4, delta);
   meta.recoilCarriage.position.z = meta.recoil * .058;
   meta.recoilCarriage.rotation.x = meta.recoil * -.018;
+  meta.breechBlock.position.z = -meta.recoil * .065;
+  meta.breechBlock.rotation.x = meta.recoil * -.06;
+  meta.extractors.position.z = -meta.recoil * .05;
+  meta.extractors.rotation.y = meta.recoil * .12;
   meta.barrels.rotation.z = Math.sin(time * 1.7) * .002;
   meta.materials.ember.emissiveIntensity = 2.8 + meta.heat * 5.2 + Math.sin(time * 7) * .16;
   meta.sockets.muzzleFlash.visible = meta.flash > .012;

@@ -1,0 +1,5 @@
+# Worn oxblood leather ? source
+
+Generated with the built-in image_gen tool, then copied without editing into `assets/textures/worn-oxblood-leather-v1.png`. Original: `C:/Users/wolfk/.codex/generated_images/01a07f05-d2ae-7a30-95a4-be5284580047/exec-7609f1d6-1774-469b-826e-8009789520c1.png`. Applied as sRGB albedo to first-person sleeves and gloves, repeat 2x3, anisotropy capped at 8, roughness .85. Pattern continuity is visually approximate; not a measured seamless PBR scan.
+
+Prompt: Generate a production game material texture, square 1024x1024, seamless tileable worn dark oxblood brown leather for horror FPS gloves and gun grips. Orthographic macro flat surface filling every pixel. Fine natural leather pores, shallow creases, rubbed dull tan grain on folds, tiny scratches and faint dried dark red stains. Restrained realistic material, no objects, no seams or borders, no lettering, no symbols, no studs. Uniform diffuse albedo illumination, no specular highlights, no directional shadows, no perspective, no vignette. Medium brown/umber albedo with subtle burgundy variation, not near-black, designed to be lit by a real-time PBR renderer. Match edges seamlessly.

@@ -1,0 +1,1008 @@
+{
+  "startedAt": "2026-09-08T22:38:35.891Z",
+  "url": "http://127.0.0.1:63599/?debug=1&build10=game",
+  "browser": {
+    "executablePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+    "headless": true
+  },
+  "reference": {
+    "spawn": {
+      "x": 6,
+      "y": 10.5,
+      "angle": -1.5707963267948966
+    },
+    "openLane": {
+      "x": 6,
+      "y": 8,
+      "distance": 2.5,
+      "angle": -1.5707963267948966
+    }
+  },
+  "desktop": {
+    "wardenStatus": "ready",
+    "controlledCamera": {
+      "x": 6,
+      "y": 10.5,
+      "angle": -1.5707963267948966,
+      "pitch": 0,
+      "sector": "bloodworks"
+    },
+    "lock": {
+      "position": {
+        "x": 640,
+        "y": 400
+      },
+      "pointerLocked": true
+    },
+    "fire": {
+      "fired": true,
+      "explosion": {
+        "runExplosions": 1,
+        "diagnostics": {
+          "active": 1,
+          "fire": 2,
+          "smoke": 2,
+          "embers": 20,
+          "rings": 1,
+          "maxExplosions": 18,
+          "reducedMotion": false,
+          "gore": true
+        },
+        "weapon": 3
+      },
+      "position": {
+        "x": 640,
+        "y": 400
+      }
+    },
+    "audioReady": true,
+    "audio": {
+      "loaded": true,
+      "decoded": 37,
+      "manifestEntries": 37,
+      "errors": []
+    },
+    "bellwraith": {
+      "preview": {
+        "id": 99001,
+        "x": 6,
+        "y": 8,
+        "pitch": 0,
+        "directorState": "exit"
+      },
+      "visual": {
+        "exists": true,
+        "rootName": "Bellwraith",
+        "bellwraithFlag": true,
+        "meshCount": 61
+      }
+    },
+    "performance": {
+      "elapsedMs": 30008,
+      "frames": 702,
+      "avgFps": 23.39,
+      "minSampleFps": 15,
+      "maxSampleFps": 32,
+      "samples": [
+        {
+          "elapsedMs": 1005,
+          "fps": 16
+        },
+        {
+          "elapsedMs": 2021,
+          "fps": 21
+        },
+        {
+          "elapsedMs": 3037,
+          "fps": 15
+        },
+        {
+          "elapsedMs": 4070,
+          "fps": 22
+        },
+        {
+          "elapsedMs": 5086,
+          "fps": 25
+        },
+        {
+          "elapsedMs": 6102,
+          "fps": 25
+        },
+        {
+          "elapsedMs": 7119,
+          "fps": 27
+        },
+        {
+          "elapsedMs": 8251,
+          "fps": 27
+        },
+        {
+          "elapsedMs": 9301,
+          "fps": 32
+        },
+        {
+          "elapsedMs": 10317,
+          "fps": 26
+        },
+        {
+          "elapsedMs": 11350,
+          "fps": 27
+        },
+        {
+          "elapsedMs": 12583,
+          "fps": 20
+        },
+        {
+          "elapsedMs": 13716,
+          "fps": 26
+        },
+        {
+          "elapsedMs": 14732,
+          "fps": 25
+        },
+        {
+          "elapsedMs": 15748,
+          "fps": 25
+        },
+        {
+          "elapsedMs": 16764,
+          "fps": 23
+        },
+        {
+          "elapsedMs": 17847,
+          "fps": 22
+        },
+        {
+          "elapsedMs": 18863,
+          "fps": 30
+        },
+        {
+          "elapsedMs": 19896,
+          "fps": 26
+        },
+        {
+          "elapsedMs": 20912,
+          "fps": 26
+        },
+        {
+          "elapsedMs": 22095,
+          "fps": 19
+        },
+        {
+          "elapsedMs": 23145,
+          "fps": 21
+        },
+        {
+          "elapsedMs": 24161,
+          "fps": 24
+        },
+        {
+          "elapsedMs": 25177,
+          "fps": 26
+        },
+        {
+          "elapsedMs": 26193,
+          "fps": 27
+        },
+        {
+          "elapsedMs": 27276,
+          "fps": 25
+        },
+        {
+          "elapsedMs": 28292,
+          "fps": 30
+        },
+        {
+          "elapsedMs": 29325,
+          "fps": 26
+        }
+      ]
+    },
+    "rendererInfo": {
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F91) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "calls": 684,
+      "triangles": 392756,
+      "points": 0,
+      "lines": 27,
+      "geometries": 737,
+      "textures": 49,
+      "programs": [
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "BazookaSmokeBillboardsShader",
+          "runnable": null
+        },
+        {
+          "name": "BazookaShockwaveRingsShader",
+          "runnable": null
+        },
+        {
+          "name": "BazookaFireBillboardsShader",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "Material_1",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "Material_1",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "Material_1",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "Material_1",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        }
+      ],
+      "wardenStatus": "ready"
+    },
+    "finalState": {
+      "screen": "play",
+      "mode": "play",
+      "pitch": 0,
+      "weapon": 3
+    },
+    "diagnostics": {
+      "label": "desktop",
+      "consoleErrors": [],
+      "consoleWarnings": [
+        {
+          "type": "warning",
+          "text": "THREE.WebGLProgram: Program Info Log: (210,81-129): warning X4122: sum of 0.996094 and -2.98545e-017 cannot be represented accurately in double precision\n(209,37-61): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(210,82-106): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(209,37-61): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision\n(210,82-106): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision\n\n\n\u0000",
+          "location": {
+            "url": "http://127.0.0.1:63599/vendor/three.core.js",
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        }
+      ],
+      "pageErrors": [],
+      "requestFailures": []
+    }
+  },
+  "mobile": {
+    "wardenStatus": "ready",
+    "controlledCamera": {
+      "x": 6,
+      "y": 10.5,
+      "angle": -1.5707963267948966,
+      "pitch": 0,
+      "sector": "bloodworks"
+    },
+    "touch": {
+      "visible": true,
+      "controls": [
+        "dash",
+        "forward",
+        "left",
+        "back",
+        "right",
+        "slide",
+        "weapon",
+        "hook",
+        "alt",
+        "parry",
+        "fire",
+        "jump"
+      ],
+      "hudVisible": true
+    },
+    "bellwraith": {
+      "preview": {
+        "id": 99001,
+        "x": 6,
+        "y": 8,
+        "pitch": 0,
+        "directorState": "exit"
+      },
+      "visual": {
+        "exists": true,
+        "rootName": "Bellwraith",
+        "bellwraithFlag": true,
+        "meshCount": 61
+      }
+    },
+    "state": {
+      "screen": "play",
+      "mode": "play",
+      "pitch": 0,
+      "weapon": 3
+    },
+    "rendererInfo": {
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F91) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "calls": 273,
+      "triangles": 85830,
+      "points": 0,
+      "lines": 26,
+      "geometries": 382,
+      "textures": 24,
+      "programs": [
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "BazookaFireBillboardsShader",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "BazookaSmokeBillboardsShader",
+          "runnable": null
+        },
+        {
+          "name": "BazookaShockwaveRingsShader",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        }
+      ],
+      "wardenStatus": "ready"
+    },
+    "diagnostics": {
+      "label": "mobile",
+      "consoleErrors": [],
+      "consoleWarnings": [
+        {
+          "type": "warning",
+          "text": "THREE.WebGLProgram: Program Info Log: (210,81-129): warning X4122: sum of 0.996094 and -2.98545e-017 cannot be represented accurately in double precision\n(209,37-61): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(210,82-106): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(209,37-61): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision\n(210,82-106): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision\n\n\n\u0000",
+          "location": {
+            "url": "http://127.0.0.1:63599/vendor/three.core.js",
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        }
+      ],
+      "pageErrors": [],
+      "requestFailures": []
+    }
+  },
+  "errors": [],
+  "audioLifecycle": {
+    "muted": true,
+    "paused": true,
+    "resumed": true,
+    "ambientSources": 1,
+    "errors": []
+  },
+  "audioSignal": [
+    {
+      "type": "shot",
+      "peak": 0.014734862372279167
+    },
+    {
+      "type": "footstep",
+      "peak": 0.004259153269231319
+    },
+    {
+      "type": "jump",
+      "peak": 0.0010466782841831446
+    },
+    {
+      "type": "land",
+      "peak": 0.0026698741130530834
+    },
+    {
+      "type": "enemy-attack",
+      "peak": 0.10722239315509796
+    },
+    {
+      "type": "kill",
+      "peak": 0.050463445484638214
+    },
+    {
+      "type": "explosion",
+      "peak": 0.1111316829919815
+    },
+    {
+      "type": "slide",
+      "peak": 0.054594092071056366
+    }
+  ],
+  "sectors": [
+    {
+      "sector": "bloodworks",
+      "diagnostics": {
+        "renderer": "three.js",
+        "worldBatch": {
+          "removed": 487,
+          "batches": 18
+        },
+        "webgl": true,
+        "error": null,
+        "width": 1280,
+        "height": 800,
+        "dpr": 0.75,
+        "renderScale": 0.75,
+        "fov": 92,
+        "meshes": 708,
+        "instancedMeshes": 31,
+        "geometries": 704,
+        "materials": 103,
+        "triangles": 198334,
+        "calls": 265,
+        "gpuTriangles": 76360,
+        "rendererGeometries": 357,
+        "explosions": {
+          "active": 0,
+          "fire": 0,
+          "smoke": 0,
+          "embers": 0,
+          "rings": 0,
+          "maxExplosions": 18,
+          "reducedMotion": false,
+          "gore": true
+        },
+        "impacts": {
+          "marks": 0,
+          "smoke": 0,
+          "capacity": {
+            "marks": 96,
+            "smoke": 96
+          }
+        },
+        "rendererTextures": 34,
+        "enemies": 0,
+        "gore": 0,
+        "blood": 0,
+        "projectiles": 0,
+        "tracers": 0,
+        "coins": 0,
+        "world": "bloodworks",
+        "warden": "ready",
+        "wardenInstances": 0
+      }
+    },
+    {
+      "sector": "ossuary",
+      "diagnostics": {
+        "renderer": "three.js",
+        "worldBatch": {
+          "removed": 560,
+          "batches": 20
+        },
+        "webgl": true,
+        "error": null,
+        "width": 1280,
+        "height": 800,
+        "dpr": 0.75,
+        "renderScale": 0.75,
+        "fov": 92,
+        "meshes": 687,
+        "instancedMeshes": 31,
+        "geometries": 683,
+        "materials": 103,
+        "triangles": 200706,
+        "calls": 245,
+        "gpuTriangles": 78904,
+        "rendererGeometries": 336,
+        "explosions": {
+          "active": 0,
+          "fire": 0,
+          "smoke": 0,
+          "embers": 0,
+          "rings": 0,
+          "maxExplosions": 18,
+          "reducedMotion": false,
+          "gore": true
+        },
+        "impacts": {
+          "marks": 0,
+          "smoke": 0,
+          "capacity": {
+            "marks": 96,
+            "smoke": 96
+          }
+        },
+        "rendererTextures": 34,
+        "enemies": 0,
+        "gore": 0,
+        "blood": 0,
+        "projectiles": 0,
+        "tracers": 0,
+        "coins": 0,
+        "world": "ossuary",
+        "warden": "ready",
+        "wardenInstances": 0
+      }
+    },
+    {
+      "sector": "choir",
+      "diagnostics": {
+        "renderer": "three.js",
+        "worldBatch": {
+          "removed": 552,
+          "batches": 23
+        },
+        "webgl": true,
+        "error": null,
+        "width": 1280,
+        "height": 800,
+        "dpr": 0.75,
+        "renderScale": 0.75,
+        "fov": 92,
+        "meshes": 739,
+        "instancedMeshes": 31,
+        "geometries": 735,
+        "materials": 102,
+        "triangles": 205282,
+        "calls": 297,
+        "gpuTriangles": 83560,
+        "rendererGeometries": 388,
+        "explosions": {
+          "active": 0,
+          "fire": 0,
+          "smoke": 0,
+          "embers": 0,
+          "rings": 0,
+          "maxExplosions": 18,
+          "reducedMotion": false,
+          "gore": true
+        },
+        "impacts": {
+          "marks": 0,
+          "smoke": 0,
+          "capacity": {
+            "marks": 96,
+            "smoke": 96
+          }
+        },
+        "rendererTextures": 34,
+        "enemies": 0,
+        "gore": 0,
+        "blood": 0,
+        "projectiles": 0,
+        "tracers": 0,
+        "coins": 0,
+        "world": "choir",
+        "warden": "ready",
+        "wardenInstances": 0
+      }
+    }
+  ],
+  "journey": {
+    "seconds": 120,
+    "restarts": 1,
+    "peakKills": 1,
+    "pauseScreen": "dead"
+  }
+}

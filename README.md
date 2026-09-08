@@ -8,7 +8,7 @@ Canonical folder: **Desktop/thelastdead**. Repository: **https://github.com/jrod
 
 ## Current build
 
-**BUILD 09 / STEADY HANDS** refines first-person gripping hands, sleeve materials, barrel cant and weapon-specific recoil. It fixes pitched tracer endpoints, moving tracer origins, co-op FX ownership, muzzle flash transforms and projectile launch/trail alignment. See [Build 09 verification](docs/BUILD-09.md). Refresh the existing local or Railway link to play.
+**BUILD 10 / IRON AND ASH** adds weapon mechanisms and richer materials, textured first-person leather, surface impact scars/dust, modeled rockets, softer muzzle flares, and six processed weapon/impact sounds with distinct weapon and creature accents. See [Build 10 evidence](docs/BUILD-10.md). Refresh the existing local or Railway link to play.
 
 ## Play
 

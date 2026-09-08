@@ -7,14 +7,15 @@
 export const AUDIO_ASSET_MANIFEST = Object.freeze({
   ambience: ['./audio/ambience/ossuary-dungeon.ogg'],
   shot: [
-    ['./audio/sfx/cc0-gunshot.mp3', './audio/sfx/cc0-gunshot-heavy.wav'],
-    ['./audio/sfx/cc0-gunshot-heavy.wav', './audio/sfx/cc0-explosion.mp3'],
-    ['./audio/sfx/cc0-bullet-crackle.wav', './audio/sfx/cc0-gunshot.mp3'],
+    ['./audio/sfx/processed/ossuary-shot.wav', './audio/sfx/cc0-gunshot.mp3'],
+    ['./audio/sfx/processed/breach-shot.wav', './audio/sfx/cc0-gunshot-heavy.wav'],
+    ['./audio/sfx/processed/arc-lance.wav', './audio/sfx/cc0-bullet-crackle.wav'],
+    ['./audio/sfx/processed/reliquary-launch.wav', './audio/sfx/cc0-explosion-distant.mp3'],
   ],
-  hit: ['./audio/sfx/cc0-bullet-hit.wav', './audio/sfx/cc0-splat-hit.wav'],
-  blood: ['./audio/sfx/cc0-splat-hit.wav', './audio/sfx/cc0-bullet-hit.wav'],
+  hit: ['./audio/sfx/processed/impact-metal-flesh.wav', './audio/sfx/cc0-bullet-hit.wav'],
+  blood: ['./audio/sfx/processed/blood-burst.wav', './audio/sfx/cc0-splat-hit.wav'],
   explosion: ['./audio/sfx/cc0-explosion.mp3', './audio/sfx/cc0-dull-explosion.wav'],
-  rocket: ['./audio/sfx/cc0-explosion-distant.mp3', './audio/sfx/cc0-dull-explosion.wav'],
+  rocket: ['./audio/sfx/processed/reliquary-launch.wav', './audio/sfx/cc0-explosion-distant.mp3'],
   bulletcrackle: ['./audio/sfx/cc0-bullet-crackle.wav'],
   footstep: [
     './audio/movement/footstep-01.ogg', './audio/movement/footstep-02.ogg',
@@ -260,11 +261,110 @@ export class AudioSystem {
     const buffer = this._chooseBuffer(name, index, details.variant);
     if (buffer) {
       this._playBuffer(buffer, name, index, mix);
+      this._synthAccent(name, index, mix);
       return true;
     }
     return this._synth(name, index, mix);
   }
 
+  _synthAccent(type, weapon = 0, details = {}) {
+    if (!this._ctx) return false;
+    switch (type) {
+      case 'shot':
+      case 'rocket': this._synthWeaponAccent(type === 'rocket' ? 3 : weapon, details); return true;
+      case 'explosion': this._synthExplosionAccent(details); return true;
+      case 'hit': this._synthImpactAccent(details, false); return true;
+      case 'blood': this._synthImpactAccent(details, true); return true;
+      case 'enemyattack':
+      case 'enemydeath':
+      case 'enemyjump':
+      case 'enemyland':
+      case 'moan': this._synthCreatureAccent(type, details); return true;
+      default: return false;
+    }
+  }
+
+  _synthWeaponAccent(weapon = 0, details = {}) {
+    const p = details.position;
+    const w = Math.max(0, Math.min(3, Math.floor(Number(weapon) || 0)));
+    if (w === 0) {
+      this._tone({ from: 1840, to: 760, duration: .055, wave: 'square', level: .028, position: p });
+      this._noise({ duration: .045, level: .032, highpass: 2300, lowpass: 11000, position: p });
+    } else if (w === 1) {
+      this._tone({ from: 58, to: 30, duration: .26, wave: 'sine', level: .072, position: p });
+      this._noise({ duration: .18, level: .058, highpass: 70, lowpass: 1450, position: p });
+    } else if (w === 2) {
+      this._tone({ from: 720, to: 92, duration: .34, wave: 'sawtooth', level: .052, position: p });
+      this._tone({ from: 1760, to: 460, duration: .24, wave: 'triangle', level: .036, position: p, detune: 9 });
+      this._noise({ duration: .21, level: .045, highpass: 2500, lowpass: 10500, position: p });
+    } else {
+      this._tone({ from: 76, to: 24, duration: .42, wave: 'sine', level: .078, position: p });
+      this._tone({ from: 240, to: 68, duration: .30, wave: 'triangle', level: .042, position: p });
+      this._noise({ duration: .32, level: .065, highpass: 110, lowpass: 1450, position: p });
+    }
+    return true;
+  }
+
+  _synthExplosionAccent(details = {}) {
+    const p = details.position;
+    this._tone({ from: 62, to: 19, duration: .62, wave: 'sine', level: .082, position: p });
+    this._noise({ duration: .38, level: .075, highpass: 110, lowpass: 1800, position: p });
+    this._tone({ from: 160, to: 36, duration: .48, wave: 'triangle', level: .035, position: p });
+    return true;
+  }
+
+  _synthImpactAccent(details = {}, wet = false) {
+    const p = details.position;
+    const kind = Math.max(0, Math.min(3, Number(details.enemyKind) || 0));
+    if (wet) {
+      this._tone({ from: kind === 2 ? 82 : 116, to: 42, duration: .18, wave: 'sine', level: .052, position: p });
+      this._noise({ duration: .20, level: .064, highpass: 90, lowpass: kind === 2 ? 980 : 1550, position: p });
+    } else if (kind === 1) {
+      this._tone({ from: 540, to: 180, duration: .12, wave: 'triangle', level: .045, position: p });
+      this._noise({ duration: .08, level: .035, highpass: 1600, lowpass: 6800, position: p });
+    } else if (kind === 2) {
+      this._tone({ from: 148, to: 54, duration: .16, wave: 'sine', level: .058, position: p });
+      this._noise({ duration: .13, level: .042, highpass: 120, lowpass: 1900, position: p });
+    } else {
+      this._tone({ from: 260, to: 72, duration: .11, wave: 'square', level: .048, position: p });
+      this._noise({ duration: .10, level: .034, highpass: 420, lowpass: 3900, position: p });
+    }
+    return true;
+  }
+
+  _synthCreatureAccent(type, details = {}) {
+    const p = details.position;
+    const kind = Math.max(0, Math.min(3, Number(details.enemyKind) || 0));
+    if (type === 'enemyattack' || type === 'moan') {
+      if (kind === 2) {
+        this._tone({ from: 92, to: 36, duration: .48, wave: 'sine', level: .072, position: p });
+        this._noise({ duration: .32, level: .060, lowpass: 700, position: p });
+      } else if (kind === 1) {
+        this._tone({ from: 410, to: 92, duration: .34, wave: 'sawtooth', level: .056, position: p });
+        this._tone({ from: 980, to: 220, duration: .24, wave: 'triangle', level: .028, position: p });
+      } else {
+        this._tone({ from: 220, to: 58, duration: .42, wave: 'sawtooth', level: .060, position: p });
+        this._noise({ duration: .24, level: .052, lowpass: 1700, position: p });
+      }
+    } else if (type === 'enemydeath') {
+      if (kind === 2) {
+        this._tone({ from: 74, to: 21, duration: .72, wave: 'triangle', level: .078, position: p });
+        this._noise({ duration: .42, level: .068, lowpass: 900, position: p });
+      } else if (kind === 1) {
+        this._tone({ from: 360, to: 48, duration: .55, wave: 'sawtooth', level: .060, position: p });
+        this._tone({ from: 1040, to: 220, duration: .32, wave: 'triangle', level: .036, position: p });
+      } else {
+        this._tone({ from: 156, to: 30, duration: .52, wave: 'sawtooth', level: .064, position: p });
+        this._noise({ duration: .36, level: .052, lowpass: 1300, position: p });
+      }
+    } else if (type === 'enemyjump') {
+      this._tone({ from: kind === 1 ? 260 : 100, to: kind === 2 ? 270 : 460, duration: .24, wave: 'triangle', level: .046, position: p });
+    } else if (type === 'enemyland') {
+      this._tone({ from: kind === 2 ? 72 : 96, to: 24, duration: .30, wave: 'sine', level: .066, position: p });
+      this._noise({ duration: .17, level: .042, lowpass: kind === 2 ? 1100 : 1900, position: p });
+    }
+    return true;
+  }
   dispose() {
     if (this._disposed) return;
     this._disposed = true;
@@ -558,6 +658,10 @@ export class AudioSystem {
           this._tone({ from: 340, to: 52, duration: .42, wave: 'sawtooth', level: .120, position: p });
           this._noise({ duration: .32, level: .125, highpass: 900, lowpass: 7600, position: p });
           this._tone({ from: 1180, to: 180, duration: .3, wave: 'square', level: .05, position: p });
+        } else if (w === 3) {
+          this._tone({ from: 76, to: 24, duration: .42, wave: 'sine', level: .118, position: p });
+          this._tone({ from: 240, to: 68, duration: .30, wave: 'triangle', level: .062, position: p });
+          this._noise({ duration: .32, level: .12, highpass: 110, lowpass: 1450, position: p });
         } else {
           this._tone({ from: 112, to: 44, duration: .18, wave: 'triangle', level: .155, position: p });
           this._noise({ duration: .12, level: .24, highpass: 1100, lowpass: 11000, position: p });

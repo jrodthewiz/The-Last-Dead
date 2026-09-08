@@ -1,0 +1,38 @@
+[
+    {
+        "file":  "assets/audio/sfx/processed/ossuary-shot.wav",
+        "source":  "assets/audio/sfx/cc0-gunshot.mp3",
+        "durationSeconds":  0.32,
+        "filter":  "trim 0.32s, highpass 85 Hz, lowpass 9800 Hz, fade, volume .82"
+    },
+    {
+        "file":  "assets/audio/sfx/processed/breach-shot.wav",
+        "source":  "assets/audio/sfx/cc0-gunshot-heavy.wav",
+        "durationSeconds":  0.38,
+        "filter":  "trim 0.38s, lowpass 6900 Hz, fade, volume .76"
+    },
+    {
+        "file":  "assets/audio/sfx/processed/arc-lance.wav",
+        "source":  "assets/audio/sfx/cc0-bullet-crackle.wav",
+        "durationSeconds":  0.28,
+        "filter":  "trim 0.28s, highpass 450 Hz, lowpass 12200 Hz, fade, volume .68"
+    },
+    {
+        "file":  "assets/audio/sfx/processed/reliquary-launch.wav",
+        "source":  "assets/audio/sfx/cc0-explosion-distant.mp3",
+        "durationSeconds":  0.54,
+        "filter":  "trim 0.54s, highpass 38 Hz, lowpass 5600 Hz, fade, volume .42"
+    },
+    {
+        "file":  "assets/audio/sfx/processed/blood-burst.wav",
+        "source":  "assets/audio/sfx/cc0-splat-hit.wav",
+        "durationSeconds":  0.24,
+        "filter":  "trim 0.24s, lowpass 3900 Hz, fade, volume .58"
+    },
+    {
+        "file":  "assets/audio/sfx/processed/impact-metal-flesh.wav",
+        "source":  "assets/audio/sfx/cc0-bullet-hit.wav",
+        "durationSeconds":  0.19,
+        "filter":  "trim 0.19s, highpass 110 Hz, lowpass 7000 Hz, fade, volume .62"
+    }
+]

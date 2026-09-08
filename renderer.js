@@ -244,6 +244,7 @@ export class Renderer {
 
   _loadWeaponMaterials(){
     const loader=new THREE.TextureLoader();
+    loader.load('./assets/textures/worn-oxblood-leather-v1.png',t=>{t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(2,3);t.anisotropy=Math.min(8,this.renderer?.capabilities.getMaxAnisotropy()||4);for(const m of[this.materials.viewGlove,this.materials.viewSleeve]){m.map=t;m.color.set(0xd4c5b9);m.roughness=.85;m.needsUpdate=true;}});
     for(const [file,slot,color]of [['gunmetal_albedo.png','map',true],['gunmetal_normal.png','normalMap',false],['gunmetal_roughness.png','roughnessMap',false]]){
       loader.load('./assets/textures/'+file,t=>{if(color)t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=Math.min(8,this.renderer?.capabilities.getMaxAnisotropy()||4);for(const m of[this.materials.weapon,this.materials.weaponDark,this.materials.weaponTrim]){m[slot]=t;if(slot==='normalMap')m.normalScale.set(.45,.45);m.needsUpdate=true;}});
     }
@@ -370,13 +371,21 @@ export class Renderer {
       group.visible = index === 0;
       // Viewmodels use the room's reflected light without world-shadow occlusion.
       // Their close camera placement should not cast oversized shadows into the arena.
-      group.traverse(node=>{if(node.isMesh){node.castShadow=false;node.receiveShadow=false;for(const material of (Array.isArray(node.material)?node.material:[node.material]))if(material?.isMeshStandardMaterial)material.envMapIntensity=1.45;}});
+      group.traverse(node=>{if(node.isMesh){node.castShadow=false;node.receiveShadow=false;for(const material of (Array.isArray(node.material)?node.material:[node.material]))if(material?.isMeshStandardMaterial)material.envMapIntensity=material.userData.weaponSurface?.envMapIntensity??1.45;}});
       this.weaponRig.add(group);
     });
     this.muzzleFlash = new THREE.Group();
     this.muzzleFlash.name = 'MuzzleFlash';
-    const flash = new THREE.Mesh(new THREE.OctahedronGeometry(0.16, 0), this.materials.gold.clone());
-    flash.scale.set(1.4, 0.35, 2.3);
+    const flashSize=96,flashPixels=new Uint8Array(flashSize*flashSize*4);
+    for(let y=0;y<flashSize;y++)for(let x=0;x<flashSize;x++){
+      const px=(x+.5)/flashSize*2-1,py=(y+.5)/flashSize*2-1,r=Math.hypot(px,py),a=Math.atan2(py,px);
+      const edge=.42+.28*Math.pow(Math.abs(Math.cos(a*3)),8)+.10*Math.sin(a*11);
+      const alpha=clamp((edge-r)*5,0,1)*Math.max(0,1-r*.65),i=(y*flashSize+x)*4;
+      flashPixels[i]=255;flashPixels[i+1]=245;flashPixels[i+2]=225;flashPixels[i+3]=Math.round(alpha*255);
+    }
+    const flashTexture=new THREE.DataTexture(flashPixels,flashSize,flashSize);flashTexture.colorSpace=THREE.SRGBColorSpace;flashTexture.needsUpdate=true;
+    const flash = new THREE.Mesh(new THREE.PlaneGeometry(.42,.42),new THREE.MeshBasicMaterial({map:flashTexture,color:0xffba78,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,toneMapped:false}));
+    flash.name='MuzzlePressureFlare';
     this.muzzleFlash.add(flash);
     const flashLight = new THREE.PointLight(0xffb85c, 0, 3, 2);
     flashLight.name = 'MuzzleLight';
@@ -1069,6 +1078,7 @@ export class Renderer {
 
     const hostile = [], reflected = [], core = [];
     for (const p of run.projectiles || []) {
+      if (p.kind==='rocket') continue;
       if (p.core) core.push(p);
       else if (p.reflected) reflected.push(p);
       else hostile.push(p);
@@ -1127,7 +1137,7 @@ export class Renderer {
     this.weaponGroups.forEach((group,i)=>group.userData.muzzle?.getWorldPosition(muzzlePoints[i]));
     this.weaponFX.explosions?.setCamera(this.camera);
     this.weaponFX.explosions?.setSettings({ reducedMotion: this.settings.reducedMotion, gore: this.settings.gore });
-    this.weaponFX.update(run,this._frameDt||.016,this.settings.gore,muzzlePoints);
+    this.weaponFX.update(run,this._frameDt||.016,this.settings.gore,muzzlePoints,{camera:this.camera,reducedMotion:this.settings.reducedMotion});
     let ci = 0, gi = 0;
     for (const c of run.coins || []) {
       if (ci >= MAX_COINS) break;
@@ -1209,7 +1219,7 @@ export class Renderer {
       this.muzzleFlash.quaternion.copy(rigRotation.invert().multiply(socketRotation));
     }
     this.muzzleFlash.visible = shot > 0.32;
-    this.muzzleFlash.scale.setScalar(.55+shot*.55);
+    this.muzzleFlash.scale.setScalar(([.75,1.1,.45,.85][weapon])*(.55+shot*.55));
     this.muzzleFlash.children[0].rotation.z=now*.023;
     const flashColor=[0xff3154,0xffb44b,0x64eaff,0xff683f][weapon] || 0xff683f;
     this.muzzleFlash.children[0].material.color.set(flashColor);
@@ -1296,6 +1306,7 @@ export class Renderer {
       gpuTriangles: info?.render?.triangles || 0,
       rendererGeometries: info?.memory?.geometries || 0,
       explosions: this.weaponFX?.explosions?.diagnostics?.() || null,
+      impacts: this.weaponFX?.impacts?.diagnostics?.() || null,
       rendererTextures: info?.memory?.textures || 0,
       enemies: (run.course?.enemies || []).filter(e => !e.dead).length,
       gore: this.settings.gore ? (run.gore || []).length : 0,

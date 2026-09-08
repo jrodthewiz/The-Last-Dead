@@ -290,7 +290,7 @@ export class UI {
       <button class="menu-link" type="button" data-action="settings">OPTIONS <span>03</span></button>
       <button class="menu-link" type="button" data-action="guide" aria-expanded="false">HOW TO SURVIVE <span>04</span></button>
       <div class="field-guide" hidden><h2>Move. Kill. Recover.</h2><p>Damage enemies up close to heal. Switch weapons, parry incoming attacks, and keep your momentum.</p><div class="guide-controls"><b>WASD</b><span>Move / mouse to aim</span><b>SPACE / SHIFT</b><span>Jump / dash</span><b>CTRL / F / E</b><span>Slide / parry / tether</span><b>1 2 3 4</b><span>Switch weapons</span><b>RIGHT CLICK</b><span>Coin / core / rocket airburst</span></div><p>Clear the waves. Find the exit. Descend.</p></div>
-     </nav><div class="descent-route"><span>THE DESCENT</span><ol>${CAMPAIGN_SECTORS.map((sector,i)=>`<li><b>${String(i+1).padStart(2,'0')}</b>${esc(sector.name.replace(/^The /,''))}</li>`).join('')}</ol></div><small class="build-revision">THE LAST DEAD / BUILD 09</small></div>
+     </nav><div class="descent-route"><span>THE DESCENT</span><ol>${CAMPAIGN_SECTORS.map((sector,i)=>`<li><b>${String(i+1).padStart(2,'0')}</b>${esc(sector.name.replace(/^The /,''))}</li>`).join('')}</ol></div><small class="build-revision">THE LAST DEAD / BUILD 10</small></div>
     </section>${this._settingsMarkup()}`;
     this._applyPrefs();queueMicrotask(()=>this.root.querySelector('.start-button')?.focus({preventScroll:true}));return this;
   }
