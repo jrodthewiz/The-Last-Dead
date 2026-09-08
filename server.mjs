@@ -163,7 +163,8 @@ function parsePort(value) {
 }
 
 export function parseArgs(argv = process.argv.slice(2), env = process.env) {
-  let port = env.DEAD_ARRIVAL_PORT ?? env.PORT ?? DEFAULT_PORT;
+  let port = env.PORT ?? env.DEAD_ARRIVAL_PORT ?? DEFAULT_PORT;
+  const host = env.HOST || (env.PORT ? '0.0.0.0' : '127.0.0.1');
   let root = DEFAULT_ROOT;
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -186,10 +187,10 @@ export function parseArgs(argv = process.argv.slice(2), env = process.env) {
     }
     throw new Error(`Unknown option: ${arg}`);
   }
-  return { port: parsePort(port), root: path.resolve(root), help: false };
+  return { port: parsePort(port), host, root: path.resolve(root), help: false };
 }
 
-export async function startServer({ port = DEFAULT_PORT, root = DEFAULT_ROOT, spaFallback = true } = {}) {
+export async function startServer({ port = DEFAULT_PORT, host = '127.0.0.1', root = DEFAULT_ROOT, spaFallback = true } = {}) {
   const server = createStaticServer({ root, spaFallback });
   const actualPort = parsePort(port);
   await new Promise((resolve, reject) => {
@@ -198,14 +199,14 @@ export async function startServer({ port = DEFAULT_PORT, root = DEFAULT_ROOT, sp
       reject(error);
     };
     server.once('error', onError);
-    server.listen(actualPort, '127.0.0.1', () => {
+    server.listen(actualPort, host, () => {
       server.off('error', onError);
       resolve();
     });
   });
   const address = server.address();
   const boundPort = typeof address === 'object' && address ? address.port : actualPort;
-  return { server, port: boundPort, root: path.resolve(root) };
+  return { server, port: boundPort, host, root: path.resolve(root) };
 }
 
 export const defaultPort = DEFAULT_PORT;
@@ -219,7 +220,7 @@ if (invokedPath === path.resolve(fileURLToPath(import.meta.url))) {
     } else {
       const running = await startServer(options);
       console.log(`The Last Dead serving ${running.root}`);
-      console.log(`http://127.0.0.1:${running.port}/`);
+      console.log(`http://${running.host}:${running.port}/`);
     }
   } catch (error) {
     console.error(error?.message || error);

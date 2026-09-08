@@ -62,3 +62,7 @@ Gameplay: engine.js. Rendering: renderer.js. Inputs/co-op authority: main.js. UI
 This is a playable combat-arena foundation, not full ULTRAKILL feature parity. It has one original arena, three enemy classes, three waves and three weapons with combo mechanics. A campaign, bosses, every weapon variant, full advanced combat-tech parity, multi-level traversal maps, matchmaking and broad device/network certification remain future work. See docs/COMBAT-FOUNDATION.md and the verification reports for exact implementation and testing evidence.
 
 The original Findle game remains separate. No generation credentials are included. The material image was generated; audio uses local synthesis because the external generation providers were unavailable. Details: docs/assets.md.
+
+## Railway
+
+Use the repository root, build command **npm run build**, start command **npm start**, and **PORT=8080** when the domain target port is 8080. With PORT set, the server binds to **0.0.0.0**; local development defaults to **127.0.0.1:5200**. HOST can explicitly override the bind address. The platform PORT takes precedence over the legacy local port setting.
