@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "checks": [
+    "options Escape from focused slider",
+    "field guide",
+    "keyboard selects all four weapons",
+    "critical health feedback",
+    "parry reticle",
+    "gore preference",
+    "reduced motion preference",
+    "pause/resume",
+    "death/restart",
+    "single settings drawer"
+  ],
+  "errors": []
+}

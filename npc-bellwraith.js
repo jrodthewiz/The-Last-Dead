@@ -224,6 +224,11 @@ export function createBellwraith(options = {}) {
   for (const band of [[.3, .18], [.06, .34], [-.2, .46]]) {
     add(body, new THREE.TorusGeometry(band[1], .011, 6, 28), 'bellEdge', [0, band[0], 0], [1, 1, 1], [Math.PI / 2, 0, 0], 'bell-band-' + band[0]);
   }
+  const crown = part('bell-crown');
+  for (const [side, height, front] of [[-1, .68, .02], [0, .8, .07], [1, .68, .02]]) {
+    const sx = side * .2;
+    add(crown, sweep([[sx, .29, front], [sx + side * .06, .43, front - .01], [sx + side * .11, .57, front], [sx + side * .09, height, front + .04]], [.052, .047, .031, .004], 9), 'boneDark', [0, 0, 0], [1, 1, 1], [0, 0, 0], 'bell-crown-horn-' + side);
+  }
   const runeRing = part('rune-ring', body);
   for (let i = 0; i < 8; i++) {
     const a = i / 8 * Math.PI * 2;
@@ -366,6 +371,11 @@ export function createBellwraith(options = {}) {
     if (name !== 'hover-ring') compactGroup(group);
   }
   addWearColors(root);
+  const renderScale = Number.isFinite(Number(options.scale)) ? Number(options.scale) : 1.1;
+  root.scale.setScalar(renderScale);
+  const visualBounds = new THREE.Box3().setFromObject(root);
+  const visualSize = visualBounds.getSize(new THREE.Vector3());
+  const floorOffset = Math.max(0.02, -visualBounds.min.y + 0.02);
   const ring = hover.getObjectByName('hover-sigil');
   hover.userData.floatBaseY = hover.position.y;
   const faceEmbers = [];
@@ -382,7 +392,7 @@ export function createBellwraith(options = {}) {
   };
   root.userData.sculptRuntime = {
     parts, sockets, materials: mats, textures,
-    collider: {type: 'capsule', size: [.9, 1.9, .9]},
+    collider: {type: 'capsule', size: [visualSize.x, visualSize.y, visualSize.z], floorOffset},
     explode,
     pick(raycaster) {
       const hit = raycaster.intersectObject(root, true)[0];
@@ -394,7 +404,7 @@ export function createBellwraith(options = {}) {
     variant: options.variant || 'mourning-bell',
     parts, sockets, materials: mats, textures, body, arms, hover, ring, faceEmbers, floatParts,
     leftArm: parts['left-arm'], rightArm: parts['right-arm'],
-    deathAt: null, lastNow: 0, phase: options.phase || 0
+    deathAt: null, lastNow: 0, phase: options.phase || 0, renderScale, floorOffset, visualSize: visualSize.toArray(), visualBounds: {min: visualBounds.min.toArray(), max: visualBounds.max.toArray()}
   };
   return root;
 }

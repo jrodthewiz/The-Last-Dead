@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "profile": "generic",
+  "status": "active",
+  "reference": "references/arc-concept-v1.png",
+  "currentStep": "multi-angle-review",
+  "currentPass": "build08-refine-code",
+  "checklist": {
+    "image-analysis": "done: arc-analysis.md",
+    "reference-suitability": "conditional: arc-analysis.md",
+    "detail-inventory": "done: arc-spec.json component list",
+    "spec-authoring": "done: arc-spec.json",
+    "build-current-pass": "done: weapon-arc.js",
+    "render-capture": "done: weapon-game-2.png, weapon-arc.png, weapon-arc-shot.png",
+    "multi-angle-review": "done: non-degenerate gameplay and isolated views captured",
+    "assembly": "done: sculptRuntime parts/explode/pick/sockets present",
+    "ai-review-recorded": "done: review.md",
+    "pipeline-sync": "pending: parent release ledger owns repository-level sync"
+  },
+  "reviewHistory": [
+    {"action":"refine-code","summary":"FPS view hid reactor behind opaque frame and made the stock read as a cylinder; enlarge the cage opening, add a plasma bead, and compact/offset the rear stock.","evidence":["weapon-game-2.png","arc-comparison.png"]}
+  ],
+  "loops": {"perPass": 1, "total": 1, "maxPerPass": 3, "maxTotal": 6}
+}

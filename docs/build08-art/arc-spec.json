@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "2.1-build08",
+  "targetName": "Arc Lance",
+  "targetId": "arc",
+  "sourceImage": "references/arc-concept-v1.png",
+  "route": "authored-procedural-approximation",
+  "suitability": "conditional",
+  "qualityContract": {
+    "primaryDomain": "object",
+    "complexity": "complex",
+    "targetMinDetails": 16,
+    "criticalFeatures": ["caged-plasma-reactor", "helix-conductors", "bone-claw-emitter", "top-and-bottom-rails"],
+    "importantFeatures": ["skull-stock-emblem", "grip-wraps", "reactor-clamps"],
+    "hiddenRegionPolicy": "stylized inference; opposite side and inner cage wall are unobserved"
+  },
+  "components": [
+    {"id":"frame", "topologyClass":"hard-surface-shell-with-cutout", "factoryPart":"frame", "features":["large reactor opening","side plates","rivet rows"]},
+    {"id":"reactor", "topologyClass":"layered-cylindrical", "factoryPart":"reactor", "features":["glass shell","plasma core","plasma bead","five clamps","two helix conductors"]},
+    {"id":"rails", "topologyClass":"continuous-sweeps", "factoryPart":"rails", "features":["mirrored upper rails","lower rails","sight blocks"]},
+    {"id":"coil-guards", "topologyClass":"repeated-sweeps", "factoryPart":"coil-guards", "features":["bone guards","brass pins"]},
+    {"id":"stock", "topologyClass":"cylindrical-plus-emblem", "factoryPart":"stock", "features":["leather core","offset skull emblem","socket cavities"]},
+    {"id":"grip", "topologyClass":"cylindrical-and-repeated-wraps", "factoryPart":"grip", "features":["leather grip","six brass/bone wraps"]},
+    {"id":"emitter", "topologyClass":"socketed-organic-claw", "factoryPart":"emitter", "features":["collar","upper claws","lower claws"]}
+  ],
+  "materials": ["blue-gray gunmetal", "aged bone", "warm brass", "dark leather", "blue glass", "cyan-violet emissive energy"],
+  "actionReady": {"sockets":["muzzle","projectileOrigin","muzzleFlash","recoil","heat","inspect"],"collider":[0.48,0.92,1.8],"explode":true,"pick":true},
+  "review": {"fixed":"weapon-game-2.png", "orbits":["weapon-arc.png", "weapon-arc-shot.png"], "comparison":"arc-comparison.png", "decision":"refine-code", "scoreBand":"0.6-0.7 stylized real-time approximation"}
+}

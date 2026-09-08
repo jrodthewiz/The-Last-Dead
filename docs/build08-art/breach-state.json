@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "profile": "generic",
+  "status": "active",
+  "reference": "references/breach-concept-v1.png",
+  "currentStep": "multi-angle-review",
+  "currentPass": "build08-refine-code",
+  "checklist": {
+    "image-analysis": "done: breach-analysis.md",
+    "reference-suitability": "conditional: breach-analysis.md",
+    "detail-inventory": "done: breach-spec.json component list",
+    "spec-authoring": "done: breach-spec.json",
+    "build-current-pass": "done: weapon-breach.js",
+    "render-capture": "done: weapon-game-1.png, weapon-breach.png, weapon-breach-shot.png",
+    "multi-angle-review": "done: non-degenerate gameplay and isolated views captured",
+    "assembly": "done: sculptRuntime parts/explode/pick/sockets present",
+    "ai-review-recorded": "done: review.md",
+    "pipeline-sync": "pending: parent release ledger owns repository-level sync"
+  },
+  "reviewHistory": [
+    {"action":"refine-code","summary":"FPS view made proximal skull too frontal; move/scale skull stock and preserve twin barrel/readability.","evidence":["weapon-game-1.png","breach-comparison.png"]}
+  ],
+  "loops": {"perPass": 1, "total": 1, "maxPerPass": 3, "maxTotal": 6}
+}

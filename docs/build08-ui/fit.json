@@ -1,0 +1,365 @@
+[
+  {
+    "width": 1280,
+    "height": 800,
+    "errors": [],
+    "hud": {
+      "x": 30,
+      "y": 629,
+      "right": 1250,
+      "bottom": 772,
+      "width": 1220,
+      "height": 143
+    },
+    "buttons": [],
+    "buttonOverlap": false,
+    "overlap": false,
+    "overflow": false,
+    "screen": "play"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "errors": [],
+    "hud": {
+      "x": 16,
+      "y": 619.65625,
+      "right": 374,
+      "bottom": 699,
+      "width": 358,
+      "height": 79.34375
+    },
+    "buttons": [
+      {
+        "x": 30,
+        "y": 712,
+        "right": 77,
+        "bottom": 759,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 85,
+        "y": 712,
+        "right": 132,
+        "bottom": 759,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 30,
+        "y": 767,
+        "right": 77,
+        "bottom": 814,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 85,
+        "y": 767,
+        "right": 132,
+        "bottom": 814,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 140,
+        "y": 767,
+        "right": 187,
+        "bottom": 814,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 140,
+        "y": 712,
+        "right": 187,
+        "bottom": 759,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 203,
+        "y": 712,
+        "right": 250,
+        "bottom": 759,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 258,
+        "y": 712,
+        "right": 305,
+        "bottom": 759,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 258,
+        "y": 767,
+        "right": 305,
+        "bottom": 814,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 203,
+        "y": 767,
+        "right": 250,
+        "bottom": 814,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 313,
+        "y": 712,
+        "right": 360,
+        "bottom": 759,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 313,
+        "y": 767,
+        "right": 360,
+        "bottom": 814,
+        "width": 47,
+        "height": 47
+      }
+    ],
+    "buttonOverlap": false,
+    "overlap": false,
+    "overflow": false,
+    "screen": "play"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "errors": [],
+    "hud": {
+      "x": 16,
+      "y": 619.65625,
+      "right": 304,
+      "bottom": 699,
+      "width": 288,
+      "height": 79.34375
+    },
+    "buttons": [
+      {
+        "x": 6,
+        "y": 722,
+        "right": 50,
+        "bottom": 766,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 54,
+        "y": 722,
+        "right": 98,
+        "bottom": 766,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 6,
+        "y": 770,
+        "right": 50,
+        "bottom": 814,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 54,
+        "y": 770,
+        "right": 98,
+        "bottom": 814,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 102,
+        "y": 770,
+        "right": 146,
+        "bottom": 814,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 102,
+        "y": 722,
+        "right": 146,
+        "bottom": 766,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 174,
+        "y": 722,
+        "right": 218,
+        "bottom": 766,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 222,
+        "y": 722,
+        "right": 266,
+        "bottom": 766,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 222,
+        "y": 770,
+        "right": 266,
+        "bottom": 814,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 174,
+        "y": 770,
+        "right": 218,
+        "bottom": 814,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 270,
+        "y": 722,
+        "right": 314,
+        "bottom": 766,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 270,
+        "y": 770,
+        "right": 314,
+        "bottom": 814,
+        "width": 44,
+        "height": 44
+      }
+    ],
+    "buttonOverlap": false,
+    "overlap": false,
+    "overflow": false,
+    "screen": "play"
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "errors": [],
+    "hud": {
+      "x": 20,
+      "y": 175.25,
+      "right": 824,
+      "bottom": 251,
+      "width": 804,
+      "height": 75.75
+    },
+    "buttons": [
+      {
+        "x": 30,
+        "y": 271,
+        "right": 74,
+        "bottom": 315,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 82,
+        "y": 271,
+        "right": 126,
+        "bottom": 315,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 30,
+        "y": 323,
+        "right": 74,
+        "bottom": 367,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 82,
+        "y": 323,
+        "right": 126,
+        "bottom": 367,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 134,
+        "y": 323,
+        "right": 178,
+        "bottom": 367,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 134,
+        "y": 271,
+        "right": 178,
+        "bottom": 315,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 666,
+        "y": 271,
+        "right": 710,
+        "bottom": 315,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 718,
+        "y": 271,
+        "right": 762,
+        "bottom": 315,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 718,
+        "y": 323,
+        "right": 762,
+        "bottom": 367,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 666,
+        "y": 323,
+        "right": 710,
+        "bottom": 367,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 770,
+        "y": 271,
+        "right": 814,
+        "bottom": 315,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 770,
+        "y": 323,
+        "right": 814,
+        "bottom": 367,
+        "width": 44,
+        "height": 44
+      }
+    ],
+    "buttonOverlap": false,
+    "overlap": false,
+    "overflow": false,
+    "screen": "play"
+  }
+]

@@ -15,6 +15,7 @@ export const RUNTIME_FILES = [
   'engine.js',
   'renderer.js',
   'world-horror.js',
+  'world-authored.js',
   'world-polish.js',
   'npc-warden.js',
   'weapon-ossuary.js',
@@ -26,10 +27,13 @@ export const RUNTIME_FILES = [
   'ui.js',
   'audio.js',
   'styles.css',
+  'horror-ui.css',
+  'weapon-breach.js',
+  'weapon-arc.js',
   'style.css',
 ];
 export const RUNTIME_DIRECTORIES = ['vendor', 'assets', 'public'];
-export const REQUIRED_RUNTIME_FILES = ['index.html', 'main.js', 'peer.js', 'engine.js', 'renderer.js', 'ui.js', 'audio.js', 'styles.css', 'campaign.js', 'explosion-vfx.js', 'weapon-reliquary.js', 'npc-bellwraith.js', 'world-polish.js'];
+export const REQUIRED_RUNTIME_FILES = ['index.html', 'main.js', 'peer.js', 'engine.js', 'renderer.js', 'ui.js', 'audio.js', 'styles.css', 'campaign.js', 'explosion-vfx.js', 'weapon-reliquary.js', 'npc-bellwraith.js', 'world-polish.js', 'world-authored.js', 'horror-ui.css', 'weapon-breach.js', 'weapon-arc.js'];
 
 function isInside(root, candidate) {
   const relative = path.relative(root, candidate);

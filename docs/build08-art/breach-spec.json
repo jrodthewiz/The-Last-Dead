@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "2.1-build08",
+  "targetName": "Breach",
+  "targetId": "breach",
+  "sourceImage": "references/breach-concept-v1.png",
+  "route": "authored-procedural-approximation",
+  "suitability": "conditional",
+  "qualityContract": {
+    "primaryDomain": "object",
+    "complexity": "complex",
+    "targetMinDetails": 16,
+    "criticalFeatures": ["twin-recessed-bores", "bone-rib-cage", "skull-stock-with-cavities", "muzzle-claws"],
+    "importantFeatures": ["top-rail", "vertebral-lower-rail", "leather-grip-wraps"],
+    "hiddenRegionPolicy": "stylized inference; opposite side and underside are unobserved"
+  },
+  "components": [
+    {"id":"receiver", "topologyClass":"hard-surface-shell", "factoryPart":"receiver", "features":["bevelled profile","side plates","rivets"]},
+    {"id":"barrels", "topologyClass":"repeated-cylindrical", "factoryPart":"twin-barrels", "features":["two bores","collars","ember rings"]},
+    {"id":"ribcage", "topologyClass":"continuous-sweeps", "factoryPart":"ribcage", "features":["six mirrored ribs","joint nodes"]},
+    {"id":"vertebral-rail", "topologyClass":"repeated-organic", "factoryPart":"lower-spine", "features":["vertebrae","bone-dark rail"]},
+    {"id":"skull-stock", "topologyClass":"extruded-plus-sweeps", "factoryPart":"skull-stock", "features":["two eye cavities","cheeks","jaw","five teeth","horns"]},
+    {"id":"grip", "topologyClass":"profile-and-wraps", "factoryPart":"grip", "features":["leather shell","seven wraps"]},
+    {"id":"muzzle", "topologyClass":"socketed-hard-surface", "factoryPart":"muzzle-flash", "features":["muzzle socket","flash ring"]}
+  ],
+  "materials": ["worn gunmetal", "aged porous bone", "oxidized brass", "dark leather", "soot", "orange emissive heat"],
+  "actionReady": {"sockets":["muzzle","projectileOrigin","muzzleFlash","recoil","heat","inspect"],"collider":[0.5,0.94,1.72],"explode":true,"pick":true},
+  "review": {"fixed":"weapon-game-1.png", "orbits":["weapon-breach.png", "weapon-breach-shot.png"], "comparison":"breach-comparison.png", "decision":"refine-code", "scoreBand":"0.65-0.75 stylized real-time approximation"}
+}

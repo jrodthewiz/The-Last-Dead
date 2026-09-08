@@ -77,7 +77,12 @@ test('Bellwraith factory is Node-instantiable, bounded, finite, and animatable',
   const meta = root.userData.bellwraith;
   assert.equal(meta.kind, 'bellwraith');
   assert.ok(meta.sockets.pulseOrigin && meta.sockets.attackOrigin && meta.sockets.deathBurst);
-  assert.deepEqual(root.userData.sculptRuntime.collider.size, [.9, 1.9, .9]);
+  assert.equal(meta.renderScale, 1.1);
+  assert.ok(meta.floorOffset > 1 && meta.floorOffset < 1.25, 'Bellwraith floor offset should keep the scaled visual above the floor');
+  assert.deepEqual(root.userData.sculptRuntime.collider.size, meta.visualSize);
+  assert.ok(stats.size[1] > 1.8 && stats.size[1] < 2.15, 'Bellwraith should stay in the intended readable gameplay height class');
+  assert.ok(stats.size[0] > 1.4 && stats.size[0] < 1.9, 'Bellwraith should retain a broad silhouette');
+  assert.ok(stats.size[2] > 1 && stats.size[2] < 1.5, 'Bellwraith depth should remain finite and readable');
 
   for (let frame = 0; frame < 120; frame++) {
     const attacking = frame % 20 >= 8 && frame % 20 < 16;

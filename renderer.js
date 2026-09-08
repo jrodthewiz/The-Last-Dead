@@ -7,6 +7,8 @@ import {createReliquary,animateReliquary} from './weapon-reliquary.js';
 import {createBellwraith,animateBellwraith} from './npc-bellwraith.js';
 import {createWarden,animateWarden} from './npc-warden.js';
 import {createOssuary,animateOssuary} from './weapon-ossuary.js';
+import {createBreach,animateBreach} from './weapon-breach.js';
+import {createArc,animateArc} from './weapon-arc.js';
 import {CombatVFX} from './combat-vfx.js';
 
 // Dead Arrival's simulation is authored in 4 metre cells. The renderer keeps
@@ -63,7 +65,7 @@ function shadow(mesh, cast = true, receive = true) {
   return mesh;
 }
 
-function disposeObject(root) {
+function disposeObject(root, forceShared = false) {
   const geometries = new Set();
   const materials = new Set();
   root?.traverse?.(obj => {
@@ -73,10 +75,10 @@ function disposeObject(root) {
       else materials.add(obj.material);
     }
   });
-  geometries.forEach(g => g.dispose?.());
+  geometries.forEach(g => {if(forceShared||!g.userData?.sharedAsset)g.dispose?.();});
   materials.forEach(m => {
-    if (m.userData?.sharedLibrary) return;
-    for(const key of ['map','normalMap','roughnessMap','bumpMap','emissiveMap']){const texture=m[key];if(texture&&!texture.userData?.sharedAsset)texture.dispose?.();}
+    if (!forceShared && m.userData?.sharedLibrary) return;
+    for(const key of ['map','normalMap','roughnessMap','bumpMap','emissiveMap']){const texture=m[key];if(texture&&(forceShared||!texture.userData?.sharedAsset))texture.dispose?.();}
     m.dispose?.();
   });
 }
@@ -149,7 +151,7 @@ export class Renderer {
     this._buildCombatPools();
     this._buildWeaponRig();
     this._wardenStatus='loading';
-    new GLTFLoader().load('./assets/models/evil-warden.glb',g=>{this.wardenTemplate=g.scene;this.wardenClips=g.animations;this._wardenStatus='ready';},undefined,e=>{this._wardenStatus='fallback';});
+    new GLTFLoader().load('./assets/models/evil-warden.glb',g=>{g.scene.traverse(o=>{if(o.geometry)o.geometry.userData.sharedAsset=true;for(const m of (Array.isArray(o.material)?o.material:[o.material]).filter(Boolean)){for(const value of Object.values(m))if(value?.isTexture)value.userData.sharedAsset=true;}});this.wardenTemplate=g.scene;this.wardenClips=g.animations;this._wardenStatus='ready';},undefined,e=>{this._wardenStatus='fallback';});
     this.resize();
   }
 
@@ -361,8 +363,11 @@ export class Renderer {
     this.camera.add(this.weaponRig);
     this.weaponGroups = [this._makePulseRevolver(), this._makeBreachShotgun(), this._makeArcLance(), this._makeReliquaryAsset()];
     this.weaponGroups.forEach((group, index) => {
-      group.scale.setScalar(0.64);
+      group.scale.setScalar(0.55);
       group.visible = index === 0;
+      // Viewmodels use the room's reflected light without world-shadow occlusion.
+      // Their close camera placement should not cast oversized shadows into the arena.
+      group.traverse(node=>{if(node.isMesh){node.castShadow=false;node.receiveShadow=false;for(const material of (Array.isArray(node.material)?node.material:[node.material]))if(material?.isMeshStandardMaterial)material.envMapIntensity=1.45;}});
       this.weaponRig.add(group);
     });
     this.muzzleFlash = new THREE.Group();
@@ -392,71 +397,24 @@ export class Renderer {
   }
 
   _makePulseRevolver() {
-    const group=createOssuary();group.position.set(.26,-.32,-.58);group.rotation.set(-.055,-.09,-.035);group.add(this._makeArm(1));return group;
+    const group=createOssuary();group.position.set(.3,-.31,-.78);group.rotation.set(-.035,.16,-.035);group.add(this._makeArm(1));return group;
   }
 
   _makeBreachShotgun() {
-    const group = new THREE.Group();
-    group.name = 'BreachShotgun';
-    group.position.set(0.22, -0.37, -0.61);
-    group.rotation.set(-0.05, -0.02, -0.04);
-    const receiver = shadow(box(new THREE.BoxGeometry(0.44, 0.26, 0.64), this.materials.weapon, 0, 0, -0.01));
-    const spine = shadow(box(new THREE.BoxGeometry(0.26, 0.1, 0.66), this.materials.weaponTrim, 0, 0.15, -0.2));
-    const barrelGeo = new THREE.CylinderGeometry(0.074, 0.082, 0.78, 12);
-    const left = shadow(new THREE.Mesh(barrelGeo, this.materials.weaponDark));
-    const right = shadow(new THREE.Mesh(barrelGeo, this.materials.weaponDark));
-    left.rotation.x = Math.PI / 2; right.rotation.x = Math.PI / 2;
-    left.position.set(-0.13, 0.03, -0.64); right.position.set(0.13, 0.03, -0.64);
-    const muzzleL = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.022, 8, 20), this.materials.orange);
-    const muzzleR = muzzleL.clone();
-    muzzleL.rotation.x = 0; muzzleR.rotation.x = 0;
-    muzzleL.position.set(-0.13, 0.03, -1.04); muzzleR.position.set(0.13, 0.03, -1.04);
-    const guard = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.03, 8, 16), this.materials.metal);
-    guard.position.set(0, -0.17, -0.04); guard.rotation.x = Math.PI / 2;
-    const grip = shadow(box(new THREE.BoxGeometry(0.25, 0.4, 0.3), this.materials.weaponDark, 0, -0.23, 0.13));
-    grip.rotation.x = -0.2;
-    const shells = new THREE.Group();
-    for (let i = 0; i < 4; i++) {
-      const shell = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.18, 8), i % 2 ? this.materials.orange : this.materials.gold);
-      shell.rotation.z = Math.PI / 2;
-      shell.position.set(-0.24 + i * 0.16, -0.05, 0.22);
-      shells.add(shell);
-    }
-    group.add(receiver, spine, left, right, muzzleL, muzzleR, guard, grip, shells, this._makeArm(-1), this._makeArm(1));
-    group.userData.muzzle = muzzleL;
-    return group;
+    const group=new THREE.Group(),model=createBreach();group.name='BreachShotgun';
+    group.position.set(.31,-.32,-.88);group.rotation.set(-.035,.18,-.035);
+    group.add(model,this._makeArm(-1),this._makeArm(1));group.userData.model=model;group.userData.muzzle=model.userData.muzzle;return group;
   }
 
   _makeArcLance() {
-    const group = new THREE.Group();
-    group.name = 'ArcLance';
-    group.position.set(0.18, -0.34, -0.74);
-    group.rotation.set(-0.04, -0.02, -0.035);
-    const body = shadow(box(new THREE.BoxGeometry(0.4, 0.33, 0.86), this.materials.weapon, 0, 0, 0.05));
-    const spine = shadow(box(new THREE.BoxGeometry(0.2, 0.16, 1.28), this.materials.weaponTrim, 0, 0.14, -0.36));
-    const coil = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.04, 8, 22), this.materials.cyan);
-    coil.rotation.x = 0;
-    coil.position.z = -0.77;
-    const emitter = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 8), this.materials.cyan);
-    emitter.position.z = -0.9;
-    const prongGeo = new THREE.CylinderGeometry(0.03, 0.055, 0.6, 8);
-    const pL = new THREE.Mesh(prongGeo, this.materials.weaponTrim);
-    const pR = new THREE.Mesh(prongGeo, this.materials.weaponTrim);
-    pL.rotation.x = Math.PI / 2; pR.rotation.x = Math.PI / 2;
-    pL.position.set(-0.14, 0.07, -0.72); pR.position.set(0.14, 0.07, -0.72);
-    const grip = shadow(box(new THREE.BoxGeometry(0.26, 0.42, 0.31), this.materials.weaponDark, 0, -0.24, 0.22));
-    grip.rotation.x = -0.2;
-    const capacitor = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.095, 0.26, 10), this.materials.red);
-    capacitor.rotation.z = Math.PI / 2;
-    capacitor.position.set(0, 0, -0.23);
-    group.add(body, spine, coil, emitter, pL, pR, grip, capacitor, this._makeArm(-1), this._makeArm(1));
-    group.userData.muzzle = emitter;
-    return group;
+    const group=new THREE.Group(),model=createArc();group.name='ArcLance';
+    group.position.set(.29,-.31,-.94);group.rotation.set(-.035,.18,-.035);
+    group.add(model,this._makeArm(-1),this._makeArm(1));group.userData.model=model;group.userData.muzzle=model.userData.muzzle;return group;
   }
   _makeReliquaryAsset() {
     const group = createReliquary({ variant: 'bone-rocket' });
-    group.position.set(0.2, -0.34, -0.74);
-    group.rotation.set(-0.045, -0.035, -0.035);
+    group.position.set(0.31, -0.32, -0.9);
+    group.rotation.set(-0.035, 0.16, -0.035);
     group.name = 'ReliquaryBazooka';
     return group;
   }
@@ -464,8 +422,8 @@ export class Renderer {
   _makeReliquaryFallback() {
     const group = new THREE.Group();
     group.name = 'ReliquaryBazooka';
-    group.position.set(0.2, -0.34, -0.74);
-    group.rotation.set(-0.045, -0.035, -0.035);
+    group.position.set(0.31, -0.32, -0.9);
+    group.rotation.set(-0.035, 0.16, -0.035);
     const body = shadow(box(new THREE.BoxGeometry(0.48, 0.38, 0.92), this.materials.weaponDark, 0, 0, 0.06));
     const shoulder = shadow(box(new THREE.BoxGeometry(0.58, 0.18, 0.46), this.materials.weapon, 0, 0.19, -0.08));
     const spine = shadow(box(new THREE.BoxGeometry(0.16, 0.16, 1.26), this.materials.weaponTrim, 0, 0.12, -0.38));
@@ -520,7 +478,6 @@ export class Renderer {
       this.scene.remove(this.worldRoot);
       disposeObject(this.worldRoot);
     }
-    this._enemyVisuals.forEach(entry => disposeObject(entry.root));
     this._enemyVisuals.clear();
     this.worldRoot = new THREE.Group();
     this.worldRoot.name = 'BloodworksWorld';
@@ -536,7 +493,7 @@ export class Renderer {
     this._buildExit(course?.exit || { x: 6, y: 1 });
     this.horror=buildHorrorDetails(this.worldRoot,this.materials,course);
     buildCathedralKit(this.worldRoot,this.materials,course);
-    this._worldBatch=batchStaticWorld(this.worldRoot,[this._exit?.root,this.horror.organ,this.horror.core]);
+    this._worldBatch=batchStaticWorld(this.worldRoot,[this._exit?.root,this.horror.organ,this.horror.core,...(this.horror.authored?.moving||[])]);
     if (this.horror.theme) {
       this.scene.background.set(this.horror.theme.background);
       this.scene.fog.color.set(this.horror.theme.fog);
@@ -941,23 +898,24 @@ export class Renderer {
     const enemies = run.course?.enemies || [];
     for (const enemy of enemies) {
       let entry = this._enemyVisuals.get(enemy.id);
-      const useWarden = !!this.wardenTemplate && (enemy.kind === 2 || enemy.variant === 'warden');
+      const useWarden = !!this.wardenTemplate && enemy.kind >= 0 && enemy.kind < 3;
       if (!entry) {
         entry = { root: useWarden ? createWarden(this.wardenTemplate,this.wardenClips,enemy.kind) : enemy.kind === 3 ? createBellwraith({ variant: enemy.variant, phase: enemy.phase || 0 }) : this._makeEnemy(enemy.kind, enemy.variant), seed: (enemy.id * 1.618) % TAU, variant: enemy.variant || '' };
         this._enemyVisuals.set(enemy.id, entry);
         this.worldRoot.add(entry.root);
       }
-      if(useWarden&&!entry.root.userData.warden){this.worldRoot.remove(entry.root);entry.root.traverse(o=>o.geometry?.dispose());entry.root=createWarden(this.wardenTemplate,this.wardenClips,enemy.kind);this.worldRoot.add(entry.root);}
+      if(useWarden&&!entry.root.userData.warden){this.worldRoot.remove(entry.root);disposeObject(entry.root);entry.root=createWarden(this.wardenTemplate,this.wardenClips,enemy.kind);this.worldRoot.add(entry.root);}
       alive.add(enemy.id);
       const root = entry.root;
       if(root.userData.warden){root.position.set(worldX(enemy.x),0,worldZ(enemy.y));root.rotation.y=-Math.atan2(run.y-enemy.y,run.x-enemy.x)-Math.PI/2;animateWarden(root,enemy,now,entry.seed);continue;}
        if (root.userData.bellwraith) {
-         root.position.set(worldX(enemy.x), 0.22, worldZ(enemy.y));
-         root.rotation.y = -Math.atan2(run.y - enemy.y, run.x - enemy.x) - Math.PI / 2;
-         animateBellwraith(root, enemy, now, entry.seed);
-       }
-         continue;
-      if (enemy.dead) {
+          const floorOffset = root.userData.bellwraith?.floorOffset ?? 0.22;
+          root.position.set(worldX(enemy.x), floorOffset, worldZ(enemy.y));
+          root.rotation.y = Math.PI / 2 - Math.atan2(run.y - enemy.y, run.x - enemy.x);
+          animateBellwraith(root, enemy, now, entry.seed);
+          continue;
+        }
+       if (enemy.dead) {
         root.visible = false;
         continue;
       }
@@ -1216,8 +1174,10 @@ export class Renderer {
       this.muzzleFlash.position.copy(muzzleWorld);
       this.muzzleFlash.rotation.copy(muzzle.rotation);
     }
-    this.weaponGroups[0].position.x=.26*Math.min(1,this.camera.aspect/.9);
+    this.weaponGroups.forEach((group,i)=>{group.position.x=[.3,.31,.29,.31][i]*Math.min(1,this.camera.aspect/.9);});
     animateOssuary(this.weaponGroups[0],weapon===0?shot:0,now*.001,dt);
+    animateBreach(this.weaponGroups[1].userData.model,now*.001,weapon===1?shot:0,dt);
+    animateArc(this.weaponGroups[2].userData.model,now*.001,weapon===2?shot:0,dt);
     this.weaponGroups[weapon]?.userData.animate?.(now * 0.001, shot);
     if (weapon === 3) animateReliquary(this.weaponGroups[3], shot, now * 0.001, dt);
     this.muzzleFlash.visible = shot > 0.32;
@@ -1244,7 +1204,7 @@ export class Renderer {
       this.canvas.width = Math.floor(width * dpr);
       this.canvas.height = Math.floor(height * dpr);
     }
-    this.weaponGroups?.forEach(group=>group.scale.setScalar(width<600?.48:.64));
+    this.weaponGroups?.forEach(group=>group.scale.setScalar(width<600?.4:.55));
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
   }
@@ -1261,7 +1221,7 @@ export class Renderer {
     if(run.mode==='play'){this._qualityTime+=this._frameDt;this._qualityFrames++;if(this._qualityTime>=3){const rate=this._qualityFrames/this._qualityTime,previous=this._renderScale;if(rate<42)this._renderScale=Math.max(.75,this._renderScale-.1);else if(rate>57)this._renderScale=Math.min(1,this._renderScale+.05);this._qualityTime=0;this._qualityFrames=0;if(previous!==this._renderScale)this.resize();}}
     const key = run.course.index ?? `${run.course.w}:${run.course.h}`;
     if (this._worldKey !== key || this._course !== run.course) this._buildWorld(run.course);
-    if(this.horror){const pulse=1+Math.sin(nowMs*.002)*.025;this.horror.organ.scale.set(1.5*pulse,2.1,1.15*pulse);}
+    if(this.horror){this.horror.authored?.animate(this.settings.reducedMotion?0:nowMs*.001);const pulse=1+Math.sin(nowMs*.002)*.025;this.horror.organ.scale.set(1.5*pulse,2.1,1.15*pulse);}
     this._updateCamera(run, nowMs);
     this._updateEnemies(run, nowMs);
     this._updatePeer(run, nowMs);
@@ -1330,6 +1290,7 @@ export class Renderer {
     if (this.combatRoot) disposeObject(this.combatRoot);
     if (this.weaponRig) disposeObject(this.weaponRig);
     this.materials && Object.values(this.materials).forEach(m => m.dispose?.());
+    if(this.wardenTemplate)disposeObject(this.wardenTemplate,true);
     this._envTarget?.dispose();
     this.renderer?.dispose?.();
     this.renderer = null;

@@ -1,0 +1,33 @@
+{
+  "weapons": [
+    {
+      "slot": 0,
+      "name": "Ossuary",
+      "meshes": 33,
+      "calls": 215,
+      "triangles": 79160
+    },
+    {
+      "slot": 1,
+      "name": "BreachShotgun",
+      "meshes": 97,
+      "calls": 278,
+      "triangles": 82546
+    },
+    {
+      "slot": 2,
+      "name": "ArcLance",
+      "meshes": 76,
+      "calls": 490,
+      "triangles": 165632
+    },
+    {
+      "slot": 3,
+      "name": "ReliquaryBazooka",
+      "meshes": 41,
+      "calls": 223,
+      "triangles": 73304
+    }
+  ],
+  "errors": []
+}

@@ -8,7 +8,7 @@ Canonical folder: **Desktop/thelastdead**. Repository: **https://github.com/jrod
 
 ## Current build
 
-**BUILD 07 / FOUNDRY POLISH** adds aged weapon materials, a generated wall surface, vaulted architecture, static scene batching, a revised sound mix and clearer mobile controls. See [Build 07 evidence](docs/BUILD-07.md). Refresh the existing local or Railway link to play.
+**BUILD 08 / FLESH AND IRON** fixes invisible enemies, adds authored creature variants and two rebuilt weapon models, improves all four weapon silhouettes and framing, redesigns the horror HUD/menus, and replaces arena layouts with connected routes, landmarks and moving machinery. See [Build 08 evidence](docs/BUILD-08.md). Refresh the existing local or Railway link to play.
 
 ## Play
 
@@ -55,13 +55,13 @@ The codes establish a real WebRTC data channel. There is no account, matchmaking
 - **npm.cmd run test:network** checks WebRTC using installed Chrome and Playwright (see docs/network.md for paths).
 - **node browser-check.mjs** checks desktop and mobile inputs when Playwright is configured. For browser QA, install Playwright locally with **npm.cmd install --no-save playwright**, then **npx.cmd playwright install chromium**. An explicit **PLAYWRIGHT_PATH** can select another installed package; the default resolves this project's own dependencies.
 
-Gameplay: engine.js. Rendering: renderer.js. Inputs/co-op authority: main.js. UI: ui.js and styles.css. Transport: peer.js. Audio: assets/audio.js. The bundled Three.js runtime retains its license in vendor/THREE-LICENSE.txt.
+Gameplay: engine.js. Rendering: renderer.js. Inputs/co-op authority: main.js. UI: ui.js, styles.css and horror-ui.css. Transport: peer.js. Audio: assets/audio.js. The bundled Three.js runtime retains its license in vendor/THREE-LICENSE.txt.
 
 ## Current scope
 
 This build contains three authored arena sectors, nine paced waves, four enemy families with difficulty variants, and four weapons with combo mechanics. Boss encounters, full advanced combat-tech parity, larger traversal maps, matchmaking and broad device/network certification remain future work. It is an original playable foundation, not full ULTRAKILL feature parity.
 
-The original Findle game remains separate. No generation credentials are included. Sampled sound effects and ambience ship locally with procedural fallback layers; source and CC0 licensing are recorded in [audio sources](docs/audio-sources.md). New enemy and weapon concepts and procedural reconstruction evidence are in docs/build06-art.
+The original Findle game remains separate. No generation credentials are included. Sampled sound effects and ambience ship locally with procedural fallback layers; source and CC0 licensing are recorded in [audio sources](docs/audio-sources.md). New enemy and weapon concepts and procedural reconstruction evidence are in docs/build08-art and docs/build08-enemy-art.
 
 ## Railway
 

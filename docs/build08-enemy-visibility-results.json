@@ -1,0 +1,393 @@
+{
+  "url": "http://127.0.0.1:5200/?debug=1&build08=enemy-visibility",
+  "browser": {
+    "executablePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+    "headless": true,
+    "angle": "d3d11"
+  },
+  "reference": {
+    "spawn": {
+      "x": 6,
+      "y": 10.5,
+      "angle": -1.5707963267948966
+    },
+    "openLane": {
+      "x": 6,
+      "y": 8,
+      "distance": 2.5,
+      "angle": -1.5707963267948966
+    }
+  },
+  "actualSpawn": {
+    "enemy": {
+      "id": 3,
+      "kind": 0,
+      "variant": "stalker",
+      "x": 2.68837053769943,
+      "y": 2.400735149976039,
+      "z": 0,
+      "spawnedAt": 2.558333333333327
+    },
+    "player": {
+      "x": 6,
+      "y": 10.5,
+      "angle": -1.9589345759478525,
+      "pitch": 0
+    },
+    "injected": false,
+    "visibility": {
+      "entry": true,
+      "rootName": "EvilWarden",
+      "rootVisible": true,
+      "rootPosition": [
+        11.268088693678843,
+        0,
+        10.153373486443702
+      ],
+      "rootScale": [
+        1,
+        1,
+        1
+      ],
+      "expectedPosition": [
+        11.268088693678843,
+        0,
+        10.153373486443702
+      ],
+      "positionError": 0,
+      "meshCount": 37,
+      "visibleMeshCount": 35,
+      "frustumCulledCount": 36,
+      "authoredWarden": true,
+      "camera": {
+        "x": 6,
+        "y": 10.5,
+        "angle": -1.9589345759478525,
+        "pitch": 0
+      }
+    }
+  },
+  "naturalWardenKinds": [
+    {
+      "enemy": {
+        "id": 3,
+        "kind": 0,
+        "variant": "stalker",
+        "x": 2.68837053769943,
+        "y": 2.400735149976039,
+        "z": 0,
+        "spawnedAt": 2.558333333333327
+      },
+      "player": {
+        "x": 6,
+        "y": 10.5,
+        "angle": -1.9589345759478525,
+        "pitch": 0
+      },
+      "injected": false,
+      "visibility": {
+        "entry": true,
+        "rootName": "EvilWarden",
+        "rootVisible": true,
+        "rootPosition": [
+          11.268088693678843,
+          0,
+          10.153373486443702
+        ],
+        "rootScale": [
+          1,
+          1,
+          1
+        ],
+        "expectedPosition": [
+          11.268088693678843,
+          0,
+          10.153373486443702
+        ],
+        "positionError": 0,
+        "meshCount": 37,
+        "visibleMeshCount": 35,
+        "frustumCulledCount": 36,
+        "authoredWarden": true,
+        "camera": {
+          "x": 6,
+          "y": 10.5,
+          "angle": -1.9589345759478525,
+          "pitch": 0
+        }
+      }
+    },
+    {
+      "enemy": {
+        "id": 6,
+        "kind": 1,
+        "variant": "caster",
+        "x": 1.7795084971874695,
+        "y": 2.1397542485937486,
+        "z": 0,
+        "spawnedAt": 3.5833333333333233
+      },
+      "player": {
+        "x": 6,
+        "y": 10.5,
+        "angle": -2.038299382990221,
+        "pitch": 0
+      },
+      "injected": false,
+      "visibility": {
+        "entry": true,
+        "rootName": "EvilWarden",
+        "rootVisible": true,
+        "rootPosition": [
+          7.422139233689845,
+          0,
+          8.711069616844993
+        ],
+        "rootScale": [
+          1,
+          1,
+          1
+        ],
+        "expectedPosition": [
+          7.422139233689845,
+          0,
+          8.711069616844993
+        ],
+        "positionError": 0,
+        "meshCount": 41,
+        "visibleMeshCount": 39,
+        "frustumCulledCount": 40,
+        "authoredWarden": true,
+        "camera": {
+          "x": 6,
+          "y": 10.5,
+          "angle": -2.038299382990221,
+          "pitch": 0
+        }
+      }
+    },
+    {
+      "enemy": {
+        "id": 20,
+        "kind": 2,
+        "variant": "brute",
+        "x": 2.3823300540328374,
+        "y": 2.330187473544765,
+        "z": 0,
+        "spawnedAt": 12.049999999999956
+      },
+      "player": {
+        "x": 6,
+        "y": 10.5,
+        "angle": -1.9876544984911961,
+        "pitch": 0
+      },
+      "injected": false,
+      "visibility": {
+        "entry": true,
+        "rootName": "EvilWarden",
+        "rootVisible": true,
+        "rootPosition": [
+          9.865462585306492,
+          0,
+          9.371821487509669
+        ],
+        "rootScale": [
+          1,
+          1,
+          1
+        ],
+        "expectedPosition": [
+          9.865462585306492,
+          0,
+          9.371821487509669
+        ],
+        "positionError": 0,
+        "meshCount": 41,
+        "visibleMeshCount": 39,
+        "frustumCulledCount": 40,
+        "authoredWarden": true,
+        "camera": {
+          "x": 6,
+          "y": 10.5,
+          "angle": -1.9876544984911961,
+          "pitch": 0
+        }
+      }
+    }
+  ],
+  "bellwraithContract": {
+    "floorOffset": 1.121560025393963,
+    "visualSize": [
+      1.6502717018127442,
+      1.9823024978041652,
+      1.2671524986028673
+    ],
+    "visualBounds": {
+      "min": [
+        -0.8251358509063721,
+        -1.101560025393963,
+        -0.6269999921321869
+      ],
+      "max": [
+        0.8251358509063721,
+        0.8807424724102021,
+        0.6401525064706803
+      ]
+    }
+  },
+  "renderer": {
+    "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F91) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "calls": 276,
+    "triangles": 251378,
+    "geometries": 793,
+    "textures": 48,
+    "programs": [
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": "BazookaFireBillboardsShader",
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": "BazookaSmokeBillboardsShader",
+        "runnable": null
+      },
+      {
+        "name": "BazookaShockwaveRingsShader",
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": "Material_1",
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      },
+      {
+        "name": null,
+        "runnable": null
+      }
+    ],
+    "wardenStatus": "ready"
+  },
+  "diagnostics": {
+    "consoleErrors": [],
+    "pageErrors": [],
+    "requestFailures": [],
+    "warnings": [
+      {
+        "text": "THREE.WebGLProgram: Program Info Log: (210,81-129): warning X4122: sum of 0.996094 and -2.98545e-017 cannot be represented accurately in double precision\n(209,37-61): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(210,82-106): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(209,37-61): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision\n(210,82-106): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision\n\n\n\u0000",
+        "location": {
+          "url": "http://127.0.0.1:5200/vendor/three.core.js",
+          "lineNumber": 2000,
+          "columnNumber": 11
+        }
+      }
+    ]
+  },
+  "errors": []
+}

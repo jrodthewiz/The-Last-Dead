@@ -13,6 +13,15 @@ const DEFAULT_PREFS = Object.freeze({
 const WEAPON_NAMES = ['OSSUARY', 'BREACH SHOTGUN', 'ARC LANCE', 'RELIQUARY'];
 const WEAPON_HINTS = ['BONEFORGED // COIN RICOCHET', 'CLOSE RANGE // WIDE SPREAD', 'RAIL PUNCH // PIERCE', 'ROCKETS // FUSE CONTROL'];
 
+
+const WEAPON_SIGILS = [
+ 'M9 24L18 14H44L50 19H83V29H49L43 35H31L24 48H14L19 31H9Z M29 17V31 M36 17V31 M44 20H78 M52 25H86',
+ 'M8 20H39L48 14H85V21H47V27H85V34H47L39 30H29L23 48H13L17 30H8Z M52 17H82 M52 30H82',
+ 'M8 22H27L35 14H55L65 22H88 M8 32H27L35 40H55L65 32H88 M21 22V33 M39 17V37 M49 17V37 M58 20L73 27L58 34 M30 34L24 48H14L18 32',
+ 'M6 20L18 12H38L46 17H78L89 10V42L78 35H46L38 40H18L6 32Z M21 16V36 M31 16V36 M49 20V32 M58 20V32 M68 20V32 M83 16V36'
+];
+const weaponSigil=(index)=>`<svg viewBox="0 0 96 56" aria-hidden="true"><path d="${WEAPON_SIGILS[index]}"/></svg>`;
+
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
   '&': '&amp;',
   '<': '&lt;',
@@ -69,10 +78,11 @@ export class UI {
     onAccept = () => {},
     onDisconnect = () => {},
     onSettings = () => {},
+    onWeapon = () => {},
   } = {}) {
     if (!root) throw new Error('The Last Dead UI requires #ui');
     this.root = root;
-    this.callbacks = { onStart, onResume, onRestart, onMenu, onPause, onHost, onJoin, onAccept, onDisconnect, onSettings };
+    this.callbacks = { onStart, onResume, onRestart, onMenu, onPause, onHost, onJoin, onAccept, onDisconnect, onSettings, onWeapon };
     this.prefs = loadPrefs();
     this.screen = 'menu';
     this.run = null;
@@ -123,6 +133,8 @@ export class UI {
 
   _dispatch(action, target) {
     switch (action) {
+      case 'equip': this.callbacks.onWeapon(Number(target.dataset.weapon)); break;
+      case 'guide': {const guide=this.root.querySelector('.field-guide');if(guide){guide.hidden=!guide.hidden;target.setAttribute('aria-expanded',String(!guide.hidden));}break;}
       case 'start': this.callbacks.onStart(); break;
       case 'resume': this.callbacks.onResume(); break;
       case 'restart': this.callbacks.onRestart(); break;
@@ -194,8 +206,11 @@ export class UI {
     if (!drawer) return;
     drawer.classList.toggle('is-open', open);
     drawer.setAttribute('aria-hidden', String(!open));
+    this.root.dataset.settingsOpen=String(open);
     if (open) drawer.querySelector('input, button')?.focus();
   }
+
+  escape(){if(this.root.querySelector('.settings-drawer.is-open')){this._setSettingsOpen(false);this.root.querySelector('.screen button')?.focus();return true;}return false;}
 
   _updatePref(name, value) {
     if (!(name in DEFAULT_PREFS)) return;
@@ -261,40 +276,31 @@ export class UI {
   }
 
   menu() {
-    this.screen = 'menu';
-    this.run = null;
-    this.root.innerHTML = `<section class="screen menu-screen" aria-label="The Last Dead main menu">
-      <div class="menu-shell">
-        <div class="menu-copy">
-          <div class="brand-lockup"><span class="brand-eyebrow">DESCENT PROTOCOL // THREE SECTORS</span><h1 class="brand-title"><span>THE</span><em>LAST DEAD</em></h1><span class="brand-stamp">TLD<br />07<br />LIVE</span><p class="brand-tagline">Three floors below mercy. Fast feet. Heavy weapons. Nothing leaves clean.</p></div>
-          <div class="menu-copy-foot"><div class="menu-footer"><button class="text-button" type="button" data-action="settings">Settings</button><small class="build-revision">BUILD 07 / THE LAST DEAD</small></div><span class="menu-status">NO SAFE ROOM // SIGNAL OPEN</span></div>
-        </div>
-        <div class="menu-actions">
-          <div class="course-heading"><div><span class="kicker">CAMPAIGN // DESCENT</span><h2>The <em>Bloodworks</em></h2></div><span class="course-index">01 / 03</span></div>
-          <p class="course-blurb">Descend through three condemned sectors. Threats evolve, reinforcements arrive in pulses, and every sealed exit demands a clean sweep.</p>
-          <ol class="campaign-route" aria-label="Campaign descent">${CAMPAIGN_SECTORS.map((sector,i)=>`<li class="${i===0?'is-current':''}"><span>${String(i+1).padStart(2,'0')}</span><b>${esc(sector.name.replace(/^The /,''))}</b></li>`).join('')}</ol><div class="course-meta"><div><span class="tiny-label">Protocol</span><strong>3 SECTORS // 9 WAVES</strong></div><div><span class="tiny-label">Threat profile</span><strong>MUTATIONS + HEAVY ORDNANCE</strong></div></div>
-          <button class="primary-button start-button" type="button" data-action="start">Start solo <span>-></span></button>
-          <div class="combat-note"><span class="field-label">Combat doctrine</span><strong>4: RELIQUARY // ROCKETS // FUSE CONTROL</strong></div>
+    this.screen='menu';this.root.dataset.screen='menu';this.root.dataset.settingsOpen='false';this.run=null;
+    this.root.innerHTML=`<section class="screen menu-screen" aria-label="The Last Dead main menu">
+     <div class="menu-shell"><div class="menu-copy"><div class="brand-lockup"><span class="brand-eyebrow">A DESCENT INTO VIOLENCE</span><h1 class="brand-title"><span>THE</span><em>LAST<br>DEAD</em></h1><p class="brand-tagline">BLOOD IS FUEL. KEEP MOVING.</p></div></div>
+     <nav class="menu-actions" aria-label="Main menu"><button class="primary-button start-button" type="button" data-action="start"><span class="menu-choice">DESCEND</span><small>NEW RUN / THE BLOODWORKS</small></button>
           <div class="coop-access"><button class="coop-toggle" type="button" data-action="coop-toggle" aria-expanded="false" aria-controls="coop-form"><span><b>Co-op uplink</b><small>Optional peer-to-peer breach</small></span><i data-coop-icon>+</i></button>
             <div class="coop-panel" id="coop-form" data-coop-panel hidden>
               <div class="network-panel"><span class="field-label">Host a breach</span><div class="network-row"><input class="code-input" name="offer" autocomplete="off" spellcheck="false" placeholder="Offer code appears here" aria-label="Host offer code" readonly /><button class="network-button" type="button" data-action="host">Create offer</button></div><div class="network-row"><button class="text-button" type="button" data-action="copy-offer">Copy offer code</button><span></span></div></div>
               <div class="network-panel"><span class="field-label">Join a breach</span><div class="network-row"><input class="code-input" name="joinOffer" autocomplete="off" spellcheck="false" placeholder="Paste host offer" aria-label="Join offer code" /><button class="network-button" type="button" data-action="join">Make answer</button></div><div class="network-row"><input class="code-input" name="answer" autocomplete="off" spellcheck="false" placeholder="Answer code appears here" aria-label="Answer code" readonly /><button class="network-button" type="button" data-action="copy-answer">Copy</button></div><div class="network-row"><input class="code-input" name="acceptAnswer" autocomplete="off" spellcheck="false" placeholder="Host: paste answer here" aria-label="Accept answer code" /><button class="network-button" type="button" data-action="accept">Accept</button></div><div class="network-row"><button class="text-button" type="button" data-action="disconnect">Disconnect uplink</button><button class="text-button" type="button" data-action="clear-network">Clear codes</button></div><span class="network-state" data-network-message>Codes stay in this browser until you clear them.</span></div>
             </div>
           </div>
-          <div class="controls-strip controls-compact" aria-label="Controls"><span class="control-key"><b class="keycap">WASD</b> move</span><span class="control-key"><b class="keycap">MOUSE</b> look / fire</span><span class="control-key"><b class="keycap">SPACE</b> jump</span><span class="control-key"><b class="keycap">SHIFT</b> dash</span><span class="control-key"><b class="keycap">CTRL</b> slide</span><span class="control-key"><b class="keycap">F</b> parry</span><span class="control-key"><b class="keycap">E</b> tether</span><span class="control-key"><b class="keycap">1 2 3 4</b> weapons</span><span class="control-key"><b class="keycap">ESC</b> pause</span></div>
-        </div>
-      </div>
+
+      <button class="menu-link" type="button" data-action="settings">OPTIONS <span>03</span></button>
+      <button class="menu-link" type="button" data-action="guide" aria-expanded="false">HOW TO SURVIVE <span>04</span></button>
+      <div class="field-guide" hidden><h2>Move. Kill. Recover.</h2><p>Damage enemies up close to heal. Switch weapons, parry incoming attacks, and keep your momentum.</p><div class="guide-controls"><b>WASD</b><span>Move / mouse to aim</span><b>SPACE / SHIFT</b><span>Jump / dash</span><b>CTRL / F / E</b><span>Slide / parry / tether</span><b>1 2 3 4</b><span>Switch weapons</span><b>RIGHT CLICK</b><span>Coin / core / rocket airburst</span></div><p>Clear the waves. Find the exit. Descend.</p></div>
+     </nav><div class="descent-route"><span>THE DESCENT</span><ol>${CAMPAIGN_SECTORS.map((sector,i)=>`<li><b>${String(i+1).padStart(2,'0')}</b>${esc(sector.name.replace(/^The /,''))}</li>`).join('')}</ol></div><small class="build-revision">THE LAST DEAD / BUILD 08</small></div>
     </section>${this._settingsMarkup()}`;
-    this._applyPrefs();
-    return this;
+    this._applyPrefs();queueMicrotask(()=>this.root.querySelector('.start-button')?.focus({preventScroll:true}));return this;
   }
 
   pause() {
-    this.screen = 'pause';
+    this.screen = 'pause';this.root.dataset.screen='pause';this.root.querySelectorAll('.settings-drawer').forEach(n=>n.remove());
     const old = this.root.querySelector('.screen');
     if (old) old.remove();
     this.root.insertAdjacentHTML('afterbegin', `<section class="screen pause-screen" aria-label="Paused">
-      <div class="pause-backdrop"></div><div class="pause-card"><span class="kicker">SIGNAL HELD // THE LAST DEAD</span><h2>Stay <em>alive.</em></h2><p class="pause-copy">The arena is waiting. Pick a line, find a target, and keep your momentum when the signal returns.</p><div class="pause-actions"><button class="primary-button" type="button" data-action="resume">Resume breach <span>-></span></button><button class="secondary-button" type="button" data-action="restart">Restart arena</button><button class="secondary-button" type="button" data-action="settings">Settings</button><button class="text-button" type="button" data-action="menu">Abort to menu</button></div></div>
+      <div class="pause-backdrop"></div><div class="pause-card"><span class="kicker">THE LAST DEAD / PAUSED</span><h2>STILL<br><em>BREATHING.</em></h2><p class="pause-copy">The arena is waiting. Pick a line, find a target, and keep your momentum when the signal returns.</p><div class="pause-actions"><button class="primary-button" type="button" data-action="resume">RESUME <span>01</span></button><button class="secondary-button" type="button" data-action="restart">RESTART RUN</button><button class="secondary-button" type="button" data-action="settings">Settings</button><button class="text-button" type="button" data-action="menu">RETURN TO TITLE</button></div></div>
     </section>${this._settingsMarkup()}`);
     this._applyPrefs();
     return this;
@@ -302,7 +308,7 @@ export class UI {
 
   /** Remove modal UI and return input focus to the arena. */
   play() {
-    this.screen = 'play';
+    this.screen = 'play';this.root.dataset.screen='play';
     this._clearToasts();
     this.root.querySelector('.screen')?.remove();
     this._setSettingsOpen(false);
@@ -321,16 +327,18 @@ export class UI {
   }
 
   /** Briefly pulse the center reticle after a hit, kill, or parry event. */
-  hit() {
-    const reticle = this.root.querySelector('[data-hud="crosshair"]');
-    if (!reticle) return this;
-    reticle.classList.add('is-hit');
-    window.clearTimeout(this._hitTimer);
-    this._hitTimer = window.setTimeout(() => reticle.classList.remove('is-hit'), this.prefs.reducedMotion ? 40 : 130);
-    return this;
+  hit(type='hit') {
+    this._hitUntil=performance.now()+(this.prefs.reducedMotion?80:180);
+    this._hitType=type;const crosshair=this.root.querySelector('[data-hud="crosshair"]');crosshair?.classList.add('is-hit');crosshair?.classList.toggle('is-kill',type==='kill');crosshair?.classList.toggle('is-parry',type==='parry');return this;
+  }
+  combatEvent(event={}) {
+    if(['hit','kill','parry'].includes(event.type))this.hit(event.type);
+    if(event.type==='kill'||event.type==='parry'){
+      const feed=this.root.querySelector('.combat-feed');if(feed){const line=document.createElement('span');line.textContent=event.type==='parry'?'+ PARRY':'+ KILL';line.className=event.type;feed.prepend(line);while(feed.children.length>3)feed.lastElementChild.remove();setTimeout(()=>line.remove(),1800);}
+    }
   }
   finish(run = {}, win = run.mode === 'win') {
-    this.screen = win ? 'win' : 'dead';
+    this.screen = win ? 'win' : 'dead';this.root.dataset.screen=this.screen;this._setSettingsOpen(false);
     this._clearToasts();
     this.run = run;
     const courseName = run.course?.name || 'The Bloodworks';
@@ -341,12 +349,20 @@ export class UI {
     const time = Number(run.time) || 0;
     const old = this.root.querySelector('.screen');
     if (old) old.remove();
-    this.root.insertAdjacentHTML('afterbegin', `<section class="screen finish-screen" aria-label="${win ? 'Arena cleared' : 'Run over'}"><div class="finish-backdrop"></div><div class="finish-card ${win ? 'is-win' : 'is-dead'}"><span class="kicker">${win ? 'SUBJECT COMPLETE // EXIT SIGNAL FOUND' : 'LIFE SIGNAL LOST // RELOAD REQUIRED'}</span><h2>${win ? 'Blood <em>paid.</em>' : 'You got <em>opened.</em>'}</h2><p class="finish-copy">${win ? `${esc(courseName)} is quiet for now. Keep the style high and make the next pass hurt more.` : 'The arena keeps moving. Go again with a faster line, a sharper parry, and no respect for the incoming fire.'}</p><div class="results"><div class="result"><strong>${fmt(time, 1)}s</strong><span class="result-label">run time</span></div><div class="result"><strong>${String(kills).padStart(2, '0')}</strong><span class="result-label">eliminated</span></div><div class="result"><strong>${String(combo).padStart(2, '0')}</strong><span class="result-label">best combo</span></div></div><div class="results"><div class="result"><strong>${String(wave).padStart(2, '0')} / 03</strong><span class="result-label">sectors cleared</span></div><div class="result"><strong>${Math.round(style)}</strong><span class="result-label">style earned</span></div><div class="result"><strong>${esc(run.rank || (win ? 'S' : 'D'))}</strong><span class="result-label">final rank</span></div></div><div class="finish-actions"><button class="primary-button" type="button" data-action="restart">${win ? 'Run it back' : 'Retry the breach'} <span>-></span></button><button class="secondary-button" type="button" data-action="menu">Return to menu</button></div></div></section>`);
+    this.root.insertAdjacentHTML('afterbegin', `<section class="screen finish-screen" aria-label="${win ? 'Arena cleared' : 'Run over'}"><div class="finish-backdrop"></div><div class="finish-card ${win ? 'is-win' : 'is-dead'}"><span class="kicker">${win ? 'SUBJECT COMPLETE // EXIT SIGNAL FOUND' : 'THE DESCENT CLAIMS ANOTHER.'}</span><h2>${win ? 'DEBT <em>PAID.</em>' : 'YOU ARE <em>DEAD.</em>'}</h2><p class="finish-copy">${win ? `${esc(courseName)} is quiet for now. Keep the style high and make the next pass hurt more.` : 'The arena keeps moving. Go again with a faster line, a sharper parry, and no respect for the incoming fire.'}</p><div class="results"><div class="result"><strong>${fmt(time, 1)}s</strong><span class="result-label">run time</span></div><div class="result"><strong>${String(kills).padStart(2, '0')}</strong><span class="result-label">eliminated</span></div><div class="result"><strong>${String(combo).padStart(2, '0')}</strong><span class="result-label">best combo</span></div></div><div class="results"><div class="result"><strong>${String(wave).padStart(2, '0')} / 03</strong><span class="result-label">sectors cleared</span></div><div class="result"><strong>${Math.round(style)}</strong><span class="result-label">style earned</span></div><div class="result"><strong>${esc(run.rank || (win ? 'S' : 'D'))}</strong><span class="result-label">final rank</span></div></div><div class="finish-actions"><button class="primary-button" type="button" data-action="restart">${win ? 'Run it back' : 'RISE AGAIN'} <span>-></span></button><button class="secondary-button" type="button" data-action="menu">Return to menu</button></div></div></section>`);
     return this;
   }
 
   _hudMarkup() {
-    return `<div class="hud" aria-label="The Last Dead combat HUD"><div class="hud-top"><div class="hud-cluster"><div class="hud-plate objective"><span class="hud-label"><span data-hud="sector">Sector 01 // Bloodworks</span></span><strong class="hud-value" data-hud="objective">CLEAR THE WAVES</strong><span class="hud-sub" data-hud="objective-sub">Reach the exit after wave 03</span><div class="objective-progress"><i data-hud="objective-progress"></i></div></div></div><div class="hud-cluster"><div class="hud-plate network"><span class="hud-label">Uplink</span><strong class="hud-value" data-hud="network">OFFLINE</strong><span class="hud-sub" data-hud="fps">-- FPS</span></div><div class="hud-plate rank"><span class="hud-label">Style rank</span><strong class="hud-value" data-hud="rank">D</strong><span class="hud-sub" data-hud="style-label">GET CLOSE. GET LOUD.</span></div><button class="hud-pause" type="button" data-action="pause" aria-label="Pause game">II</button></div></div><div class="crosshair" data-hud="crosshair" aria-hidden="true"><span class="hitmarker"></span></div><div class="hud-bottom"><div class="hud-bottom-left"><div class="vitals"><div class="vitals-line"><span class="hud-label">Life signal</span><strong data-hud="health">100</strong></div><div class="meter"><i class="health-fill" data-hud="health-fill"></i></div><div class="vitals-foot"><span>energy <b data-hud="energy">100%</b></span><span data-hud="speed">0.0 m/s</span></div><div class="meter"><i class="energy-fill" data-hud="energy-fill"></i></div></div><div class="dash-cluster"><span class="hud-label">Dash cells</span><div class="dash-pips"><i class="dash-pip" data-dash="0"></i><i class="dash-pip" data-dash="1"></i><i class="dash-pip" data-dash="2"></i></div><span class="hud-sub">shift</span></div></div><div class="hud-bottom-right"><div class="weapon-card"><div class="weapon-line"><span class="weapon-slot" data-hud="weapon-slot">01 / 04</span><strong class="weapon-name" data-hud="weapon">OSSUARY</strong></div><span class="weapon-foot"><span data-hud="weapon-hint">SEMI-AUTO // KEEP MOVING</span><span data-hud="weapon-resource">COIN x4</span><span data-hud="cooldown-label">READY</span></span><div class="cooldown"><i data-hud="cooldown"></i></div></div></div></div></div>`;
+    return `<div class="hud" aria-label="The Last Dead combat HUD">
+      <div class="blood-veil" aria-hidden="true"><svg viewBox="0 0 1600 900" preserveAspectRatio="none"><path d="M0 0H390L270 24L210 13L188 70L165 35L139 118L112 46L75 190L52 84L0 256ZM1600 0H1300L1380 24L1395 86L1420 34L1460 151L1482 66L1525 218L1554 92L1600 267ZM0 900V580L28 689L61 648L43 738L96 716L88 810L158 773L149 868L280 900ZM1600 900V572L1575 665L1542 640L1550 752L1509 734L1496 841L1433 801L1418 884L1310 900Z"/><g><ellipse cx="57" cy="340" rx="9" ry="25"/><ellipse cx="1518" cy="392" rx="12" ry="33"/><ellipse cx="233" cy="53" rx="8" ry="19"/><ellipse cx="1384" cy="850" rx="13" ry="8"/></g></svg></div>
+      <div class="hud-top"><div class="hud-cluster"><div class="objective"><span class="hud-label" data-hud="sector">I / BLOODWORKS</span><strong class="hud-value" data-hud="objective">WAVE 01 / 03</strong><span class="hud-sub" data-hud="objective-sub">HUNT THEM DOWN</span><div class="objective-progress"><i data-hud="objective-progress"></i></div></div></div>
+       <div class="run-clock"><span data-hud="run-clock">00:00</span><small data-hud="network">SOLO</small><small data-hud="fps" hidden></small></div>
+       <div class="hud-cluster"><div class="rank"><span class="rank-caption">STYLE</span><strong data-hud="rank">D</strong><div class="rank-meter"><i data-hud="style-fill"></i></div><span data-hud="style-label">GET CLOSE.</span><div class="combat-feed" aria-live="off"></div></div><button class="hud-pause" type="button" data-action="pause" aria-label="Pause game">II</button></div></div>
+      <div class="crosshair" data-hud="crosshair" aria-hidden="true"><span class="hitmarker"></span><i></i><b></b></div>
+      <div class="hud-bottom"><div class="hud-bottom-left"><div class="vitals"><div class="vitals-line"><svg class="blood-mark" viewBox="0 0 40 60" aria-hidden="true"><path d="M20 0C18 15 2 30 2 40a18 18 0 0 0 36 0C38 29 23 15 20 0Z"/><path class="blood-cut" d="M7 41L24 23L17 42L31 35L18 56"/></svg><strong data-hud="health">100</strong><span class="vital-caption">BLOOD<br><b>VITALS</b></span></div><div class="meter health-meter"><i class="health-trail" data-hud="health-trail"></i><i class="health-fill" data-hud="health-fill"></i></div><span class="critical-label">FEED OR DIE</span></div><div class="dash-cluster"><div class="dash-pips"><i class="dash-pip" data-dash="0"></i><i class="dash-pip" data-dash="1"></i><i class="dash-pip" data-dash="2"></i></div><span>DASH</span></div></div>
+       <div class="hud-bottom-right"><div class="weapon-card"><div class="weapon-line"><span class="weapon-slot" data-hud="weapon-slot">01</span><strong class="weapon-name" data-hud="weapon">OSSUARY</strong></div><div class="weapon-rack">${WEAPON_NAMES.map((name,i)=>`<button type="button" data-action="equip" data-weapon="${i}" data-weapon-slot="${i}" aria-label="Equip ${name}">${weaponSigil(i)}<span>${i+1}</span></button>`).join('')}</div><span class="weapon-foot"><span data-hud="weapon-resource">COIN x4</span><span data-hud="cooldown-label">READY</span></span><div class="cooldown"><i data-hud="cooldown"></i></div></div></div></div>
+    </div>`;
   }
 
   _touchMarkup() {
@@ -359,13 +375,12 @@ export class UI {
     let hud = this.root.querySelector('.hud');
     if (!hud) {
       this.root.insertAdjacentHTML('beforeend', `${this._hudMarkup()}${this._touchMarkup()}<div class="toast-stack" hidden></div>`);
-      hud = this.root.querySelector('.hud');
+      hud = this.root.querySelector('.hud');this._applyPrefs();
     }
-    this.screen = 'play';
     const mode = run.mode || 'play';
-    hud.hidden = mode !== 'play' && mode !== 'ready';
+    hud.hidden = this.screen!=='play'||(mode!=='play'&&mode!=='ready');
     const touch = this.root.querySelector('.touch-layer');
-    if (touch) touch.hidden = false;
+    if (touch) touch.hidden = this.screen!=='play';
     const health = clamp(run.health, 0, 100);
     const energy = clamp(run.energy, 0, 100);
     const style = clamp(run.style, 0, 1800);
@@ -379,10 +394,12 @@ export class UI {
     const cooldown = Math.max(0, Number(run.cooldowns?.[weapon] || run.fireCooldown || 0));
     const maxCooldown = weapons[weapon]?.interval || 1;
     const crosshair = this.root.querySelector('[data-hud="crosshair"]');
-    const hit = Array.isArray(run.events) && run.events.some((event) => event.type === 'hit' || event.type === 'kill' || event.type === 'parry');
-    crosshair?.classList.toggle('is-hit', hit);
+    const now=performance.now();const hit=now<(this._hitUntil||0);
+    crosshair?.classList.toggle('is-hit', hit);crosshair?.classList.toggle('is-kill',hit&&this._hitType==='kill');crosshair?.classList.toggle('is-parry',hit&&this._hitType==='parry');
     crosshair?.classList.toggle('is-shot', Number(run.shot) > 0);
-    this._setHud('health', fmt(health));
+    const reset=run.time<(this._hudTime||0);if(!reset&&this._lastHealth!==undefined&&health<this._lastHealth){this._damageAt=now;this._damageStrength=Math.min(.8,.25+(this._lastHealth-health)/60);}if(reset)this._damageAt=0;this._hudTime=run.time;this._lastHealth=health;hud.classList.toggle('is-critical',health>0&&health<=30);hud.style.setProperty('--damage',String(Math.max(0,1-(now-(this._damageAt||0))/650)*(this._damageStrength||0)));
+    this._setHud('health', fmt(health));this._setHud('health-trail','',health);
+    this._setHud('run-clock',`${String(Math.floor((run.time||0)/60)).padStart(2,'0')}:${String(Math.floor((run.time||0)%60)).padStart(2,'0')}`);
     this._setHud('health-fill', '', health);
     this._setHud('energy', pct(energy));
     this._setHud('energy-fill', '', energy);
@@ -393,7 +410,8 @@ export class UI {
     this._setHud('style-total', `${Math.round(Number(run.styleTotal) || style)} pts`);
     this._setHud('style-fill', '', (style / 1800) * 100);
     this._setHud('weapon', WEAPON_NAMES[weapon]);
-    this._setHud('weapon-slot', `${String(weapon + 1).padStart(2, '0')} / 04`);
+    this._setHud('weapon-slot', `${String(weapon + 1).padStart(2, '0')}`);
+    this.root.querySelectorAll('[data-weapon-slot]').forEach(node=>{node.classList.toggle('is-equipped',Number(node.dataset.weaponSlot)===weapon);node.setAttribute('aria-pressed',String(Number(node.dataset.weaponSlot)===weapon));});
     this._setHud('weapon-hint', WEAPON_HINTS[weapon]);
     const coins = clamp(run.coinCharges, 0, 4);
     const altCooldown = Math.max(0, Number(run.altCooldown || 0));
@@ -403,12 +421,11 @@ export class UI {
     this._setHud('network', network || 'OFFLINE');
     const fpsNode = this.root.querySelector('[data-hud="fps"]');
     if (fpsNode) { fpsNode.hidden = !this.debug; if (this.debug) fpsNode.textContent = fps ? `${Math.round(fps)} FPS` : '-- FPS'; }
-    this._setHud('sector', `Sector ${String((run.sectorIndex||0)+1).padStart(2,'0')} / ${String(run.sectorCount||3).padStart(2,'0')} // ${run.sectorName||run.course?.name||'Bloodworks'}`);
-    this._setHud('objective', exitReady ? ((run.sectorIndex||0)<(run.sectorCount||3)-1?'DESCEND THROUGH EXIT':'REACH THE FINAL EXIT') : run.director?.state==='intermission' ? `NEXT WAVE IN ${Math.ceil(run.waveDelay||0)}s` : `CLEAR WAVE ${String(Math.max(1,currentWave)).padStart(2,'0')} / ${waveCount}`);
-    this._setHud('objective-sub', exitReady ? 'Green exit signal is live' : `${remaining} active // ${pending} reinforcements${run.director?.aliveCap?' // cap '+run.director.aliveCap:''}`);
+    this._setHud('sector', `${['I','II','III'][run.sectorIndex||0]} / ${(run.sectorName||run.course?.name||'Bloodworks').replace(/^The /,'')}`);
+    this._setHud('objective', exitReady ? ((run.sectorIndex||0)<(run.sectorCount||3)-1?'DESCEND THROUGH EXIT':'REACH THE FINAL EXIT') : run.director?.state==='intermission' ? `NEXT WAVE IN ${Math.ceil(run.waveDelay||0)}s` : `WAVE ${String(Math.max(1,currentWave)).padStart(2,'0')} / ${waveCount}`);
+    this._setHud('objective-sub', exitReady ? 'Green exit signal is live' : `${remaining} REMAIN${pending?' / '+pending+' INCOMING':''}`);
     this._setHud('objective-progress', '', exitReady ? 100 : (Math.max(0,currentWave-1)+(total?Math.max(0,total-remaining)/(total+pending):0))/waveCount*100);
     this.root.querySelectorAll('[data-dash]').forEach((pip, index) => pip.classList.toggle('is-ready', energy >= (index + 1) * 33));
-    this._applyPrefs();
     return this;
   }
 
@@ -429,7 +446,7 @@ export class UI {
     stack.hidden = false;
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.textContent = text;
+    const parts=String(text).split(' // ');toast.innerHTML=parts.length>1?`<small>${esc(parts.shift())}</small><strong>${esc(parts.join(' // '))}</strong>`:esc(text);
     stack.append(toast);
     window.clearTimeout(this._toastTimer);
     this._toastTimer = window.setTimeout(() => {

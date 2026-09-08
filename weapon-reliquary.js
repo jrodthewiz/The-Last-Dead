@@ -230,6 +230,21 @@ export function createReliquary(options = {}) {
     add(muzzleBrake, new THREE.ConeGeometry(.035, .18, 6), 'bone', [x, y, -1.1], [1, 1, 1], [Math.PI / 2 + Math.sin(a) * .9, Math.cos(a) * .9, a], 'muzzle-tooth-' + i);
   }
 
+  // Keep the front socket deep and readable in first-person: the collar is a compact housing, while the bone silhouette carries the asymmetry.
+  muzzleBrake.scale.setScalar(.76);
+  muzzleBrake.position.x = .035;
+  muzzleBrake.position.y = .012;
+
+  // Muzzle silhouette pass: two asymmetrical bone claws frame the bore and
+  // break up the round launcher nose while keeping the projectile socket clear.
+  const muzzleClaws = part('muzzle-claws', recoilCarriage);
+  muzzleClaws.scale.setScalar(.7);
+  muzzleClaws.position.set(.035, .012, 0);
+  for (const side of [-1, 1]) {
+    add(muzzleClaws, sweep([[side * .12, .16, -.98], [side * .2, .22, -1.05], [side * .25, .16, -1.17], [side * .17, .06, -1.24]], [.036, .043, .03, .004], 8), 'bone', [0, 0, 0], [1, 1, 1], [0, 0, 0], `muzzle-claw-top-${side}`);
+    add(muzzleClaws, sweep([[side * .11, -.11, -1.0], [side * .19, -.16, -1.09], [side * .23, -.1, -1.2]], [.023, .031, .004], 8), 'boneDark', [0, 0, 0], [1, 1, 1], [0, 0, 0], `muzzle-claw-under-${side}`);
+  }
+
   const ribcage = part('ribcage');
   for (const side of [-1, 1]) {
     for (let i = 0; i < 5; i++) {
@@ -288,13 +303,24 @@ export function createReliquary(options = {}) {
   add(guard, sweep([[0, -.07, -.08], [0, -.15, -.105], [0, -.18, -.035]], [.012, .011, .006], 7), 'brass');
 
   const skull = part('skull-stock');
-  skull.position.set(0, .04, .51);
+  skull.position.set(-.12, .085, .43);
+  skull.scale.setScalar(.58);
+  skull.rotation.y = .34;
   const skullContour = [
     [-.15, -.045], [-.16, .04], [-.115, .125], [-.065, .165], [0, .19],
     [.065, .165], [.115, .125], [.16, .04], [.15, -.045],
     [.085, -.085], [.035, -.03], [-.035, -.03], [-.085, -.085]
   ];
   add(skull, profile(skullContour, .09, .01, [[-.078, .045, .043, .027], [.078, .045, .043, .027]]), 'bone');
+  // A shallow extruded mask looked paper-thin at the player's inspect angle.
+  // The dome and layered facial planes keep the rear death mask dimensional.
+  add(skull, new THREE.SphereGeometry(1, 18, 12), 'boneDark', [0, .07, .02], [.15, .14, .1]);
+  for (const side of [-1, 1]) {
+    add(skull, sweep([[side * .14, .03, .045], [side * .1, .12, .035], [side * .03, .14, .04]], [.02, .028, .014], 8), 'bone');
+    add(skull, sweep([[side * .12, -.015, .045], [side * .085, -.075, .05], [side * .025, -.09, .045]], [.017, .024, .009], 8), 'bone');
+    add(skull, new THREE.TorusGeometry(.046, .008, 6, 18), 'bone', [side * .078, .045, .083], [1, .72, 1]);
+  }
+  add(skull, sweep([[0, .12, .04], [0, .055, .055], [0, -.02, .052]], [.019, .022, .011], 8), 'bone');
   for (const side of [-1, 1]) {
     add(skull, new THREE.SphereGeometry(1, 12, 8), 'soot', [side * .078, .045, .052], [.043, .026, .024]);
     add(skull, new THREE.SphereGeometry(1, 10, 7), 'ember', [side * .078, .045, .076], [.019, .012, .011]);
@@ -323,11 +349,11 @@ export function createReliquary(options = {}) {
 
   const muzzle = new THREE.Object3D();
   muzzle.name = 'muzzle';
-  muzzle.position.set(0, .015, -1.24);
+  muzzle.position.set(.035, .027, -.9);
   recoilCarriage.add(muzzle);
   const projectileOrigin = new THREE.Object3D();
   projectileOrigin.name = 'projectileOrigin';
-  projectileOrigin.position.set(0, .015, -1.26);
+  projectileOrigin.position.set(.035, .027, -.92);
   recoilCarriage.add(projectileOrigin);
   const muzzleFlash = part('muzzle-flash', recoilCarriage);
   muzzleFlash.visible = false;

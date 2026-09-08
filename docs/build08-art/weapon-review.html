@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>The Last Dead — Build08 weapon review</title>
+  <style>
+    :root { color-scheme: dark; font-family: Arial, sans-serif; }
+    body { margin: 0; overflow: hidden; background: #07080b; }
+    canvas { display: block; }
+    #hud { position: fixed; z-index: 2; left: 18px; top: 18px; display: flex; gap: 7px; flex-wrap: wrap; }
+    button { border: 1px solid #9b6252; color: #f7e9d0; background: #171317; padding: 8px 12px; cursor: pointer; font-weight: 700; letter-spacing: .08em; }
+    button[data-active="true"] { background: #8d2634; border-color: #f6b08b; }
+    #caption { position: fixed; right: 18px; bottom: 18px; color: #f7e9d0; text-align: right; letter-spacing: .08em; text-transform: uppercase; font-size: 11px; opacity: .9; }
+  </style>
+</head>
+<body>
+  <nav id="hud"><button data-kind="ossuary">01 Ossuary</button><button data-kind="breach">02 Breach</button><button data-kind="arc">03 Arc</button><button data-kind="reliquary">04 Reliquary</button><button id="pulse">Fire pulse</button></nav>
+  <div id="caption"></div>
+  <script type="module">
+    import * as THREE from '../../vendor/three.module.js';
+    import {createOssuary, animateOssuary} from '../../weapon-ossuary.js';
+    import {createBreach, animateBreach} from '../../weapon-breach.js';
+    import {createArc, animateArc} from '../../weapon-arc.js';
+    import {createReliquary, animateReliquary} from '../../weapon-reliquary.js';
+
+    const renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    renderer.shadowMap.enabled = true;
+    renderer.setSize(innerWidth, innerHeight);
+    document.body.append(renderer.domElement);
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x07080b);
+    scene.fog = new THREE.Fog(0x07080b, 3, 8);
+    scene.add(new THREE.HemisphereLight(0x6f849d, 0x160b0b, 1.8));
+    const key = new THREE.DirectionalLight(0xffdfc1, 4); key.position.set(-3, 3, 4); scene.add(key);
+    const rim = new THREE.DirectionalLight(0x726eff, 2.8); rim.position.set(3, 1, -4); scene.add(rim);
+    const red = new THREE.PointLight(0xff2b1e, 2.2, 4); red.position.set(0, .2, -1.6); scene.add(red);
+    const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, .01, 20);
+    const registry = {
+      ossuary: [createOssuary, animateOssuary, 'Ossuary • volumetric skull revolver'],
+      breach: [createBreach, animateBreach, 'Breach • rib-cage double barrel'],
+      arc: [createArc, animateArc, 'Arc • caged plasma lance'],
+      reliquary: [createReliquary, animateReliquary, 'Reliquary • bone reactor launcher'],
+    };
+    let kind = 'ossuary', root, animator, pulse = 0, angle = -.38;
+    const mount = () => {
+      if (root) scene.remove(root);
+      const [factory, animate, caption] = registry[kind];
+      root = factory({variant: kind});
+      scene.add(root);
+      animator = animate;
+      root.updateWorldMatrix(true, true);
+      const bounds = new THREE.Box3().setFromObject(root);
+      const center = bounds.getCenter(new THREE.Vector3());
+      const size = bounds.getSize(new THREE.Vector3());
+      root.position.sub(center);
+      camera.position.set(-Math.cos(angle) * Math.max(2.7, size.z * 1.6), .48, Math.sin(angle) * Math.max(2.7, size.z * 1.6));
+      camera.lookAt(0, 0, 0);
+      document.querySelector('#caption').textContent = caption;
+      document.querySelectorAll('[data-kind]').forEach(b => b.dataset.active = String(b.dataset.kind === kind));
+    };
+    document.querySelectorAll('[data-kind]').forEach(button => button.onclick = () => { kind = button.dataset.kind; mount(); });
+    document.querySelector('#pulse').onclick = () => { pulse += 1; };
+    addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); });
+    mount();
+    let previous = performance.now();
+    function frame(now) {
+      const dt = Math.min(.05, (now - previous) / 1000); previous = now;
+      if (kind === 'breach' || kind === 'arc') animator?.(root, now / 1000, pulse, dt, {inspect:true});
+      else animator?.(root, pulse, now / 1000, dt, {inspect:true});
+      renderer.render(scene, camera);
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

@@ -38,15 +38,40 @@ export function buildCathedralKit(root, m, course) {
    for(const dx of [-1.45,1.45])for(const y of [.5,2.8]){const bolt=add(new THREE.CylinderGeometry(.075,.075,.065,6),brass,x+dx,y,z+side*1.755);bolt.rotation.x=Math.PI/2;}
   }
  }
- return kit;
+  // Authored routes are visual spines only. They never alter collision cells,
+ // keeping the fast movement proxy deterministic while giving each arena a
+ // readable route hierarchy from spawn to focal court to exit.
+ const layout=course?.layout||course?.world||{};
+ const cueColor=course?.sectorId==='ossuary'?0x8f70ff:course?.sectorId==='choir'?0xff9a4a:0xff384f;
+ const routeMaterial=new THREE.MeshStandardMaterial({color:cueColor,emissive:cueColor,emissiveIntensity:.38,roughness:.7,metalness:.28,transparent:true,opacity:.46,depthWrite:false});
+ for(const route of layout.routes||[]){
+  const pts=route.points||[];
+  for(let i=0;i<pts.length-1;i++){
+   const a=pts[i],b=pts[i+1],ax=a[0]*4+2,az=a[1]*4+2,bx=b[0]*4+2,bz=b[1]*4+2;
+   const dx=bx-ax,dz=bz-az,len=Math.hypot(dx,dz);
+   const strip=add(new THREE.BoxGeometry(len,.035,Math.min(.24,Math.max(.12,(route.width||2)*.08))),routeMaterial,(ax+bx)/2,.035,(az+bz)/2);
+   strip.rotation.y=-Math.atan2(dz,dx);strip.name='RouteSpine_'+route.id;
+  }
+ }
+ // Large court frames and objective portals make the zones legible as authored
+ // rooms instead of a grid of interchangeable cover blocks.
+ const frameMaterial=new THREE.MeshStandardMaterial({color:0x303b44,roughness:.74,metalness:.62});
+ for(const zone of layout.zones||[]){
+  if(zone.role!=='focal-encounter'&&zone.role!=='objective')continue;
+  const [cx,cz,cw,ch]=zone.rect||[];if(!Number.isFinite(cx)||!Number.isFinite(cz))continue;
+  const x0=cx*4+1.1,z0=cz*4+1.1,x1=(cx+cw)*4-1.1,z1=(cz+ch)*4-1.1,h=zone.role==='objective'?7.2:5.3;
+  for(const [x,z] of [[x0,z0],[x1,z0],[x0,z1],[x1,z1]]){const post=add(new THREE.BoxGeometry(.42,h,.42),frameMaterial,x,h/2,z);post.name='ZonePost_'+zone.id;}
+  const topA=add(new THREE.BoxGeometry(x1-x0+.42,.3,.42),frameMaterial,(x0+x1)/2,h,z0);topA.name='ZoneLintel_'+zone.id;
+  const topB=add(new THREE.BoxGeometry(x1-x0+.42,.3,.42),frameMaterial,(x0+x1)/2,h,z1);topB.name='ZoneLintel_'+zone.id;
+ }return kit;
 }
 
 // Bake static world transforms by material; keep all animated groups independent.
 export function batchStaticWorld(root, protectedRoots=[]) {
  const protectedSet=new Set(protectedRoots.filter(Boolean)),groups=new Map();root.updateMatrixWorld(true);
  root.traverse(mesh=>{
-  if(!mesh.isMesh||mesh.isInstancedMesh||mesh.isSkinnedMesh||Array.isArray(mesh.material)||mesh.material.transparent)return;
-  for(let p=mesh;p&&p!==root;p=p.parent)if(protectedSet.has(p))return;
+  if(!mesh.isMesh||mesh.isInstancedMesh||mesh.isSkinnedMesh||mesh.userData?.noBatch||Array.isArray(mesh.material)||mesh.material.transparent)return;
+  for(let p=mesh;p&&p!==root;p=p.parent)if(protectedSet.has(p)||p.userData?.noBatch)return;
   if(!mesh.geometry?.attributes.position||!mesh.geometry.attributes.normal||!mesh.geometry.attributes.uv)return;
   const key=`${mesh.material.uuid}:${mesh.castShadow}:${mesh.receiveShadow}`;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(mesh);
  });
