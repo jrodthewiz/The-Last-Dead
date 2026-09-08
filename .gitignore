@@ -1,0 +1,14 @@
+dist/
+.logs/
+node_modules/
+*.log
+
+.art-source/
+.meshy*.mjs
+.rig-*.mjs
+.optimize-*.mjs
+.optimize-*.py
+
+.env
+.env.*
+!.env.example

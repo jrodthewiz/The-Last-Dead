@@ -1,0 +1,21 @@
+{
+  "name": "the-last-dead",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Last Dead: a movement-focused indie horror FPS with peer-to-peer co-op.",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node server.mjs --dist .",
+    "serve": "node server.mjs --dist .",
+    "preview": "node server.mjs --dist dist",
+    "start": "node server.mjs",
+    "test": "node --test engine.test.mjs && node tests/network.test.mjs",
+    "test:engine": "node --test engine.test.mjs",
+    "test:network": "node tests/network.test.mjs",
+    "test:coop": "node tests/coop-game.test.mjs"
+  }
+}

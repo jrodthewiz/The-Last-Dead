@@ -1,0 +1,31 @@
+{
+  "info": {
+    "renderer": {
+      "renderer": "three.js",
+      "webgl": true,
+      "error": null,
+      "width": 1440,
+      "height": 900,
+      "dpr": 1,
+      "fov": 92,
+      "meshes": 311,
+      "instancedMeshes": 23,
+      "geometries": 305,
+      "materials": 50,
+      "triangles": 20966,
+      "calls": 273,
+      "gpuTriangles": 25778,
+      "rendererGeometries": 278,
+      "rendererTextures": 19,
+      "enemies": 5,
+      "gore": 0,
+      "blood": 0,
+      "projectiles": 2,
+      "tracers": 0,
+      "coins": 0,
+      "world": "bloodworks-industrial-cathedral"
+    },
+    "fps": 42.13657206593145
+  },
+  "errors": []
+}

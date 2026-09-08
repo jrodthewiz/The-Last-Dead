@@ -1,0 +1,41 @@
+{
+  "model": {
+    "bones": 22,
+    "clips": [
+      "Armature|walking_man|baselayer"
+    ],
+    "calls": 3,
+    "triangles": 30078,
+    "hit": true,
+    "collapse": true,
+    "animatedHeight": 1.9331991243112145
+  },
+  "game": {
+    "renderer": "three.js",
+    "webgl": true,
+    "error": null,
+    "width": 1280,
+    "height": 900,
+    "dpr": 1,
+    "fov": 92,
+    "meshes": 225,
+    "instancedMeshes": 23,
+    "geometries": 219,
+    "materials": 43,
+    "triangles": 48398,
+    "calls": 183,
+    "gpuTriangles": 52858,
+    "rendererGeometries": 191,
+    "rendererTextures": 24,
+    "enemies": 1,
+    "gore": 0,
+    "blood": 0,
+    "projectiles": 0,
+    "tracers": 0,
+    "coins": 0,
+    "world": "bloodworks-industrial-cathedral",
+    "warden": "ready",
+    "wardenInstances": 1
+  },
+  "errors": []
+}
