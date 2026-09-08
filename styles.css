@@ -1384,3 +1384,11 @@ input[type="range"] {
   .controls-strip.controls-compact { grid-template-columns: 1fr 1fr; gap: 7px; }
   .controls-compact .control-key { font-size: 0.56rem; }
 }
+/* Campaign route is a compact progression marker, not a level-select menu. */
+.campaign-route { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); list-style:none; padding:0; margin:0 0 14px; gap:8px; }
+.campaign-route li { min-width:0; display:grid; gap:5px; padding:8px 0; border-top:1px solid rgba(238,233,220,.22); color:#a9a69c; }
+.campaign-route li.is-current { border-color:var(--blood-hot); color:#eee9dc; }
+.campaign-route span { font:700 .65rem ui-monospace,monospace; color:var(--blood-hot); }
+.campaign-route b { font:600 .65rem var(--ui-font); text-transform:uppercase; letter-spacing:.04em; line-height:1.4; overflow-wrap:anywhere; }
+.hud-plate.objective .hud-label { max-width:40ch; white-space:normal; }
+@media(max-width:440px) { .campaign-route { gap:10px; } .campaign-route b { font-size:.6rem; } }

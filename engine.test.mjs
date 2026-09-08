@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {makeCourse,newRun,tick,tickPlayer,shoot,parry,look,switchWeapon,addPeer,canStand,eye,grapple} from './engine.js';
+import {makeCourse,makeCampaignCourse,newRun,tick,tickPlayer,shoot,parry,look,switchWeapon,addPeer,canStand,eye,grapple,weapons} from './engine.js';
 const fresh=()=>{const r=newRun(makeCourse());r.mode='play';r.wave=3;r.x=6;r.y=6;r.angle=0;r.waveDelay=999;return r;};
 const enemy=(r,x=7,y=6,hp=20)=>{const e={id:r.nextId++,x,y,hp,kind:1,dead:false,flash:0,attack:999,phase:0};r.course.enemies.push(e);return e;};
 test('free movement follows aim; optional autorun; input release stops ground travel',()=>{const r=fresh();enemy(r,10);for(let n=0;n<120;n++)tick(r,1/120,{forward:1});assert.ok(r.x>7.8);const a=r.angle;look(r,200,-80);assert.notEqual(r.angle,a);assert.ok(r.pitch>0);for(let n=0;n<120;n++)tick(r,1/120,{});assert.ok(r.speed<.01);r.autoRun=true;tick(r,1/60,{});assert.ok(r.speed>0);});
@@ -22,3 +22,35 @@ test('casters commit a visible windup before releasing a projectile',()=>{const 
 
 test('Ossuary hit blood originates at the ray height and tracers carry weapon identity',()=>{const r=newRun(makeCourse());r.mode='play';r.angle=-Math.PI/2;r.pitch=0;r.course.enemies=[{id:77,x:6,y:9,z:0,hp:30,kind:0,dead:false,flash:0,attack:99,phase:0}];shoot(r);assert.ok(r.gore.length>=12);assert.ok(r.gore.every(p=>Math.abs(p.z-.4)<1e-6));assert.equal(r.tracers[0].weapon,0);assert.equal(r.tracers[0].hit,true);assert.equal(r.tracers[0].duration,.18);assert.equal(r.tracers[0].ty,9);});
 test('wall shots do not spawn enemy blood and effects expire',()=>{const r=newRun(makeCourse());r.mode='play';shoot(r);assert.equal(r.gore.length,0);assert.equal(r.tracers[0].hit,false);for(let i=0;i<30;i++)tick(r,1/120);assert.equal(r.tracers.length,0);});
+
+
+test('campaign director is deterministic, telegraphs safe spawns, and advances sectors',()=>{
+ const a=newRun(makeCampaignCourse(0)),b=newRun(makeCampaignCourse(0));a.mode='play';b.mode='play';
+ for(let n=0;n<360;n++){tick(a,1/120,{});tick(b,1/120,{});}
+ assert.equal(a.wave,1);assert.equal(a.wave,b.wave);assert.deepEqual(a.director.queue.map(q=>[q.variant,q.due,q.status]),b.director.queue.map(q=>[q.variant,q.due,q.status]));
+ assert.ok(a.course.enemies.length+a.spawnTelegraphs.length<=a.director.aliveCap);
+ assert.ok(a.spawnTelegraphs.length>0||a.course.enemies.length>0);
+ for(const e of a.course.enemies)assert.ok(Math.hypot(e.x-a.x,e.y-a.y)>=3.49);
+ for(let n=0;n<3000&&a.director.state!=='exit';n++){tick(a,1/120,{});for(const e of a.course.enemies)e.dead=true;}
+ assert.equal(a.director.state,'exit');a.x=a.course.exit.x;a.y=a.course.exit.y;tick(a,1/120,{});
+ assert.equal(a.sectorIndex,1);assert.equal(a.sectorId,'ossuary');assert.equal(a.wave,0);assert.equal(a.course.name,'The Ossuary');
+});
+
+test('bazooka rockets detonate with splash, rocket jump, and wall occlusion',()=>{
+ const r=newRun(makeCourse());r.mode='play';r.x=6;r.y=6;r.angle=0;const e={id:r.nextId++,x:7.2,y:6,z:0,hp:30,kind:0,variant:'stalker',dead:false,flash:0,attack:999,phase:0};r.course.enemies.push(e);
+ switchWeapon(r,3);assert.equal(r.weapon,3);assert.equal(weapons.length,4);assert.equal(shoot(r),true);assert.equal(r.projectiles[0].kind,'rocket');for(let n=0;n<80;n++)tick(r,1/120,{});
+ assert.ok(e.hp<30);assert.ok(r.explosions.length||r.events.some(event=>event.type==='explosion'));assert.ok(r.events.some(event=>event.type==='rocket-jump'));
+ const w=newRun(makeCourse());w.mode='play';w.x=2.5;w.y=3.5;w.angle=0;const behind={id:w.nextId++,x:4.5,y:3.5,z:0,hp:30,kind:0,variant:'stalker',dead:false,flash:0,attack:999,phase:0};w.course.enemies.push(behind);switchWeapon(w,3);shoot(w);for(let n=0;n<100;n++)tick(w,1/120,{});assert.equal(behind.hp,30);
+});
+
+test('campaign final exit produces victory after the third sector',()=>{
+ const r=newRun(makeCampaignCourse(2));r.mode='play';r.wave=r.waveCount;r.course.enemies=[];r.director={state:'exit',budget:0,spent:0,remainingBudget:0,aliveCap:0,active:0,pending:0,queue:[],elapsed:0,seed:0};r.x=r.course.exit.x;r.y=r.course.exit.y;tick(r,1/120,{});
+ assert.equal(r.mode,'win');assert.equal(r.campaignComplete,true);assert.equal(r.events.at(-1).type,'win');
+});
+
+test('bazooka alternate fire detonates only the owner live rocket',()=>{
+ const r=newRun(makeCourse());r.mode='play';r.x=6;r.y=6;r.angle=0;switchWeapon(r,3);
+ assert.equal(shoot(r,true),false);assert.equal(shoot(r),true);const rocket=r.projectiles.find(p=>p.kind==='rocket');assert.ok(rocket);
+ r.cooldowns[3]=99;assert.equal(shoot(r,true),true);assert.equal(rocket.exploded,true);assert.equal(rocket.life,0);assert.ok(r.events.some(event=>event.type==='rocket-detonate'));
+ assert.equal(shoot(r,true),false);
+});

@@ -1,0 +1,5296 @@
+{
+  "targetName": "Bellwraith",
+  "targetId": "bellwraith",
+  "schemaVersion": "2.1",
+  "terminologyProfile": {
+    "domain": "real-time procedural Three.js asset",
+    "geometryTerms": [
+      "silhouette",
+      "topology",
+      "primitive",
+      "bevel",
+      "chamfer",
+      "taper",
+      "bend",
+      "boolean cut",
+      "edge loop",
+      "surface normal",
+      "displacement"
+    ],
+    "materialTerms": [
+      "albedo",
+      "baseColor",
+      "roughness",
+      "metalness",
+      "normal map",
+      "bump map",
+      "ambient occlusion",
+      "cavity dirt",
+      "edge wear",
+      "clearcoat"
+    ],
+    "lightingTerms": [
+      "key light",
+      "fill light",
+      "rim light",
+      "HDRI/environment reflection",
+      "contact shadow"
+    ],
+    "descriptionRule": "Use measurable 3D graphics terms. Avoid vague words unless they are paired with concrete geometry/material/shader parameters."
+  },
+  "sourceImage": "C:\\Users\\wolfk\\Desktop\\thelastdead\\assets\\concepts\\bellwraith-concept-v1.png",
+  "referenceCamera": {
+    "solved": false,
+    "fovDegrees": 40,
+    "aspect": 1,
+    "orientation": {
+      "yaw": 0,
+      "pitch": 0,
+      "roll": 0
+    },
+    "positionHint": [
+      0,
+      0,
+      3
+    ],
+    "note": "For likeness work, solve the reference camera (forge/stage1_intake/solve_camera_pose.py) so the review render aligns with the photo and the reference can be projected. Confirm by overlay review."
+  },
+  "suitability": "conditional",
+  "scores": {
+    "object_isolation": 0,
+    "silhouette_readability": 0,
+    "depth_inference": 0,
+    "primitive_decomposition": 0,
+    "material_procedurality": 0,
+    "occlusion_risk": 0,
+    "interaction_fit": 0
+  },
+  "preSpecAssessment": {
+    "objectClass": {
+      "primaryType": "floating skeletal bell wraith enemy",
+      "primaryDomain": "hybrid",
+      "formLanguage": [
+        "organic",
+        "mechanical",
+        "sculptural",
+        "character-like"
+      ],
+      "structureKind": [
+        "compound object",
+        "branching hierarchy",
+        "layered shell",
+        "articulated assembly"
+      ],
+      "motionPotential": [
+        "articulated",
+        "whole-object transform",
+        "effect-emitter",
+        "detachable"
+      ],
+      "materialFamilies": [
+        "metal",
+        "stone",
+        "fabric",
+        "glass-like"
+      ],
+      "notes": "Stylized single-view reconstruction; hidden back geometry inferred."
+    },
+    "complexity": {
+      "tier": "complex",
+      "scores": {
+        "silhouetteComplexity": 3,
+        "componentCount": 3,
+        "hierarchyDepth": 3,
+        "repetitionDensity": 2,
+        "materialLayerCount": 3,
+        "localDetailDensity": 3,
+        "occlusionRisk": 2,
+        "actionReadinessNeed": 3
+      },
+      "estimatedCounts": {
+        "macroComponents": 4,
+        "mesoComponents": 8,
+        "microFeatureGroups": 6,
+        "materialLayers": 5,
+        "repetitionSystems": 3
+      },
+      "reasoning": [
+        "Bell, skull, ribs, membrane, horns, and core form a compound silhouette.",
+        "Repeated ribs and horn shards need instancing.",
+        "Enemy needs hover, warning, lunge, hit, death, and detach pivots."
+      ]
+    },
+    "specDepthDecision": {
+      "requiredDepth": "complex",
+      "minimumComponentLevels": [
+        "macro",
+        "meso",
+        "micro"
+      ],
+      "needsRepetitionSystems": true,
+      "needsMaterialLocalOverrides": true,
+      "needsMultipleReviewViews": true,
+      "needsActionReadyHierarchy": true,
+      "rationale": "Three-quarter concept supports layered procedural reconstruction; hidden surfaces are explicitly inferred."
+    },
+    "unknownsToResolveBeforeImplementation": [],
+    "detailInventory": {
+      "scanMethod": "component-zones",
+      "targetMinDetails": 16,
+      "note": "Generated concept scanned by silhouette and material zones; every detail maps to a real feature or override.",
+      "details": [
+        {
+          "id": "bell-rim-bevel",
+          "kind": "bevel",
+          "description": "Rim bevel catches cold key light",
+          "region": {
+            "x": 0.12,
+            "y": 0.12,
+            "width": 0.76,
+            "height": 0.76,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "geometry and/or material response",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "bell-body/bell-rim-bevel"
+          },
+          "evidenceRef": "full-object",
+          "confidence": 0.83
+        },
+        {
+          "id": "bell-patina-streaks",
+          "kind": "stain",
+          "description": "Vertical oxidized patina on bell skirt",
+          "region": {
+            "x": 0.12,
+            "y": 0.12,
+            "width": 0.76,
+            "height": 0.76,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "geometry and/or material response",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "bronze/patina-streaks"
+          },
+          "evidenceRef": "full-object",
+          "confidence": 0.76
+        },
+        {
+          "id": "bell-cast-seam",
+          "kind": "seam",
+          "description": "Raised casting seam around shoulder",
+          "region": {
+            "x": 0.12,
+            "y": 0.12,
+            "width": 0.76,
+            "height": 0.76,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "geometry and/or material response",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "bell-body/bell-cast-seam"
+          },
+          "evidenceRef": "full-object",
+          "confidence": 0.79
+        },
+        {
+          "id": "mouth-hole",
+          "kind": "hole",
+          "description": "Dark circular bell mouth opening",
+          "region": {
+            "x": 0.12,
+            "y": 0.12,
+            "width": 0.76,
+            "height": 0.76,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "geometry and/or material response",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "bell-mouth/mouth-hole"
+          },
+          "evidenceRef": "full-object",
+          "confidence": 0.91
+        },
+        {
+          "id": "skull-socket-gloss",
+          "kind": "gloss",
+          "description": "Low-roughness socket rims",
+          "region": {
+            "x": 0.12,
+            "y": 0.12,
+            "width": 0.76,
+            "height": 0.76,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "geometry and/or material response",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "ember/eye-gloss"
+          },
+          "evidenceRef": "full-object",
+          "confidence": 0.72
+        },
+        {
+          "id": "skull-tooth-ridge",
+          "kind": "ridge",
+          "description": "Short ivory tooth ridge",
+          "region": {
+            "x": 0.12,
+            "y": 0.12,
+            "width": 0.76,
+            "height": 0.76,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "geometry and/or material response",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "skull-face/skull-tooth-ridge"
+          },
+          "evidenceRef": "full-object",
+          "confidence": 0.81
+        },
+        {
+          "id": "left-rib-grooves",
+          "kind": "groove",
+          "description": "Channels between left ribs",
+          "region": {
+            "x": 0.12,
+            "y": 0.12,
+            "width": 0.76,
+            "height": 0.76,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "geometry and/or material response",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "rib-left/left-rib-grooves"
+          },
+          "evidenceRef": "full-object",
+          "confidence": 0.79
+        },
+        {
+          "id": "right-rib-grooves",
+          "kind": "groove",
+          "description": "Channels between right ribs",
+          "region": {
+            "x": 0.12,
+            "y": 0.12,
+            "width": 0.76,
+            "height": 0.76,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "geometry and/or material response",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "rib-right/right-rib-grooves"
+          },
+          "evidenceRef": "full-object",
+          "confidence": 0.79
+        },
+        {
+          "id": "hook-hand-contour",
+          "kind": "contour",
+          "description": "Hooked fingertip silhouette",
+          "region": {
+            "x": 0.12,
+            "y": 0.12,
+            "width": 0.76,
+            "height": 0.76,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "geometry and/or material response",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "hook-left/hook-hand-contour"
+          },
+          "evidenceRef": "full-object",
+          "confidence": 0.88
+        },
+        {
+          "id": "membrane-tears",
+          "kind": "chip",
+          "description": "Torn membrane edges",
+          "region": {
+            "x": 0.12,
+            "y": 0.12,
+            "width": 0.76,
+            "height": 0.76,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "geometry and/or material response",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "membrane/membrane-tears"
+          },
+          "evidenceRef": "full-object",
+          "confidence": 0.78
+        },
+        {
+          "id": "horn-ridges",
+          "kind": "ridge",
+          "description": "Repeated horn ridges",
+          "region": {
+            "x": 0.12,
+            "y": 0.12,
+            "width": 0.76,
+            "height": 0.76,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "geometry and/or material response",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "horns/horn-ridges"
+          },
+          "evidenceRef": "full-object",
+          "confidence": 0.73
+        },
+        {
+          "id": "horn-scratches",
+          "kind": "scratch",
+          "description": "Directional horn scratches",
+          "region": {
+            "x": 0.12,
+            "y": 0.12,
+            "width": 0.76,
+            "height": 0.76,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "geometry and/or material response",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "ivory/horn-scratches"
+          },
+          "evidenceRef": "full-object",
+          "confidence": 0.68
+        },
+        {
+          "id": "ember-core",
+          "kind": "emissive",
+          "description": "Red cavity light",
+          "region": {
+            "x": 0.12,
+            "y": 0.12,
+            "width": 0.76,
+            "height": 0.76,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "geometry and/or material response",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "ember/ember-core"
+          },
+          "evidenceRef": "full-object",
+          "confidence": 0.93
+        },
+        {
+          "id": "chain-fasteners",
+          "kind": "fastener",
+          "description": "Belt chain nodes",
+          "region": {
+            "x": 0.12,
+            "y": 0.12,
+            "width": 0.76,
+            "height": 0.76,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "geometry and/or material response",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "chains/chain-fasteners"
+          },
+          "evidenceRef": "full-object",
+          "confidence": 0.7
+        },
+        {
+          "id": "cavity-soot",
+          "kind": "stain",
+          "description": "Soot in mouth cavity",
+          "region": {
+            "x": 0.12,
+            "y": 0.12,
+            "width": 0.76,
+            "height": 0.76,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "geometry and/or material response",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "soot/cavity-soot"
+          },
+          "evidenceRef": "full-object",
+          "confidence": 0.86
+        },
+        {
+          "id": "hover-rift",
+          "kind": "emissive",
+          "description": "Red hover ring",
+          "region": {
+            "x": 0.12,
+            "y": 0.12,
+            "width": 0.76,
+            "height": 0.76,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "geometry and/or material response",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "hover-ring/hover-rift"
+          },
+          "evidenceRef": "full-object",
+          "confidence": 0.75
+        }
+      ]
+    },
+    "anatomy": {
+      "applies": true,
+      "styleHeads": 5.3,
+      "proportions": {
+        "headUnit": 1,
+        "torso": 2.1,
+        "legs": 0.4,
+        "shoulderWidth": 2.25,
+        "hipWidth": 1.25
+      },
+      "pose": {
+        "type": "hovering attack-ready",
+        "jointAngles": {
+          "leftShoulder": -0.9,
+          "rightShoulder": 0.9,
+          "wristCurl": 0.7
+        }
+      },
+      "faceLandmarks": {
+        "eyeLine": 0.53,
+        "eyeSpacing": 0.22,
+        "noseBase": 0.58,
+        "mouthLine": 0.66,
+        "hairline": 0.18
+      },
+      "features": [
+        "bell-mouth skull opening",
+        "hook hands",
+        "horn crown"
+      ],
+      "confidence": 0.64
+    },
+    "sourceImage": "C:\\Users\\wolfk\\Desktop\\thelastdead\\assets\\concepts\\bellwraith-concept-v1.png",
+    "pipelineRouting": {
+      "version": 1,
+      "track": "character-v1.5",
+      "source": "explicit",
+      "status": "resolved",
+      "classification": {
+        "kind": "character",
+        "confidence": 1,
+        "evidenceRefs": [
+          "pipeline-routing:explicit:character-v1.5"
+        ],
+        "provider": "pipeline-routing-cli",
+        "version": "1"
+      },
+      "conflicts": []
+    }
+  },
+  "qualityContract": {
+    "qualityBar": "complex",
+    "definitionOfDone": [
+      "Bell-bodied skeletal wraith reads from the FPS camera.",
+      "Bell, skull, ribs, hooks, membranes, horns, and cavity are separate named parts.",
+      "Neutral and grazing light preserve patina, ivory pores, membrane tears, and ember response.",
+      "Animation can drive hover, warning, lunge, hit, stagger, death, and detach groups."
+    ],
+    "minimumSpecDepth": {
+      "macroComponents": 4,
+      "mesoComponents": 8,
+      "microFeatureGroups": 5,
+      "materialLayers": 4,
+      "repetitionSystems": 2,
+      "reviewViewpoints": 4
+    },
+    "featureGroups": [
+      {
+        "id": "overall-silhouette",
+        "name": "Overall silhouette and proportions",
+        "required": true,
+        "qualityCriteria": [
+          "Bounding shape, dominant curves, negative spaces, and scale relationships are explicitly described."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "model reads as a generic placeholder instead of the reference object",
+          "major proportions are guessed without evidence"
+        ]
+      },
+      {
+        "id": "primary-structure",
+        "name": "Primary structure and hierarchy",
+        "required": true,
+        "qualityCriteria": [
+          "Major parts, joints, seams, contact points, and parent-child relationships are named before code generation."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "large visible parts are merged into one mesh",
+          "component hierarchy is too shallow for the observed complexity"
+        ]
+      },
+      {
+        "id": "attachment-joint-correctness",
+        "name": "Attachment and joint correctness",
+        "required": true,
+        "qualityCriteria": [
+          "Every visible child appendage, branch, limb, handle, connector, tube, cable, horn, wing, leg, or hinged part has an attachment contract with parent socket, localStart/localEnd, contact type, embed/overlap, and gap tolerance."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "child part root floats away from the parent",
+          "branch/limb/tube is centered in space instead of pivoting from its root",
+          "parent-child transform mixes world and local coordinates"
+        ]
+      },
+      {
+        "id": "surface-material-response",
+        "name": "Surface material response",
+        "required": true,
+        "qualityCriteria": [
+          "Albedo zones, roughness, normal/bump/displacement intent, cavity dirt, edge wear, and local overrides are specified where visible.",
+          "Important materials define independent albedo, roughness, height/normal, and AO responses instead of reusing one texture for unrelated PBR channels.",
+          "Surface response is decomposed into macro, meso, and micro frequency bands with scale and amplitude tied to object scale."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "surface looks like flat plastic",
+          "local material variation is missing or not tied to image evidence"
+        ]
+      },
+      {
+        "id": "reference-lookdev",
+        "name": "Reference color, material, and lighting response",
+        "required": true,
+        "qualityCriteria": [
+          "Material-pass names the reference-derived albedo palette, roughness variation, tactile normal/bump/displacement response, and local masks.",
+          "When a source image is available, run reference PBR extraction and require confidence >= 0.7 before treating maps as implementation-ready.",
+          "Lighting-pass names key/fill/rim or environment light, exposure, tone mapping, background, and contact shadow behavior.",
+          "Neutral, grazing-angle, and reference-matched renders prove that surface relief survives relighting and is not painted into albedo."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "model has acceptable shape but reads as flat shaded or plastic",
+          "colors are a generic average instead of reference-observed local color zones",
+          "lighting is evenly ambient and cannot reproduce the source value range"
+        ]
+      }
+    ],
+    "visualDeltaChecks": [
+      "silhouette and negative-space delta",
+      "component hierarchy depth delta",
+      "repetition density and distribution delta",
+      "material albedo/roughness/normal response delta",
+      "local feature placement and scale delta"
+    ],
+    "antiShallowSpecRules": [
+      "Do not proceed to code if qualityContract.qualityBar is unassessed.",
+      "Do not proceed to code if the spec only contains a root component for a moderate or complex object.",
+      "Do not proceed to code if required featureGroups are not represented by componentTree, materials, or repetitionSystems.",
+      "Do not proceed to code if visible local features are described only in prose and not attached to components/materials/evidenceRefs.",
+      "Do not proceed past structural-pass if attached child parts lack attachment.parentSocket, localStart, localEnd, embedDepth/overlap, and gapTolerance.",
+      "Do not pass material look-dev when albedo is reused as roughness, height, normal, or AO.",
+      "Do not pass material look-dev without macro, meso, and micro surface frequency bands for close-up materials.",
+      "Do not pass reference-fidelity material look-dev from a source image without usable referencePbr maps or an explicit documented limitation.",
+      "Do not patch a spec with extracted PBR maps when extraction confidence is below the target threshold unless the user explicitly accepts lower fidelity.",
+      "Do not place adjacent separate-geometry parts below 0.02 world-unit seam overlap (source: grimoire/build/geometry_patterns.md).",
+      "Do not satisfy raised or recessed relief, fasteners, or grip structure with a map alone when the feature affects form; use geometry or displacement (source: grimoire/build/geometry_patterns.md).",
+      "Adjacent components must overlap by at least 0.02 world units at shared seams (source: grimoire/build/geometry_patterns.md).",
+      "Raised or recessed relief and fasteners must be geometry, instanced micro-parts, or displacement; a map alone is an approximation (source: grimoire/build/geometry_patterns.md)."
+    ],
+    "mustNotDo": [
+      "Do not proceed to code if qualityContract.qualityBar is unassessed.",
+      "Do not proceed to code if the spec only contains a root component for a moderate or complex object.",
+      "Do not proceed to code if required featureGroups are not represented by componentTree, materials, or repetitionSystems.",
+      "Do not proceed to code if visible local features are described only in prose and not attached to components/materials/evidenceRefs.",
+      "Do not proceed past structural-pass if attached child parts lack attachment.parentSocket, localStart, localEnd, embedDepth/overlap, and gapTolerance.",
+      "Do not pass material look-dev when albedo is reused as roughness, height, normal, or AO.",
+      "Do not pass material look-dev without macro, meso, and micro surface frequency bands for close-up materials.",
+      "Do not pass reference-fidelity material look-dev from a source image without usable referencePbr maps or an explicit documented limitation.",
+      "Do not patch a spec with extracted PBR maps when extraction confidence is below the target threshold unless the user explicitly accepts lower fidelity.",
+      "Do not place adjacent separate-geometry parts below 0.02 world-unit seam overlap (source: grimoire/build/geometry_patterns.md).",
+      "Do not satisfy raised or recessed relief, fasteners, or grip structure with a map alone when the feature affects form; use geometry or displacement (source: grimoire/build/geometry_patterns.md).",
+      "Adjacent components must overlap by at least 0.02 world units at shared seams (source: grimoire/build/geometry_patterns.md).",
+      "Raised or recessed relief and fasteners must be geometry, instanced micro-parts, or displacement; a map alone is an approximation (source: grimoire/build/geometry_patterns.md)."
+    ]
+  },
+  "qualityTargets": {
+    "targetFidelity": 0.78,
+    "mustMatch": [
+      "readable silhouette",
+      "named macro/meso/micro hierarchy",
+      "action sockets",
+      "distinct material response"
+    ],
+    "niceToHave": [
+      "exact hidden-side ornament"
+    ],
+    "fpsTarget": 60,
+    "reviewViewpoints": [
+      "neutral three-quarter",
+      "grazing material",
+      "FPS gameplay",
+      "exploded component view"
+    ],
+    "qualityPriority": "stylized-runtime"
+  },
+  "selfCorrectLoop": {
+    "enabled": true,
+    "visualAcceptance": {
+      "reviewer": "ai-vision",
+      "threshold": 0.7,
+      "comparisonArtifactRequired": true,
+      "layerScoresRequired": true,
+      "codePixelDiffIsAcceptanceAuthority": false,
+      "scoringRule": "AI vision must inspect a side-by-side reference/render sheet and score the current pass from 0 to 1. Pixel-diff code may assist diagnostics but cannot approve a pass.",
+      "requiredLayerScores": [
+        "silhouetteProportion",
+        "componentStructure",
+        "formDetail",
+        "materialSurface",
+        "lightingCamera"
+      ],
+      "featureReviewPolicy": {
+        "enabled": true,
+        "reviewUnit": "semantic-subsystem",
+        "maxCriticalFeaturesPerPass": 5,
+        "maxImportantFeaturesPerPass": 3,
+        "criticalDefaultThreshold": 0.8,
+        "importantAverageThreshold": 0.65,
+        "adaptiveEscalation": true,
+        "singleImagePairOnly": true,
+        "selectionRule": "Choose only the most visually salient, identity-defining, user-prioritized, or high-risk semantic systems. Group repeated parts instead of reviewing every mesh. AI vision scores every selected feature from the same full reference/render pair."
+      }
+    },
+    "reviewAfterPasses": [
+      "blockout",
+      "structural-pass",
+      "form-refinement",
+      "material-pass",
+      "surface-pass",
+      "lighting-pass",
+      "interaction-pass",
+      "optimization-pass"
+    ],
+    "allowedActions": [
+      "continue",
+      "refine-spec",
+      "refine-code",
+      "request-input",
+      "stop"
+    ],
+    "specRefineTriggers": [
+      "missing component",
+      "wrong primitive family",
+      "wrong proportions",
+      "material layer under-specified",
+      "local feature not traceable to viewEvidence",
+      "reference ambiguity discovered during implementation"
+    ],
+    "codeRefineTriggers": [
+      "spec is adequate but generated geometry/material does not match",
+      "browser render differs from reference",
+      "performance budget exceeded",
+      "lighting hides geometry or material response"
+    ],
+    "stopCriteria": [
+      "target fidelity reached or user accepts current approximation",
+      "remaining gaps require new reference images or manual art"
+    ],
+    "screenshotPolicy": {
+      "requiredForPasses": [
+        "blockout",
+        "structural-pass",
+        "form-refinement",
+        "material-pass",
+        "surface-pass",
+        "lighting-pass",
+        "interaction-pass"
+      ],
+      "preferredCapture": "in-app-browser-screenshot",
+      "fallbackCapture": "user-supplied-screenshot-path",
+      "minimumEvidence": "Each visual pass needs a reference image, rendered screenshot, side-by-side comparison sheet, AI vision score, layer scores, and critique before choosing continue.",
+      "reviewPairRule": "Compare the same camera/viewpoint whenever possible; do not judge a front reference against a random render angle.",
+      "acceptanceAuthority": "AI vision review of the comparison sheet. Code-generated pixel similarity is not sufficient evidence."
+    }
+  },
+  "featureReviewTargets": [
+    {
+      "id": "anatomy-proportion",
+      "name": "Bellwraith massing and head-unit proportion",
+      "tier": "critical",
+      "passIds": [
+        "blockout",
+        "form-refinement"
+      ],
+      "componentRefs": [
+        "bell-body",
+        "skull-face"
+      ],
+      "evidenceRefs": [
+        "full-object"
+      ],
+      "minimumScore": 0.8,
+      "mustPass": true
+    },
+    {
+      "id": "face-landmark-placement",
+      "name": "Skull opening, sockets, and tooth ridge",
+      "tier": "critical",
+      "passIds": [
+        "blockout",
+        "form-refinement"
+      ],
+      "componentRefs": [
+        "skull-face",
+        "ember-core"
+      ],
+      "evidenceRefs": [
+        "full-object"
+      ],
+      "minimumScore": 0.8,
+      "mustPass": true
+    },
+    {
+      "id": "pose-silhouette",
+      "name": "Hovering rib-arm attack pose",
+      "tier": "critical",
+      "passIds": [
+        "blockout",
+        "form-refinement"
+      ],
+      "componentRefs": [
+        "rib-left",
+        "rib-right",
+        "hook-left",
+        "hook-right"
+      ],
+      "evidenceRefs": [
+        "full-object"
+      ],
+      "minimumScore": 0.8,
+      "mustPass": true
+    },
+    {
+      "id": "outfit-and-palette",
+      "name": "Bronze, ivory, membrane, and ember palette",
+      "tier": "critical",
+      "passIds": [
+        "blockout",
+        "form-refinement"
+      ],
+      "componentRefs": [
+        "bell-body",
+        "membrane",
+        "ember-core"
+      ],
+      "evidenceRefs": [
+        "full-object"
+      ],
+      "minimumScore": 0.8,
+      "mustPass": true
+    }
+  ],
+  "sculptPipeline": {
+    "passGateMode": "locked-sequential",
+    "passOrder": [
+      "blockout",
+      "structural-pass",
+      "form-refinement",
+      "material-pass",
+      "surface-pass",
+      "lighting-pass",
+      "interaction-pass",
+      "optimization-pass"
+    ],
+    "currentPass": "blockout",
+    "completedPasses": [],
+    "lastCompletedPass": "",
+    "blockedReason": "blockout requires a browser screenshot and self-correction review before structural-pass unlocks",
+    "nextRequiredEvidence": [
+      "blockout render screenshot",
+      "comparison sheet",
+      "geometry diagnostics"
+    ]
+  },
+  "lookDevTargets": {
+    "qualityPriority": "stylized-runtime",
+    "materialPass": {
+      "minimumTextureResolution": 1024,
+      "independentMapChannels": [
+        "albedo",
+        "roughness",
+        "height",
+        "normal",
+        "ambient-occlusion"
+      ],
+      "referencePbrExtraction": {
+        "requiredWhenSourceImagePresent": false,
+        "targetThreshold": 0.7,
+        "limitation": "Single generated concept view is style evidence, not reliable inverse PBR."
+      }
+    }
+  },
+  "actionReadiness": {
+    "contract": "Every macro/meso component should be generated as a stable named Object3D pivot node with a mesh child, action metadata, optional sockets, collider proxy, and destruction metadata.",
+    "defaultRigType": "action-ready-static-rig",
+    "rootMotionNode": "root",
+    "requiredComponentFields": [
+      "id",
+      "parent",
+      "transform",
+      "attachment for child appendages, connectors, limbs, tubes, handles, legs, horns, wings, branches, or cables",
+      "actionProfile.animationRole",
+      "actionProfile.pivot",
+      "actionProfile.collider",
+      "actionProfile.destruction"
+    ],
+    "transformChannels": [
+      "translate",
+      "rotate",
+      "scale",
+      "bend",
+      "twist",
+      "detach",
+      "visibility",
+      "material-state"
+    ],
+    "authoringRules": [
+      "Do not collapse independently movable parts into one mesh.",
+      "Put transforms on component pivot groups, not only on raw meshes.",
+      "For attached child parts, put the pivot at the semantic root/socket and build visible geometry from localStart to localEnd.",
+      "Represent hinge, socket, detachable, and breakable intent even when no animation is implemented yet.",
+      "Use simplified collider proxies for runtime physics instead of visual mesh colliders by default."
+    ],
+    "destructionPolicy": {
+      "defaultBreakable": false,
+      "fractureGroupNaming": "Use stable semantic names such as body-shell, left-hinge, glass-panel, branch-segment.",
+      "debrisStrategy": "Prefer detachable component groups and a small number of procedural fragments over random mesh explosion."
+    }
+  },
+  "assumptions": [
+    "The single generated concept view supports stylized reconstruction of the visible silhouette and material roles; hidden surfaces remain an approximation.",
+    "Reference PBR extraction is intentionally not treated as exact inverse rendering; runtime maps are authored independently."
+  ],
+  "coordinateFrame": {
+    "front": "camera-facing side in the reference image",
+    "up": "image up direction",
+    "scaleReference": "unit scale; adjust after first browser render"
+  },
+  "silhouette": {
+    "boundingShape": "",
+    "aspectRatios": [],
+    "symmetry": "",
+    "dominantCurves": [],
+    "negativeSpaces": [],
+    "landmarks": []
+  },
+  "viewEvidence": [
+    {
+      "id": "full-object",
+      "label": "Generated full-body three-quarter concept",
+      "image": "assets/concepts/bellwraith-concept-v1.png",
+      "imageRegion": {
+        "x": 0,
+        "y": 0,
+        "width": 1,
+        "height": 1
+      },
+      "confidence": 0.9
+    },
+    {
+      "id": "bell-body",
+      "label": "Bell silhouette and rim",
+      "imageRegion": {
+        "x": 0.18,
+        "y": 0.24,
+        "width": 0.64,
+        "height": 0.5
+      },
+      "confidence": 0.84
+    },
+    {
+      "id": "skull",
+      "label": "Skull face and sockets",
+      "imageRegion": {
+        "x": 0.27,
+        "y": 0.12,
+        "width": 0.46,
+        "height": 0.32
+      },
+      "confidence": 0.81
+    },
+    {
+      "id": "rib-arms",
+      "label": "Rib arms and hook hands",
+      "imageRegion": {
+        "x": 0.08,
+        "y": 0.34,
+        "width": 0.84,
+        "height": 0.47
+      },
+      "confidence": 0.77
+    },
+    {
+      "id": "patina",
+      "label": "Bronze and ivory zones",
+      "imageRegion": {
+        "x": 0.12,
+        "y": 0.08,
+        "width": 0.76,
+        "height": 0.78
+      },
+      "confidence": 0.7
+    }
+  ],
+  "componentTree": [
+    {
+      "id": "bellwraith-root",
+      "name": "Bellwraith root",
+      "level": "macro",
+      "role": "body",
+      "importance": 0.98,
+      "confidence": 0.82,
+      "primitive": "sphere",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Separate authored body volume observed in the generated concept reference.",
+      "geometryDescriptor": {
+        "topologyIntent": "assembled volume with relief",
+        "edgeTreatment": {
+          "type": "soft-rim",
+          "bevelRadius": 0.012,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "smooth vertex normals with independent bump response"
+      },
+      "parent": null,
+      "attachment": null,
+      "dimensions": {
+        "width": 1,
+        "height": 1.55,
+        "depth": 0.88,
+        "units": "relative",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1.55,
+          0.88
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [
+          {
+            "id": "hover-anchor",
+            "localPosition": [
+              0,
+              -1.22,
+              0
+            ]
+          }
+        ],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "bellwraith-root",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "bronze"
+        }
+      },
+      "material": "bronze",
+      "materialLayers": [
+        "bronze"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "root-silhouette",
+          "kind": "surface-feature",
+          "evidenceRefs": [
+            "full-object"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.66,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.035,
+        "normalPattern": "radial casting grain",
+        "displacementPattern": "edge chips at fracture seam",
+        "occlusionPattern": "cavity-darkened contacts",
+        "edgeWearPattern": "dry edge abrasion",
+        "notes": "Stylized procedural reconstruction; concept lighting is not baked into albedo."
+      },
+      "evidenceRefs": [
+        "full-object"
+      ],
+      "details": [],
+      "fidelityTier": "blockout",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(104, 70, 48, 1)",
+        "secondaryAlbedo": "rgba(33, 23, 28, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.82,
+        "colorGradient": {
+          "type": "linear",
+          "stops": [
+            {
+              "position": 0,
+              "color": "rgba(104, 70, 48, 1)"
+            },
+            {
+              "position": 1,
+              "color": "rgba(33, 23, 28, 1)"
+            }
+          ]
+        },
+        "viewEvidence": [
+          "full-object"
+        ]
+      }
+    },
+    {
+      "id": "bell-body",
+      "name": "Oxidized bell body",
+      "level": "macro",
+      "role": "shell",
+      "importance": 0.98,
+      "confidence": 0.82,
+      "primitive": "lathe",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Separate authored shell volume observed in the generated concept reference.",
+      "geometryDescriptor": {
+        "topologyIntent": "assembled volume with relief",
+        "edgeTreatment": {
+          "type": "soft-rim",
+          "bevelRadius": 0.012,
+          "segments": 2
+        },
+        "deformationStack": [
+          "pivot-local transform",
+          "procedural pulse"
+        ],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "smooth vertex normals with independent bump response"
+      },
+      "parent": "bellwraith-root",
+      "attachment": {
+        "parentId": "bellwraith-root",
+        "parentSocket": "hover-anchor",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0.02,
+          0
+        ],
+        "contactType": "embedded",
+        "baseRadius": 0.5,
+        "endRadius": 0.42,
+        "embedDepth": 0.035,
+        "gapTolerance": 0.012,
+        "evidenceRefs": [
+          "full-object"
+        ]
+      },
+      "dimensions": {
+        "width": 1,
+        "height": 1.2,
+        "depth": 0.9,
+        "units": "relative",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1.2,
+          0.9
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "hover",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [
+          {
+            "id": "mouth-socket",
+            "localPosition": [
+              0,
+              -0.72,
+              0
+            ]
+          },
+          {
+            "id": "left-rib-socket",
+            "localPosition": [
+              -0.72,
+              0.02,
+              0
+            ]
+          },
+          {
+            "id": "right-rib-socket",
+            "localPosition": [
+              0.72,
+              0.02,
+              0
+            ]
+          }
+        ],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "bell-body",
+          "seamRefs": [
+            "bell-cast-seam"
+          ],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "bronze"
+        }
+      },
+      "material": "bronze",
+      "materialLayers": [
+        "bronze"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "bell-rim-bevel",
+          "kind": "surface-feature",
+          "evidenceRefs": [
+            "full-object"
+          ]
+        },
+        {
+          "id": "bell-cast-seam",
+          "kind": "surface-feature",
+          "evidenceRefs": [
+            "full-object"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.66,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.035,
+        "normalPattern": "radial casting grain",
+        "displacementPattern": "edge chips at fracture seam",
+        "occlusionPattern": "cavity-darkened contacts",
+        "edgeWearPattern": "dry edge abrasion",
+        "notes": "Stylized procedural reconstruction; concept lighting is not baked into albedo."
+      },
+      "evidenceRefs": [
+        "full-object"
+      ],
+      "details": [],
+      "fidelityTier": "blockout",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(123, 81, 52, 1)",
+        "secondaryAlbedo": "rgba(50, 33, 39, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.82,
+        "colorGradient": {
+          "type": "linear",
+          "stops": [
+            {
+              "position": 0,
+              "color": "rgba(54, 36, 42, 1)"
+            },
+            {
+              "position": 0.48,
+              "color": "rgba(146, 91, 57, 1)"
+            },
+            {
+              "position": 1,
+              "color": "rgba(75, 122, 95, 1)"
+            }
+          ]
+        },
+        "viewEvidence": [
+          "full-object"
+        ]
+      }
+    },
+    {
+      "id": "bell-mouth",
+      "name": "Bell mouth opening",
+      "level": "meso",
+      "role": "socket",
+      "importance": 0.78,
+      "confidence": 0.82,
+      "primitive": "torus",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Separate authored socket volume observed in the generated concept reference.",
+      "geometryDescriptor": {
+        "topologyIntent": "assembled volume with relief",
+        "edgeTreatment": {
+          "type": "soft-rim",
+          "bevelRadius": 0.012,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "smooth vertex normals with independent bump response"
+      },
+      "parent": "bell-body",
+      "attachment": {
+        "parentId": "bell-body",
+        "parentSocket": "mouth-socket",
+        "localStart": [
+          0,
+          -0.58,
+          0
+        ],
+        "localEnd": [
+          0,
+          -0.7,
+          0
+        ],
+        "contactType": "embedded",
+        "baseRadius": 0.36,
+        "endRadius": 0.3,
+        "embedDepth": 0.035,
+        "gapTolerance": 0.012,
+        "evidenceRefs": [
+          "full-object"
+        ]
+      },
+      "dimensions": {
+        "width": 0.7,
+        "height": 0.16,
+        "depth": 0.7,
+        "units": "relative",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          0.7,
+          0.16,
+          0.7
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "bell-mouth",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "soot"
+        }
+      },
+      "material": "soot",
+      "materialLayers": [
+        "soot"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "mouth-hole",
+          "kind": "surface-feature",
+          "evidenceRefs": [
+            "full-object"
+          ]
+        },
+        {
+          "id": "cavity-soot",
+          "kind": "surface-feature",
+          "evidenceRefs": [
+            "full-object"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.66,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.035,
+        "normalPattern": "fine procedural grain",
+        "displacementPattern": "edge chips at fracture seam",
+        "occlusionPattern": "cavity-darkened contacts",
+        "edgeWearPattern": "dry edge abrasion",
+        "notes": "Stylized procedural reconstruction; concept lighting is not baked into albedo."
+      },
+      "evidenceRefs": [
+        "full-object"
+      ],
+      "details": [],
+      "fidelityTier": "blockout",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(26, 17, 22, 1)",
+        "secondaryAlbedo": "rgba(7, 8, 10, 1)",
+        "materialClass": "stone",
+        "materialClassConfidence": 0.82,
+        "colorGradient": {
+          "type": "linear",
+          "stops": [
+            {
+              "position": 0,
+              "color": "rgba(26, 17, 22, 1)"
+            },
+            {
+              "position": 1,
+              "color": "rgba(7, 8, 10, 1)"
+            }
+          ]
+        },
+        "viewEvidence": [
+          "full-object"
+        ]
+      }
+    },
+    {
+      "id": "skull-face",
+      "name": "Bell skull face",
+      "level": "macro",
+      "role": "head",
+      "importance": 0.98,
+      "confidence": 0.82,
+      "primitive": "ellipsoid",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Separate authored head volume observed in the generated concept reference.",
+      "geometryDescriptor": {
+        "topologyIntent": "assembled volume with relief",
+        "edgeTreatment": {
+          "type": "soft-rim",
+          "bevelRadius": 0.012,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "smooth vertex normals with independent bump response"
+      },
+      "parent": "bell-mouth",
+      "attachment": {
+        "parentId": "bell-mouth",
+        "parentSocket": "mouth-hole",
+        "localStart": [
+          0,
+          0,
+          -0.02
+        ],
+        "localEnd": [
+          0,
+          -0.1,
+          -0.18
+        ],
+        "contactType": "embedded",
+        "baseRadius": 0.28,
+        "endRadius": 0.2,
+        "embedDepth": 0.035,
+        "gapTolerance": 0.012,
+        "evidenceRefs": [
+          "full-object"
+        ]
+      },
+      "dimensions": {
+        "width": 0.54,
+        "height": 0.47,
+        "depth": 0.42,
+        "units": "relative",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          0.54,
+          0.47,
+          0.42
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [
+          {
+            "id": "left-eye-socket",
+            "localPosition": [
+              -0.15,
+              0.08,
+              -0.2
+            ]
+          },
+          {
+            "id": "right-eye-socket",
+            "localPosition": [
+              0.15,
+              0.08,
+              -0.2
+            ]
+          }
+        ],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "skull-face",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "ivory"
+        }
+      },
+      "material": "ivory",
+      "materialLayers": [
+        "ivory"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "skull-tooth-ridge",
+          "kind": "surface-feature",
+          "evidenceRefs": [
+            "full-object"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.66,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.035,
+        "normalPattern": "porous cortical ridges",
+        "displacementPattern": "edge chips at fracture seam",
+        "occlusionPattern": "cavity-darkened contacts",
+        "edgeWearPattern": "dry edge abrasion",
+        "notes": "Stylized procedural reconstruction; concept lighting is not baked into albedo."
+      },
+      "evidenceRefs": [
+        "full-object"
+      ],
+      "details": [],
+      "fidelityTier": "blockout",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(210, 201, 170, 1)",
+        "secondaryAlbedo": "rgba(105, 88, 70, 1)",
+        "materialClass": "stone",
+        "materialClassConfidence": 0.82,
+        "colorGradient": {
+          "type": "linear",
+          "stops": [
+            {
+              "position": 0,
+              "color": "rgba(210, 201, 170, 1)"
+            },
+            {
+              "position": 1,
+              "color": "rgba(105, 88, 70, 1)"
+            }
+          ]
+        },
+        "viewEvidence": [
+          "full-object"
+        ]
+      }
+    },
+    {
+      "id": "ember-core",
+      "name": "Occult ember core",
+      "level": "meso",
+      "role": "emitter",
+      "importance": 0.78,
+      "confidence": 0.82,
+      "primitive": "sphere",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Separate authored emitter volume observed in the generated concept reference.",
+      "geometryDescriptor": {
+        "topologyIntent": "assembled volume with relief",
+        "edgeTreatment": {
+          "type": "soft-rim",
+          "bevelRadius": 0.012,
+          "segments": 2
+        },
+        "deformationStack": [
+          "pivot-local transform",
+          "procedural pulse"
+        ],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "smooth vertex normals with independent bump response"
+      },
+      "parent": "skull-face",
+      "attachment": {
+        "parentId": "skull-face",
+        "parentSocket": "left-eye-socket",
+        "localStart": [
+          0,
+          0.04,
+          -0.21
+        ],
+        "localEnd": [
+          0,
+          0.03,
+          -0.24
+        ],
+        "contactType": "embedded",
+        "baseRadius": 0.12,
+        "endRadius": 0.1,
+        "embedDepth": 0.035,
+        "gapTolerance": 0.012,
+        "evidenceRefs": [
+          "full-object"
+        ]
+      },
+      "dimensions": {
+        "width": 0.19,
+        "height": 0.19,
+        "depth": 0.12,
+        "units": "relative",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          0.19,
+          0.19,
+          0.12
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "pulse",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [
+          {
+            "id": "pulse-origin",
+            "localPosition": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "ember-core",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "ember"
+        }
+      },
+      "material": "ember",
+      "materialLayers": [
+        "ember"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "ember-core",
+          "kind": "surface-feature",
+          "evidenceRefs": [
+            "full-object"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.16,
+        "microRoughness": 0.08,
+        "bumpAmplitude": 0.035,
+        "normalPattern": "fine procedural grain",
+        "displacementPattern": "edge chips at fracture seam",
+        "occlusionPattern": "cavity-darkened contacts",
+        "edgeWearPattern": "dry edge abrasion",
+        "notes": "Stylized procedural reconstruction; concept lighting is not baked into albedo."
+      },
+      "evidenceRefs": [
+        "full-object"
+      ],
+      "details": [],
+      "fidelityTier": "blockout",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(255, 63, 38, 1)",
+        "secondaryAlbedo": "rgba(102, 8, 16, 1)",
+        "materialClass": "glass",
+        "materialClassConfidence": 0.82,
+        "colorGradient": {
+          "type": "linear",
+          "stops": [
+            {
+              "position": 0,
+              "color": "rgba(255, 63, 38, 1)"
+            },
+            {
+              "position": 1,
+              "color": "rgba(102, 8, 16, 1)"
+            }
+          ]
+        },
+        "viewEvidence": [
+          "full-object"
+        ]
+      }
+    },
+    {
+      "id": "rib-left",
+      "name": "Left rib arm",
+      "level": "macro",
+      "role": "appendage",
+      "importance": 0.98,
+      "confidence": 0.82,
+      "primitive": "curve-sweep",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Separate authored appendage volume observed in the generated concept reference.",
+      "geometryDescriptor": {
+        "topologyIntent": "assembled volume with relief",
+        "edgeTreatment": {
+          "type": "soft-rim",
+          "bevelRadius": 0.012,
+          "segments": 2
+        },
+        "deformationStack": [
+          "pivot-local transform",
+          "procedural pulse"
+        ],
+        "uvStrategy": "generated curve coordinates",
+        "normalStrategy": "smooth vertex normals with independent bump response"
+      },
+      "parent": "bell-body",
+      "attachment": {
+        "parentId": "bell-body",
+        "parentSocket": "left-rib-socket",
+        "localStart": [
+          -0.65,
+          0,
+          0
+        ],
+        "localEnd": [
+          -1.02,
+          -0.5,
+          -0.04
+        ],
+        "contactType": "embedded",
+        "baseRadius": 0.19,
+        "endRadius": 0.08,
+        "embedDepth": 0.035,
+        "gapTolerance": 0.012,
+        "evidenceRefs": [
+          "full-object"
+        ]
+      },
+      "dimensions": {
+        "width": 0.95,
+        "height": 0.25,
+        "depth": 0.25,
+        "units": "relative",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          0.95,
+          0.25,
+          0.25
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "appendage",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": true,
+          "twist": true,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [
+          {
+            "id": "left-hand-socket",
+            "localPosition": [
+              -0.95,
+              -0.45,
+              -0.05
+            ]
+          }
+        ],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "rib-left",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "ivory"
+        }
+      },
+      "material": "ivory",
+      "materialLayers": [
+        "ivory"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "left-rib-grooves",
+          "kind": "surface-feature",
+          "evidenceRefs": [
+            "full-object"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.66,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.035,
+        "normalPattern": "porous cortical ridges",
+        "displacementPattern": "edge chips at fracture seam",
+        "occlusionPattern": "cavity-darkened contacts",
+        "edgeWearPattern": "dry edge abrasion",
+        "notes": "Stylized procedural reconstruction; concept lighting is not baked into albedo."
+      },
+      "evidenceRefs": [
+        "full-object"
+      ],
+      "details": [],
+      "fidelityTier": "blockout",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(194, 182, 151, 1)",
+        "secondaryAlbedo": "rgba(79, 60, 54, 1)",
+        "materialClass": "stone",
+        "materialClassConfidence": 0.82,
+        "colorGradient": {
+          "type": "linear",
+          "stops": [
+            {
+              "position": 0,
+              "color": "rgba(194, 182, 151, 1)"
+            },
+            {
+              "position": 1,
+              "color": "rgba(79, 60, 54, 1)"
+            }
+          ]
+        },
+        "viewEvidence": [
+          "full-object"
+        ]
+      }
+    },
+    {
+      "id": "rib-right",
+      "name": "Right rib arm",
+      "level": "macro",
+      "role": "appendage",
+      "importance": 0.98,
+      "confidence": 0.82,
+      "primitive": "curve-sweep",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Separate authored appendage volume observed in the generated concept reference.",
+      "geometryDescriptor": {
+        "topologyIntent": "assembled volume with relief",
+        "edgeTreatment": {
+          "type": "soft-rim",
+          "bevelRadius": 0.012,
+          "segments": 2
+        },
+        "deformationStack": [
+          "pivot-local transform",
+          "procedural pulse"
+        ],
+        "uvStrategy": "generated curve coordinates",
+        "normalStrategy": "smooth vertex normals with independent bump response"
+      },
+      "parent": "bell-body",
+      "attachment": {
+        "parentId": "bell-body",
+        "parentSocket": "right-rib-socket",
+        "localStart": [
+          0.65,
+          0,
+          0
+        ],
+        "localEnd": [
+          1.02,
+          -0.5,
+          -0.04
+        ],
+        "contactType": "embedded",
+        "baseRadius": 0.19,
+        "endRadius": 0.08,
+        "embedDepth": 0.035,
+        "gapTolerance": 0.012,
+        "evidenceRefs": [
+          "full-object"
+        ]
+      },
+      "dimensions": {
+        "width": 0.95,
+        "height": 0.25,
+        "depth": 0.25,
+        "units": "relative",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          0.95,
+          0.25,
+          0.25
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "appendage",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": true,
+          "twist": true,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [
+          {
+            "id": "right-hand-socket",
+            "localPosition": [
+              0.95,
+              -0.45,
+              -0.05
+            ]
+          }
+        ],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "rib-right",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "ivory"
+        }
+      },
+      "material": "ivory",
+      "materialLayers": [
+        "ivory"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "right-rib-grooves",
+          "kind": "surface-feature",
+          "evidenceRefs": [
+            "full-object"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.66,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.035,
+        "normalPattern": "porous cortical ridges",
+        "displacementPattern": "edge chips at fracture seam",
+        "occlusionPattern": "cavity-darkened contacts",
+        "edgeWearPattern": "dry edge abrasion",
+        "notes": "Stylized procedural reconstruction; concept lighting is not baked into albedo."
+      },
+      "evidenceRefs": [
+        "full-object"
+      ],
+      "details": [],
+      "fidelityTier": "blockout",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(194, 182, 151, 1)",
+        "secondaryAlbedo": "rgba(79, 60, 54, 1)",
+        "materialClass": "stone",
+        "materialClassConfidence": 0.82,
+        "colorGradient": {
+          "type": "linear",
+          "stops": [
+            {
+              "position": 0,
+              "color": "rgba(194, 182, 151, 1)"
+            },
+            {
+              "position": 1,
+              "color": "rgba(79, 60, 54, 1)"
+            }
+          ]
+        },
+        "viewEvidence": [
+          "full-object"
+        ]
+      }
+    },
+    {
+      "id": "hook-left",
+      "name": "Left hook hand",
+      "level": "meso",
+      "role": "appendage",
+      "importance": 0.78,
+      "confidence": 0.82,
+      "primitive": "curve-sweep",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Separate authored appendage volume observed in the generated concept reference.",
+      "geometryDescriptor": {
+        "topologyIntent": "assembled volume with relief",
+        "edgeTreatment": {
+          "type": "soft-rim",
+          "bevelRadius": 0.012,
+          "segments": 2
+        },
+        "deformationStack": [
+          "pivot-local transform",
+          "procedural pulse"
+        ],
+        "uvStrategy": "generated curve coordinates",
+        "normalStrategy": "smooth vertex normals with independent bump response"
+      },
+      "parent": "rib-left",
+      "attachment": {
+        "parentId": "rib-left",
+        "parentSocket": "left-hand-socket",
+        "localStart": [
+          -0.95,
+          -0.45,
+          -0.04
+        ],
+        "localEnd": [
+          -1.18,
+          -0.72,
+          -0.06
+        ],
+        "contactType": "socket",
+        "baseRadius": 0.12,
+        "endRadius": 0.025,
+        "embedDepth": 0.035,
+        "gapTolerance": 0.012,
+        "evidenceRefs": [
+          "full-object"
+        ]
+      },
+      "dimensions": {
+        "width": 0.34,
+        "height": 0.34,
+        "depth": 0.2,
+        "units": "relative",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          0.34,
+          0.34,
+          0.2
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "appendage",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": true,
+          "twist": true,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "hook-left",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "ivory"
+        }
+      },
+      "material": "ivory",
+      "materialLayers": [
+        "ivory"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "hook-hand-contour",
+          "kind": "surface-feature",
+          "evidenceRefs": [
+            "full-object"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.66,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.035,
+        "normalPattern": "porous cortical ridges",
+        "displacementPattern": "edge chips at fracture seam",
+        "occlusionPattern": "cavity-darkened contacts",
+        "edgeWearPattern": "dry edge abrasion",
+        "notes": "Stylized procedural reconstruction; concept lighting is not baked into albedo."
+      },
+      "evidenceRefs": [
+        "full-object"
+      ],
+      "details": [],
+      "fidelityTier": "blockout",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(211, 200, 171, 1)",
+        "secondaryAlbedo": "rgba(87, 63, 55, 1)",
+        "materialClass": "stone",
+        "materialClassConfidence": 0.82,
+        "colorGradient": {
+          "type": "linear",
+          "stops": [
+            {
+              "position": 0,
+              "color": "rgba(211, 200, 171, 1)"
+            },
+            {
+              "position": 1,
+              "color": "rgba(87, 63, 55, 1)"
+            }
+          ]
+        },
+        "viewEvidence": [
+          "full-object"
+        ]
+      }
+    },
+    {
+      "id": "hook-right",
+      "name": "Right hook hand",
+      "level": "meso",
+      "role": "appendage",
+      "importance": 0.78,
+      "confidence": 0.82,
+      "primitive": "curve-sweep",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Separate authored appendage volume observed in the generated concept reference.",
+      "geometryDescriptor": {
+        "topologyIntent": "assembled volume with relief",
+        "edgeTreatment": {
+          "type": "soft-rim",
+          "bevelRadius": 0.012,
+          "segments": 2
+        },
+        "deformationStack": [
+          "pivot-local transform",
+          "procedural pulse"
+        ],
+        "uvStrategy": "generated curve coordinates",
+        "normalStrategy": "smooth vertex normals with independent bump response"
+      },
+      "parent": "rib-right",
+      "attachment": {
+        "parentId": "rib-right",
+        "parentSocket": "right-hand-socket",
+        "localStart": [
+          0.95,
+          -0.45,
+          -0.04
+        ],
+        "localEnd": [
+          1.18,
+          -0.72,
+          -0.06
+        ],
+        "contactType": "socket",
+        "baseRadius": 0.12,
+        "endRadius": 0.025,
+        "embedDepth": 0.035,
+        "gapTolerance": 0.012,
+        "evidenceRefs": [
+          "full-object"
+        ]
+      },
+      "dimensions": {
+        "width": 0.34,
+        "height": 0.34,
+        "depth": 0.2,
+        "units": "relative",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          0.34,
+          0.34,
+          0.2
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "appendage",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": true,
+          "twist": true,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "hook-right",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "ivory"
+        }
+      },
+      "material": "ivory",
+      "materialLayers": [
+        "ivory"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "hook-hand-contour",
+          "kind": "surface-feature",
+          "evidenceRefs": [
+            "full-object"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.66,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.035,
+        "normalPattern": "porous cortical ridges",
+        "displacementPattern": "edge chips at fracture seam",
+        "occlusionPattern": "cavity-darkened contacts",
+        "edgeWearPattern": "dry edge abrasion",
+        "notes": "Stylized procedural reconstruction; concept lighting is not baked into albedo."
+      },
+      "evidenceRefs": [
+        "full-object"
+      ],
+      "details": [],
+      "fidelityTier": "blockout",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(211, 200, 171, 1)",
+        "secondaryAlbedo": "rgba(87, 63, 55, 1)",
+        "materialClass": "stone",
+        "materialClassConfidence": 0.82,
+        "colorGradient": {
+          "type": "linear",
+          "stops": [
+            {
+              "position": 0,
+              "color": "rgba(211, 200, 171, 1)"
+            },
+            {
+              "position": 1,
+              "color": "rgba(87, 63, 55, 1)"
+            }
+          ]
+        },
+        "viewEvidence": [
+          "full-object"
+        ]
+      }
+    },
+    {
+      "id": "membrane",
+      "name": "Torn black membrane",
+      "level": "meso",
+      "role": "membrane",
+      "importance": 0.78,
+      "confidence": 0.82,
+      "primitive": "plane-card",
+      "topologyClass": "open-shell",
+      "topologyRationale": "Separate authored membrane volume observed in the generated concept reference.",
+      "geometryDescriptor": {
+        "topologyIntent": "thin two-sided membrane",
+        "edgeTreatment": {
+          "type": "soft-rim",
+          "bevelRadius": 0.012,
+          "segments": 2
+        },
+        "deformationStack": [
+          "pivot-local transform",
+          "procedural pulse"
+        ],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "smooth vertex normals with independent bump response"
+      },
+      "parent": "bell-body",
+      "attachment": {
+        "parentId": "bell-body",
+        "parentSocket": "mouth-socket",
+        "localStart": [
+          0,
+          0.15,
+          0.08
+        ],
+        "localEnd": [
+          0,
+          -0.85,
+          0.1
+        ],
+        "contactType": "overlap",
+        "baseRadius": 0.14,
+        "endRadius": 0.03,
+        "embedDepth": 0.035,
+        "gapTolerance": 0.012,
+        "evidenceRefs": [
+          "full-object"
+        ]
+      },
+      "dimensions": {
+        "width": 1.45,
+        "height": 1.25,
+        "depth": 0.02,
+        "units": "relative",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1.45,
+          1.25,
+          0.02
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "flutter",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "membrane",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "membrane"
+        }
+      },
+      "material": "membrane",
+      "materialLayers": [
+        "membrane"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "membrane-tears",
+          "kind": "surface-feature",
+          "evidenceRefs": [
+            "full-object"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.66,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.06,
+        "normalPattern": "fine procedural grain",
+        "displacementPattern": "edge chips at fracture seam",
+        "occlusionPattern": "cavity-darkened contacts",
+        "edgeWearPattern": "dry edge abrasion",
+        "notes": "Stylized procedural reconstruction; concept lighting is not baked into albedo."
+      },
+      "evidenceRefs": [
+        "full-object"
+      ],
+      "details": [],
+      "fidelityTier": "blockout",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(20, 14, 19, 1)",
+        "secondaryAlbedo": "rgba(4, 5, 8, 1)",
+        "materialClass": "fabric",
+        "materialClassConfidence": 0.82,
+        "colorGradient": {
+          "type": "linear",
+          "stops": [
+            {
+              "position": 0,
+              "color": "rgba(20, 14, 19, 1)"
+            },
+            {
+              "position": 1,
+              "color": "rgba(4, 5, 8, 1)"
+            }
+          ]
+        },
+        "viewEvidence": [
+          "full-object"
+        ]
+      }
+    },
+    {
+      "id": "horns",
+      "name": "Crown horn cluster",
+      "level": "meso",
+      "role": "appendage",
+      "importance": 0.56,
+      "confidence": 0.82,
+      "primitive": "instanced-cluster",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Separate authored appendage volume observed in the generated concept reference.",
+      "geometryDescriptor": {
+        "topologyIntent": "assembled volume with relief",
+        "edgeTreatment": {
+          "type": "soft-rim",
+          "bevelRadius": 0.012,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "smooth vertex normals with independent bump response"
+      },
+      "parent": "skull-face",
+      "attachment": {
+        "parentId": "skull-face",
+        "parentSocket": "horn-crown",
+        "localStart": [
+          0,
+          0.26,
+          0
+        ],
+        "localEnd": [
+          0,
+          0.62,
+          0
+        ],
+        "contactType": "embedded",
+        "baseRadius": 0.15,
+        "endRadius": 0.025,
+        "embedDepth": 0.035,
+        "gapTolerance": 0.012,
+        "evidenceRefs": [
+          "full-object"
+        ]
+      },
+      "dimensions": {
+        "width": 0.7,
+        "height": 0.45,
+        "depth": 0.5,
+        "units": "relative",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          0.7,
+          0.45,
+          0.5
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "horns",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "ivory"
+        }
+      },
+      "material": "ivory",
+      "materialLayers": [
+        "ivory"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "horn-ridges",
+          "kind": "surface-feature",
+          "evidenceRefs": [
+            "full-object"
+          ]
+        },
+        {
+          "id": "horn-scratches",
+          "kind": "surface-feature",
+          "evidenceRefs": [
+            "full-object"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.66,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.035,
+        "normalPattern": "porous cortical ridges",
+        "displacementPattern": "edge chips at fracture seam",
+        "occlusionPattern": "cavity-darkened contacts",
+        "edgeWearPattern": "dry edge abrasion",
+        "notes": "Stylized procedural reconstruction; concept lighting is not baked into albedo."
+      },
+      "evidenceRefs": [
+        "full-object"
+      ],
+      "details": [],
+      "fidelityTier": "blockout",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(184, 166, 126, 1)",
+        "secondaryAlbedo": "rgba(68, 46, 42, 1)",
+        "materialClass": "stone",
+        "materialClassConfidence": 0.82,
+        "colorGradient": {
+          "type": "linear",
+          "stops": [
+            {
+              "position": 0,
+              "color": "rgba(184, 166, 126, 1)"
+            },
+            {
+              "position": 1,
+              "color": "rgba(68, 46, 42, 1)"
+            }
+          ]
+        },
+        "viewEvidence": [
+          "full-object"
+        ]
+      }
+    },
+    {
+      "id": "chains",
+      "name": "Belt chain fasteners",
+      "level": "meso",
+      "role": "fastener",
+      "importance": 0.56,
+      "confidence": 0.82,
+      "primitive": "instanced-cluster",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Separate authored fastener volume observed in the generated concept reference.",
+      "geometryDescriptor": {
+        "topologyIntent": "assembled volume with relief",
+        "edgeTreatment": {
+          "type": "soft-rim",
+          "bevelRadius": 0.012,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "smooth vertex normals with independent bump response"
+      },
+      "parent": "bell-body",
+      "attachment": {
+        "parentId": "bell-body",
+        "parentSocket": "chain-rail",
+        "localStart": [
+          0,
+          0.38,
+          0.25
+        ],
+        "localEnd": [
+          0,
+          0.07,
+          0.34
+        ],
+        "contactType": "embedded",
+        "baseRadius": 0.08,
+        "endRadius": 0.02,
+        "embedDepth": 0.035,
+        "gapTolerance": 0.012,
+        "evidenceRefs": [
+          "full-object"
+        ]
+      },
+      "dimensions": {
+        "width": 0.78,
+        "height": 0.28,
+        "depth": 0.7,
+        "units": "relative",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          0.78,
+          0.28,
+          0.7
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "chains",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "brass"
+        }
+      },
+      "material": "brass",
+      "materialLayers": [
+        "brass"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "chain-fasteners",
+          "kind": "surface-feature",
+          "evidenceRefs": [
+            "full-object"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.66,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.035,
+        "normalPattern": "fine procedural grain",
+        "displacementPattern": "edge chips at fracture seam",
+        "occlusionPattern": "cavity-darkened contacts",
+        "edgeWearPattern": "dry edge abrasion",
+        "notes": "Stylized procedural reconstruction; concept lighting is not baked into albedo."
+      },
+      "evidenceRefs": [
+        "full-object"
+      ],
+      "details": [],
+      "fidelityTier": "blockout",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(183, 122, 54, 1)",
+        "secondaryAlbedo": "rgba(66, 35, 25, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.82,
+        "colorGradient": {
+          "type": "linear",
+          "stops": [
+            {
+              "position": 0,
+              "color": "rgba(183, 122, 54, 1)"
+            },
+            {
+              "position": 1,
+              "color": "rgba(66, 35, 25, 1)"
+            }
+          ]
+        },
+        "viewEvidence": [
+          "full-object"
+        ]
+      }
+    },
+    {
+      "id": "hover-ring",
+      "name": "Hover rift ring",
+      "level": "meso",
+      "role": "emitter",
+      "importance": 0.56,
+      "confidence": 0.82,
+      "primitive": "torus",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Separate authored emitter volume observed in the generated concept reference.",
+      "geometryDescriptor": {
+        "topologyIntent": "assembled volume with relief",
+        "edgeTreatment": {
+          "type": "soft-rim",
+          "bevelRadius": 0.012,
+          "segments": 2
+        },
+        "deformationStack": [
+          "pivot-local transform",
+          "procedural pulse"
+        ],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "smooth vertex normals with independent bump response"
+      },
+      "parent": "bellwraith-root",
+      "attachment": {
+        "parentId": "bellwraith-root",
+        "parentSocket": "hover-anchor",
+        "localStart": [
+          0,
+          -1.14,
+          0
+        ],
+        "localEnd": [
+          0,
+          -1.22,
+          0
+        ],
+        "contactType": "embedded",
+        "baseRadius": 0.38,
+        "endRadius": 0.3,
+        "embedDepth": 0.035,
+        "gapTolerance": 0.012,
+        "evidenceRefs": [
+          "full-object"
+        ]
+      },
+      "dimensions": {
+        "width": 0.78,
+        "height": 0.78,
+        "depth": 0.06,
+        "units": "relative",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          0.78,
+          0.78,
+          0.06
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "pulse",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": false
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "hover-ring",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "ember"
+        }
+      },
+      "material": "ember",
+      "materialLayers": [
+        "ember"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "hover-rift",
+          "kind": "surface-feature",
+          "evidenceRefs": [
+            "full-object"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.16,
+        "microRoughness": 0.08,
+        "bumpAmplitude": 0.035,
+        "normalPattern": "fine procedural grain",
+        "displacementPattern": "edge chips at fracture seam",
+        "occlusionPattern": "cavity-darkened contacts",
+        "edgeWearPattern": "dry edge abrasion",
+        "notes": "Stylized procedural reconstruction; concept lighting is not baked into albedo."
+      },
+      "evidenceRefs": [
+        "full-object"
+      ],
+      "details": [],
+      "fidelityTier": "blockout",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(250, 42, 33, 1)",
+        "secondaryAlbedo": "rgba(70, 4, 11, 1)",
+        "materialClass": "glass",
+        "materialClassConfidence": 0.82,
+        "colorGradient": {
+          "type": "linear",
+          "stops": [
+            {
+              "position": 0,
+              "color": "rgba(250, 42, 33, 1)"
+            },
+            {
+              "position": 1,
+              "color": "rgba(70, 4, 11, 1)"
+            }
+          ]
+        },
+        "viewEvidence": [
+          "full-object"
+        ]
+      }
+    }
+  ],
+  "materials": [
+    {
+      "id": "bronze",
+      "name": "bronze",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial / PBR approximation",
+      "baseColor": "#7B5134",
+      "color": "#7B5134",
+      "albedo": {
+        "dominant": "#7B5134",
+        "secondary": [
+          "#2E2329"
+        ],
+        "samplingNotes": "Reconstructed palette from generated concept; concept lighting is not baked."
+      },
+      "colorVariation": {
+        "palette": [
+          "#7B5134",
+          "#2E2329"
+        ],
+        "pattern": "oxidized radial casting grain",
+        "amplitude": 0.16,
+        "heightCorrelation": 0.25
+      },
+      "textureResolution": 1024,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          2,
+          2
+        ],
+        "anisotropy": 4,
+        "texelDensityIntent": "Stable object-scale detail."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 1.8,
+          "amplitude": 0.38,
+          "role": "broad value breakup"
+        },
+        {
+          "id": "meso",
+          "frequency": 12,
+          "amplitude": 0.22,
+          "role": "pores and seams"
+        },
+        {
+          "id": "micro",
+          "frequency": 58,
+          "amplitude": 0.08,
+          "role": "grazing highlight breakup"
+        }
+      ],
+      "roughness": {
+        "base": 0.52,
+        "variation": 0.18,
+        "map": "independent-procedural-field",
+        "localResponse": "cavities matte, worn edges smoother"
+      },
+      "metalness": {
+        "base": 0.78,
+        "variation": 0.12
+      },
+      "normal": {
+        "pattern": "independent procedural height field",
+        "strength": 0.34,
+        "scale": 24,
+        "space": "tangent"
+      },
+      "bump": {
+        "pattern": "pitted casting pores",
+        "amplitude": 0.035,
+        "scale": 1
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0,
+        "scale": 1,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.34,
+        "contactShadowBias": 0.3,
+        "notes": "Independent cavity darkening"
+      },
+      "wear": {
+        "edgeWear": 0.32,
+        "scratches": [
+          "directional abrasion"
+        ],
+        "chips": [
+          "small impact chips"
+        ]
+      },
+      "dirt": {
+        "amount": 0.34,
+        "cavityBias": 0.75,
+        "color": "#171014"
+      },
+      "localOverrides": [
+        {
+          "id": "patina-streaks",
+          "region": "patina-streaks",
+          "evidenceRefs": [
+            "full-object"
+          ],
+          "roughness": 0.28,
+          "note": "Concept-local material override"
+        },
+        {
+          "id": "casting-seam",
+          "region": "casting-seam",
+          "evidenceRefs": [
+            "full-object"
+          ],
+          "roughness": 0.28,
+          "note": "Concept-local material override"
+        }
+      ],
+      "shaderNotes": [
+        "Independent albedo, roughness, normal/bump, and AO.",
+        "Emissive reserved for authored cores and sockets."
+      ],
+      "doubleSided": false
+    },
+    {
+      "id": "ivory",
+      "name": "ivory",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial / PBR approximation",
+      "baseColor": "#D2C9AA",
+      "color": "#D2C9AA",
+      "albedo": {
+        "dominant": "#D2C9AA",
+        "secondary": [
+          "#59483E"
+        ],
+        "samplingNotes": "Reconstructed palette from generated concept; concept lighting is not baked."
+      },
+      "colorVariation": {
+        "palette": [
+          "#D2C9AA",
+          "#59483E"
+        ],
+        "pattern": "porous cortical ridges",
+        "amplitude": 0.16,
+        "heightCorrelation": 0.25
+      },
+      "textureResolution": 1024,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          2,
+          2
+        ],
+        "anisotropy": 4,
+        "texelDensityIntent": "Stable object-scale detail."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 1.8,
+          "amplitude": 0.38,
+          "role": "broad value breakup"
+        },
+        {
+          "id": "meso",
+          "frequency": 12,
+          "amplitude": 0.22,
+          "role": "pores and seams"
+        },
+        {
+          "id": "micro",
+          "frequency": 58,
+          "amplitude": 0.08,
+          "role": "grazing highlight breakup"
+        }
+      ],
+      "roughness": {
+        "base": 0.78,
+        "variation": 0.18,
+        "map": "independent-procedural-field",
+        "localResponse": "cavities matte, worn edges smoother"
+      },
+      "metalness": {
+        "base": 0.02,
+        "variation": 0.12
+      },
+      "normal": {
+        "pattern": "independent procedural height field",
+        "strength": 0.34,
+        "scale": 24,
+        "space": "tangent"
+      },
+      "bump": {
+        "pattern": "bone pore grain",
+        "amplitude": 0.035,
+        "scale": 1
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0,
+        "scale": 1,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.34,
+        "contactShadowBias": 0.3,
+        "notes": "Independent cavity darkening"
+      },
+      "wear": {
+        "edgeWear": 0.32,
+        "scratches": [
+          "directional abrasion"
+        ],
+        "chips": [
+          "small impact chips"
+        ]
+      },
+      "dirt": {
+        "amount": 0.34,
+        "cavityBias": 0.75,
+        "color": "#171014"
+      },
+      "localOverrides": [
+        {
+          "id": "horn-scratches",
+          "region": "horn-scratches",
+          "evidenceRefs": [
+            "full-object"
+          ],
+          "roughness": 0.54,
+          "note": "Concept-local material override"
+        },
+        {
+          "id": "tooth-wear",
+          "region": "tooth-wear",
+          "evidenceRefs": [
+            "full-object"
+          ],
+          "roughness": 0.54,
+          "note": "Concept-local material override"
+        }
+      ],
+      "shaderNotes": [
+        "Independent albedo, roughness, normal/bump, and AO.",
+        "Emissive reserved for authored cores and sockets."
+      ],
+      "doubleSided": false
+    },
+    {
+      "id": "membrane",
+      "name": "membrane",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial / PBR approximation",
+      "baseColor": "#141016",
+      "color": "#141016",
+      "albedo": {
+        "dominant": "#141016",
+        "secondary": [
+          "#05060A"
+        ],
+        "samplingNotes": "Reconstructed palette from generated concept; concept lighting is not baked."
+      },
+      "colorVariation": {
+        "palette": [
+          "#141016",
+          "#05060A"
+        ],
+        "pattern": "fibrous matte folds",
+        "amplitude": 0.16,
+        "heightCorrelation": 0.25
+      },
+      "textureResolution": 1024,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          2,
+          2
+        ],
+        "anisotropy": 4,
+        "texelDensityIntent": "Stable object-scale detail."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 1.8,
+          "amplitude": 0.38,
+          "role": "broad value breakup"
+        },
+        {
+          "id": "meso",
+          "frequency": 12,
+          "amplitude": 0.22,
+          "role": "pores and seams"
+        },
+        {
+          "id": "micro",
+          "frequency": 58,
+          "amplitude": 0.08,
+          "role": "grazing highlight breakup"
+        }
+      ],
+      "roughness": {
+        "base": 0.92,
+        "variation": 0.18,
+        "map": "independent-procedural-field",
+        "localResponse": "cavities matte, worn edges smoother"
+      },
+      "metalness": {
+        "base": 0.02,
+        "variation": 0.12
+      },
+      "normal": {
+        "pattern": "independent procedural height field",
+        "strength": 0.34,
+        "scale": 24,
+        "space": "tangent"
+      },
+      "bump": {
+        "pattern": "cloth fold relief",
+        "amplitude": 0.035,
+        "scale": 1
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0,
+        "scale": 1,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.34,
+        "contactShadowBias": 0.3,
+        "notes": "Independent cavity darkening"
+      },
+      "wear": {
+        "edgeWear": 0.32,
+        "scratches": [
+          "directional abrasion"
+        ],
+        "chips": [
+          "small impact chips"
+        ]
+      },
+      "dirt": {
+        "amount": 0.34,
+        "cavityBias": 0.75,
+        "color": "#171014"
+      },
+      "localOverrides": [
+        {
+          "id": "membrane-tears",
+          "region": "membrane-tears",
+          "evidenceRefs": [
+            "full-object"
+          ],
+          "roughness": 0.68,
+          "note": "Concept-local material override"
+        }
+      ],
+      "shaderNotes": [
+        "Independent albedo, roughness, normal/bump, and AO.",
+        "Emissive reserved for authored cores and sockets."
+      ],
+      "doubleSided": true
+    },
+    {
+      "id": "ember",
+      "name": "ember",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial / PBR approximation",
+      "baseColor": "#FF3D26",
+      "color": "#FF3D26",
+      "albedo": {
+        "dominant": "#FF3D26",
+        "secondary": [
+          "#4A020F"
+        ],
+        "samplingNotes": "Reconstructed palette from generated concept; concept lighting is not baked."
+      },
+      "colorVariation": {
+        "palette": [
+          "#FF3D26",
+          "#4A020F"
+        ],
+        "pattern": "hot emissive core",
+        "amplitude": 0.16,
+        "heightCorrelation": 0.25
+      },
+      "textureResolution": 1024,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          2,
+          2
+        ],
+        "anisotropy": 4,
+        "texelDensityIntent": "Stable object-scale detail."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 1.8,
+          "amplitude": 0.38,
+          "role": "broad value breakup"
+        },
+        {
+          "id": "meso",
+          "frequency": 12,
+          "amplitude": 0.22,
+          "role": "pores and seams"
+        },
+        {
+          "id": "micro",
+          "frequency": 58,
+          "amplitude": 0.08,
+          "role": "grazing highlight breakup"
+        }
+      ],
+      "roughness": {
+        "base": 0.16,
+        "variation": 0.18,
+        "map": "independent-procedural-field",
+        "localResponse": "cavities matte, worn edges smoother"
+      },
+      "metalness": {
+        "base": 0.05,
+        "variation": 0.12
+      },
+      "normal": {
+        "pattern": "independent procedural height field",
+        "strength": 0.34,
+        "scale": 24,
+        "space": "tangent"
+      },
+      "bump": {
+        "pattern": "micro pitting",
+        "amplitude": 0.035,
+        "scale": 1
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0,
+        "scale": 1,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.34,
+        "contactShadowBias": 0.3,
+        "notes": "Independent cavity darkening"
+      },
+      "wear": {
+        "edgeWear": 0.32,
+        "scratches": [
+          "directional abrasion"
+        ],
+        "chips": [
+          "small impact chips"
+        ]
+      },
+      "dirt": {
+        "amount": 0.34,
+        "cavityBias": 0.75,
+        "color": "#171014"
+      },
+      "localOverrides": [
+        {
+          "id": "eye-gloss",
+          "region": "eye-gloss",
+          "evidenceRefs": [
+            "full-object"
+          ],
+          "roughness": 0.18,
+          "note": "Concept-local material override"
+        },
+        {
+          "id": "ember-core",
+          "region": "ember-core",
+          "evidenceRefs": [
+            "full-object"
+          ],
+          "roughness": 0.18,
+          "note": "Concept-local material override"
+        },
+        {
+          "id": "hover-rift",
+          "region": "hover-rift",
+          "evidenceRefs": [
+            "full-object"
+          ],
+          "roughness": 0.18,
+          "note": "Concept-local material override"
+        }
+      ],
+      "shaderNotes": [
+        "Independent albedo, roughness, normal/bump, and AO.",
+        "Emissive reserved for authored cores and sockets."
+      ],
+      "doubleSided": false,
+      "emissive": "#FF2B1C",
+      "emissiveIntensity": 3.6
+    },
+    {
+      "id": "brass",
+      "name": "brass",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial / PBR approximation",
+      "baseColor": "#B77A35",
+      "color": "#B77A35",
+      "albedo": {
+        "dominant": "#B77A35",
+        "secondary": [
+          "#4B241A"
+        ],
+        "samplingNotes": "Reconstructed palette from generated concept; concept lighting is not baked."
+      },
+      "colorVariation": {
+        "palette": [
+          "#B77A35",
+          "#4B241A"
+        ],
+        "pattern": "tarnished brass",
+        "amplitude": 0.16,
+        "heightCorrelation": 0.25
+      },
+      "textureResolution": 1024,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          2,
+          2
+        ],
+        "anisotropy": 4,
+        "texelDensityIntent": "Stable object-scale detail."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 1.8,
+          "amplitude": 0.38,
+          "role": "broad value breakup"
+        },
+        {
+          "id": "meso",
+          "frequency": 12,
+          "amplitude": 0.22,
+          "role": "pores and seams"
+        },
+        {
+          "id": "micro",
+          "frequency": 58,
+          "amplitude": 0.08,
+          "role": "grazing highlight breakup"
+        }
+      ],
+      "roughness": {
+        "base": 0.38,
+        "variation": 0.18,
+        "map": "independent-procedural-field",
+        "localResponse": "cavities matte, worn edges smoother"
+      },
+      "metalness": {
+        "base": 0.86,
+        "variation": 0.12
+      },
+      "normal": {
+        "pattern": "independent procedural height field",
+        "strength": 0.34,
+        "scale": 24,
+        "space": "tangent"
+      },
+      "bump": {
+        "pattern": "hammered fastener heads",
+        "amplitude": 0.035,
+        "scale": 1
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0,
+        "scale": 1,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.34,
+        "contactShadowBias": 0.3,
+        "notes": "Independent cavity darkening"
+      },
+      "wear": {
+        "edgeWear": 0.32,
+        "scratches": [
+          "directional abrasion"
+        ],
+        "chips": [
+          "small impact chips"
+        ]
+      },
+      "dirt": {
+        "amount": 0.34,
+        "cavityBias": 0.75,
+        "color": "#171014"
+      },
+      "localOverrides": [
+        {
+          "id": "chain-fasteners",
+          "region": "chain-fasteners",
+          "evidenceRefs": [
+            "full-object"
+          ],
+          "roughness": 0.18,
+          "note": "Concept-local material override"
+        }
+      ],
+      "shaderNotes": [
+        "Independent albedo, roughness, normal/bump, and AO.",
+        "Emissive reserved for authored cores and sockets."
+      ],
+      "doubleSided": false
+    },
+    {
+      "id": "soot",
+      "name": "soot",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial / PBR approximation",
+      "baseColor": "#0B0A0E",
+      "color": "#0B0A0E",
+      "albedo": {
+        "dominant": "#0B0A0E",
+        "secondary": [
+          "#010102"
+        ],
+        "samplingNotes": "Reconstructed palette from generated concept; concept lighting is not baked."
+      },
+      "colorVariation": {
+        "palette": [
+          "#0B0A0E",
+          "#010102"
+        ],
+        "pattern": "cavity soot",
+        "amplitude": 0.16,
+        "heightCorrelation": 0.25
+      },
+      "textureResolution": 1024,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          2,
+          2
+        ],
+        "anisotropy": 4,
+        "texelDensityIntent": "Stable object-scale detail."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 1.8,
+          "amplitude": 0.38,
+          "role": "broad value breakup"
+        },
+        {
+          "id": "meso",
+          "frequency": 12,
+          "amplitude": 0.22,
+          "role": "pores and seams"
+        },
+        {
+          "id": "micro",
+          "frequency": 58,
+          "amplitude": 0.08,
+          "role": "grazing highlight breakup"
+        }
+      ],
+      "roughness": {
+        "base": 0.97,
+        "variation": 0.18,
+        "map": "independent-procedural-field",
+        "localResponse": "cavities matte, worn edges smoother"
+      },
+      "metalness": {
+        "base": 0.01,
+        "variation": 0.12
+      },
+      "normal": {
+        "pattern": "independent procedural height field",
+        "strength": 0.34,
+        "scale": 24,
+        "space": "tangent"
+      },
+      "bump": {
+        "pattern": "compressed ash",
+        "amplitude": 0.035,
+        "scale": 1
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0,
+        "scale": 1,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.34,
+        "contactShadowBias": 0.3,
+        "notes": "Independent cavity darkening"
+      },
+      "wear": {
+        "edgeWear": 0.32,
+        "scratches": [
+          "directional abrasion"
+        ],
+        "chips": [
+          "small impact chips"
+        ]
+      },
+      "dirt": {
+        "amount": 0.34,
+        "cavityBias": 0.75,
+        "color": "#171014"
+      },
+      "localOverrides": [
+        {
+          "id": "cavity-soot",
+          "region": "cavity-soot",
+          "evidenceRefs": [
+            "full-object"
+          ],
+          "roughness": 0.73,
+          "note": "Concept-local material override"
+        }
+      ],
+      "shaderNotes": [
+        "Independent albedo, roughness, normal/bump, and AO.",
+        "Emissive reserved for authored cores and sockets."
+      ],
+      "doubleSided": false
+    }
+  ],
+  "repetitionSystems": [
+    {
+      "id": "rib-bars",
+      "name": "Curved rib bars",
+      "componentRefs": [
+        "rib-left",
+        "rib-right"
+      ],
+      "realization": "instanced-curve-sweep",
+      "geometry": "tube",
+      "instances": 10,
+      "distribution": "mirrored radial fan",
+      "buildsGeometry": true,
+      "material": "ivory"
+    },
+    {
+      "id": "horn-ridges",
+      "name": "Horn ridge accents",
+      "componentRefs": [
+        "horns"
+      ],
+      "realization": "instanced-cluster",
+      "geometry": "cone",
+      "instances": 18,
+      "distribution": "three curved arcs",
+      "buildsGeometry": true,
+      "material": "ivory"
+    },
+    {
+      "id": "chain-fasteners",
+      "name": "Belt fastener nodes",
+      "componentRefs": [
+        "chains"
+      ],
+      "realization": "instanced-cluster",
+      "geometry": "sphere",
+      "instances": 14,
+      "distribution": "front arc and side rails",
+      "buildsGeometry": true,
+      "material": "brass"
+    }
+  ],
+  "buildPasses": [
+    {
+      "id": "blockout",
+      "goal": "Build and review authored blockout for the current asset.",
+      "componentRefs": [
+        "bellwraith-root",
+        "bell-body",
+        "bell-mouth",
+        "skull-face",
+        "ember-core",
+        "rib-left",
+        "rib-right",
+        "hook-left",
+        "hook-right",
+        "membrane",
+        "horns",
+        "chains",
+        "hover-ring"
+      ],
+      "acceptance": [
+        "Named components remain separate and readable.",
+        "Evidence is recorded before advancing this pass."
+      ]
+    },
+    {
+      "id": "structural-pass",
+      "goal": "Build and review authored structural pass for the current asset.",
+      "componentRefs": [
+        "bellwraith-root",
+        "bell-body",
+        "bell-mouth",
+        "skull-face",
+        "ember-core",
+        "rib-left",
+        "rib-right",
+        "hook-left",
+        "hook-right",
+        "membrane",
+        "horns",
+        "chains",
+        "hover-ring"
+      ],
+      "acceptance": [
+        "Named components remain separate and readable.",
+        "Evidence is recorded before advancing this pass."
+      ]
+    },
+    {
+      "id": "form-refinement",
+      "goal": "Build and review authored form refinement for the current asset.",
+      "componentRefs": [
+        "bellwraith-root",
+        "bell-body",
+        "bell-mouth",
+        "skull-face",
+        "ember-core",
+        "rib-left",
+        "rib-right",
+        "hook-left",
+        "hook-right",
+        "membrane",
+        "horns",
+        "chains",
+        "hover-ring"
+      ],
+      "acceptance": [
+        "Named components remain separate and readable.",
+        "Evidence is recorded before advancing this pass."
+      ]
+    },
+    {
+      "id": "material-pass",
+      "goal": "Build and review authored material pass for the current asset.",
+      "componentRefs": [
+        "bellwraith-root",
+        "bell-body",
+        "bell-mouth",
+        "skull-face",
+        "ember-core",
+        "rib-left",
+        "rib-right",
+        "hook-left",
+        "hook-right",
+        "membrane",
+        "horns",
+        "chains",
+        "hover-ring"
+      ],
+      "acceptance": [
+        "Named components remain separate and readable.",
+        "Evidence is recorded before advancing this pass."
+      ]
+    },
+    {
+      "id": "surface-pass",
+      "goal": "Build and review authored surface pass for the current asset.",
+      "componentRefs": [
+        "bellwraith-root",
+        "bell-body",
+        "bell-mouth",
+        "skull-face",
+        "ember-core",
+        "rib-left",
+        "rib-right",
+        "hook-left",
+        "hook-right",
+        "membrane",
+        "horns",
+        "chains",
+        "hover-ring"
+      ],
+      "acceptance": [
+        "Named components remain separate and readable.",
+        "Evidence is recorded before advancing this pass."
+      ]
+    },
+    {
+      "id": "lighting-pass",
+      "goal": "Build and review authored lighting pass for the current asset.",
+      "componentRefs": [
+        "bellwraith-root",
+        "bell-body",
+        "bell-mouth",
+        "skull-face",
+        "ember-core",
+        "rib-left",
+        "rib-right",
+        "hook-left",
+        "hook-right",
+        "membrane",
+        "horns",
+        "chains",
+        "hover-ring"
+      ],
+      "acceptance": [
+        "Named components remain separate and readable.",
+        "Evidence is recorded before advancing this pass."
+      ]
+    },
+    {
+      "id": "interaction-pass",
+      "goal": "Build and review authored interaction pass for the current asset.",
+      "componentRefs": [
+        "bellwraith-root",
+        "bell-body",
+        "bell-mouth",
+        "skull-face",
+        "ember-core",
+        "rib-left",
+        "rib-right",
+        "hook-left",
+        "hook-right",
+        "membrane",
+        "horns",
+        "chains",
+        "hover-ring"
+      ],
+      "acceptance": [
+        "Named components remain separate and readable.",
+        "Evidence is recorded before advancing this pass."
+      ]
+    },
+    {
+      "id": "optimization-pass",
+      "goal": "Build and review authored optimization pass for the current asset.",
+      "componentRefs": [
+        "bellwraith-root",
+        "bell-body",
+        "bell-mouth",
+        "skull-face",
+        "ember-core",
+        "rib-left",
+        "rib-right",
+        "hook-left",
+        "hook-right",
+        "membrane",
+        "horns",
+        "chains",
+        "hover-ring"
+      ],
+      "acceptance": [
+        "Named components remain separate and readable.",
+        "Evidence is recorded before advancing this pass."
+      ]
+    }
+  ],
+  "visualEvidence": [],
+  "reviewHistory": [],
+  "lodPlan": [
+    {
+      "tier": "near",
+      "distance": 0,
+      "strategy": "full component tree and material layers"
+    },
+    {
+      "tier": "far",
+      "distance": 30,
+      "strategy": "merge static components and reduce local feature geometry"
+    }
+  ],
+  "performanceBudget": {
+    "qualityPriority": "reference-fidelity",
+    "targetTriangles": 65000,
+    "maxDrawCalls": 48,
+    "textureSize": 1024,
+    "fpsTarget": 60,
+    "optimizationPolicy": "Instance repeated ribs/ridges and reduce micro geometry beyond 30m."
+  },
+  "lightingFromPhoto": [
+    "Key: cold moonlight from upper-left, moderate shadow softness.",
+    "Fill: low warm red bounce from cavity/core, preserve dark material values.",
+    "Rim: narrow cool rim separates silhouette from charcoal background.",
+    "Exposure: neutral exposure with ACES/filmic tone mapping intent.",
+    "Contact shadow: AO and soft ground/contact shadow around sockets and hover ring."
+  ],
+  "proceduralStrategy": [
+    "Lathe bell body with open mouth and rim thickness.",
+    "Build ribs/hooks as endpoint-rooted curve sweeps.",
+    "Instance ribs, horn ridges, and fasteners.",
+    "Expose sockets for hover, warning, attack, death, and burst."
+  ],
+  "animationAnchors": [
+    "root pivot drives hover and death collapse",
+    "bell-body drives warning sway",
+    "rib pivots drive attack reach",
+    "membrane flutter uses seeded pulse",
+    "ember pulse drives warning bloom"
+  ],
+  "destructionAnchors": [
+    "bell seam fractures skirt",
+    "rib arms detach at sockets",
+    "membrane tears break separately",
+    "ember core implodes at pulse-origin"
+  ],
+  "risks": [],
+  "localSpecSearch": {
+    "collection": "core_3d",
+    "query": "Bellwraith bell skeletal floating enemy anatomy oxidized bronze bell material roughness patina game enemy animation sockets collider",
+    "index": {
+      "status": "hit",
+      "reason": "current",
+      "fingerprint": "6857e5ab528b42ac12f4f411f862610a0bffce8e47aee3610a7603c318072fe8"
+    },
+    "matches": [
+      {
+        "record_id": "core.runtime-hierarchy",
+        "file_path": "grimoire/readiness/action_rigging.md",
+        "heading": "Hierarchy Pattern",
+        "key_path": null,
+        "score": 10.844620538585,
+        "snippets": [
+          "An action-ready model uses a root, component pivot groups, visual meshes, sockets, collider metadata or proxies, and destruction-group metadata."
+        ],
+        "source_refs": [
+          {
+            "path": "grimoire/readiness/action_rigging.md",
+            "heading": "Hierarchy Pattern",
+            "key_path": null
+          }
+        ],
+        "evidence_refs": [
+          {
+            "kind": "source",
+            "ref": "grimoire/readiness/action_rigging.md"
+          },
+          {
+            "kind": "notebooklm-research",
+            "ref": "notebooklm:4b03c2f9-8393-411f-b5b4-039ab9532843",
+            "note": "Validated generic schema vocabulary; numeric claims remain backed by local source_refs."
+          }
+        ]
+      },
+      {
+        "record_id": "core.shader-mapping-customshadermaterial-csm-weathering-hooks",
+        "file_path": "docs/raw/img2threejs-skill-dataset.json",
+        "heading": null,
+        "key_path": "categories.rendering_shader_mapping[1]",
+        "score": 7.054485764443,
+        "snippets": [
+          "Extension library exposing csm_* output variables to inject procedural noise/masks into an otherwise-standard lit material, used for dynamic tarnish/patina effects. Thư viện mở rộng cung cấp các biến đầu ra csm_* để chèn nhiễu/mặt nạ thủ tục vào ..."
+        ],
+        "source_refs": [
+          {
+            "path": "docs/raw/img2threejs-skill-dataset.json",
+            "heading": null,
+            "key_path": "categories.rendering_shader_mapping[1]"
+          }
+        ],
+        "evidence_refs": [
+          {
+            "kind": "source",
+            "ref": "docs/raw/img2threejs-skill-dataset.json",
+            "note": "img2threejs NotebookLM research distillation"
+          }
+        ]
+      },
+      {
+        "record_id": "core.shader-mapping-uvcoordinate-system-conversion-attachment-hierarchy",
+        "file_path": "docs/raw/img2threejs-skill-dataset.json",
+        "heading": null,
+        "key_path": "categories.rendering_shader_mapping[14]",
+        "score": 4.37507566929,
+        "snippets": [
+          "... appears mirrored or flipped sideways after import signals a handedness mismatch; Attachment points behave like named sockets/joints (Unreal sockets, USD UsdPhysicsFixedJoint, 'ghost links') — a local offset+rotation relative to a parent ..."
+        ],
+        "source_refs": [
+          {
+            "path": "docs/raw/img2threejs-skill-dataset.json",
+            "heading": null,
+            "key_path": "categories.rendering_shader_mapping[14]"
+          }
+        ],
+        "evidence_refs": [
+          {
+            "kind": "source",
+            "ref": "docs/raw/img2threejs-skill-dataset.json",
+            "note": "img2threejs NotebookLM research distillation"
+          }
+        ]
+      }
+    ]
+  },
+  "pipelineRouting": {
+    "version": 1,
+    "track": "character-v1.5",
+    "source": "explicit",
+    "status": "resolved",
+    "classification": {
+      "kind": "character",
+      "confidence": 1,
+      "evidenceRefs": [
+        "pipeline-routing:explicit:character-v1.5"
+      ],
+      "provider": "pipeline-routing-cli",
+      "version": "1"
+    },
+    "conflicts": []
+  },
+  "rig": {
+    "version": "1.0",
+    "bindPose": "A",
+    "forward": "+Z",
+    "bones": [
+      {
+        "id": "pelvis",
+        "parent": null,
+        "jointPos": [
+          0,
+          -0.182,
+          0
+        ],
+        "tipPos": [
+          0,
+          -0.154,
+          0
+        ],
+        "component": "pelvis",
+        "role": "skinned",
+        "chain": "spine"
+      },
+      {
+        "id": "abdomen",
+        "parent": "pelvis",
+        "jointPos": [
+          0,
+          -0.154,
+          0
+        ],
+        "tipPos": [
+          0,
+          0.10472,
+          0.0028
+        ],
+        "component": "abdomen",
+        "role": "skinned",
+        "chain": "spine"
+      },
+      {
+        "id": "chest",
+        "parent": "abdomen",
+        "jointPos": [
+          0,
+          0.10472,
+          0.0028
+        ],
+        "tipPos": [
+          0,
+          0.4396,
+          0.0056
+        ],
+        "component": "chest",
+        "role": "skinned",
+        "chain": "spine"
+      },
+      {
+        "id": "clavicle-l",
+        "parent": "chest",
+        "jointPos": [
+          0.05152,
+          0.4452,
+          0.0084
+        ],
+        "tipPos": [
+          0.322,
+          0.4396,
+          0.014
+        ],
+        "component": "clavicle-l",
+        "role": "skinned",
+        "chain": "arm"
+      },
+      {
+        "id": "clavicle-r",
+        "parent": "chest",
+        "jointPos": [
+          -0.05152,
+          0.4452,
+          0.0084
+        ],
+        "tipPos": [
+          -0.322,
+          0.4396,
+          0.014
+        ],
+        "component": "clavicle-r",
+        "role": "skinned",
+        "chain": "arm"
+      },
+      {
+        "id": "foot-l",
+        "parent": "shin-l",
+        "jointPos": [
+          0.1428,
+          -1.3328,
+          0.0448
+        ],
+        "tipPos": [
+          0.1428,
+          -1.37746,
+          0.04839
+        ],
+        "component": "foot-l",
+        "role": "skinned",
+        "chain": "leg"
+      },
+      {
+        "id": "foot-r",
+        "parent": "shin-r",
+        "jointPos": [
+          -0.1428,
+          -1.3328,
+          0.0448
+        ],
+        "tipPos": [
+          -0.1428,
+          -1.37746,
+          0.04839
+        ],
+        "component": "foot-r",
+        "role": "skinned",
+        "chain": "leg"
+      },
+      {
+        "id": "forearm-l",
+        "parent": "upper-arm-l",
+        "jointPos": [
+          0.38594,
+          0.12416,
+          0.014
+        ],
+        "tipPos": [
+          0.42283,
+          -0.18177,
+          0.014
+        ],
+        "component": "forearm-l",
+        "role": "skinned",
+        "chain": "arm"
+      },
+      {
+        "id": "forearm-r",
+        "parent": "upper-arm-r",
+        "jointPos": [
+          -0.38594,
+          0.12416,
+          0.014
+        ],
+        "tipPos": [
+          -0.42283,
+          -0.18177,
+          0.014
+        ],
+        "component": "forearm-r",
+        "role": "skinned",
+        "chain": "arm"
+      },
+      {
+        "id": "hand-l",
+        "parent": "forearm-l",
+        "jointPos": [
+          0.42283,
+          -0.18177,
+          0.014
+        ],
+        "tipPos": [
+          0.41583,
+          -0.2194,
+          0.0168
+        ],
+        "component": "hand-l",
+        "role": "skinned",
+        "chain": "arm"
+      },
+      {
+        "id": "hand-r",
+        "parent": "forearm-r",
+        "jointPos": [
+          -0.42283,
+          -0.18177,
+          0.014
+        ],
+        "tipPos": [
+          -0.41583,
+          -0.2194,
+          0.0168
+        ],
+        "component": "hand-r",
+        "role": "skinned",
+        "chain": "arm"
+      },
+      {
+        "id": "head",
+        "parent": "neck",
+        "jointPos": [
+          0,
+          0.6776,
+          0.0056
+        ],
+        "tipPos": [
+          0,
+          0.9912,
+          0.0056
+        ],
+        "component": "head",
+        "role": "skinned",
+        "chain": "head"
+      },
+      {
+        "id": "index-l-1",
+        "parent": "hand-l",
+        "jointPos": [
+          0.40183,
+          -0.2194,
+          0.0168
+        ],
+        "tipPos": [
+          0.40535,
+          -0.24859,
+          0.0168
+        ],
+        "component": "index-l-1",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "index-l-2",
+        "parent": "index-l-1",
+        "jointPos": [
+          0.40535,
+          -0.24859,
+          0.0168
+        ],
+        "tipPos": [
+          0.40776,
+          -0.2686,
+          0.0168
+        ],
+        "component": "index-l-2",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "index-l-3",
+        "parent": "index-l-2",
+        "jointPos": [
+          0.40776,
+          -0.2686,
+          0.0168
+        ],
+        "tipPos": [
+          0.40937,
+          -0.28195,
+          0.0168
+        ],
+        "component": "index-l-3",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "index-r-1",
+        "parent": "hand-r",
+        "jointPos": [
+          -0.40183,
+          -0.2194,
+          0.0168
+        ],
+        "tipPos": [
+          -0.40535,
+          -0.24859,
+          0.0168
+        ],
+        "component": "index-r-1",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "index-r-2",
+        "parent": "index-r-1",
+        "jointPos": [
+          -0.40535,
+          -0.24859,
+          0.0168
+        ],
+        "tipPos": [
+          -0.40776,
+          -0.2686,
+          0.0168
+        ],
+        "component": "index-r-2",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "index-r-3",
+        "parent": "index-r-2",
+        "jointPos": [
+          -0.40776,
+          -0.2686,
+          0.0168
+        ],
+        "tipPos": [
+          -0.40937,
+          -0.28195,
+          0.0168
+        ],
+        "component": "index-r-3",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "little-l-1",
+        "parent": "hand-l",
+        "jointPos": [
+          0.44243,
+          -0.2194,
+          0.0168
+        ],
+        "tipPos": [
+          0.44511,
+          -0.24164,
+          0.0168
+        ],
+        "component": "little-l-1",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "little-l-2",
+        "parent": "little-l-1",
+        "jointPos": [
+          0.44511,
+          -0.24164,
+          0.0168
+        ],
+        "tipPos": [
+          0.44706,
+          -0.25776,
+          0.0168
+        ],
+        "component": "little-l-2",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "little-l-3",
+        "parent": "little-l-2",
+        "jointPos": [
+          0.44706,
+          -0.25776,
+          0.0168
+        ],
+        "tipPos": [
+          0.44833,
+          -0.26833,
+          0.0168
+        ],
+        "component": "little-l-3",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "little-r-1",
+        "parent": "hand-r",
+        "jointPos": [
+          -0.44243,
+          -0.2194,
+          0.0168
+        ],
+        "tipPos": [
+          -0.44511,
+          -0.24164,
+          0.0168
+        ],
+        "component": "little-r-1",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "little-r-2",
+        "parent": "little-r-1",
+        "jointPos": [
+          -0.44511,
+          -0.24164,
+          0.0168
+        ],
+        "tipPos": [
+          -0.44706,
+          -0.25776,
+          0.0168
+        ],
+        "component": "little-r-2",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "little-r-3",
+        "parent": "little-r-2",
+        "jointPos": [
+          -0.44706,
+          -0.25776,
+          0.0168
+        ],
+        "tipPos": [
+          -0.44833,
+          -0.26833,
+          0.0168
+        ],
+        "component": "little-r-3",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "middle-l-1",
+        "parent": "hand-l",
+        "jointPos": [
+          0.41583,
+          -0.2194,
+          0.0168
+        ],
+        "tipPos": [
+          0.41969,
+          -0.25137,
+          0.0168
+        ],
+        "component": "middle-l-1",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "middle-l-2",
+        "parent": "middle-l-1",
+        "jointPos": [
+          0.41969,
+          -0.25137,
+          0.0168
+        ],
+        "tipPos": [
+          0.42237,
+          -0.27361,
+          0.0168
+        ],
+        "component": "middle-l-2",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "middle-l-3",
+        "parent": "middle-l-2",
+        "jointPos": [
+          0.42237,
+          -0.27361,
+          0.0168
+        ],
+        "tipPos": [
+          0.42404,
+          -0.28751,
+          0.0168
+        ],
+        "component": "middle-l-3",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "middle-r-1",
+        "parent": "hand-r",
+        "jointPos": [
+          -0.41583,
+          -0.2194,
+          0.0168
+        ],
+        "tipPos": [
+          -0.41969,
+          -0.25137,
+          0.0168
+        ],
+        "component": "middle-r-1",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "middle-r-2",
+        "parent": "middle-r-1",
+        "jointPos": [
+          -0.41969,
+          -0.25137,
+          0.0168
+        ],
+        "tipPos": [
+          -0.42237,
+          -0.27361,
+          0.0168
+        ],
+        "component": "middle-r-2",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "middle-r-3",
+        "parent": "middle-r-2",
+        "jointPos": [
+          -0.42237,
+          -0.27361,
+          0.0168
+        ],
+        "tipPos": [
+          -0.42404,
+          -0.28751,
+          0.0168
+        ],
+        "component": "middle-r-3",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "neck",
+        "parent": "chest",
+        "jointPos": [
+          0,
+          0.4396,
+          0.0056
+        ],
+        "tipPos": [
+          0,
+          0.6776,
+          0.0056
+        ],
+        "component": "neck",
+        "role": "skinned",
+        "chain": "head"
+      },
+      {
+        "id": "ring-l-1",
+        "parent": "hand-l",
+        "jointPos": [
+          0.42983,
+          -0.2194,
+          0.0168
+        ],
+        "tipPos": [
+          0.43335,
+          -0.24859,
+          0.0168
+        ],
+        "component": "ring-l-1",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "ring-l-2",
+        "parent": "ring-l-1",
+        "jointPos": [
+          0.43335,
+          -0.24859,
+          0.0168
+        ],
+        "tipPos": [
+          0.43576,
+          -0.2686,
+          0.0168
+        ],
+        "component": "ring-l-2",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "ring-l-3",
+        "parent": "ring-l-2",
+        "jointPos": [
+          0.43576,
+          -0.2686,
+          0.0168
+        ],
+        "tipPos": [
+          0.43731,
+          -0.28139,
+          0.0168
+        ],
+        "component": "ring-l-3",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "ring-r-1",
+        "parent": "hand-r",
+        "jointPos": [
+          -0.42983,
+          -0.2194,
+          0.0168
+        ],
+        "tipPos": [
+          -0.43335,
+          -0.24859,
+          0.0168
+        ],
+        "component": "ring-r-1",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "ring-r-2",
+        "parent": "ring-r-1",
+        "jointPos": [
+          -0.43335,
+          -0.24859,
+          0.0168
+        ],
+        "tipPos": [
+          -0.43576,
+          -0.2686,
+          0.0168
+        ],
+        "component": "ring-r-2",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "ring-r-3",
+        "parent": "ring-r-2",
+        "jointPos": [
+          -0.43576,
+          -0.2686,
+          0.0168
+        ],
+        "tipPos": [
+          -0.43731,
+          -0.28139,
+          0.0168
+        ],
+        "component": "ring-r-3",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "shin-l",
+        "parent": "thigh-l",
+        "jointPos": [
+          0.1428,
+          -0.84504,
+          0.0056
+        ],
+        "tipPos": [
+          0.1428,
+          -1.3328,
+          0.0448
+        ],
+        "component": "shin-l",
+        "role": "skinned",
+        "chain": "leg"
+      },
+      {
+        "id": "shin-r",
+        "parent": "thigh-r",
+        "jointPos": [
+          -0.1428,
+          -0.84504,
+          0.0056
+        ],
+        "tipPos": [
+          -0.1428,
+          -1.3328,
+          0.0448
+        ],
+        "component": "shin-r",
+        "role": "skinned",
+        "chain": "leg"
+      },
+      {
+        "id": "thigh-l",
+        "parent": "pelvis",
+        "jointPos": [
+          0.1428,
+          -0.3108,
+          0.0056
+        ],
+        "tipPos": [
+          0.1428,
+          -0.84504,
+          0.0056
+        ],
+        "component": "thigh-l",
+        "role": "skinned",
+        "chain": "leg"
+      },
+      {
+        "id": "thigh-r",
+        "parent": "pelvis",
+        "jointPos": [
+          -0.1428,
+          -0.3108,
+          0.0056
+        ],
+        "tipPos": [
+          -0.1428,
+          -0.84504,
+          0.0056
+        ],
+        "component": "thigh-r",
+        "role": "skinned",
+        "chain": "leg"
+      },
+      {
+        "id": "thumb-l-1",
+        "parent": "hand-l",
+        "jointPos": [
+          0.39483,
+          -0.18714,
+          0.0196
+        ],
+        "tipPos": [
+          0.37971,
+          -0.20016,
+          0.0259
+        ],
+        "component": "thumb-l-1",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "thumb-l-2",
+        "parent": "thumb-l-1",
+        "jointPos": [
+          0.37971,
+          -0.20016,
+          0.0259
+        ],
+        "tipPos": [
+          0.36862,
+          -0.20971,
+          0.03052
+        ],
+        "component": "thumb-l-2",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "thumb-l-3",
+        "parent": "thumb-l-2",
+        "jointPos": [
+          0.36862,
+          -0.20971,
+          0.03052
+        ],
+        "tipPos": [
+          0.36053,
+          -0.21668,
+          0.03389
+        ],
+        "component": "thumb-l-3",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "thumb-r-1",
+        "parent": "hand-r",
+        "jointPos": [
+          -0.39483,
+          -0.18714,
+          0.0196
+        ],
+        "tipPos": [
+          -0.37971,
+          -0.20016,
+          0.0259
+        ],
+        "component": "thumb-r-1",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "thumb-r-2",
+        "parent": "thumb-r-1",
+        "jointPos": [
+          -0.37971,
+          -0.20016,
+          0.0259
+        ],
+        "tipPos": [
+          -0.36862,
+          -0.20971,
+          0.03052
+        ],
+        "component": "thumb-r-2",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "thumb-r-3",
+        "parent": "thumb-r-2",
+        "jointPos": [
+          -0.36862,
+          -0.20971,
+          0.03052
+        ],
+        "tipPos": [
+          -0.36053,
+          -0.21668,
+          0.03389
+        ],
+        "component": "thumb-r-3",
+        "role": "skinned",
+        "chain": "digit"
+      },
+      {
+        "id": "upper-arm-l",
+        "parent": "clavicle-l",
+        "jointPos": [
+          0.322,
+          0.4396,
+          0.014
+        ],
+        "tipPos": [
+          0.38594,
+          0.12416,
+          0.014
+        ],
+        "component": "upper-arm-l",
+        "role": "skinned",
+        "chain": "arm"
+      },
+      {
+        "id": "upper-arm-r",
+        "parent": "clavicle-r",
+        "jointPos": [
+          -0.322,
+          0.4396,
+          0.014
+        ],
+        "tipPos": [
+          -0.38594,
+          0.12416,
+          0.014
+        ],
+        "component": "upper-arm-r",
+        "role": "skinned",
+        "chain": "arm"
+      }
+    ]
+  }
+}

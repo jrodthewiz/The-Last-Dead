@@ -1,0 +1,19 @@
+# Survivor body implementation
+
+Scope: original survivor character for The Last Dead. No campaign, enemy balance, weapon logic, audio, networking, or deployment settings were changed here.
+
+- Generated reference: reference.png (built-in image generation). Prompt: realistic adult survivor, olive canvas jacket, leather harness, cargo trousers, laced boots, fingerless gloves, bloodied wrist wraps, scarred face and a healed ear notch.
+- img2threejs: separate state.json; generated assessment with local spec search; authored spec.json passes strict quality validation using Python 3.11. Python 3.8 cannot run the installed intake scripts.
+- Factory: ../../assets/survivor/player-survivor.js. Metres, floor at y=0, forward -Z. Continuous profiled torso/limbs, articulated hips/knees/shoulders/elbows, separate local/head visibility. Independent procedural albedo, weave bump and roughness; generated reference assists face surfacing. Realistic proportions, approximate procedural face/hair and inferred unseen surfaces. This is not a scanned or photorealistic human.
+- Runtime: ../../assets/survivor/survivor-runtime.js. Two persistent scene-owned bodies; local body follows existing player state; co-op survivor follows existing peer state; weapon arm groups receive matching sleeves/wraps/hands. No changes to authoritative simulation or network snapshots.
+- Renderer integration consists of an import and updateSurvivors call immediately before rendering. A missing closing brace in the concurrently edited warden branch was also repaired to restore valid JavaScript.
+- First-person head and upper chest are deliberately culled to prevent camera intersections. The complete jacket and head are present on the full co-op avatar. Boots and trousers remain visible when looking down. Slide uses a lower pelvis and knee bend.
+- Static detail meshes are combined by material per joint; full model is about 35,700 triangles / 56 meshes including hidden parts. No per-frame mesh allocation. Shared textures are allocated once.
+
+Visual iterations: blockout winding correction; garment/harness/boot/hand details; continuous face and reference surfacing; first-person torso occlusion correction; removed the solid belt cap seen from above. Captures include front, side, face, look-down, in-game look-down, slide and mobile framing. Concept fidelity is approximate: garment silhouette and human scale are retained; literal cloth folds, photorealistic hair and exact facial likeness are not claimed. The full seven-pass reference-fidelity certification is not claimed; state remains resumable for that deeper review.
+
+Verification: node tests/survivor.test.mjs checks finite vertices, plausible adult height, grounded rest boots, head/chest culling, gait/jump/slide joints and view-arm construction. node tests/survivor-game.mjs captures actual game rendering at desktop/phone sizes and records page errors plus local-body data in game-check.json. Tests use a disposable headless browser; user tabs and the local server remain intact. Game checks inject a fixed pose to make the visual evidence repeatable; they are not a full gameplay playtest.
+
+The files are local changes, not deployed by this side conversation. assets/ is already recursively copied by build.mjs. survivor-review.html and tests are development-only and outside the build allowlist.
+
+Final FPS framing adjustment: the local view culls the chest/hip shell and waist accessories to avoid camera clipping or detached-looking belts. It renders the articulated bloodied trousers/boots plus weapon-mounted survivor sleeves/hands. The full-body peer retains all garments. A fitted local slide scale/offset compensates for the existing low camera; this is a view-model treatment, not a change to collision or movement. Captures use frozen poses, not a guarantee of foot-plant IK.

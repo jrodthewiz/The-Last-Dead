@@ -14,7 +14,7 @@ test('production host serves the built game and new weapon module',async()=>{
  const app=await startServer({...options,port:0});
  try{
   assert.equal(app.server.address().address,'0.0.0.0');
-  for(const route of ['/', '/weapon-ossuary.js','/assets/models/evil-warden.glb']){
+  for(const route of ['/', '/weapon-ossuary.js','/weapon-reliquary.js','/npc-bellwraith.js','/campaign.js','/explosion-vfx.js','/assets/audio.js','/assets/survivor/survivor-runtime.js','/assets/models/evil-warden.glb']){
    const response=await fetch(`http://127.0.0.1:${app.port}${route}`);
    assert.equal(response.status,200,route);
    if(route==='/')assert.match(await response.text(),/The Last Dead/);

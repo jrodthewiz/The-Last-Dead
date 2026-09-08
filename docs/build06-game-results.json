@@ -1,0 +1,466 @@
+{
+  "startedAt": "2026-09-08T17:31:20.595Z",
+  "url": "http://127.0.0.1:5200/?debug=1&build06=game",
+  "browser": {
+    "executablePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+    "headless": true
+  },
+  "reference": {
+    "spawn": {
+      "x": 6,
+      "y": 10.5,
+      "angle": -1.5707963267948966
+    },
+    "openLane": {
+      "x": 6,
+      "y": 8,
+      "distance": 2.5,
+      "angle": -1.5707963267948966
+    }
+  },
+  "desktop": {
+    "wardenStatus": "ready",
+    "controlledCamera": {
+      "x": 6,
+      "y": 10.5,
+      "angle": -1.5707963267948966,
+      "pitch": 0,
+      "sector": "bloodworks"
+    },
+    "lock": {
+      "position": {
+        "x": 640,
+        "y": 400
+      },
+      "pointerLocked": true
+    },
+    "fire": {
+      "fired": true,
+      "explosion": {
+        "runExplosions": 1,
+        "diagnostics": {
+          "active": 1,
+          "fire": 2,
+          "smoke": 2,
+          "embers": 14,
+          "rings": 1,
+          "maxExplosions": 18,
+          "reducedMotion": false,
+          "gore": true
+        },
+        "weapon": 3
+      },
+      "position": {
+        "x": 640,
+        "y": 400
+      }
+    },
+    "audioReady": true,
+    "audio": {
+      "loaded": true,
+      "decoded": 35,
+      "manifestEntries": 35,
+      "errors": []
+    },
+    "bellwraith": {
+      "preview": {
+        "id": 99001,
+        "x": 6,
+        "y": 8,
+        "pitch": 0,
+        "directorState": "exit"
+      },
+      "visual": {
+        "exists": true,
+        "rootName": "Bellwraith",
+        "bellwraithFlag": true,
+        "meshCount": 55
+      }
+    },
+    "performance": {
+      "elapsedMs": 30558,
+      "frames": 17,
+      "avgFps": 0.56,
+      "minSampleFps": 1,
+      "maxSampleFps": 2,
+      "samples": [
+        {
+          "elapsedMs": 2754,
+          "fps": 2
+        },
+        {
+          "elapsedMs": 5019,
+          "fps": 1
+        },
+        {
+          "elapsedMs": 7268,
+          "fps": 1
+        },
+        {
+          "elapsedMs": 9551,
+          "fps": 1
+        },
+        {
+          "elapsedMs": 11733,
+          "fps": 1
+        },
+        {
+          "elapsedMs": 13749,
+          "fps": 1
+        },
+        {
+          "elapsedMs": 15765,
+          "fps": 1
+        },
+        {
+          "elapsedMs": 17564,
+          "fps": 1
+        },
+        {
+          "elapsedMs": 19380,
+          "fps": 1
+        },
+        {
+          "elapsedMs": 21062,
+          "fps": 1
+        },
+        {
+          "elapsedMs": 22695,
+          "fps": 1
+        },
+        {
+          "elapsedMs": 24211,
+          "fps": 1
+        },
+        {
+          "elapsedMs": 25810,
+          "fps": 1
+        },
+        {
+          "elapsedMs": 27343,
+          "fps": 1
+        },
+        {
+          "elapsedMs": 28942,
+          "fps": 1
+        },
+        {
+          "elapsedMs": 30558,
+          "fps": 1
+        }
+      ]
+    },
+    "rendererInfo": {
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "calls": 161,
+      "triangles": 40812,
+      "points": 0,
+      "lines": 26,
+      "geometries": 288,
+      "textures": 33,
+      "programs": [
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "BazookaFireBillboardsShader",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "BazookaShockwaveRingsShader",
+          "runnable": null
+        },
+        {
+          "name": "BazookaSmokeBillboardsShader",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        }
+      ],
+      "wardenStatus": "ready"
+    },
+    "finalState": {
+      "screen": "play",
+      "mode": "play",
+      "pitch": 0,
+      "weapon": 3
+    },
+    "diagnostics": {
+      "label": "desktop",
+      "consoleErrors": [],
+      "consoleWarnings": [
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.",
+          "location": {
+            "url": "http://127.0.0.1:5200/vendor/three.core.js",
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        }
+      ],
+      "pageErrors": [],
+      "requestFailures": [
+        {
+          "url": "http://127.0.0.1:5200/assets/models/evil-warden.glb",
+          "method": "GET",
+          "failure": "net::ERR_ABORTED"
+        }
+      ]
+    }
+  },
+  "mobile": {
+    "wardenStatus": "ready",
+    "controlledCamera": {
+      "x": 6,
+      "y": 10.5,
+      "angle": -1.5707963267948966,
+      "pitch": 0,
+      "sector": "bloodworks"
+    },
+    "touch": {
+      "visible": true,
+      "controls": [
+        "dash",
+        "forward",
+        "left",
+        "back",
+        "right",
+        "slide",
+        "weapon",
+        "hook",
+        "alt",
+        "parry",
+        "fire",
+        "jump"
+      ],
+      "hudVisible": true
+    },
+    "bellwraith": {
+      "preview": {
+        "id": 99001,
+        "x": 6,
+        "y": 8,
+        "pitch": 0,
+        "directorState": "exit"
+      },
+      "visual": {
+        "exists": true,
+        "rootName": "Bellwraith",
+        "bellwraithFlag": true,
+        "meshCount": 55
+      }
+    },
+    "state": {
+      "screen": "play",
+      "mode": "play",
+      "pitch": 0,
+      "weapon": 3
+    },
+    "rendererInfo": {
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "calls": 188,
+      "triangles": 51842,
+      "points": 0,
+      "lines": 26,
+      "geometries": 248,
+      "textures": 29,
+      "programs": [
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "BazookaFireBillboardsShader",
+          "runnable": null
+        },
+        {
+          "name": "BazookaSmokeBillboardsShader",
+          "runnable": null
+        },
+        {
+          "name": "BazookaShockwaveRingsShader",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        }
+      ],
+      "wardenStatus": "ready"
+    },
+    "diagnostics": {
+      "label": "mobile",
+      "consoleErrors": [],
+      "consoleWarnings": [
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.",
+          "location": {
+            "url": "http://127.0.0.1:5200/vendor/three.core.js",
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        }
+      ],
+      "pageErrors": [],
+      "requestFailures": []
+    }
+  },
+  "errors": []
+}

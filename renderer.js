@@ -1,6 +1,9 @@
+import {updateSurvivors} from './assets/survivor/survivor-runtime.js';
 import * as THREE from './vendor/three.module.js';
 import {buildHorrorDetails} from './world-horror.js';
 import {GLTFLoader} from './vendor/loaders/GLTFLoader.js';
+import {createReliquary,animateReliquary} from './weapon-reliquary.js';
+import {createBellwraith,animateBellwraith} from './npc-bellwraith.js';
 import {createWarden,animateWarden} from './npc-warden.js';
 import {createOssuary,animateOssuary} from './weapon-ossuary.js';
 import {CombatVFX} from './combat-vfx.js';
@@ -345,7 +348,7 @@ export class Renderer {
     this.weaponRig = new THREE.Group();
     this.weaponRig.name = 'WeaponRig';
     this.camera.add(this.weaponRig);
-    this.weaponGroups = [this._makePulseRevolver(), this._makeBreachShotgun(), this._makeArcLance()];
+    this.weaponGroups = [this._makePulseRevolver(), this._makeBreachShotgun(), this._makeArcLance(), this._makeReliquaryAsset()];
     this.weaponGroups.forEach((group, index) => {
       group.scale.setScalar(0.64);
       group.visible = index === 0;
@@ -439,7 +442,68 @@ export class Renderer {
     group.userData.muzzle = emitter;
     return group;
   }
+  _makeReliquaryAsset() {
+    const group = createReliquary({ variant: 'bone-rocket' });
+    group.position.set(0.2, -0.34, -0.74);
+    group.rotation.set(-0.045, -0.035, -0.035);
+    group.name = 'ReliquaryBazooka';
+    return group;
+  }
 
+  _makeReliquaryFallback() {
+    const group = new THREE.Group();
+    group.name = 'ReliquaryBazooka';
+    group.position.set(0.2, -0.34, -0.74);
+    group.rotation.set(-0.045, -0.035, -0.035);
+    const body = shadow(box(new THREE.BoxGeometry(0.48, 0.38, 0.92), this.materials.weaponDark, 0, 0, 0.06));
+    const shoulder = shadow(box(new THREE.BoxGeometry(0.58, 0.18, 0.46), this.materials.weapon, 0, 0.19, -0.08));
+    const spine = shadow(box(new THREE.BoxGeometry(0.16, 0.16, 1.26), this.materials.weaponTrim, 0, 0.12, -0.38));
+    const barrel = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.23, 0.9, 12), this.materials.black));
+    barrel.rotation.x = Math.PI / 2;
+    barrel.position.set(0, 0.02, -0.77);
+    const socket = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.045, 8, 24), this.materials.floorTrim);
+    socket.rotation.x = Math.PI / 2;
+    socket.position.set(0, 0.02, -1.18);
+    const heart = new THREE.Mesh(new THREE.IcosahedronGeometry(0.17, 1), this.materials.red);
+    heart.name = 'ReliquaryHeart';
+    heart.position.set(0, 0.04, -0.98);
+    const boneCage = new THREE.Group();
+    boneCage.name = 'BoneCage';
+    for (const side of [-1, 1]) {
+      const rib = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.026, 6, 18, Math.PI * 1.25), this.materials.weaponTrim);
+      rib.rotation.set(0, side * 0.16, side * 0.12);
+      rib.position.set(side * 0.07, 0.04, -0.83);
+      boneCage.add(rib);
+    }
+    const skull = new THREE.Mesh(new THREE.IcosahedronGeometry(0.16, 1), this.materials.gore);
+    skull.name = 'ReliquarySkull';
+    skull.position.set(0, 0.24, -0.56);
+    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.027, 7, 5), this.materials.orange);
+    const eyeR = eyeL.clone();
+    eyeL.position.set(-0.065, 0.26, -0.695);
+    eyeR.position.set(0.065, 0.26, -0.695);
+    const grip = shadow(box(new THREE.BoxGeometry(0.28, 0.43, 0.32), this.materials.weaponDark, 0, -0.25, 0.2));
+    grip.rotation.x = -0.2;
+    const rearCoil = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.032, 7, 18), this.materials.violet);
+    rearCoil.rotation.x = Math.PI / 2;
+    rearCoil.position.set(0, 0.02, 0.37);
+    const muzzle = new THREE.Group();
+    muzzle.name = 'ReliquaryMuzzle';
+    muzzle.position.set(0, 0.02, -1.2);
+    const muzzleCore = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), this.materials.orange);
+    muzzle.add(muzzleCore);
+    group.add(body, shoulder, spine, barrel, socket, heart, boneCage, skull, eyeL, eyeR, grip, rearCoil, muzzle, this._makeArm(-1), this._makeArm(1));
+    group.userData.muzzle = muzzle;
+    group.userData.reliquary = true;
+    group.userData.animate = (time, shot = 0) => {
+      heart.rotation.y = time * 2.8;
+      heart.scale.setScalar(1 + Math.sin(time * 8.0) * 0.08 + shot * 0.12);
+      skull.rotation.z = Math.sin(time * 2.2) * 0.08 - shot * 0.14;
+      rearCoil.rotation.z = time * 4.4;
+      muzzleCore.scale.setScalar(1 + shot * 0.3);
+    };
+    return group;
+  }
   _buildWorld(course) {
     if (this.worldRoot) {
       this.scene.remove(this.worldRoot);
@@ -459,7 +523,13 @@ export class Renderer {
     this._buildCover(course);
     this._buildIndustrialShell(width, depth);
     this._buildExit(course?.exit || { x: 6, y: 1 });
-    this.horror=buildHorrorDetails(this.worldRoot,this.materials);
+    this.horror=buildHorrorDetails(this.worldRoot,this.materials,course);
+    if (this.horror.theme) {
+      this.scene.background.set(this.horror.theme.background);
+      this.scene.fog.color.set(this.horror.theme.fog);
+      this.scene.fog.near = this.horror.theme.fogNear;
+      this.scene.fog.far = this.horror.theme.fogFar;
+    }
   }
 
   _buildFloor(width, depth) {
@@ -723,7 +793,7 @@ export class Renderer {
     this._exit = { root, gate, ring, threshold, unlocked: false };
   }
 
-  _makeEnemy(kind) {
+  _makeEnemy(kind, variant = '') {
     const group = new THREE.Group();
     group.name = `EnemyKind${kind}`;
     const accent = [this.materials.enemyRed, this.materials.enemyViolet, this.materials.enemyOrange][kind % 3];
@@ -771,6 +841,57 @@ export class Renderer {
     }
     body.add(torso, chest, core, head, visor, horns, leftArm, rightArm, leftLeg, rightLeg);
     group.add(body);
+    const variantRoot = new THREE.Group();
+    variantRoot.name = 'Variant_' + (variant || 'base');
+    const addVariant = mesh => { shadow(mesh, true, true); variantRoot.add(mesh); return mesh; };
+    if (kind === 0 && variant === 'skitter') {
+      group.scale.setScalar(0.86);
+      for (const side of [-1, 1]) {
+        const foreleg = addVariant(new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.08, 0.74, 6), accent));
+        foreleg.position.set(side * 0.34, 0.56, -0.2);
+        foreleg.rotation.set(side * 0.35, 0, side * 0.52);
+        const claw = addVariant(new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.28, 6), signal));
+        claw.position.set(side * 0.48, 0.24, -0.48);
+        claw.rotation.x = Math.PI / 2;
+      }
+    } else if (kind === 0 && variant === 'bloodhound') {
+      const muzzle = addVariant(new THREE.Mesh(new THREE.CapsuleGeometry(0.14, 0.28, 4, 8), accent));
+      muzzle.position.set(0, 1.53, -0.3);
+      muzzle.rotation.x = Math.PI / 2;
+      const jaw = addVariant(new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.08, 0.24), this.materials.gore));
+      jaw.position.set(0, 1.37, -0.31);
+      for (const side of [-1, 1]) {
+        const ear = addVariant(new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.33, 6), signal));
+        ear.position.set(side * 0.19, 1.85, 0.02);
+        ear.rotation.z = side * 0.44;
+      }
+    } else if (kind === 1 && variant === 'hexer') {
+      for (let i = 0; i < 3; i++) {
+        const rune = addVariant(new THREE.Mesh(new THREE.TorusGeometry(0.23 + i * 0.07, 0.018, 6, 20), signal));
+        rune.name = 'HexRune';
+        rune.position.set(0, 1.1 + i * 0.36, 0.08);
+        rune.rotation.set(Math.PI / 2, i * 0.45, i * 0.23);
+      }
+    } else if (kind === 1 && variant === 'mireSinger') {
+      const throat = addVariant(new THREE.Mesh(new THREE.TorusGeometry(0.25, 0.075, 8, 18), this.materials.gore));
+      throat.position.set(0, 1.32, -0.26);
+      throat.rotation.x = Math.PI / 2;
+      for (const side of [-1, 1]) {
+        const tendril = addVariant(new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.06, 0.9, 6), accent));
+        tendril.position.set(side * 0.27, 1.03, 0.12);
+        tendril.rotation.z = side * 0.34;
+      }
+    } else if (kind === 2 && variant === 'brute') {
+      for (const side of [-1, 1]) {
+        const shoulder = addVariant(new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.46, 6), signal));
+        shoulder.position.set(side * 0.45, 1.61, 0);
+        shoulder.rotation.z = side * 0.78;
+      }
+    } else if (kind === 2 && variant === 'warden') {
+      const crest = addVariant(new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.58, 0.48), this.materials.weaponTrim));
+      crest.position.set(0, 2.18, 0.08);
+    }
+    group.add(variantRoot);
     const shadowDisc = new THREE.Mesh(new THREE.CircleGeometry(kind === 2 ? 0.42 : 0.32, 16), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.42, depthWrite: false, side: THREE.DoubleSide }));
     shadowDisc.rotation.x = -Math.PI / 2;
     shadowDisc.position.y = 0.02;
@@ -798,7 +919,7 @@ export class Renderer {
     telegraph.position.y = 0.045;
     telegraph.visible = false;
     group.add(telegraph);
-    group.userData.parts = { body, leftArm, rightArm, leftLeg, rightLeg, horns, telegraph, signal, ring: group.getObjectByName('ShieldRing') };
+    group.userData.parts = { body, leftArm, rightArm, leftLeg, rightLeg, horns, variantRoot, telegraph, signal, ring: group.getObjectByName('ShieldRing') };
     return group;
   }
 
@@ -807,22 +928,29 @@ export class Renderer {
     const enemies = run.course?.enemies || [];
     for (const enemy of enemies) {
       let entry = this._enemyVisuals.get(enemy.id);
+      const useWarden = !!this.wardenTemplate && (enemy.kind === 2 || enemy.variant === 'warden');
       if (!entry) {
-        entry = { root: this.wardenTemplate?createWarden(this.wardenTemplate,this.wardenClips,enemy.kind):this._makeEnemy(enemy.kind), seed: (enemy.id * 1.618) % TAU };
+        entry = { root: useWarden ? createWarden(this.wardenTemplate,this.wardenClips,enemy.kind) : enemy.kind === 3 ? createBellwraith({ variant: enemy.variant, phase: enemy.phase || 0 }) : this._makeEnemy(enemy.kind, enemy.variant), seed: (enemy.id * 1.618) % TAU, variant: enemy.variant || '' };
         this._enemyVisuals.set(enemy.id, entry);
         this.worldRoot.add(entry.root);
       }
-      if(this.wardenTemplate&&!entry.root.userData.warden){this.worldRoot.remove(entry.root);entry.root.traverse(o=>o.geometry?.dispose());entry.root=createWarden(this.wardenTemplate,this.wardenClips,enemy.kind);this.worldRoot.add(entry.root);}
+      if(useWarden&&!entry.root.userData.warden){this.worldRoot.remove(entry.root);entry.root.traverse(o=>o.geometry?.dispose());entry.root=createWarden(this.wardenTemplate,this.wardenClips,enemy.kind);this.worldRoot.add(entry.root);}
       alive.add(enemy.id);
       const root = entry.root;
       if(root.userData.warden){root.position.set(worldX(enemy.x),0,worldZ(enemy.y));root.rotation.y=-Math.atan2(run.y-enemy.y,run.x-enemy.x)-Math.PI/2;animateWarden(root,enemy,now,entry.seed);continue;}
+       if (root.userData.bellwraith) {
+         root.position.set(worldX(enemy.x), 0.22, worldZ(enemy.y));
+         root.rotation.y = -Math.atan2(run.y - enemy.y, run.x - enemy.x) - Math.PI / 2;
+         animateBellwraith(root, enemy, now, entry.seed);
+       }
+         continue;
       if (enemy.dead) {
         root.visible = false;
         continue;
       }
       root.visible = true;
       const phase = (enemy.phase || 0) + now * 0.0018 + entry.seed;
-      const bob = enemy.kind === 1 ? Math.sin(phase * 2.4) * 0.11 : Math.abs(Math.sin(phase * 3.1)) * 0.025;
+      const bob = enemy.kind === 3 ? 0.22 + Math.sin(phase * 2.15) * 0.14 : enemy.kind === 1 ? Math.sin(phase * 2.4) * 0.11 : Math.abs(Math.sin(phase * 3.1)) * 0.025;
       root.position.set(worldX(enemy.x), bob, worldZ(enemy.y));
       const toward = Math.atan2(run.y - enemy.y, run.x - enemy.x);
       root.rotation.y = -toward - Math.PI / 2;
@@ -834,6 +962,10 @@ export class Renderer {
       parts.rightArm.rotation.x = stride * 0.6;
       parts.horns.rotation.y = Math.sin(phase * 2) * 0.05;
       const warning = enemy.attack >= 0 && enemy.attack < (enemy.kind === 0 ? 0.3 : 0.58);
+      if (parts.variantRoot) {
+        parts.variantRoot.rotation.y = phase * (enemy.kind === 3 ? 0.92 : 0.18);
+        parts.variantRoot.position.y = enemy.kind === 3 ? Math.sin(phase * 1.8) * 0.08 : 0;
+      }
       parts.telegraph.visible = warning;
       if (warning) {
         const pulse = 1 + Math.sin(now * 0.018 + enemy.id) * 0.12 + (0.58 - enemy.attack) * 0.55;
@@ -997,6 +1129,8 @@ export class Renderer {
 
     const muzzlePoint=this._fxMuzzle ||= new THREE.Vector3();
     this.weaponGroups[run.weapon||0]?.userData.muzzle?.getWorldPosition(muzzlePoint);
+    this.weaponFX.explosions?.setCamera(this.camera);
+    this.weaponFX.explosions?.setSettings({ reducedMotion: this.settings.reducedMotion, gore: this.settings.gore });
     this.weaponFX.update(run,this._frameDt||.016,this.settings.gore,muzzlePoint);
     let ci = 0, gi = 0;
     for (const c of run.coins || []) {
@@ -1071,10 +1205,12 @@ export class Renderer {
     }
     this.weaponGroups[0].position.x=.26*Math.min(1,this.camera.aspect/.9);
     animateOssuary(this.weaponGroups[0],weapon===0?shot:0,now*.001,dt);
+    this.weaponGroups[weapon]?.userData.animate?.(now * 0.001, shot);
+    if (weapon === 3) animateReliquary(this.weaponGroups[3], shot, now * 0.001, dt);
     this.muzzleFlash.visible = shot > 0.32;
     this.muzzleFlash.scale.setScalar(.55+shot*.55);
     this.muzzleFlash.rotation.z=now*.023;
-    const flashColor=[0xff3154,0xffb44b,0x64eaff][weapon];
+    const flashColor=[0xff3154,0xffb44b,0x64eaff,0xff683f][weapon] || 0xff683f;
     this.muzzleFlash.children[0].material.color.set(flashColor);
     this.muzzleFlash.children[0].material.emissive?.set(flashColor);
     const light = this.muzzleFlash.children.find(child => child.isPointLight);
@@ -1116,6 +1252,7 @@ export class Renderer {
     this._updatePeer(run, nowMs);
     this._updateExit(run, nowMs);
     this._updateCombat(run, nowMs);
+    updateSurvivors(this, run, nowMs);
     if (this.renderer) this.renderer.render(this.scene, this.camera);
     this._diag = this._collectDiagnostics(run);
   }
@@ -1153,6 +1290,7 @@ export class Renderer {
       calls: info?.render?.calls || 0,
       gpuTriangles: info?.render?.triangles || 0,
       rendererGeometries: info?.memory?.geometries || 0,
+      explosions: this.weaponFX?.explosions?.diagnostics?.() || null,
       rendererTextures: info?.memory?.textures || 0,
       enemies: (run.course?.enemies || []).filter(e => !e.dead).length,
       gore: this.settings.gore ? (run.gore || []).length : 0,
@@ -1160,7 +1298,7 @@ export class Renderer {
       projectiles: (run.projectiles || []).length,
       tracers: (run.tracers || []).length,
       coins: (run.coins || []).length,
-      world: 'bloodworks-industrial-cathedral',
+      world: this.horror?.sector || 'bloodworks',
       warden: this._wardenStatus,
       wardenInstances: [...this._enemyVisuals.values()].filter(e=>e.root.userData.warden).length,
     };

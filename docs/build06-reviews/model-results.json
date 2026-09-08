@@ -1,0 +1,122 @@
+{
+  "results": [
+    {
+      "asset": "reliquary",
+      "view": "three-quarter",
+      "meshes": 38,
+      "triangles": 18868,
+      "bounds": [
+        0.6670863628387451,
+        0.938248944590057,
+        2.3800058364868164
+      ],
+      "calls": 37,
+      "failedPrograms": 0
+    },
+    {
+      "asset": "reliquary",
+      "view": "front",
+      "meshes": 38,
+      "triangles": 18868,
+      "bounds": [
+        0.6670863628387451,
+        0.938248944590057,
+        2.3800058364868164
+      ],
+      "calls": 37,
+      "failedPrograms": 0
+    },
+    {
+      "asset": "reliquary",
+      "view": "side",
+      "meshes": 38,
+      "triangles": 18868,
+      "bounds": [
+        0.6670863628387451,
+        0.938248944590057,
+        2.3800058364868164
+      ],
+      "calls": 37,
+      "failedPrograms": 0
+    },
+    {
+      "asset": "bellwraith",
+      "view": "three-quarter",
+      "meshes": 32,
+      "triangles": 13378,
+      "bounds": [
+        1.5002470016479492,
+        1.391418190598488,
+        1.1519568169116974
+      ],
+      "calls": 33,
+      "failedPrograms": 0
+    },
+    {
+      "asset": "bellwraith",
+      "view": "front",
+      "meshes": 32,
+      "triangles": 13378,
+      "bounds": [
+        1.5002470016479492,
+        1.391418190598488,
+        1.1519568169116974
+      ],
+      "calls": 33,
+      "failedPrograms": 0
+    },
+    {
+      "asset": "bellwraith",
+      "view": "side",
+      "meshes": 32,
+      "triangles": 13378,
+      "bounds": [
+        1.5002470016479492,
+        1.391418190598488,
+        1.1519568169116974
+      ],
+      "calls": 33,
+      "failedPrograms": 0
+    },
+    {
+      "asset": "ossuary",
+      "view": "three-quarter",
+      "meshes": 25,
+      "triangles": 17472,
+      "bounds": [
+        0.4832500070333481,
+        0.9094014522271485,
+        1.5438100191221416
+      ],
+      "calls": 24,
+      "failedPrograms": 0
+    },
+    {
+      "asset": "ossuary",
+      "view": "front",
+      "meshes": 25,
+      "triangles": 17472,
+      "bounds": [
+        0.4832500070333481,
+        0.9094014522271485,
+        1.5438100191221416
+      ],
+      "calls": 24,
+      "failedPrograms": 0
+    },
+    {
+      "asset": "ossuary",
+      "view": "side",
+      "meshes": 25,
+      "triangles": 17472,
+      "bounds": [
+        0.4832500070333481,
+        0.9094014522271485,
+        1.5438100191221416
+      ],
+      "calls": 24,
+      "failedPrograms": 0
+    }
+  ],
+  "errors": []
+}

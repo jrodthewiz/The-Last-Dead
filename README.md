@@ -8,7 +8,7 @@ Canonical folder: **Desktop/thelastdead**. Repository: **https://github.com/jrod
 
 ## Current build
 
-**BUILD 05 / OSSUARY** adds a bone-forged death revolver, animated chamber, colored bullet trails, muzzle embers, impact sparks and hit-position blood spray. See [Build 05 evidence](docs/BUILD-05.md). Refresh the open local game to see updates; the development server sends no-store responses.
+**BUILD 06 / RELIQUARY** expands the descent into three sectors with paced reinforcements, enemy mutations, a bone rocket launcher, shader explosion effects, and a sampled horror soundscape. See [Build 06 evidence](docs/BUILD-06.md). Refresh the open local game to see updates; the development server sends no-store responses.
 
 ## Play
 
@@ -28,13 +28,13 @@ The launcher reuses this project's existing server and refuses to replace anothe
 | Shift | Directional dash, including in the air |
 | Ctrl | Slide; in the air, ground slam |
 | Left mouse | Fire |
-| Right mouse | Toss coin with revolver; eject explosive core with shotgun |
+| Right mouse | Toss coin; eject shotgun core; airburst a Reliquary rocket |
 | F | Punch / timed projectile parry |
 | E | Tether: pull light enemies close, pull yourself to heavy enemies |
-| 1 / 2 / 3 or wheel | Revolver / shotgun / arc lance |
+| 1 / 2 / 3 / 4 or wheel | Ossuary / shotgun / arc lance / Reliquary |
 | R / Esc | Restart / pause |
 
-Shoot airborne coins for ricochets. Shoot cores to detonate them; the arc lance amplifies the blast. Damage enemies up close to restore health. Mix attacks to increase your style rank. Clear three waves and reach the illuminated exit. Settings include sensitivity, volume, reduced motion, gore, and optional automatic forward running. Touch controls and drag-to-look are included.
+Shoot airborne coins for ricochets. Shoot cores to detonate them; the arc lance amplifies the blast. Damage enemies up close to restore health. Mix attacks to increase your style rank. Clear each sector and reach its illuminated exit to descend. The final sector ends the campaign. Settings include sensitivity, volume, reduced motion, gore, and optional automatic forward running. Touch controls and drag-to-look are included.
 
 ## Two-player co-op
 
@@ -59,9 +59,9 @@ Gameplay: engine.js. Rendering: renderer.js. Inputs/co-op authority: main.js. UI
 
 ## Current scope
 
-This is a playable combat-arena foundation, not full ULTRAKILL feature parity. It has one original arena, three enemy classes, three waves and three weapons with combo mechanics. A campaign, bosses, every weapon variant, full advanced combat-tech parity, multi-level traversal maps, matchmaking and broad device/network certification remain future work. See docs/COMBAT-FOUNDATION.md and the verification reports for exact implementation and testing evidence.
+This build contains three authored arena sectors, nine paced waves, four enemy families with difficulty variants, and four weapons with combo mechanics. Boss encounters, full advanced combat-tech parity, larger traversal maps, matchmaking and broad device/network certification remain future work. It is an original playable foundation, not full ULTRAKILL feature parity.
 
-The original Findle game remains separate. No generation credentials are included. The material image was generated; audio uses local synthesis because the external generation providers were unavailable. Details: docs/assets.md.
+The original Findle game remains separate. No generation credentials are included. Sampled sound effects and ambience ship locally with procedural fallback layers; source and CC0 licensing are recorded in [audio sources](docs/audio-sources.md). New enemy and weapon concepts and procedural reconstruction evidence are in docs/build06-art.
 
 ## Railway
 

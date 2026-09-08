@@ -1,0 +1,15 @@
+{
+  "result": {
+    "body": "SurvivorFirstPersonBody",
+    "headHidden": true,
+    "meshes": 36,
+    "triangles": 30068,
+    "position": [
+      24,
+      0,
+      42.08
+    ],
+    "legs": 2
+  },
+  "errors": []
+}

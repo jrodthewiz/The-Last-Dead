@@ -1,3 +1,5 @@
+import {CAMPAIGN_SECTORS} from './campaign.js';
+import {weapons} from './engine.js';
 const PREFS_KEY = 'dead-arrival-prefs-v1';
 
 const DEFAULT_PREFS = Object.freeze({
@@ -8,8 +10,8 @@ const DEFAULT_PREFS = Object.freeze({
   autoRun: false,
 });
 
-const WEAPON_NAMES = ['OSSUARY', 'BREACH SHOTGUN', 'ARC LANCE'];
-const WEAPON_HINTS = ['BONEFORGED // COIN RICOCHET', 'CLOSE RANGE // WIDE SPREAD', 'RAIL PUNCH // PIERCE'];
+const WEAPON_NAMES = ['OSSUARY', 'BREACH SHOTGUN', 'ARC LANCE', 'RELIQUARY'];
+const WEAPON_HINTS = ['BONEFORGED // COIN RICOCHET', 'CLOSE RANGE // WIDE SPREAD', 'RAIL PUNCH // PIERCE', 'ROCKETS // ALT AIRBURST'];
 
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
   '&': '&amp;',
@@ -264,22 +266,22 @@ export class UI {
     this.root.innerHTML = `<section class="screen menu-screen" aria-label="The Last Dead main menu">
       <div class="menu-shell">
         <div class="menu-copy">
-          <div class="brand-lockup"><span class="brand-eyebrow">EVIL MOVEMENT COMBAT // BLOODWORKS 01</span><h1 class="brand-title"><span>THE</span><em>LAST DEAD</em></h1><span class="brand-stamp">TLD<br />04<br />LIVE</span><p class="brand-tagline">A violent little arena for fast feet, hard angles, and beautiful mistakes.</p></div>
-          <div class="menu-copy-foot"><div class="menu-footer"><button class="text-button" type="button" data-action="settings">Settings</button><small class="build-revision">BUILD 05 / OSSUARY</small></div><span class="menu-status">NO SAFE ROOM // SIGNAL OPEN</span></div>
+          <div class="brand-lockup"><span class="brand-eyebrow">DESCENT PROTOCOL // THREE SECTORS</span><h1 class="brand-title"><span>THE</span><em>LAST DEAD</em></h1><span class="brand-stamp">TLD<br />06<br />LIVE</span><p class="brand-tagline">Three floors below mercy. Fast feet. Heavy weapons. Nothing leaves clean.</p></div>
+          <div class="menu-copy-foot"><div class="menu-footer"><button class="text-button" type="button" data-action="settings">Settings</button><small class="build-revision">BUILD 06 / RELIQUARY</small></div><span class="menu-status">NO SAFE ROOM // SIGNAL OPEN</span></div>
         </div>
         <div class="menu-actions">
-          <div class="course-heading"><div><span class="kicker">ACTIVE SUBJECT // 01</span><h2>The <em>Bloodworks</em></h2></div><span class="course-index">01 / 01</span></div>
-          <p class="course-blurb">Condemned medical foundry. Three live waves. The exit only opens when the room is quiet.</p>
-          <div class="course-meta"><div><span class="tiny-label">Protocol</span><strong>WAVES // EXIT</strong></div><div><span class="tiny-label">Threat profile</span><strong>IMPACT + PROJECTILES</strong></div></div>
+          <div class="course-heading"><div><span class="kicker">CAMPAIGN // DESCENT</span><h2>The <em>Bloodworks</em></h2></div><span class="course-index">01 / 03</span></div>
+          <p class="course-blurb">Descend through three condemned sectors. Threats evolve, reinforcements arrive in pulses, and every sealed exit demands a clean sweep.</p>
+          <ol class="campaign-route" aria-label="Campaign descent">${CAMPAIGN_SECTORS.map((sector,i)=>`<li class="${i===0?'is-current':''}"><span>${String(i+1).padStart(2,'0')}</span><b>${esc(sector.name.replace(/^The /,''))}</b></li>`).join('')}</ol><div class="course-meta"><div><span class="tiny-label">Protocol</span><strong>3 SECTORS // 9 WAVES</strong></div><div><span class="tiny-label">Threat profile</span><strong>MUTATIONS + HEAVY ORDNANCE</strong></div></div>
           <button class="primary-button start-button" type="button" data-action="start">Start solo <span>-></span></button>
-          <div class="combat-note"><span class="field-label">Combat doctrine</span><strong>Keep moving. Make every shot a door.</strong></div>
+          <div class="combat-note"><span class="field-label">Combat doctrine</span><strong>4: Reliquary rockets. Right click: airburst. Stay clear of the blast.</strong></div>
           <div class="coop-access"><button class="coop-toggle" type="button" data-action="coop-toggle" aria-expanded="false" aria-controls="coop-form"><span><b>Co-op uplink</b><small>Optional peer-to-peer breach</small></span><i data-coop-icon>+</i></button>
             <div class="coop-panel" id="coop-form" data-coop-panel hidden>
               <div class="network-panel"><span class="field-label">Host a breach</span><div class="network-row"><input class="code-input" name="offer" autocomplete="off" spellcheck="false" placeholder="Offer code appears here" aria-label="Host offer code" readonly /><button class="network-button" type="button" data-action="host">Create offer</button></div><div class="network-row"><button class="text-button" type="button" data-action="copy-offer">Copy offer code</button><span></span></div></div>
               <div class="network-panel"><span class="field-label">Join a breach</span><div class="network-row"><input class="code-input" name="joinOffer" autocomplete="off" spellcheck="false" placeholder="Paste host offer" aria-label="Join offer code" /><button class="network-button" type="button" data-action="join">Make answer</button></div><div class="network-row"><input class="code-input" name="answer" autocomplete="off" spellcheck="false" placeholder="Answer code appears here" aria-label="Answer code" readonly /><button class="network-button" type="button" data-action="copy-answer">Copy</button></div><div class="network-row"><input class="code-input" name="acceptAnswer" autocomplete="off" spellcheck="false" placeholder="Host: paste answer here" aria-label="Accept answer code" /><button class="network-button" type="button" data-action="accept">Accept</button></div><div class="network-row"><button class="text-button" type="button" data-action="disconnect">Disconnect uplink</button><button class="text-button" type="button" data-action="clear-network">Clear codes</button></div><span class="network-state" data-network-message>Codes stay in this browser until you clear them.</span></div>
             </div>
           </div>
-          <div class="controls-strip controls-compact" aria-label="Controls"><span class="control-key"><b class="keycap">WASD</b> move</span><span class="control-key"><b class="keycap">MOUSE</b> look / fire</span><span class="control-key"><b class="keycap">SPACE</b> jump</span><span class="control-key"><b class="keycap">SHIFT</b> dash</span><span class="control-key"><b class="keycap">CTRL</b> slide</span><span class="control-key"><b class="keycap">F</b> parry</span><span class="control-key"><b class="keycap">E</b> tether</span><span class="control-key"><b class="keycap">1 2 3</b> weapons</span><span class="control-key"><b class="keycap">ESC</b> pause</span></div>
+          <div class="controls-strip controls-compact" aria-label="Controls"><span class="control-key"><b class="keycap">WASD</b> move</span><span class="control-key"><b class="keycap">MOUSE</b> look / fire</span><span class="control-key"><b class="keycap">SPACE</b> jump</span><span class="control-key"><b class="keycap">SHIFT</b> dash</span><span class="control-key"><b class="keycap">CTRL</b> slide</span><span class="control-key"><b class="keycap">F</b> parry</span><span class="control-key"><b class="keycap">E</b> tether</span><span class="control-key"><b class="keycap">1 2 3 4</b> weapons</span><span class="control-key"><b class="keycap">ESC</b> pause</span></div>
         </div>
       </div>
     </section>${this._settingsMarkup()}`;
@@ -333,18 +335,18 @@ export class UI {
     this.run = run;
     const courseName = run.course?.name || 'The Bloodworks';
     const kills = Number(run.kills) || 0;
-    const wave = Math.min(3, Number(run.wave) || (win ? 3 : 0));
+    const wave = win ? (run.sectorCount||3) : (run.sectorIndex||0);
     const style = Number(run.styleTotal) || Number(run.style) || 0;
     const combo = Number(run.bestCombo) || Number(run.combo) || 0;
     const time = Number(run.time) || 0;
     const old = this.root.querySelector('.screen');
     if (old) old.remove();
-    this.root.insertAdjacentHTML('afterbegin', `<section class="screen finish-screen" aria-label="${win ? 'Arena cleared' : 'Run over'}"><div class="finish-backdrop"></div><div class="finish-card ${win ? 'is-win' : 'is-dead'}"><span class="kicker">${win ? 'SUBJECT COMPLETE // EXIT SIGNAL FOUND' : 'LIFE SIGNAL LOST // RELOAD REQUIRED'}</span><h2>${win ? 'Blood <em>paid.</em>' : 'You got <em>opened.</em>'}</h2><p class="finish-copy">${win ? `${esc(courseName)} is quiet for now. Keep the style high and make the next pass hurt more.` : 'The arena keeps moving. Go again with a faster line, a sharper parry, and no respect for the incoming fire.'}</p><div class="results"><div class="result"><strong>${fmt(time, 1)}s</strong><span class="result-label">run time</span></div><div class="result"><strong>${String(kills).padStart(2, '0')}</strong><span class="result-label">eliminated</span></div><div class="result"><strong>${String(combo).padStart(2, '0')}</strong><span class="result-label">best combo</span></div></div><div class="results"><div class="result"><strong>${String(wave).padStart(2, '0')} / 03</strong><span class="result-label">waves cleared</span></div><div class="result"><strong>${Math.round(style)}</strong><span class="result-label">style earned</span></div><div class="result"><strong>${esc(run.rank || (win ? 'S' : 'D'))}</strong><span class="result-label">final rank</span></div></div><div class="finish-actions"><button class="primary-button" type="button" data-action="restart">${win ? 'Run it back' : 'Retry the breach'} <span>-></span></button><button class="secondary-button" type="button" data-action="menu">Return to menu</button></div></div></section>`);
+    this.root.insertAdjacentHTML('afterbegin', `<section class="screen finish-screen" aria-label="${win ? 'Arena cleared' : 'Run over'}"><div class="finish-backdrop"></div><div class="finish-card ${win ? 'is-win' : 'is-dead'}"><span class="kicker">${win ? 'SUBJECT COMPLETE // EXIT SIGNAL FOUND' : 'LIFE SIGNAL LOST // RELOAD REQUIRED'}</span><h2>${win ? 'Blood <em>paid.</em>' : 'You got <em>opened.</em>'}</h2><p class="finish-copy">${win ? `${esc(courseName)} is quiet for now. Keep the style high and make the next pass hurt more.` : 'The arena keeps moving. Go again with a faster line, a sharper parry, and no respect for the incoming fire.'}</p><div class="results"><div class="result"><strong>${fmt(time, 1)}s</strong><span class="result-label">run time</span></div><div class="result"><strong>${String(kills).padStart(2, '0')}</strong><span class="result-label">eliminated</span></div><div class="result"><strong>${String(combo).padStart(2, '0')}</strong><span class="result-label">best combo</span></div></div><div class="results"><div class="result"><strong>${String(wave).padStart(2, '0')} / 03</strong><span class="result-label">sectors cleared</span></div><div class="result"><strong>${Math.round(style)}</strong><span class="result-label">style earned</span></div><div class="result"><strong>${esc(run.rank || (win ? 'S' : 'D'))}</strong><span class="result-label">final rank</span></div></div><div class="finish-actions"><button class="primary-button" type="button" data-action="restart">${win ? 'Run it back' : 'Retry the breach'} <span>-></span></button><button class="secondary-button" type="button" data-action="menu">Return to menu</button></div></div></section>`);
     return this;
   }
 
   _hudMarkup() {
-    return `<div class="hud" aria-label="The Last Dead combat HUD"><div class="hud-top"><div class="hud-cluster"><div class="hud-plate objective"><span class="hud-label">Objective // Bloodworks</span><strong class="hud-value" data-hud="objective">CLEAR THE WAVES</strong><span class="hud-sub" data-hud="objective-sub">Reach the exit after wave 03</span><div class="objective-progress"><i data-hud="objective-progress"></i></div></div></div><div class="hud-cluster"><div class="hud-plate network"><span class="hud-label">Uplink</span><strong class="hud-value" data-hud="network">OFFLINE</strong><span class="hud-sub" data-hud="fps">-- FPS</span></div><div class="hud-plate rank"><span class="hud-label">Style rank</span><strong class="hud-value" data-hud="rank">D</strong><span class="hud-sub" data-hud="style-label">GET CLOSE. GET LOUD.</span></div><button class="hud-pause" type="button" data-action="pause" aria-label="Pause game">II</button></div></div><div class="crosshair" data-hud="crosshair" aria-hidden="true"><span class="hitmarker"></span></div><div class="hud-bottom"><div class="hud-bottom-left"><div class="vitals"><div class="vitals-line"><span class="hud-label">Life signal</span><strong data-hud="health">100</strong></div><div class="meter"><i class="health-fill" data-hud="health-fill"></i></div><div class="vitals-foot"><span>energy <b data-hud="energy">100%</b></span><span data-hud="speed">0.0 m/s</span></div><div class="meter"><i class="energy-fill" data-hud="energy-fill"></i></div></div><div class="dash-cluster"><span class="hud-label">Dash cells</span><div class="dash-pips"><i class="dash-pip" data-dash="0"></i><i class="dash-pip" data-dash="1"></i><i class="dash-pip" data-dash="2"></i></div><span class="hud-sub">shift</span></div></div><div class="hud-bottom-right"><div class="weapon-card"><div class="weapon-line"><span class="weapon-slot" data-hud="weapon-slot">01 / 03</span><strong class="weapon-name" data-hud="weapon">OSSUARY</strong></div><span class="weapon-foot"><span data-hud="weapon-hint">SEMI-AUTO // KEEP MOVING</span><span data-hud="weapon-resource">COIN x4</span><span data-hud="cooldown-label">READY</span></span><div class="cooldown"><i data-hud="cooldown"></i></div></div></div></div></div>`;
+    return `<div class="hud" aria-label="The Last Dead combat HUD"><div class="hud-top"><div class="hud-cluster"><div class="hud-plate objective"><span class="hud-label"><span data-hud="sector">Sector 01 // Bloodworks</span></span><strong class="hud-value" data-hud="objective">CLEAR THE WAVES</strong><span class="hud-sub" data-hud="objective-sub">Reach the exit after wave 03</span><div class="objective-progress"><i data-hud="objective-progress"></i></div></div></div><div class="hud-cluster"><div class="hud-plate network"><span class="hud-label">Uplink</span><strong class="hud-value" data-hud="network">OFFLINE</strong><span class="hud-sub" data-hud="fps">-- FPS</span></div><div class="hud-plate rank"><span class="hud-label">Style rank</span><strong class="hud-value" data-hud="rank">D</strong><span class="hud-sub" data-hud="style-label">GET CLOSE. GET LOUD.</span></div><button class="hud-pause" type="button" data-action="pause" aria-label="Pause game">II</button></div></div><div class="crosshair" data-hud="crosshair" aria-hidden="true"><span class="hitmarker"></span></div><div class="hud-bottom"><div class="hud-bottom-left"><div class="vitals"><div class="vitals-line"><span class="hud-label">Life signal</span><strong data-hud="health">100</strong></div><div class="meter"><i class="health-fill" data-hud="health-fill"></i></div><div class="vitals-foot"><span>energy <b data-hud="energy">100%</b></span><span data-hud="speed">0.0 m/s</span></div><div class="meter"><i class="energy-fill" data-hud="energy-fill"></i></div></div><div class="dash-cluster"><span class="hud-label">Dash cells</span><div class="dash-pips"><i class="dash-pip" data-dash="0"></i><i class="dash-pip" data-dash="1"></i><i class="dash-pip" data-dash="2"></i></div><span class="hud-sub">shift</span></div></div><div class="hud-bottom-right"><div class="weapon-card"><div class="weapon-line"><span class="weapon-slot" data-hud="weapon-slot">01 / 04</span><strong class="weapon-name" data-hud="weapon">OSSUARY</strong></div><span class="weapon-foot"><span data-hud="weapon-hint">SEMI-AUTO // KEEP MOVING</span><span data-hud="weapon-resource">COIN x4</span><span data-hud="cooldown-label">READY</span></span><div class="cooldown"><i data-hud="cooldown"></i></div></div></div></div></div>`;
   }
 
   _touchMarkup() {
@@ -367,12 +369,15 @@ export class UI {
     const health = clamp(run.health, 0, 100);
     const energy = clamp(run.energy, 0, 100);
     const style = clamp(run.style, 0, 1800);
-    const currentWave = clamp(run.wave, 0, 3);
+    const waveCount = run.waveCount || 3;
+    const currentWave = clamp(run.wave, 0, waveCount);
+    const pending = Math.max(0, run.director?.pending || 0);
+    const exitReady = currentWave >= waveCount && enemyCount(run) === 0 && pending === 0;
     const remaining = enemyCount(run);
     const total = enemyTotal(run);
     const weapon = clamp(run.weapon, 0, WEAPON_NAMES.length - 1);
     const cooldown = Math.max(0, Number(run.cooldowns?.[weapon] || run.fireCooldown || 0));
-    const maxCooldown = weapon === 0 ? 0.22 : weapon === 1 ? 0.72 : 5;
+    const maxCooldown = weapons[weapon]?.interval || 1;
     const crosshair = this.root.querySelector('[data-hud="crosshair"]');
     const hit = Array.isArray(run.events) && run.events.some((event) => event.type === 'hit' || event.type === 'kill' || event.type === 'parry');
     crosshair?.classList.toggle('is-hit', hit);
@@ -388,19 +393,20 @@ export class UI {
     this._setHud('style-total', `${Math.round(Number(run.styleTotal) || style)} pts`);
     this._setHud('style-fill', '', (style / 1800) * 100);
     this._setHud('weapon', WEAPON_NAMES[weapon]);
-    this._setHud('weapon-slot', `${String(weapon + 1).padStart(2, '0')} / 03`);
+    this._setHud('weapon-slot', `${String(weapon + 1).padStart(2, '0')} / 04`);
     this._setHud('weapon-hint', WEAPON_HINTS[weapon]);
     const coins = clamp(run.coinCharges, 0, 4);
     const altCooldown = Math.max(0, Number(run.altCooldown || 0));
-    this._setHud('weapon-resource', weapon === 0 ? `COIN x${Math.floor(coins)}` : weapon === 1 ? (altCooldown > 0 ? `CORE ${fmt(altCooldown, 1)}s` : 'CORE READY') : 'RAIL PIERCE');
+    this._setHud('weapon-resource', weapon === 0 ? `COIN x${Math.floor(coins)}` : weapon === 1 ? (altCooldown > 0 ? `CORE ${fmt(altCooldown, 1)}s` : 'CORE READY') : weapon === 2 ? 'RAIL PIERCE' : 'ALT: AIRBURST');
     this._setHud('cooldown-label', cooldown > 0.01 ? `${fmt(cooldown, 2)}s` : 'READY');
     this._setHud('cooldown', '', maxCooldown ? (1 - cooldown / maxCooldown) * 100 : 100);
     this._setHud('network', network || 'OFFLINE');
     const fpsNode = this.root.querySelector('[data-hud="fps"]');
     if (fpsNode) { fpsNode.hidden = !this.debug; if (this.debug) fpsNode.textContent = fps ? `${Math.round(fps)} FPS` : '-- FPS'; }
-    this._setHud('objective', currentWave >= 3 && remaining === 0 ? 'REACH THE EXIT' : `CLEAR WAVE ${String(Math.max(1, currentWave)).padStart(2, '0')}`);
-    this._setHud('objective-sub', currentWave >= 3 && remaining === 0 ? 'Exit marker is live' : `${remaining} target${remaining === 1 ? '' : 's'} remaining // ${total || '--'} in wave`);
-    this._setHud('objective-progress', '', currentWave >= 3 && remaining === 0 ? 100 : (currentWave / 3) * 100);
+    this._setHud('sector', `Sector ${String((run.sectorIndex||0)+1).padStart(2,'0')} / ${String(run.sectorCount||3).padStart(2,'0')} // ${run.sectorName||run.course?.name||'Bloodworks'}`);
+    this._setHud('objective', exitReady ? ((run.sectorIndex||0)<(run.sectorCount||3)-1?'DESCEND THROUGH EXIT':'REACH THE FINAL EXIT') : run.director?.state==='intermission' ? `NEXT WAVE IN ${Math.ceil(run.waveDelay||0)}s` : `CLEAR WAVE ${String(Math.max(1,currentWave)).padStart(2,'0')} / ${waveCount}`);
+    this._setHud('objective-sub', exitReady ? 'Green exit signal is live' : `${remaining} active // ${pending} reinforcements${run.director?.aliveCap?' // cap '+run.director.aliveCap:''}`);
+    this._setHud('objective-progress', '', exitReady ? 100 : (Math.max(0,currentWave-1)+(total?Math.max(0,total-remaining)/(total+pending):0))/waveCount*100);
     this.root.querySelectorAll('[data-dash]').forEach((pip, index) => pip.classList.toggle('is-ready', energy >= (index + 1) * 33));
     this._applyPrefs();
     return this;
