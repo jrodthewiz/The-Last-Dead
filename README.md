@@ -2,6 +2,10 @@
 
 An original, fast 3D arena shooter: industrial horror, aggressive movement, blood healing, weapon combinations, and two-player peer-to-peer co-op.
 
+## Standalone project
+
+Canonical folder: **Desktop/thelastdead**. Repository: **https://github.com/jrodthewiz/The-Last-Dead**. This project owns its source, assets, bundled Three.js runtime, build and launcher. Findle remains a separate miniature-world hidden-object game; do not develop The Last Dead inside Findle.
+
 ## Current build
 
 **BUILD 05 / OSSUARY** adds a bone-forged death revolver, animated chamber, colored bullet trails, muzzle embers, impact sparks and hit-position blood spray. See [Build 05 evidence](docs/BUILD-05.md). Refresh the open local game to see updates; the development server sends no-store responses.
@@ -49,7 +53,7 @@ The codes establish a real WebRTC data channel. There is no account, matchmaking
 - **npm.cmd run preview** serves the built game.
 - **npm.cmd run test:engine** runs movement and combat regressions.
 - **npm.cmd run test:network** checks WebRTC using installed Chrome and Playwright (see docs/network.md for paths).
-- **node browser-check.mjs** checks desktop and mobile inputs when Playwright is configured.
+- **node browser-check.mjs** checks desktop and mobile inputs when Playwright is configured. For browser QA, install Playwright locally with **npm.cmd install --no-save playwright**, then **npx.cmd playwright install chromium**. An explicit **PLAYWRIGHT_PATH** can select another installed package; the default resolves this project's own dependencies.
 
 Gameplay: engine.js. Rendering: renderer.js. Inputs/co-op authority: main.js. UI: ui.js and styles.css. Transport: peer.js. Audio: assets/audio.js. The bundled Three.js runtime retains its license in vendor/THREE-LICENSE.txt.
 

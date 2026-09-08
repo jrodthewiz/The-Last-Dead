@@ -4,12 +4,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
-const playwrightPath = process.env.PLAYWRIGHT_PATH || 'C:/Users/wolfk/Desktop/Dogfight/node_modules/playwright';
+const playwrightPath = process.env.PLAYWRIGHT_PATH || 'playwright';
 const chromePath = process.env.CHROME_PATH || 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe';
 const { chromium } = require(playwrightPath);
 let sharp = null;
 try {
-  sharp = require(process.env.SHARP_PATH || 'C:/Users/wolfk/Desktop/Dogfight/node_modules/sharp');
+  sharp = require(process.env.SHARP_PATH || 'sharp');
 } catch {
   // The browser run remains useful without PNG statistics; the result records
   // the decoder failure so the pixel claim is not overstated.

@@ -1,3 +1,5 @@
+Current setup: run from Desktop/thelastdead. Browser tests resolve local Playwright or an explicit PLAYWRIGHT_PATH override. Paths below in earlier verification records describe the original test environment.
+
 # Dead Arrival peer transport
 
 `peer.js` provides a small host authoritative WebRTC transport. It does not
@@ -98,7 +100,7 @@ memory, sends an event and five snapshots, checks order and RTT, rejects an
 invalid top-level payload, and observes disconnect:
 
 ```powershell
-$env:FINDLE_PLAYWRIGHT_PATH = 'C:/Users/wolfk/Desktop/Dogfight/node_modules/playwright'
+$env:PLAYWRIGHT_PATH = 'C:/Users/wolfk/Desktop/Dogfight/node_modules/playwright'
 npm run test:network
 ```
 

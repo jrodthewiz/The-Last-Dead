@@ -12,14 +12,14 @@ const require = createRequire(import.meta.url);
 
 function loadPlaywright() {
   const candidates = [
-    process.env.FINDLE_PLAYWRIGHT_PATH,
-    'C:/Users/wolfk/Desktop/Dogfight/node_modules/playwright',
-    path.resolve(PROJECT_ROOT, '..', 'Dogfight', 'node_modules', 'playwright'),
+    process.env.PLAYWRIGHT_PATH,
+    'playwright',
+
   ].filter(Boolean);
   for (const candidate of candidates) {
     try { return require(candidate); } catch { /* try the next known location */ }
   }
-  throw new Error('Playwright was not found. Set FINDLE_PLAYWRIGHT_PATH to the installed package.');
+  throw new Error('Playwright was not found. Set PLAYWRIGHT_PATH to the installed package.');
 }
 
 function chromeExecutable() {
