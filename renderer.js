@@ -209,6 +209,9 @@ export class Renderer {
       enemyViolet: mat(0x5d3c96, 0.58, 0.5),
       enemyOrange: mat(0xb45b2d, 0.6, 0.5),
       telegraph: emissive(0xfff0c0, 2.35, { transparent: true, opacity: 0.72, depthWrite: false, side: THREE.DoubleSide }),
+      viewSleeve: mat(0x302324, .9, .03),
+      viewGlove: mat(0x45392f, .88, .04),
+      viewPlate: mat(0x8d7c5c, .73, .18),
       playerSuit: mat(0x0f1b28, 0.38, 0.78),
       playerTrim: emissive(0x62d6e9, 1.45),
     };
@@ -382,40 +385,60 @@ export class Renderer {
     this.weaponRig.add(this.muzzleFlash);
   }
 
-  _makeArm(side, color = this.materials.playerSuit) {
+  _makeArm(side, color = this.materials.viewSleeve, weapon = 0) {
     const arm = new THREE.Group();
-    arm.name = `${side < 0 ? 'Left' : 'Right'}Arm`; 
-    const sleeve = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.13, 0.62, 8), color));
-    sleeve.rotation.z = side * 0.2;
-    sleeve.position.set(side * 0.19, -0.18, -0.12);
-    arm.add(sleeve);
-    const glove = shadow(new THREE.Mesh(new THREE.SphereGeometry(0.125, 10, 7), this.materials.playerTrim));
-    glove.scale.set(1, 0.75, 1.1);
-    glove.position.set(side * 0.3, -0.43, -0.32);
-    arm.add(glove);
+    arm.name = `${side < 0 ? 'Left' : 'Right'}Arm`;
+    const support = side < 0;
+    const wrist = support ? new THREE.Vector3(-.14,-.20,[-.48,-.52,-.57,-.62][weapon]) : new THREE.Vector3(.095,[-.28,-.32,-.38,-.25][weapon],.16);
+    arm.position.copy(wrist);
+    const elbow = new THREE.Vector3(side*.4,-.85,.9).sub(wrist);
+    const segment = (start,end,r0,r1,material,name) => {
+      const delta=end.clone().sub(start), mesh=new THREE.Mesh(new THREE.CylinderGeometry(r1,r0,delta.length(),12),material);
+      mesh.name=name;mesh.position.copy(start).addScaledVector(delta,.5);
+      mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());arm.add(mesh);return mesh;
+    };
+    segment(new THREE.Vector3(),elbow,.085,.13,color,'TaperedSleeve');
+    segment(new THREE.Vector3(),elbow.clone().multiplyScalar(.17),.096,.103,this.materials.viewGlove,'WristCuff');
+    const palm=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),this.materials.viewGlove);
+    palm.name='GripPalm';palm.scale.set(.075,.105,.095);palm.position.set(support?.025:-.015,.025,-.025);arm.add(palm);
+    for(let i=0;i<4;i++){
+      const y=.075-i*.047;
+      const start=new THREE.Vector3(support?.06:-.035,y,-.045);
+      const knuckle=new THREE.Vector3(support?.13:-.11,y-.005,-.105);
+      const tip=new THREE.Vector3(support?.12:-.16,y-.018,-.055);
+      segment(start,knuckle,.026,.024,this.materials.viewGlove,`Finger${i}Proximal`);
+      segment(knuckle,tip,.024,.019,this.materials.viewGlove,`Finger${i}Tip`);
+      const plate=new THREE.Mesh(new THREE.SphereGeometry(.025,8,6),this.materials.viewPlate);plate.scale.set(1,.65,1.2);plate.position.copy(knuckle);arm.add(plate);
+    }
+    segment(new THREE.Vector3(0,.10,.035),new THREE.Vector3(support?.085:-.09,.06,-.025),.032,.025,this.materials.viewGlove,'Thumb');
+    for(let i=0;i<3;i++){
+      const plate=new THREE.Mesh(new THREE.BoxGeometry(.115,.018,.075),this.materials.viewPlate);
+      plate.name='ForearmPlate';plate.position.copy(elbow).multiplyScalar(.3+i*.15);plate.position.y+=.055;plate.rotation.x=-.35;arm.add(plate);
+    }
     return arm;
   }
 
   _makePulseRevolver() {
-    const group=createOssuary();group.position.set(.3,-.31,-.78);group.rotation.set(-.035,.16,-.035);group.add(this._makeArm(1));return group;
+    const group=createOssuary();group.position.set(.3,-.31,-.78);group.rotation.set(.035,.045,-.025);group.add(this._makeArm(1));return group;
   }
 
   _makeBreachShotgun() {
     const group=new THREE.Group(),model=createBreach();group.name='BreachShotgun';
-    group.position.set(.31,-.32,-.88);group.rotation.set(-.035,.18,-.035);
-    group.add(model,this._makeArm(-1),this._makeArm(1));group.userData.model=model;group.userData.muzzle=model.userData.muzzle;return group;
+    group.position.set(.31,-.32,-.88);group.rotation.set(.035,.045,-.025);
+    group.add(model,this._makeArm(-1,this.materials.viewSleeve,1),this._makeArm(1,this.materials.viewSleeve,1));group.userData.model=model;group.userData.muzzle=model.userData.muzzle;return group;
   }
 
   _makeArcLance() {
     const group=new THREE.Group(),model=createArc();group.name='ArcLance';
-    group.position.set(.29,-.31,-.94);group.rotation.set(-.035,.18,-.035);
-    group.add(model,this._makeArm(-1),this._makeArm(1));group.userData.model=model;group.userData.muzzle=model.userData.muzzle;return group;
+    group.position.set(.29,-.31,-.94);group.rotation.set(.035,.045,-.025);
+    group.add(model,this._makeArm(-1,this.materials.viewSleeve,2),this._makeArm(1,this.materials.viewSleeve,2));group.userData.model=model;group.userData.muzzle=model.userData.muzzle;return group;
   }
   _makeReliquaryAsset() {
     const group = createReliquary({ variant: 'bone-rocket' });
     group.position.set(0.31, -0.32, -0.9);
-    group.rotation.set(-0.035, 0.16, -0.035);
+    group.rotation.set(.035,.045,-.025);
     group.name = 'ReliquaryBazooka';
+    group.add(this._makeArm(-1,this.materials.viewSleeve,3),this._makeArm(1,this.materials.viewSleeve,3));
     return group;
   }
 
@@ -423,7 +446,7 @@ export class Renderer {
     const group = new THREE.Group();
     group.name = 'ReliquaryBazooka';
     group.position.set(0.31, -0.32, -0.9);
-    group.rotation.set(-0.035, 0.16, -0.035);
+    group.rotation.set(.035,.045,-.025);
     const body = shadow(box(new THREE.BoxGeometry(0.48, 0.38, 0.92), this.materials.weaponDark, 0, 0, 0.06));
     const shoulder = shadow(box(new THREE.BoxGeometry(0.58, 0.18, 0.46), this.materials.weapon, 0, 0.19, -0.08));
     const spine = shadow(box(new THREE.BoxGeometry(0.16, 0.16, 1.26), this.materials.weaponTrim, 0, 0.12, -0.38));
@@ -1072,7 +1095,8 @@ export class Renderer {
     for (const p of hostile.concat(core)) {
       if (pi >= MAX_PROJECTILES) break;
       const a = new THREE.Vector3(worldX(p.x), (p.z || 0) * CELL, worldZ(p.y));
-      const b = new THREE.Vector3(worldX(p.x - (p.vx || 0) * 0.2), ((p.z || 0) - (p.vz || 0) * 0.2) * CELL, worldZ(p.y - (p.vy || 0) * 0.2));
+      const trailAge=Math.min(.12,p.age||0);
+      const b = new THREE.Vector3(worldX(p.x - (p.vx || 0) * trailAge), ((p.z || 0) - (p.vz || 0) * trailAge) * CELL, worldZ(p.y - (p.vy || 0) * trailAge));
       setLine(pGeo, pi++, a, b);
     }
     pGeo.setDrawRange(0, pi * 2); pGeo.attributes.position.needsUpdate = true;
@@ -1081,7 +1105,8 @@ export class Renderer {
     for (const p of reflected) {
       if (ri >= MAX_PROJECTILES) break;
       const a = new THREE.Vector3(worldX(p.x), (p.z || 0) * CELL, worldZ(p.y));
-      const b = new THREE.Vector3(worldX(p.x - (p.vx || 0) * 0.24), ((p.z || 0) - (p.vz || 0) * 0.24) * CELL, worldZ(p.y - (p.vy || 0) * 0.24));
+      const trailAge=Math.min(.12,p.age||0);
+      const b = new THREE.Vector3(worldX(p.x - (p.vx || 0) * trailAge), ((p.z || 0) - (p.vz || 0) * trailAge) * CELL, worldZ(p.y - (p.vy || 0) * trailAge));
       setLine(rGeo, ri++, a, b);
     }
     rGeo.setDrawRange(0, ri * 2); rGeo.attributes.position.needsUpdate = true;
@@ -1098,11 +1123,11 @@ export class Renderer {
     tracerGeo.setDrawRange(0, ti * 2); tracerGeo.attributes.position.needsUpdate = true;
     railGeo.setDrawRange(0, li * 2); railGeo.attributes.position.needsUpdate = true;
 
-    const muzzlePoint=this._fxMuzzle ||= new THREE.Vector3();
-    this.weaponGroups[run.weapon||0]?.userData.muzzle?.getWorldPosition(muzzlePoint);
+    const muzzlePoints=this._fxMuzzles ||= this.weaponGroups.map(()=>new THREE.Vector3());
+    this.weaponGroups.forEach((group,i)=>group.userData.muzzle?.getWorldPosition(muzzlePoints[i]));
     this.weaponFX.explosions?.setCamera(this.camera);
     this.weaponFX.explosions?.setSettings({ reducedMotion: this.settings.reducedMotion, gore: this.settings.gore });
-    this.weaponFX.update(run,this._frameDt||.016,this.settings.gore,muzzlePoint);
+    this.weaponFX.update(run,this._frameDt||.016,this.settings.gore,muzzlePoints);
     let ci = 0, gi = 0;
     for (const c of run.coins || []) {
       if (ci >= MAX_COINS) break;
@@ -1158,31 +1183,34 @@ export class Renderer {
     const sway = this.settings.reducedMotion ? 0.002 : 0.012;
     const shot = clamp(run.shot || 0, 0, 1);
     const punch = clamp(run.punch || 0, 0, 1);
-    this.weaponRig.position.x = damp(this.weaponRig.position.x, 0.02 + Math.sin((run.distance || 0) * 7) * sway * (1 - aim), 15, dt);
+    this.weaponRig.position.x = damp(this.weaponRig.position.x, 0.02 - aim * .10 + Math.sin((run.distance || 0) * 7) * sway * (1 - aim), 15, dt);
     this.weaponRig.position.y = damp(this.weaponRig.position.y, -0.012 + Math.cos((run.distance || 0) * 7) * sway * 0.6, 15, dt);
-    this.weaponRig.position.z = damp(this.weaponRig.position.z, shot * 0.085 - punch * 0.045, 24, dt);
-    this.weaponRig.rotation.x = damp(this.weaponRig.rotation.x, shot * 0.16 + punch * 0.1, 22, dt);
-    this.weaponRig.rotation.y = damp(this.weaponRig.rotation.y, aim * -0.08, 16, dt);
+    this.weaponRig.position.z = damp(this.weaponRig.position.z, shot * [0.06,0.11,0.035,0.075][run.weapon||0] - punch * 0.045, 24, dt);
+    this.weaponRig.rotation.x = damp(this.weaponRig.rotation.x, shot * [0.085,0.12,0.045,0.07][run.weapon||0] + punch * 0.1, 22, dt);
+    this.weaponRig.rotation.y = damp(this.weaponRig.rotation.y, aim * -0.02, 16, dt);
     this.weaponRig.rotation.z = damp(this.weaponRig.rotation.z, Math.sin((run.distance || 0) * 4.1) * sway * 0.7, 14, dt);
     const weapon = clamp(run.weapon || 0, 0, this.weaponGroups.length - 1);
     this.weaponGroups.forEach((group, index) => { group.visible = index === weapon; });
-    const muzzle = this.weaponGroups[weapon]?.userData?.muzzle;
-    if (muzzle) {
-      const muzzleWorld = new THREE.Vector3();
-      muzzle.getWorldPosition(muzzleWorld);
-      this.weaponRig.worldToLocal(muzzleWorld);
-      this.muzzleFlash.position.copy(muzzleWorld);
-      this.muzzleFlash.rotation.copy(muzzle.rotation);
-    }
     this.weaponGroups.forEach((group,i)=>{group.position.x=[.3,.31,.29,.31][i]*Math.min(1,this.camera.aspect/.9);});
     animateOssuary(this.weaponGroups[0],weapon===0?shot:0,now*.001,dt);
     animateBreach(this.weaponGroups[1].userData.model,now*.001,weapon===1?shot:0,dt);
     animateArc(this.weaponGroups[2].userData.model,now*.001,weapon===2?shot:0,dt);
     this.weaponGroups[weapon]?.userData.animate?.(now * 0.001, shot);
     if (weapon === 3) animateReliquary(this.weaponGroups[3], shot, now * 0.001, dt);
+    const muzzle = this.weaponGroups[weapon]?.userData?.muzzle;
+    if (muzzle) {
+      const muzzleWorld = new THREE.Vector3();
+      muzzle.getWorldPosition(muzzleWorld);
+      this.weaponRig.worldToLocal(muzzleWorld);
+      this.muzzleFlash.position.copy(muzzleWorld);
+      const socketRotation=this._socketRotation ||= new THREE.Quaternion();
+      const rigRotation=this._rigRotation ||= new THREE.Quaternion();
+      muzzle.getWorldQuaternion(socketRotation);this.weaponRig.getWorldQuaternion(rigRotation);
+      this.muzzleFlash.quaternion.copy(rigRotation.invert().multiply(socketRotation));
+    }
     this.muzzleFlash.visible = shot > 0.32;
     this.muzzleFlash.scale.setScalar(.55+shot*.55);
-    this.muzzleFlash.rotation.z=now*.023;
+    this.muzzleFlash.children[0].rotation.z=now*.023;
     const flashColor=[0xff3154,0xffb44b,0x64eaff,0xff683f][weapon] || 0xff683f;
     this.muzzleFlash.children[0].material.color.set(flashColor);
     this.muzzleFlash.children[0].material.emissive?.set(flashColor);

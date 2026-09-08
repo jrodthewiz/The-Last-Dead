@@ -187,6 +187,7 @@ async function main() {
     await guest.keyboard.press('4');
     await host.waitForFunction(()=>window.__DEAD_ARRIVAL__.run.peer.weapon===3,undefined,{timeout:10000});
     assert.equal(await guest.evaluate(()=>window.__DEAD_ARRIVAL__.run.weapon),3,'guest weapon selection survives host snapshots');
+    assert.equal(await guest.evaluate(()=>window.__DEAD_ARRIVAL__.run.playerId),'peer','guest FX use the local shooter identity');
     await guest.mouse.move(fireBox.x+fireBox.width/2,fireBox.y+fireBox.height/2);
     await guest.evaluate(()=>{const r=window.__DEAD_ARRIVAL__.run;r.angle=-Math.PI/2;r.pitch=0;});
     await guest.mouse.down();

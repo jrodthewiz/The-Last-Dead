@@ -1,0 +1,53 @@
+{
+  "checks": [
+    {
+      "pitch": -0.8,
+      "weapon": 0,
+      "crosshairError": 1.577638816215273e-15,
+      "flashError": 2.55351295663786e-15
+    },
+    {
+      "pitch": -0.8,
+      "weapon": 2,
+      "crosshairError": 1.577638816215273e-15,
+      "flashError": 4.219212682712273e-15
+    },
+    {
+      "pitch": 0,
+      "weapon": 0,
+      "crosshairError": 5.105380535299387e-17,
+      "flashError": 7.108895957933346e-15
+    },
+    {
+      "pitch": 0,
+      "weapon": 2,
+      "crosshairError": 5.105380535299387e-17,
+      "flashError": 7.108895957933346e-15
+    },
+    {
+      "pitch": 0.8,
+      "weapon": 0,
+      "crosshairError": 3.5569528727135054e-17,
+      "flashError": 4.189529226675416e-15
+    },
+    {
+      "pitch": 0.8,
+      "weapon": 2,
+      "crosshairError": 3.5569528727135054e-17,
+      "flashError": 4.440892098500626e-16
+    }
+  ],
+  "arms": [
+    1,
+    2,
+    2,
+    2
+  ],
+  "canvas": [
+    1280,
+    800
+  ],
+  "calls": 307,
+  "errors": [],
+  "passed": true
+}

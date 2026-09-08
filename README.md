@@ -8,7 +8,7 @@ Canonical folder: **Desktop/thelastdead**. Repository: **https://github.com/jrod
 
 ## Current build
 
-**BUILD 08 / FLESH AND IRON** fixes invisible enemies, adds authored creature variants and two rebuilt weapon models, improves all four weapon silhouettes and framing, redesigns the horror HUD/menus, and replaces arena layouts with connected routes, landmarks and moving machinery. See [Build 08 evidence](docs/BUILD-08.md). Refresh the existing local or Railway link to play.
+**BUILD 09 / STEADY HANDS** refines first-person gripping hands, sleeve materials, barrel cant and weapon-specific recoil. It fixes pitched tracer endpoints, moving tracer origins, co-op FX ownership, muzzle flash transforms and projectile launch/trail alignment. See [Build 09 verification](docs/BUILD-09.md). Refresh the existing local or Railway link to play.
 
 ## Play
 
