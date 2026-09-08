@@ -84,6 +84,78 @@ function compactGroup(group) {
   }
 }
 
+function makeSurfaceMaps(seed = 41) {
+  const size = 64;
+  const albedo = new Uint8Array(size * size * 4);
+  const roughness = new Uint8Array(size * size * 4);
+  const bump = new Uint8Array(size * size * 4);
+  const hash = (x, y) => {
+    const v = Math.sin((x + seed) * 12.9898 + (y - seed) * 78.233) * 43758.5453;
+    return v - Math.floor(v);
+  };
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const i = (y * size + x) * 4;
+      const fine = hash(x, y);
+      const patina = Math.sin(x * .11 + Math.sin(y * .08) * 3.4) * .5 + .5;
+      const streak = Math.sin((x * .15 + y) * .23) * .5 + .5;
+      const pit = Math.max(0, fine - .74) * 3.8;
+      const value = Math.max(38, Math.min(255, 208 + patina * 29 + streak * 8 - pit * 112));
+      const cavity = Math.max(18, Math.min(255, 178 + patina * 35 - pit * 126));
+      const relief = Math.max(0, Math.min(255, 128 + (patina - .5) * 78 + (fine - .5) * 18 - pit * 72));
+      albedo[i] = value; albedo[i + 1] = Math.max(0, value - 10); albedo[i + 2] = Math.max(0, value - 22); albedo[i + 3] = 255;
+      roughness[i] = cavity; roughness[i + 1] = cavity; roughness[i + 2] = cavity; roughness[i + 3] = 255;
+      bump[i] = relief; bump[i + 1] = relief; bump[i + 2] = relief; bump[i + 3] = 255;
+    }
+  }
+  const texture = (data, colorSpace = false) => {
+    const tex = new THREE.DataTexture(data, size, size, THREE.RGBAFormat, THREE.UnsignedByteType);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    tex.generateMipmaps = true;
+    tex.userData.sharedAsset = true;
+    if (colorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+    tex.needsUpdate = true;
+    return tex;
+  };
+  return {albedo: texture(albedo, true), roughness: texture(roughness), bump: texture(bump)};
+}
+let sharedSurfaceMaps;
+function getSurfaceMaps() {
+  return sharedSurfaceMaps || (sharedSurfaceMaps = makeSurfaceMaps());
+}
+
+function applySurfaceMaps(materials, maps) {
+  for (const key of ['bell', 'bellEdge', 'bone', 'boneDark', 'membrane', 'chain']) {
+    const material = materials[key];
+    if (!material) continue;
+    material.map = maps.albedo;
+    material.roughnessMap = maps.roughness;
+    material.bumpMap = maps.bump;
+    material.bumpScale = key === 'bone' ? .02 : key === 'membrane' ? .012 : .008;
+    material.needsUpdate = true;
+  }
+}
+
+function addWearColors(root, seed = 47) {
+  root.traverse(mesh => {
+    if (!mesh.isMesh || !mesh.material?.map || !mesh.geometry.attributes.position) return;
+    const position = mesh.geometry.attributes.position;
+    const colors = new Float32Array(position.count * 3);
+    for (let i = 0; i < position.count; i++) {
+      const n = Math.sin((i + seed) * 12.9898) * .5 + .5;
+      const v = .8 + n * .2;
+      colors[i * 3] = v;
+      colors[i * 3 + 1] = v * .96;
+      colors[i * 3 + 2] = v * .88;
+    }
+    mesh.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    mesh.material.vertexColors = true;
+    mesh.material.needsUpdate = true;
+  });
+}
+
 function materials() {
   return {
     bell: new THREE.MeshStandardMaterial({color: 0x5a4032, roughness: .5, metalness: .72, side: THREE.DoubleSide}),
@@ -112,6 +184,8 @@ export function createBellwraith(options = {}) {
   root.name = 'Bellwraith';
   const parts = {};
   const mats = materials();
+  const textures = getSurfaceMaps();
+  applySurfaceMaps(mats, textures);
   const part = (name, parent = root) => {
     const g = new THREE.Group();
     g.name = name;
@@ -145,9 +219,9 @@ export function createBellwraith(options = {}) {
   // lip, leaving the underside open for the hanging skull and clapper.
   add(body, new THREE.LatheGeometry(bellProfile, 28), 'bell', [0, 0, 0], [1, 1, 1], [0, 0, 0], 'bell-shell');
   add(body, new THREE.TorusGeometry(.525, .045, 9, 32), 'bellEdge', [0, -.49, 0], [1, 1, 1], [Math.PI / 2, 0, 0], 'bell-rim');
-  add(body, new THREE.TorusGeometry(.43, .022, 7, 28), 'bellEdge', [0, -.29, 0], [1, 1, 1], [Math.PI / 2, 0, 0], 'bell-shoulder');
+  add(body, new THREE.TorusGeometry(.47, .022, 7, 28), 'bellEdge', [0, -.29, 0], [1, 1, 1], [Math.PI / 2, 0, 0], 'bell-shoulder');
   add(body, new THREE.RingGeometry(.36, .49, 32, 1), 'void', [0, -.47, 0], [1, 1, 1], [Math.PI / 2, 0, 0], 'bell-mouth');
-  for (const band of [[.3, .235], [.06, .35], [-.2, .43]]) {
+  for (const band of [[.3, .18], [.06, .34], [-.2, .46]]) {
     add(body, new THREE.TorusGeometry(band[1], .011, 6, 28), 'bellEdge', [0, band[0], 0], [1, 1, 1], [Math.PI / 2, 0, 0], 'bell-band-' + band[0]);
   }
   const runeRing = part('rune-ring', body);
@@ -176,6 +250,12 @@ export function createBellwraith(options = {}) {
   for (const side of [-1, 1]) {
     add(face, new THREE.SphereGeometry(1, 14, 9), 'void', [side * .09, .085, .061], [.052, .035, .026], [0, 0, 0], 'eye-socket-' + side);
     add(face, new THREE.SphereGeometry(1, 11, 8), 'ember', [side * .09, .085, .082], [.023, .015, .012], [0, 0, 0], 'eye-ember-' + side);
+  }
+  const nasal = part('nasal-cavity', face);
+  add(nasal, faceProfile([[-.025, .045], [.025, .045], [.038, -.01], [0, -.052], [-.038, -.01]], .012, .002), 'void', [0, -.005, .07], [1, 1, 1], [0, 0, 0], 'nasal-cavity');
+  const brow = part('brow-ridge', face);
+  for (const side of [-1, 1]) {
+    add(brow, sweep([[side * .15, .15, .055], [side * .095, .17, .075], [side * .03, .135, .075]], [.018, .024, .012], 7), 'boneDark', [0, 0, 0], [1, 1, 1], [0, 0, 0], 'brow-' + side);
   }
   const mouth = part('teeth', face);
   add(mouth, sweep([[-.13, -.06, -.06], [-.08, -.14, -.07], [0, -.17, -.075], [.08, -.14, -.07], [.13, -.06, -.06]], [.019, .022, .023, .022, .019], 7), 'boneDark');
@@ -285,6 +365,7 @@ export function createBellwraith(options = {}) {
   for (const [name, group] of Object.entries(parts)) {
     if (name !== 'hover-ring') compactGroup(group);
   }
+  addWearColors(root);
   const ring = hover.getObjectByName('hover-sigil');
   hover.userData.floatBaseY = hover.position.y;
   const faceEmbers = [];
@@ -300,7 +381,7 @@ export function createBellwraith(options = {}) {
     }
   };
   root.userData.sculptRuntime = {
-    parts, sockets, materials: mats,
+    parts, sockets, materials: mats, textures,
     collider: {type: 'capsule', size: [.9, 1.9, .9]},
     explode,
     pick(raycaster) {
@@ -311,7 +392,7 @@ export function createBellwraith(options = {}) {
   root.userData.bellwraith = {
     kind: 'bellwraith',
     variant: options.variant || 'mourning-bell',
-    parts, sockets, materials: mats, body, arms, hover, ring, faceEmbers, floatParts,
+    parts, sockets, materials: mats, textures, body, arms, hover, ring, faceEmbers, floatParts,
     leftArm: parts['left-arm'], rightArm: parts['right-arm'],
     deathAt: null, lastNow: 0, phase: options.phase || 0
   };

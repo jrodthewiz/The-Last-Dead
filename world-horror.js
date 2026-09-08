@@ -24,13 +24,10 @@ export function buildHorrorDetails(root,materials,course={}){
  for(const side of [-1,1]){cable([[24+side*.8,10,17],[24+side*3,10.6,18],[24+side*5,9.3,16],[24+side*8,10.8,17]],.105,materials.rust);cable([[24+side*1.4,8,17],[24+side*2,7.3,16],[24+side*2.3,8.1,17],[24+side*3,11.1,17]],.055,steel);}
  const core=add(new THREE.SphereGeometry(.52,16,12),materials.red,24,8.55,15.96);core.name='OrganHeart';
  function sign(text,sub,x,y,z,width=5){const c=document.createElement('canvas');c.width=1024;c.height=256;const g=c.getContext('2d');g.fillStyle='#15191a';g.fillRect(0,0,1024,256);g.fillStyle='#bdbba6';g.fillRect(22,24,6,208);g.font='bold 82px monospace';g.fillText(text,55,119);g.font='28px monospace';g.fillStyle='#a85543';g.fillText(sub,58,186);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;const m=new THREE.MeshBasicMaterial({map:t});const p=add(new THREE.PlaneGeometry(width,width/4),m,x,y,z);p.name='FoundrySign_'+text;return p;}
- sign('BLOODWORKS','SECTOR 09 / MATERIAL RECOVERY',24,5.9,.2,12);
+ if(sectorTheme.id==='bloodworks')sign('BLOODWORKS','SECTOR 09 / MATERIAL RECOVERY',24,5.9,.2,12);
  sign('NO RESCUE','REMAIN IN THE LIGHT',7.5,3.4,.23,5.5);
  sign('INTAKE 04','BIOLOGICAL WASTE',39.5,3.4,.23,5.5);
- // Warning bands and vent faces make each cover unit read as equipment.
- const ventGeo=new THREE.BoxGeometry(2.85,.055,.04),vents=new THREE.InstancedMesh(ventGeo,steel,112);let n=0;const o=new THREE.Object3D();
- for(const[x,z]of [[14,14],[34,14],[14,34],[34,34]])for(const side of[-1,1]){for(let j=0;j<14;j++){o.position.set(x,.7+j*.17,z+side*2.155);o.updateMatrix();vents.setMatrixAt(n++,o.matrix);}const label=sign('KEEP CLEAR','PRESSURIZED / 09',x,4.5,z+side*2.16,2.6);if(side<0)label.rotation.y=Math.PI;}
- vents.count=n;vents.instanceMatrix.needsUpdate=true;root.add(vents);
+ const o=new THREE.Object3D();
  // Stable contact stains use one atlas and instancing, never extra colliders.
  const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');let seed=77;for(let i=0;i<240;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;const a=seed/4294967296*Math.PI*2;seed=(Math.imul(seed,1664525)+1013904223)>>>0;const r=Math.sqrt(seed/4294967296)*112;g.fillStyle=i%3?'rgba(18,12,10,.08)':'rgba(65,12,8,.1)';g.beginPath();g.ellipse(128+Math.cos(a)*r,128+Math.sin(a)*r,4+i%17,2+i%9,a,0,Math.PI*2);g.fill();}
  const texture=new THREE.CanvasTexture(c);texture.colorSpace=THREE.SRGBColorSpace;const stains=new THREE.InstancedMesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1}),22);

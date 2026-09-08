@@ -37,8 +37,48 @@ const GROUP_BY_TYPE = Object.freeze({
   ambience: 'ambience', ambient: 'ambience', voice: 'voice',
   ui: 'ui', confirm: 'ui', cancel: 'ui', pause: 'ui', fail: 'ui',
 });
+const MIX_PROFILES = Object.freeze({
+  default: { group: 'sfx', volume: .38, maxVoices: 10, highpass: 45, lowpass: 11000 },
+  ambience: { group: 'ambience', volume: .32, maxVoices: 1, highpass: 38, lowpass: 5200 },
+  shot: { group: 'sfx', volume: .45, maxVoices: 4, highpass: 70, lowpass: 9000, cooldown: .018 },
+  rocket: { group: 'sfx', volume: .42, maxVoices: 3, highpass: 40, lowpass: 7200, cooldown: .08, refDistance: 2, maxDistance: 42 },
+  explosion: { group: 'sfx', volume: .40, maxVoices: 5, highpass: 42, lowpass: 6800, cooldown: .05, refDistance: 1.8, maxDistance: 38 },
+  hit: { group: 'sfx', volume: .25, maxVoices: 8, highpass: 80, lowpass: 6200, cooldown: .025 },
+  blood: { group: 'sfx', volume: .21, maxVoices: 7, highpass: 70, lowpass: 3600, cooldown: .025 },
+  bulletcrackle: { group: 'sfx', volume: .22, maxVoices: 6, highpass: 900, lowpass: 9000, cooldown: .04 },
+  footstep: { group: 'sfx', volume: .14, maxVoices: 3, highpass: 90, lowpass: 3000, cooldown: .06 },
+  jump: { group: 'sfx', volume: .18, maxVoices: 2, highpass: 80, lowpass: 5600, cooldown: .08 },
+  land: { group: 'sfx', volume: .26, maxVoices: 3, highpass: 45, lowpass: 2800, cooldown: .08 },
+  dash: { group: 'sfx', volume: .20, maxVoices: 3, highpass: 120, lowpass: 7200, cooldown: .05 },
+  slide: { group: 'sfx', volume: .16, maxVoices: 3, highpass: 90, lowpass: 3600, cooldown: .08 },
+  enemyattack: { group: 'sfx', volume: .34, maxVoices: 4, highpass: 100, lowpass: 4800, cooldown: .16, refDistance: 2.2, maxDistance: 34 },
+  enemyjump: { group: 'sfx', volume: .24, maxVoices: 3, highpass: 80, lowpass: 4200, cooldown: .1, refDistance: 2, maxDistance: 30 },
+  enemyland: { group: 'sfx', volume: .25, maxVoices: 3, highpass: 55, lowpass: 3300, cooldown: .1, refDistance: 2, maxDistance: 32 },
+  enemydeath: { group: 'sfx', volume: .30, maxVoices: 4, highpass: 65, lowpass: 4300, cooldown: .04, refDistance: 2.4, maxDistance: 36 },
+  moan: { group: 'sfx', volume: .18, maxVoices: 2, highpass: 90, lowpass: 3600, cooldown: .5, refDistance: 3, maxDistance: 42 },
+  parry: { group: 'sfx', volume: .24, maxVoices: 3, highpass: 160, lowpass: 9000, cooldown: .08 },
+  punch: { group: 'sfx', volume: .18, maxVoices: 4, highpass: 80, lowpass: 5200, cooldown: .06 },
+  damage: { group: 'sfx', volume: .15, maxVoices: 3, highpass: 90, lowpass: 5000, cooldown: .1 },
+  coin: { group: 'ui', volume: .20, maxVoices: 4, highpass: 420, lowpass: 7800, cooldown: .04 },
+  ui: { group: 'ui', volume: .18, maxVoices: 3, highpass: 240, lowpass: 6800, cooldown: .04 },
+  confirm: { group: 'ui', volume: .18, maxVoices: 3, highpass: 240, lowpass: 6800, cooldown: .04 },
+  cancel: { group: 'ui', volume: .16, maxVoices: 3, highpass: 160, lowpass: 5000, cooldown: .04 },
+  fail: { group: 'ui', volume: .16, maxVoices: 3, highpass: 160, lowpass: 5000, cooldown: .04 },
+  wave: { group: 'sfx', volume: .24, maxVoices: 2, highpass: 80, lowpass: 4200, cooldown: .2 },
+  win: { group: 'sfx', volume: .22, maxVoices: 2, highpass: 160, lowpass: 7800, cooldown: .2 },
+});
+const SHOT_PROFILES = Object.freeze([
+  { volume: .42, highpass: 110, lowpass: 8200, cooldown: .02 },
+  { volume: .50, highpass: 48, lowpass: 6400, cooldown: .08 },
+  { volume: .36, highpass: 520, lowpass: 11800, cooldown: .025 },
+  { volume: .43, highpass: 42, lowpass: 7600, cooldown: .08 },
+]);
 const clamp = (value, min, max) => Math.max(min, Math.min(max, Number(value) || 0));
 const now = context => context?.currentTime ?? 0;
+function resolveMix(type, weapon = 0) {
+  const base = MIX_PROFILES[type] || MIX_PROFILES.default;
+  return type === 'shot' ? { ...base, ...(SHOT_PROFILES[weapon] || SHOT_PROFILES[0]) } : base;
+}
 const random = (min, max) => min + Math.random() * (max - min);
 const list = value => value == null ? [] : Array.isArray(value) ? value : [value];
 
@@ -62,6 +102,8 @@ function normalizeEvent(type, weapon, event) {
     'enemy-death': 'enemydeath', enemydeath: 'enemydeath',
     ambient: 'ambience', boost: 'dash', slam: 'land',
     'rocket-launch': 'rocket', rocketfire: 'rocket',
+    'rocket-detonate':'explosion','rocket-jump':'jump','spawn-telegraph':'moan',
+    'sector-transition':'wave',hook:'dash',
     menu: 'ui', select: 'confirm', error: 'fail',
   };
   name = aliases[name] || name;
@@ -77,6 +119,7 @@ export class AudioSystem {
     this._paused = false;
     this._ctx = null;
     this._master = null;
+    this._limiter = null;
     this._groups = new Map();
     this._buffers = new Map();
     this._noiseBuffers = new Map();
@@ -89,6 +132,8 @@ export class AudioSystem {
     this._loaded = false;
     this._disposed = false;
     this._lastPlay = new Map();
+    this._lastVariant = new Map();
+    this._voices = new Map();
   }
 
   get context() { return this._ctx; }
@@ -108,11 +153,18 @@ export class AudioSystem {
       try {
         this._ctx = new Context();
         this._master = this._ctx.createGain();
-        this._master.connect(this._ctx.destination);
+        this._limiter = this._ctx.createDynamicsCompressor();
+        this._limiter.threshold.value = -12;
+        this._limiter.knee.value = 18;
+        this._limiter.ratio.value = 5;
+        this._limiter.attack.value = .003;
+        this._limiter.release.value = .22;
+        this._master.connect(this._limiter).connect(this._ctx.destination);
         this._groups.set('master', this._master);
+        const groupLevels = { sfx: .68, ui: .42, ambience: .42, voice: .58, music: .45 };
         for (const name of GROUPS) {
           const gain = this._ctx.createGain();
-          gain.gain.value = name === 'ambience' ? 0.62 : name === 'voice' ? 0.9 : 1;
+          gain.gain.value = groupLevels[name] ?? .6;
           gain.connect(this._master);
           this._groups.set(name, gain);
         }
@@ -120,6 +172,7 @@ export class AudioSystem {
       } catch {
         this._ctx = null;
         this._master = null;
+        this._limiter = null;
         this._groups.clear();
         return false;
       }
@@ -194,19 +247,22 @@ export class AudioSystem {
     const index = parsed.weapon;
     const details = parsed.details;
     if (name === 'ambience') return this._playAmbience(details);
-    const cooldown = Number(details.cooldown ?? 0);
+    const profile = resolveMix(name, index);
+    const mix = { ...profile, ...details };
+    const cooldown = Number(details.cooldown ?? profile.cooldown ?? 0);
     if (cooldown > 0) {
-      const key = name + ':' + index + ':' + String(details.id ?? '');
+      const sourceId = details.enemyId ?? details.id ?? '';
+      const key = name + ':' + index + ':' + String(sourceId);
       const time = globalThis.performance?.now?.() ?? Date.now();
       if (time - (this._lastPlay.get(key) || -Infinity) < cooldown * 1000) return false;
       this._lastPlay.set(key, time);
     }
     const buffer = this._chooseBuffer(name, index, details.variant);
     if (buffer) {
-      this._playBuffer(buffer, name, details);
+      this._playBuffer(buffer, name, index, mix);
       return true;
     }
-    return this._synth(name, index, details);
+    return this._synth(name, index, mix);
   }
 
   dispose() {
@@ -223,14 +279,19 @@ export class AudioSystem {
       try { gain.disconnect(); } catch {}
     }
     this._groups.clear();
+    this._voices.clear();
+    if (this._limiter) { try { this._limiter.disconnect(); } catch {} }
     if (this._ctx) this._ctx.close().catch(() => {});
     this._ctx = null;
     this._master = null;
+    this._limiter = null;
   }
 
   _applyMasterGain() {
     if (!this._master || !this._ctx) return;
-    this._master.gain.setTargetAtTime(this._muted ? 0 : this._volume, now(this._ctx), 0.015);
+    const t=now(this._ctx);this._master.gain.cancelScheduledValues(t);
+    if(this._muted||this._volume===0)this._master.gain.setValueAtTime(0,t);
+    else this._master.gain.setTargetAtTime(this._volume,t,.015);
   }
 
   _group(name = 'sfx') {
@@ -290,9 +351,13 @@ export class AudioSystem {
     }
     if (!keys.length) return null;
     keys.sort();
-    const index = Number.isFinite(Number(variant))
+    const poolKey = name + ':' + Math.max(0, weapon);
+    let index = Number.isFinite(Number(variant))
       ? Math.abs(Math.floor(Number(variant))) % keys.length
       : Math.floor(Math.random() * keys.length);
+    const previous = this._lastVariant.get(poolKey);
+    if (!Number.isFinite(Number(variant)) && keys.length > 1 && index === previous) index = (index + 1) % keys.length;
+    this._lastVariant.set(poolKey, index);
     return this._buffers.get(keys[index]) || null;
   }
 
@@ -316,24 +381,64 @@ export class AudioSystem {
     return panner;
   }
 
-  _playBuffer(buffer, type, details = {}) {
+  _trimVoices(type, limit = 10) {
+    const voices = this._voices.get(type);
+    if (!voices || !limit) return;
+    while (voices.size >= limit) {
+      const oldest = voices.values().next().value;
+      if (!oldest) break;
+      try { oldest.stop(); } catch {}
+      this._sources.delete(oldest);
+      voices.delete(oldest);
+    }
+  }
+
+  _filterNode(input, profile) {
+    let node = input;
+    if (profile.highpass) {
+      const highpass = this._ctx.createBiquadFilter();
+      highpass.type = 'highpass';
+      highpass.frequency.value = profile.highpass;
+      highpass.Q.value = .55;
+      node.connect(highpass);
+      node = highpass;
+    }
+    if (profile.lowpass) {
+      const lowpass = this._ctx.createBiquadFilter();
+      lowpass.type = 'lowpass';
+      lowpass.frequency.value = profile.lowpass;
+      lowpass.Q.value = .5;
+      node.connect(lowpass);
+      node = lowpass;
+    }
+    return node;
+  }
+
+  _playBuffer(buffer, type, weapon = 0, details = {}) {
+    const profile = { ...resolveMix(type, weapon), ...details };
     const source = this._ctx.createBufferSource();
     const gain = this._ctx.createGain();
-    const group = details.group || GROUP_BY_TYPE[type] || 'sfx';
-    const level = clamp(details.volume ?? (type === 'ambience' ? 0.76 : type === 'shot' ? 0.9 : 0.82), 0, 2);
+    const group = profile.group || GROUP_BY_TYPE[type] || 'sfx';
+    const level = clamp(profile.volume ?? .38, 0, 1);
+    const maxVoices = Math.max(1, Math.floor(Number(profile.maxVoices) || 10));
+    if (type !== 'ambience') this._trimVoices(type, maxVoices);
     source.buffer = buffer;
-    source.playbackRate.value = clamp(details.rate ?? random(0.96, 1.04), 0.5, 2);
-    if (details.detune !== undefined) source.detune.value = Number(details.detune) || 0;
+    const rateMin = type === 'footstep' ? .93 : .97;
+    const rateMax = type === 'footstep' ? 1.07 : 1.03;
+    source.playbackRate.value = clamp(profile.rate ?? random(rateMin, rateMax), 0.5, 2);
+    if (profile.detune !== undefined) source.detune.value = Number(profile.detune) || 0;
     gain.gain.setValueAtTime(level, now(this._ctx));
-    const spatial = this._createSpatialNode(details);
-    if (spatial) source.connect(gain).connect(spatial).connect(this._group(group));
-    else source.connect(gain).connect(this._group(group));
-    source.loop = type === 'ambience' || Boolean(details.loop);
+    source.connect(gain);
+    let node = this._filterNode(gain, profile);
+    const spatial = this._createSpatialNode(profile);
+    if (spatial) node.connect(spatial).connect(this._group(group));
+    else node.connect(this._group(group));
+    source.loop = type === 'ambience' || Boolean(profile.loop);
     if (source.loop && type === 'ambience') {
       this._stopAmbient();
       this._ambientSource = source;
     }
-    this._track(source, source.loop);
+    this._track(source, source.loop, type);
     source.start();
     return source;
   }
@@ -342,21 +447,33 @@ export class AudioSystem {
     if (this._ambientSource) return true;
     const buffer = this._chooseBuffer('ambience', 0, details.variant);
     if (buffer) {
-      this._playBuffer(buffer, 'ambience', { ...details, group: 'ambience', loop: true });
+      this._playBuffer(buffer, 'ambience', 0, { ...details, group: 'ambience', loop: true, volume: details.volume ?? .32 });
       return true;
     }
     return this._synthAmbience();
   }
 
-  _track(source, persistent = false) {
+  _track(source, persistent = false, type = '') {
     this._sources.add(source);
-    if (!persistent) source.addEventListener?.('ended', () => this._sources.delete(source));
+    let voices = null;
+    if (type) {
+      voices = this._voices.get(type);
+      if (!voices) { voices = new Set(); this._voices.set(type, voices); }
+      voices.add(source);
+    }
+    const cleanup = () => {
+      this._sources.delete(source);
+      voices?.delete(source);
+    };
+    source.addEventListener?.('ended', cleanup);
+    if (!persistent && !source.addEventListener) source.onended = cleanup;
   }
 
   _stopAmbient() {
     if (this._ambientSource) {
       try { this._ambientSource.stop(); } catch {}
       this._sources.delete(this._ambientSource);
+      this._voices.get('ambience')?.delete(this._ambientSource);
       try { this._ambientSource.disconnect(); } catch {}
       this._ambientSource = null;
     }
@@ -429,71 +546,74 @@ export class AudioSystem {
     const p = details.position;
     switch (type) {
       case 'footstep':
-        this._tone({ from: 82, to: 39, duration: .09, wave: 'triangle', level: .075, position: p });
-        this._noise({ duration: .065, level: .08, highpass: 240, lowpass: 1800, position: p }); return true;
-      case 'heartbeat': this._tone({ from: 62, to: 38, duration: .16, wave: 'sine', level: .13 }); return true;
+        this._tone({ from: 82, to: 39, duration: .09, wave: 'triangle', level: .045, position: p });
+        this._noise({ duration: .065, level: .05, highpass: 240, lowpass: 1800, position: p }); return true;
+      case 'heartbeat': this._tone({ from: 62, to: 38, duration: .16, wave: 'sine', level: .08 }); return true;
       case 'shot':
         if (w === 1) {
-          this._tone({ from: 58, to: 32, duration: .24, wave: 'triangle', level: .42, position: p });
-          this._noise({ duration: .2, level: .58, highpass: 600, lowpass: 8500, position: p });
-          this._tone({ from: 920, to: 160, duration: .12, wave: 'square', level: .12, position: p });
+          this._tone({ from: 58, to: 32, duration: .24, wave: 'triangle', level: .152, position: p });
+          this._noise({ duration: .2, level: .125, highpass: 600, lowpass: 8500, position: p });
+          this._tone({ from: 920, to: 160, duration: .12, wave: 'square', level: .09, position: p });
         } else if (w === 2) {
-          this._tone({ from: 340, to: 52, duration: .42, wave: 'sawtooth', level: .28, position: p });
-          this._noise({ duration: .32, level: .36, highpass: 900, lowpass: 7600, position: p });
-          this._tone({ from: 1180, to: 180, duration: .3, wave: 'square', level: .11, position: p });
+          this._tone({ from: 340, to: 52, duration: .42, wave: 'sawtooth', level: .120, position: p });
+          this._noise({ duration: .32, level: .125, highpass: 900, lowpass: 7600, position: p });
+          this._tone({ from: 1180, to: 180, duration: .3, wave: 'square', level: .05, position: p });
         } else {
-          this._tone({ from: 112, to: 44, duration: .18, wave: 'triangle', level: .45, position: p });
-          this._noise({ duration: .12, level: .38, highpass: 1100, lowpass: 11000, position: p });
+          this._tone({ from: 112, to: 44, duration: .18, wave: 'triangle', level: .155, position: p });
+          this._noise({ duration: .12, level: .24, highpass: 1100, lowpass: 11000, position: p });
         }
         return true;
       case 'rocket':
       case 'explosion':
-        this._tone({ from: 72, to: 22, duration: .55, wave: 'sine', level: .42, position: p });
-        this._noise({ duration: .48, level: .65, lowpass: 1900, position: p });
-        this._tone({ from: 180, to: 38, duration: .8, wave: 'triangle', level: .18, position: p }); return true;
-      case 'bulletcrackle': this._noise({ duration: .18, level: .25, highpass: 1600, lowpass: 8000, position: p }); return true;
+        this._tone({ from: 72, to: 22, duration: .55, wave: 'sine', level: .152, position: p });
+        this._noise({ duration: .48, level: .24, lowpass: 1900, position: p });
+        this._tone({ from: 180, to: 38, duration: .8, wave: 'triangle', level: .09, position: p }); return true;
+      case 'bulletcrackle': this._noise({ duration: .18, level: .15, highpass: 1600, lowpass: 8000, position: p }); return true;
       case 'hit':
       case 'impact':
-        this._tone({ from: 180, to: 72, duration: .16, wave: 'square', level: .22, position: p });
-        this._noise({ duration: .18, level: .24, highpass: 260, lowpass: 4200, position: p }); return true;
+        this._tone({ from: 180, to: 72, duration: .16, wave: 'square', level: .14, position: p });
+        this._noise({ duration: .18, level: .14, highpass: 260, lowpass: 4200, position: p }); return true;
       case 'parry':
-        this._tone({ from: 760, to: 2200, duration: .2, wave: 'sine', level: .28 });
-        this._tone({ from: 1520, to: 3400, duration: .12, wave: 'triangle', level: .16, detune: 7 }); return true;
+        this._tone({ from: 760, to: 2200, duration: .2, wave: 'sine', level: .120 });
+        this._tone({ from: 1520, to: 3400, duration: .12, wave: 'triangle', level: .10, detune: 7 }); return true;
+      case 'slide':
+        this._noise({duration:.38,level:.1,highpass:130,lowpass:2300,position:p});
+        this._tone({from:84,to:38,duration:.25,wave:'triangle',level:.055,position:p});return true;
       case 'dash':
-        this._tone({ from: 75, to: 520, duration: .26, wave: 'sawtooth', level: .16 });
-        this._noise({ duration: .3, level: .24, highpass: 500, lowpass: 4800 }); return true;
+        this._tone({ from: 75, to: 520, duration: .26, wave: 'sawtooth', level: .10 });
+        this._noise({ duration: .3, level: .14, highpass: 500, lowpass: 4800 }); return true;
       case 'blood':
-        this._tone({ from: 112, to: 48, duration: .3, wave: 'sine', level: .2, position: p });
-        this._noise({ duration: .42, level: .23, lowpass: 1200, position: p }); return true;
-      case 'damage': this._tone({ from: 260, to: 86, duration: .22, wave: 'sawtooth', level: .2 }); return true;
+        this._tone({ from: 112, to: 48, duration: .3, wave: 'sine', level: .12, position: p });
+        this._noise({ duration: .42, level: .14, lowpass: 1200, position: p }); return true;
+      case 'damage': this._tone({ from: 260, to: 86, duration: .22, wave: 'sawtooth', level: .12 }); return true;
       case 'punch':
-        this._tone({ from: 95, to: 38, duration: .14, wave: 'triangle', level: .34, position: p });
-        this._noise({ duration: .11, level: .2, highpass: 500, lowpass: 3500, position: p }); return true;
-      case 'jump': this._tone({ from: 170, to: 420, duration: .22, wave: 'triangle', level: .11 }); return true;
+        this._tone({ from: 95, to: 38, duration: .14, wave: 'triangle', level: .14, position: p });
+        this._noise({ duration: .11, level: .12, highpass: 500, lowpass: 3500, position: p }); return true;
+      case 'jump': this._tone({ from: 170, to: 420, duration: .22, wave: 'triangle', level: .05 }); return true;
       case 'land':
-        this._tone({ from: 72, to: 30, duration: .3, wave: 'sine', level: .4, position: p });
-        this._noise({ duration: .22, level: .24, lowpass: 1600, position: p }); return true;
+        this._tone({ from: 72, to: 30, duration: .3, wave: 'sine', level: .15, position: p });
+        this._noise({ duration: .22, level: .14, lowpass: 1600, position: p }); return true;
       case 'enemyattack':
       case 'moan':
-        this._tone({ from: 190, to: 70, duration: .55, wave: 'sawtooth', level: .16, position: p });
-        this._noise({ duration: .35, level: .17, lowpass: 1450, position: p }); return true;
+        this._tone({ from: 190, to: 70, duration: .55, wave: 'sawtooth', level: .10, position: p });
+        this._noise({ duration: .35, level: .11, lowpass: 1450, position: p }); return true;
       case 'enemydeath':
-        this._tone({ from: 150, to: 26, duration: .62, wave: 'sawtooth', level: .2, position: p });
-        this._noise({ duration: .56, level: .25, lowpass: 1200, position: p }); return true;
-      case 'enemyjump': this._tone({ from: 90, to: 320, duration: .3, wave: 'triangle', level: .17, position: p }); return true;
-      case 'enemyland': this._tone({ from: 80, to: 24, duration: .3, wave: 'sine', level: .25, position: p }); return true;
+        this._tone({ from: 150, to: 26, duration: .62, wave: 'sawtooth', level: .12, position: p });
+        this._noise({ duration: .56, level: .15, lowpass: 1200, position: p }); return true;
+      case 'enemyjump': this._tone({ from: 90, to: 320, duration: .3, wave: 'triangle', level: .11, position: p }); return true;
+      case 'enemyland': this._tone({ from: 80, to: 24, duration: .3, wave: 'sine', level: .15, position: p }); return true;
       case 'coin':
-        this._tone({ from: 1120, to: 1820, duration: .12, wave: 'sine', level: .17 });
+        this._tone({ from: 1120, to: 1820, duration: .12, wave: 'sine', level: .11 });
         this._tone({ from: 1680, to: 2460, duration: .2, wave: 'sine', level: .1 }); return true;
       case 'ui':
       case 'confirm': this._tone({ from: 520, to: 880, duration: .1, wave: 'triangle', level: .1, group: 'ui' }); return true;
       case 'cancel':
       case 'fail': this._tone({ from: 240, to: 110, duration: .16, wave: 'square', level: .1, group: 'ui' }); return true;
-      case 'wave': this._tone({ from: 68, to: 140, duration: .65, wave: 'sawtooth', level: .16 }); return true;
+      case 'wave': this._tone({ from: 68, to: 140, duration: .65, wave: 'sawtooth', level: .10 }); return true;
       case 'win':
-        this._tone({ from: 220, to: 440, duration: .26, wave: 'triangle', level: .16 });
-        this._tone({ from: 330, to: 660, duration: .36, wave: 'sine', level: .13 }); return true;
-      default: this._tone({ from: 180, to: 90, duration: .12, wave: 'triangle', level: .08 }); return true;
+        this._tone({ from: 220, to: 440, duration: .26, wave: 'triangle', level: .10 });
+        this._tone({ from: 330, to: 660, duration: .36, wave: 'sine', level: .08 }); return true;
+      default: this._tone({ from: 180, to: 90, duration: .12, wave: 'triangle', level: .05 }); return true;
     }
   }
 

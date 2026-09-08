@@ -8,7 +8,7 @@ Canonical folder: **Desktop/thelastdead**. Repository: **https://github.com/jrod
 
 ## Current build
 
-**BUILD 06 / RELIQUARY** expands the descent into three sectors with paced reinforcements, enemy mutations, a bone rocket launcher, shader explosion effects, and a sampled horror soundscape. See [Build 06 evidence](docs/BUILD-06.md). Refresh the open local game to see updates; the development server sends no-store responses.
+**BUILD 07 / FOUNDRY POLISH** adds aged weapon materials, a generated wall surface, vaulted architecture, static scene batching, a revised sound mix and clearer mobile controls. See [Build 07 evidence](docs/BUILD-07.md). Refresh the existing local or Railway link to play.
 
 ## Play
 

@@ -1,6 +1,7 @@
 import {updateSurvivors} from './assets/survivor/survivor-runtime.js';
 import * as THREE from './vendor/three.module.js';
 import {buildHorrorDetails} from './world-horror.js';
+import {buildCathedralKit,batchStaticWorld} from './world-polish.js';
 import {GLTFLoader} from './vendor/loaders/GLTFLoader.js';
 import {createReliquary,animateReliquary} from './weapon-reliquary.js';
 import {createBellwraith,animateBellwraith} from './npc-bellwraith.js';
@@ -74,8 +75,8 @@ function disposeObject(root) {
   });
   geometries.forEach(g => g.dispose?.());
   materials.forEach(m => {
-    if (m.map) m.map.dispose?.();
-    if (m.normalMap) m.normalMap.dispose?.();
+    if (m.userData?.sharedLibrary) return;
+    for(const key of ['map','normalMap','roughnessMap','bumpMap','emissiveMap']){const texture=m[key];if(texture&&!texture.userData?.sharedAsset)texture.dispose?.();}
     m.dispose?.();
   });
 }
@@ -110,6 +111,7 @@ export class Renderer {
     this._firstCameraFrame = true;
     this._lastNow = 0;
     this._lastRunTime = 0;
+    this._renderScale=1;this._qualityTime=0;this._qualityFrames=0;
     this._worldKey = null;
     this._course = null;
     this._enemyVisuals = new Map();
@@ -118,6 +120,7 @@ export class Renderer {
     this._diag = {};
 
     this.materials = this._createMaterials();
+    Object.values(this.materials).forEach(m=>{m.userData.sharedLibrary=true;});
     this._loadMaterialReference();
     this._loadWeaponMaterials();
     try {
@@ -132,7 +135,7 @@ export class Renderer {
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
       this.renderer.toneMappingExposure = 1.12;
       this.renderer.shadowMap.enabled = true;
-      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      this.renderer.shadowMap.type = THREE.PCFShadowMap;
       this.renderer.setPixelRatio(1);
     } catch (error) {
       // Keep the renderer object inspectable in headless smoke tests. A
@@ -162,8 +165,14 @@ export class Renderer {
     const tile=document.createElement('canvas');tile.width=tile.height=256;const t=tile.getContext('2d');t.fillStyle='#747b80';t.fillRect(0,0,256,256);t.strokeStyle='#333b40';t.lineWidth=5;t.strokeRect(4,4,248,248);t.strokeStyle='#9da4a7';t.lineWidth=1;t.strokeRect(9,9,238,238);
     let seed=9182;for(let i=0;i<650;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;const x=seed%256;seed=(Math.imul(seed,1664525)+1013904223)>>>0;const y=seed%256;t.strokeStyle=i%2?'#eef8ff10':'#11182016';t.beginPath();t.moveTo(x,y);t.lineTo(x+4+i%19,y+1);t.stroke();}
     for(const x of[17,239])for(const y of[17,239]){t.fillStyle='#202a30';t.beginPath();t.arc(x,y,3,0,Math.PI*2);t.fill();t.fillStyle='#b9c0c2';t.fillRect(x-1,y-2,2,2);}
-    const floorTexture=new THREE.CanvasTexture(tile);floorTexture.colorSpace=THREE.SRGBColorSpace;floorTexture.anisotropy=Math.min(8,this.renderer.capabilities.getMaxAnisotropy());for(const m of[this.materials.floor,this.materials.floorAlt]){m.map=floorTexture;m.color.set(0x555b58);m.metalness=.24;m.roughness=.76;}
-    this.materials.floorAlt.color.set(0x414845);
+    // Recessed maintenance hatch, chamfered corners and stamped tread establish floor scale.
+    t.fillStyle='#343d40';t.beginPath();t.moveTo(43,33);t.lineTo(213,33);t.lineTo(225,45);t.lineTo(225,211);t.lineTo(213,223);t.lineTo(43,223);t.lineTo(31,211);t.lineTo(31,45);t.closePath();t.fill();
+    t.strokeStyle='#92938a';t.lineWidth=1.5;t.stroke();t.fillStyle='#545b5b';t.fillRect(37,39,182,177);
+    for(let row=0;row<14;row++)for(let col=0;col<9;col++){const x=43+col*20+(row%2)*7,y=48+row*11;t.fillStyle='#303a3e';t.fillRect(x,y,9,2);t.fillStyle='#828884';t.fillRect(x,y+2,9,1);}
+    t.fillStyle='#1d292c';t.fillRect(105,225,46,9);t.fillStyle='#9b9275';t.fillRect(111,228,34,2);
+    for(let i=0;i<5000;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;const x=seed%256;seed=(Math.imul(seed,1664525)+1013904223)>>>0;const y=seed%256;t.fillStyle=i%3?'#131c2214':'#b6a68a15';t.fillRect(x,y,1+i%3,1);}
+    const floorTexture=new THREE.CanvasTexture(tile);floorTexture.colorSpace=THREE.SRGBColorSpace;floorTexture.anisotropy=Math.min(8,this.renderer.capabilities.getMaxAnisotropy());for(const m of[this.materials.floor,this.materials.floorAlt]){m.map=floorTexture;m.color.set(0x414644);m.metalness=.32;m.roughness=.67;m.bumpMap=floorTexture;m.bumpScale=.025;}
+    this.materials.floorAlt.color.set(0x343a37);
     for(const m of[this.materials.weapon,this.materials.weaponDark,this.materials.weaponTrim,this.materials.metal,this.materials.steel,this.materials.enemyArmor])m.envMapIntensity=1.7;
   }
 
@@ -206,14 +215,16 @@ export class Renderer {
   _loadMaterialReference() {
     if (typeof document === 'undefined') return;
     try {
-      const texture = new THREE.TextureLoader().load('./assets/textures/dead-arrival-industrial-flesh-metal.png', loaded => {
+      const texture = new THREE.TextureLoader().load('./assets/textures/crypt-wall-albedo.webp', loaded => {
         loaded.colorSpace = THREE.SRGBColorSpace;
         loaded.wrapS = THREE.RepeatWrapping;
         loaded.wrapT = THREE.RepeatWrapping;
-        loaded.repeat.set(2.35, 1.55);
+        loaded.repeat.set(1, 1);
+        const bump=loaded.clone();bump.colorSpace=THREE.NoColorSpace;bump.needsUpdate=true;
         loaded.anisotropy = Math.min(8, this.renderer?.capabilities?.getMaxAnisotropy?.() || 4);
         for (const material of [this.materials.wall, this.materials.wallPanel]) {
           material.map = loaded;
+          material.bumpMap=bump;material.bumpScale=.065;material.roughness=.79;
           material.color.set(0xd9dce0);
           material.metalness=.28;
           material.envMapIntensity=1.25;
@@ -245,10 +256,10 @@ export class Renderer {
     key.shadow.mapSize.set(1024, 1024);
     key.shadow.camera.near = 1;
     key.shadow.camera.far = 120;
-    key.shadow.camera.left = -52;
-    key.shadow.camera.right = 52;
-    key.shadow.camera.top = 52;
-    key.shadow.camera.bottom = -52;
+    key.shadow.camera.left = -36;
+    key.shadow.camera.right = 36;
+    key.shadow.camera.top = 36;
+    key.shadow.camera.bottom = -36;
     key.shadow.bias = -0.0006;
     this.scene.add(key, key.target);
     const coolFill = new THREE.DirectionalLight(0x8ba9ab, 1.2);
@@ -524,6 +535,8 @@ export class Renderer {
     this._buildIndustrialShell(width, depth);
     this._buildExit(course?.exit || { x: 6, y: 1 });
     this.horror=buildHorrorDetails(this.worldRoot,this.materials,course);
+    buildCathedralKit(this.worldRoot,this.materials,course);
+    this._worldBatch=batchStaticWorld(this.worldRoot,[this._exit?.root,this.horror.organ,this.horror.core]);
     if (this.horror.theme) {
       this.scene.background.set(this.horror.theme.background);
       this.scene.fog.color.set(this.horror.theme.fog);
@@ -739,7 +752,7 @@ export class Renderer {
     }
     // Elevated gantry spans give the arena a layered, industrial silhouette.
     for (const z of [12, 24, 36]) {
-      const beam = shadow(new THREE.Mesh(new THREE.BoxGeometry(width - 5, 0.3, 0.3), this.materials.metal), true, true);
+      const beam = shadow(new THREE.Mesh(new THREE.BoxGeometry(width - 5, 0.3, 0.3), this.materials.metalDark), true, true);
       beam.position.set(width / 2, 5.95, z);
       this.worldRoot.add(beam);
       for (const x of [5, 13, 23, 33, 43]) {
@@ -1220,7 +1233,7 @@ export class Renderer {
   resize() {
     const width = Math.max(1, this.canvas?.clientWidth || (typeof window !== 'undefined' ? window.innerWidth : 1280));
     const height = Math.max(1, this.canvas?.clientHeight || (typeof window !== 'undefined' ? window.innerHeight : 720));
-    const dpr = Math.min(typeof devicePixelRatio === 'number' ? devicePixelRatio : 1, 1.75);
+    const dpr = Math.min(typeof devicePixelRatio === 'number' ? devicePixelRatio : 1, width<700?1.35:1.5)*(this._renderScale||1);
     this.width = width;
     this.height = height;
     this.dpr = dpr;
@@ -1231,6 +1244,7 @@ export class Renderer {
       this.canvas.width = Math.floor(width * dpr);
       this.canvas.height = Math.floor(height * dpr);
     }
+    this.weaponGroups?.forEach(group=>group.scale.setScalar(width<600?.48:.64));
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
   }
@@ -1244,6 +1258,7 @@ export class Renderer {
     if (!run?.course) return;
     this._frameDt = this._lastNow ? clamp((nowMs - this._lastNow) / 1000, 0.001, 0.05) : 0.016;
     this._lastNow = nowMs;
+    if(run.mode==='play'){this._qualityTime+=this._frameDt;this._qualityFrames++;if(this._qualityTime>=3){const rate=this._qualityFrames/this._qualityTime,previous=this._renderScale;if(rate<42)this._renderScale=Math.max(.75,this._renderScale-.1);else if(rate>57)this._renderScale=Math.min(1,this._renderScale+.05);this._qualityTime=0;this._qualityFrames=0;if(previous!==this._renderScale)this.resize();}}
     const key = run.course.index ?? `${run.course.w}:${run.course.h}`;
     if (this._worldKey !== key || this._course !== run.course) this._buildWorld(run.course);
     if(this.horror){const pulse=1+Math.sin(nowMs*.002)*.025;this.horror.organ.scale.set(1.5*pulse,2.1,1.15*pulse);}
@@ -1254,7 +1269,7 @@ export class Renderer {
     this._updateCombat(run, nowMs);
     updateSurvivors(this, run, nowMs);
     if (this.renderer) this.renderer.render(this.scene, this.camera);
-    this._diag = this._collectDiagnostics(run);
+    if(!this._lastDiagnostics||nowMs-this._lastDiagnostics>=500){this._diag=this._collectDiagnostics(run);this._lastDiagnostics=nowMs;}
   }
 
   _collectDiagnostics(run) {
@@ -1276,11 +1291,13 @@ export class Renderer {
     const info = this.renderer?.info;
     return {
       renderer: 'three.js',
+      worldBatch: this._worldBatch || null,
       webgl: !!this.renderer,
       error: this.rendererError ? String(this.rendererError.message || this.rendererError) : null,
       width: this.width,
       height: this.height,
       dpr: this.dpr,
+      renderScale:this._renderScale,
       fov: Number(this.camera.fov.toFixed(2)),
       meshes,
       instancedMeshes: instanced,

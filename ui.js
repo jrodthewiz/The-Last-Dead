@@ -11,7 +11,7 @@ const DEFAULT_PREFS = Object.freeze({
 });
 
 const WEAPON_NAMES = ['OSSUARY', 'BREACH SHOTGUN', 'ARC LANCE', 'RELIQUARY'];
-const WEAPON_HINTS = ['BONEFORGED // COIN RICOCHET', 'CLOSE RANGE // WIDE SPREAD', 'RAIL PUNCH // PIERCE', 'ROCKETS // ALT AIRBURST'];
+const WEAPON_HINTS = ['BONEFORGED // COIN RICOCHET', 'CLOSE RANGE // WIDE SPREAD', 'RAIL PUNCH // PIERCE', 'ROCKETS // FUSE CONTROL'];
 
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
   '&': '&amp;',
@@ -266,15 +266,15 @@ export class UI {
     this.root.innerHTML = `<section class="screen menu-screen" aria-label="The Last Dead main menu">
       <div class="menu-shell">
         <div class="menu-copy">
-          <div class="brand-lockup"><span class="brand-eyebrow">DESCENT PROTOCOL // THREE SECTORS</span><h1 class="brand-title"><span>THE</span><em>LAST DEAD</em></h1><span class="brand-stamp">TLD<br />06<br />LIVE</span><p class="brand-tagline">Three floors below mercy. Fast feet. Heavy weapons. Nothing leaves clean.</p></div>
-          <div class="menu-copy-foot"><div class="menu-footer"><button class="text-button" type="button" data-action="settings">Settings</button><small class="build-revision">BUILD 06 / RELIQUARY</small></div><span class="menu-status">NO SAFE ROOM // SIGNAL OPEN</span></div>
+          <div class="brand-lockup"><span class="brand-eyebrow">DESCENT PROTOCOL // THREE SECTORS</span><h1 class="brand-title"><span>THE</span><em>LAST DEAD</em></h1><span class="brand-stamp">TLD<br />07<br />LIVE</span><p class="brand-tagline">Three floors below mercy. Fast feet. Heavy weapons. Nothing leaves clean.</p></div>
+          <div class="menu-copy-foot"><div class="menu-footer"><button class="text-button" type="button" data-action="settings">Settings</button><small class="build-revision">BUILD 07 / THE LAST DEAD</small></div><span class="menu-status">NO SAFE ROOM // SIGNAL OPEN</span></div>
         </div>
         <div class="menu-actions">
           <div class="course-heading"><div><span class="kicker">CAMPAIGN // DESCENT</span><h2>The <em>Bloodworks</em></h2></div><span class="course-index">01 / 03</span></div>
           <p class="course-blurb">Descend through three condemned sectors. Threats evolve, reinforcements arrive in pulses, and every sealed exit demands a clean sweep.</p>
           <ol class="campaign-route" aria-label="Campaign descent">${CAMPAIGN_SECTORS.map((sector,i)=>`<li class="${i===0?'is-current':''}"><span>${String(i+1).padStart(2,'0')}</span><b>${esc(sector.name.replace(/^The /,''))}</b></li>`).join('')}</ol><div class="course-meta"><div><span class="tiny-label">Protocol</span><strong>3 SECTORS // 9 WAVES</strong></div><div><span class="tiny-label">Threat profile</span><strong>MUTATIONS + HEAVY ORDNANCE</strong></div></div>
           <button class="primary-button start-button" type="button" data-action="start">Start solo <span>-></span></button>
-          <div class="combat-note"><span class="field-label">Combat doctrine</span><strong>4: Reliquary rockets. Right click: airburst. Stay clear of the blast.</strong></div>
+          <div class="combat-note"><span class="field-label">Combat doctrine</span><strong>4: RELIQUARY // ROCKETS // FUSE CONTROL</strong></div>
           <div class="coop-access"><button class="coop-toggle" type="button" data-action="coop-toggle" aria-expanded="false" aria-controls="coop-form"><span><b>Co-op uplink</b><small>Optional peer-to-peer breach</small></span><i data-coop-icon>+</i></button>
             <div class="coop-panel" id="coop-form" data-coop-panel hidden>
               <div class="network-panel"><span class="field-label">Host a breach</span><div class="network-row"><input class="code-input" name="offer" autocomplete="off" spellcheck="false" placeholder="Offer code appears here" aria-label="Host offer code" readonly /><button class="network-button" type="button" data-action="host">Create offer</button></div><div class="network-row"><button class="text-button" type="button" data-action="copy-offer">Copy offer code</button><span></span></div></div>
@@ -397,7 +397,7 @@ export class UI {
     this._setHud('weapon-hint', WEAPON_HINTS[weapon]);
     const coins = clamp(run.coinCharges, 0, 4);
     const altCooldown = Math.max(0, Number(run.altCooldown || 0));
-    this._setHud('weapon-resource', weapon === 0 ? `COIN x${Math.floor(coins)}` : weapon === 1 ? (altCooldown > 0 ? `CORE ${fmt(altCooldown, 1)}s` : 'CORE READY') : weapon === 2 ? 'RAIL PIERCE' : 'ALT: AIRBURST');
+    this._setHud('weapon-resource', weapon === 0 ? `COIN x${Math.floor(coins)}` : weapon === 1 ? (altCooldown > 0 ? `CORE ${fmt(altCooldown, 1)}s` : 'CORE READY') : weapon === 2 ? 'RAIL PIERCE' : 'BURST READY');
     this._setHud('cooldown-label', cooldown > 0.01 ? `${fmt(cooldown, 2)}s` : 'READY');
     this._setHud('cooldown', '', maxCooldown ? (1 - cooldown / maxCooldown) * 100 : 100);
     this._setHud('network', network || 'OFFLINE');

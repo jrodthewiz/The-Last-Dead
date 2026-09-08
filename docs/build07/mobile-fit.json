@@ -1,0 +1,226 @@
+[
+  {
+    "width": 390,
+    "hud": {
+      "x": 10,
+      "y": 622.875,
+      "right": 380,
+      "bottom": 696,
+      "width": 370,
+      "height": 73.125
+    },
+    "buttons": [
+      {
+        "x": 30,
+        "y": 712,
+        "right": 77,
+        "bottom": 759,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 85,
+        "y": 712,
+        "right": 132,
+        "bottom": 759,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 30,
+        "y": 767,
+        "right": 77,
+        "bottom": 814,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 85,
+        "y": 767,
+        "right": 132,
+        "bottom": 814,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 140,
+        "y": 767,
+        "right": 187,
+        "bottom": 814,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 140,
+        "y": 712,
+        "right": 187,
+        "bottom": 759,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 203,
+        "y": 712,
+        "right": 250,
+        "bottom": 759,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 258,
+        "y": 712,
+        "right": 305,
+        "bottom": 759,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 258,
+        "y": 767,
+        "right": 305,
+        "bottom": 814,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 203,
+        "y": 767,
+        "right": 250,
+        "bottom": 814,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 313,
+        "y": 712,
+        "right": 360,
+        "bottom": 759,
+        "width": 47,
+        "height": 47
+      },
+      {
+        "x": 313,
+        "y": 767,
+        "right": 360,
+        "bottom": 814,
+        "width": 47,
+        "height": 47
+      }
+    ],
+    "buttonOverlap": false,
+    "overlap": false,
+    "overflow": false
+  },
+  {
+    "width": 320,
+    "hud": {
+      "x": 10,
+      "y": 622.875,
+      "right": 310,
+      "bottom": 696,
+      "width": 300,
+      "height": 73.125
+    },
+    "buttons": [
+      {
+        "x": 6,
+        "y": 722,
+        "right": 50,
+        "bottom": 766,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 54,
+        "y": 722,
+        "right": 98,
+        "bottom": 766,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 6,
+        "y": 770,
+        "right": 50,
+        "bottom": 814,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 54,
+        "y": 770,
+        "right": 98,
+        "bottom": 814,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 102,
+        "y": 770,
+        "right": 146,
+        "bottom": 814,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 102,
+        "y": 722,
+        "right": 146,
+        "bottom": 766,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 174,
+        "y": 722,
+        "right": 218,
+        "bottom": 766,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 222,
+        "y": 722,
+        "right": 266,
+        "bottom": 766,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 222,
+        "y": 770,
+        "right": 266,
+        "bottom": 814,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 174,
+        "y": 770,
+        "right": 218,
+        "bottom": 814,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 270,
+        "y": 722,
+        "right": 314,
+        "bottom": 766,
+        "width": 44,
+        "height": 44
+      },
+      {
+        "x": 270,
+        "y": 770,
+        "right": 314,
+        "bottom": 814,
+        "width": 44,
+        "height": 44
+      }
+    ],
+    "buttonOverlap": false,
+    "overlap": false,
+    "overflow": false
+  }
+]

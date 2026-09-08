@@ -1,0 +1,8 @@
+import {createRequire} from 'node:module';
+import {mkdir,writeFile} from 'node:fs/promises';
+const require=createRequire(import.meta.url),{chromium}=require(process.env.PLAYWRIGHT_PATH||'playwright');
+const label=process.argv[2]||'before';await mkdir('docs/build07',{recursive:true});
+const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH,args:['--use-angle=d3d11','--enable-gpu']});
+const errors=[];try{const page=await browser.newPage({viewport:{width:1280,height:800}});page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:5200/?debug=1',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>window.__DEAD_ARRIVAL__,null,{timeout:20000});await page.bringToFront();await page.locator('[data-action="start"]').click();await page.waitForTimeout(1500);await page.evaluate(()=>{const r=window.__DEAD_ARRIVAL__.run;r.health=100000;r.pitch=0;r.angle=-Math.PI/2;});
+const result=await page.evaluate(async()=>{const api=window.__DEAD_ARRIVAL__,gl=api.renderer.renderer.getContext(),ext=gl.getExtension('WEBGL_debug_renderer_info');let frames=0,start=performance.now();await new Promise(resolve=>{function sample(){frames++;if(performance.now()-start>=5000)resolve();else requestAnimationFrame(sample)}requestAnimationFrame(sample)});return {fps:frames*1000/(performance.now()-start),gpu:ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):'',diagnostics:api.renderer.diagnostics()}});await page.screenshot({path:`docs/build07/${label}-desktop.png`});await writeFile(`docs/build07/${label}.json`,JSON.stringify({result,errors},null,2));console.log(JSON.stringify({result,errors}));}finally{await browser.close()}
+

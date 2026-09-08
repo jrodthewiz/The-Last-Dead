@@ -81,6 +81,78 @@ function compactGroup(group) {
   }
 }
 
+function makeSurfaceMaps(seed = 17) {
+  const size = 64;
+  const albedo = new Uint8Array(size * size * 4);
+  const roughness = new Uint8Array(size * size * 4);
+  const bump = new Uint8Array(size * size * 4);
+  const hash = (x, y) => {
+    const v = Math.sin((x + seed) * 12.9898 + (y - seed) * 78.233) * 43758.5453;
+    return v - Math.floor(v);
+  };
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const i = (y * size + x) * 4;
+      const fine = hash(x, y);
+      const broad = Math.sin(x * .17 + Math.sin(y * .06) * 2.2) * .5 + .5;
+      const streak = Math.sin((x + y * .22) * .47) * .5 + .5;
+      const pit = Math.max(0, fine - .78) * 3.2;
+      const value = Math.max(46, Math.min(255, 214 + broad * 24 + streak * 12 - pit * 95));
+      const cavity = Math.max(20, Math.min(255, 168 + broad * 42 - pit * 110));
+      const relief = Math.max(0, Math.min(255, 128 + (broad - .5) * 70 + (fine - .5) * 22 - pit * 65));
+      albedo[i] = value; albedo[i + 1] = Math.max(0, value - 8); albedo[i + 2] = Math.max(0, value - 18); albedo[i + 3] = 255;
+      roughness[i] = cavity; roughness[i + 1] = cavity; roughness[i + 2] = cavity; roughness[i + 3] = 255;
+      bump[i] = relief; bump[i + 1] = relief; bump[i + 2] = relief; bump[i + 3] = 255;
+    }
+  }
+  const texture = (data, colorSpace = false) => {
+    const tex = new THREE.DataTexture(data, size, size, THREE.RGBAFormat, THREE.UnsignedByteType);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    tex.generateMipmaps = true;
+    tex.userData.sharedAsset = true;
+    if (colorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+    tex.needsUpdate = true;
+    return tex;
+  };
+  return {albedo: texture(albedo, true), roughness: texture(roughness), bump: texture(bump)};
+}
+let sharedSurfaceMaps;
+function getSurfaceMaps() {
+  return sharedSurfaceMaps || (sharedSurfaceMaps = makeSurfaceMaps());
+}
+
+function applySurfaceMaps(materials, maps) {
+  for (const key of ['iron', 'ironEdge', 'bone', 'boneDark', 'leather', 'brass']) {
+    const material = materials[key];
+    if (!material) continue;
+    material.map = maps.albedo;
+    material.roughnessMap = maps.roughness;
+    material.bumpMap = maps.bump;
+    material.bumpScale = key === 'bone' ? .022 : key === 'leather' ? .016 : .009;
+    material.needsUpdate = true;
+  }
+}
+
+function addWearColors(root, seed = 23) {
+  root.traverse(mesh => {
+    if (!mesh.isMesh || !mesh.material?.map || !mesh.geometry.attributes.position) return;
+    const position = mesh.geometry.attributes.position;
+    const colors = new Float32Array(position.count * 3);
+    for (let i = 0; i < position.count; i++) {
+      const n = Math.sin((i + seed) * 12.9898) * .5 + .5;
+      const v = .82 + n * .18;
+      colors[i * 3] = v;
+      colors[i * 3 + 1] = v * .97;
+      colors[i * 3 + 2] = v * .91;
+    }
+    mesh.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    mesh.material.vertexColors = true;
+    mesh.material.needsUpdate = true;
+  });
+}
+
 function makeMaterials() {
   return {
     iron: new THREE.MeshStandardMaterial({color: 0x3a3033, roughness: .52, metalness: .68}),
@@ -106,6 +178,8 @@ export function createReliquary(options = {}) {
   root.name = 'Reliquary';
   const parts = {};
   const materials = makeMaterials();
+  const textures = getSurfaceMaps();
+  applySurfaceMaps(materials, textures);
   const part = (name, parent = root) => {
     const g = new THREE.Group();
     g.name = name;
@@ -278,6 +352,7 @@ export function createReliquary(options = {}) {
   // Keep articulated groups separate while collapsing their static surfaces by
   // material. This makes the hero weapon detailed without ballooning draw calls.
   for (const group of Object.values(parts)) compactGroup(group);
+  addWearColors(root);
 
   const home = new Map();
   const explode = amount => {
@@ -288,7 +363,7 @@ export function createReliquary(options = {}) {
     }
   };
   root.userData.sculptRuntime = {
-    parts, sockets, materials,
+    parts, sockets, materials, textures,
     collider: {type: 'capsule', size: [.42, .82, 1.48]},
     explode,
     pick(raycaster) {
@@ -299,7 +374,7 @@ export function createReliquary(options = {}) {
   root.userData.reliquary = {
     kind: 'reliquary',
     variant: options.variant || 'bone-rocket',
-    parts, sockets, materials, recoilCarriage, core, barrel,
+    parts, sockets, materials, textures, recoilCarriage, core, barrel,
     recoil: 0, flash: 0, heat: 0, charge: 0, lastShot: 0
   };
   return root;

@@ -1,0 +1,48 @@
+{
+  "result": {
+    "fps": 34.9213278040818,
+    "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F91) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "diagnostics": {
+      "renderer": "three.js",
+      "worldBatch": {
+        "removed": 444,
+        "batches": 18
+      },
+      "webgl": true,
+      "error": null,
+      "width": 1280,
+      "height": 800,
+      "dpr": 1,
+      "fov": 92,
+      "meshes": 371,
+      "instancedMeshes": 26,
+      "geometries": 364,
+      "materials": 80,
+      "triangles": 169642,
+      "calls": 152,
+      "gpuTriangles": 52348,
+      "rendererGeometries": 174,
+      "explosions": {
+        "active": 0,
+        "fire": 0,
+        "smoke": 0,
+        "embers": 0,
+        "rings": 0,
+        "maxExplosions": 18,
+        "reducedMotion": false,
+        "gore": true
+      },
+      "rendererTextures": 26,
+      "enemies": 4,
+      "gore": 0,
+      "blood": 0,
+      "projectiles": 1,
+      "tracers": 0,
+      "coins": 0,
+      "world": "bloodworks",
+      "warden": "ready",
+      "wardenInstances": 0
+    }
+  },
+  "errors": []
+}
