@@ -4,7 +4,7 @@ An original, fast 3D arena shooter: industrial horror, aggressive movement, bloo
 
 ## Current build
 
-**BUILD 04 / THE LAST DEAD** renames the game, refines the horror UI, and adds three animated enemy variants, visible attack windups, punch interrupts, and navigation around cover. See [Build 04 evidence](docs/BUILD-04.md). Refresh the open local game to see updates; the development server sends no-store responses.
+**BUILD 05 / OSSUARY** adds a bone-forged death revolver, animated chamber, colored bullet trails, muzzle embers, impact sparks and hit-position blood spray. See [Build 05 evidence](docs/BUILD-05.md). Refresh the open local game to see updates; the development server sends no-store responses.
 
 ## Play
 

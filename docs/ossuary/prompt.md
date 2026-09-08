@@ -1,0 +1,5 @@
+# Generated weapon reference
+
+Tool: built-in image generation. Saved reference: reference.png.
+
+Prompt: Use case: stylized-concept. Create an original horror FPS weapon reference sheet for procedural 3D reconstruction, a bone-and-blackened-metal death revolver named Ossuary (no text on image). One single weapon in large crisp three-quarter side view, muzzle pointing left, stock/grip right, isolated neutral charcoal backdrop, fully visible no hands. Recognizable elongated heavy revolver silhouette: six-chamber crimson luminous cylinder encased in rib bones, elongated dark hexagonal barrel, small skull-shaped muzzle shroud with empty black eye sockets and ivory fang teeth framing actual bore, spinal vertebrae along top rail, curved horn above rear chamber, wrapped oxblood leather grip, silver fasteners, subtle carved scratches. Cohesive built object, sinister premium indie game aesthetic, aged ivory contrasting gunmetal, red energy seams. Clear medium-soft studio lighting reveals materials and silhouette, no smoke, no particles, no typography, no extra objects. Buildable stylized geometry, not a real firearm blueprint.

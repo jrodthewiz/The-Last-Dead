@@ -16,6 +16,8 @@ export const RUNTIME_FILES = [
   'renderer.js',
   'world-horror.js',
   'npc-warden.js',
+  'weapon-ossuary.js',
+  'combat-vfx.js',
   'ui.js',
   'audio.js',
   'styles.css',

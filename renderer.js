@@ -2,6 +2,8 @@ import * as THREE from './vendor/three.module.js';
 import {buildHorrorDetails} from './world-horror.js';
 import {GLTFLoader} from './vendor/loaders/GLTFLoader.js';
 import {createWarden,animateWarden} from './npc-warden.js';
+import {createOssuary,animateOssuary} from './weapon-ossuary.js';
+import {CombatVFX} from './combat-vfx.js';
 
 // Dead Arrival's simulation is authored in 4 metre cells. The renderer keeps
 // that scale explicit so camera motion, weapon framing, and enemy proportions
@@ -318,10 +320,13 @@ export class Renderer {
     this.tracerLines.name = 'WeaponTracers';
     this.tracerLines.frustumCulled = false;
     this.combatRoot.add(this.tracerLines);
+    this.weaponFX=new CombatVFX(this.combatRoot);
+    this.tracerLines.visible=false;
     this.railLines = new THREE.LineSegments(lineGeometry(MAX_TRACERS), new THREE.LineBasicMaterial({ color: 0x97f6ff, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false }));
     this.railLines.name = 'ArcRailTracers';
     this.railLines.frustumCulled = false;
     this.combatRoot.add(this.railLines);
+    this.railLines.visible=false;
 
     this.coins = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.2, 0.2, 0.045, 18), this.materials.gold, MAX_COINS);
     this.coins.name = 'RicochetCoins';
@@ -348,7 +353,7 @@ export class Renderer {
     });
     this.muzzleFlash = new THREE.Group();
     this.muzzleFlash.name = 'MuzzleFlash';
-    const flash = new THREE.Mesh(new THREE.OctahedronGeometry(0.16, 0), this.materials.gold);
+    const flash = new THREE.Mesh(new THREE.OctahedronGeometry(0.16, 0), this.materials.gold.clone());
     flash.scale.set(1.4, 0.35, 2.3);
     this.muzzleFlash.add(flash);
     const flashLight = new THREE.PointLight(0xffb85c, 0, 3, 2);
@@ -373,33 +378,7 @@ export class Renderer {
   }
 
   _makePulseRevolver() {
-    const group = new THREE.Group();
-    group.name = 'PulseRevolver';
-    group.position.set(0.27, -0.35, -0.62);
-    group.rotation.set(-0.06, -0.035, -0.045);
-    const body = shadow(box(new THREE.BoxGeometry(0.25, 0.16, 0.48), this.materials.weapon, 0, 0, -0.05));
-    const top = shadow(box(new THREE.BoxGeometry(0.17, 0.045, 0.43), this.materials.weaponTrim, 0, 0.13, -0.13));
-    const barrel = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.08, 0.5, 12), this.materials.weaponDark));
-    barrel.rotation.x = Math.PI / 2;
-    barrel.position.z = -0.56;
-    const muzzle = new THREE.Mesh(new THREE.TorusGeometry(0.082, 0.018, 8, 20), this.materials.playerTrim);
-    muzzle.rotation.x = 0;
-    muzzle.position.z = -0.82;
-    const coil = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.02, 8, 18), this.materials.red);
-    coil.rotation.x = 0;
-    coil.position.set(0, 0.07, -0.32);
-    const grip = shadow(box(new THREE.BoxGeometry(0.21, 0.38, 0.26), this.materials.weaponDark, 0, -0.22, 0.12, 1, 1, 1));
-    grip.rotation.x = -0.2;
-    const chamber = new THREE.Mesh(new THREE.CylinderGeometry(0.158, 0.158, 0.24, 12), this.materials.metal);
-    chamber.rotation.x = Math.PI / 2;
-    chamber.position.set(0, -0.005, -0.24);
-    group.add(body, top, barrel, muzzle, coil, grip, chamber, this._makeArm(-1), this._makeArm(1));
-    for(let i=0;i<5;i++){const band=new THREE.Mesh(new THREE.TorusGeometry(.08,.009,5,12),i===2?this.materials.orange:this.materials.steel);band.position.set(0,0,-.47-i*.065);group.add(band);}
-    const sight=box(new THREE.BoxGeometry(.022,.04,.05),this.materials.red,0,.175,-.31);group.add(sight);
-    for(const side of[-1,1]){const plate=box(new THREE.BoxGeometry(.012,.105,.19),this.materials.rust,side*.131,0,.025);group.add(plate);for(const z of[-.04,.09]){const bolt=new THREE.Mesh(new THREE.SphereGeometry(.015,6,4),this.materials.steel);bolt.position.set(side*.143,.024,z);group.add(bolt);}}
-    const display=document.createElement('canvas');display.width=256;display.height=96;const dg=display.getContext('2d');dg.fillStyle='#101e27';dg.fillRect(0,0,256,96);dg.fillStyle='#dfcfb0';dg.font='bold 32px monospace';dg.fillText('PULSE / 07',15,58);const map=new THREE.CanvasTexture(display);map.colorSpace=THREE.SRGBColorSpace;const label=new THREE.Mesh(new THREE.PlaneGeometry(.16,.06),new THREE.MeshBasicMaterial({map}));label.position.set(0,.03,.197);group.add(label);
-    group.userData.muzzle = muzzle;
-    return group;
+    const group=createOssuary();group.position.set(.26,-.32,-.58);group.rotation.set(-.055,-.09,-.035);group.add(this._makeArm(1));return group;
   }
 
   _makeBreachShotgun() {
@@ -1016,6 +995,9 @@ export class Renderer {
     tracerGeo.setDrawRange(0, ti * 2); tracerGeo.attributes.position.needsUpdate = true;
     railGeo.setDrawRange(0, li * 2); railGeo.attributes.position.needsUpdate = true;
 
+    const muzzlePoint=this._fxMuzzle ||= new THREE.Vector3();
+    this.weaponGroups[run.weapon||0]?.userData.muzzle?.getWorldPosition(muzzlePoint);
+    this.weaponFX.update(run,this._frameDt||.016,this.settings.gore,muzzlePoint);
     let ci = 0, gi = 0;
     for (const c of run.coins || []) {
       if (ci >= MAX_COINS) break;
@@ -1073,7 +1055,7 @@ export class Renderer {
     const punch = clamp(run.punch || 0, 0, 1);
     this.weaponRig.position.x = damp(this.weaponRig.position.x, 0.02 + Math.sin((run.distance || 0) * 7) * sway * (1 - aim), 15, dt);
     this.weaponRig.position.y = damp(this.weaponRig.position.y, -0.012 + Math.cos((run.distance || 0) * 7) * sway * 0.6, 15, dt);
-    this.weaponRig.position.z = damp(this.weaponRig.position.z, -shot * 0.07 - punch * 0.045, 24, dt);
+    this.weaponRig.position.z = damp(this.weaponRig.position.z, shot * 0.085 - punch * 0.045, 24, dt);
     this.weaponRig.rotation.x = damp(this.weaponRig.rotation.x, shot * 0.16 + punch * 0.1, 22, dt);
     this.weaponRig.rotation.y = damp(this.weaponRig.rotation.y, aim * -0.08, 16, dt);
     this.weaponRig.rotation.z = damp(this.weaponRig.rotation.z, Math.sin((run.distance || 0) * 4.1) * sway * 0.7, 14, dt);
@@ -1087,9 +1069,16 @@ export class Renderer {
       this.muzzleFlash.position.copy(muzzleWorld);
       this.muzzleFlash.rotation.copy(muzzle.rotation);
     }
+    this.weaponGroups[0].position.x=.26*Math.min(1,this.camera.aspect/.9);
+    animateOssuary(this.weaponGroups[0],weapon===0?shot:0,now*.001,dt);
     this.muzzleFlash.visible = shot > 0.32;
+    this.muzzleFlash.scale.setScalar(.55+shot*.55);
+    this.muzzleFlash.rotation.z=now*.023;
+    const flashColor=[0xff3154,0xffb44b,0x64eaff][weapon];
+    this.muzzleFlash.children[0].material.color.set(flashColor);
+    this.muzzleFlash.children[0].material.emissive?.set(flashColor);
     const light = this.muzzleFlash.children.find(child => child.isPointLight);
-    if (light) light.intensity = shot > 0.32 ? 8 * shot : 0;
+    if (light) {light.color.set(flashColor);light.intensity = shot > 0.32 ? 8 * shot : 0;}
   }
 
   resize() {
