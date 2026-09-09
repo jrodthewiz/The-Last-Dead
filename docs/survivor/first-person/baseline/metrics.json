@@ -1,0 +1,199 @@
+{
+  "results": [
+    {
+      "name": "standing-first",
+      "pose": "standing",
+      "view": "first",
+      "headHidden": true,
+      "armsHidden": true,
+      "boots": [
+        -0.007499992847442627,
+        -0.007499992847442627
+      ],
+      "meshes": 16,
+      "triangles": 8000,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "eye": [
+        24,
+        1.6,
+        42
+      ],
+      "parts": []
+    },
+    {
+      "name": "standing-first-forward",
+      "pose": "standing",
+      "view": "first",
+      "headHidden": true,
+      "armsHidden": true,
+      "boots": [
+        -0.007499992847442627,
+        -0.007499992847442627
+      ],
+      "meshes": 16,
+      "triangles": 8000,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "eye": [
+        24,
+        1.6,
+        42
+      ],
+      "parts": []
+    },
+    {
+      "name": "walking-first",
+      "pose": "walking",
+      "view": "first",
+      "headHidden": true,
+      "armsHidden": true,
+      "boots": [
+        0.013195187591584251,
+        0.007148391850252844
+      ],
+      "meshes": 16,
+      "triangles": 8000,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "eye": [
+        24,
+        1.6,
+        42
+      ],
+      "parts": []
+    },
+    {
+      "name": "slide-first",
+      "pose": "slide",
+      "view": "first",
+      "headHidden": true,
+      "armsHidden": true,
+      "boots": [
+        -0.05242980785844131,
+        -0.05242980785844131
+      ],
+      "meshes": 16,
+      "triangles": 8000,
+      "scale": [
+        0.7,
+        0.7,
+        0.7
+      ],
+      "eye": [
+        24,
+        0.8800000000000001,
+        42
+      ],
+      "parts": []
+    },
+    {
+      "name": "jump-first",
+      "pose": "jump",
+      "view": "first",
+      "headHidden": true,
+      "armsHidden": true,
+      "boots": [
+        2.0021870312816166,
+        2.0021870312816166
+      ],
+      "meshes": 16,
+      "triangles": 8000,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "eye": [
+        24,
+        3.6,
+        42
+      ],
+      "parts": []
+    },
+    {
+      "name": "standing-left35",
+      "pose": "standing",
+      "view": "left35",
+      "headHidden": true,
+      "armsHidden": true,
+      "boots": [
+        -0.007499992847442627,
+        -0.007499992847442627
+      ],
+      "meshes": 16,
+      "triangles": 8000,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "eye": [
+        25.947749364341636,
+        1.5,
+        39.21319673932537
+      ],
+      "parts": []
+    },
+    {
+      "name": "standing-right35",
+      "pose": "standing",
+      "view": "right35",
+      "headHidden": true,
+      "armsHidden": true,
+      "boots": [
+        -0.007499992847442627,
+        -0.007499992847442627
+      ],
+      "meshes": 16,
+      "triangles": 8000,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "eye": [
+        22.052250635658364,
+        1.5,
+        39.21319673932537
+      ],
+      "parts": []
+    },
+    {
+      "name": "standing-rear",
+      "pose": "standing",
+      "view": "rear",
+      "headHidden": true,
+      "armsHidden": true,
+      "boots": [
+        -0.007499992847442627,
+        -0.007499992847442627
+      ],
+      "meshes": 16,
+      "triangles": 8000,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "eye": [
+        24,
+        1.5,
+        45.4
+      ],
+      "parts": []
+    }
+  ],
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+}

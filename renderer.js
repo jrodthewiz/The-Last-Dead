@@ -1,10 +1,16 @@
 import {updateSurvivors} from './assets/survivor/survivor-runtime.js';
+import {installViewmodelDepthBoundary} from './assets/survivor/viewmodel-depth.js';
 import * as THREE from './vendor/three.module.js';
 import {buildHorrorDetails} from './world-horror.js';
 import {buildCathedralKit,batchStaticWorld} from './world-polish.js';
+import {finalizeStaticWorld} from './world-static.js';
+import {roomMaterialsReady} from './room-materials.js';
+import {TransmissionRegion} from './transmission-region.js';
+import {batchStaticWeaponMeshes} from './weapon-batching.js';
+import {installBoundedLightEvaluation} from './bounded-lighting.js';
 import {GLTFLoader} from './vendor/loaders/GLTFLoader.js';
 import {createReliquary,animateReliquary} from './weapon-reliquary.js';
-import {createBellwraith,animateBellwraith} from './npc-bellwraith.js';
+import {createBellwraith,animateBellwraith,warmBellwraithVariants} from './npc-bellwraith.js';
 import {createWarden,animateWarden} from './npc-warden.js';
 import {createOssuary,animateOssuary} from './weapon-ossuary.js';
 import {createBreach,animateBreach} from './weapon-breach.js';
@@ -100,8 +106,11 @@ function setLine(geometry, index, a, b) {
 export class Renderer {
   constructor(canvas) {
     this.canvas = canvas;
+    this._boundedLighting=typeof location==='undefined'||new URLSearchParams(location.search).get('lightBranch')!=='0' ? installBoundedLightEvaluation() : false;
     this.settings = { reducedMotion: false, gore: true };
     this.scene = new THREE.Scene();
+    this.scene.updateMatrix();
+    this.scene.matrixAutoUpdate = false;
     this.scene.background = new THREE.Color(0x0b0e18);
     this.scene.fog = new THREE.Fog(0x101817, 32, 100);
     this.cameraRig = new THREE.Group();
@@ -113,7 +122,7 @@ export class Renderer {
     this._firstCameraFrame = true;
     this._lastNow = 0;
     this._lastRunTime = 0;
-    this._renderScale=1;this._qualityTime=0;this._qualityFrames=0;
+    this._renderScale=1;
     this._worldKey = null;
     this._course = null;
     this._enemyVisuals = new Map();
@@ -121,6 +130,8 @@ export class Renderer {
     this._exit = null;
     this._diag = {};
 
+    this._materialManager = new THREE.LoadingManager();
+    this._materialsReady = new Promise(resolve => { this._materialManager.onLoad = resolve; });
     this.materials = this._createMaterials();
     Object.values(this.materials).forEach(m=>{m.userData.sharedLibrary=true;});
     this._loadMaterialReference();
@@ -151,7 +162,7 @@ export class Renderer {
     this._buildCombatPools();
     this._buildWeaponRig();
     this._wardenStatus='loading';
-    new GLTFLoader().load('./assets/models/evil-warden.glb',g=>{g.scene.traverse(o=>{if(o.geometry)o.geometry.userData.sharedAsset=true;for(const m of (Array.isArray(o.material)?o.material:[o.material]).filter(Boolean)){for(const value of Object.values(m))if(value?.isTexture)value.userData.sharedAsset=true;}});this.wardenTemplate=g.scene;this.wardenClips=g.animations;this._wardenStatus='ready';},undefined,e=>{this._wardenStatus='fallback';});
+    this._wardenReady = new Promise(resolve => new GLTFLoader().load('./assets/models/evil-warden.glb',g=>{g.scene.traverse(o=>{if(o.geometry)o.geometry.userData.sharedAsset=true;for(const m of (Array.isArray(o.material)?o.material:[o.material]).filter(Boolean)){for(const value of Object.values(m))if(value?.isTexture)value.userData.sharedAsset=true;}});this.wardenTemplate=g.scene;this.wardenClips=g.animations;this._wardenStatus='ready';resolve();},undefined,e=>{this._wardenStatus='fallback';resolve();}));
     this.resize();
   }
 
@@ -220,7 +231,7 @@ export class Renderer {
   _loadMaterialReference() {
     if (typeof document === 'undefined') return;
     try {
-      const texture = new THREE.TextureLoader().load('./assets/textures/crypt-wall-albedo.webp', loaded => {
+      const texture = new THREE.TextureLoader(this._materialManager).load('./assets/textures/crypt-wall-albedo.webp', loaded => {
         loaded.colorSpace = THREE.SRGBColorSpace;
         loaded.wrapS = THREE.RepeatWrapping;
         loaded.wrapT = THREE.RepeatWrapping;
@@ -243,7 +254,7 @@ export class Renderer {
   }
 
   _loadWeaponMaterials(){
-    const loader=new THREE.TextureLoader();
+    const loader=new THREE.TextureLoader(this._materialManager);
     loader.load('./assets/textures/worn-oxblood-leather-v1.png',t=>{t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(2,3);t.anisotropy=Math.min(8,this.renderer?.capabilities.getMaxAnisotropy()||4);for(const m of[this.materials.viewGlove,this.materials.viewSleeve]){m.map=t;m.color.set(0xd4c5b9);m.roughness=.85;m.needsUpdate=true;}});
     for(const [file,slot,color]of [['gunmetal_albedo.png','map',true],['gunmetal_normal.png','normalMap',false],['gunmetal_roughness.png','roughnessMap',false]]){
       loader.load('./assets/textures/'+file,t=>{if(color)t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=Math.min(8,this.renderer?.capabilities.getMaxAnisotropy()||4);for(const m of[this.materials.weapon,this.materials.weaponDark,this.materials.weaponTrim]){m[slot]=t;if(slot==='normalMap')m.normalScale.set(.45,.45);m.needsUpdate=true;}});
@@ -390,8 +401,12 @@ export class Renderer {
     const flashLight = new THREE.PointLight(0xffb85c, 0, 3, 2);
     flashLight.name = 'MuzzleLight';
     this.muzzleFlash.add(flashLight);
-    this.muzzleFlash.visible = false;
+    // Keep the light in the scene's light list even while its intensity is zero.
+    // Hiding its parent changes shader defines for every lit material on firing.
+    flash.visible = false;
     this.weaponRig.add(this.muzzleFlash);
+    this._weaponBatch=this.weaponGroups.map(group=>{const {root,...stats}=batchStaticWeaponMeshes(group,{preserve:['WeaponRig','MuzzleFlash']});return stats;});
+    installViewmodelDepthBoundary(this.weaponRig);
   }
 
   _makeArm(side, color = this.materials.viewSleeve, weapon = 0) {
@@ -507,8 +522,15 @@ export class Renderer {
   }
   _buildWorld(course) {
     if (this.worldRoot) {
-      this.scene.remove(this.worldRoot);
-      disposeObject(this.worldRoot);
+      const retired=this.worldRoot;
+      this.scene.remove(retired);
+      // compileAsync polls material programs after returning. Keep an outgoing
+      // room's resources alive until its shader poll finishes, even on restart.
+      if(this._warmupPromise){
+        this._retiredWorlds ||= new Set();this._retiredWorlds.add(retired);
+        const release=()=>{if(this._retiredWorlds.delete(retired))disposeObject(retired);};
+        this._warmupPromise.then(release,release);
+      }else disposeObject(retired);
     }
     this._enemyVisuals.clear();
     this.worldRoot = new THREE.Group();
@@ -525,7 +547,11 @@ export class Renderer {
     this._buildExit(course?.exit || { x: 6, y: 1 });
     this.horror=buildHorrorDetails(this.worldRoot,this.materials,course);
     buildCathedralKit(this.worldRoot,this.materials,course);
-    this._worldBatch=batchStaticWorld(this.worldRoot,[this._exit?.root,this.horror.organ,this.horror.core,...(this.horror.authored?.moving||[])]);
+    const animatedWorld=[this._exit?.root,this.horror.organ,this.horror.core,...(this.horror.authored?.moving||[])];
+    const roomChunks=this.horror.roomChunks||this.horror.authored?.roomChunks||[];
+    this._roomBatches=roomChunks.map(room=>batchStaticWorld(room,animatedWorld));
+    this._worldBatch=batchStaticWorld(this.worldRoot,[...animatedWorld,...roomChunks]);
+    this._worldStatic=finalizeStaticWorld(this.worldRoot,animatedWorld);
     if (this.horror.theme) {
       this.scene.background.set(this.horror.theme.background);
       this.scene.fog.color.set(this.horror.theme.fog);
@@ -592,7 +618,7 @@ export class Renderer {
   }
 
   _buildWalls(course) {
-    const cells = course?.cells || [];
+    const cells = course?.renderCells || course?.cells || [];
     const seen = new Set();
     const segments = [];
     for (let cy = 0; cy < (course?.h || 12); cy++) for (let cx = 0; cx < (course?.w || 12); cx++) {
@@ -932,11 +958,11 @@ export class Renderer {
       let entry = this._enemyVisuals.get(enemy.id);
       const useWarden = !!this.wardenTemplate && enemy.kind >= 0 && enemy.kind < 3;
       if (!entry) {
-        entry = { root: useWarden ? createWarden(this.wardenTemplate,this.wardenClips,enemy.kind) : enemy.kind === 3 ? createBellwraith({ variant: enemy.variant, phase: enemy.phase || 0 }) : this._makeEnemy(enemy.kind, enemy.variant), seed: (enemy.id * 1.618) % TAU, variant: enemy.variant || '' };
+        entry = { root: useWarden ? createWarden(this.wardenTemplate,this.wardenClips,enemy.kind,enemy.variant) : enemy.kind === 3 ? createBellwraith({ variant: enemy.variant, phase: enemy.phase || 0 }) : this._makeEnemy(enemy.kind, enemy.variant), seed: (enemy.id * 1.618) % TAU, variant: enemy.variant || '' };
         this._enemyVisuals.set(enemy.id, entry);
         this.worldRoot.add(entry.root);
       }
-      if(useWarden&&!entry.root.userData.warden){this.worldRoot.remove(entry.root);disposeObject(entry.root);entry.root=createWarden(this.wardenTemplate,this.wardenClips,enemy.kind);this.worldRoot.add(entry.root);}
+      if(useWarden&&!entry.root.userData.warden){this.worldRoot.remove(entry.root);disposeObject(entry.root);entry.root=createWarden(this.wardenTemplate,this.wardenClips,enemy.kind,enemy.variant);this.worldRoot.add(entry.root);}
       alive.add(enemy.id);
       const root = entry.root;
       if(root.userData.warden){root.position.set(worldX(enemy.x),0,worldZ(enemy.y));root.rotation.y=-Math.atan2(run.y-enemy.y,run.x-enemy.x)-Math.PI/2;animateWarden(root,enemy,now,entry.seed);continue;}
@@ -1042,6 +1068,8 @@ export class Renderer {
   }
 
   _updateCombat(run, now) {
+    const position = this._combatPosition ||= new THREE.Vector3();
+    const rotation = this._combatEuler ||= new THREE.Euler();
     const matrix = this._combatMatrix;
     const quat = this._combatQuat;
     const scale = this._combatScale;
@@ -1050,22 +1078,22 @@ export class Renderer {
       for (const g of run.gore || []) {
         if (g.chunk && chunks < MAX_GORE) {
           const spin = (g.spin || 0) + now * 0.003;
-          quat.setFromEuler(new THREE.Euler(spin * 1.3, spin * 0.7, spin * 0.5));
+          quat.setFromEuler(rotation.set(spin * 1.3, spin * 0.7, spin * 0.5));
           scale.setScalar((g.size || 0.035) * CELL * (g.chunk ? 1.2 : 0.72));
-          matrix.compose(new THREE.Vector3(worldX(g.x), (g.z || 0) * CELL, worldZ(g.y)), quat, scale);
+          matrix.compose(position.set(worldX(g.x), (g.z || 0) * CELL, worldZ(g.y)), quat, scale);
           this.goreChunks.setMatrixAt(chunks++, matrix);
         } else if (!g.chunk && droplets < MAX_GORE) {
           quat.identity();
           scale.setScalar((g.size || 0.018) * CELL);
-          matrix.compose(new THREE.Vector3(worldX(g.x), (g.z || 0) * CELL, worldZ(g.y)), quat, scale);
+          matrix.compose(position.set(worldX(g.x), (g.z || 0) * CELL, worldZ(g.y)), quat, scale);
           this.goreDroplets.setMatrixAt(droplets++, matrix);
         }
       }
       for (const b of run.blood || []) {
         if (blood >= MAX_BLOOD) break;
-        quat.setFromEuler(new THREE.Euler(-Math.PI / 2, 0, b.angle || 0));
+        quat.setFromEuler(rotation.set(-Math.PI / 2, 0, b.angle || 0));
         scale.set((b.size || 0.15) * CELL, (b.size || 0.15) * CELL, 1);
-        matrix.compose(new THREE.Vector3(worldX(b.x), 0.052, worldZ(b.y)), quat, scale);
+        matrix.compose(position.set(worldX(b.x), 0.052, worldZ(b.y)), quat, scale);
         this.bloodPools.setMatrixAt(blood++, matrix);
       }
     }
@@ -1087,9 +1115,9 @@ export class Renderer {
       let i = 0;
       for (const p of arr) {
         if (i >= MAX_PROJECTILES) break;
-        quat.setFromEuler(new THREE.Euler((now * 0.006 + i) % TAU, now * 0.004, now * 0.005));
+        quat.setFromEuler(rotation.set((now * 0.006 + i) % TAU, now * 0.004, now * 0.005));
         scale.setScalar(size * (p.core ? 1 + Math.sin(now * 0.01 + i) * 0.12 : 1));
-        matrix.compose(new THREE.Vector3(worldX(p.x), (p.z || 0) * CELL, worldZ(p.y)), quat, scale);
+        matrix.compose(position.set(worldX(p.x), (p.z || 0) * CELL, worldZ(p.y)), quat, scale);
         mesh.setMatrixAt(i++, matrix);
       }
       mesh.count = i;
@@ -1142,9 +1170,9 @@ export class Renderer {
     for (const c of run.coins || []) {
       if (ci >= MAX_COINS) break;
       const y = ((c.z || 0) + 0.12 + Math.sin(now * 0.008 + ci) * 0.04) * CELL;
-      quat.setFromEuler(new THREE.Euler(Math.PI / 2 + Math.sin(now * 0.003 + ci) * 0.16, now * 0.008 + ci * 0.7, now * 0.004));
+      quat.setFromEuler(rotation.set(Math.PI / 2 + Math.sin(now * 0.003 + ci) * 0.16, now * 0.008 + ci * 0.7, now * 0.004));
       scale.setScalar(1 + Math.min(0.24, Math.hypot(c.vx || 0, c.vy || 0) * 0.02));
-      matrix.compose(new THREE.Vector3(worldX(c.x), y, worldZ(c.y)), quat, scale);
+      matrix.compose(position.set(worldX(c.x), y, worldZ(c.y)), quat, scale);
       this.coins.setMatrixAt(ci, matrix);
       const center = new THREE.Vector3(worldX(c.x), y, worldZ(c.y));
       const glow = 0.22 + Math.abs(Math.sin(now * 0.016 + ci)) * 0.28;
@@ -1218,7 +1246,7 @@ export class Renderer {
       muzzle.getWorldQuaternion(socketRotation);this.weaponRig.getWorldQuaternion(rigRotation);
       this.muzzleFlash.quaternion.copy(rigRotation.invert().multiply(socketRotation));
     }
-    this.muzzleFlash.visible = shot > 0.32;
+    this.muzzleFlash.children[0].visible = shot > 0.32;
     this.muzzleFlash.scale.setScalar(([.75,1.1,.45,.85][weapon])*(.55+shot*.55));
     this.muzzleFlash.children[0].rotation.z=now*.023;
     const flashColor=[0xff3154,0xffb44b,0x64eaff,0xff683f][weapon] || 0xff683f;
@@ -1252,21 +1280,97 @@ export class Renderer {
     if (typeof settings.gore === 'boolean') this.settings.gore = settings.gore;
   }
 
+  async _prepareWeaponResources(course) {
+    // Texture callbacks can change shader features. Wait until their final
+    // materials exist before compiling both screen and transmission variants.
+    const weaponResources = [];
+    for (const group of this.weaponGroups) group.traverse(object => {
+      if (object.userData.resourcesReady) weaponResources.push(object.userData.resourcesReady);
+    });
+    await Promise.all([this._materialsReady, this._wardenReady, roomMaterialsReady(), ...weaponResources]);
+    const renderer = this.renderer;
+    if (!renderer || this._course !== course) return;
+    // Keep a representative skinned enemy alive so its programs are compiled
+    // in both output color spaces before the first spawn or Arc transmission pass.
+    if (this.wardenTemplate && !this._wardenWarmup) {
+      this._wardenWarmup = createWarden(this.wardenTemplate, this.wardenClips, 0);
+      this._wardenWarmup.visible = false;
+      this.scene.add(this._wardenWarmup);
+    }
+    if(!this._bellWarmups){warmBellwraithVariants();this._bellWarmups=['bellwraith','echo','rustBell','ivoryBell'].map(variant=>{const actor=createBellwraith({variant});actor.visible=false;this.scene.add(actor);return actor;});}
+    const screenPrograms = renderer.compileAsync(this.scene, this.camera);
+    const previousTarget = renderer.getRenderTarget();
+    const linearTarget = new THREE.WebGLRenderTarget(1, 1);
+    let transmissionPrograms;
+    try {
+      renderer.setRenderTarget(linearTarget);
+      transmissionPrograms = renderer.compileAsync(this.scene, this.camera);
+    } finally {
+      renderer.setRenderTarget(previousTarget);
+    }
+    try {
+      await Promise.all([screenPrograms, transmissionPrograms]);
+    } finally {
+      linearTarget.dispose();
+    }
+    if (this.renderer !== renderer || this._course !== course) return;
+    // compileAsync does not upload hidden geometry or allocate transmission
+    // buffers. Exercise the real render path for every gun in one task, then
+    // restore the current view before the browser can paint an intermediate gun.
+    const visibility = this.weaponGroups.map(group => group.visible);
+    const hiddenResources = [];
+    for (const group of [...this.weaponGroups, this.muzzleFlash]) group.traverse(object => {
+      if (object === group || object.isLight) return;
+      hiddenResources.push([object, object.visible, object.frustumCulled]);
+      object.visible = true;
+      if (object.isMesh || object.isLine || object.isPoints) object.frustumCulled = false;
+    });
+    if (this._wardenWarmup) {
+      this._wardenWarmup.visible = true;
+      this.camera.getWorldPosition(this._wardenWarmup.position).addScaledVector(this.camera.getWorldDirection(new THREE.Vector3()), 4);
+    }
+    for(const actor of this._bellWarmups||[]){actor.visible=true;this.camera.getWorldPosition(actor.position).addScaledVector(this.camera.getWorldDirection(new THREE.Vector3()),4);}
+    try {
+      for (let weapon = 0; weapon < this.weaponGroups.length; weapon++) {
+        this.weaponGroups.forEach((group, i) => { group.visible = i === weapon; });
+        renderer.render(this.scene, this.camera);
+      }
+    } finally {
+      for (const [object, visible, culled] of hiddenResources) {
+        object.visible = visible;
+        object.frustumCulled = culled;
+      }
+      if (this._wardenWarmup) this._wardenWarmup.visible = false;
+      for(const actor of this._bellWarmups||[])actor.visible=false;
+      this.weaponGroups.forEach((group, i) => { group.visible = visibility[i]; });
+      renderer.render(this.scene, this.camera);
+    }
+    this._weaponsPrepared = true;
+  }
+
   render(run, nowMs = (typeof performance !== 'undefined' ? performance.now() : 0)) {
     if (!run?.course) return;
     this._frameDt = this._lastNow ? clamp((nowMs - this._lastNow) / 1000, 0.001, 0.05) : 0.016;
     this._lastNow = nowMs;
-    if(run.mode==='play'){this._qualityTime+=this._frameDt;this._qualityFrames++;if(this._qualityTime>=3){const rate=this._qualityFrames/this._qualityTime,previous=this._renderScale;if(rate<42)this._renderScale=Math.max(.75,this._renderScale-.1);else if(rate>57)this._renderScale=Math.min(1,this._renderScale+.05);this._qualityTime=0;this._qualityFrames=0;if(previous!==this._renderScale)this.resize();}}
     const key = run.course.index ?? `${run.course.w}:${run.course.h}`;
     if (this._worldKey !== key || this._course !== run.course) this._buildWorld(run.course);
-    if(this.horror){this.horror.authored?.animate(this.settings.reducedMotion?0:nowMs*.001);const pulse=1+Math.sin(nowMs*.002)*.025;this.horror.organ.scale.set(1.5*pulse,2.1,1.15*pulse);}
+    if(this.horror){this.horror.setRoomProgression?.(run.roomProgression);this.horror.authored?.animate(this.settings.reducedMotion?0:nowMs*.001);const pulse=1+Math.sin(nowMs*.002)*.025;this.horror.organ.scale.set(1.5*pulse,2.1,1.15*pulse);}
     this._updateCamera(run, nowMs);
     this._updateEnemies(run, nowMs);
     this._updatePeer(run, nowMs);
     this._updateExit(run, nowMs);
     this._updateCombat(run, nowMs);
     updateSurvivors(this, run, nowMs);
-    if (this.renderer) this.renderer.render(this.scene, this.camera);
+    if (this.renderer && this._warmupCourse !== run.course) {
+      this._warmupCourse = run.course;
+      this._warmupPromise = this._prepareWeaponResources(run.course);
+    }
+    if (this.renderer) {
+      this._transmissionRegion ||= new TransmissionRegion(this.renderer);
+      if(this._transmissionScene!==this.worldRoot){this._transmissionRegion.refresh(this.scene);this._transmissionScene=this.worldRoot;}
+      this._transmissionRegion.begin(this.camera);
+      try{this.renderer.render(this.scene,this.camera);}finally{this._transmissionRegion.end();}
+    }
     if(!this._lastDiagnostics||nowMs-this._lastDiagnostics>=500){this._diag=this._collectDiagnostics(run);this._lastDiagnostics=nowMs;}
   }
 
@@ -1290,6 +1394,11 @@ export class Renderer {
     return {
       renderer: 'three.js',
       worldBatch: this._worldBatch || null,
+      staticWorld: this._worldStatic || null,
+      boundedLighting: this._boundedLighting,
+      transmissionCoverage: this._transmissionRegion?.coverage ?? 1,
+      weaponBatch: this._weaponBatch,
+      targetFrameMs: 1000 / 144,
       webgl: !!this.renderer,
       error: this.rendererError ? String(this.rendererError.message || this.rendererError) : null,
       width: this.width,
@@ -1329,8 +1438,11 @@ export class Renderer {
     if (this.combatRoot) disposeObject(this.combatRoot);
     if (this.weaponRig) disposeObject(this.weaponRig);
     this.materials && Object.values(this.materials).forEach(m => m.dispose?.());
+    if(this._wardenWarmup){this._wardenWarmup.removeFromParent();disposeObject(this._wardenWarmup);}
+    for(const actor of this._bellWarmups||[]){actor.removeFromParent();disposeObject(actor);}
     if(this.wardenTemplate)disposeObject(this.wardenTemplate,true);
     this._envTarget?.dispose();
+    this._transmissionRegion?.dispose();
     this.renderer?.dispose?.();
     this.renderer = null;
   }

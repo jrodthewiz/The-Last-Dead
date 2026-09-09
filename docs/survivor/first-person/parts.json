@@ -1,0 +1,25 @@
+{
+  "model": "first-person-survivor",
+  "parts": [
+    {
+      "name": "WaistJacket",
+      "kind": "part"
+    },
+    {
+      "name": "LeftThigh",
+      "kind": "part"
+    },
+    {
+      "name": "LeftShinBoot",
+      "kind": "part"
+    },
+    {
+      "name": "RightThigh",
+      "kind": "part"
+    },
+    {
+      "name": "RightShinBoot",
+      "kind": "part"
+    }
+  ]
+}

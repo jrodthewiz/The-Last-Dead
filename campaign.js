@@ -1,3 +1,4 @@
+import { getRoomSequence, ROOM_PROGRESSION_VERSION } from './room-progression.js';
 // Authored campaign data and deterministic spawn recipes for The Last Dead.
 // Gameplay owns the simulation; this module only describes sectors, enemy roles,
 // spawn anchors, and the order in which the pressure is introduced.
@@ -53,7 +54,7 @@ export const CAMPAIGN_SECTORS = freezeDeep([
     color: '#ff735e',
     blocks: [[3, 3], [8, 3], [3, 8], [8, 8]],
     spawnPoints: [[2, 2], [10, 2], [6, 3], [2, 6], [10, 6], [6, 1.8], [1.5, 4], [10.5, 4]],
-    playerSpawn: { x: 6, y: 10.5, angle: -Math.PI / 2 },
+    playerSpawn: { x: 6, y: 10.5, angle: Math.atan2(-1.5, -4) },
     exit: { x: 6, y: 1 },
     waves: [
       wave(5, 4, [
@@ -80,7 +81,7 @@ export const CAMPAIGN_SECTORS = freezeDeep([
     color: '#c98cff',
     blocks: [[2, 3], [9, 3], [5, 5], [2, 8], [9, 8]],
     spawnPoints: [[1.5, 1.7], [10.5, 1.7], [6, 2], [1.5, 5.8], [10.5, 5.8], [4, 10.2], [8, 10.2], [6, 7]],
-    playerSpawn: { x: 6, y: 10.5, angle: -Math.PI / 2 },
+    playerSpawn: { x: 6, y: 10.5, angle: Math.atan2(-1.5, -4) },
     exit: { x: 6, y: 1 },
     waves: [
       wave(9, 5, [
@@ -108,7 +109,7 @@ export const CAMPAIGN_SECTORS = freezeDeep([
     color: '#ffb15e',
     blocks: [[3, 2], [8, 2], [6, 4], [3, 7], [8, 7], [6, 9]],
     spawnPoints: [[1.5, 1.5], [10.5, 1.5], [2, 5], [10, 5], [1.5, 9.8], [10.5, 9.8], [4.5, 6], [7.5, 6]],
-    playerSpawn: { x: 6, y: 10.5, angle: -Math.PI / 2 },
+    playerSpawn: { x: 6, y: 10.5, angle: Math.atan2(-1.5, -4) },
     exit: { x: 6, y: 1 },
     waves: [
       wave(12, 6, [
@@ -408,10 +409,25 @@ function validateAuthoredMap(map, layout, sectorId) {
 for (let i = 0; i < CAMPAIGN_MAPS.length; i += 1) validateAuthoredMap(CAMPAIGN_MAPS[i], CAMPAIGN_LAYOUTS[i], CAMPAIGN_SECTORS[i].id);
 
 
+// Reserve a paired Manhattan route through each combat band before applying
+// dynamic gate planes. Retained cover and rendered wall proxies use the same
+// carved recipe, so old arena partitions cannot strand a new room encounter.
+function carveRoomRoutes(map) {
+  const route=new Set();
+  for(let y=1;y<=10;y++)for(const x of [1,2,9,10])route.add(x+','+y);
+  for(const y of [2,4,7,10])for(let x=1;x<=10;x++)route.add(x+','+y);
+  const blocks=map.blocks.filter(([x,y])=>!route.has(x+','+y)).map(b=>[...b]);
+  const walls=map.walls.filter(([x,y,d])=>{
+    const nx=x+(d===1?1:d===3?-1:0),ny=y+(d===2?1:d===0?-1:0);
+    return !(route.has(x+','+y)&&route.has(nx+','+ny));
+  }).map(w=>[...w]);
+  return {...map,blocks,walls};
+}
+
 export function createCampaignCourse(index = 0) {
   const sectorIndex = Math.max(0, Math.min(CAMPAIGN_SECTORS.length - 1, Math.floor(index)))
   const sector = getSector(sectorIndex)
-  const map = CAMPAIGN_MAPS[sectorIndex]
+  const map = carveRoomRoutes(CAMPAIGN_MAPS[sectorIndex])
   const layout = CAMPAIGN_LAYOUTS[sectorIndex]
   return {
     name: sector.name,
@@ -441,6 +457,8 @@ export function createCampaignCourse(index = 0) {
     exit: { ...sector.exit },
     turns: [],
     enemies: [],
+    rooms: getRoomSequence(sector.id),
+    roomProgressionVersion: ROOM_PROGRESSION_VERSION,
   }
 }
 export function describeCampaign() {

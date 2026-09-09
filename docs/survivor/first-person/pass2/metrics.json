@@ -1,0 +1,245 @@
+{
+  "results": [
+    {
+      "name": "standing-first",
+      "pose": "standing",
+      "view": "first",
+      "headHidden": true,
+      "armsHidden": true,
+      "boots": [
+        7.152557324197062e-9,
+        7.152557324197062e-9
+      ],
+      "meshes": 33,
+      "triangles": 10784,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "eye": [
+        24,
+        1.6,
+        42
+      ],
+      "parts": [
+        "WaistJacket",
+        "LeftThigh",
+        "LeftShinBoot",
+        "RightThigh",
+        "RightShinBoot"
+      ]
+    },
+    {
+      "name": "standing-first-forward",
+      "pose": "standing",
+      "view": "first",
+      "headHidden": true,
+      "armsHidden": true,
+      "boots": [
+        7.152557324197062e-9,
+        7.152557324197062e-9
+      ],
+      "meshes": 33,
+      "triangles": 10784,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "eye": [
+        24,
+        1.6,
+        42
+      ],
+      "parts": [
+        "WaistJacket",
+        "LeftThigh",
+        "LeftShinBoot",
+        "RightThigh",
+        "RightShinBoot"
+      ]
+    },
+    {
+      "name": "walking-first",
+      "pose": "walking",
+      "view": "first",
+      "headHidden": true,
+      "armsHidden": true,
+      "boots": [
+        0.010048575334132392,
+        0.007521588741132179
+      ],
+      "meshes": 33,
+      "triangles": 10784,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "eye": [
+        24,
+        1.6,
+        42
+      ],
+      "parts": [
+        "WaistJacket",
+        "LeftThigh",
+        "LeftShinBoot",
+        "RightThigh",
+        "RightShinBoot"
+      ]
+    },
+    {
+      "name": "slide-first",
+      "pose": "slide",
+      "view": "first",
+      "headHidden": true,
+      "armsHidden": true,
+      "boots": [
+        0.006618714467501174,
+        0.006618714467501174
+      ],
+      "meshes": 33,
+      "triangles": 10784,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "eye": [
+        24,
+        0.8800000000000001,
+        42
+      ],
+      "parts": [
+        "WaistJacket",
+        "LeftThigh",
+        "LeftShinBoot",
+        "RightThigh",
+        "RightShinBoot"
+      ]
+    },
+    {
+      "name": "jump-first",
+      "pose": "jump",
+      "view": "first",
+      "headHidden": true,
+      "armsHidden": true,
+      "boots": [
+        1.970123089933338,
+        1.970123089933338
+      ],
+      "meshes": 33,
+      "triangles": 10784,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "eye": [
+        24,
+        3.6,
+        42
+      ],
+      "parts": [
+        "WaistJacket",
+        "LeftThigh",
+        "LeftShinBoot",
+        "RightThigh",
+        "RightShinBoot"
+      ]
+    },
+    {
+      "name": "standing-left35",
+      "pose": "standing",
+      "view": "left35",
+      "headHidden": true,
+      "armsHidden": true,
+      "boots": [
+        7.152557324197062e-9,
+        7.152557324197062e-9
+      ],
+      "meshes": 33,
+      "triangles": 10784,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "eye": [
+        25.947749364341636,
+        1.5,
+        39.21319673932537
+      ],
+      "parts": [
+        "WaistJacket",
+        "LeftThigh",
+        "LeftShinBoot",
+        "RightThigh",
+        "RightShinBoot"
+      ]
+    },
+    {
+      "name": "standing-right35",
+      "pose": "standing",
+      "view": "right35",
+      "headHidden": true,
+      "armsHidden": true,
+      "boots": [
+        7.152557324197062e-9,
+        7.152557324197062e-9
+      ],
+      "meshes": 33,
+      "triangles": 10784,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "eye": [
+        22.052250635658364,
+        1.5,
+        39.21319673932537
+      ],
+      "parts": [
+        "WaistJacket",
+        "LeftThigh",
+        "LeftShinBoot",
+        "RightThigh",
+        "RightShinBoot"
+      ]
+    },
+    {
+      "name": "standing-rear",
+      "pose": "standing",
+      "view": "rear",
+      "headHidden": true,
+      "armsHidden": true,
+      "boots": [
+        7.152557324197062e-9,
+        7.152557324197062e-9
+      ],
+      "meshes": 33,
+      "triangles": 10784,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "eye": [
+        24,
+        1.5,
+        45.4
+      ],
+      "parts": [
+        "WaistJacket",
+        "LeftThigh",
+        "LeftShinBoot",
+        "RightThigh",
+        "RightShinBoot"
+      ]
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,30 @@
+{
+  "scope": "Local first-person articulated assemblies only",
+  "componentTree": [
+    {
+      "id": "WaistJacket",
+      "name": "WaistJacket",
+      "level": "macro"
+    },
+    {
+      "id": "LeftThigh",
+      "name": "LeftThigh",
+      "level": "macro"
+    },
+    {
+      "id": "LeftShinBoot",
+      "name": "LeftShinBoot",
+      "level": "macro"
+    },
+    {
+      "id": "RightThigh",
+      "name": "RightThigh",
+      "level": "macro"
+    },
+    {
+      "id": "RightShinBoot",
+      "name": "RightShinBoot",
+      "level": "macro"
+    }
+  ]
+}

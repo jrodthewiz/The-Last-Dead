@@ -1,0 +1,18 @@
+The Last Dead bundled horror music loops
+
+insistent-menu.ogg
+  Source: https://opengameart.org/content/insistent-background-loop
+  Title: Insistent: background loop
+  Author: yd
+  License: CC0 (Creative Commons Zero / public domain dedication)
+  Original filename: Insistent.ogg
+
+abandoned-passages.ogg
+  Source: https://opengameart.org/content/abandoned-passages-horror-ambience-loop
+  Title: Abandoned passages (horror ambience loop)
+  Author: congusbongus
+  License: CC0 (Creative Commons Zero / public domain dedication)
+  Original filename: freezer_0.ogg
+
+The files were downloaded on 2026-09-09 and renamed for the local manifest.
+CC0 does not require attribution, but source links are retained for provenance.

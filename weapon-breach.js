@@ -59,6 +59,31 @@ function profile(points, depth, bevel = .012, holes = []) {
   return geometry;
 }
 
+// Repeated hardware stays in one draw call.  The transforms are authored once
+// during construction and never rebuilt by the fire animation.
+function addInstances(parent, geometry, material, entries, name) {
+  const mesh = new THREE.InstancedMesh(geometry, material, entries.length);
+  mesh.name = name;
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  mesh.userData.explodeWithParent = true;
+  const marker = new THREE.Object3D();
+  const matrix = new THREE.Matrix4();
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    marker.position.set(...entry.position);
+    marker.rotation.set(...(entry.rotation || [0, 0, 0]));
+    marker.scale.set(...(entry.scale || [1, 1, 1]));
+    marker.updateMatrix();
+    matrix.copy(marker.matrix);
+    mesh.setMatrixAt(i, matrix);
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+  mesh.computeBoundingSphere();
+  parent.add(mesh);
+  return mesh;
+}
+
 function surfaceMaps(seed = 51) {
   const size = 64;
   const albedo = new Uint8Array(size * size * 4);
@@ -122,7 +147,11 @@ function makeMaterials() {
     leather: new THREE.MeshStandardMaterial({ color: 0x24131a, roughness: .78, metalness: .03 }),
     brass: new THREE.MeshStandardMaterial({ color: 0x9c672c, roughness: .35, metalness: .83 }),
     ember: new THREE.MeshStandardMaterial({ color: 0xff4b23, emissive: 0xff1807, emissiveIntensity: 3.2, roughness: .22, metalness: .2 }),
-    muzzle: new THREE.MeshBasicMaterial({ color: 0xffb56c, transparent: true, opacity: .92, blending: THREE.AdditiveBlending, depthWrite: false }),
+    muzzle: new THREE.MeshBasicMaterial({ color: 0xffb56c, transparent: true, opacity: .92, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }),
+    muzzleCore: new THREE.MeshBasicMaterial({ color: 0xffffe8, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }),
+    muzzleHalo: new THREE.MeshBasicMaterial({ color: 0xff6b32, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }),
+    muzzleSoot: new THREE.MeshBasicMaterial({ color: 0x32131a, transparent: true, opacity: 0, blending: THREE.NormalBlending, depthWrite: false, toneMapped: false }),
+    heat: new THREE.MeshBasicMaterial({ color: 0xff4927, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }),
   };
 }
 
@@ -237,6 +266,32 @@ export function createBreach(options = {}) {
     add(sidePlates, profile([[-.18, -.12], [-.16, .13], [.12, .15], [.19, .04], [.15, -.13]], .028, .008), 'steelEdge', [side * .23, .01, -.2], [1, 1, 1], [0, Math.PI / 2, 0], `side-plate-${side}`);
     for (let i = 0; i < 4; i++) add(sidePlates, new THREE.SphereGeometry(.016, 8, 6), 'brass', [side * .25, -.08 + i * .07, -.2], [1, 1, 1], [0, 0, 0], `side-rivet-${side}-${i}`);
   }
+  // Small authored hardware layers make the receiver read as a working weapon.
+  const receiverHardware = part('receiver-hardware', receiver);
+  add(receiverHardware, new THREE.BoxGeometry(.33, .035, .5), 'steelEdge', [0, .227, -.31], [1, 1, 1], [0, 0, 0], 'receiver-sight-rail');
+  add(receiverHardware, new THREE.BoxGeometry(.075, .042, .28), 'brass', [0, .252, -.34], [1, 1, 1], [0, 0, 0], 'receiver-sight-inlay');
+  const shellHeadGeometry = new THREE.CylinderGeometry(.041, .041, .024, 18);
+  addInstances(receiverHardware, shellHeadGeometry, materials.brass, [
+    {position: [-.242, .02, -.12], rotation: [0, 0, Math.PI / 2]},
+    {position: [.242, .02, -.12], rotation: [0, 0, Math.PI / 2]},
+  ], 'receiver-shell-heads');
+  const primerGeometry = new THREE.CylinderGeometry(.013, .013, .026, 12);
+  addInstances(receiverHardware, primerGeometry, materials.ember, [
+    {position: [-.256, .02, -.12], rotation: [0, 0, Math.PI / 2]},
+    {position: [.256, .02, -.12], rotation: [0, 0, Math.PI / 2]},
+  ], 'receiver-shell-primers');
+  const spineSpikes = part('spine-spikes', recoilCarriage);
+  const spikeGeometry = new THREE.ConeGeometry(.023, .11, 7);
+  addInstances(spineSpikes, spikeGeometry, materials.bone, [
+    {position: [0, -.235, .02], rotation: [Math.PI, 0, 0]},
+    {position: [0, -.24, -.14], rotation: [Math.PI, 0, 0]},
+    {position: [0, -.238, -.3], rotation: [Math.PI, 0, 0]},
+    {position: [0, -.23, -.46], rotation: [Math.PI, 0, 0]},
+    {position: [0, -.216, -.62], rotation: [Math.PI, 0, 0]},
+  ], 'spine-spikes');
+  const topSight = part('top-sight', recoilCarriage);
+  add(topSight, new THREE.BoxGeometry(.045, .08, .12), 'steelEdge', [0, .29, -.83], [1, 1, 1], [0, 0, 0], 'front-sight-post');
+  add(topSight, new THREE.BoxGeometry(.11, .025, .2), 'black', [0, .272, -.77], [1, 1, 1], [0, 0, 0], 'rear-sight-notch');
   const muzzle = new THREE.Object3D();
   muzzle.name = 'muzzle';
   muzzle.position.set(0, .045, -1.02);
@@ -248,11 +303,23 @@ export function createBreach(options = {}) {
   const muzzleFlash = part('muzzle-flash', recoilCarriage);
   muzzleFlash.visible = false;
   add(muzzleFlash, new THREE.ConeGeometry(.13, .42, 10), 'muzzle', [0, .045, -1.23], [1, 1, 1], [Math.PI / 2, 0, 0], 'flash-cone');
-  add(muzzleFlash, new THREE.TorusGeometry(.15, .018, 8, 24), 'muzzle', [0, .045, -1.03], [1, 1, 1], [Math.PI / 2, 0, 0], 'flash-ring');
+  add(muzzleFlash, new THREE.ConeGeometry(.105, .34, 12), 'muzzleCore', [0, .045, -1.18], [1, 1, 1], [Math.PI / 2, 0, 0], 'flash-core');
+  add(muzzleFlash, new THREE.TorusGeometry(.15, .018, 8, 24), 'muzzleHalo', [0, .045, -1.03], [1, 1, 1], [Math.PI / 2, 0, 0], 'flash-ring');
+  add(muzzleFlash, new THREE.SphereGeometry(.12, 12, 8), 'muzzleSoot', [0, .045, -1.16], [.8, .8, 1.6], [0, 0, 0], 'flash-soot');
+  const petalGeometry = new THREE.ConeGeometry(.052, .2, 8);
+  addInstances(muzzleFlash, petalGeometry, materials.muzzleHalo, [
+    {position: [-.08, .05, -1.2], rotation: [Math.PI / 2, .18, -.2], scale: [.9, 1.1, .9]},
+    {position: [.08, .045, -1.2], rotation: [Math.PI / 2, -.16, .18], scale: [.9, 1.1, .9]},
+    {position: [0, .12, -1.18], rotation: [Math.PI / 2, 0, .34], scale: [.75, .95, .75]},
+  ], 'flash-petals');
   const heat = new THREE.Object3D();
   heat.name = 'heat';
+  heat.visible = false;
   heat.position.set(0, .045, -.62);
   recoilCarriage.add(heat);
+  add(heat, new THREE.TorusGeometry(.12, .007, 8, 22), 'heat', [-.12, 0, 0], [1, 1, 1], [Math.PI / 2, 0, 0], 'heat-ring-left');
+  add(heat, new THREE.TorusGeometry(.12, .007, 8, 22), 'heat', [.12, 0, 0], [1, 1, 1], [Math.PI / 2, 0, 0], 'heat-ring-right');
+  add(heat, new THREE.SphereGeometry(.13, 10, 8), 'heat', [0, 0, .02], [1.6, .75, 1.8], [0, 0, 0], 'heat-haze');
   const inspect = new THREE.Object3D();
   inspect.name = 'inspect';
   inspect.position.set(0, .1, .26);
@@ -303,9 +370,16 @@ export function animateBreach(root, time = 0, shot = 0, dt = .016, state = {}) {
   meta.extractors.rotation.y = meta.recoil * .12;
   meta.barrels.rotation.z = Math.sin(time * 1.7) * .002;
   meta.materials.ember.emissiveIntensity = 2.8 + meta.heat * 5.2 + Math.sin(time * 7) * .16;
+  meta.materials.muzzle.opacity = .55 + meta.flash * .4;
+  meta.materials.muzzleCore.opacity = meta.flash * .95;
+  meta.materials.muzzleHalo.opacity = meta.flash * .72;
+  meta.materials.muzzleSoot.opacity = meta.flash * .18;
+  meta.materials.heat.opacity = meta.heat * .18;
   meta.sockets.muzzleFlash.visible = meta.flash > .012;
   meta.sockets.muzzleFlash.scale.setScalar(.72 + meta.flash * 1.35);
   meta.sockets.muzzleFlash.rotation.z = Math.sin(time * 27) * .18;
+  meta.sockets.heat.visible = meta.heat > .012;
+  meta.sockets.heat.scale.setScalar(.96 + meta.heat * .75);
+  meta.sockets.heat.rotation.z = Math.sin(time * 3.6) * meta.heat * .08;
   if (state?.inspect) meta.sockets.inspect.rotation.y = Math.sin(time * .8) * .08;
 }
-

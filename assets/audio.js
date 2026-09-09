@@ -4,39 +4,13 @@
  * procedural fallback so the game stays playable when a browser cannot decode
  * a file or the asset is unavailable.
  */
-export const AUDIO_ASSET_MANIFEST = Object.freeze({
-  ambience: ['./audio/ambience/ossuary-dungeon.ogg'],
-  shot: [
-    ['./audio/sfx/processed/ossuary-shot.wav', './audio/sfx/cc0-gunshot.mp3'],
-    ['./audio/sfx/processed/breach-shot.wav', './audio/sfx/cc0-gunshot-heavy.wav'],
-    ['./audio/sfx/processed/arc-lance.wav', './audio/sfx/cc0-bullet-crackle.wav'],
-    ['./audio/sfx/processed/reliquary-launch.wav', './audio/sfx/cc0-explosion-distant.mp3'],
-  ],
-  hit: ['./audio/sfx/processed/impact-metal-flesh.wav', './audio/sfx/cc0-bullet-hit.wav'],
-  blood: ['./audio/sfx/processed/blood-burst.wav', './audio/sfx/cc0-splat-hit.wav'],
-  explosion: ['./audio/sfx/cc0-explosion.mp3', './audio/sfx/cc0-dull-explosion.wav'],
-  rocket: ['./audio/sfx/processed/reliquary-launch.wav', './audio/sfx/cc0-explosion-distant.mp3'],
-  bulletcrackle: ['./audio/sfx/cc0-bullet-crackle.wav'],
-  footstep: [
-    './audio/movement/footstep-01.ogg', './audio/movement/footstep-02.ogg',
-    './audio/movement/footstep-03.ogg', './audio/movement/footstep-04.ogg',
-    './audio/movement/footstep-05.ogg', './audio/movement/footstep-06.ogg',
-  ],
-  jump: ['./audio/movement/jump-land.mp3'],
-  land: ['./audio/movement/jump-land.mp3', './audio/enemy/enemy-land.wav'],
-  enemyattack: ['./audio/enemy/enemy-scream.wav', './audio/enemy/enemy-moan.wav'],
-  enemyjump: ['./audio/enemy/enemy-jump.wav'],
-  enemyland: ['./audio/enemy/enemy-land.wav'],
-  enemydeath: ['./audio/enemy/enemy-death-01.wav', './audio/enemy/enemy-death-02.wav'],
-  moan: ['./audio/enemy/enemy-moan.wav'],
-  ui: ['./audio/ui/ui-button.mp3'],
-  coin: ['./audio/ui/coin-01.mp3', './audio/ui/coin-02.mp3'],
-});
+import { AUDIO_ASSET_MANIFEST } from './audio-manifest.js';
+export { AUDIO_ASSET_MANIFEST };
 
 const GROUPS = ['sfx', 'ui', 'ambience', 'voice', 'music'];
 const GROUP_BY_TYPE = Object.freeze({
   ambience: 'ambience', ambient: 'ambience', voice: 'voice',
-  ui: 'ui', confirm: 'ui', cancel: 'ui', pause: 'ui', fail: 'ui',
+  hover: 'ui', toggle: 'ui', equip: 'ui', death: 'ui', win: 'ui', ui: 'ui', confirm: 'ui', cancel: 'ui', pause: 'ui', fail: 'ui',
 });
 const MIX_PROFILES = Object.freeze({
   default: { group: 'sfx', volume: .38, maxVoices: 10, highpass: 45, lowpass: 11000 },
@@ -68,6 +42,15 @@ const MIX_PROFILES = Object.freeze({
   wave: { group: 'sfx', volume: .24, maxVoices: 2, highpass: 80, lowpass: 4200, cooldown: .2 },
   win: { group: 'sfx', volume: .22, maxVoices: 2, highpass: 160, lowpass: 7800, cooldown: .2 },
 });
+const MUSIC_SCENES = Object.freeze({
+  menu: { key: 'music-menu', volume: .17, rate: 1 },
+  play: { key: 'music-play', volume: .12, rate: 1 },
+  dead: { key: 'music-menu', volume: .10, rate: .92 },
+  win: { key: 'music-menu', volume: .07, rate: .86 },
+});
+const SCENE_ALIASES = Object.freeze({
+  game: 'play', gameplay: 'play', playing: 'play', ready: 'menu', loss: 'dead', victory: 'win',
+});
 const SHOT_PROFILES = Object.freeze([
   { volume: .42, highpass: 110, lowpass: 8200, cooldown: .02 },
   { volume: .50, highpass: 48, lowpass: 6400, cooldown: .08 },
@@ -98,13 +81,13 @@ function normalizeEvent(type, weapon, event) {
   const aliases = {
     fire: 'shot', weapon: 'shot', shoot: 'shot',
     impact: 'hit', gore: 'blood',
-    kill: 'enemydeath', dead: 'enemydeath', death: 'enemydeath',
+    kill: 'enemydeath', dead: 'death',
     'enemy-attack': 'enemyattack', attack: 'enemyattack',
     'enemy-death': 'enemydeath', enemydeath: 'enemydeath',
     ambient: 'ambience', boost: 'dash', slam: 'land',
     'rocket-launch': 'rocket', rocketfire: 'rocket',
     'rocket-detonate':'explosion','rocket-jump':'jump','spawn-telegraph':'moan',
-    'sector-transition':'wave',hook:'dash',
+    'sector-transition':'wave',
     menu: 'ui', select: 'confirm', error: 'fail',
   };
   name = aliases[name] || name;
@@ -127,6 +110,12 @@ export class AudioSystem {
     this._sources = new Set();
     this._ambientNodes = new Set();
     this._ambientSource = null;
+    this._musicSource = null;
+    this._musicGain = null;
+    this._musicKey = '';
+    this._musicScene = 'menu';
+    this._resumeScene = 'menu';
+    this._sceneRequested = false;
     this._loadPromise = null;
     this._assetCount = 0;
     this._loadErrors = [];
@@ -142,6 +131,8 @@ export class AudioSystem {
   get assetsLoaded() { return this._loaded; }
   get assetCount() { return this._assetCount; }
   get loadErrors() { return this._loadErrors.slice(); }
+  get scene() { return this._musicScene; }
+  get musicActive() { return Boolean(this._musicSource); }
   get debugInfo() {
     return Object.freeze({ loaded: this._loaded, decoded: this._buffers.size, manifestEntries: this._assetCount, errors: this.loadErrors });
   }
@@ -185,6 +176,7 @@ export class AudioSystem {
     }
     if (!this._loadPromise) this._loadPromise = this._loadAssets();
     await this._loadPromise;
+    if (this._sceneRequested && !this._paused && this._musicScene !== 'pause') this._syncScene();
     return this._ctx.state === 'running';
   }
 
@@ -208,7 +200,11 @@ export class AudioSystem {
 
   pause() {
     this._paused = true;
-    if (this._ctx && this._ctx.state === 'running') this._ctx.suspend().catch(() => {});
+    this._stopAmbient();
+    this._fadeMusic(0.0001, .12);
+    for (const [type, voices] of this._voices) if (type !== 'music' && GROUP_BY_TYPE[type] !== 'ui') {
+      for (const source of voices) { try { source.stop(); } catch {} }
+    }
   }
 
   async resume() {
@@ -216,7 +212,34 @@ export class AudioSystem {
     if (this._ctx && !this._muted && this._ctx.state !== 'running') {
       try { await this._ctx.resume(); } catch {}
     }
+    if (this._musicScene === 'pause') this._musicScene = this._resumeScene || 'menu';
+    if (this._sceneRequested) this._syncScene();
     return this.isUnlocked;
+  }
+
+  /**
+   * Select the long-form background bed for the current screen. Calling this
+   * repeatedly is safe: the active loop is reused and only its gain changes.
+   * The first call may happen before unlock; the requested scene is remembered
+   * and starts after the next user gesture unlocks Web Audio.
+   */
+  setScene(scene = 'menu') {
+    const requested = String(scene || 'menu').toLowerCase();
+    const next = SCENE_ALIASES[requested] || requested;
+    if (next === 'pause') {
+      if (this._musicScene !== 'pause') this._resumeScene = this._musicScene || 'menu';
+      this._musicScene = 'pause';
+      this._sceneRequested = true;
+      this.pause();
+      return this._musicScene;
+    }
+    const target = MUSIC_SCENES[next] ? next : 'menu';
+    this._musicScene = target;
+    this._resumeScene = target;
+    this._sceneRequested = true;
+    if (this._paused) this._paused = false;
+    this._syncScene();
+    return target;
   }
 
   stopAmbience() {
@@ -242,14 +265,16 @@ export class AudioSystem {
   }
 
   play(type, weapon = 0, event = {}) {
-    if (this._disposed || !this._ctx || this._paused || this._ctx.state === 'closed') return false;
+    if (this._disposed || !this._ctx || this._ctx.state === 'closed') return false;
     const parsed = normalizeEvent(type, weapon, event);
     const name = parsed.name;
+    if (this._paused && GROUP_BY_TYPE[name] !== 'ui') return false;
     const index = parsed.weapon;
     const details = parsed.details;
     if (name === 'ambience') return this._playAmbience(details);
-    const profile = resolveMix(name, index);
-    const mix = { ...profile, ...details };
+    const profile = { ...resolveMix(name, index) };
+    if (name === 'hover') { profile.volume = .065; profile.cooldown = .07; }
+    const mix = { ...profile, group: GROUP_BY_TYPE[name] || profile.group, ...details };
     const cooldown = Number(details.cooldown ?? profile.cooldown ?? 0);
     if (cooldown > 0) {
       const sourceId = details.enemyId ?? details.id ?? '';
@@ -261,7 +286,7 @@ export class AudioSystem {
     const buffer = this._chooseBuffer(name, index, details.variant);
     if (buffer) {
       this._playBuffer(buffer, name, index, mix);
-      this._synthAccent(name, index, mix);
+      // Samples stand on their own; synthesis is reserved for missing assets.
       return true;
     }
     return this._synth(name, index, mix);
@@ -375,6 +400,9 @@ export class AudioSystem {
     this._sources.clear();
     this._ambientNodes.clear();
     this._ambientSource = null;
+    this._musicSource = null;
+    this._musicGain = null;
+    this._musicKey = '';
     for (const gain of this._groups.values()) {
       try { gain.disconnect(); } catch {}
     }
@@ -551,6 +579,65 @@ export class AudioSystem {
       return true;
     }
     return this._synthAmbience();
+  }
+
+  _syncScene() {
+    if (!this._ctx || this._ctx.state === 'closed' || this._paused || this._musicScene === 'pause') return false;
+    const scene = MUSIC_SCENES[this._musicScene] || MUSIC_SCENES.menu;
+    if (this._musicScene === 'play') this._playAmbience();
+    else this._stopAmbient();
+    return this._playMusic(scene.key, scene);
+  }
+
+  _playMusic(key, details = {}) {
+    const buffer = this._chooseBuffer(key, 0, details.variant);
+    if (!buffer || !this._ctx) return false;
+    const target = clamp(details.volume ?? .12, 0, .35);
+    if (this._musicSource && this._musicKey === key) {
+      this._fadeMusic(target, .28);
+      if (details.rate !== undefined) this._musicSource.playbackRate.setTargetAtTime(clamp(details.rate, .5, 2), now(this._ctx), .12);
+      return true;
+    }
+    const t = now(this._ctx);
+    const source = this._ctx.createBufferSource();
+    const gain = this._ctx.createGain();
+    source.buffer = buffer;
+    source.loop = true;
+    source.playbackRate.value = clamp(details.rate ?? 1, .5, 2);
+    gain.gain.setValueAtTime(.0001, t);
+    const profile = { highpass: 28, lowpass: 9000 };
+    source.connect(gain);
+    this._filterNode(gain, profile).connect(this._group('music'));
+    source.start(t);
+    this._track(source, true, 'music');
+    const previous = this._musicSource;
+    const previousGain = this._musicGain;
+    if (previous && previousGain) {
+      const oldGain = previousGain.gain;
+      oldGain.cancelScheduledValues(t);
+      oldGain.setTargetAtTime(.0001, t, .20);
+      try { previous.stop(t + .75); } catch {}
+    }
+    this._musicSource = source;
+    this._musicGain = gain;
+    this._musicKey = key;
+    source.addEventListener?.('ended', () => {
+      if (this._musicSource !== source) return;
+      this._musicSource = null;
+      this._musicGain = null;
+      this._musicKey = '';
+    });
+    gain.gain.setTargetAtTime(target, t, .32);
+    return true;
+  }
+
+  _fadeMusic(target, time = .2) {
+    if (!this._musicGain || !this._ctx) return false;
+    const t = now(this._ctx);
+    const value = Math.max(.0001, Number(target) || 0);
+    this._musicGain.gain.cancelScheduledValues(t);
+    this._musicGain.gain.setTargetAtTime(value, t, Math.max(.02, Number(time) || .2));
+    return true;
   }
 
   _track(source, persistent = false, type = '') {

@@ -8,6 +8,7 @@ import {
   getWavePlan,
   makeWaveQueue,
 } from './campaign.js';
+import { createRoomProgression, updateRoomProgression, currentRoom, syncRoomGateCells, canTraverseRoomGates } from './room-progression.js';
 
 // Arena simulation uses 4 metre cells; renderers never own gameplay state.
 export const METERS=4,EYE=.4;
@@ -37,7 +38,7 @@ export function castRay(m,x,y,angle,max=24){const dx=Math.cos(angle),dy=Math.sin
 export function canStand(m,x,y,r=.075){if(m.cells[Math.floor(y)*m.w+Math.floor(x)]?.every(v=>v===1))return false;if(x<r||y<r||x>m.w-r||y>m.h-r)return false;for(let cy=Math.max(0,Math.floor(y-r));cy<=Math.min(m.h-1,Math.floor(y+r));cy++)for(let cx=Math.max(0,Math.floor(x-r));cx<=Math.min(m.w-1,Math.floor(x+r));cx++){const walls=m.cells[cy*m.w+cx],segments=[[cx,cy,cx+1,cy],[cx+1,cy,cx+1,cy+1],[cx,cy+1,cx+1,cy+1],[cx,cy,cx,cy+1]];for(let d=0;d<4;d++){if(!walls[d])continue;const[a,b,c,e]=segments[d];if(Math.hypot(x-clamp(x,a,c),y-clamp(y,b,e))<r-1e-7)return false;}}return true;}
 
 export const viewAngle=r=>r.angle;
-export function newRun(course){
+export function newRun(course, options = {}){
  const campaign=course?.campaign===true;
  const sectorIndex=Number.isInteger(course?.sectorIndex)?course.sectorIndex:0;
  const sector=getSector(sectorIndex);
@@ -49,6 +50,7 @@ export function newRun(course){
   style:0,styleTotal:0,styleLabel:'GET CLOSE. GET LOUD.',rank:'D',kills:0,combo:0,bestCombo:0,lastWeapon:-1,repeat:0,
   campaign,sectorIndex,sectorCount:campaign?CAMPAIGN_SECTOR_COUNT:1,sectorId:course?.sectorId||sector.id,sectorName:course?.name||sector.name,wave:0,waveCount,waveDelay:campaign?(sector.waves[0]?.intermission??1.2):1.2,
   director:campaign?{state:'intermission',budget:0,spent:0,remainingBudget:0,aliveCap:0,active:0,pending:0,queue:[],elapsed:0,seed:sectorIndex*1000+1}:null,
+  roomProgression:campaign?createRoomProgression(course,sectorIndex,options):null,
   spawnTelegraphs:[],explosions:[],projectiles:[],coins:[],coinCharges:4,coinRegen:0,altCooldown:0,respawnTime:0,
   gore:[],blood:[],tracers:[],events:[],pressed:{},nextId:1,autoRun:false,playerId:'host',campaignComplete:false,
  };
@@ -83,11 +85,14 @@ function damageEnemy(r,e,n,label='HIT',hit=null){
 }
 function safeSpawnPoint(r, preferred=0){
  const points=Array.isArray(r.course.spawnPoints)&&r.course.spawnPoints.length?r.course.spawnPoints:[{x:2,y:2},{x:10,y:2},{x:6,y:3},{x:2,y:6},{x:10,y:6},{x:6,y:1.8},{x:1.5,y:4},{x:10.5,y:4}];
+ const activeRoom=r.roomProgression?.requireEntry?currentRoom(r.roomProgression):null;
+ const roomPoints=activeRoom?.spawnPoints?.length?activeRoom.spawnPoints:null;
+ const source=roomPoints||points;
  const players=[r,...(r.peer?[r.peer]:[])].filter(p=>p&&p.health>0);
- const ordered=points.map((p,index)=>({p,index})).sort((a,b)=>{
+ const ordered=source.map((point,index)=>({p:point,index})).sort((a,b)=>{
   const ap=Math.min(...players.map(player=>Math.hypot(a.p.x-player.x,a.p.y-player.y)));
   const bp=Math.min(...players.map(player=>Math.hypot(b.p.x-player.x,b.p.y-player.y)));
-  return (bp-ap)||(((a.index-preferred+points.length)%points.length)-((b.index-preferred+points.length)%points.length));
+  return (bp-ap)||(((a.index-preferred+source.length)%source.length)-((b.index-preferred+source.length)%source.length));
  });
  return ordered.find(({p})=>canStand(r.course,p.x,p.y,.16)&&players.every(player=>Math.hypot(p.x-player.x,p.y-player.y)>=3.5))?.p||null;
 }
@@ -130,6 +135,7 @@ function updateCampaignDirector(r,dt){
  const active=aliveEnemies(r).length;
  d.active=active;
  if(d.state==='intermission'){
+  if(r.roomProgression?.requireEntry && Number.isInteger(r.roomProgression.pendingIndex) && r.roomProgression.pendingIndex>r.roomProgression.currentIndex)return;
   if(active>0){d.state='combat';return;}
   r.waveDelay=Math.max(0,r.waveDelay-dt);
   if(r.waveDelay<=0&&r.wave<r.waveCount){beginCampaignWave(r);}
@@ -172,6 +178,7 @@ function advanceCampaignSector(r){
  }
  const course=createCampaignCourse(next),sector=getSector(next),spawn=course.playerSpawn;
  r.course=course;r.sectorIndex=next;r.sectorId=sector.id;r.sectorName=sector.name;r.sectorCount=CAMPAIGN_SECTOR_COUNT;
+ r.roomProgression=createRoomProgression(course,next,{requireEntry:r.roomProgression?.requireEntry===true});
  r.wave=0;r.waveCount=sector.waves.length;r.waveDelay=sector.waves[0]?.intermission??1.2;
  r.director={state:'intermission',budget:0,spent:0,remainingBudget:0,aliveCap:0,active:0,pending:0,queue:[],elapsed:0,seed:(next+1)*1000};
  r.spawnTelegraphs=[];r.projectiles=[];r.coins=[];r.explosions=[];
@@ -179,7 +186,7 @@ function advanceCampaignSector(r){
  const transition={type:'sector-transition',sectorIndex:next,sectorId:sector.id,sectorName:sector.name,sectorCount:CAMPAIGN_SECTOR_COUNT,x:r.x,y:r.y,z:0};
  r.events.push(transition);
  if(r.peer){
-  r.peer.course=course;r.peer.sectorIndex=next;r.peer.sectorId=sector.id;r.peer.sectorName=sector.name;r.peer.wave=0;r.peer.waveCount=sector.waves.length;r.peer.waveDelay=r.waveDelay;r.peer.director=r.director;r.peer.spawnTelegraphs=r.spawnTelegraphs;r.peer.projectiles=r.projectiles;r.peer.coins=r.coins;r.peer.explosions=r.explosions;
+  r.peer.course=course;r.peer.roomProgression=r.roomProgression;r.peer.sectorIndex=next;r.peer.sectorId=sector.id;r.peer.sectorName=sector.name;r.peer.wave=0;r.peer.waveCount=sector.waves.length;r.peer.waveDelay=r.waveDelay;r.peer.director=r.director;r.peer.spawnTelegraphs=r.spawnTelegraphs;r.peer.projectiles=r.projectiles;r.peer.coins=r.coins;r.peer.explosions=r.explosions;
   r.peer.x=spawn.x+.5;r.peer.y=spawn.y;r.peer.z=0;r.peer.vx=0;r.peer.vy=0;r.peer.vz=0;r.peer.angle=spawn.angle??-Math.PI/2;
  }
  return true;
@@ -191,12 +198,12 @@ function checkCampaignExit(r){
  advanceCampaignSector(r);
 }
 export function spawnWave(r){
- if(r.campaign){if(r.director?.state==='intermission')beginCampaignWave(r);return;}
+ if(r.campaign){if(r.director?.state==='intermission'&&!(r.roomProgression?.requireEntry&&Number.isInteger(r.roomProgression.pendingIndex)&&r.roomProgression.pendingIndex>r.roomProgression.currentIndex))beginCampaignWave(r);return;}
  r.wave++;const spots=[[2,2],[10,2],[6,3],[2,6],[10,6],[6,1.8],[1.5,4],[10.5,4]];
  for(let i=0;i<4+r.wave;i++){const p=spots[i%spots.length],kind=i%3;r.course.enemies.push({id:r.nextId++,x:p[0],y:p[1],z:0,hp:kind===2?10:kind===1?7:5,kind,variant:kind===0?'stalker':kind===1?'caster':'brute',dead:false,flash:0,attack:.5+i*.23,phase:i});}
  r.events.push({type:'wave',wave:r.wave,waveCount:3,sectorIndex:0});
 }
-function move(r,dx,dy){const n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.04));for(let i=0;i<n;i++){if(canStand(r.course,r.x+dx/n,r.y,.1))r.x+=dx/n;else r.vx=0;if(canStand(r.course,r.x,r.y+dy/n,.1))r.y+=dy/n;else r.vy=0;}}
+function move(r,dx,dy){const n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.04));for(let i=0;i<n;i++){const nx=r.x+dx/n,ny=r.y+dy/n;if(canTraverseRoomGates(r.course,r.roomProgression,r.x,r.y,nx,r.y)&&canStand(r.course,nx,r.y,.1))r.x=nx;else r.vx=0;if(canTraverseRoomGates(r.course,r.roomProgression,r.x,r.y,r.x,ny)&&canStand(r.course,r.x,ny,.1))r.y=ny;else r.vy=0;}}
 export function parry(r){if(r.mode!=='play'||r.health<=0||r.parryCooldown>0)return false;r.parryTime=.19;r.parryCooldown=.45;r.punch=.3;r.events.push({type:'punch',x:r.x,y:r.y,z:eye(r)});const e=r.course.enemies.filter(e=>!e.dead).find(e=>Math.hypot(e.x-r.x,e.y-r.y)<.65&&Math.abs(angleDiff(Math.atan2(e.y-r.y,e.x-r.x),r.angle))<.9&&castRay(r.course,r.x,r.y,Math.atan2(e.y-r.y,e.x-r.x)).dist>Math.hypot(e.x-r.x,e.y-r.y)-.1);if(e){const interrupt=e.attacking;damageEnemy(r,e,3,interrupt?'+ INTERRUPT':'+ KNUCKLE');e.stagger=.45;e.attacking=false;e.windup=0;if(interrupt)award(r,80,'+ INTERRUPT');}return true;}
 export function shoot(r,secondary=false){if(r.mode!=='play'||r.health<=0)return false;const world=r.world||r;
  if(secondary&&r.weapon===0){if(r.altCooldown||r.coinCharges<=0)return false;r.coinCharges--;r.altCooldown=.3;world.coins.push({id:world.nextId++,x:r.x+Math.cos(r.angle)*.2,y:r.y+Math.sin(r.angle)*.2,z:eye(r)+.03,vx:Math.cos(r.angle)*.9,vy:Math.sin(r.angle)*.9,vz:1.15,life:3});r.events.push({type:'coin',weapon:0,x:r.x,y:r.y,z:eye(r)});return true;}
@@ -305,6 +312,7 @@ export function tick(r,dt,input={}){if(r.mode!=='play')return;dt=clamp(dt,0,.05)
  r.style=Math.max(0,r.style-dt*35);r.rank=r.style>1400?'SSS':r.style>1100?'SS':r.style>800?'S':r.style>550?'A':r.style>300?'B':r.style>120?'C':'D';
  if(r.campaign){
   updateCampaignDirector(r,dt);
+  updateRoomProgression(r,dt);
   checkCampaignExit(r);
  }else if(!r.course.enemies.some(e=>!e.dead)){
   if(r.wave<3){r.waveDelay-=dt;if(r.waveDelay<=0){spawnWave(r);r.waveDelay=2;}}
@@ -313,7 +321,7 @@ export function tick(r,dt,input={}){if(r.mode!=='play')return;dt=clamp(dt,0,.05)
 }
 
 export const styleRank=v=>v>1400?"SSS":v>1100?"SS":v>800?"S":v>550?"A":v>300?"B":v>120?"C":"D";
-export function addPeer(r){const p=newRun(r.course);p.x=(r.course.playerSpawn?.x??6)+.5;p.y=r.course.playerSpawn?.y??10.5;p.mode='play';p.playerId='peer';p.world=r;r.peer=p;return p;}
+export function addPeer(r){const p=newRun(r.course,{requireEntry:r.roomProgression?.requireEntry===true});p.x=(r.course.playerSpawn?.x??6)+.5;p.y=r.course.playerSpawn?.y??10.5;p.mode='play';p.playerId='peer';p.world=r;p.roomProgression=r.roomProgression||p.roomProgression;if(p.roomProgression)syncRoomGateCells(r.course,p.roomProgression);r.peer=p;return p;}
 
 function explode(r,p){
  if(p.exploded)return;

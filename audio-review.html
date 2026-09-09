@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>The Last Dead — Audio review</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { background:#131414; color:#ddd; font:16px system-ui,sans-serif; max-width:1000px; margin:32px auto; padding:20px; }
+    h1 { letter-spacing:.08em; font-size:clamp(1.4rem,3vw,2.2rem); }
+    h2 { color:#dfb979; font-size:1rem; letter-spacing:.08em; text-transform:uppercase; margin:28px 0 10px; }
+    p { line-height:1.6; }
+    .toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:16px 0; }
+    button { background:#292a29; color:#eee; border:1px solid #595348; border-radius:3px; padding:11px 14px; cursor:pointer; }
+    button:hover,button:focus-visible { border-color:#dfb979; outline:none; }
+    button[data-active="true"] { background:#4a3827; border-color:#dfb979; }
+    input[type=range] { accent-color:#dfb979; }
+    #sounds { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+    #status { color:#bdb5a5; min-height:1.5em; }
+    .source { color:#bdb5a5; font-size:.9rem; }
+    a { color:#dfb979; }
+  </style>
+</head>
+<body>
+  <h1>THE LAST DEAD / AUDIO REVIEW</h1>
+  <p>Audition the current gameplay mix and the long-form horror beds. A button click unlocks Web Audio; music and ambience are looped through the same lifecycle used by the game.</p>
+  <div class="toolbar">
+    <label>Volume <input id="volume" type="range" min="0" max="1" step=".05" value=".5"></label>
+    <button id="stop" type="button">Pause audio</button>
+  </div>
+  <p id="status" role="status">Select a scene or sound to load the library.</p>
+
+  <h2>Scenes</h2>
+  <div id="scenes" class="toolbar"></div>
+  <p class="source">Menu bed: <a href="https://opengameart.org/content/insistent-background-loop">Insistent</a> by yd (CC0). Gameplay bed: <a href="https://opengameart.org/content/abandoned-passages-horror-ambience-loop">Abandoned passages</a> by congusbongus (CC0).</p>
+
+  <h2>Event pools</h2>
+  <div id="sounds"></div>
+
+  <script type="module">
+    import { AudioSystem, AUDIO_ASSET_MANIFEST } from './assets/audio.js';
+
+    const audio = new AudioSystem({ volume: .5 });
+    const status = document.querySelector('#status');
+    const sceneNames = { menu: 'Menu music', play: 'Gameplay music + ambience', pause: 'Pause / fade out', dead: 'Death music', win: 'Win music' };
+    const report = label => {
+      const info = audio.debugInfo;
+      status.textContent = `${info.decoded}/${info.manifestEntries} decoded · ${info.errors.length} errors · scene ${audio.scene} · ${label}`;
+    };
+    const unlock = async () => {
+      await audio.unlock();
+      await audio.resume();
+    };
+
+    for (const [scene, label] of Object.entries(sceneNames)) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = label;
+      button.onclick = async () => {
+        await unlock();
+        audio.setScene(scene);
+        document.querySelectorAll('#scenes button').forEach(node => node.dataset.active = String(node === button));
+        report(label);
+      };
+      document.querySelector('#scenes').append(button);
+    }
+
+    for (const key of Object.keys(AUDIO_ASSET_MANIFEST)) {
+      if (key.startsWith('music-')) continue;
+      const count = key === 'shot' ? 4 : 1;
+      for (let weapon = 0; weapon < count; weapon++) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = key === 'shot' ? ['Ossuary', 'Breach shotgun', 'Arc lance', 'Reliquary'][weapon] : key;
+        button.onclick = async () => {
+          await unlock();
+          audio.play(key, weapon);
+          report(button.textContent);
+        };
+        document.querySelector('#sounds').append(button);
+      }
+    }
+
+    document.querySelector('#volume').oninput = event => {
+      audio.setVolume(event.target.value);
+      report('volume changed');
+    };
+    document.querySelector('#stop').onclick = () => {
+      audio.setScene('pause');
+      report('paused');
+    };
+    window.addEventListener('pagehide', () => audio.dispose());
+  </script>
+</body>
+</html>

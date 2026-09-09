@@ -1,5 +1,6 @@
 import { createReadStream, existsSync, realpathSync, statSync } from 'node:fs';
 import { promises as fs } from 'node:fs';
+import { randomInt } from 'node:crypto';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,6 +8,11 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_PORT = 5200;
 const DEFAULT_ROOT = existsSync(path.join(HERE, 'dist')) ? path.join(HERE, 'dist') : HERE;
+export const SIGNALING_PATH = '/__dead_arrival/signal';
+export const SIGNALING_ROOM_TTL_MS = 10 * 60 * 1000;
+export const SIGNALING_MAX_BODY_BYTES = 256 * 1024;
+const ROOM_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const ROOM_CODE_LENGTH = 6;
 
 const MIME_TYPES = new Map([
   ['.html', 'text/html; charset=utf-8'],
@@ -99,13 +105,196 @@ function sendText(response, statusCode, message) {
   response.end(body);
 }
 
+function sendJson(response, statusCode, payload, extraHeaders = {}) {
+  const body = JSON.stringify(payload);
+  response.writeHead(statusCode, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Content-Length': Buffer.byteLength(body),
+    'Cache-Control': 'no-store',
+    'X-Content-Type-Options': 'nosniff',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'content-type',
+    ...extraHeaders,
+  });
+  response.end(body);
+}
+
+function signalError(response, statusCode, message, code = 'SIGNALING_ERROR') {
+  sendJson(response, statusCode, { error: message, code });
+}
+
+function readJsonBody(request, maxBytes = SIGNALING_MAX_BODY_BYTES) {
+  return new Promise((resolve, reject) => {
+    let bytes = 0;
+    const chunks = [];
+    let settled = false;
+    const fail = error => {
+      if (settled) return;
+      settled = true;
+      request.destroy();
+      reject(error);
+    };
+    request.on('data', chunk => {
+      if (settled) return;
+      bytes += chunk.length;
+      if (bytes > maxBytes) {
+        const error = new Error(`Request body exceeds the ${Math.round(maxBytes / 1024)} KiB limit.`);
+        error.code = 'BODY_TOO_LARGE';
+        fail(error);
+        return;
+      }
+      chunks.push(chunk);
+    });
+    request.on('end', () => {
+      if (settled) return;
+      settled = true;
+      if (!bytes) {
+        resolve({});
+        return;
+      }
+      try {
+        const value = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+        if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('JSON body must be an object.');
+        resolve(value);
+      } catch (error) {
+        error.code = 'BAD_JSON';
+        reject(error);
+      }
+    });
+    request.on('error', error => fail(error));
+  });
+}
+
+function createRoomCode(rooms) {
+  for (let attempt = 0; attempt < 24; attempt += 1) {
+    let code = '';
+    for (let index = 0; index < ROOM_CODE_LENGTH; index += 1) code += ROOM_CODE_ALPHABET[randomInt(ROOM_CODE_ALPHABET.length)];
+    if (!rooms.has(code)) return code;
+  }
+  throw new Error('Could not allocate a co-op room code.');
+}
+
+function normaliseRoomCode(value) {
+  const code = String(value || '').trim().toUpperCase();
+  return /^[A-Z2-9]{6}$/.test(code) ? code : null;
+}
+
+function validSignal(value) {
+  return typeof value === 'string' && value.length > 0 && Buffer.byteLength(value, 'utf8') <= SIGNALING_MAX_BODY_BYTES;
+}
+
+function sweepRooms(rooms, now = Date.now()) {
+  for (const [code, room] of rooms) {
+    if (now - room.createdAt > SIGNALING_ROOM_TTL_MS) rooms.delete(code);
+  }
+}
+
+async function handleSignalingRequest(request, response, rooms) {
+  let url;
+  try {
+    url = new URL(request.url || '/', 'http://localhost');
+  } catch {
+    signalError(response, 400, 'Malformed signaling URL.', 'BAD_URL');
+    return true;
+  }
+  const prefix = `${SIGNALING_PATH}/rooms`;
+  if (url.pathname === SIGNALING_PATH || url.pathname === `${SIGNALING_PATH}/`) {
+    if (request.method === 'OPTIONS') {
+      response.writeHead(204, {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'content-type',
+      });
+      response.end();
+      return true;
+    }
+    signalError(response, 404, 'Signaling endpoint not found.', 'NOT_FOUND');
+    return true;
+  }
+  if (!url.pathname.startsWith(prefix)) return false;
+  sweepRooms(rooms);
+  const remainder = url.pathname.slice(prefix.length).replace(/^\/+|\/+$/g, '');
+  const parts = remainder ? remainder.split('/') : [];
+  if (parts.length === 0 && request.method === 'POST') {
+    let body;
+    try { body = await readJsonBody(request); } catch (error) {
+      signalError(response, error.code === 'BODY_TOO_LARGE' ? 413 : 400, error.message, error.code || 'BAD_JSON');
+      return true;
+    }
+    if (!validSignal(body.offer)) {
+      signalError(response, 400, 'A valid WebRTC offer is required.', 'INVALID_OFFER');
+      return true;
+    }
+    const code = createRoomCode(rooms);
+    const now = Date.now();
+    rooms.set(code, { code, offer: body.offer, answer: null, createdAt: now, touchedAt: now });
+    sendJson(response, 201, { code, expiresInMs: SIGNALING_ROOM_TTL_MS, pollAfterMs: 500 });
+    return true;
+  }
+  if (parts.length < 1 || parts.length > 2) {
+    signalError(response, 404, 'Signaling endpoint not found.', 'NOT_FOUND');
+    return true;
+  }
+  const code = normaliseRoomCode(parts[0]);
+  if (!code || !rooms.has(code)) {
+    signalError(response, 404, 'That co-op room is missing or expired.', 'ROOM_NOT_FOUND');
+    return true;
+  }
+  const room = rooms.get(code);
+  room.touchedAt = Date.now();
+  const resource = parts[1] || '';
+  if (request.method === 'DELETE' && !resource) {
+    rooms.delete(code);
+    sendJson(response, 200, { ok: true });
+    return true;
+  }
+  if (request.method === 'GET' && resource === 'offer') {
+    sendJson(response, 200, { code, offer: room.offer, expiresInMs: Math.max(0, SIGNALING_ROOM_TTL_MS - (Date.now() - room.createdAt)) });
+    return true;
+  }
+  if (request.method === 'GET' && resource === 'answer') {
+    if (!room.answer) {
+      sendJson(response, 202, { code, state: 'waiting', pollAfterMs: 500 });
+      return true;
+    }
+    sendJson(response, 200, { code, answer: room.answer });
+    return true;
+  }
+  if (request.method === 'POST' && resource === 'answer') {
+    let body;
+    try { body = await readJsonBody(request); } catch (error) {
+      signalError(response, error.code === 'BODY_TOO_LARGE' ? 413 : 400, error.message, error.code || 'BAD_JSON');
+      return true;
+    }
+    if (!validSignal(body.answer)) {
+      signalError(response, 400, 'A valid WebRTC answer is required.', 'INVALID_ANSWER');
+      return true;
+    }
+    if (room.answer && room.answer !== body.answer) {
+      signalError(response, 409, 'This co-op room already has an answer.', 'ANSWER_ALREADY_SET');
+      return true;
+    }
+    room.answer = body.answer;
+    sendJson(response, 200, { ok: true, code });
+    return true;
+  }
+  signalError(response, 404, 'Signaling endpoint not found.', 'NOT_FOUND');
+  return true;
+}
+
 export function createStaticServer({ root = DEFAULT_ROOT, spaFallback = true } = {}) {
   const absoluteRoot = path.resolve(root);
   const builtRoot = path.basename(absoluteRoot).toLowerCase() === 'dist';
   if (!existsSync(absoluteRoot) || !statSync(absoluteRoot).isDirectory()) {
     throw new Error(`Static root does not exist or is not a directory: ${absoluteRoot}`);
   }
-  return http.createServer(async (request, response) => {
+  const rooms = new Map();
+  const server = http.createServer(async (request, response) => {
+    if (request.url?.startsWith(SIGNALING_PATH)) {
+      const handled = await handleSignalingRequest(request, response, rooms);
+      if (handled) return;
+    }
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       response.setHeader('Allow', 'GET, HEAD');
       sendText(response, 405, 'Method Not Allowed');
@@ -154,6 +343,7 @@ export function createStaticServer({ root = DEFAULT_ROOT, spaFallback = true } =
       else sendText(response, 500, 'Internal Server Error');
     }
   });
+  return server;
 }
 
 function parsePort(value) {

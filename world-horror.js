@@ -1,5 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import { buildAuthoredWorld } from './world-authored.js';
+import { buildRoomKit } from './room-kit.js';
 export const HORROR_SECTOR_THEMES = Object.freeze({
  bloodworks: Object.freeze({ background: 0x0b0e18, fog: 0x101817, fogNear: 32, fogFar: 100, key: 0xffd2a3, rim: 0xe83b23, accent: 0xff3154 }),
  ossuary: Object.freeze({ background: 0x090b17, fog: 0x17132b, fogNear: 26, fogFar: 92, key: 0xc5b8ff, rim: 0x745cff, accent: 0xc98cff }),
@@ -12,6 +13,15 @@ export function getHorrorSectorTheme(course = {}) {
 export function buildHorrorDetails(root,materials,course={}){
  const sectorTheme=getHorrorSectorTheme(course);
  const authored=buildAuthoredWorld(root,materials,course);
+ const rooms=buildRoomKit(root,materials,{...course,sectorId:sectorTheme.id});
+ authored.rooms=rooms.rooms;
+ authored.roomChunks=rooms.roomChunks;
+ authored.roomPlan=rooms.plan;
+ authored.route=rooms.route;
+ authored.setRoomProgression=rooms.setProgression;
+ authored.moving.push(...rooms.moving.map(item=>item.root));
+ const authoredAnimate=authored.animate;
+ authored.animate=t=>{authoredAnimate(t);rooms.animate(t);};
  const steel=materials.metalDark,bone=new THREE.MeshStandardMaterial({color:0xb9b6a0,roughness:.82,metalness:.12}),flesh=new THREE.MeshStandardMaterial({color:0x421516,roughness:.44,metalness:.08});
  const add=(geo,mat,x,y,z)=>{const o=new THREE.Mesh(geo,mat);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;root.add(o);return o;};
  const cable=(points,radius,mat)=>add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p))),32,radius,6,false),mat,0,0,0);
@@ -78,5 +88,5 @@ export function buildHorrorDetails(root,materials,course={}){
   }
   sign('CHOIR OF TEETH', 'THRESHOLD / NO EXIT SIGNAL', 24, 6.25, .24, 12);
  }
- return{organ,core,sector:sectorTheme.id,theme:sectorTheme,authored};
+ return{organ,core,sector:sectorTheme.id,theme:sectorTheme,authored,rooms:rooms.rooms,roomChunks:rooms.roomChunks,roomPlan:rooms.plan,route:rooms.route,setRoomProgression:rooms.setProgression};
 }

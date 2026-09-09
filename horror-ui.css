@@ -5,17 +5,17 @@
 #ui .menu-screen{padding:0;background:linear-gradient(90deg,rgba(7,5,5,.94) 0%,rgba(10,5,5,.68) 38%,rgba(10,5,5,.12) 75%),url('./assets/images/menu-bloodworks-v2.png') center/cover;overflow-y:auto}
 #ui .menu-screen:before{opacity:.12;pointer-events:none}
 #ui .menu-screen:after{pointer-events:none;background:linear-gradient(0deg,#080505 0%,transparent 28%);opacity:.8}
-#ui .menu-shell{position:relative;z-index:2;display:grid;grid-template-columns:minmax(300px,560px) 1fr;grid-template-rows:auto auto;gap:20px 6vw;width:100%;min-height:100%;max-width:none;padding:6vh 7vw 5vh;align-content:center;box-sizing:border-box}
-#ui .menu-copy{padding:0;border:0;background:none;box-shadow:none;max-width:none}
+#ui .menu-shell{position:relative;z-index:2;display:grid;grid-template-columns:minmax(300px,560px);grid-template-rows:auto auto;gap:28px;width:min(760px,100%);min-height:auto;max-width:none;padding:6vh 7vw 5vh;align-content:center;box-sizing:border-box}
+#ui .menu-copy{padding:0;border:0;background:none;box-shadow:none;max-width:560px}
 #ui .brand-lockup{padding:0;border:0;background:none}
 #ui .brand-eyebrow{font:700 10px/1.4 Arial,sans-serif;letter-spacing:.38em;color:var(--ash)}
-#ui .brand-title{display:flex;align-items:flex-start;gap:12px;margin:18px 0 16px;color:var(--bone);font-family:Impact,'Arial Narrow',sans-serif;letter-spacing:-.035em;line-height:.78;filter:drop-shadow(0 4px 0 #3a1011);text-shadow:none;transform:none}
+#ui .brand-title{display:flex;align-items:flex-start;gap:12px;margin:0 0 20px;color:var(--bone);font-family:Impact,'Arial Narrow',sans-serif;letter-spacing:-.035em;line-height:.78;filter:drop-shadow(0 4px 0 #3a1011);text-shadow:none;transform:none}
 #ui .brand-title>span{font:inherit;font-size:24px;line-height:1;writing-mode:vertical-rl;margin-top:3px;letter-spacing:.05em;color:var(--blood)}
 #ui .brand-title em{font:inherit;font-style:normal;font-size:clamp(85px,10vw,155px);line-height:.79;letter-spacing:-.03em;color:var(--bone)}
 #ui .brand-tagline{margin:19px 0 0 36px;font:700 10px Arial,sans-serif;letter-spacing:.23em;color:#c4afa0}
 #ui .menu-actions{grid-column:1;display:flex;flex-direction:column;gap:1px;max-width:400px;align-self:start;background:none;border:0;padding:0;box-shadow:none}
 #ui .start-button,#ui .menu-link,#ui .coop-toggle{position:relative;width:100%;min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border:0;border-radius:0;background:none;box-shadow:none;clip-path:none;text-align:left;color:var(--ash);transition:color .15s,transform .15s;font:25px/1 Impact,'Arial Narrow',sans-serif;letter-spacing:.035em}
-#ui .start-button{display:block;padding:12px 0 20px;color:var(--bone)}
+#ui .start-button{display:block;padding:0 0 20px;color:var(--bone)}
 #ui .start-button .menu-choice{font:42px/1 Impact,'Arial Narrow',sans-serif;letter-spacing:.04em}
 #ui .start-button small{display:block;margin-top:8px;font:700 9px Arial,sans-serif;letter-spacing:.2em;color:var(--blood)}
 #ui .start-button:before{content:'›';position:absolute;left:-25px;top:9px;color:var(--blood);font-size:46px}
@@ -27,6 +27,14 @@
 #ui .coop-toggle small{display:none}
 #ui .coop-toggle i{font:18px Arial;color:#756354}
 #ui .coop-panel{max-height:340px;overflow:auto;background:#130b0bee;border:1px solid #51302c;padding:14px;margin:8px 0 14px}
+#ui .coop-panel .network-panel{gap:12px}
+#ui .network-heading{align-items:center}
+#ui .network-heading .network-state{min-height:0;text-align:right}
+#ui .network-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+#ui .network-code-row,#ui .network-join-row{grid-template-columns:minmax(0,1fr) auto}
+#ui .coop-panel button:disabled{cursor:not-allowed;opacity:.42;transform:none}
+#ui .coop-panel input:disabled{cursor:not-allowed;opacity:.62}
+#ui .network-state[data-state="busy"]{color:#efc17f}
 #ui .field-guide{padding:15px 0;border-top:1px solid #624038;font-size:12px;color:#c3b29f;line-height:1.6}
 #ui .field-guide h2{font:26px Impact,sans-serif;color:var(--bone);margin:0}
 #ui .guide-controls{display:grid;grid-template-columns:115px 1fr;gap:8px;font-size:10px}
@@ -49,6 +57,8 @@
 #ui .pause-actions button:first-child,#ui .finish-actions button:first-child{color:var(--blood);font-size:33px}
 #ui .pause-backdrop{opacity:.35;backdrop-filter:blur(3px)}
 #ui .settings-drawer{border:0;border-left:2px solid #862a2b;background:linear-gradient(145deg,#1e1010,#090707);box-shadow:-30px 0 80px #000a}
+#ui .settings-drawer[aria-hidden="true"]{visibility:hidden;pointer-events:none}
+#ui .settings-drawer.is-open{visibility:visible}
 #ui .settings-heading h2{font:48px Impact,sans-serif;text-transform:uppercase;color:var(--bone)}
 #ui .hud{--damage:0;text-shadow:0 2px 4px #000,0 0 12px #0008}
 #ui .hud:before,#ui .hud:after{display:none}
@@ -146,3 +156,34 @@
 @media (pointer:coarse) and (orientation:landscape) and (max-height:520px){#ui .hud-bottom{inset:auto 20px 139px}#ui .hud-bottom-left{width:165px}#ui .hud-bottom-right{width:190px}#ui .vital-caption{display:none}#ui .health-meter{margin-top:5px}#ui .hud-bottom-left{gap:6px}#ui [data-hud="health"]{font-size:45px}#ui .weapon-rack{display:none}#ui .toast-stack{top:30%}#ui .toast{padding:5px}#ui .toast strong{font-size:20px}#ui .pause-screen,#ui .finish-screen{overflow:auto;align-items:flex-start}#ui .pause-card h2,#ui .finish-card h2{font-size:48px;margin:15px 0}}
 
 @media(pointer:coarse) and (orientation:landscape){#ui .touch-button,#ui .touch-button.fire{width:44px;height:44px;min-width:44px;min-height:44px}#ui .touch-button.fire{grid-column:3;grid-row:1}#ui .touch-button.jump{grid-column:3;grid-row:2}}
+
+/* Room progression: a compact route rail keeps the next decision visible
+   without covering the player's sightline or the combat lanes. */
+#ui .objective[data-progression="room"]{width:min(340px,calc(100vw - 150px));max-width:340px}
+#ui .objective-context{display:flex;align-items:center;min-width:0;gap:8px;height:15px}
+#ui .objective-context [data-hud="sector"]{overflow:hidden;min-width:0;color:#c5aa91;font:700 10px/1 Arial,sans-serif;letter-spacing:.16em;text-overflow:ellipsis;white-space:nowrap}
+#ui .objective-divider{color:#7e574b;font:10px/1 Arial,sans-serif}
+#ui .room-index{flex:0 0 auto;color:#e0b97d;font:9px/1 'Courier New',monospace;letter-spacing:.08em;white-space:nowrap}
+#ui .room-name{display:block;max-width:100%;margin:5px 0 7px;overflow:hidden;color:var(--bone);font:25px/.9 Impact,'Arial Narrow',sans-serif;letter-spacing:.045em;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
+#ui .objective-line{display:flex;align-items:baseline;justify-content:space-between;min-width:0;gap:10px}
+#ui .objective-line [data-hud="objective"]{min-width:0;margin-top:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#ui .room-threat{flex:0 0 auto;max-width:46%;overflow:hidden;color:#db9b78;font:700 8px/1 Arial,sans-serif;letter-spacing:.1em;text-align:right;text-overflow:ellipsis;white-space:nowrap}
+#ui .objective-progressline{display:flex;align-items:center;min-width:0;gap:9px;margin-top:10px}
+#ui .objective-progressline .objective-progress{flex:1 1 auto;min-width:0;margin-top:0}
+#ui .room-progress-label{flex:0 0 55px;color:#c8b18f;font:8px/1 'Courier New',monospace;letter-spacing:.08em;text-align:right;white-space:nowrap}
+#ui .room-route{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);min-width:0;height:3px;gap:3px;margin-top:7px;overflow:hidden}
+#ui .room-step{display:block;min-width:0;height:100%;background:linear-gradient(90deg,#d34b42 var(--step-progress,0%),rgba(201,183,156,.22) var(--step-progress,0%));opacity:.68}
+#ui .room-step.is-active{opacity:1;background:linear-gradient(90deg,#f0c078 var(--step-progress,0%),rgba(226,185,115,.26) var(--step-progress,0%));box-shadow:0 0 7px rgba(240,192,120,.42)}
+#ui .room-step.is-complete{opacity:.92}
+@media(max-width:700px){
+ #ui .objective[data-progression="room"]{width:min(215px,calc(100vw - 140px));max-width:215px}
+ #ui .objective-context{gap:6px}
+ #ui .objective-context [data-hud="sector"]{font-size:9px;letter-spacing:.1em}
+ #ui .room-index{font-size:8px;letter-spacing:.04em}
+ #ui .room-name{margin:4px 0 6px;font-size:20px}
+ #ui .room-threat{max-width:43%;font-size:7px;letter-spacing:.04em}
+ #ui .objective-progressline{gap:7px;margin-top:8px}
+ #ui .room-progress-label{flex-basis:48px;font-size:7px;letter-spacing:.03em}
+ #ui .room-route{height:2px;gap:2px;margin-top:6px}
+}
+@media(max-width:350px){#ui .objective[data-progression="room"]{width:calc(100vw - 140px);max-width:none}#ui .room-name{font-size:18px}#ui .room-index{font-size:7px}}

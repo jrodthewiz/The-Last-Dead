@@ -1,0 +1,202 @@
+{
+  "catalog": {
+    "wardens": [
+      {
+        "key": "stalker",
+        "label": "Ash Wound",
+        "kind": 0,
+        "tint": 9142648,
+        "roughness": 0.88,
+        "metalness": 0.04,
+        "emissive": 1509382,
+        "emissiveIntensity": 0.08,
+        "signal": 16730422
+      },
+      {
+        "key": "skitter",
+        "label": "Cinder Veins",
+        "kind": 0,
+        "tint": 7626593,
+        "roughness": 0.76,
+        "metalness": 0.07,
+        "emissive": 2560020,
+        "emissiveIntensity": 0.13,
+        "signal": 16738877
+      },
+      {
+        "key": "bloodhound",
+        "label": "Sanguine Hunt",
+        "kind": 0,
+        "tint": 10118493,
+        "roughness": 0.68,
+        "metalness": 0.1,
+        "emissive": 3804682,
+        "emissiveIntensity": 0.16,
+        "signal": 14035762
+      },
+      {
+        "key": "caster",
+        "label": "Pallid Choir",
+        "kind": 1,
+        "tint": 11052961,
+        "roughness": 0.78,
+        "metalness": 0.1,
+        "emissive": 1512230,
+        "emissiveIntensity": 0.12,
+        "signal": 12157951
+      },
+      {
+        "key": "hexer",
+        "label": "Violet Seal",
+        "kind": 1,
+        "tint": 7627903,
+        "roughness": 0.63,
+        "metalness": 0.2,
+        "emissive": 3675228,
+        "emissiveIntensity": 0.2,
+        "signal": 13864191
+      },
+      {
+        "key": "mireSinger",
+        "label": "Mire Oxide",
+        "kind": 1,
+        "tint": 6715242,
+        "roughness": 0.91,
+        "metalness": 0.03,
+        "emissive": 1058586,
+        "emissiveIntensity": 0.1,
+        "signal": 9096049
+      },
+      {
+        "key": "brute",
+        "label": "Iron Hide",
+        "kind": 2,
+        "tint": 7763566,
+        "roughness": 0.59,
+        "metalness": 0.42,
+        "emissive": 2954767,
+        "emissiveIntensity": 0.14,
+        "signal": 16747327
+      },
+      {
+        "key": "warden",
+        "label": "Marrow Brass",
+        "kind": 2,
+        "tint": 10193003,
+        "roughness": 0.47,
+        "metalness": 0.55,
+        "emissive": 3875860,
+        "emissiveIntensity": 0.18,
+        "signal": 16760938
+      }
+    ],
+    "bellwraiths": [
+      {
+        "key": "bellwraith",
+        "label": "Mourning Bell",
+        "surfaceSeed": 41,
+        "bell": 5914674,
+        "bellEdge": 10710335,
+        "bone": 13945000,
+        "boneDark": 6179387,
+        "membrane": 3412765,
+        "chain": 8680815,
+        "ember": 16720973,
+        "acid": 9427800
+      },
+      {
+        "key": "bellwraithEcho",
+        "label": "Echo Bell",
+        "surfaceSeed": 73,
+        "bell": 4149857,
+        "bellEdge": 7771821,
+        "bone": 12044231,
+        "boneDark": 4149856,
+        "membrane": 1386552,
+        "chain": 6718097,
+        "ember": 7198719,
+        "acid": 8186048
+      },
+      {
+        "key": "rustBell",
+        "label": "Rust Bell",
+        "surfaceSeed": 107,
+        "bell": 6830895,
+        "bellEdge": 12679243,
+        "bone": 13152395,
+        "boneDark": 5650217,
+        "membrane": 3806999,
+        "chain": 10183492,
+        "ember": 16739384,
+        "acid": 13940814
+      },
+      {
+        "key": "ivoryBell",
+        "label": "Ivory Bell",
+        "surfaceSeed": 139,
+        "bell": 6117728,
+        "bellEdge": 11972776,
+        "bone": 15786429,
+        "boneDark": 7760738,
+        "membrane": 2562601,
+        "chain": 11707802,
+        "ember": 16751700,
+        "acid": 12775308
+      }
+    ]
+  },
+  "profileCount": 12,
+  "wardenKeys": [
+    "stalker",
+    "skitter",
+    "bloodhound",
+    "caster",
+    "hexer",
+    "mireSinger",
+    "brute",
+    "warden"
+  ],
+  "wardenColors": [
+    9142648,
+    7626593,
+    10118493,
+    11052961,
+    7627903,
+    6715242,
+    7763566,
+    10193003
+  ],
+  "sharedGeometry": true,
+  "bellKeys": [
+    "bellwraith",
+    "bellwraithEcho",
+    "rustBell",
+    "ivoryBell"
+  ],
+  "bellColors": [
+    5914674,
+    4149857,
+    6830895,
+    6117728
+  ],
+  "bellSurfaceSeeds": [
+    41,
+    73,
+    107,
+    139
+  ],
+  "bellGeometryShared": true,
+  "bellCache": {
+    "templates": 4,
+    "geometries": 140,
+    "meshes": 140,
+    "profiles": 4
+  },
+  "resetState": {
+    "wardenY": 0,
+    "wardenDeadAt": null,
+    "bellHoverY": 0,
+    "bellDeadAt": null
+  },
+  "errors": []
+}

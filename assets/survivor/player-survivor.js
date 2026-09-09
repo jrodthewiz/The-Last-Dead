@@ -11,9 +11,39 @@ export function createSurvivor({firstPerson=false}={}){
  loft(pelvis,'CargoHip',[[-.08,.16,.12],[0,.185,.125],[.13,.16,.115]],pants);loft(pelvis,'Torso',[[.09,.155,.115],[.23,.18,.135],[.38,.23,.135],[.47,.215,.12],[.52,.11,.085]],shirt);
  const legs=[];for(const side of[-1,1]){const hip=new THREE.Group();hip.position.set(side*.105,0,0);pelvis.add(hip);loft(hip,'CargoThigh',[[.02,.095,.115],[-.1,.103,.112],[-.25,.088,.1],[-.43,.071,.08]],pants);const knee=new THREE.Group();knee.position.y=-.4;hip.add(knee);loft(knee,'CargoShin',[[.025,.073,.084],[-.12,.081,.077],[-.3,.06,.06],[-.4,.06,.06]],pants);const boot=shape(knee,'CombatBoot',[.082,.095,.155],[0,-.405,-.045],leather);legs.push({hip,knee,boot});}
  const arms=[];for(const side of[-1,1]){const shoulder=new THREE.Group();shoulder.position.set(side*.235,.41,0);shoulder.rotation.z=side*.13;pelvis.add(shoulder);loft(shoulder,'JacketSleeve',[[.025,.082,.086],[-.15,.075,.08],[-.30,.068,.067]],cloth);const elbow=new THREE.Group();elbow.position.y=-.28;shoulder.add(elbow);loft(elbow,'Forearm',[[.025,.058,.057],[-.18,.043,.042],[-.26,.039,.038]],skin);shape(elbow,'Glove',[.05,.079,.029],[0,-.30,-.008],leather);arms.push({shoulder,elbow});shoulder.visible=!firstPerson;}
- const head=new THREE.Group();head.position.set(0,.55,0);pelvis.add(head);loft(head,'Neck',[[-.02,.066,.064],[.1,.054,.06]],skin);shape(head,'Head',[.094,.121,.094],[0,.18,-.012],skin);head.visible=!firstPerson;root.userData={pelvis,legs,arms,head,firstPerson};detailSurvivor(root);refineFace(root);if(firstPerson){for(const n of ['Torso','OpenCanvasJacket']){const m=root.getObjectByName(n);if(m){m.scale.y=.43;m.position.z+=.13;m.visible=false;}}root.userData.pelvis.children.forEach(m=>{if(m.isMesh)m.visible=false;});root.getObjectByName('CargoHip').visible=false;root.userData.legs.forEach(l=>l.hip.position.z=-.18);root.traverse(m=>{if(['CanvasLapel','ShoulderHarness','HarnessBuckle','HarnessPouch','PocketFlap'].includes(m.name))m.visible=false;});}batchStatic(root);return root;
+ const head=new THREE.Group();head.position.set(0,.55,0);pelvis.add(head);loft(head,'Neck',[[-.02,.066,.064],[.1,.054,.06]],skin);shape(head,'Head',[.094,.121,.094],[0,.18,-.012],skin);head.visible=!firstPerson;root.userData={pelvis,legs,arms,head,firstPerson};detailSurvivor(root);refineFace(root);if(firstPerson){
+ root.userData.head.visible=false;root.userData.arms.forEach(a=>a.shoulder.visible=false);
+ // The local-only upper garment leans behind the eye. Deform its attached
+ // pockets and harness with the same field so the waist remains continuous.
+ const point=new THREE.Vector3();
+ for(const part of pelvis.children){if(!part.isMesh)continue;part.updateMatrix();const inverse=part.matrix.clone().invert(),positions=part.geometry.attributes.position;
+  for(let i=0;i<positions.count;i++){point.fromBufferAttribute(positions,i).applyMatrix4(part.matrix);const t=THREE.MathUtils.clamp((point.y-.08)/.44,0,1);point.z+=.4*t*t*(3-2*t);point.applyMatrix4(inverse);positions.setXYZ(i,point.x,point.y,point.z);}
+  positions.needsUpdate=true;part.geometry.computeVertexNormals();part.geometry.computeBoundingBox();part.geometry.computeBoundingSphere();
+ }
+}batchStatic(root);
+ const parts=[pelvis,...legs.flatMap((l,i)=>{l.hip.name=i?'RightThigh':'LeftThigh';l.knee.name=i?'RightShinBoot':'LeftShinBoot';return[l.hip,l.knee];})];pelvis.name='WaistJacket';
+ root.userData.sculptRuntime={parts,pivots:{pelvis,leftHip:legs[0].hip,rightHip:legs[1].hip,leftKnee:legs[0].knee,rightKnee:legs[1].knee},sockets:{eye:[0,1.6,-.38],slideEye:[0,.88,-.26]},coordinateSystem:'Y-up, forward -Z, metres'};
+ root.traverse(m=>{if(m.isMesh)m.userData.explodeWithParent=true;});return root;
 }
-export function animateSurvivor(root,run,time=0){const {pelvis,legs,arms}=root.userData;const speed=Math.min(1,Math.hypot(run.vx||0,run.vy||0)/2),stride=(run.distance||0)*8,air=(run.z||0)>.05,slide=Math.min(1,run.slide||0);pelvis.position.y=.9-slide*.42;pelvis.rotation.x=-slide*.25;legs.forEach(({hip,knee},i)=>{const wave=Math.sin(stride+i*Math.PI)*speed;hip.rotation.x=air?-.25:wave*.45-slide*.85;knee.rotation.x=air?.55:Math.max(0,-wave)*.65+slide*1.1;});arms.forEach(({shoulder,elbow},i)=>{shoulder.rotation.x=-Math.sin(stride+i*Math.PI)*speed*.2-.3;elbow.rotation.x=-.35;});}
+export function animateSurvivor(root,run,time=0){
+ const {pelvis,legs,arms,firstPerson}=root.userData;
+ const speed=Math.min(1,Math.hypot(run.vx||0,run.vy||0)/2),stride=(run.distance||0)*8,air=(run.z||0)>.05,slide=Math.min(1,run.slide||0);
+ if(!firstPerson){pelvis.position.y=.9-slide*.42;pelvis.rotation.x=-slide*.25;}
+ else pelvis.rotation.x=slide*.45;
+ let lowest=Infinity;
+ legs.forEach(({hip,knee},i)=>{
+  const wave=Math.sin(stride+i*Math.PI)*speed;
+  hip.rotation.x=firstPerson?(air?.25:wave*.35+.18*(1-slide)+slide*1.15):(air?-.25:wave*.45-slide*.85);
+  knee.rotation.x=firstPerson?(air?-.55:-Math.max(0,wave)*.65-.18*(1-slide)-slide*.8):(air?.55:Math.max(0,-wave)*.65+slide*1.1);
+  if(firstPerson){const thigh=pelvis.rotation.x+hip.rotation.x,shin=thigh+knee.rotation.x,c=Math.cos(shin),s=Math.sin(shin);
+   const sole=-.49*c+.069*s-.0175*Math.abs(c)-.155*Math.abs(s);
+   const toe=-.426*c+.072*s-Math.hypot(.072*c,.165*s);
+   lowest=Math.min(lowest,-.4*Math.cos(thigh)+Math.min(sole,toe));
+  }
+ });
+ if(firstPerson)pelvis.position.y=air?.9:-lowest;
+ arms.forEach(({shoulder,elbow},i)=>{shoulder.rotation.x=-Math.sin(stride+i*Math.PI)*speed*.2-.3;elbow.rotation.x=-.35;});
+}
 
 // Deterministic, separate albedo / weave height / roughness fields. Blood is a local
 // soaked-fabric mask with streaks and small satellites, never a shared normal map.

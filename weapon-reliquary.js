@@ -124,6 +124,66 @@ function getSurfaceMaps() {
   return sharedSurfaceMaps || (sharedSurfaceMaps = makeSurfaceMaps());
 }
 
+// The procedural maps keep the model deterministic in tests and on a cold
+// cache. In a browser, layer the bundled PBR set over the metal and leather
+// surfaces once the local images arrive. These are shared immutable assets, so
+// the launcher never creates or uploads a texture in response to a shot.
+let sharedExternalMaps;
+let sharedExternalReady = Promise.resolve();
+function getExternalMaps() {
+  if (sharedExternalMaps !== undefined) return sharedExternalMaps;
+  sharedExternalMaps = null;
+  if (typeof document === 'undefined' || !THREE.TextureLoader) return null;
+  try {
+    const loader = new THREE.TextureLoader();
+    let remaining = 4;
+    let resolveReady;
+    sharedExternalReady = new Promise(resolve => { resolveReady = resolve; });
+    const done = () => { remaining -= 1; if (remaining <= 0) resolveReady(); };
+    const configure = (texture, colorSpace = false) => {
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(1.7, 1.15);
+      texture.minFilter = THREE.LinearMipmapLinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      if (colorSpace) texture.colorSpace = THREE.SRGBColorSpace;
+      texture.userData.sharedAsset = true;
+      texture.needsUpdate = true;
+      return texture;
+    };
+    const loadTexture = (path, colorSpace = false) => configure(loader.load(path, done, undefined, done), colorSpace);
+    sharedExternalMaps = {
+      gunmetal: {
+        albedo: loadTexture('./assets/textures/gunmetal_albedo.png', true),
+        normal: loadTexture('./assets/textures/gunmetal_normal.png'),
+        roughness: loadTexture('./assets/textures/gunmetal_roughness.png')
+      },
+      leather: loadTexture('./assets/textures/worn-oxblood-leather-v1.png', true)
+    };
+  } catch {
+    sharedExternalMaps = null;
+    sharedExternalReady = Promise.resolve();
+  }
+  return sharedExternalMaps;
+}
+
+function applyExternalMaps(materials) {
+  const maps = getExternalMaps();
+  if (!maps) return;
+  for (const key of ['iron', 'ironEdge', 'brass', 'steelDark']) {
+    const material = materials[key];
+    if (!material) continue;
+    material.map = maps.gunmetal.albedo;
+    material.normalMap = maps.gunmetal.normal;
+    material.normalScale.set(.52, .52);
+    material.roughnessMap = maps.gunmetal.roughness;
+    material.needsUpdate = true;
+  }
+  if (materials.leather) {
+    materials.leather.map = maps.leather;
+    materials.leather.needsUpdate = true;
+  }
+}
+
 function applySurfaceMaps(materials, maps) {
   for (const key of ['iron', 'ironEdge', 'bone', 'boneDark', 'leather', 'brass']) {
     const material = materials[key];
@@ -167,10 +227,16 @@ function makeMaterials() {
       color: 0xff1739, emissive: 0xff092e, emissiveIntensity: 2.8,
       roughness: .3, metalness: .15
     }),
+    steelDark: new THREE.MeshStandardMaterial({color: 0x17161a, roughness: .78, metalness: .56}),
     muzzle: new THREE.MeshStandardMaterial({
       color: 0xff5a32, emissive: 0xff1f0b, emissiveIntensity: 3.8,
       transparent: true, opacity: .95, roughness: .18
-    })
+    }),
+    heatGlow: new THREE.MeshBasicMaterial({color: 0xff3b21, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false}),
+    flashCore: new THREE.MeshBasicMaterial({color: 0xffe2af, transparent: true, opacity: .95, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false}),
+    flashShell: new THREE.MeshBasicMaterial({color: 0xff6a32, transparent: true, opacity: .6, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false}),
+    flashRing: new THREE.MeshBasicMaterial({color: 0xff2f1b, transparent: true, opacity: .7, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false}),
+    smoke: new THREE.MeshBasicMaterial({color: 0x2b1720, transparent: true, opacity: 0, depthWrite: false, toneMapped: false})
   };
 }
 
@@ -181,6 +247,8 @@ export function createReliquary(options = {}) {
   const materials = makeMaterials();
   const textures = getSurfaceMaps();
   applySurfaceMaps(materials, textures);
+  applyExternalMaps(materials);
+  const resourcesReady = sharedExternalReady;
   applyWeaponMaterialProfile(materials,{iron:{roughness:.58,metalness:.74,envMapIntensity:.44},ironEdge:{roughness:.5,metalness:.8,envMapIntensity:.4},bone:{roughness:.92,envMapIntensity:.24},brass:{roughness:.5,metalness:.76,envMapIntensity:.38},muzzle:{roughness:.25,metalness:.12,envMapIntensity:.12}});
   const part = (name, parent = root) => {
     const g = new THREE.Group();
@@ -356,6 +424,29 @@ export function createReliquary(options = {}) {
   add(sight, new THREE.BoxGeometry(.08, .05, .035), 'bone', [0, .24, -.62]);
   add(sight, new THREE.BoxGeometry(.08, .05, .035), 'bone', [0, .24, -.2]);
 
+  // The receiver is a layered reliquary housing: hard plates, recessed seals,
+  // and a compact shroud make the pressure path readable in three-quarter view.
+  const receiverArmor = receiver;
+  for (const side of [-1, 1]) {
+    add(receiverArmor, profile([[-.12, -.07], [.12, -.07], [.11, .055], [.045, .09], [-.09, .075]], .032, .006, [[0, .006, .018, .012]]), 'ironEdge', [side * .207, .018, -.055], [1, 1, 1], [0, side * Math.PI / 2, 0], 'receiver-armor-' + side);
+    for (const y of [-.075, .075]) {
+      add(receiverArmor, new THREE.CylinderGeometry(.014, .014, .012, 10), 'brass', [side * .226, y, -.14], [1, 1, 1], [0, 0, side * Math.PI / 2], 'receiver-bolt-' + side + '-' + y);
+    }
+    add(receiverArmor, profile([[-.055, -.02], [.055, -.02], [.045, .02], [0, .052], [-.045, .02]], .01, .002), 'boneDark', [side * .226, .02, -.055], [1, 1, 1], [0, side * Math.PI / 2, 0], 'receiver-sigil-' + side);
+  }
+  const shroudDetail = barrel;
+  add(shroudDetail, new THREE.CylinderGeometry(.224, .235, .47, 10, 1, true), 'steelDark', [0, .015, -.67], [1, 1, 1], [Math.PI / 2, 0, Math.PI / 10], 'shroud-shell');
+  for (let i = 0; i < 6; i++) {
+    const a = i / 6 * Math.PI * 2;
+    add(shroudDetail, new THREE.BoxGeometry(.027, .043, .38), 'ironEdge', [Math.cos(a) * .225, .015 + Math.sin(a) * .225, -.67], [1, 1, 1], [0, 0, -a], 'shroud-rib-' + i);
+    add(shroudDetail, new THREE.BoxGeometry(.032, .026, .075), 'soot', [Math.cos(a) * .239, .015 + Math.sin(a) * .239, -.68], [1, 1, 1], [0, 0, -a], 'shroud-vent-' + i);
+  }
+  const trigger = guard;
+  add(trigger, new THREE.BoxGeometry(.024, .085, .03), 'brass', [0, -.16, .015], [1, 1, 1], [.18, 0, 0], 'trigger-blade');
+  const buttCap = stock;
+  add(buttCap, new THREE.CylinderGeometry(.13, .13, .026, 10), 'ironEdge', [0, 0, .465], [1, 1, 1], [Math.PI / 2, 0, 0], 'stock-butt-cap');
+  for (const side of [-1, 1]) add(buttCap, new THREE.TorusGeometry(.055, .009, 6, 14), 'brass', [side * .11, .02, .465], [1, 1, 1], [Math.PI / 2, 0, 0], 'stock-cap-rivet-' + side);
+
   const muzzle = new THREE.Object3D();
   muzzle.name = 'muzzle';
   muzzle.position.set(.035, .027, -.9);
@@ -366,8 +457,18 @@ export function createReliquary(options = {}) {
   recoilCarriage.add(projectileOrigin);
   const muzzleFlash = part('muzzle-flash', recoilCarriage);
   muzzleFlash.visible = false;
-  add(muzzleFlash, new THREE.ConeGeometry(.15, .5, 8), 'muzzle', [0, .015, -1.47], [1, 1, 1], [Math.PI / 2, 0, 0], 'flash-cone');
-  add(muzzleFlash, new THREE.TorusGeometry(.2, .022, 6, 20), 'muzzle', [0, .015, -1.25], [1, 1, 1], [Math.PI / 2, 0, 0], 'flash-ring');
+  add(muzzleFlash, new THREE.ConeGeometry(.115, .5, 8), 'flashCore', [0, .015, -1.47], [1, 1, 1], [Math.PI / 2, 0, 0], 'flash-core');
+  add(muzzleFlash, new THREE.ConeGeometry(.22, .34, 8), 'flashShell', [0, .015, -1.34], [1, 1, 1], [Math.PI / 2, 0, 0], 'flash-shell');
+  add(muzzleFlash, new THREE.TorusGeometry(.2, .022, 6, 20), 'flashRing', [0, .015, -1.25], [1, 1, 1], [Math.PI / 2, 0, 0], 'flash-ring');
+  add(muzzleFlash, new THREE.TorusGeometry(.115, .012, 5, 14), 'flashCore', [0, .015, -1.32], [1, 1, 1], [Math.PI / 2, 0, 0], 'flash-inner-ring');
+  for (let i = 0; i < 6; i++) {
+    const a = i / 6 * Math.PI * 2;
+    add(muzzleFlash, new THREE.ConeGeometry(.018, .14, 5), 'flashCore', [Math.cos(a) * .09, .015 + Math.sin(a) * .09, -1.29], [1, 1, 1], [Math.PI / 2 + Math.sin(a) * .7, Math.cos(a) * .7, a], 'flash-tooth-' + i);
+  }
+  add(muzzleFlash, new THREE.SphereGeometry(.115, 9, 7), 'smoke', [0, .015, -1.22], [.9, .9, 1.4], [0, 0, 0], 'flash-smoke');
+  const heatBloom = part('heat-bloom', recoilCarriage);
+  add(heatBloom, new THREE.SphereGeometry(.115, 9, 7), 'heatGlow', [0, .015, -1.16], [.9, .9, 1.55], [0, 0, 0], 'heat-halo');
+  add(heatBloom, new THREE.TorusGeometry(.17, .012, 5, 18), 'heatGlow', [0, .015, -1.12], [1, 1, 1], [Math.PI / 2, 0, 0], 'heat-ripple');
   const explosion = new THREE.Object3D();
   explosion.name = 'explosion';
   explosion.position.copy(projectileOrigin.position);
@@ -380,14 +481,16 @@ export function createReliquary(options = {}) {
   inspect.name = 'inspect';
   inspect.position.set(0, .1, .25);
   root.add(inspect);
-  const sockets = {muzzle, projectileOrigin, muzzleFlash, recoil: recoilCarriage, heat, inspect, grip, corePulse: core, explosion};
+  const sockets = {muzzle, projectileOrigin, muzzleFlash, heatBloom, recoil: recoilCarriage, heat, inspect, grip, corePulse: core, explosion};
   root.userData.muzzle = muzzle;
   root.userData.projectileOrigin = projectileOrigin;
+  root.userData.resourcesReady = resourcesReady;
 
   // Keep articulated groups separate while collapsing their static surfaces by
   // material. This makes the hero weapon detailed without ballooning draw calls.
   for (const group of Object.values(parts)) compactGroup(group);
   addWearColors(root);
+  stabilizeWeaponVertexWear(root, 29);
 
   const home = new Map();
   const explode = amount => {
@@ -409,7 +512,7 @@ export function createReliquary(options = {}) {
   root.userData.reliquary = {
     kind: 'reliquary',
     variant: options.variant || 'bone-rocket',
-    parts, sockets, materials, textures, recoilCarriage, core, barrel, heatVents,
+    parts, sockets, materials, textures, recoilCarriage, core, barrel, heatVents, heatBloom,
     recoil: 0, flash: 0, heat: 0, charge: 0, lastShot: 0
   };
   return root;
@@ -436,9 +539,18 @@ export function animateReliquary(root, shot = 0, time = 0, dt = .016, state = {}
   meta.heatVents.position.z = -meta.heat * .025;
   meta.core.scale.setScalar(1 + meta.heat * .08 + Math.sin(time * 5.5) * .018);
   meta.materials.ember.emissiveIntensity = 2.2 + meta.heat * 4.4 + Math.sin(time * 6.5) * .18;
-  meta.materials.muzzle.emissiveIntensity = 2.2 + meta.flash * 8;
+  meta.materials.muzzle.emissiveIntensity = 2.2 + meta.flash * 10;
+  meta.materials.flashCore.opacity = .35 + meta.flash * .6;
+  meta.materials.flashShell.opacity = .08 + meta.flash * .52;
+  meta.materials.flashRing.opacity = .12 + meta.flash * .68;
+  meta.materials.smoke.opacity = meta.flash * .22 + meta.heat * .06;
+  meta.materials.heatGlow.opacity = meta.heat * .22;
   meta.sockets.muzzleFlash.visible = meta.flash > .012;
-  meta.sockets.muzzleFlash.scale.setScalar(.7 + meta.flash * 1.25);
+  const flashScale = .72 + meta.flash * 1.35;
+  meta.sockets.muzzleFlash.scale.set(flashScale, flashScale, .78 + meta.flash * 1.08);
   meta.sockets.muzzleFlash.rotation.z = Math.sin(time * 29) * .18;
+  meta.sockets.heatBloom.visible = meta.heat > .01;
+  const heatScale = .82 + meta.heat * .32;
+  meta.sockets.heatBloom.scale.set(heatScale, heatScale, 1 + meta.heat * .82);
   if (state.inspect) meta.sockets.inspect.rotation.y = Math.sin(time * .8) * .08;
 }

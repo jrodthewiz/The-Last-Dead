@@ -1,0 +1,17 @@
+{
+  "passed": false,
+  "checks": {
+    "silhouetteIoU": 0.4203,
+    "aspectRatioDelta": 0.0269,
+    "scaleDelta": 0.0369,
+    "bilateralSymmetryError": 0.0052
+  },
+  "failures": [
+    "silhouette IoU 0.420 is below threshold 0.85"
+  ],
+  "maskWarnings": [
+    "render: image is not clearly isolated from background; using most pixels as material evidence"
+  ],
+  "renderHash": "2ce2d00456385613",
+  "passId": null
+}

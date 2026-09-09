@@ -1,4 +1,5 @@
 import {CAMPAIGN_SECTORS} from './campaign.js';
+import {getRoom, getRoomSequence} from './room-progression.js';
 import {weapons} from './engine.js';
 const PREFS_KEY = 'dead-arrival-prefs-v1';
 
@@ -33,6 +34,11 @@ const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
 const clamp = (value, min, max) => Math.max(min, Math.min(max, Number(value) || 0));
 const fmt = (value, digits = 0) => Number.isFinite(Number(value)) ? Number(value).toFixed(digits) : (digits ? (0).toFixed(digits) : '0');
 const pct = (value) => `${clamp(value, 0, 100).toFixed(0)}%`;
+const roomSequenceCache = new Map();
+const roomCatalogFor = sectorId => {
+  if (!roomSequenceCache.has(sectorId)) roomSequenceCache.set(sectorId, getRoomSequence(sectorId));
+  return roomSequenceCache.get(sectorId);
+};
 
 function loadPrefs() {
   const normalise = (saved) => {
@@ -65,6 +71,84 @@ function enemyTotal(run) {
   return Array.isArray(run?.course?.enemies) ? run.course.enemies.length : 0;
 }
 
+// The room director is the source of truth for the campaign route.  Keep the
+// fallback here deliberately display-only so older snapshots and the menu
+// preview remain readable while the live run migrates to room_progression.
+function roomProgression(run = {}) {
+  // `roomProgression` is the live contract owned by room-progression.js. The
+  // snake_case keys are retained only for older snapshots during migration.
+  const hasLiveContract = !!run.roomProgression;
+  const hasLegacyContract = !hasLiveContract && !!run.room_progression;
+  const source = run.roomProgression || run.room_progression || {};
+  const hasLiveSequence = Array.isArray(source.sequence) && source.sequence.length > 0;
+  const read = (...keys) => {
+    for (const key of keys) {
+      if (source[key] !== undefined && source[key] !== null) return source[key];
+    }
+    return undefined;
+  };
+  const sectorId = String(read('sectorId', 'sector_id') ?? run.sectorId ?? run.course?.sectorId ?? 'bloodworks');
+  const sector = CAMPAIGN_SECTORS.find(item => item.id === sectorId) || CAMPAIGN_SECTORS[Math.max(0, Math.min(CAMPAIGN_SECTORS.length - 1, Math.round(Number(read('sectorIndex', 'sector_index') ?? run.sectorIndex) || 0)))];
+  const sectorIndex = clamp(read('sectorIndex', 'sector_index') ?? run.sectorIndex ?? sector?.index, 0, 99);
+  const sectorCount = Math.max(1, Math.round(Number(read('sectorCount', 'sector_count') ?? run.sectorCount ?? CAMPAIGN_SECTORS.length)) || CAMPAIGN_SECTORS.length);
+  const sequence = hasLiveSequence ? source.sequence : [];
+  const roomCount = Math.max(1, sequence.length || (hasLiveContract ? Math.round(Number(read('roomCount', 'room_count')) || 1) : Math.round(Number(read('roomCount', 'room_count') ?? sectorCount)) || sectorCount));
+  const requestedIndex = Math.round(Number(read('currentIndex', 'roomIndex', 'room_index')) || 0);
+  const roomIndex = Math.max(0, Math.min(roomCount - 1, requestedIndex));
+  const activeRoomId = String(read('activeRoomId', 'active_room_id') ?? sequence[roomIndex] ?? '');
+  const indexedRoomId = sequence[roomIndex] ? String(sequence[roomIndex]) : '';
+  const roomCatalog = roomCatalogFor(sectorId);
+  const activeRoom = activeRoomId ? getRoom(activeRoomId) : null;
+  const indexedRoom = indexedRoomId ? getRoom(indexedRoomId) : null;
+  // A partially applied network snapshot can briefly disagree. Showing a
+  // neutral sync label is safer than presenting the wrong authored room.
+  const roomInCatalog = room => !!room && roomCatalog.some(item => item.id === room.id);
+  const roomInSync = hasLiveContract
+    ? (hasLiveSequence && roomInCatalog(activeRoom) && roomInCatalog(indexedRoom) && activeRoom.id === indexedRoom.id)
+    : !hasLegacyContract || !hasLiveSequence || (roomInCatalog(activeRoom) && roomInCatalog(indexedRoom) && activeRoom.id === indexedRoom.id);
+  const sectorName = String(read('sectorName', 'sector_name') ?? sector?.name ?? run.sectorName ?? run.course?.name ?? 'The Bloodworks');
+  const roomName = hasLiveContract || hasLiveSequence
+    ? (roomInSync ? String(activeRoom?.name || indexedRoom?.name || `Room ${roomIndex + 1}`) : 'ROOM SYNCING')
+    : String(read('roomName', 'room_name', 'name') ?? sectorName);
+  const waveCount = Math.max(1, Math.round(Number(read('waveCount', 'wave_count') ?? run.waveCount ?? 3)) || 3);
+  const wave = clamp(read('wave', 'waveIndex', 'wave_index') ?? run.wave, 0, waveCount);
+  const remaining = Math.max(0, Math.round(Number(read('threatRemaining', 'threat_remaining', 'remaining') ?? enemyCount(run))) || 0);
+  const total = Math.max(0, Math.round(Number(read('threatTotal', 'threat_total', 'total') ?? enemyTotal(run))) || 0);
+  const pending = Math.max(0, Math.round(Number(read('threatPending', 'threat_pending', 'pending') ?? run.director?.pending ?? 0)) || 0);
+  const state = String(read('phase', 'state') ?? run.director?.state ?? 'combat').toLowerCase();
+  const exitReady = hasLiveSequence ? state === 'exit' : Boolean(read('exitUnlocked', 'exit_unlocked', 'exit_ready', 'exitReady') ?? (wave >= waveCount && remaining === 0 && pending === 0));
+  const completed = Array.isArray(source.completed) ? source.completed : [];
+  const waveProgress = exitReady
+    ? 1
+    : (Math.max(0, wave - 1) + (total ? Math.max(0, total - remaining) / Math.max(1, total + pending) : 0)) / waveCount;
+  const suppliedProgress = Number(read('progress', 'roomProgress', 'room_progress'));
+  const progress = clamp(Number.isFinite(suppliedProgress)
+    ? (suppliedProgress > 1 ? suppliedProgress / 100 : suppliedProgress)
+    : hasLiveSequence
+      ? (completed.length + (state === 'exit' ? 1 : waveProgress)) / roomCount
+      : waveProgress, 0, 1);
+  return {
+    sectorIndex,
+    sectorCount,
+    sectorName,
+    roomIndex,
+    roomCount,
+    roomName,
+    wave,
+    waveCount,
+    remaining,
+    total,
+    pending,
+    state,
+    exitReady,
+    progress,
+    sync: roomInSync,
+    objective: String(read('objective', 'objective_text', 'objectiveText') ?? ''),
+    subtitle: String(read('subtitle', 'subtext', 'statusText', 'status_text') ?? ''),
+    threat: String(read('threat', 'threatText', 'threat_text') ?? ''),
+  };
+}
+
 export class UI {
   constructor({
     root = document.querySelector('#ui'),
@@ -79,22 +163,31 @@ export class UI {
     onDisconnect = () => {},
     onSettings = () => {},
     onWeapon = () => {},
+    onSound = () => {},
   } = {}) {
     if (!root) throw new Error('The Last Dead UI requires #ui');
     this.root = root;
-    this.callbacks = { onStart, onResume, onRestart, onMenu, onPause, onHost, onJoin, onAccept, onDisconnect, onSettings, onWeapon };
+    this.callbacks = { onStart, onResume, onRestart, onMenu, onPause, onHost, onJoin, onAccept, onDisconnect, onSettings, onWeapon, onSound };
     this.prefs = loadPrefs();
     this.screen = 'menu';
     this.run = null;
     this._toastTimer = 0;
     this._lastEventCount = 0;
     this._network = 'OFFLINE';
+    this._roomCode = '';
+    this._connectionBusy = false;
     this.debug = new URLSearchParams(location.search).has('debug');
     this._wireRoot();
     this._applyPrefs();
   }
 
   _wireRoot() {
+    const hover = event => {
+      const target = event.target.closest('button');
+      if (target && !target.disabled && this.screen !== 'play' && !target.contains(event.relatedTarget)) this.callbacks.onSound('hover');
+    };
+    this.root.addEventListener('pointerover', hover);
+    this.root.addEventListener('focusin', hover);
     this.root.addEventListener('click', (event) => {
       const target = event.target.closest('[data-action]');
       if (!target || !this.root.contains(target)) return;
@@ -102,6 +195,7 @@ export class UI {
       if (target.disabled) return;
       if (['forward', 'back', 'left', 'right', 'jump', 'dash', 'slide', 'fire', 'alt', 'parry', 'weapon', 'look'].includes(action)) return;
       event.preventDefault();
+      this.callbacks.onSound(['menu','close-settings','disconnect'].includes(action) ? 'cancel' : ['start','restart','resume','accept'].includes(action) ? 'confirm' : 'ui');
       this._dispatch(action, target);
     });
 
@@ -115,6 +209,7 @@ export class UI {
       const control = event.target.closest('[data-setting]');
       if (!control || !this.root.contains(control)) return;
       this._updatePref(control.dataset.setting, control.type === 'checkbox' ? control.checked : control.value);
+      this.callbacks.onSound('toggle');
     });
 
     this.root.addEventListener('pointerdown', (event) => {
@@ -141,7 +236,7 @@ export class UI {
       case 'menu': this.callbacks.onMenu(); break;
       case 'pause': this.callbacks.onPause(); break;
       case 'host': this.callbacks.onHost(); break;
-      case 'join': this.callbacks.onJoin(this.root.querySelector('[name="joinOffer"]')?.value.trim() || ''); break;
+      case 'join': this.callbacks.onJoin(this.root.querySelector('[name="joinCode"]')?.value.trim() || this.root.querySelector('[name="joinOffer"]')?.value.trim() || ''); break;
       case 'accept': {
         const acceptCode = this.root.querySelector('[name="acceptAnswer"]')?.value.trim() || this.root.querySelector('[name="answer"]')?.value.trim() || '';
         this.callbacks.onAccept(acceptCode);
@@ -151,7 +246,7 @@ export class UI {
       case 'coop-toggle': this._toggleCoop(); break;
       case 'settings': this._setSettingsOpen(true); break;
       case 'close-settings': this._setSettingsOpen(false); break;
-      case 'copy-offer': this._copyCode('offer', target); break;
+      case 'copy-offer': this._copyCode('roomCode', target); break;
       case 'copy-answer': this._copyCode('answer', target); break;
       case 'clear-network': this._clearNetwork(); break;
       default: break;
@@ -180,13 +275,27 @@ export class UI {
   }
 
   _clearNetwork() {
-    const offer = this.root.querySelector('[name="offer"]');
-    const answer = this.root.querySelector('[name="answer"]');
-    const joinOffer = this.root.querySelector('[name="joinOffer"]');
-    if (offer) offer.value = '';
-    if (answer) answer.value = '';
-    if (joinOffer) joinOffer.value = '';
-    this._setNetworkMessage('Co-op signaling cleared.', '');
+    for (const name of ['roomCode', 'offer', 'answer', 'joinCode', 'joinOffer', 'acceptAnswer']) {
+      const input = this.root.querySelector('[name="' + name + '"]');
+      if (input) input.value = '';
+    }
+    this._roomCode = '';
+    this._syncCoopControls();
+    this._setNetworkMessage('Co-op code cleared.', '');
+  }
+
+  _syncCoopControls() {
+    const panel = this.root.querySelector('[data-coop-panel]');
+    if (!panel) return;
+    const busy = this._connectionBusy === true;
+    const roomCode = this._roomCode || panel.querySelector('[name="roomCode"]')?.value.trim() || '';
+    panel.setAttribute('aria-busy', String(busy));
+    panel.querySelectorAll('button').forEach((button) => {
+      const action = button.dataset.action;
+      button.disabled = action === 'disconnect' ? false : action === 'copy-offer' ? !roomCode : busy;
+    });
+    const joinCode = panel.querySelector('[name="joinCode"]');
+    if (joinCode) joinCode.disabled = busy;
   }
 
   _toggleCoop() {
@@ -198,7 +307,7 @@ export class UI {
     panel.classList.toggle('is-open', open);
     trigger.setAttribute('aria-expanded', String(open));
     trigger.querySelector('[data-coop-icon]')?.replaceChildren(document.createTextNode(open ? '-' : '+'));
-    if (open) panel.querySelector('input, button')?.focus();
+    if (open) panel.querySelector('[name="joinCode"], input, button')?.focus();
   }
 
   _setSettingsOpen(open) {
@@ -265,34 +374,38 @@ export class UI {
 
   _settingsMarkup() {
     return `<aside class="settings-drawer" aria-hidden="true" aria-label="Settings">
-      <div class="settings-heading"><div><span class="kicker">FIELD OPTIONS</span><h2>Settings</h2></div><button class="icon-button" type="button" data-action="close-settings" aria-label="Close settings">x</button></div>
-      <div class="setting-row"><div class="setting-copy"><strong>Look sensitivity</strong><span>Mouse and touch camera response</span></div><output class="setting-value" data-setting-value="sensitivity">${Number(this.prefs.sensitivity).toFixed(2)}x</output><input type="range" min="0.25" max="2" step="0.05" value="${esc(this.prefs.sensitivity)}" data-setting="sensitivity" aria-label="Look sensitivity" /></div>
-      <div class="setting-row"><div class="setting-copy"><strong>Signal volume</strong><span>Weapon, impact, and arena audio</span></div><output class="setting-value" data-setting-value="volume">${Math.round(this.prefs.volume * 100)}%</output><input type="range" min="0" max="1" step="0.05" value="${esc(this.prefs.volume)}" data-setting="volume" aria-label="Signal volume" /></div>
-      <label class="setting-row"><span class="setting-copy"><strong>Reduced motion</strong><span>Lower screen shake and interface motion</span></span><span class="toggle"><input type="checkbox" data-setting="reducedMotion" ${this.prefs.reducedMotion ? 'checked' : ''} /><span class="toggle-track"></span></span></label>
-      <label class="setting-row"><span class="setting-copy"><strong>Gore effects</strong><span>Blood spray and impact fragments</span></span><span class="toggle"><input type="checkbox" data-setting="gore" ${this.prefs.gore ? 'checked' : ''} /><span class="toggle-track"></span></span></label>
-      <label class="setting-row"><span class="setting-copy"><strong>Auto-run</strong><span>Hold the line without holding forward</span></span><span class="toggle"><input type="checkbox" data-setting="autoRun" ${this.prefs.autoRun ? 'checked' : ''} /><span class="toggle-track"></span></span></label>
-      <p class="network-state">Preferences are stored on this device. Auto-run can also be changed before each run.</p>
+      <div class="settings-heading"><h2>Settings</h2><button class="icon-button" type="button" data-action="close-settings" aria-label="Close settings">x</button></div>
+      <div class="setting-row"><div class="setting-copy"><strong>Look sensitivity</strong></div><output class="setting-value" data-setting-value="sensitivity">${Number(this.prefs.sensitivity).toFixed(2)}x</output><input type="range" min="0.25" max="2" step="0.05" value="${esc(this.prefs.sensitivity)}" data-setting="sensitivity" aria-label="Look sensitivity" /></div>
+      <div class="setting-row"><div class="setting-copy"><strong>Volume</strong></div><output class="setting-value" data-setting-value="volume">${Math.round(this.prefs.volume * 100)}%</output><input type="range" min="0" max="1" step="0.05" value="${esc(this.prefs.volume)}" data-setting="volume" aria-label="Volume" /></div>
+      <label class="setting-row"><span class="setting-copy"><strong>Reduced motion</strong></span><span class="toggle"><input type="checkbox" data-setting="reducedMotion" ${this.prefs.reducedMotion ? 'checked' : ''} /><span class="toggle-track"></span></span></label>
+      <label class="setting-row"><span class="setting-copy"><strong>Gore effects</strong></span><span class="toggle"><input type="checkbox" data-setting="gore" ${this.prefs.gore ? 'checked' : ''} /><span class="toggle-track"></span></span></label>
+      <label class="setting-row"><span class="setting-copy"><strong>Auto-run</strong></span><span class="toggle"><input type="checkbox" data-setting="autoRun" ${this.prefs.autoRun ? 'checked' : ''} /><span class="toggle-track"></span></span></label>
+
     </aside>`;
   }
 
   menu() {
-    this.screen='menu';this.root.dataset.screen='menu';this.root.dataset.settingsOpen='false';this.run=null;
+    this.screen='menu';this.root.dataset.screen='menu';this.root.dataset.settingsOpen='false';this.run=null;this._roomCode='';this._connectionBusy=false;
     this.root.innerHTML=`<section class="screen menu-screen" aria-label="The Last Dead main menu">
-     <div class="menu-shell"><div class="menu-copy"><div class="brand-lockup"><span class="brand-eyebrow">A DESCENT INTO VIOLENCE</span><h1 class="brand-title"><span>THE</span><em>LAST<br>DEAD</em></h1><p class="brand-tagline">BLOOD IS FUEL. KEEP MOVING.</p></div></div>
-     <nav class="menu-actions" aria-label="Main menu"><button class="primary-button start-button" type="button" data-action="start"><span class="menu-choice">DESCEND</span><small>NEW RUN / THE BLOODWORKS</small></button>
-          <div class="coop-access"><button class="coop-toggle" type="button" data-action="coop-toggle" aria-expanded="false" aria-controls="coop-form"><span><b>Co-op uplink</b><small>Optional peer-to-peer breach</small></span><i data-coop-icon>+</i></button>
-            <div class="coop-panel" id="coop-form" data-coop-panel hidden>
-              <div class="network-panel"><span class="field-label">Host a breach</span><div class="network-row"><input class="code-input" name="offer" autocomplete="off" spellcheck="false" placeholder="Offer code appears here" aria-label="Host offer code" readonly /><button class="network-button" type="button" data-action="host">Create offer</button></div><div class="network-row"><button class="text-button" type="button" data-action="copy-offer">Copy offer code</button><span></span></div></div>
-              <div class="network-panel"><span class="field-label">Join a breach</span><div class="network-row"><input class="code-input" name="joinOffer" autocomplete="off" spellcheck="false" placeholder="Paste host offer" aria-label="Join offer code" /><button class="network-button" type="button" data-action="join">Make answer</button></div><div class="network-row"><input class="code-input" name="answer" autocomplete="off" spellcheck="false" placeholder="Answer code appears here" aria-label="Answer code" readonly /><button class="network-button" type="button" data-action="copy-answer">Copy</button></div><div class="network-row"><input class="code-input" name="acceptAnswer" autocomplete="off" spellcheck="false" placeholder="Host: paste answer here" aria-label="Accept answer code" /><button class="network-button" type="button" data-action="accept">Accept</button></div><div class="network-row"><button class="text-button" type="button" data-action="disconnect">Disconnect uplink</button><button class="text-button" type="button" data-action="clear-network">Clear codes</button></div><span class="network-state" data-network-message>Codes stay in this browser until you clear them.</span></div>
+     <div class="menu-shell"><div class="menu-copy"><div class="brand-lockup"><h1 class="brand-title"><span>THE</span><em>LAST<br>DEAD</em></h1></div></div>
+     <nav class="menu-actions" aria-label="Main menu"><button class="primary-button start-button" type="button" data-action="start"><span class="menu-choice">PLAY</span></button>
+          <div class="coop-access"><button class="coop-toggle" type="button" data-action="coop-toggle" aria-expanded="false" aria-controls="coop-form"><span><b>CO-OP</b></span><i data-coop-icon>+</i></button>
+                        <div class="coop-panel" id="coop-form" data-coop-panel hidden aria-label="Co-op connection">
+              <div class="network-panel">
+                <div class="network-row network-heading"><span class="field-label">CO-OP</span><span class="network-state" data-network-message role="status">Ready</span></div>
+                <div class="network-row network-code-row"><input class="code-input room-code" name="roomCode" autocomplete="off" spellcheck="false" placeholder="Host code" aria-label="Room code" readonly /><button class="network-button" type="button" data-action="copy-offer">Copy</button></div>
+                <div class="network-row network-actions" data-coop-actions><button class="network-button" type="button" data-action="host">Host</button><button class="network-button" type="button" data-action="disconnect">Cancel</button></div>
+                <div class="network-row network-join-row"><input class="code-input" name="joinCode" autocomplete="off" spellcheck="false" placeholder="Enter 6-character code" aria-label="Join code" maxlength="6" inputmode="text" autocapitalize="characters" /><button class="network-button" type="button" data-action="join">Join</button></div>
+              </div>
             </div>
           </div>
 
-      <button class="menu-link" type="button" data-action="settings">OPTIONS <span>03</span></button>
-      <button class="menu-link" type="button" data-action="guide" aria-expanded="false">HOW TO SURVIVE <span>04</span></button>
-      <div class="field-guide" hidden><h2>Move. Kill. Recover.</h2><p>Damage enemies up close to heal. Switch weapons, parry incoming attacks, and keep your momentum.</p><div class="guide-controls"><b>WASD</b><span>Move / mouse to aim</span><b>SPACE / SHIFT</b><span>Jump / dash</span><b>CTRL / F / E</b><span>Slide / parry / tether</span><b>1 2 3 4</b><span>Switch weapons</span><b>RIGHT CLICK</b><span>Coin / core / rocket airburst</span></div><p>Clear the waves. Find the exit. Descend.</p></div>
-     </nav><div class="descent-route"><span>THE DESCENT</span><ol>${CAMPAIGN_SECTORS.map((sector,i)=>`<li><b>${String(i+1).padStart(2,'0')}</b>${esc(sector.name.replace(/^The /,''))}</li>`).join('')}</ol></div><small class="build-revision">THE LAST DEAD / BUILD 10</small></div>
+      <button class="menu-link" type="button" data-action="settings">SETTINGS</button>
+      <button class="menu-link" type="button" data-action="guide" aria-expanded="false">CONTROLS</button>
+      <div class="field-guide" hidden><h2>Controls</h2><div class="guide-controls"><b>WASD</b><span>Move / aim</span><b>SPACE / SHIFT</b><span>Jump / dash</span><b>CTRL / F / E</b><span>Slide / parry / tether</span><b>1 2 3 4</b><span>Switch weapons</span><b>RIGHT CLICK</b><span>Alternate fire</span></div></div>
+     </nav></div>
     </section>${this._settingsMarkup()}`;
-    this._applyPrefs();queueMicrotask(()=>this.root.querySelector('.start-button')?.focus({preventScroll:true}));return this;
+    this._applyPrefs();this._syncCoopControls();queueMicrotask(()=>this.root.querySelector('.start-button')?.focus({preventScroll:true}));return this;
   }
 
   pause() {
@@ -300,7 +413,7 @@ export class UI {
     const old = this.root.querySelector('.screen');
     if (old) old.remove();
     this.root.insertAdjacentHTML('afterbegin', `<section class="screen pause-screen" aria-label="Paused">
-      <div class="pause-backdrop"></div><div class="pause-card"><span class="kicker">THE LAST DEAD / PAUSED</span><h2>STILL<br><em>BREATHING.</em></h2><p class="pause-copy">The arena is waiting. Pick a line, find a target, and keep your momentum when the signal returns.</p><div class="pause-actions"><button class="primary-button" type="button" data-action="resume">RESUME <span>01</span></button><button class="secondary-button" type="button" data-action="restart">RESTART RUN</button><button class="secondary-button" type="button" data-action="settings">Settings</button><button class="text-button" type="button" data-action="menu">RETURN TO TITLE</button></div></div>
+      <div class="pause-backdrop"></div><div class="pause-card"><span class="kicker">THE LAST DEAD / PAUSED</span><h2>STILL<br><em>BREATHING.</em></h2><p class="pause-copy">The arena is waiting. Pick a line, find a target, and keep your momentum when the signal returns.</p><div class="pause-actions"><button class="primary-button" type="button" data-action="resume">RESUME</button><button class="secondary-button" type="button" data-action="restart">RESTART RUN</button><button class="secondary-button" type="button" data-action="settings">Settings</button><button class="text-button" type="button" data-action="menu">RETURN TO TITLE</button></div></div>
     </section>${this._settingsMarkup()}`);
     this._applyPrefs();
     return this;
@@ -356,7 +469,14 @@ export class UI {
   _hudMarkup() {
     return `<div class="hud" aria-label="The Last Dead combat HUD">
       <div class="blood-veil" aria-hidden="true"><svg viewBox="0 0 1600 900" preserveAspectRatio="none"><path d="M0 0H390L270 24L210 13L188 70L165 35L139 118L112 46L75 190L52 84L0 256ZM1600 0H1300L1380 24L1395 86L1420 34L1460 151L1482 66L1525 218L1554 92L1600 267ZM0 900V580L28 689L61 648L43 738L96 716L88 810L158 773L149 868L280 900ZM1600 900V572L1575 665L1542 640L1550 752L1509 734L1496 841L1433 801L1418 884L1310 900Z"/><g><ellipse cx="57" cy="340" rx="9" ry="25"/><ellipse cx="1518" cy="392" rx="12" ry="33"/><ellipse cx="233" cy="53" rx="8" ry="19"/><ellipse cx="1384" cy="850" rx="13" ry="8"/></g></svg></div>
-      <div class="hud-top"><div class="hud-cluster"><div class="objective"><span class="hud-label" data-hud="sector">I / BLOODWORKS</span><strong class="hud-value" data-hud="objective">WAVE 01 / 03</strong><span class="hud-sub" data-hud="objective-sub">HUNT THEM DOWN</span><div class="objective-progress"><i data-hud="objective-progress"></i></div></div></div>
+      <div class="hud-top"><div class="hud-cluster"><div class="objective" data-progression="room">
+        <div class="objective-context"><span class="hud-label" data-hud="sector">I / BLOODWORKS</span><span class="objective-divider" aria-hidden="true">/</span><span class="room-index" data-hud="room-index">ROOM 01 / 04</span></div>
+        <strong class="room-name" data-hud="room-name">INTAKE BAY</strong>
+        <div class="objective-line"><strong class="hud-value" data-hud="objective">CLEAR INTAKE BAY</strong><span class="room-threat" data-hud="room-threat">THREAT ACTIVE</span></div>
+        <span class="hud-sub" data-hud="objective-sub">HUNT THEM DOWN</span>
+        <div class="objective-progressline"><div class="objective-progress"><i data-hud="objective-progress"></i></div><span class="room-progress-label" data-hud="room-progress-label">00% CLEAR</span></div>
+        <div class="room-route" data-hud="room-route" role="progressbar" aria-label="Room progression" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+      </div></div>
        <div class="run-clock"><span data-hud="run-clock">00:00</span><small data-hud="network">SOLO</small><small data-hud="fps" hidden></small></div>
        <div class="hud-cluster"><div class="rank"><span class="rank-caption">STYLE</span><strong data-hud="rank">D</strong><div class="rank-meter"><i data-hud="style-fill"></i></div><span data-hud="style-label">GET CLOSE.</span><div class="combat-feed" aria-live="off"></div></div><button class="hud-pause" type="button" data-action="pause" aria-label="Pause game">II</button></div></div>
       <div class="crosshair" data-hud="crosshair" aria-hidden="true"><span class="hitmarker"></span><i></i><b></b></div>
@@ -367,6 +487,42 @@ export class UI {
 
   _touchMarkup() {
     return `<div class="touch-layer" aria-label="Touch controls" hidden><div class="touch-look" data-touch-look="true" aria-label="Drag to look"></div><div class="touch-cluster touch-left"><button class="touch-button dash" type="button" data-action="dash" aria-label="Dash">DASH</button><button class="touch-button forward" type="button" data-action="forward" aria-label="Move forward">UP</button><button class="touch-button left" type="button" data-action="left" aria-label="Strafe left">LEFT</button><button class="touch-button back" type="button" data-action="back" aria-label="Move backward">DOWN</button><button class="touch-button right" type="button" data-action="right" aria-label="Strafe right">RIGHT</button><button class="touch-button slide" type="button" data-action="slide" aria-label="Slide or slam">SLAM</button></div><div class="touch-cluster touch-right"><button class="touch-button weapon" type="button" data-action="weapon" aria-label="Switch weapon">WEAP</button><button class="touch-button hook" type="button" data-action="hook" aria-label="Tether or pull">HOOK</button><button class="touch-button alt" type="button" data-action="alt" aria-label="Alternate fire">ALT</button><button class="touch-button parry" type="button" data-action="parry" aria-label="Punch or parry">PARRY</button><button class="touch-button fire" type="button" data-action="fire" aria-label="Fire">FIRE</button><button class="touch-button jump" type="button" data-action="jump" aria-label="Jump">JUMP</button></div></div>`;
+  }
+
+  _updateRoomRoute(progression) {
+    const route = this.root.querySelector('[data-hud="room-route"]');
+    if (!route) return;
+    const count = Math.max(1, Math.min(12, Math.round(progression.roomCount) || 1));
+    if (this._roomRouteCount !== count || route.children.length !== count) {
+      route.replaceChildren(...Array.from({ length: count }, (_, index) => {
+        const step = document.createElement('i');
+        step.className = 'room-step';
+        step.dataset.roomStep = String(index);
+        step.setAttribute('aria-hidden', 'true');
+        return step;
+      }));
+      this._roomRouteCount = count;
+    }
+    if (!progression.sync) {
+      route.querySelectorAll('[data-room-step]').forEach(step => {
+        step.classList.remove('is-complete', 'is-active');
+        step.style.setProperty('--step-progress', '0%');
+      });
+      route.setAttribute('aria-valuenow', '0');
+      route.setAttribute('aria-label', 'Room progression synchronizing');
+      return;
+    }
+    const current = Math.max(0, Math.min(count - 1, Math.round(progression.roomIndex) || 0));
+    const fraction = Math.max(0, Math.min(1, progression.progress));
+    route.querySelectorAll('[data-room-step]').forEach((step, index) => {
+      const complete = index < current;
+      step.classList.toggle('is-complete', complete);
+      step.classList.toggle('is-active', index === current);
+      step.style.setProperty('--step-progress', complete ? '100%' : index === current ? `${Math.round(fraction * 100)}%` : '0%');
+    });
+    const overall = ((current + fraction) / count) * 100;
+    route.setAttribute('aria-valuenow', String(Math.round(Math.max(0, Math.min(100, overall)))));
+    route.setAttribute('aria-label', `Room ${current + 1} of ${count}, ${Math.round(fraction * 100)} percent clear`);
   }
 
   hud(run = this.run, { network = this._network, fps = null } = {}) {
@@ -381,15 +537,16 @@ export class UI {
     hud.hidden = this.screen!=='play'||(mode!=='play'&&mode!=='ready');
     const touch = this.root.querySelector('.touch-layer');
     if (touch) touch.hidden = this.screen!=='play';
+    const progression = roomProgression(run);
     const health = clamp(run.health, 0, 100);
     const energy = clamp(run.energy, 0, 100);
     const style = clamp(run.style, 0, 1800);
-    const waveCount = run.waveCount || 3;
-    const currentWave = clamp(run.wave, 0, waveCount);
-    const pending = Math.max(0, run.director?.pending || 0);
-    const exitReady = currentWave >= waveCount && enemyCount(run) === 0 && pending === 0;
-    const remaining = enemyCount(run);
-    const total = enemyTotal(run);
+    const waveCount = progression.waveCount;
+    const currentWave = progression.wave;
+    const pending = progression.pending;
+    const exitReady = progression.exitReady;
+    const remaining = progression.remaining;
+    const total = progression.total;
     const weapon = clamp(run.weapon, 0, WEAPON_NAMES.length - 1);
     const cooldown = Math.max(0, Number(run.cooldowns?.[weapon] || run.fireCooldown || 0));
     const maxCooldown = weapons[weapon]?.interval || 1;
@@ -421,10 +578,25 @@ export class UI {
     this._setHud('network', network || 'OFFLINE');
     const fpsNode = this.root.querySelector('[data-hud="fps"]');
     if (fpsNode) { fpsNode.hidden = !this.debug; if (this.debug) fpsNode.textContent = fps ? `${Math.round(fps)} FPS` : '-- FPS'; }
-    this._setHud('sector', `${['I','II','III'][run.sectorIndex||0]} / ${(run.sectorName||run.course?.name||'Bloodworks').replace(/^The /,'')}`);
-    this._setHud('objective', exitReady ? ((run.sectorIndex||0)<(run.sectorCount||3)-1?'DESCEND THROUGH EXIT':'REACH THE FINAL EXIT') : run.director?.state==='intermission' ? `NEXT WAVE IN ${Math.ceil(run.waveDelay||0)}s` : `WAVE ${String(Math.max(1,currentWave)).padStart(2,'0')} / ${waveCount}`);
-    this._setHud('objective-sub', exitReady ? 'Green exit signal is live' : `${remaining} REMAIN${pending?' / '+pending+' INCOMING':''}`);
-    this._setHud('objective-progress', '', exitReady ? 100 : (Math.max(0,currentWave-1)+(total?Math.max(0,total-remaining)/(total+pending):0))/waveCount*100);
+    const sectorRoman = ['I', 'II', 'III'][Math.min(2, Math.max(0, Math.round(progression.sectorIndex)))] || String(Math.round(progression.sectorIndex) + 1).padStart(2, '0');
+    const sectorTitle = progression.sectorName.replace(/^The /, '');
+    const intermission = progression.state === 'intermission';
+    const fallbackObjective = exitReady
+      ? (progression.sectorIndex < progression.sectorCount - 1 ? 'DESCEND THROUGH EXIT' : 'REACH THE FINAL EXIT')
+      : intermission
+        ? `NEXT WAVE IN ${Math.ceil(Number(run.waveDelay) || 0)}s`
+        : `WAVE ${String(Math.max(1, currentWave)).padStart(2, '0')} / ${waveCount}`;
+    const fallbackSubtitle = exitReady ? 'EXIT SIGNAL LIVE' : intermission ? 'BREACH WINDOW OPEN' : 'HUNT THEM DOWN';
+    const fallbackThreat = remaining ? `${remaining} REMAIN${pending ? ` / ${pending} INCOMING` : ''}` : pending ? `${pending} INCOMING` : 'NO ACTIVE THREATS';
+    this._setHud('sector', `${sectorRoman} / ${sectorTitle}`);
+    this._setHud('room-index', progression.sync ? `ROOM ${String(Math.round(progression.roomIndex) + 1).padStart(2, '0')} / ${String(progression.roomCount).padStart(2, '0')}` : 'ROOM -- / --');
+    this._setHud('room-name', progression.roomName);
+    this._setHud('objective', progression.objective || fallbackObjective);
+    this._setHud('objective-sub', progression.subtitle || fallbackSubtitle);
+    this._setHud('room-threat', progression.threat || fallbackThreat);
+    this._setHud('room-progress-label', `${Math.round(progression.progress * 100)}% CLEAR`);
+    this._setHud('objective-progress', '', exitReady ? 100 : (Math.max(0, currentWave - 1) + (total ? Math.max(0, total - remaining) / Math.max(1, total + pending) : 0)) / waveCount * 100);
+    this._updateRoomRoute(progression);
     this.root.querySelectorAll('[data-dash]').forEach((pip, index) => pip.classList.toggle('is-ready', energy >= (index + 1) * 33));
     return this;
   }
@@ -465,11 +637,26 @@ export class UI {
     return this;
   }
 
-  setOffer(code) {
-    const input = this.root.querySelector('[name="offer"]');
-    if (input) input.value = code || '';
-    this._setNetworkMessage(code ? 'Offer ready. Send it to your breach partner.' : 'Waiting for a host offer.', code ? 'ready' : '');
+  setRoomCode(code) {
+    const value = String(code || '').trim();
+    this._roomCode = value;
+    const input = this.root.querySelector('[name="roomCode"]') || this.root.querySelector('[name="offer"]');
+    if (input) input.value = value;
+    this._syncCoopControls();
+    this._setNetworkMessage(value ? 'Room code ready. Copy it for your partner.' : 'Waiting for a host code.', value ? 'ready' : '');
     return this;
+  }
+
+  setConnectionBusy(busy, message = '') {
+    this._connectionBusy = Boolean(busy);
+    this.root.dataset.connectionBusy = String(this._connectionBusy);
+    this._syncCoopControls();
+    if (message) this._setNetworkMessage(message, this._connectionBusy ? 'busy' : '');
+    return this;
+  }
+
+  setOffer(code) {
+    return this.setRoomCode(code);
   }
 
   setAnswer(code) {

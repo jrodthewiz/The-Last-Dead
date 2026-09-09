@@ -1,0 +1,853 @@
+{
+  "passed": true,
+  "url": "http://127.0.0.1:5200/?debug=1",
+  "campaign": [
+    {
+      "index": 0,
+      "id": "bloodworks",
+      "name": "The Bloodworks",
+      "waves": 3,
+      "budgets": [
+        5,
+        9,
+        14
+      ],
+      "aliveCaps": [
+        4,
+        5,
+        6
+      ],
+      "introduces": [
+        "stalker",
+        "caster",
+        "skitter",
+        "bloodhound",
+        "brute",
+        "hexer"
+      ]
+    },
+    {
+      "index": 1,
+      "id": "ossuary",
+      "name": "The Ossuary",
+      "waves": 3,
+      "budgets": [
+        9,
+        13,
+        18
+      ],
+      "aliveCaps": [
+        5,
+        6,
+        6
+      ],
+      "introduces": [
+        "bloodhound",
+        "skitter",
+        "caster",
+        "hexer",
+        "brute",
+        "bellwraith",
+        "warden",
+        "bellwraithEcho"
+      ]
+    },
+    {
+      "index": 2,
+      "id": "choir",
+      "name": "The Choir of Teeth",
+      "waves": 3,
+      "budgets": [
+        12,
+        18,
+        27
+      ],
+      "aliveCaps": [
+        6,
+        7,
+        8
+      ],
+      "introduces": [
+        "bloodhound",
+        "bellwraithEcho",
+        "hexer",
+        "skitter",
+        "brute",
+        "bellwraith",
+        "warden",
+        "mireSinger"
+      ]
+    }
+  ],
+  "initial": {
+    "mode": "play",
+    "sectorIndex": 0,
+    "sectorName": "The Bloodworks",
+    "wave": 0,
+    "waveCount": 3,
+    "directorState": "intermission",
+    "pending": 0,
+    "active": 0,
+    "health": 100,
+    "canvas": {
+      "width": 1440,
+      "height": 900,
+      "clientWidth": 1440,
+      "clientHeight": 900
+    },
+    "pngBytes": 38290,
+    "render": {
+      "calls": 199,
+      "triangles": 72464,
+      "geometries": 566,
+      "textures": 62
+    },
+    "hud": {
+      "sector": "I / Bloodworks",
+      "room": "Intake Bay",
+      "objective": "Clear Intake Bay",
+      "route": "0"
+    }
+  },
+  "input": {
+    "yBefore": 10.5,
+    "yAfter": 10.265666797903043,
+    "weapon": 0
+  },
+  "progression": {
+    "roomRecords": [
+      {
+        "sector": 0,
+        "roomIndex": 0,
+        "roomId": "bloodworks-act-i-entry",
+        "doorId": "bloodworks-act-i-entry-portal-0",
+        "routeNodes": 15,
+        "doorCount": 2,
+        "lockedBefore": true,
+        "atDoorX": true,
+        "blockedPosition": true,
+        "targetWave": 1,
+        "clearedStayed": true,
+        "unlocked": true,
+        "entered": true,
+        "yAfterDoor": 8.87446800604223
+      },
+      {
+        "sector": 0,
+        "roomIndex": 1,
+        "roomId": "bloodworks-act-i-gallery",
+        "doorId": "bloodworks-act-i-gallery-portal-0",
+        "routeNodes": 11,
+        "doorCount": 2,
+        "lockedBefore": true,
+        "atDoorX": true,
+        "blockedPosition": true,
+        "targetWave": 2,
+        "clearedStayed": true,
+        "unlocked": true,
+        "entered": true,
+        "yAfterDoor": 5.86969257545861
+      },
+      {
+        "sector": 0,
+        "roomIndex": 2,
+        "roomId": "bloodworks-act-i-court",
+        "doorId": "bloodworks-act-i-court-portal-0",
+        "routeNodes": 11,
+        "doorCount": 2,
+        "lockedBefore": true,
+        "atDoorX": true,
+        "blockedPosition": true,
+        "targetWave": 3,
+        "clearedStayed": true,
+        "unlocked": true,
+        "entered": true,
+        "yAfterDoor": 2.8649171448749935
+      },
+      {
+        "sector": 1,
+        "roomIndex": 0,
+        "roomId": "ossuary-act-ii-entry",
+        "doorId": "ossuary-act-ii-entry-portal-0",
+        "routeNodes": 19,
+        "doorCount": 2,
+        "lockedBefore": true,
+        "atDoorX": true,
+        "blockedPosition": true,
+        "targetWave": 1,
+        "clearedStayed": true,
+        "unlocked": true,
+        "entered": true,
+        "yAfterDoor": 8.872392799040105
+      },
+      {
+        "sector": 1,
+        "roomIndex": 1,
+        "roomId": "ossuary-act-ii-gallery",
+        "doorId": "ossuary-act-ii-gallery-portal-0",
+        "routeNodes": 11,
+        "doorCount": 2,
+        "lockedBefore": true,
+        "atDoorX": true,
+        "blockedPosition": true,
+        "targetWave": 2,
+        "clearedStayed": true,
+        "unlocked": true,
+        "entered": true,
+        "yAfterDoor": 5.867617368456485
+      },
+      {
+        "sector": 1,
+        "roomIndex": 2,
+        "roomId": "ossuary-act-ii-court",
+        "doorId": "ossuary-act-ii-court-portal-0",
+        "routeNodes": 11,
+        "doorCount": 2,
+        "lockedBefore": true,
+        "atDoorX": true,
+        "blockedPosition": true,
+        "targetWave": 3,
+        "clearedStayed": true,
+        "unlocked": true,
+        "entered": true,
+        "yAfterDoor": 2.8628419378728682
+      },
+      {
+        "sector": 2,
+        "roomIndex": 0,
+        "roomId": "choir-act-iii-entry",
+        "doorId": "choir-act-iii-entry-portal-0",
+        "routeNodes": 19,
+        "doorCount": 2,
+        "lockedBefore": true,
+        "atDoorX": true,
+        "blockedPosition": true,
+        "targetWave": 1,
+        "clearedStayed": true,
+        "unlocked": true,
+        "entered": true,
+        "yAfterDoor": 8.872392799040105
+      },
+      {
+        "sector": 2,
+        "roomIndex": 1,
+        "roomId": "choir-act-iii-gallery",
+        "doorId": "choir-act-iii-gallery-portal-0",
+        "routeNodes": 11,
+        "doorCount": 2,
+        "lockedBefore": true,
+        "atDoorX": true,
+        "blockedPosition": true,
+        "targetWave": 2,
+        "clearedStayed": true,
+        "unlocked": true,
+        "entered": true,
+        "yAfterDoor": 5.867617368456485
+      },
+      {
+        "sector": 2,
+        "roomIndex": 2,
+        "roomId": "choir-act-iii-court",
+        "doorId": "choir-act-iii-court-portal-0",
+        "routeNodes": 11,
+        "doorCount": 2,
+        "lockedBefore": true,
+        "atDoorX": true,
+        "blockedPosition": true,
+        "targetWave": 3,
+        "clearedStayed": true,
+        "unlocked": true,
+        "entered": true,
+        "yAfterDoor": 2.8628419378728682
+      }
+    ],
+    "exitRecords": [
+      {
+        "sector": 0,
+        "beforeExit": true,
+        "afterSector": 1,
+        "mode": "play",
+        "transition": true,
+        "y": 10.5
+      },
+      {
+        "sector": 1,
+        "beforeExit": true,
+        "afterSector": 2,
+        "mode": "play",
+        "transition": true,
+        "y": 10.5
+      },
+      {
+        "sector": 2,
+        "beforeExit": true,
+        "afterSector": 2,
+        "mode": "win",
+        "transition": false,
+        "y": 0.9819645226318572
+      }
+    ],
+    "final": {
+      "sectorIndex": 2,
+      "mode": "win",
+      "complete": true
+    }
+  },
+  "roomCaptures": [
+    {
+      "mode": "play",
+      "sectorIndex": 0,
+      "sectorName": "The Bloodworks",
+      "wave": 0,
+      "waveCount": 3,
+      "directorState": "intermission",
+      "pending": 0,
+      "active": 0,
+      "health": 100,
+      "canvas": {
+        "width": 1440,
+        "height": 900,
+        "clientWidth": 1440,
+        "clientHeight": 900
+      },
+      "pngBytes": 38290,
+      "render": {
+        "calls": 199,
+        "triangles": 72464,
+        "geometries": 776,
+        "textures": 78
+      },
+      "hud": {
+        "sector": "I / Bloodworks",
+        "room": "Intake Bay",
+        "objective": "Clear Intake Bay",
+        "route": "0"
+      }
+    },
+    {
+      "mode": "play",
+      "sectorIndex": 1,
+      "sectorName": "The Ossuary",
+      "wave": 0,
+      "waveCount": 3,
+      "directorState": "intermission",
+      "pending": 0,
+      "active": 0,
+      "health": 100,
+      "canvas": {
+        "width": 1440,
+        "height": 900,
+        "clientWidth": 1440,
+        "clientHeight": 900
+      },
+      "pngBytes": 38290,
+      "render": {
+        "calls": 200,
+        "triangles": 84696,
+        "geometries": 549,
+        "textures": 93
+      },
+      "hud": {
+        "sector": "II / Ossuary",
+        "room": "Bone Descent",
+        "objective": "Clear Bone Descent",
+        "route": "0"
+      }
+    },
+    {
+      "mode": "play",
+      "sectorIndex": 2,
+      "sectorName": "The Choir of Teeth",
+      "wave": 0,
+      "waveCount": 3,
+      "directorState": "intermission",
+      "pending": 0,
+      "active": 0,
+      "health": 100,
+      "canvas": {
+        "width": 1440,
+        "height": 900,
+        "clientWidth": 1440,
+        "clientHeight": 900
+      },
+      "pngBytes": 38290,
+      "render": {
+        "calls": 224,
+        "triangles": 84008,
+        "geometries": 596,
+        "textures": 98
+      },
+      "hud": {
+        "sector": "III / Choir of Teeth",
+        "room": "Throat Gate",
+        "objective": "Clear Throat Gate",
+        "route": "0"
+      }
+    }
+  ],
+  "dead": {
+    "mode": "dead",
+    "sectorIndex": 2,
+    "sectorName": "The Choir of Teeth",
+    "wave": 1,
+    "waveCount": 3,
+    "directorState": "spawning",
+    "pending": 5,
+    "active": 0,
+    "health": 0,
+    "canvas": {
+      "width": 1440,
+      "height": 900,
+      "clientWidth": 1440,
+      "clientHeight": 900
+    },
+    "pngBytes": 38290,
+    "render": {
+      "calls": 224,
+      "triangles": 84008,
+      "geometries": 596,
+      "textures": 97
+    },
+    "hud": {
+      "sector": "III / Choir of Teeth",
+      "room": "Throat Gate",
+      "objective": "Clear Throat Gate",
+      "route": "0"
+    }
+  },
+  "restarted": {
+    "mode": "play",
+    "sectorIndex": 0,
+    "sectorName": "The Bloodworks",
+    "wave": 0,
+    "waveCount": 3,
+    "directorState": "intermission",
+    "pending": 0,
+    "active": 0,
+    "health": 100,
+    "canvas": {
+      "width": 1440,
+      "height": 900,
+      "clientWidth": 1440,
+      "clientHeight": 900
+    },
+    "pngBytes": 38290,
+    "render": {
+      "calls": 199,
+      "triangles": 72464,
+      "geometries": 567,
+      "textures": 97
+    },
+    "hud": {
+      "sector": "I / Bloodworks",
+      "room": "Intake Bay",
+      "objective": "Clear Intake Bay",
+      "route": "0"
+    }
+  },
+  "mobile": {
+    "mode": "play",
+    "sectorIndex": 0,
+    "sectorName": "The Bloodworks",
+    "wave": 0,
+    "waveCount": 3,
+    "directorState": "intermission",
+    "pending": 0,
+    "active": 0,
+    "health": 100,
+    "canvas": {
+      "width": 390,
+      "height": 844,
+      "clientWidth": 390,
+      "clientHeight": 844
+    },
+    "pngBytes": 13074,
+    "render": {
+      "calls": 142,
+      "triangles": 64202,
+      "geometries": 567,
+      "textures": 97
+    },
+    "hud": {
+      "sector": "I / Bloodworks",
+      "room": "Intake Bay",
+      "objective": "Clear Intake Bay",
+      "route": "0"
+    }
+  },
+  "touch": {
+    "layerVisible": true,
+    "buttons": 12,
+    "canvas": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "consoleEntries": [
+    {
+      "type": "warning",
+      "text": "THREE.WebGLProgram: Program Info Log: (210,81-129): warning X4122: sum of 0.996094 and -2.98545e-017 cannot be represented accurately in double precision\n(209,37-61): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(210,82-106): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(209,37-61): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision\n(210,82-106): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision\n\n\n\u0000",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+      "location": {
+        "url": "http://127.0.0.1:5200/vendor/three.core.js",
+        "line": 2000,
+        "column": 11,
+        "lineNumber": 2000,
+        "columnNumber": 11
+      }
+    }
+  ],
+  "pageErrors": [],
+  "requestFailures": []
+}

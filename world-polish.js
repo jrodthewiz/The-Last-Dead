@@ -68,7 +68,8 @@ export function buildCathedralKit(root, m, course) {
 
 // Bake static world transforms by material; keep all animated groups independent.
 export function batchStaticWorld(root, protectedRoots=[]) {
- const protectedSet=new Set(protectedRoots.filter(Boolean)),groups=new Map();root.updateMatrixWorld(true);
+ const protectedSet=new Set(protectedRoots.filter(Boolean)),groups=new Map();root.updateWorldMatrix(true,true);
+ const inverseRoot=root.matrixWorld.clone().invert(),localMatrix=new THREE.Matrix4();
  root.traverse(mesh=>{
   if(!mesh.isMesh||mesh.isInstancedMesh||mesh.isSkinnedMesh||mesh.userData?.noBatch||Array.isArray(mesh.material)||mesh.material.transparent)return;
   for(let p=mesh;p&&p!==root;p=p.parent)if(protectedSet.has(p)||p.userData?.noBatch)return;
@@ -77,7 +78,7 @@ export function batchStaticWorld(root, protectedRoots=[]) {
  });
  let removed=0,batches=0;const oldGeometries=new Set();
  for(const meshes of groups.values()){
-  if(meshes.length<3)continue;const geos=meshes.map(mesh=>{let g=mesh.geometry.index?mesh.geometry.toNonIndexed():mesh.geometry.clone();for(const name of Object.keys(g.attributes))if(!['position','normal','uv'].includes(name))g.deleteAttribute(name);g.applyMatrix4(mesh.matrixWorld);return g;});
+  if(meshes.length<3)continue;const geos=meshes.map(mesh=>{let g=mesh.geometry.index?mesh.geometry.toNonIndexed():mesh.geometry.clone();localMatrix.multiplyMatrices(inverseRoot,mesh.matrixWorld);g.applyMatrix4(localMatrix);return g;});
   const merged=mergeGeometries(geos,false);geos.forEach(g=>g.dispose());if(!merged)continue;
   const first=meshes[0],batch=new THREE.Mesh(merged,first.material);batch.name='WorldBatch_'+(first.material.name||first.material.id);batch.castShadow=first.castShadow;batch.receiveShadow=first.receiveShadow;root.add(batch);batches++;
   for(const mesh of meshes){oldGeometries.add(mesh.geometry);mesh.removeFromParent();removed++;}

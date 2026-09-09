@@ -1,5 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import {mergeGeometries} from './vendor/utils/BufferGeometryUtils.js';
+import {applyBellwraithVariant,resolveBellwraithVariant} from './enemy-variation.js';
 
 // Bellwraith is a standalone stylized creature factory. It deliberately keeps
 // the same animate(root, enemy, now, seed) shape as the imported Warden.
@@ -121,9 +122,15 @@ function makeSurfaceMaps(seed = 41) {
   };
   return {albedo: texture(albedo, true), roughness: texture(roughness), bump: texture(bump)};
 }
-let sharedSurfaceMaps;
-function getSurfaceMaps() {
-  return sharedSurfaceMaps || (sharedSurfaceMaps = makeSurfaceMaps());
+const surfaceMapCache = new Map();
+function getSurfaceMaps(seed = 41) {
+  const key = Number(seed) || 41;
+  let maps = surfaceMapCache.get(key);
+  if (!maps) {
+    maps = makeSurfaceMaps(key);
+    surfaceMapCache.set(key, maps);
+  }
+  return maps;
 }
 
 function applySurfaceMaps(materials, maps) {
@@ -157,7 +164,7 @@ function addWearColors(root, seed = 47) {
 }
 
 function materials() {
-  return {
+  const mats = {
     bell: new THREE.MeshStandardMaterial({color: 0x5a4032, roughness: .5, metalness: .72, side: THREE.DoubleSide}),
     bellEdge: new THREE.MeshStandardMaterial({color: 0xa36d3f, roughness: .38, metalness: .72}),
     bone: new THREE.MeshStandardMaterial({color: 0xd4c8a8, roughness: .94, metalness: 0}),
@@ -177,15 +184,150 @@ function materials() {
     }),
     chain: new THREE.MeshStandardMaterial({color: 0x84756f, roughness: .61, metalness: .7})
   };
+  for (const [key, material] of Object.entries(mats)) material.userData.bellMaterialKey = key;
+  return mats;
 }
 
-export function createBellwraith(options = {}) {
+// One immutable scene template per authored family. Object3D.clone(true)
+// shares BufferGeometry while giving each actor its own transform hierarchy;
+// instance materials are cloned later so hit flashes remain isolated.
+const bellTemplateCache = new Map();
+const BELL_TEMPLATE_KEYS = ['bellwraith', 'bellwraithEcho', 'rustBell', 'ivoryBell'];
+
+function ensureBellwraithTemplate(appearance) {
+  let cached = bellTemplateCache.get(appearance.key);
+  if (cached) return cached;
+  const template = buildBellwraithTemplate({variant: appearance.key});
+  const source = template.userData.bellwraith;
+  const metrics = {
+    renderScale: source.renderScale,
+    floorOffset: source.floorOffset,
+    visualSize: source.visualSize,
+    visualBounds: source.visualBounds,
+  };
+  // These fields contain live Object3D references and closures. Remove them
+  // before cloning because Three.js serializes userData during clone().
+  delete template.userData.sculptRuntime;
+  delete template.userData.bellwraith;
+  template.userData.bellTemplateMetrics = metrics;
+  const geometries = new Set();
+  template.traverse(object => {
+    if (object.geometry) {
+      object.geometry.userData.sharedAsset = true;
+      geometries.add(object.geometry);
+    }
+  });
+  cached = {template, metrics, geometryCount: geometries.size, profile: appearance};
+  bellTemplateCache.set(appearance.key, cached);
+  return cached;
+}
+
+export function warmBellwraithVariants() {
+  for (const key of BELL_TEMPLATE_KEYS) ensureBellwraithTemplate(resolveBellwraithVariant(key));
+  return getBellwraithCacheStats();
+}
+
+export function getBellwraithCacheStats() {
+  let templates = 0, geometries = 0, meshes = 0;
+  for (const cached of bellTemplateCache.values()) {
+    templates++;
+    geometries += cached.geometryCount;
+    cached.template.traverse(object => { if (object.isMesh) meshes++; });
+  }
+  return {templates, geometries, meshes, profiles: BELL_TEMPLATE_KEYS.length};
+}
+
+function cloneBellwraithMaterials(root) {
+  const clones = new Map();
+  const materialsByKey = {};
+  root.traverse(object => {
+    if (!object.isMesh || !object.material) return;
+    const sourceMaterials = Array.isArray(object.material) ? object.material : [object.material];
+    const instanceMaterials = sourceMaterials.map(source => {
+      let material = clones.get(source);
+      if (!material) {
+        material = source.clone();
+        clones.set(source, material);
+      }
+      const key = material.userData.bellMaterialKey;
+      if (key) materialsByKey[key] = material;
+      return material;
+    });
+    object.material = Array.isArray(object.material) ? instanceMaterials : instanceMaterials[0];
+  });
+  return materialsByKey;
+}
+
+function hydrateBellwraith(root, appearance, options, cached) {
+  const parts = {};
+  for (const name of [
+    'bell-body', 'bell-crown', 'rune-ring', 'clapper', 'skull-face',
+    'nasal-cavity', 'brow-ridge', 'teeth', 'crown-horns', 'skull-hanger',
+    'rib-basket', 'bell-arms', 'left-arm', 'left-hand', 'right-arm',
+    'right-hand', 'torn-membranes', 'hanging-chains', 'hover-ring',
+  ]) parts[name] = root.getObjectByName(name);
+  const mats = cloneBellwraithMaterials(root);
+  applyBellwraithVariant(mats, appearance);
+  const body = parts['bell-body'];
+  const face = parts['skull-face'];
+  const arms = parts['bell-arms'];
+  const hover = parts['hover-ring'];
+  const ring = hover?.getObjectByName('hover-sigil');
+  const sockets = {
+    pulseOrigin: root.getObjectByName('pulseOrigin'),
+    attackOrigin: root.getObjectByName('attackOrigin'),
+    leftHandSocket: root.getObjectByName('leftHandSocket'),
+    rightHandSocket: root.getObjectByName('rightHandSocket'),
+    hoverAnchor: root.getObjectByName('hoverAnchor'),
+    deathBurst: root.getObjectByName('deathBurst'),
+  };
+  const faceEmbers = [];
+  face?.traverse(child => {
+    const material = child.isMesh ? child.material : null;
+    if (child.isMesh && material?.userData?.bellMaterialKey === 'ember') faceEmbers.push(child);
+  });
+  const floatParts = [body, face, parts['rib-basket'], arms, parts['torn-membranes'], parts['hanging-chains']].filter(Boolean);
+  for (const part of Object.values(parts)) if (part) part.userData.basePosition = part.position.toArray();
+  const home = new Map();
+  const explode = amount => {
+    for (const p of Object.values(parts)) {
+      if (!p) continue;
+      if (!home.has(p)) home.set(p, p.position.clone());
+      const dir = new THREE.Vector3(Math.sin(p.position.z * 13) * .1, .1 + Math.abs(p.position.y) * .12, .08).normalize();
+      p.position.copy(home.get(p)).addScaledVector(dir, amount * .08);
+    }
+  };
+  const metrics = cached.metrics;
+  const textures = getSurfaceMaps(appearance.surfaceSeed);
+  root.userData.sculptRuntime = {
+    parts, sockets, materials: mats, textures,
+    collider: {type: 'capsule', size: [...metrics.visualSize], floorOffset: metrics.floorOffset},
+    explode,
+    pick(raycaster) {
+      const hit = raycaster.intersectObject(root, true)[0];
+      return hit?.object?.parent?.name || hit?.object?.name || null;
+    }
+  };
+  root.userData.bellwraith = {
+    kind: 'bellwraith', variant: appearance.key, appearance,
+    parts, sockets, materials: mats, textures, body, arms, hover, ring, faceEmbers, floatParts,
+    leftArm: parts['left-arm'], rightArm: parts['right-arm'],
+    deathAt: null, lastNow: 0, phase: options.phase || 0,
+    renderScale: metrics.renderScale, floorOffset: metrics.floorOffset,
+    visualSize: [...metrics.visualSize], visualBounds: metrics.visualBounds,
+  };
+  return root;
+}
+
+function buildBellwraithTemplate(options = {}) {
   const root = new THREE.Group();
   root.name = 'Bellwraith';
   const parts = {};
   const mats = materials();
-  const textures = getSurfaceMaps();
+  const appearance = resolveBellwraithVariant(options.variant, options.phase || 0);
+  const textures = getSurfaceMaps(appearance.surfaceSeed);
   applySurfaceMaps(mats, textures);
+  applyBellwraithVariant(mats, appearance);
   const part = (name, parent = root) => {
     const g = new THREE.Group();
     g.name = name;
@@ -401,7 +543,8 @@ export function createBellwraith(options = {}) {
   };
   root.userData.bellwraith = {
     kind: 'bellwraith',
-    variant: options.variant || 'mourning-bell',
+    variant: appearance.key,
+    appearance,
     parts, sockets, materials: mats, textures, body, arms, hover, ring, faceEmbers, floatParts,
     leftArm: parts['left-arm'], rightArm: parts['right-arm'],
     deathAt: null, lastNow: 0, phase: options.phase || 0, renderScale, floorOffset, visualSize: visualSize.toArray(), visualBounds: {min: visualBounds.min.toArray(), max: visualBounds.max.toArray()}
@@ -409,9 +552,48 @@ export function createBellwraith(options = {}) {
   return root;
 }
 
+export function createBellwraith(options = {}) {
+  const appearance = resolveBellwraithVariant(options.variant, options.phase || 0);
+  const cached = ensureBellwraithTemplate(appearance);
+  const root = cached.template.clone(true);
+  root.name = 'Bellwraith';
+  return hydrateBellwraith(root, appearance, options, cached);
+}
+
+export function resetBellwraith(root, variant='', phase=0, seed=0) {
+  const meta = root?.userData?.bellwraith;
+  if (!meta) return root;
+  root.visible = true;
+  root.rotation.set(0, 0, 0);
+  meta.deathAt = null;
+  meta.lastNow = 0;
+  meta.phase = Number.isFinite(Number(phase)) ? Number(phase) : 0;
+  const appearance = resolveBellwraithVariant(variant || meta.variant, seed);
+  meta.variant = appearance.key;
+  meta.appearance = appearance;
+  applyBellwraithVariant(meta.materials, appearance);
+  for (const part of Object.values(meta.parts)) {
+    if (!part) continue;
+    if (part.userData.basePosition) part.position.fromArray(part.userData.basePosition);
+    part.rotation.set(0, 0, 0);
+  }
+  for (const floatPart of meta.floatParts) floatPart.position.y = floatPart.userData.floatBaseY;
+  meta.ring.visible = false;
+  meta.hover.rotation.set(0, 0, 0);
+  meta.hover.position.y = meta.hover.userData.floatBaseY;
+  meta.materials.ember.emissiveIntensity = 2.1;
+  return root;
+}
+
 export function animateBellwraith(root, enemy = {}, now = 0, seed = 0) {
   const meta = root?.userData?.bellwraith;
   if (!meta) return;
+  const appearance = resolveBellwraithVariant(enemy.variant || meta.variant, seed);
+  if (appearance.key !== meta.variant) {
+    meta.variant = appearance.key;
+    meta.appearance = appearance;
+    applyBellwraithVariant(meta.materials, appearance);
+  }
   const t = Number(now) * .001;
   const dt = meta.lastNow ? Math.min(.08, Math.max(.001, (Number(now) - meta.lastNow) * .001)) : .016;
   meta.lastNow = Number(now);

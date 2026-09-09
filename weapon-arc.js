@@ -1,4 +1,5 @@
 import * as THREE from './vendor/three.module.js';
+import {mergeGeometries} from './vendor/utils/BufferGeometryUtils.js';
 import {applyWeaponMaterialProfile, stabilizeWeaponVertexWear, tagWeaponMechanism} from './weapon-materials.js';
 
 // Image-guided Arc Lance: a long coil weapon with a caged plasma chamber,
@@ -119,6 +120,49 @@ function addWear(root, seed = 31) {
   });
 }
 
+// Arc Lance has many small authored surfaces because its coil cage is meant
+// to read in close first-person inspection.  Compile static siblings by
+// material once at construction so those details do not become one draw call
+// apiece.  Animated groups (reactor, charge slider, recoil and flash) remain
+// separate at their semantic boundaries.
+function mergeStaticSurfaces(parts) {
+  for (const group of Object.values(parts)) {
+    const directMeshes = group.children.filter(child => child.isMesh && child.geometry && child.material);
+    if (directMeshes.length < 2) continue;
+    const buckets = new Map();
+    for (const child of directMeshes) {
+      child.updateMatrix();
+      const source = child.geometry.index ? child.geometry.toNonIndexed() : child.geometry.clone();
+      source.applyMatrix4(child.matrix);
+      const list = buckets.get(child.material) || [];
+      list.push({source, child});
+      buckets.set(child.material, list);
+    }
+    for (const [material, entries] of buckets) {
+      if (entries.length < 2) {
+        for (const entry of entries) entry.source.dispose();
+        continue;
+      }
+      const merged = mergeGeometries(entries.map(entry => entry.source), false);
+      if (!merged) {
+        for (const entry of entries) entry.source.dispose();
+        continue;
+      }
+      for (const entry of entries) {
+        group.remove(entry.child);
+        entry.child.geometry.dispose();
+        entry.source.dispose();
+      }
+      const mesh = new THREE.Mesh(merged, material);
+      mesh.name = `${group.name}-merged-${material.uuid.slice(0, 4)}`;
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      mesh.userData.explodeWithParent = true;
+      group.add(mesh);
+    }
+  }
+}
+
 function materials() {
   return {
     frame: new THREE.MeshStandardMaterial({ color: 0x43505b, roughness: .4, metalness: .86 }),
@@ -132,6 +176,7 @@ function materials() {
     energy: new THREE.MeshStandardMaterial({ color: 0x6fd9ff, emissive: 0x536aff, emissiveIntensity: 7, roughness: .14, metalness: .08 }),
     energySoft: new THREE.MeshBasicMaterial({ color: 0x75bfff, transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false }),
     muzzle: new THREE.MeshBasicMaterial({ color: 0x9edaff, transparent: true, opacity: .9, blending: THREE.AdditiveBlending, depthWrite: false }),
+    muzzleCore: new THREE.MeshBasicMaterial({ color: 0xe8fbff, transparent: true, opacity: .94, blending: THREE.AdditiveBlending, depthWrite: false }),
   };
 }
 
@@ -175,6 +220,8 @@ export function createArc(options = {}) {
   for (const side of [-1, 1]) {
     add(frame, profile([[-.18, -.12], [-.15, .13], [.15, .13], [.18, -.12]], .025, .007), 'frameEdge', [side * .25, .02, -.05], [1, 1, 1], [0, Math.PI / 2, 0], `frame-side-plate-${side}`);
     for (let i = 0; i < 3; i++) add(frame, new THREE.SphereGeometry(.022, 9, 7), 'brass', [side * .265, -.1 + i * .1, -.2], [1, 1, 1], [0, 0, 0], `frame-rivet-${side}-${i}`);
+    add(frame, new THREE.BoxGeometry(.035, .16, .34), 'black', [side * .272, .02, -.08], [1, 1, 1], [0, 0, 0], `frame-inset-${side}`);
+    add(frame, new THREE.BoxGeometry(.018, .09, .22), 'frameEdge', [side * .294, .03, -.08], [1, 1, 1], [0, 0, 0], `frame-rail-inset-${side}`);
   }
 
   const reactor = part('reactor');
@@ -189,6 +236,16 @@ export function createArc(options = {}) {
   add(reactor, sweep(helix(-.82, -.12, .126, 2.2, 36).map(p => [p[0], -p[1], p[2]]), [.009, .011], 7), 'brass', [0, .03, 0], [1, 1, 1], [0, 0, 0], 'coil-helix-b');
   const glowShell = add(reactor, new THREE.CylinderGeometry(.17, .17, .76, 20, 1, true), 'energySoft', [0, .03, -.47], [1, 1, 1], [Math.PI / 2, 0, 0], 'reactor-glow');
   glowShell.renderOrder = 2;
+  const baffles = part('reactor-baffles', reactor);
+  for (const side of [-1, 1]) {
+    add(baffles, profile([[-.11, -.1], [-.085, .1], [.085, .1], [.11, -.1]], .018, .004), 'frame', [side * .145, .03, -.47], [1, 1, 1], [0, Math.PI / 2, 0], `reactor-baffle-${side}`);
+    for (let i = 0; i < 3; i++) add(baffles, new THREE.BoxGeometry(.025, .022, .12), 'brass', [side * .161, .03, -.26 - i * .21], [1, 1, 1], [0, 0, 0], `reactor-baffle-lock-${side}-${i}`);
+  }
+  const heatVents = part('reactor-heat-vents', reactor);
+  for (const side of [-1, 1]) for (let i = 0; i < 4; i++) {
+    const vent = add(heatVents, new THREE.BoxGeometry(.012, .028, .09), 'energySoft', [side * .175, .13, -.22 - i * .17], [1, 1, 1], [0, side * .12, 0], `reactor-vent-${side}-${i}`);
+    vent.renderOrder = 3;
+  }
   const chargeSlider = part('charge-slider', reactor);
   tagWeaponMechanism(chargeSlider, 'plasma-charge-slider', 'z');
   add(chargeSlider, new THREE.CylinderGeometry(.018, .018, .18, 8), 'frameEdge', [0, .205, -.47], [1, 1, 1], [0, 0, 0], 'charge-slider-rod');
@@ -201,6 +258,11 @@ export function createArc(options = {}) {
   }
   add(rails, new THREE.BoxGeometry(.05, .05, 1.26), 'frameEdge', [0, .25, -.3], [1, 1, 1], [0, 0, 0], 'sight-rail');
   for (const z of [.24, -.1, -.48, -.84]) add(rails, new THREE.BoxGeometry(.12, .08, .045), 'brass', [0, .25, z], [1, 1, 1], [0, 0, 0], `sight-block-${z}`);
+  const railLocks = part('rail-locks', rails);
+  for (const side of [-1, 1]) for (const z of [.18, -.18, -.54]) {
+    add(railLocks, new THREE.CylinderGeometry(.018, .018, .08, 8), 'brass', [side * .245, .22, z], [1, 1, 1], [0, Math.PI / 2, 0], `rail-lock-${side}-${z}`);
+    add(railLocks, new THREE.TorusGeometry(.024, .006, 6, 12), 'frameEdge', [side * .285, .22, z], [1, 1, 1], [0, Math.PI / 2, 0], `rail-lock-ring-${side}-${z}`);
+  }
 
   const coilGuards = part('coil-guards');
   for (const side of [-1, 1]) {
@@ -235,9 +297,13 @@ export function createArc(options = {}) {
   const emitter = part('emitter');
   add(emitter, new THREE.CylinderGeometry(.11, .09, .22, 18), 'frame', [0, .03, -.98], [1, 1, 1], [Math.PI / 2, 0, 0], 'emitter-collar');
   add(emitter, new THREE.TorusGeometry(.11, .018, 8, 24), 'brass', [0, .03, -1.12], [1, 1, 1], [0, 0, 0], 'emitter-ring');
+  add(emitter, new THREE.CylinderGeometry(.073, .073, .13, 16, 1, true), 'black', [0, .03, -1.13], [1, 1, 1], [Math.PI / 2, 0, 0], 'emitter-bore');
+  add(emitter, new THREE.CircleGeometry(.056, 18), 'energy', [0, .03, -1.2], [1, 1, 1], [0, 0, 0], 'emitter-aperture');
+  add(emitter, new THREE.TorusGeometry(.064, .008, 7, 18), 'energySoft', [0, .03, -1.205], [1, 1, 1], [0, 0, 0], 'emitter-aperture-glow');
   for (const side of [-1, 1]) {
     add(emitter, sweep([[side * .1, .11, -1.02], [side * .18, .16, -1.13], [side * .24, .12, -1.24], [side * .14, .02, -1.29]], [.032, .038, .025, .004], 8), 'bone', [0, 0, 0], [1, 1, 1], [0, 0, 0], `emitter-claw-${side}`);
     add(emitter, sweep([[side * .1, -.06, -1.03], [side * .19, -.1, -1.14], [side * .23, -.04, -1.25]], [.022, .028, .004], 8), 'boneDark', [0, 0, 0], [1, 1, 1], [0, 0, 0], `emitter-underclaw-${side}`);
+    add(emitter, new THREE.SphereGeometry(.032, 8, 6), 'brass', [side * .17, .12, -1.13], [1, 1, 1], [0, 0, 0], `emitter-claw-joint-${side}`);
   }
   const muzzle = new THREE.Object3D();
   muzzle.name = 'muzzle';
@@ -251,6 +317,15 @@ export function createArc(options = {}) {
   muzzleFlash.visible = false;
   add(muzzleFlash, new THREE.ConeGeometry(.14, .42, 10), 'muzzle', [0, .03, -1.5], [1, 1, 1], [Math.PI / 2, 0, 0], 'arc-flash');
   add(muzzleFlash, new THREE.TorusGeometry(.16, .016, 8, 24), 'muzzle', [0, .03, -1.3], [1, 1, 1], [0, 0, 0], 'arc-flash-ring');
+  add(muzzleFlash, new THREE.ConeGeometry(.065, .22, 8), 'muzzleCore', [0, .03, -1.43], [1, 1, 1], [Math.PI / 2, 0, 0], 'arc-flash-core');
+  add(muzzleFlash, new THREE.TorusGeometry(.087, .009, 6, 18), 'muzzleCore', [0, .03, -1.305], [1, 1, 1], [0, 0, 0], 'arc-flash-core-ring');
+  const shotArc = part('shot-arc', emitter);
+  shotArc.visible = false;
+  add(shotArc, new THREE.CylinderGeometry(.011, .026, .52, 8, 1, true), 'energy', [0, .03, -1.55], [1, 1, 1], [Math.PI / 2, 0, 0], 'arc-bolt-core');
+  add(shotArc, new THREE.CylinderGeometry(.036, .07, .34, 8, 1, true), 'energySoft', [0, .03, -1.45], [1, 1, 1], [Math.PI / 2, 0, 0], 'arc-bolt-halo');
+  add(shotArc, new THREE.TorusGeometry(.11, .012, 7, 20), 'energySoft', [0, .03, -1.31], [1, 1, 1], [0, 0, 0], 'arc-bolt-ring');
+  shotArc.children.forEach(child => { child.renderOrder = 4; });
+  mergeStaticSurfaces(parts);
   const inspect = new THREE.Object3D();
   inspect.name = 'inspect';
   inspect.position.set(0, .1, .28);
@@ -259,7 +334,7 @@ export function createArc(options = {}) {
   heat.name = 'heat';
   heat.position.set(0, .04, -.48);
   reactor.add(heat);
-  const sockets = { muzzle, projectileOrigin, muzzleFlash, recoil: root, heat, inspect, grip, corePulse: reactor };
+  const sockets = { muzzle, projectileOrigin, muzzleFlash, shotArc, recoil: root, heat, inspect, grip, corePulse: reactor };
   root.userData.muzzle = muzzle;
   root.userData.projectileOrigin = projectileOrigin;
   const home = new Map();
@@ -304,9 +379,14 @@ export function animateArc(root, time = 0, shot = 0, dt = .016, state = {}) {
   root.rotation.x = meta.recoil * -.012;
   meta.materials.energy.emissiveIntensity = 4.4 + meta.heat * 7 + Math.sin(time * 9) * .45;
   meta.materials.glass.emissiveIntensity = 1.25 + meta.heat * 3.2;
+  meta.materials.energySoft.opacity = .34 + meta.heat * .18;
+  meta.materials.muzzle.opacity = .55 + meta.flash * .4;
+  meta.materials.muzzleCore.opacity = .42 + meta.flash * .52;
   meta.sockets.muzzleFlash.visible = meta.flash > .012;
   meta.sockets.muzzleFlash.scale.setScalar(.75 + meta.flash * 1.45);
   meta.sockets.muzzleFlash.rotation.z = Math.sin(time * 33) * .2;
+  meta.sockets.shotArc.visible = meta.flash > .035;
+  meta.sockets.shotArc.scale.set(0.78 + meta.flash * .2, 0.78 + meta.flash * .2, .72 + meta.flash * 1.55);
+  meta.sockets.shotArc.rotation.z = Math.sin(time * 29) * .24;
   if (state?.inspect) meta.sockets.inspect.rotation.y = Math.sin(time * .75) * .08;
 }
-

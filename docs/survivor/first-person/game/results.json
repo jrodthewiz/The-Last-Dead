@@ -1,0 +1,252 @@
+{
+  "rows": [
+    {
+      "pose": "standing",
+      "weapon": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "headHidden": true,
+      "depthRange": [
+        0,
+        1
+      ],
+      "calls": 123
+    },
+    {
+      "pose": "standing",
+      "weapon": 1,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "headHidden": true,
+      "depthRange": [
+        0,
+        1
+      ],
+      "calls": 205
+    },
+    {
+      "pose": "standing",
+      "weapon": 2,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "headHidden": true,
+      "depthRange": [
+        0,
+        1
+      ],
+      "calls": 344
+    },
+    {
+      "pose": "standing",
+      "weapon": 3,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "headHidden": true,
+      "depthRange": [
+        0,
+        1
+      ],
+      "calls": 156
+    },
+    {
+      "pose": "walking",
+      "weapon": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "headHidden": true,
+      "depthRange": [
+        0,
+        1
+      ],
+      "calls": 121
+    },
+    {
+      "pose": "walking",
+      "weapon": 1,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "headHidden": true,
+      "depthRange": [
+        0,
+        1
+      ],
+      "calls": 203
+    },
+    {
+      "pose": "walking",
+      "weapon": 2,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "headHidden": true,
+      "depthRange": [
+        0,
+        1
+      ],
+      "calls": 340
+    },
+    {
+      "pose": "walking",
+      "weapon": 3,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "headHidden": true,
+      "depthRange": [
+        0,
+        1
+      ],
+      "calls": 154
+    },
+    {
+      "pose": "slide",
+      "weapon": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "headHidden": true,
+      "depthRange": [
+        0,
+        1
+      ],
+      "calls": 117
+    },
+    {
+      "pose": "slide",
+      "weapon": 1,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "headHidden": true,
+      "depthRange": [
+        0,
+        1
+      ],
+      "calls": 199
+    },
+    {
+      "pose": "slide",
+      "weapon": 2,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "headHidden": true,
+      "depthRange": [
+        0,
+        1
+      ],
+      "calls": 332
+    },
+    {
+      "pose": "slide",
+      "weapon": 3,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "headHidden": true,
+      "depthRange": [
+        0,
+        1
+      ],
+      "calls": 150
+    },
+    {
+      "pose": "jump",
+      "weapon": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "headHidden": true,
+      "depthRange": [
+        0,
+        1
+      ],
+      "calls": 123
+    },
+    {
+      "pose": "jump",
+      "weapon": 1,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "headHidden": true,
+      "depthRange": [
+        0,
+        1
+      ],
+      "calls": 205
+    },
+    {
+      "pose": "jump",
+      "weapon": 2,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "headHidden": true,
+      "depthRange": [
+        0,
+        1
+      ],
+      "calls": 344
+    },
+    {
+      "pose": "jump",
+      "weapon": 3,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "headHidden": true,
+      "depthRange": [
+        0,
+        1
+      ],
+      "calls": 156
+    }
+  ],
+  "depth": [
+    0,
+    102,
+    0,
+    255
+  ],
+  "keyboardMovement": true,
+  "errors": []
+}
