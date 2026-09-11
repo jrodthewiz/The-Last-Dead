@@ -1,0 +1,23 @@
+{
+  "model": "intake-containment-iris",
+  "parts": [
+    { "name": "root", "kind": "group", "module": "AuthoredSetpiece_intake-pressure-door", "triangles": 0 },
+    { "name": "mount-plate", "kind": "part", "module": "IrisHousingBack", "triangles": 4608 },
+    { "name": "iris-mechanism", "kind": "group", "module": "IrisPetalPivot", "triangles": 12288 },
+    { "name": "outer-bezel", "kind": "part", "module": "IrisSteppedBezel", "triangles": 768 },
+    { "name": "recess-cavity", "kind": "part", "module": "IrisRecessedCavity", "triangles": 320 },
+    { "name": "petal-bank", "kind": "group", "module": "IrisPetal_0..7", "triangles": 4096 },
+    { "name": "actuator-ring", "kind": "part", "module": "IrisActuatorCam", "triangles": 640 },
+    { "name": "radial-struts", "kind": "group", "module": "IrisRadialStrut_0..7", "triangles": 768 },
+    { "name": "status-spine", "kind": "part", "module": "IrisStatusSpine", "triangles": 128 },
+    { "name": "central-lens", "kind": "part", "module": "IrisConvexLens", "triangles": 896 },
+    { "name": "perimeter-fasteners", "kind": "group", "module": "IrisPerimeterBolt_0..7", "triangles": 640 },
+    { "name": "bezel-edge-wear", "kind": "surface-detail", "module": "IrisHousingAnnulus", "triangles": 0 },
+    { "name": "petal-hinge-pins", "kind": "group", "module": "IrisPetalHinge_0..7", "triangles": 768 },
+    { "name": "hazard-breaks", "kind": "group", "module": "PressureDoorHazardTrim", "triangles": 0 },
+    { "name": "cavity-occlusion", "kind": "surface-detail", "module": "IrisCavityGasket", "triangles": 0 },
+    { "name": "signal-glow", "kind": "part", "module": "IrisHotCore", "triangles": 480 }
+  ],
+  "unnamedMeshes": 0,
+  "integralMeshes": 38
+}

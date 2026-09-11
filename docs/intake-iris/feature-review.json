@@ -1,0 +1,32 @@
+[
+  {
+    "id": "lock-silhouette",
+    "score": 0.9,
+    "status": "pass",
+    "critique": "Outer housing and stepped bezel remain the dominant fabricated silhouette."
+  },
+  {
+    "id": "petal-depth",
+    "score": 0.84,
+    "status": "pass",
+    "critique": "Angled view preserves recessed petals, hinge sockets, and clear parallax."
+  },
+  {
+    "id": "center-lens",
+    "score": 0.86,
+    "status": "pass",
+    "critique": "The optic stays readable through its illuminated rim and reflected highlights."
+  },
+  {
+    "id": "fabrication-details",
+    "score": 0.78,
+    "status": "pass-with-caveat",
+    "critique": "Fasteners and gasket recesses are authored but partly hidden in the darkest recesses."
+  },
+  {
+    "id": "material-identity",
+    "score": 0.82,
+    "status": "pass",
+    "critique": "Dark retaining hardware, red petals, and the glossy optic separate into distinct material families."
+  }
+]

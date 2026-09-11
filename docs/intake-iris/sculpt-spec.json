@@ -1,0 +1,4753 @@
+{
+  "targetName": "Intake Containment Iris",
+  "targetId": "intake-containment-iris",
+  "schemaVersion": "2.1",
+  "terminologyProfile": {
+    "domain": "real-time procedural Three.js asset",
+    "geometryTerms": [
+      "silhouette",
+      "topology",
+      "primitive",
+      "bevel",
+      "chamfer",
+      "taper",
+      "bend",
+      "boolean cut",
+      "edge loop",
+      "surface normal",
+      "displacement"
+    ],
+    "materialTerms": [
+      "albedo",
+      "baseColor",
+      "roughness",
+      "metalness",
+      "normal map",
+      "bump map",
+      "ambient occlusion",
+      "cavity dirt",
+      "edge wear",
+      "clearcoat"
+    ],
+    "lightingTerms": [
+      "key light",
+      "fill light",
+      "rim light",
+      "HDRI/environment reflection",
+      "contact shadow"
+    ],
+    "descriptionRule": "Use measurable 3D graphics terms. Avoid vague words unless they are paired with concrete geometry/material/shader parameters."
+  },
+  "sourceImage": "docs/build10/build10-game-desktop.png",
+  "referenceCamera": {
+    "solved": false,
+    "fovDegrees": 40,
+    "aspect": 1,
+    "orientation": {
+      "yaw": 0,
+      "pitch": 0,
+      "roll": 0
+    },
+    "positionHint": [
+      0,
+      0,
+      3
+    ],
+    "note": "For likeness work, solve the reference camera (forge/stage1_intake/solve_camera_pose.py) so the review render aligns with the photo and the reference can be projected. Confirm by overlay review."
+  },
+  "suitability": "conditional",
+  "scores": {
+    "object_isolation": 1,
+    "silhouette_readability": 3,
+    "depth_inference": 2,
+    "primitive_decomposition": 3,
+    "material_procedurality": 3,
+    "occlusion_risk": 1,
+    "interaction_fit": 3
+  },
+  "preSpecAssessment": {
+    "objectClass": {
+      "primaryType": "wall-mounted mechanical containment iris lock",
+      "primaryDomain": "object",
+      "formLanguage": [
+        "geometric",
+        "radial",
+        "fabricated"
+      ],
+      "structureKind": [
+        "assembled-solid",
+        "recessed-mechanism",
+        "repeating-radial"
+      ],
+      "motionPotential": [
+        "iris-petal rotation",
+        "status pulse"
+      ],
+      "materialFamilies": [
+        "painted steel",
+        "satin steel",
+        "hazard-painted metal",
+        "emissive polymer",
+        "glass"
+      ],
+      "notes": "In-situ gameplay reference; authored 3D reconstruction, not exact extraction."
+    },
+    "complexity": {
+      "tier": "complex",
+      "scores": {
+        "silhouetteComplexity": 2,
+        "componentCount": 3,
+        "hierarchyDepth": 2,
+        "repetitionDensity": 3,
+        "materialLayerCount": 2,
+        "localDetailDensity": 2,
+        "occlusionRisk": 1,
+        "actionReadinessNeed": 2
+      },
+      "estimatedCounts": {
+        "macroComponents": 3,
+        "mesoComponents": 8,
+        "microFeatureGroups": 5,
+        "materialLayers": 5,
+        "repetitionSystems": 2
+      },
+      "reasoning": [
+        "Assess 'Intake Containment Iris' from the image before finalizing componentTree/materials."
+      ]
+    },
+    "specDepthDecision": {
+      "requiredDepth": "complex",
+      "minimumComponentLevels": [
+        "macro",
+        "meso",
+        "micro"
+      ],
+      "needsRepetitionSystems": true,
+      "needsMaterialLocalOverrides": true,
+      "needsMultipleReviewViews": true,
+      "needsActionReadyHierarchy": true,
+      "rationale": "Choose simple/moderate/complex/ultra-complex from observed structure, not from a hardcoded domain."
+    },
+    "unknownsToResolveBeforeImplementation": [],
+    "detailInventory": {
+      "scanMethod": "manual semantic inventory plus grid-3x3 capture scan",
+      "targetMinDetails": 10,
+      "note": "Each identity detail maps to a named component or material override in this spec.",
+      "details": [
+        {
+          "id": "stepped outer bezel",
+          "kind": "bevel",
+          "description": "beveled annulus separates housing from cavity",
+          "mapsTo": {
+            "ref": "outer-bezel"
+          },
+          "evidenceRefs": [
+            "full-object",
+            "circle-center"
+          ]
+        },
+        {
+          "id": "recessed cavity",
+          "kind": "bevel",
+          "description": "dark cylindrical pocket provides depth cue",
+          "mapsTo": {
+            "ref": "recess-cavity"
+          },
+          "evidenceRefs": [
+            "full-object",
+            "circle-center"
+          ]
+        },
+        {
+          "id": "eight iris petals",
+          "kind": "bevel",
+          "description": "overlapping radial plates form the aperture",
+          "mapsTo": {
+            "ref": "petal-bank"
+          },
+          "evidenceRefs": [
+            "full-object",
+            "circle-center"
+          ]
+        },
+        {
+          "id": "petal hinge pins",
+          "kind": "fastener",
+          "description": "small cylindrical pins anchor every petal",
+          "mapsTo": {
+            "ref": "petal-hinge-pins"
+          },
+          "evidenceRefs": [
+            "full-object",
+            "circle-center"
+          ]
+        },
+        {
+          "id": "radial actuator struts",
+          "kind": "bevel",
+          "description": "eight rods bridge bezel to petal pivots",
+          "mapsTo": {
+            "ref": "radial-struts"
+          },
+          "evidenceRefs": [
+            "full-object",
+            "circle-center"
+          ]
+        },
+        {
+          "id": "perimeter bolt heads",
+          "kind": "fastener",
+          "description": "socketed fasteners repeat around the housing",
+          "mapsTo": {
+            "ref": "perimeter-fasteners"
+          },
+          "evidenceRefs": [
+            "full-object",
+            "circle-center"
+          ]
+        },
+        {
+          "id": "vertical status spine",
+          "kind": "gloss",
+          "description": "narrow center seam remains readable under subdued bloom",
+          "mapsTo": {
+            "ref": "status-spine"
+          },
+          "evidenceRefs": [
+            "full-object",
+            "circle-center"
+          ]
+        },
+        {
+          "id": "central spindle",
+          "kind": "bevel",
+          "description": "machined hub sits in front of the lens",
+          "mapsTo": {
+            "ref": "central-lens"
+          },
+          "evidenceRefs": [
+            "full-object",
+            "circle-center"
+          ]
+        },
+        {
+          "id": "hot lens core",
+          "kind": "stain",
+          "description": "transparent low-roughness lens over emissive inner volume",
+          "mapsTo": {
+            "ref": "signal-glow"
+          },
+          "evidenceRefs": [
+            "full-object",
+            "circle-center"
+          ]
+        },
+        {
+          "id": "edge wear band",
+          "kind": "stain",
+          "description": "roughness/albedo shift on exposed bezel edge",
+          "mapsTo": {
+            "ref": "bezel-edge-wear"
+          },
+          "evidenceRefs": [
+            "full-object",
+            "circle-center"
+          ]
+        },
+        {
+          "id": "cavity occlusion",
+          "kind": "stain",
+          "description": "independent darkening in recesses and petal overlaps",
+          "mapsTo": {
+            "ref": "cavity-occlusion"
+          },
+          "evidenceRefs": [
+            "full-object",
+            "circle-center"
+          ]
+        },
+        {
+          "id": "hazard colour breaks",
+          "kind": "stain",
+          "description": "alternating warm painted-metal accents",
+          "mapsTo": {
+            "ref": "hazard-breaks"
+          },
+          "evidenceRefs": [
+            "full-object",
+            "circle-center"
+          ]
+        }
+      ]
+    },
+    "anatomy": {
+      "applies": false,
+      "styleHeads": 0,
+      "proportions": {
+        "headUnit": 0,
+        "torso": 0,
+        "legs": 0,
+        "shoulderWidth": 0,
+        "hipWidth": 0
+      },
+      "pose": {
+        "type": "unassessed",
+        "jointAngles": {}
+      },
+      "faceLandmarks": {
+        "eyeLine": 0,
+        "eyeSpacing": 0,
+        "noseBase": 0,
+        "mouthLine": 0,
+        "hairline": 0
+      },
+      "features": [],
+      "confidence": 0,
+      "note": "Only meaningful when objectClass.primaryDomain is character or hybrid. Set applies=true and fill from forge/stage1_intake/extract_landmarks.py. See grimoire/character/reconstruction.md and grimoire/character/likeness_maximization.md."
+    },
+    "sourceImage": "docs/build10/build10-game-desktop.png"
+  },
+  "qualityContract": {
+    "qualityBar": "complex",
+    "definitionOfDone": [
+      "The rendered model matches the reference silhouette, primary proportions, visible component hierarchy, material response, and most recognizable local features for the selected fidelity tier."
+    ],
+    "minimumSpecDepth": {
+      "macroComponents": 3,
+      "mesoComponents": 8,
+      "microFeatureGroups": 5,
+      "materialLayers": 3,
+      "repetitionSystems": 1,
+      "reviewViewpoints": 4
+    },
+    "featureGroups": [
+      {
+        "id": "overall-silhouette",
+        "name": "Overall silhouette and proportions",
+        "required": true,
+        "qualityCriteria": [
+          "Bounding shape, dominant curves, negative spaces, and scale relationships are explicitly described."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "model reads as a generic placeholder instead of the reference object",
+          "major proportions are guessed without evidence"
+        ]
+      },
+      {
+        "id": "primary-structure",
+        "name": "Primary structure and hierarchy",
+        "required": true,
+        "qualityCriteria": [
+          "Major parts, joints, seams, contact points, and parent-child relationships are named before code generation."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "large visible parts are merged into one mesh",
+          "component hierarchy is too shallow for the observed complexity"
+        ]
+      },
+      {
+        "id": "attachment-joint-correctness",
+        "name": "Attachment and joint correctness",
+        "required": true,
+        "qualityCriteria": [
+          "Every visible child appendage, branch, limb, handle, connector, tube, cable, horn, wing, leg, or hinged part has an attachment contract with parent socket, localStart/localEnd, contact type, embed/overlap, and gap tolerance."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "child part root floats away from the parent",
+          "branch/limb/tube is centered in space instead of pivoting from its root",
+          "parent-child transform mixes world and local coordinates"
+        ]
+      },
+      {
+        "id": "surface-material-response",
+        "name": "Surface material response",
+        "required": true,
+        "qualityCriteria": [
+          "Albedo zones, roughness, normal/bump/displacement intent, cavity dirt, edge wear, and local overrides are specified where visible.",
+          "Important materials define independent albedo, roughness, height/normal, and AO responses instead of reusing one texture for unrelated PBR channels.",
+          "Surface response is decomposed into macro, meso, and micro frequency bands with scale and amplitude tied to object scale."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "surface looks like flat plastic",
+          "local material variation is missing or not tied to image evidence"
+        ]
+      },
+      {
+        "id": "reference-lookdev",
+        "name": "Reference color, material, and lighting response",
+        "required": true,
+        "qualityCriteria": [
+          "Material-pass names the reference-derived albedo palette, roughness variation, tactile normal/bump/displacement response, and local masks.",
+          "When a source image is available, run reference PBR extraction and require confidence >= 0.7 before treating maps as implementation-ready.",
+          "Lighting-pass names key/fill/rim or environment light, exposure, tone mapping, background, and contact shadow behavior.",
+          "Neutral, grazing-angle, and reference-matched renders prove that surface relief survives relighting and is not painted into albedo."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "model has acceptable shape but reads as flat shaded or plastic",
+          "colors are a generic average instead of reference-observed local color zones",
+          "lighting is evenly ambient and cannot reproduce the source value range"
+        ]
+      }
+    ],
+    "visualDeltaChecks": [
+      "silhouette and negative-space delta",
+      "component hierarchy depth delta",
+      "repetition density and distribution delta",
+      "material albedo/roughness/normal response delta",
+      "local feature placement and scale delta"
+    ],
+    "antiShallowSpecRules": [
+      "Do not proceed to code if qualityContract.qualityBar is unassessed.",
+      "Do not proceed to code if the spec only contains a root component for a moderate or complex object.",
+      "Do not proceed to code if required featureGroups are not represented by componentTree, materials, or repetitionSystems.",
+      "Do not proceed to code if visible local features are described only in prose and not attached to components/materials/evidenceRefs.",
+      "Do not proceed past structural-pass if attached child parts lack attachment.parentSocket, localStart, localEnd, embedDepth/overlap, and gapTolerance.",
+      "Do not pass material look-dev when albedo is reused as roughness, height, normal, or AO.",
+      "Do not pass material look-dev without macro, meso, and micro surface frequency bands for close-up materials.",
+      "Do not pass reference-fidelity material look-dev from a source image without usable referencePbr maps or an explicit documented limitation.",
+      "Do not patch a spec with extracted PBR maps when extraction confidence is below the target threshold unless the user explicitly accepts lower fidelity.",
+      "Do not place adjacent separate-geometry parts below 0.02 world-unit seam overlap (source: grimoire/build/geometry_patterns.md).",
+      "Do not satisfy raised or recessed relief, fasteners, or grip structure with a map alone when the feature affects form; use geometry or displacement (source: grimoire/build/geometry_patterns.md).",
+      "Adjacent components must overlap by at least 0.02 world units at shared seams (source: grimoire/build/geometry_patterns.md).",
+      "Raised or recessed relief and fasteners must be geometry, instanced micro-parts, or displacement; a map alone is an approximation (source: grimoire/build/geometry_patterns.md)."
+    ],
+    "mustNotDo": [
+      "Do not proceed to code if qualityContract.qualityBar is unassessed.",
+      "Do not proceed to code if the spec only contains a root component for a moderate or complex object.",
+      "Do not proceed to code if required featureGroups are not represented by componentTree, materials, or repetitionSystems.",
+      "Do not proceed to code if visible local features are described only in prose and not attached to components/materials/evidenceRefs.",
+      "Do not proceed past structural-pass if attached child parts lack attachment.parentSocket, localStart, localEnd, embedDepth/overlap, and gapTolerance.",
+      "Do not pass material look-dev when albedo is reused as roughness, height, normal, or AO.",
+      "Do not pass material look-dev without macro, meso, and micro surface frequency bands for close-up materials.",
+      "Do not pass reference-fidelity material look-dev from a source image without usable referencePbr maps or an explicit documented limitation.",
+      "Do not patch a spec with extracted PBR maps when extraction confidence is below the target threshold unless the user explicitly accepts lower fidelity.",
+      "Do not place adjacent separate-geometry parts below 0.02 world-unit seam overlap (source: grimoire/build/geometry_patterns.md).",
+      "Do not satisfy raised or recessed relief, fasteners, or grip structure with a map alone when the feature affects form; use geometry or displacement (source: grimoire/build/geometry_patterns.md).",
+      "Adjacent components must overlap by at least 0.02 world units at shared seams (source: grimoire/build/geometry_patterns.md).",
+      "Raised or recessed relief and fasteners must be geometry, instanced micro-parts, or displacement; a map alone is an approximation (source: grimoire/build/geometry_patterns.md)."
+    ]
+  },
+  "qualityTargets": {
+    "targetFidelity": 0.7,
+    "mustMatch": [
+      "macro silhouette and proportions",
+      "primary material albedo/roughness response",
+      "reference-derived PBR material response at or above 0.7 confidence when source pixels are usable",
+      "most recognizable local features"
+    ],
+    "niceToHave": [
+      "micro scratches, stains, chips, and dirt masks",
+      "secondary lighting match"
+    ],
+    "fpsTarget": 60,
+    "reviewViewpoints": [
+      "front",
+      "three-quarter",
+      "side",
+      "thickness-axis",
+      "long-axis"
+    ]
+  },
+  "selfCorrectLoop": {
+    "enabled": true,
+    "visualAcceptance": {
+      "reviewer": "ai-vision",
+      "threshold": 0.7,
+      "comparisonArtifactRequired": true,
+      "layerScoresRequired": true,
+      "codePixelDiffIsAcceptanceAuthority": false,
+      "scoringRule": "AI vision must inspect a side-by-side reference/render sheet and score the current pass from 0 to 1. Pixel-diff code may assist diagnostics but cannot approve a pass.",
+      "requiredLayerScores": [
+        "silhouetteProportion",
+        "componentStructure",
+        "formDetail",
+        "materialSurface",
+        "lightingCamera"
+      ],
+      "featureReviewPolicy": {
+        "enabled": true,
+        "reviewUnit": "semantic-subsystem",
+        "maxCriticalFeaturesPerPass": 5,
+        "maxImportantFeaturesPerPass": 3,
+        "criticalDefaultThreshold": 0.8,
+        "importantAverageThreshold": 0.65,
+        "adaptiveEscalation": true,
+        "singleImagePairOnly": true,
+        "selectionRule": "Choose only the most visually salient, identity-defining, user-prioritized, or high-risk semantic systems. Group repeated parts instead of reviewing every mesh. AI vision scores every selected feature from the same full reference/render pair."
+      }
+    },
+    "reviewAfterPasses": [
+      "blockout",
+      "structural-pass",
+      "form-refinement",
+      "material-pass",
+      "surface-pass",
+      "lighting-pass",
+      "interaction-pass",
+      "optimization-pass"
+    ],
+    "allowedActions": [
+      "continue",
+      "refine-spec",
+      "refine-code",
+      "request-input",
+      "stop"
+    ],
+    "specRefineTriggers": [
+      "missing component",
+      "wrong primitive family",
+      "wrong proportions",
+      "material layer under-specified",
+      "local feature not traceable to viewEvidence",
+      "reference ambiguity discovered during implementation"
+    ],
+    "codeRefineTriggers": [
+      "spec is adequate but generated geometry/material does not match",
+      "browser render differs from reference",
+      "performance budget exceeded",
+      "lighting hides geometry or material response"
+    ],
+    "stopCriteria": [
+      "target fidelity reached or user accepts current approximation",
+      "remaining gaps require new reference images or manual art"
+    ],
+    "screenshotPolicy": {
+      "requiredForPasses": [
+        "blockout",
+        "structural-pass",
+        "form-refinement",
+        "material-pass",
+        "surface-pass",
+        "lighting-pass",
+        "interaction-pass"
+      ],
+      "preferredCapture": "in-app-browser-screenshot",
+      "fallbackCapture": "user-supplied-screenshot-path",
+      "minimumEvidence": "Each visual pass needs a reference image, rendered screenshot, side-by-side comparison sheet, AI vision score, layer scores, and critique before choosing continue.",
+      "reviewPairRule": "Compare the same camera/viewpoint whenever possible; do not judge a front reference against a random render angle.",
+      "acceptanceAuthority": "AI vision review of the comparison sheet. Code-generated pixel similarity is not sufficient evidence."
+    }
+  },
+  "featureReviewTargets": [
+    {
+      "id": "lock-silhouette",
+      "name": "Stepped circular lock silhouette",
+      "tier": "critical",
+      "passIds": [
+        "blockout",
+        "form-refinement"
+      ],
+      "minimumScore": 0.8,
+      "mustPass": true,
+      "componentRefs": [
+        "root",
+        "outer-bezel"
+      ],
+      "evidenceRefs": [
+        "circle-center"
+      ]
+    },
+    {
+      "id": "petal-depth",
+      "name": "Eight-petal recessed iris depth",
+      "tier": "critical",
+      "passIds": [
+        "structural-pass",
+        "form-refinement"
+      ],
+      "minimumScore": 0.8,
+      "mustPass": true,
+      "componentRefs": [
+        "petal-bank",
+        "recess-cavity",
+        "actuator-ring"
+      ],
+      "evidenceRefs": [
+        "circle-center"
+      ]
+    },
+    {
+      "id": "center-lens",
+      "name": "Convex lens and vertical status spine",
+      "tier": "critical",
+      "passIds": [
+        "form-refinement",
+        "material-pass"
+      ],
+      "minimumScore": 0.76,
+      "mustPass": true,
+      "componentRefs": [
+        "central-lens",
+        "status-spine",
+        "signal-glow"
+      ],
+      "evidenceRefs": [
+        "circle-center"
+      ]
+    },
+    {
+      "id": "fabrication-detail",
+      "name": "Socketed fasteners and radial linkages",
+      "tier": "important",
+      "passIds": [
+        "structural-pass",
+        "surface-pass"
+      ],
+      "minimumScore": 0.7,
+      "mustPass": false,
+      "componentRefs": [
+        "perimeter-fasteners",
+        "petal-hinge-pins",
+        "radial-struts"
+      ],
+      "evidenceRefs": [
+        "circle-center"
+      ]
+    },
+    {
+      "id": "material-identity",
+      "name": "Steel, hazard paint, glass, and red emission roles",
+      "tier": "critical",
+      "passIds": [
+        "material-pass",
+        "surface-pass",
+        "lighting-pass"
+      ],
+      "minimumScore": 0.75,
+      "mustPass": true,
+      "componentRefs": [
+        "outer-bezel",
+        "hazard-breaks",
+        "central-lens",
+        "signal-glow"
+      ],
+      "evidenceRefs": [
+        "circle-center"
+      ]
+    }
+  ],
+  "sculptPipeline": {
+    "passGateMode": "locked-sequential",
+    "passOrder": [
+      "blockout",
+      "structural-pass",
+      "form-refinement",
+      "material-pass",
+      "surface-pass",
+      "lighting-pass",
+      "interaction-pass",
+      "optimization-pass"
+    ],
+    "currentPass": "structural-pass",
+    "completedPasses": [
+      "blockout"
+    ],
+    "lastCompletedPass": "blockout",
+    "blockedReason": "",
+    "nextRequiredEvidence": [
+      "Macro, meso, and repeated structures meet qualityContract.minimumSpecDepth.",
+      "Parent-child relations, joints, seams, sockets, and contact points are explicit.",
+      "Every attached child appendage/connector has parentSocket, localStart/localEnd, contactType, embedDepth or overlap, and gapTolerance.",
+      "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold.",
+      "attachment contracts for child appendages/connectors",
+      "no floating child roots/joints in the browser screenshot",
+      "browser render screenshot from your agent's browser/screenshot tool",
+      "side-by-side reference/render comparison sheet for AI vision review",
+      "AI vision score at or above the visual acceptance threshold",
+      "all critical semantic feature scores from the shared image pair at or above their thresholds",
+      "self-correction review appended with action=continue before the next pass"
+    ]
+  },
+  "lookDevTargets": {
+    "qualityPriority": "reference-fidelity",
+    "materialPass": {
+      "albedoPaletteRequired": true,
+      "roughnessVariationRequired": true,
+      "normalOrBumpRequired": true,
+      "localOverridesRequired": true,
+      "minimumTextureResolution": 1024,
+      "preferredTextureResolution": 2048,
+      "independentMapChannels": [
+        "albedo",
+        "roughness",
+        "height",
+        "normal",
+        "ambient-occlusion"
+      ],
+      "requiredSurfaceFrequencyBands": [
+        "macro",
+        "meso",
+        "micro"
+      ],
+      "geometryReliefRequiredWhenSilhouetteAffected": true,
+      "referencePbrExtraction": {
+        "requiredWhenSourceImagePresent": false,
+        "targetThreshold": 0.7,
+        "stopOnLowConfidence": true,
+        "script": "forge/stage1_intake/extract_pbr_evidence.py",
+        "acceptedLimitation": "The supplied image is an in-situ bloom-heavy gameplay frame; PBR values are inferred from the existing authored material library and are not claimed as exact recovered maps."
+      },
+      "mustAvoid": [
+        "single flat albedo per material",
+        "uniform roughness",
+        "albedo texture reused as roughness/height/normal/AO",
+        "single-frequency random noise",
+        "plastic-looking smooth bark, stone, cloth, foliage, or aged material",
+        "local color/detail described only in prose without material masks",
+        "claiming exact PBR recovery when confidence is below the target threshold"
+      ]
+    },
+    "lightingPass": {
+      "requiredTerms": [
+        "key light",
+        "fill light",
+        "rim or environment light",
+        "exposure",
+        "tone mapping",
+        "background",
+        "contact shadow"
+      ],
+      "mustAvoid": [
+        "ambient-only lighting",
+        "flat value range",
+        "missing contact shadow",
+        "reference lighting copied without separating material readability"
+      ]
+    },
+    "screenshotReview": [
+      "Compare albedo palette and local color zones.",
+      "Compare roughness/normal/bump response under light.",
+      "Compare cavity dirt, edge wear, stains, moss, scratches, or other local masks.",
+      "Compare key/fill/rim structure, exposure, tone mapping, background, and contact shadows.",
+      "Capture a neutral-light render to verify material readability without reference lighting.",
+      "Capture a grazing-light close-up to expose flat normals, uniform roughness, tiling, and plastic highlights.",
+      "Capture a reference-matched render from the same camera framing as the source."
+    ]
+  },
+  "actionReadiness": {
+    "contract": "Every macro/meso component should be generated as a stable named Object3D pivot node with a mesh child, action metadata, optional sockets, collider proxy, and destruction metadata.",
+    "defaultRigType": "action-ready-static-rig",
+    "rootMotionNode": "root",
+    "requiredComponentFields": [
+      "id",
+      "parent",
+      "transform",
+      "attachment for child appendages, connectors, limbs, tubes, handles, legs, horns, wings, branches, or cables",
+      "actionProfile.animationRole",
+      "actionProfile.pivot",
+      "actionProfile.collider",
+      "actionProfile.destruction"
+    ],
+    "transformChannels": [
+      "translate",
+      "rotate",
+      "scale",
+      "bend",
+      "twist",
+      "detach",
+      "visibility",
+      "material-state"
+    ],
+    "authoringRules": [
+      "Do not collapse independently movable parts into one mesh.",
+      "Put transforms on component pivot groups, not only on raw meshes.",
+      "For attached child parts, put the pivot at the semantic root/socket and build visible geometry from localStart to localEnd.",
+      "Represent hinge, socket, detachable, and breakable intent even when no animation is implemented yet.",
+      "Use simplified collider proxies for runtime physics instead of visual mesh colliders by default."
+    ],
+    "destructionPolicy": {
+      "defaultBreakable": false,
+      "fractureGroupNaming": "Use stable semantic names such as body-shell, left-hinge, glass-panel, branch-segment.",
+      "debrisStrategy": "Prefer detachable component groups and a small number of procedural fragments over random mesh explosion."
+    }
+  },
+  "assumptions": [
+    "The previous torus marker is replaced by a real 3D lock assembly at the existing setpiece anchor; objective semantics and collision remain unchanged.",
+    "The rear mount, seal depth, and actuator linkage are authored approximations because the gameplay reference occludes them.",
+    "The supplied frame is used for silhouette/palette evidence only; no exact texture projection claim is made."
+  ],
+  "coordinateFrame": {
+    "front": "camera-facing side in the reference image",
+    "up": "image up direction",
+    "scaleReference": "unit scale; adjust after first browser render"
+  },
+  "silhouette": {
+    "boundingShape": "",
+    "aspectRatios": [],
+    "symmetry": "",
+    "dominantCurves": [],
+    "negativeSpaces": [],
+    "landmarks": []
+  },
+  "viewEvidence": [
+    {
+      "id": "full-object",
+      "view": "primary",
+      "imageRegion": {
+        "x": 0,
+        "y": 0,
+        "width": 1,
+        "height": 1,
+        "units": "normalized"
+      },
+      "observations": [
+        "center-left wall lock is the visible target"
+      ],
+      "confidence": 0.85
+    },
+    {
+      "id": "circle-center",
+      "view": "center-crop",
+      "imageRegion": {
+        "x": 0.29,
+        "y": 0.38,
+        "width": 0.27,
+        "height": 0.34,
+        "units": "normalized"
+      },
+      "observations": [
+        "concentric signal, status spine, radial fasteners and door face"
+      ],
+      "confidence": 0.78
+    }
+  ],
+  "componentTree": [
+    {
+      "id": "root",
+      "name": "Intake Containment Iris",
+      "level": "macro",
+      "role": "assembly-root",
+      "importance": 1,
+      "confidence": 0.82,
+      "primitive": "cylinder",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "radial mechanical assembly; separate named part with authored depth and bevel response.",
+      "geometryDescriptor": {
+        "topologyIntent": "authored procedural solid with explicit front/back depth",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "weighted vertex normals with bevel continuity"
+      },
+      "parent": null,
+      "attachment": null,
+      "dimensions": {
+        "width": 2.9,
+        "height": 2.9,
+        "depth": 0.72,
+        "units": "metres",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "root",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "cylinder",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": true,
+          "notes": "Visual lock only; gameplay collision remains owned by the course grid."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "intake-iris-root",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "base"
+        }
+      },
+      "material": "iris-dark-steel",
+      "materialLayers": [
+        "iris-dark-steel"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "root-feature-0",
+          "type": "geometry",
+          "description": "stepped circular housing with recessed center",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        },
+        {
+          "id": "root-feature-1",
+          "type": "geometry",
+          "description": "door-mounted proud depth",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.18,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.04,
+        "normalPattern": "bevel-and-pitting",
+        "displacementPattern": "",
+        "occlusionPattern": "recess-and-overlap",
+        "edgeWearPattern": "exposed-bevel",
+        "notes": "Authored from the center-lock observation."
+      },
+      "evidenceRefs": [
+        "full-object",
+        "circle-center"
+      ],
+      "details": [],
+      "fidelityTier": "structure",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(32, 41, 54, 1)",
+        "secondaryAlbedo": "rgba(23, 29, 42, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.78,
+        "evidenceRefs": [
+          "circle-center"
+        ]
+      }
+    },
+    {
+      "id": "mount-plate",
+      "name": "Door mount plate",
+      "level": "macro",
+      "role": "mounting-shell",
+      "importance": 1,
+      "confidence": 0.82,
+      "primitive": "extrude",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "beveled mounting shell; separate named part with authored depth and bevel response.",
+      "geometryDescriptor": {
+        "topologyIntent": "authored procedural solid with explicit front/back depth",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "weighted vertex normals with bevel continuity"
+      },
+      "parent": "root",
+      "attachment": {
+        "parentSocket": "root:mount",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0.08
+        ],
+        "contactType": "overlap",
+        "embedDepth": 0.03,
+        "gapTolerance": 0.01
+      },
+      "dimensions": {
+        "width": 3.4,
+        "height": 3.4,
+        "depth": 0.22,
+        "units": "metres",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "root",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "cylinder",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": true,
+          "notes": "Visual lock only; gameplay collision remains owned by the course grid."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "intake-iris-mount-plate",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "base"
+        }
+      },
+      "material": "iris-dark-steel",
+      "materialLayers": [
+        "iris-dark-steel"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "mount-plate-feature-0",
+          "type": "geometry",
+          "description": "octagonal service plate",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        },
+        {
+          "id": "mount-plate-feature-1",
+          "type": "geometry",
+          "description": "recessed bolt sockets",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.18,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.04,
+        "normalPattern": "bevel-and-pitting",
+        "displacementPattern": "",
+        "occlusionPattern": "recess-and-overlap",
+        "edgeWearPattern": "exposed-bevel",
+        "notes": "Authored from the center-lock observation."
+      },
+      "evidenceRefs": [
+        "full-object",
+        "circle-center"
+      ],
+      "details": [],
+      "fidelityTier": "structure",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(32, 41, 54, 1)",
+        "secondaryAlbedo": "rgba(23, 29, 42, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.78,
+        "evidenceRefs": [
+          "circle-center"
+        ]
+      }
+    },
+    {
+      "id": "iris-mechanism",
+      "name": "Iris mechanism",
+      "level": "macro",
+      "role": "articulated-mechanism",
+      "importance": 1,
+      "confidence": 0.82,
+      "primitive": "instanced-cluster",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "radial articulated mechanism; separate named part with authored depth and bevel response.",
+      "geometryDescriptor": {
+        "topologyIntent": "authored procedural solid with explicit front/back depth",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [
+          "radial pivot animation"
+        ],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "weighted vertex normals with bevel continuity"
+      },
+      "parent": "root",
+      "attachment": {
+        "parentSocket": "root:mount",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0.08
+        ],
+        "contactType": "overlap",
+        "embedDepth": 0.03,
+        "gapTolerance": 0.01
+      },
+      "dimensions": {
+        "width": 2.35,
+        "height": 2.35,
+        "depth": 0.56,
+        "units": "metres",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "radial-articulation",
+        "pivot": {
+          "mode": "socket",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "cylinder",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": true,
+          "notes": "Visual lock only; gameplay collision remains owned by the course grid."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "intake-iris-iris-mechanism",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "base"
+        }
+      },
+      "material": "iris-satin-steel",
+      "materialLayers": [
+        "iris-satin-steel"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "iris-mechanism-feature-0",
+          "type": "geometry",
+          "description": "eight overlapping petals",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        },
+        {
+          "id": "iris-mechanism-feature-1",
+          "type": "geometry",
+          "description": "central spindle and actuator ring",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.18,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.04,
+        "normalPattern": "bevel-and-pitting",
+        "displacementPattern": "",
+        "occlusionPattern": "recess-and-overlap",
+        "edgeWearPattern": "exposed-bevel",
+        "notes": "Authored from the center-lock observation."
+      },
+      "evidenceRefs": [
+        "full-object",
+        "circle-center"
+      ],
+      "details": [],
+      "fidelityTier": "structure",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(142, 156, 173, 1)",
+        "secondaryAlbedo": "rgba(23, 29, 42, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.78,
+        "evidenceRefs": [
+          "circle-center"
+        ]
+      }
+    },
+    {
+      "id": "outer-bezel",
+      "name": "Stepped outer bezel",
+      "level": "meso",
+      "role": "bezel",
+      "importance": 0.82,
+      "confidence": 0.82,
+      "primitive": "extrude",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "beveled annular plate; separate named part with authored depth and bevel response.",
+      "geometryDescriptor": {
+        "topologyIntent": "authored procedural solid with explicit front/back depth",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "weighted vertex normals with bevel continuity"
+      },
+      "parent": "mount-plate",
+      "attachment": {
+        "parentSocket": "mount-plate:mount",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0.08
+        ],
+        "contactType": "overlap",
+        "embedDepth": 0.03,
+        "gapTolerance": 0.01
+      },
+      "dimensions": {
+        "width": 2.75,
+        "height": 2.75,
+        "depth": 0.3,
+        "units": "metres",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "rigid",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": true,
+          "notes": "Visual lock only; gameplay collision remains owned by the course grid."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "intake-iris-outer-bezel",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "base"
+        }
+      },
+      "material": "iris-satin-steel",
+      "materialLayers": [
+        "iris-satin-steel"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "outer-bezel-feature-0",
+          "type": "geometry",
+          "description": "chamfered annulus",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        },
+        {
+          "id": "outer-bezel-feature-1",
+          "type": "geometry",
+          "description": "double-step highlight",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.18,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.04,
+        "normalPattern": "bevel-and-pitting",
+        "displacementPattern": "",
+        "occlusionPattern": "recess-and-overlap",
+        "edgeWearPattern": "exposed-bevel",
+        "notes": "Authored from the center-lock observation."
+      },
+      "evidenceRefs": [
+        "full-object",
+        "circle-center"
+      ],
+      "details": [],
+      "fidelityTier": "form",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(142, 156, 173, 1)",
+        "secondaryAlbedo": "rgba(23, 29, 42, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.78,
+        "evidenceRefs": [
+          "circle-center"
+        ]
+      }
+    },
+    {
+      "id": "recess-cavity",
+      "name": "Recessed cavity",
+      "level": "meso",
+      "role": "cavity",
+      "importance": 0.82,
+      "confidence": 0.82,
+      "primitive": "cylinder",
+      "topologyClass": "implicit",
+      "topologyRationale": "recessed volume; separate named part with authored depth and bevel response.",
+      "geometryDescriptor": {
+        "topologyIntent": "authored procedural solid with explicit front/back depth",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "weighted vertex normals with bevel continuity",
+        "sdf": {
+          "primitives": [
+            {
+              "id": "parent-shell",
+              "type": "sphere",
+              "center": [
+                0,
+                0,
+                0
+              ],
+              "radius": 0.96
+            },
+            {
+              "id": "cavity-cutter",
+              "type": "sphere",
+              "center": [
+                0,
+                0,
+                0.08
+              ],
+              "radius": 0.82
+            }
+          ],
+          "operations": [
+            {
+              "type": "subtract",
+              "left": "parent-shell",
+              "right": "cavity-cutter"
+            }
+          ],
+          "resolution": 32,
+          "note": "Concavity is represented as a true recess in the authored assembly."
+        }
+      },
+      "parent": "iris-mechanism",
+      "attachment": {
+        "parentSocket": "iris-mechanism:mount",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0.08
+        ],
+        "contactType": "overlap",
+        "embedDepth": 0.03,
+        "gapTolerance": 0.01
+      },
+      "dimensions": {
+        "width": 1.9,
+        "height": 1.9,
+        "depth": 0.45,
+        "units": "metres",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "rigid",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": true,
+          "notes": "Visual lock only; gameplay collision remains owned by the course grid."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "intake-iris-recess-cavity",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "base"
+        }
+      },
+      "material": "iris-dark-steel",
+      "materialLayers": [
+        "iris-dark-steel"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "recess-cavity-feature-0",
+          "type": "geometry",
+          "description": "deep cylindrical pocket",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        },
+        {
+          "id": "recess-cavity-feature-1",
+          "type": "geometry",
+          "description": "dark occlusion behind petals",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.18,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.04,
+        "normalPattern": "bevel-and-pitting",
+        "displacementPattern": "",
+        "occlusionPattern": "recess-and-overlap",
+        "edgeWearPattern": "exposed-bevel",
+        "notes": "Authored from the center-lock observation."
+      },
+      "evidenceRefs": [
+        "full-object",
+        "circle-center"
+      ],
+      "details": [],
+      "fidelityTier": "form",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(23, 29, 42, 1)",
+        "secondaryAlbedo": "rgba(23, 29, 42, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.78,
+        "evidenceRefs": [
+          "circle-center"
+        ]
+      }
+    },
+    {
+      "id": "petal-bank",
+      "name": "Eight iris petals",
+      "level": "meso",
+      "role": "aperture-blades",
+      "importance": 0.82,
+      "confidence": 0.82,
+      "primitive": "extrude",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "repeating tapered plates; separate named part with authored depth and bevel response.",
+      "geometryDescriptor": {
+        "topologyIntent": "authored procedural solid with explicit front/back depth",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [
+          "radial pivot animation"
+        ],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "weighted vertex normals with bevel continuity"
+      },
+      "parent": "iris-mechanism",
+      "attachment": {
+        "parentSocket": "iris-mechanism:mount",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0.08
+        ],
+        "contactType": "overlap",
+        "embedDepth": 0.03,
+        "gapTolerance": 0.01
+      },
+      "dimensions": {
+        "width": 1.85,
+        "height": 1.85,
+        "depth": 0.16,
+        "units": "metres",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "radial-articulation",
+        "pivot": {
+          "mode": "socket",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": true,
+          "notes": "Visual lock only; gameplay collision remains owned by the course grid."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "intake-iris-petal-bank",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "base"
+        }
+      },
+      "material": "iris-satin-steel",
+      "materialLayers": [
+        "iris-satin-steel"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "petal-bank-feature-0",
+          "type": "geometry",
+          "description": "eight tapered overlapping leaves",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        },
+        {
+          "id": "petal-bank-feature-1",
+          "type": "geometry",
+          "description": "radial negative-space aperture",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.18,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.04,
+        "normalPattern": "bevel-and-pitting",
+        "displacementPattern": "",
+        "occlusionPattern": "recess-and-overlap",
+        "edgeWearPattern": "exposed-bevel",
+        "notes": "Authored from the center-lock observation."
+      },
+      "evidenceRefs": [
+        "full-object",
+        "circle-center"
+      ],
+      "details": [],
+      "fidelityTier": "form",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(142, 156, 173, 1)",
+        "secondaryAlbedo": "rgba(23, 29, 42, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.78,
+        "evidenceRefs": [
+          "circle-center"
+        ]
+      }
+    },
+    {
+      "id": "actuator-ring",
+      "name": "Petal actuator ring",
+      "level": "meso",
+      "role": "actuator",
+      "importance": 0.82,
+      "confidence": 0.82,
+      "primitive": "torus",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "stepped actuator cam; separate named part with authored depth and bevel response.",
+      "geometryDescriptor": {
+        "topologyIntent": "authored procedural solid with explicit front/back depth",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [
+          "radial pivot animation"
+        ],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "weighted vertex normals with bevel continuity"
+      },
+      "parent": "iris-mechanism",
+      "attachment": {
+        "parentSocket": "iris-mechanism:mount",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0.08
+        ],
+        "contactType": "overlap",
+        "embedDepth": 0.03,
+        "gapTolerance": 0.01
+      },
+      "dimensions": {
+        "width": 2.1,
+        "height": 2.1,
+        "depth": 0.2,
+        "units": "metres",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "radial-articulation",
+        "pivot": {
+          "mode": "socket",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": true,
+          "notes": "Visual lock only; gameplay collision remains owned by the course grid."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "intake-iris-actuator-ring",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "base"
+        }
+      },
+      "material": "iris-dark-steel",
+      "materialLayers": [
+        "iris-dark-steel"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "actuator-ring-feature-0",
+          "type": "geometry",
+          "description": "rear ring cam",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        },
+        {
+          "id": "actuator-ring-feature-1",
+          "type": "geometry",
+          "description": "eight linkage sockets",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.18,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.04,
+        "normalPattern": "bevel-and-pitting",
+        "displacementPattern": "",
+        "occlusionPattern": "recess-and-overlap",
+        "edgeWearPattern": "exposed-bevel",
+        "notes": "Authored from the center-lock observation."
+      },
+      "evidenceRefs": [
+        "full-object",
+        "circle-center"
+      ],
+      "details": [],
+      "fidelityTier": "form",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(32, 41, 54, 1)",
+        "secondaryAlbedo": "rgba(23, 29, 42, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.78,
+        "evidenceRefs": [
+          "circle-center"
+        ]
+      }
+    },
+    {
+      "id": "radial-struts",
+      "name": "Radial actuator struts",
+      "level": "meso",
+      "role": "linkages",
+      "importance": 0.82,
+      "confidence": 0.82,
+      "primitive": "cylinder",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "oriented linkage rods; separate named part with authored depth and bevel response.",
+      "geometryDescriptor": {
+        "topologyIntent": "authored procedural solid with explicit front/back depth",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "weighted vertex normals with bevel continuity"
+      },
+      "parent": "actuator-ring",
+      "attachment": {
+        "parentSocket": "actuator-ring:mount",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0.08
+        ],
+        "contactType": "overlap",
+        "embedDepth": 0.03,
+        "gapTolerance": 0.01
+      },
+      "dimensions": {
+        "width": 2.25,
+        "height": 2.25,
+        "depth": 0.12,
+        "units": "metres",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "rigid",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": true,
+          "notes": "Visual lock only; gameplay collision remains owned by the course grid."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "intake-iris-radial-struts",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "base"
+        }
+      },
+      "material": "iris-satin-steel",
+      "materialLayers": [
+        "iris-satin-steel"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "radial-struts-feature-0",
+          "type": "geometry",
+          "description": "eight angled rods",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        },
+        {
+          "id": "radial-struts-feature-1",
+          "type": "geometry",
+          "description": "socketed petal bridges",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.18,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.04,
+        "normalPattern": "bevel-and-pitting",
+        "displacementPattern": "",
+        "occlusionPattern": "recess-and-overlap",
+        "edgeWearPattern": "exposed-bevel",
+        "notes": "Authored from the center-lock observation."
+      },
+      "evidenceRefs": [
+        "full-object",
+        "circle-center"
+      ],
+      "details": [],
+      "fidelityTier": "form",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(142, 156, 173, 1)",
+        "secondaryAlbedo": "rgba(23, 29, 42, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.78,
+        "evidenceRefs": [
+          "circle-center"
+        ]
+      }
+    },
+    {
+      "id": "status-spine",
+      "name": "Vertical status spine",
+      "level": "meso",
+      "role": "status-emitter",
+      "importance": 0.82,
+      "confidence": 0.82,
+      "primitive": "extrude",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "emissive status element; separate named part with authored depth and bevel response.",
+      "geometryDescriptor": {
+        "topologyIntent": "authored procedural solid with explicit front/back depth",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "weighted vertex normals with bevel continuity"
+      },
+      "parent": "iris-mechanism",
+      "attachment": {
+        "parentSocket": "iris-mechanism:mount",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0.08
+        ],
+        "contactType": "overlap",
+        "embedDepth": 0.03,
+        "gapTolerance": 0.01
+      },
+      "dimensions": {
+        "width": 0.12,
+        "height": 1.2,
+        "depth": 0.08,
+        "units": "metres",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "rigid",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": true,
+          "notes": "Visual lock only; gameplay collision remains owned by the course grid."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "intake-iris-status-spine",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "base"
+        }
+      },
+      "material": "iris-signal",
+      "materialLayers": [
+        "iris-signal"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "status-spine-feature-0",
+          "type": "geometry",
+          "description": "narrow emissive seam",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        },
+        {
+          "id": "status-spine-feature-1",
+          "type": "geometry",
+          "description": "machined center guide",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.18,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.04,
+        "normalPattern": "bevel-and-pitting",
+        "displacementPattern": "",
+        "occlusionPattern": "recess-and-overlap",
+        "edgeWearPattern": "exposed-bevel",
+        "notes": "Authored from the center-lock observation."
+      },
+      "evidenceRefs": [
+        "full-object",
+        "circle-center"
+      ],
+      "details": [],
+      "fidelityTier": "form",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(239, 64, 95, 1)",
+        "secondaryAlbedo": "rgba(23, 29, 42, 1)",
+        "materialClass": "plastic",
+        "materialClassConfidence": 0.78,
+        "evidenceRefs": [
+          "circle-center"
+        ]
+      }
+    },
+    {
+      "id": "central-lens",
+      "name": "Central lens and spindle",
+      "level": "meso",
+      "role": "lens-core",
+      "importance": 0.82,
+      "confidence": 0.82,
+      "primitive": "sphere",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "transparent optical volume; separate named part with authored depth and bevel response.",
+      "geometryDescriptor": {
+        "topologyIntent": "authored procedural solid with explicit front/back depth",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "weighted vertex normals with bevel continuity"
+      },
+      "parent": "recess-cavity",
+      "attachment": {
+        "parentSocket": "recess-cavity:mount",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0.08
+        ],
+        "contactType": "overlap",
+        "embedDepth": 0.03,
+        "gapTolerance": 0.01
+      },
+      "dimensions": {
+        "width": 1.05,
+        "height": 1.05,
+        "depth": 0.5,
+        "units": "metres",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "rigid",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": true,
+          "notes": "Visual lock only; gameplay collision remains owned by the course grid."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "intake-iris-central-lens",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "base"
+        }
+      },
+      "material": "iris-glass",
+      "materialLayers": [
+        "iris-glass"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "central-lens-feature-0",
+          "type": "geometry",
+          "description": "convex glass lens",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        },
+        {
+          "id": "central-lens-feature-1",
+          "type": "geometry",
+          "description": "machined spindle hub",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.18,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.04,
+        "normalPattern": "bevel-and-pitting",
+        "displacementPattern": "",
+        "occlusionPattern": "recess-and-overlap",
+        "edgeWearPattern": "exposed-bevel",
+        "notes": "Authored from the center-lock observation."
+      },
+      "evidenceRefs": [
+        "full-object",
+        "circle-center"
+      ],
+      "details": [],
+      "fidelityTier": "form",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(16, 42, 52, 1)",
+        "secondaryAlbedo": "rgba(23, 29, 42, 1)",
+        "materialClass": "glass",
+        "materialClassConfidence": 0.78,
+        "evidenceRefs": [
+          "circle-center"
+        ]
+      }
+    },
+    {
+      "id": "perimeter-fasteners",
+      "name": "Perimeter fastener ring",
+      "level": "meso",
+      "role": "fastener-cluster",
+      "importance": 0.82,
+      "confidence": 0.82,
+      "primitive": "instanced-cluster",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "repeating socketed fasteners; separate named part with authored depth and bevel response.",
+      "geometryDescriptor": {
+        "topologyIntent": "authored procedural solid with explicit front/back depth",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.035,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "weighted vertex normals with bevel continuity"
+      },
+      "parent": "outer-bezel",
+      "attachment": {
+        "parentSocket": "outer-bezel:mount",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0.08
+        ],
+        "contactType": "overlap",
+        "embedDepth": 0.03,
+        "gapTolerance": 0.01
+      },
+      "dimensions": {
+        "width": 2.45,
+        "height": 2.45,
+        "depth": 0.15,
+        "units": "metres",
+        "confidence": 0.82
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "rigid",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": true,
+          "notes": "Visual lock only; gameplay collision remains owned by the course grid."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "intake-iris-perimeter-fasteners",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "base"
+        }
+      },
+      "material": "iris-satin-steel",
+      "materialLayers": [
+        "iris-satin-steel"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "perimeter-fasteners-feature-0",
+          "type": "geometry",
+          "description": "eight socketed bolt heads",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        },
+        {
+          "id": "perimeter-fasteners-feature-1",
+          "type": "geometry",
+          "description": "alternating radial spacing",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.18,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.04,
+        "normalPattern": "bevel-and-pitting",
+        "displacementPattern": "",
+        "occlusionPattern": "recess-and-overlap",
+        "edgeWearPattern": "exposed-bevel",
+        "notes": "Authored from the center-lock observation."
+      },
+      "evidenceRefs": [
+        "full-object",
+        "circle-center"
+      ],
+      "details": [],
+      "fidelityTier": "form",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(142, 156, 173, 1)",
+        "secondaryAlbedo": "rgba(23, 29, 42, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.78,
+        "evidenceRefs": [
+          "circle-center"
+        ]
+      }
+    },
+    {
+      "id": "bezel-edge-wear",
+      "name": "Bezel edge wear",
+      "level": "micro",
+      "role": "surface-relief",
+      "importance": 0.62,
+      "confidence": 0.67,
+      "primitive": "torus",
+      "topologyClass": "surface-relief",
+      "topologyRationale": "procedural edge-wear relief; separate named part with authored depth and bevel response.",
+      "geometryDescriptor": {
+        "topologyIntent": "authored procedural solid with explicit front/back depth",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.01,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "weighted vertex normals with bevel continuity"
+      },
+      "parent": "outer-bezel",
+      "attachment": {
+        "parentSocket": "outer-bezel:mount",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0.08
+        ],
+        "contactType": "overlap",
+        "embedDepth": 0.03,
+        "gapTolerance": 0.01
+      },
+      "dimensions": {
+        "width": 2.72,
+        "height": 2.72,
+        "depth": 0.04,
+        "units": "metres",
+        "confidence": 0.67
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "rigid",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": true,
+          "notes": "Visual lock only; gameplay collision remains owned by the course grid."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "intake-iris-bezel-edge-wear",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "base"
+        }
+      },
+      "material": "iris-satin-steel",
+      "materialLayers": [
+        "iris-satin-steel"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "bezel-edge-wear-feature-0",
+          "type": "geometry",
+          "description": "roughness break on exposed rim",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.18,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.04,
+        "normalPattern": "bevel-and-pitting",
+        "displacementPattern": "",
+        "occlusionPattern": "recess-and-overlap",
+        "edgeWearPattern": "exposed-bevel",
+        "notes": "Authored from the center-lock observation."
+      },
+      "evidenceRefs": [
+        "full-object",
+        "circle-center"
+      ],
+      "details": [],
+      "fidelityTier": "surface",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(142, 156, 173, 1)",
+        "secondaryAlbedo": "rgba(23, 29, 42, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.78,
+        "evidenceRefs": [
+          "circle-center"
+        ]
+      }
+    },
+    {
+      "id": "petal-hinge-pins",
+      "name": "Petal hinge pins",
+      "level": "micro",
+      "role": "hinge-fasteners",
+      "importance": 0.62,
+      "confidence": 0.67,
+      "primitive": "instanced-cluster",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "repeating hinge hardware; separate named part with authored depth and bevel response.",
+      "geometryDescriptor": {
+        "topologyIntent": "authored procedural solid with explicit front/back depth",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.01,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "weighted vertex normals with bevel continuity"
+      },
+      "parent": "petal-bank",
+      "attachment": {
+        "parentSocket": "petal-bank:mount",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0.08
+        ],
+        "contactType": "overlap",
+        "embedDepth": 0.03,
+        "gapTolerance": 0.01
+      },
+      "dimensions": {
+        "width": 1.72,
+        "height": 1.72,
+        "depth": 0.1,
+        "units": "metres",
+        "confidence": 0.67
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "rigid",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": true,
+          "notes": "Visual lock only; gameplay collision remains owned by the course grid."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "intake-iris-petal-hinge-pins",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "base"
+        }
+      },
+      "material": "iris-satin-steel",
+      "materialLayers": [
+        "iris-satin-steel"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "petal-hinge-pins-feature-0",
+          "type": "geometry",
+          "description": "eight pin heads at petal roots",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.18,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.04,
+        "normalPattern": "bevel-and-pitting",
+        "displacementPattern": "",
+        "occlusionPattern": "recess-and-overlap",
+        "edgeWearPattern": "exposed-bevel",
+        "notes": "Authored from the center-lock observation."
+      },
+      "evidenceRefs": [
+        "full-object",
+        "circle-center"
+      ],
+      "details": [],
+      "fidelityTier": "surface",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(142, 156, 173, 1)",
+        "secondaryAlbedo": "rgba(23, 29, 42, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.78,
+        "evidenceRefs": [
+          "circle-center"
+        ]
+      }
+    },
+    {
+      "id": "hazard-breaks",
+      "name": "Hazard paint breaks",
+      "level": "micro",
+      "role": "paint-detail",
+      "importance": 0.62,
+      "confidence": 0.67,
+      "primitive": "extrude",
+      "topologyClass": "surface-relief",
+      "topologyRationale": "painted accent relief; separate named part with authored depth and bevel response.",
+      "geometryDescriptor": {
+        "topologyIntent": "authored procedural solid with explicit front/back depth",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.01,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "weighted vertex normals with bevel continuity"
+      },
+      "parent": "petal-bank",
+      "attachment": {
+        "parentSocket": "petal-bank:mount",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0.08
+        ],
+        "contactType": "overlap",
+        "embedDepth": 0.03,
+        "gapTolerance": 0.01
+      },
+      "dimensions": {
+        "width": 1.9,
+        "height": 1.9,
+        "depth": 0.05,
+        "units": "metres",
+        "confidence": 0.67
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "rigid",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": true,
+          "notes": "Visual lock only; gameplay collision remains owned by the course grid."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "intake-iris-hazard-breaks",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "base"
+        }
+      },
+      "material": "iris-hazard-paint",
+      "materialLayers": [
+        "iris-hazard-paint"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "hazard-breaks-feature-0",
+          "type": "geometry",
+          "description": "alternating warm petal-tip accents",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.18,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.04,
+        "normalPattern": "bevel-and-pitting",
+        "displacementPattern": "",
+        "occlusionPattern": "recess-and-overlap",
+        "edgeWearPattern": "exposed-bevel",
+        "notes": "Authored from the center-lock observation."
+      },
+      "evidenceRefs": [
+        "full-object",
+        "circle-center"
+      ],
+      "details": [],
+      "fidelityTier": "surface",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(199, 107, 43, 1)",
+        "secondaryAlbedo": "rgba(23, 29, 42, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.78,
+        "evidenceRefs": [
+          "circle-center"
+        ]
+      }
+    },
+    {
+      "id": "cavity-occlusion",
+      "name": "Cavity occlusion and seal",
+      "level": "micro",
+      "role": "seal-detail",
+      "importance": 0.62,
+      "confidence": 0.67,
+      "primitive": "torus",
+      "topologyClass": "implicit",
+      "topologyRationale": "recessed gasket relief; separate named part with authored depth and bevel response.",
+      "geometryDescriptor": {
+        "topologyIntent": "authored procedural solid with explicit front/back depth",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.01,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "weighted vertex normals with bevel continuity",
+        "sdf": {
+          "primitives": [
+            {
+              "id": "parent-shell",
+              "type": "sphere",
+              "center": [
+                0,
+                0,
+                0
+              ],
+              "radius": 0.96
+            },
+            {
+              "id": "cavity-cutter",
+              "type": "sphere",
+              "center": [
+                0,
+                0,
+                0.08
+              ],
+              "radius": 0.82
+            }
+          ],
+          "operations": [
+            {
+              "type": "subtract",
+              "left": "parent-shell",
+              "right": "cavity-cutter"
+            }
+          ],
+          "resolution": 32,
+          "note": "Concavity is represented as a true recess in the authored assembly."
+        }
+      },
+      "parent": "recess-cavity",
+      "attachment": {
+        "parentSocket": "recess-cavity:mount",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0.08
+        ],
+        "contactType": "overlap",
+        "embedDepth": 0.03,
+        "gapTolerance": 0.01
+      },
+      "dimensions": {
+        "width": 1.7,
+        "height": 1.7,
+        "depth": 0.12,
+        "units": "metres",
+        "confidence": 0.67
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "rigid",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": true,
+          "notes": "Visual lock only; gameplay collision remains owned by the course grid."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "intake-iris-cavity-occlusion",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "base"
+        }
+      },
+      "material": "iris-dark-steel",
+      "materialLayers": [
+        "iris-dark-steel"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "cavity-occlusion-feature-0",
+          "type": "geometry",
+          "description": "dark gasket ring",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        },
+        {
+          "id": "cavity-occlusion-feature-1",
+          "type": "geometry",
+          "description": "occlusion between petals and lens",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.18,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.04,
+        "normalPattern": "bevel-and-pitting",
+        "displacementPattern": "",
+        "occlusionPattern": "recess-and-overlap",
+        "edgeWearPattern": "exposed-bevel",
+        "notes": "Authored from the center-lock observation."
+      },
+      "evidenceRefs": [
+        "full-object",
+        "circle-center"
+      ],
+      "details": [],
+      "fidelityTier": "surface",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(23, 29, 42, 1)",
+        "secondaryAlbedo": "rgba(23, 29, 42, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.78,
+        "evidenceRefs": [
+          "circle-center"
+        ]
+      }
+    },
+    {
+      "id": "signal-glow",
+      "name": "Lens emission bloom",
+      "level": "micro",
+      "role": "emissive-detail",
+      "importance": 0.62,
+      "confidence": 0.67,
+      "primitive": "sphere",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "emissive optical core; separate named part with authored depth and bevel response.",
+      "geometryDescriptor": {
+        "topologyIntent": "authored procedural solid with explicit front/back depth",
+        "edgeTreatment": {
+          "type": "bevel",
+          "bevelRadius": 0.01,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "weighted vertex normals with bevel continuity"
+      },
+      "parent": "central-lens",
+      "attachment": {
+        "parentSocket": "central-lens:mount",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0.08
+        ],
+        "contactType": "overlap",
+        "embedDepth": 0.03,
+        "gapTolerance": 0.01
+      },
+      "dimensions": {
+        "width": 0.72,
+        "height": 0.72,
+        "depth": 0.3,
+        "units": "metres",
+        "confidence": 0.67
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "rigid",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ],
+          "confidence": 0.78
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "isTrigger": true,
+          "notes": "Visual lock only; gameplay collision remains owned by the course grid."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "intake-iris-signal-glow",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0,
+          "debrisMaterial": "base"
+        }
+      },
+      "material": "iris-signal",
+      "materialLayers": [
+        "iris-signal"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "signal-glow-feature-0",
+          "type": "geometry",
+          "description": "hot red inner volume",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        },
+        {
+          "id": "signal-glow-feature-1",
+          "type": "geometry",
+          "description": "soft peripheral falloff",
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.18,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.04,
+        "normalPattern": "bevel-and-pitting",
+        "displacementPattern": "",
+        "occlusionPattern": "recess-and-overlap",
+        "edgeWearPattern": "exposed-bevel",
+        "notes": "Authored from the center-lock observation."
+      },
+      "evidenceRefs": [
+        "full-object",
+        "circle-center"
+      ],
+      "details": [],
+      "fidelityTier": "surface",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(239, 64, 95, 1)",
+        "secondaryAlbedo": "rgba(23, 29, 42, 1)",
+        "materialClass": "plastic",
+        "materialClassConfidence": 0.78,
+        "evidenceRefs": [
+          "circle-center"
+        ]
+      }
+    }
+  ],
+  "materials": [
+    {
+      "id": "iris-dark-steel",
+      "name": "Iris dark steel",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial / PBR approximation",
+      "baseColor": "#202936",
+      "color": "#202936",
+      "albedo": {
+        "dominant": "#202936",
+        "secondary": [
+          "#202936",
+          "#171d2a"
+        ],
+        "samplingNotes": "Inferred from the in-situ center-lock capture; values are authored PBR roles."
+      },
+      "colorVariation": {
+        "palette": [
+          "#202936",
+          "#171d2a",
+          "#9a3e4b"
+        ],
+        "pattern": "edge-wear-and-panel-breaks",
+        "amplitude": 0.2,
+        "heightCorrelation": 0.35
+      },
+      "textureResolution": 1024,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          2,
+          2
+        ],
+        "anisotropy": 8,
+        "texelDensityIntent": "Preserve stable world/object-scale detail; do not stretch micro detail with component scale."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 2,
+          "amplitude": 0.42,
+          "role": "broad color and height breakup"
+        },
+        {
+          "id": "meso",
+          "frequency": 12,
+          "amplitude": 0.22,
+          "role": "ridges, pores, grain, dents, or equivalent visible relief"
+        },
+        {
+          "id": "micro",
+          "frequency": 56,
+          "amplitude": 0.08,
+          "role": "highlight breakup visible under grazing light"
+        }
+      ],
+      "roughness": {
+        "base": 0.48,
+        "variation": 0.16,
+        "map": "independent-procedural-field",
+        "localResponse": "roughness rises in cavities and falls on bevels"
+      },
+      "metalness": {
+        "base": 0.82,
+        "variation": 0.08
+      },
+      "normal": {
+        "pattern": "authored-bevel-and-micro-pitting",
+        "strength": 0.24,
+        "scale": 28,
+        "space": "tangent"
+      },
+      "bump": {
+        "pattern": "micro-pitting",
+        "amplitude": 0.04,
+        "scale": 14
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0,
+        "scale": 1,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.25,
+        "contactShadowBias": 0.35,
+        "notes": "Darken creases, seams, intersections, and recessed local features."
+      },
+      "wear": {
+        "edgeWear": 0,
+        "scratches": [],
+        "chips": []
+      },
+      "dirt": {
+        "amount": 0,
+        "cavityBias": 0,
+        "color": "#2F2A22"
+      },
+      "localOverrides": [
+        {
+          "id": "iris-dark-steel-0",
+          "type": "cavity-dirt",
+          "mask": "recessed-seams",
+          "strength": 0.26,
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        },
+        {
+          "id": "iris-dark-steel-1",
+          "type": "edge-wear",
+          "mask": "bezel-exposed-edge",
+          "strength": 0.18,
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "shaderNotes": [
+        "Prefer MeshPhysicalMaterial when clearcoat, sheen, transmission, or thin-surface response is observed; otherwise use MeshStandardMaterial-compatible PBR channels.",
+        "Generate albedo, roughness, height/normal, and AO independently; never alias albedo into roughness.",
+        "Use normal/bump/displacement only when they map to observed surface relief.",
+        "Use displacement geometry when the observed relief changes the close-up silhouette; texture-only relief is insufficient there."
+      ],
+      "notes": "Dark painted steel for the housing and cavity ribs.",
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "docs/build10/build10-game-desktop.png",
+        "extractor": "authored-inference",
+        "method": "in-situ palette and finish observation",
+        "verdict": "conditional",
+        "hardLimit": "not an exact texture extraction",
+        "usable": true,
+        "confidence": 0.71,
+        "estimatedFidelity": 0.71,
+        "targetThreshold": 0.7,
+        "maps": {
+          "albedo": {
+            "path": "generated://intake-iris/iris-dark-steel/albedo",
+            "channel": "albedo"
+          },
+          "roughness": {
+            "path": "generated://intake-iris/iris-dark-steel/roughness",
+            "channel": "roughness"
+          },
+          "height": {
+            "path": "generated://intake-iris/iris-dark-steel/height",
+            "channel": "height"
+          },
+          "normal": {
+            "path": "generated://intake-iris/iris-dark-steel/normal",
+            "channel": "normal"
+          },
+          "ao": {
+            "path": "generated://intake-iris/iris-dark-steel/ao",
+            "channel": "ao"
+          }
+        }
+      }
+    },
+    {
+      "id": "iris-satin-steel",
+      "name": "Iris satin steel",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial / PBR approximation",
+      "baseColor": "#8e9cad",
+      "color": "#8e9cad",
+      "albedo": {
+        "dominant": "#8e9cad",
+        "secondary": [
+          "#8e9cad",
+          "#171d2a"
+        ],
+        "samplingNotes": "Inferred from the in-situ center-lock capture; values are authored PBR roles."
+      },
+      "colorVariation": {
+        "palette": [
+          "#8e9cad",
+          "#171d2a",
+          "#9a3e4b"
+        ],
+        "pattern": "edge-wear-and-panel-breaks",
+        "amplitude": 0.2,
+        "heightCorrelation": 0.35
+      },
+      "textureResolution": 1024,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          2,
+          2
+        ],
+        "anisotropy": 8,
+        "texelDensityIntent": "Preserve stable world/object-scale detail; do not stretch micro detail with component scale."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 2,
+          "amplitude": 0.42,
+          "role": "broad color and height breakup"
+        },
+        {
+          "id": "meso",
+          "frequency": 12,
+          "amplitude": 0.22,
+          "role": "ridges, pores, grain, dents, or equivalent visible relief"
+        },
+        {
+          "id": "micro",
+          "frequency": 56,
+          "amplitude": 0.08,
+          "role": "highlight breakup visible under grazing light"
+        }
+      ],
+      "roughness": {
+        "base": 0.34,
+        "variation": 0.16,
+        "map": "independent-procedural-field",
+        "localResponse": "roughness rises in cavities and falls on bevels"
+      },
+      "metalness": {
+        "base": 0.9,
+        "variation": 0.08
+      },
+      "normal": {
+        "pattern": "authored-bevel-and-micro-pitting",
+        "strength": 0.24,
+        "scale": 28,
+        "space": "tangent"
+      },
+      "bump": {
+        "pattern": "micro-pitting",
+        "amplitude": 0.04,
+        "scale": 14
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0,
+        "scale": 1,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.25,
+        "contactShadowBias": 0.35,
+        "notes": "Darken creases, seams, intersections, and recessed local features."
+      },
+      "wear": {
+        "edgeWear": 0,
+        "scratches": [],
+        "chips": []
+      },
+      "dirt": {
+        "amount": 0,
+        "cavityBias": 0,
+        "color": "#2F2A22"
+      },
+      "localOverrides": [
+        {
+          "id": "iris-satin-steel-0",
+          "type": "edge-wear",
+          "mask": "machined-bevels",
+          "strength": 0.2,
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        },
+        {
+          "id": "iris-satin-steel-1",
+          "type": "scratches",
+          "mask": "radial-brush",
+          "strength": 0.12,
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "shaderNotes": [
+        "Prefer MeshPhysicalMaterial when clearcoat, sheen, transmission, or thin-surface response is observed; otherwise use MeshStandardMaterial-compatible PBR channels.",
+        "Generate albedo, roughness, height/normal, and AO independently; never alias albedo into roughness.",
+        "Use normal/bump/displacement only when they map to observed surface relief.",
+        "Use displacement geometry when the observed relief changes the close-up silhouette; texture-only relief is insufficient there."
+      ],
+      "notes": "Satin machined steel for bevels, pins, and actuator hardware.",
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "docs/build10/build10-game-desktop.png",
+        "extractor": "authored-inference",
+        "method": "in-situ palette and finish observation",
+        "verdict": "conditional",
+        "hardLimit": "not an exact texture extraction",
+        "usable": true,
+        "confidence": 0.71,
+        "estimatedFidelity": 0.71,
+        "targetThreshold": 0.7,
+        "maps": {
+          "albedo": {
+            "path": "generated://intake-iris/iris-satin-steel/albedo",
+            "channel": "albedo"
+          },
+          "roughness": {
+            "path": "generated://intake-iris/iris-satin-steel/roughness",
+            "channel": "roughness"
+          },
+          "height": {
+            "path": "generated://intake-iris/iris-satin-steel/height",
+            "channel": "height"
+          },
+          "normal": {
+            "path": "generated://intake-iris/iris-satin-steel/normal",
+            "channel": "normal"
+          },
+          "ao": {
+            "path": "generated://intake-iris/iris-satin-steel/ao",
+            "channel": "ao"
+          }
+        }
+      }
+    },
+    {
+      "id": "iris-hazard-paint",
+      "name": "Iris hazard paint",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial / PBR approximation",
+      "baseColor": "#c76b2b",
+      "color": "#c76b2b",
+      "albedo": {
+        "dominant": "#c76b2b",
+        "secondary": [
+          "#c76b2b",
+          "#171d2a"
+        ],
+        "samplingNotes": "Inferred from the in-situ center-lock capture; values are authored PBR roles."
+      },
+      "colorVariation": {
+        "palette": [
+          "#c76b2b",
+          "#171d2a",
+          "#9a3e4b"
+        ],
+        "pattern": "edge-wear-and-panel-breaks",
+        "amplitude": 0.2,
+        "heightCorrelation": 0.35
+      },
+      "textureResolution": 1024,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          2,
+          2
+        ],
+        "anisotropy": 8,
+        "texelDensityIntent": "Preserve stable world/object-scale detail; do not stretch micro detail with component scale."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 2,
+          "amplitude": 0.42,
+          "role": "broad color and height breakup"
+        },
+        {
+          "id": "meso",
+          "frequency": 12,
+          "amplitude": 0.22,
+          "role": "ridges, pores, grain, dents, or equivalent visible relief"
+        },
+        {
+          "id": "micro",
+          "frequency": 56,
+          "amplitude": 0.08,
+          "role": "highlight breakup visible under grazing light"
+        }
+      ],
+      "roughness": {
+        "base": 0.4,
+        "variation": 0.16,
+        "map": "independent-procedural-field",
+        "localResponse": "roughness rises in cavities and falls on bevels"
+      },
+      "metalness": {
+        "base": 0.58,
+        "variation": 0.08
+      },
+      "normal": {
+        "pattern": "authored-bevel-and-micro-pitting",
+        "strength": 0.24,
+        "scale": 28,
+        "space": "tangent"
+      },
+      "bump": {
+        "pattern": "micro-pitting",
+        "amplitude": 0.04,
+        "scale": 14
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0,
+        "scale": 1,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.25,
+        "contactShadowBias": 0.35,
+        "notes": "Darken creases, seams, intersections, and recessed local features."
+      },
+      "wear": {
+        "edgeWear": 0,
+        "scratches": [],
+        "chips": []
+      },
+      "dirt": {
+        "amount": 0,
+        "cavityBias": 0,
+        "color": "#2F2A22"
+      },
+      "localOverrides": [
+        {
+          "id": "iris-hazard-paint-0",
+          "type": "paint-chips",
+          "mask": "petal-tips",
+          "strength": 0.11,
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        },
+        {
+          "id": "iris-hazard-paint-1",
+          "type": "soot-stain",
+          "mask": "lower-bezel",
+          "strength": 0.14,
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "shaderNotes": [
+        "Prefer MeshPhysicalMaterial when clearcoat, sheen, transmission, or thin-surface response is observed; otherwise use MeshStandardMaterial-compatible PBR channels.",
+        "Generate albedo, roughness, height/normal, and AO independently; never alias albedo into roughness.",
+        "Use normal/bump/displacement only when they map to observed surface relief.",
+        "Use displacement geometry when the observed relief changes the close-up silhouette; texture-only relief is insufficient there."
+      ],
+      "notes": "Warm orange painted metal used sparingly as a functional hazard cue.",
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "docs/build10/build10-game-desktop.png",
+        "extractor": "authored-inference",
+        "method": "in-situ palette and finish observation",
+        "verdict": "conditional",
+        "hardLimit": "not an exact texture extraction",
+        "usable": true,
+        "confidence": 0.71,
+        "estimatedFidelity": 0.71,
+        "targetThreshold": 0.7,
+        "maps": {
+          "albedo": {
+            "path": "generated://intake-iris/iris-hazard-paint/albedo",
+            "channel": "albedo"
+          },
+          "roughness": {
+            "path": "generated://intake-iris/iris-hazard-paint/roughness",
+            "channel": "roughness"
+          },
+          "height": {
+            "path": "generated://intake-iris/iris-hazard-paint/height",
+            "channel": "height"
+          },
+          "normal": {
+            "path": "generated://intake-iris/iris-hazard-paint/normal",
+            "channel": "normal"
+          },
+          "ao": {
+            "path": "generated://intake-iris/iris-hazard-paint/ao",
+            "channel": "ao"
+          }
+        }
+      }
+    },
+    {
+      "id": "iris-signal",
+      "name": "Iris signal emission",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial / PBR approximation",
+      "baseColor": "#ef405f",
+      "color": "#ef405f",
+      "albedo": {
+        "dominant": "#ef405f",
+        "secondary": [
+          "#ef405f",
+          "#171d2a"
+        ],
+        "samplingNotes": "Inferred from the in-situ center-lock capture; values are authored PBR roles."
+      },
+      "colorVariation": {
+        "palette": [
+          "#ef405f",
+          "#171d2a",
+          "#9a3e4b"
+        ],
+        "pattern": "edge-wear-and-panel-breaks",
+        "amplitude": 0.2,
+        "heightCorrelation": 0.35
+      },
+      "textureResolution": 1024,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          2,
+          2
+        ],
+        "anisotropy": 8,
+        "texelDensityIntent": "Preserve stable world/object-scale detail; do not stretch micro detail with component scale."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 2,
+          "amplitude": 0.42,
+          "role": "broad color and height breakup"
+        },
+        {
+          "id": "meso",
+          "frequency": 12,
+          "amplitude": 0.22,
+          "role": "ridges, pores, grain, dents, or equivalent visible relief"
+        },
+        {
+          "id": "micro",
+          "frequency": 56,
+          "amplitude": 0.08,
+          "role": "highlight breakup visible under grazing light"
+        }
+      ],
+      "roughness": {
+        "base": 0.24,
+        "variation": 0.16,
+        "map": "independent-procedural-field",
+        "localResponse": "roughness rises in cavities and falls on bevels"
+      },
+      "metalness": {
+        "base": 0.05,
+        "variation": 0.08
+      },
+      "normal": {
+        "pattern": "authored-bevel-and-micro-pitting",
+        "strength": 0.24,
+        "scale": 28,
+        "space": "tangent"
+      },
+      "bump": {
+        "pattern": "micro-pitting",
+        "amplitude": 0.04,
+        "scale": 14
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0,
+        "scale": 1,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.25,
+        "contactShadowBias": 0.35,
+        "notes": "Darken creases, seams, intersections, and recessed local features."
+      },
+      "wear": {
+        "edgeWear": 0,
+        "scratches": [],
+        "chips": []
+      },
+      "dirt": {
+        "amount": 0,
+        "cavityBias": 0,
+        "color": "#2F2A22"
+      },
+      "localOverrides": [
+        {
+          "id": "iris-signal-0",
+          "type": "emission-falloff",
+          "mask": "center-lens",
+          "strength": 0.9,
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        },
+        {
+          "id": "iris-signal-1",
+          "type": "heat-stain",
+          "mask": "spine-edge",
+          "strength": 0.1,
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "shaderNotes": [
+        "Prefer MeshPhysicalMaterial when clearcoat, sheen, transmission, or thin-surface response is observed; otherwise use MeshStandardMaterial-compatible PBR channels.",
+        "Generate albedo, roughness, height/normal, and AO independently; never alias albedo into roughness.",
+        "Use normal/bump/displacement only when they map to observed surface relief.",
+        "Use displacement geometry when the observed relief changes the close-up silhouette; texture-only relief is insufficient there."
+      ],
+      "notes": "Emissive red signal material for the status spine and lens core.",
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "docs/build10/build10-game-desktop.png",
+        "extractor": "authored-inference",
+        "method": "in-situ palette and finish observation",
+        "verdict": "conditional",
+        "hardLimit": "not an exact texture extraction",
+        "usable": true,
+        "confidence": 0.71,
+        "estimatedFidelity": 0.71,
+        "targetThreshold": 0.7,
+        "maps": {
+          "albedo": {
+            "path": "generated://intake-iris/iris-signal/albedo",
+            "channel": "albedo"
+          },
+          "roughness": {
+            "path": "generated://intake-iris/iris-signal/roughness",
+            "channel": "roughness"
+          },
+          "height": {
+            "path": "generated://intake-iris/iris-signal/height",
+            "channel": "height"
+          },
+          "normal": {
+            "path": "generated://intake-iris/iris-signal/normal",
+            "channel": "normal"
+          },
+          "ao": {
+            "path": "generated://intake-iris/iris-signal/ao",
+            "channel": "ao"
+          }
+        }
+      }
+    },
+    {
+      "id": "iris-glass",
+      "name": "Iris lens glass",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial / PBR approximation",
+      "baseColor": "#102a34",
+      "color": "#102a34",
+      "albedo": {
+        "dominant": "#102a34",
+        "secondary": [
+          "#102a34",
+          "#171d2a"
+        ],
+        "samplingNotes": "Inferred from the in-situ center-lock capture; values are authored PBR roles."
+      },
+      "colorVariation": {
+        "palette": [
+          "#102a34",
+          "#171d2a",
+          "#9a3e4b"
+        ],
+        "pattern": "edge-wear-and-panel-breaks",
+        "amplitude": 0.2,
+        "heightCorrelation": 0.35
+      },
+      "textureResolution": 1024,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          2,
+          2
+        ],
+        "anisotropy": 8,
+        "texelDensityIntent": "Preserve stable world/object-scale detail; do not stretch micro detail with component scale."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 2,
+          "amplitude": 0.42,
+          "role": "broad color and height breakup"
+        },
+        {
+          "id": "meso",
+          "frequency": 12,
+          "amplitude": 0.22,
+          "role": "ridges, pores, grain, dents, or equivalent visible relief"
+        },
+        {
+          "id": "micro",
+          "frequency": 56,
+          "amplitude": 0.08,
+          "role": "highlight breakup visible under grazing light"
+        }
+      ],
+      "roughness": {
+        "base": 0.08,
+        "variation": 0.16,
+        "map": "independent-procedural-field",
+        "localResponse": "roughness rises in cavities and falls on bevels"
+      },
+      "metalness": {
+        "base": 0.24,
+        "variation": 0.08
+      },
+      "normal": {
+        "pattern": "authored-bevel-and-micro-pitting",
+        "strength": 0.24,
+        "scale": 28,
+        "space": "tangent"
+      },
+      "bump": {
+        "pattern": "micro-pitting",
+        "amplitude": 0.04,
+        "scale": 14
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0,
+        "scale": 1,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.25,
+        "contactShadowBias": 0.35,
+        "notes": "Darken creases, seams, intersections, and recessed local features."
+      },
+      "wear": {
+        "edgeWear": 0,
+        "scratches": [],
+        "chips": []
+      },
+      "dirt": {
+        "amount": 0,
+        "cavityBias": 0,
+        "color": "#2F2A22"
+      },
+      "localOverrides": [
+        {
+          "id": "iris-glass-0",
+          "type": "cavity-tint",
+          "mask": "lens-periphery",
+          "strength": 0.22,
+          "evidenceRefs": [
+            "circle-center"
+          ]
+        }
+      ],
+      "shaderNotes": [
+        "Prefer MeshPhysicalMaterial when clearcoat, sheen, transmission, or thin-surface response is observed; otherwise use MeshStandardMaterial-compatible PBR channels.",
+        "Generate albedo, roughness, height/normal, and AO independently; never alias albedo into roughness.",
+        "Use normal/bump/displacement only when they map to observed surface relief.",
+        "Use displacement geometry when the observed relief changes the close-up silhouette; texture-only relief is insufficient there."
+      ],
+      "notes": "Low-roughness physical glass over a dark inner volume.",
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "docs/build10/build10-game-desktop.png",
+        "extractor": "authored-inference",
+        "method": "in-situ palette and finish observation",
+        "verdict": "conditional",
+        "hardLimit": "not an exact texture extraction",
+        "usable": true,
+        "confidence": 0.71,
+        "estimatedFidelity": 0.71,
+        "targetThreshold": 0.7,
+        "maps": {
+          "albedo": {
+            "path": "generated://intake-iris/iris-glass/albedo",
+            "channel": "albedo"
+          },
+          "roughness": {
+            "path": "generated://intake-iris/iris-glass/roughness",
+            "channel": "roughness"
+          },
+          "height": {
+            "path": "generated://intake-iris/iris-glass/height",
+            "channel": "height"
+          },
+          "normal": {
+            "path": "generated://intake-iris/iris-glass/normal",
+            "channel": "normal"
+          },
+          "ao": {
+            "path": "generated://intake-iris/iris-glass/ao",
+            "channel": "ao"
+          }
+        }
+      }
+    }
+  ],
+  "repetitionSystems": [
+    {
+      "id": "eight-petal-iris",
+      "componentRefs": [
+        "petal-bank",
+        "petal-hinge-pins",
+        "radial-struts"
+      ],
+      "count": 8,
+      "layout": "radial around local Z axis",
+      "variation": "alternating overlap and hazard accents",
+      "evidenceRefs": [
+        "circle-center"
+      ]
+    },
+    {
+      "id": "eight-bolt-bezel",
+      "componentRefs": [
+        "perimeter-fasteners"
+      ],
+      "count": 8,
+      "layout": "radial socket ring",
+      "variation": "small rotational offset",
+      "evidenceRefs": [
+        "circle-center"
+      ]
+    }
+  ],
+  "buildPasses": [
+    {
+      "id": "blockout",
+      "goal": "Match macro silhouette and proportions.",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "Silhouette reads correctly without materials.",
+        "Quality contract has named all required macro feature groups before code generation.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "structural-pass",
+      "goal": "Build the component hierarchy implied by the pre-spec complexity assessment.",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "Macro, meso, and repeated structures meet qualityContract.minimumSpecDepth.",
+        "Parent-child relations, joints, seams, sockets, and contact points are explicit.",
+        "Every attached child appendage/connector has parentSocket, localStart/localEnd, contactType, embedDepth or overlap, and gapTolerance.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "form-refinement",
+      "goal": "Refine shape, deformation, bevels, tapers, curves, asymmetry, and visible local geometry.",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "Important visible forms are represented in component geometryDescriptor, deformations, localFeatures, or repetitionSystems.",
+        "Endpoint-based child parts are rooted at their attachment sockets and do not visibly float away from parents.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "material-pass",
+      "goal": "Match material color, roughness, bump, and local variation.",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "Reference-derived albedo palette records dominant, secondary, and accent colors per visible material.",
+        "Each important material defines roughness variation and at least one normal/bump/displacement response.",
+        "Local material overrides, dirt/wear/stains/moss/chips/scratches or equivalent masks are tied to evidenceRefs.",
+        "Thin, transparent, reflective, wet, or fibrous materials document alpha/transmission/clearcoat/metalness/fiber response when relevant.",
+        "Generated preview uses procedural albedo/roughness/bump texture or vertex color variation instead of one flat color.",
+        "Generated preview uses independent PBR maps at 1024px or higher for the quality-first tier.",
+        "If source pixels are available, referencePbr extraction passed at confidence >= 0.7 or the pass is stopped/requesting better references.",
+        "Macro, meso, and micro surface frequency bands are visible at the intended review distance without obvious tiling.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "surface-pass",
+      "goal": "Add procedural surface locality such as normal/bump/displacement, AO, dirt, stains, chips, grain, moss, scratches, and wear.",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "Every required material feature group has local overrides or surfaceDetail tied to evidenceRefs.",
+        "A grazing-angle close-up proves that normal/height detail breaks highlights naturally and does not read as smooth plastic.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "lighting-pass",
+      "goal": "Make material and form readable under neutral turntable lighting plus optional reference lighting.",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "lightingFromPhoto identifies key light direction/color/intensity, fill light, rim or environment light, and ambient color.",
+        "Exposure, tone mapping, background color/gradient, shadow softness, and contact shadow behavior are specified.",
+        "Lighting does not hide geometry/material gaps and screenshots can be compared fairly to the reference.",
+        "Neutral, grazing, and reference-matched lighting checks distinguish material errors from lighting errors.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "interaction-pass",
+      "goal": "Make the model ready for future animation, transformation, physics, or destruction.",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "Macro and movable meso components have stable pivot nodes.",
+        "Sockets, collider proxies, and destruction metadata are present for future runtime actions.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "optimization-pass",
+      "goal": "Protect runtime performance after visual fidelity is accepted.",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "Triangle count, draw calls, instancing, LOD strategy, and FPS target are documented or verified.",
+        "Repeated detail is instanced or simplified where possible without breaking silhouette/material believability."
+      ]
+    }
+  ],
+  "visualEvidence": [
+    {
+      "type": "analysis",
+      "path": "docs/intake-iris/image-analysis.md",
+      "note": "Center lock identified as a mechanical iris; replacement contract recorded."
+    },
+    {
+      "timestamp": "2026-09-11T22:06:58.204261+00:00",
+      "passId": "blockout",
+      "estimatedFidelity": 0.86,
+      "aiVisionScore": 0.86,
+      "visualAcceptanceThreshold": 0.7,
+      "layerScores": {
+        "silhouetteProportion": 0.9,
+        "componentStructure": 0.88,
+        "formDetail": 0.82,
+        "materialSurface": 0.82,
+        "lightingCamera": 0.78
+      },
+      "featureReviews": [
+        {
+          "id": "lock-silhouette",
+          "score": 0.9,
+          "status": "pass",
+          "critique": "Outer housing and stepped bezel remain the dominant fabricated silhouette."
+        },
+        {
+          "id": "petal-depth",
+          "score": 0.84,
+          "status": "pass",
+          "critique": "Angled view preserves recessed petals, hinge sockets, and clear parallax."
+        },
+        {
+          "id": "center-lens",
+          "score": 0.86,
+          "status": "pass",
+          "critique": "The optic stays readable through its illuminated rim and reflected highlights."
+        },
+        {
+          "id": "fabrication-details",
+          "score": 0.78,
+          "status": "pass-with-caveat",
+          "critique": "Fasteners and gasket recesses are authored but partly hidden in the darkest recesses."
+        },
+        {
+          "id": "material-identity",
+          "score": 0.82,
+          "status": "pass",
+          "critique": "Dark retaining hardware, red petals, and the glossy optic separate into distinct material families."
+        }
+      ],
+      "referenceScreenshot": "docs/build10/build10-game-desktop.png",
+      "renderScreenshot": "docs/intake-iris/iris-front.png",
+      "comparisonImage": "docs/intake-iris/iris-comparison.png",
+      "cameraView": "three-quarter",
+      "notes": "Post-correction native renders show a mounted optic retained by an articulated iris mechanism; the front and angled views retain clear depth/parallax.",
+      "aiVisionNotes": "Sol 6 Pro reviewed attached front and angled renders. PASS after material correction: spindle and caps read as dark retaining hardware rather than a luminous reticle; optic remains readable; stepped bezel, recessed petals, and housing thickness preserve fabricated depth. Remaining dark recess detail is non-blocking and does not justify another code pass."
+    }
+  ],
+  "reviewHistory": [
+    {
+      "timestamp": "2026-09-11T22:06:58.204261+00:00",
+      "passId": "blockout",
+      "estimatedFidelity": 0.86,
+      "aiVisionScore": 0.86,
+      "visualAcceptanceThreshold": 0.7,
+      "layerScores": {
+        "silhouetteProportion": 0.9,
+        "componentStructure": 0.88,
+        "formDetail": 0.82,
+        "materialSurface": 0.82,
+        "lightingCamera": 0.78
+      },
+      "featureReviews": [
+        {
+          "id": "lock-silhouette",
+          "score": 0.9,
+          "status": "pass",
+          "critique": "Outer housing and stepped bezel remain the dominant fabricated silhouette."
+        },
+        {
+          "id": "petal-depth",
+          "score": 0.84,
+          "status": "pass",
+          "critique": "Angled view preserves recessed petals, hinge sockets, and clear parallax."
+        },
+        {
+          "id": "center-lens",
+          "score": 0.86,
+          "status": "pass",
+          "critique": "The optic stays readable through its illuminated rim and reflected highlights."
+        },
+        {
+          "id": "fabrication-details",
+          "score": 0.78,
+          "status": "pass-with-caveat",
+          "critique": "Fasteners and gasket recesses are authored but partly hidden in the darkest recesses."
+        },
+        {
+          "id": "material-identity",
+          "score": 0.82,
+          "status": "pass",
+          "critique": "Dark retaining hardware, red petals, and the glossy optic separate into distinct material families."
+        }
+      ],
+      "action": "continue",
+      "summary": "Sol PASS: dimensional containment iris; dark retaining hardware removes reticle cue while optic and stepped housing remain readable.",
+      "matched": [
+        "Outer housing silhouette",
+        "stepped bezel and recessed petal mechanism",
+        "center optic retained by hardware",
+        "angled parallax and mounting contact"
+      ],
+      "mismatches": [
+        "Hinge and gasket micro-detail is partly obscured in the darkest recesses",
+        "non-blocking"
+      ],
+      "specFixes": [],
+      "codeFixes": [
+        "Reassigned spindle, caps, and status spine to existing non-emissive machined metal per Sol review"
+      ],
+      "evidence": [
+        "docs/intake-iris/iris-front.png",
+        "docs/intake-iris/iris-angled.png",
+        "docs/intake-iris/iris-side.png"
+      ],
+      "mapStrippedRender": "docs/intake-iris/iris-front.png",
+      "reviewViewpoints": [
+        "front",
+        "three-quarter",
+        "side",
+        "long-axis",
+        "thickness-axis"
+      ],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/build10/build10-game-desktop.png",
+        "renderScreenshot": "docs/intake-iris/iris-front.png",
+        "comparisonImage": "docs/intake-iris/iris-comparison.png",
+        "cameraView": "three-quarter",
+        "notes": "Post-correction native renders show a mounted optic retained by an articulated iris mechanism; the front and angled views retain clear depth/parallax.",
+        "aiVisionNotes": "Sol 6 Pro reviewed attached front and angled renders. PASS after material correction: spindle and caps read as dark retaining hardware rather than a luminous reticle; optic remains readable; stepped bezel, recessed petals, and housing thickness preserve fabricated depth. Remaining dark recess detail is non-blocking and does not justify another code pass."
+      }
+    }
+  ],
+  "lodPlan": [
+    {
+      "tier": "near",
+      "distance": 0,
+      "strategy": "full component tree and material layers"
+    },
+    {
+      "tier": "far",
+      "distance": 30,
+      "strategy": "merge static components and reduce local feature geometry"
+    }
+  ],
+  "performanceBudget": {
+    "qualityPriority": "reference-fidelity",
+    "targetTriangles": 18000,
+    "maxDrawCalls": 42,
+    "textureSize": 1024,
+    "fpsTarget": 60,
+    "optimizationPolicy": "Named parts are static or pooled; repeated petals/fasteners use shared geometry where practical."
+  },
+  "lightingFromPhoto": [
+    {
+      "id": "warm-door-key",
+      "type": "key light",
+      "direction": "front-left and slightly above",
+      "color": "#ff8c42",
+      "intensity": 1,
+      "evidenceRefs": [
+        "circle-center"
+      ]
+    },
+    {
+      "id": "red-signal-fill",
+      "type": "fill light",
+      "direction": "coaxial with lens",
+      "color": "#ef405f",
+      "intensity": 0.8,
+      "evidenceRefs": [
+        "circle-center"
+      ]
+    },
+    {
+      "id": "steel-rim",
+      "type": "rim light",
+      "direction": "front-right grazing bevels",
+      "color": "#9aabba",
+      "intensity": 0.6,
+      "evidenceRefs": [
+        "circle-center"
+      ]
+    },
+    {
+      "id": "neutral-review",
+      "type": "exposure/tone mapping",
+      "direction": "neutral review contract",
+      "color": "#ffffff",
+      "intensity": 0,
+      "exposure": 1,
+      "toneMapping": "ACESFilmicToneMapping",
+      "background": "#080a11",
+      "contactShadow": "directional shadow plus ambient occlusion in cavity",
+      "evidenceRefs": [
+        "circle-center"
+      ]
+    }
+  ],
+  "proceduralStrategy": [
+    "Block out macro silhouette first.",
+    "Add component hierarchy and joints.",
+    "Create stable pivot groups, sockets, collider proxies, and destruction metadata before visual polish.",
+    "Refine forms with bevels, tapers, bends, and procedural noise.",
+    "Run reference PBR extraction for important source-image materials and stop when confidence is below the target threshold.",
+    "Add material variation before adding expensive micro-geometry."
+  ],
+  "animationAnchors": [
+    "root pivot node supports whole-object translation, rotation, scale, and visibility changes",
+    "component pivot groups support later local transforms without rebuilding geometry"
+  ],
+  "destructionAnchors": [
+    "actionProfile.destruction.fractureGroup marks detachable or breakable component sets",
+    "component seams and sockets define plausible break points instead of random explosions"
+  ],
+  "risks": [],
+  "localSpecSearch": {
+    "collection": "core_3d",
+    "query": "Intake Containment Iris",
+    "index": {
+      "status": "hit",
+      "reason": "current",
+      "fingerprint": "6857e5ab528b42ac12f4f411f862610a0bffce8e47aee3610a7603c318072fe8"
+    },
+    "matches": []
+  },
+  "tier1Results": [
+    {
+      "passed": false,
+      "checks": {
+        "silhouetteIoU": 0.8592,
+        "aspectRatioDelta": 0.0,
+        "scaleDelta": 0.0,
+        "bilateralSymmetryError": 0.1102,
+        "colorDelta": {
+          "checked": 16,
+          "maxDeltaE": 58.78,
+          "perComponent": [
+            {
+              "componentId": null,
+              "deltaE": 11.77
+            },
+            {
+              "componentId": null,
+              "deltaE": 11.77
+            },
+            {
+              "componentId": null,
+              "deltaE": 58.78
+            },
+            {
+              "componentId": null,
+              "deltaE": 58.78
+            },
+            {
+              "componentId": null,
+              "deltaE": 6.52
+            },
+            {
+              "componentId": null,
+              "deltaE": 58.78
+            },
+            {
+              "componentId": null,
+              "deltaE": 11.77
+            },
+            {
+              "componentId": null,
+              "deltaE": 58.78
+            },
+            {
+              "componentId": null,
+              "deltaE": 27.12
+            },
+            {
+              "componentId": null,
+              "deltaE": 13.69
+            },
+            {
+              "componentId": null,
+              "deltaE": 58.78
+            },
+            {
+              "componentId": null,
+              "deltaE": 58.78
+            },
+            {
+              "componentId": null,
+              "deltaE": 58.78
+            },
+            {
+              "componentId": null,
+              "deltaE": 38.57
+            },
+            {
+              "componentId": null,
+              "deltaE": 6.52
+            },
+            {
+              "componentId": null,
+              "deltaE": 27.12
+            }
+          ],
+          "gated": false
+        }
+      },
+      "failures": [
+        "blockout requires --map-stripped-render evidence"
+      ],
+      "maskWarnings": [
+        "reference: image is not clearly isolated from background; using most pixels as material evidence"
+      ],
+      "renderHash": "07014a86d4e85353",
+      "passId": "blockout"
+    }
+  ]
+}

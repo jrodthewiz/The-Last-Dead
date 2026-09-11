@@ -1,0 +1,70 @@
+{
+  "model": "intake-containment-iris",
+  "specifiedComponents": 15,
+  "builtParts": 16,
+  "errors": 0,
+  "warnings": 9,
+  "result": "pass",
+  "findings": [
+    {
+      "check": "detail-unmapped",
+      "severity": "warning",
+      "subject": "zone-r0c0",
+      "detail": "inventoried detail has no mapsTo \u2014 it was observed but never assigned to a component or material field"
+    },
+    {
+      "check": "detail-unmapped",
+      "severity": "warning",
+      "subject": "zone-r0c1",
+      "detail": "inventoried detail has no mapsTo \u2014 it was observed but never assigned to a component or material field"
+    },
+    {
+      "check": "detail-unmapped",
+      "severity": "warning",
+      "subject": "zone-r0c2",
+      "detail": "inventoried detail has no mapsTo \u2014 it was observed but never assigned to a component or material field"
+    },
+    {
+      "check": "detail-unmapped",
+      "severity": "warning",
+      "subject": "zone-r1c0",
+      "detail": "inventoried detail has no mapsTo \u2014 it was observed but never assigned to a component or material field"
+    },
+    {
+      "check": "detail-unmapped",
+      "severity": "warning",
+      "subject": "zone-r1c1",
+      "detail": "inventoried detail has no mapsTo \u2014 it was observed but never assigned to a component or material field"
+    },
+    {
+      "check": "detail-unmapped",
+      "severity": "warning",
+      "subject": "zone-r1c2",
+      "detail": "inventoried detail has no mapsTo \u2014 it was observed but never assigned to a component or material field"
+    },
+    {
+      "check": "detail-unmapped",
+      "severity": "warning",
+      "subject": "zone-r2c0",
+      "detail": "inventoried detail has no mapsTo \u2014 it was observed but never assigned to a component or material field"
+    },
+    {
+      "check": "detail-unmapped",
+      "severity": "warning",
+      "subject": "zone-r2c1",
+      "detail": "inventoried detail has no mapsTo \u2014 it was observed but never assigned to a component or material field"
+    },
+    {
+      "check": "detail-unmapped",
+      "severity": "warning",
+      "subject": "zone-r2c2",
+      "detail": "inventoried detail has no mapsTo \u2014 it was observed but never assigned to a component or material field"
+    },
+    {
+      "check": "part-not-specified",
+      "severity": "info",
+      "subject": "root",
+      "detail": "built part has no matching component in the spec (fine for detail groups; a sign of spec drift for anything larger)"
+    }
+  ]
+}
