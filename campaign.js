@@ -136,7 +136,7 @@ export const CAMPAIGN_SECTORS = freezeDeep([
 // Build 08 authored world contract. Coordinates stay in gameplay cells so the
 // network/collision proxy can remain small while the renderer gets real zones,
 // routes and landmark anchors to build around.
-const authoredLayout = (identity, focal, zones, routes, landmarks, machinery, lights) => ({
+const authoredLayout = (identity, focal, zones, routes, landmarks, machinery, lights, extras = {}) => ({
   version: 8,
   unit: 'cell',
   scale: 4,
@@ -147,6 +147,7 @@ const authoredLayout = (identity, focal, zones, routes, landmarks, machinery, li
   landmarks,
   machinery,
   lights,
+  ...extras,
 });
 const authoredMap = (blocks, walls, spawnPoints) => ({ blocks, walls, spawnPoints });
 
@@ -187,6 +188,49 @@ export const CAMPAIGN_LAYOUTS = freezeDeep([
       { anchor: [9, 6], color: '#cc2c37', intensity: 2.1, phase: 2.8, role: 'flank' },
       { anchor: [6, 2], color: '#ffad55', intensity: 2.9, phase: 1.2, role: 'objective' },
     ],
+    {
+      // The first sector now has a legible authored spine: a maintenance
+      // tunnel over the primary route, a collapsed side branch, and a sealed
+      // service bulkhead that foreshadows the furnace exit. These are visual
+      // setpieces only; collision and room gates remain owned by the course
+      // grid and room-progression contract.
+      setpieces: [
+        {
+          id: 'intake-pressure-door',
+          type: 'pressure-door',
+          // Pull the sealed threshold just into the intake bay so it catches
+          // the spawn-facing composition instead of disappearing inside the
+          // room-shell wall at the exact cell boundary.
+          anchor: [5.45, 9.18],
+          width: 2.15,
+          height: 5.4,
+          cue: 'red',
+        },
+        {
+          id: 'intake-maintenance-spine',
+          type: 'tunnel',
+          points: [[5.7, 9.55], [4.7, 9.0], [4.05, 8.35], [3.35, 7.55], [3.2, 6.55], [3.2, 5.55], [3.7, 4.55], [4.65, 3.65]],
+          width: 1.95,
+          height: 5.2,
+          cue: 'red',
+        },
+        {
+          id: 'west-service-collapse',
+          type: 'collapse',
+          anchor: [4.15, 7.2],
+          size: [1.7, 1.5, 1.45],
+          cue: 'amber',
+        },
+        {
+          id: 'service-bulkhead-04',
+          type: 'bulkhead',
+          anchor: [3.3, 5.2],
+          width: 2.2,
+          height: 4.4,
+          cue: 'red',
+        },
+      ],
+    },
   ),
   authoredLayout(
     'bone-crypt',
@@ -451,6 +495,7 @@ export function createCampaignCourse(index = 0) {
     landmarks: layout.landmarks,
     machinery: layout.machinery,
     lights: layout.lights,
+    setpieces: layout.setpieces || [],
     spawnPoints: map.spawnPoints.map(point => ({ x: point[0], y: point[1] })),
     points: [{ ...sector.playerSpawn }, { ...sector.exit }],
     playerSpawn: { ...sector.playerSpawn },

@@ -18,6 +18,170 @@ const cable = (parent, material, a, b, radius = .05, moving) => {
 };
 const accentFor = (id, m) => id === 'ossuary' ? (m.violet || m.enemyViolet || m.metalDark) : id === 'choir' ? (m.orange || m.gold || m.rust) : (m.red || m.rust || m.metalDark);
 
+const cellPoint = p => new THREE.Vector3((p?.[0] ?? 6) * CELL, 0, (p?.[1] ?? 6) * CELL);
+
+function makeTunnelSetpiece(root, item, sector, m, moving, lights) {
+  const points = (item.points || []).map(cellPoint);
+  if (points.length < 2) return null;
+  const group = new THREE.Group();
+  group.name = 'AuthoredSetpiece_' + item.id;
+  group.userData.noBatch = true;
+  const dark = m.black || m.metalDark;
+  const edge = m.metalDark || m.steel || m.floorTrim || dark;
+  const signal = sector === 'ossuary' ? (m.violet || m.enemyViolet) : sector === 'choir' ? (m.orange || m.gold) : (m.red || m.enemyRed);
+  const radius = Math.max(1.35, Math.min(2.35, (item.width || 2.2) * CELL * .42));
+  const archHeight = Math.max(3.7, Math.min(5.8, item.height || 5));
+  const arches = [];
+  // Repeated ribs are the authored identity feature: players can read the
+  // spine's direction from a distance, just like a Quake tunnel cadence.
+  for (let i = 0; i < points.length; i++) {
+    const point = points[i];
+    const next = points[Math.min(points.length - 1, i + 1)];
+    const previous = points[Math.max(0, i - 1)];
+    const tangent = next.clone().sub(previous); tangent.y = 0;
+    const yaw = Math.atan2(tangent.x, tangent.z);
+    const arch = add(group, new THREE.TorusGeometry(radius, .105, 8, 24, Math.PI), edge, point.x, archHeight * .5, point.z, moving);
+    arch.rotation.y = yaw;
+    arches.push(arch);
+    // Small signal blades break up the silhouette and mark the next combat
+    // beat without flooding the player's eye with emissive light.
+    const blade = beam(group, signal, point.x - Math.sin(yaw) * radius * .72, archHeight * .9, point.z - Math.cos(yaw) * radius * .72, .12, .08, .58, moving);
+    blade.rotation.y = yaw;
+    if (i % 2 === 0) {
+      const lamp = new THREE.PointLight(new THREE.Color(item.cue === 'amber' ? '#ff9b4a' : '#ff3d51'), .7, 8, 2);
+      lamp.name = 'TunnelLamp_' + item.id + '_' + i;
+      lamp.position.set(point.x, archHeight * .78, point.z);
+      lamp.userData.baseIntensity = lamp.intensity;
+      lamp.userData.phase = i * .7 + (item.id?.length || 0) * .13;
+      group.add(lamp);
+      lights.push(lamp);
+    }
+  }
+  const centerline = points.map(point => new THREE.Vector3(point.x, archHeight * .92, point.z));
+  const curve = new THREE.CatmullRomCurve3(centerline);
+  const conduit = add(group, new THREE.TubeGeometry(curve, Math.max(10, points.length * 3), .065, 6, false), dark, 0, 0, 0);
+  conduit.name = 'TunnelOverheadConduit_' + item.id;
+  conduit.userData.explodeWithParent = true;
+  // A second, warm conduit implies the tunnel is still carrying emergency
+  // power instead of reading as a decorative arch kit.
+  const warmline = centerline.map(point => new THREE.Vector3(point.x + .16, point.y - .18, point.z));
+  add(group, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(warmline), Math.max(10, points.length * 3), .035, 5, false), signal, 0, 0, 0);
+  root.add(group);
+  return group;
+}
+
+function makeCollapseSetpiece(root, item, sector, m, moving) {
+  const p = world(item.anchor), size = item.size || [1.6, 1.3, 1.2];
+  const group = new THREE.Group();
+  group.name = 'AuthoredSetpiece_' + item.id;
+  group.position.set(p.x, 0, p.z);
+  group.userData.noBatch = true;
+  const rubble = sector === 'ossuary' ? (m.bone || m.enemyArmor) : sector === 'choir' ? (m.rust || m.gore) : (m.wallDeep || m.metalDark);
+  const accent = item.cue === 'amber' ? (m.orange || m.hazard) : (m.red || m.rust);
+  // A low, asymmetric collapse gives the west branch a believable reason to
+  // pinch down while remaining above the movement proxy's walkable floor.
+  for (let i = 0; i < 9; i++) {
+    const angle = i * 2.39996;
+    const r = .32 + (i % 4) * .17;
+    const rock = add(group, new THREE.DodecahedronGeometry(.28 + (i % 3) * .09, 0), rubble, Math.cos(angle) * r * size[0], .22 + (i % 3) * .19, Math.sin(angle) * r * size[2], moving);
+    rock.rotation.set(i * .21, angle, i * .17);
+    rock.scale.y = .62 + (i % 2) * .25;
+  }
+  for (const side of [-1, 1]) {
+    const beamPart = beam(group, m.rust || m.metalDark, side * .63, 1.45, -.05, .1, 2.7, .1, moving);
+    beamPart.rotation.z = side * .28;
+  }
+  const warning = add(group, new THREE.SphereGeometry(.12, 10, 8), accent, 0, 1.48, .18, moving);
+  warning.name = 'CollapseWarningLamp';
+  root.add(group);
+  return group;
+}
+
+function makeBulkheadSetpiece(root, item, sector, m, moving, lights) {
+  const p = world(item.anchor), group = new THREE.Group();
+  group.name = 'AuthoredSetpiece_' + item.id;
+  group.position.set(p.x, 0, p.z);
+  group.userData.noBatch = true;
+  const dark = m.black || m.metalDark, frame = m.metal || m.steel || dark;
+  const signal = sector === 'ossuary' ? (m.violet || m.enemyViolet) : sector === 'choir' ? (m.orange || m.gold) : (m.red || m.enemyRed);
+  const width = Math.max(5, (item.width || 2.2) * CELL);
+  const height = Math.max(3.8, item.height || 4.4);
+  beam(group, dark, 0, height * .5, 0, width, height, .2, moving);
+  beam(group, frame, -width * .46, height * .5, -.18, .22, height * .88, .28, moving);
+  beam(group, frame, width * .46, height * .5, -.18, .22, height * .88, .28, moving);
+  beam(group, frame, 0, height * .94, -.18, width * .96, .22, .28, moving);
+  for (let i = -3; i <= 3; i++) {
+    const stripe = beam(group, i % 2 ? m.hazard || m.orange : dark, i * width * .115, height * .2, -.34, .08, height * .38, .06, moving);
+    stripe.rotation.z = i % 2 ? -.22 : .22;
+  }
+  const wheel = add(group, new THREE.TorusGeometry(Math.min(1.35, width * .17), .095, 8, 24), frame, 0, height * .62, -.34, moving);
+  wheel.rotation.x = Math.PI / 2;
+  const lamp = new THREE.PointLight(new THREE.Color(item.cue === 'amber' ? '#ff9b4a' : '#ff3d51'), 1.15, 10, 2);
+  lamp.name = 'BulkheadLamp_' + item.id;
+  lamp.position.set(0, height * .86, -.48);
+  lamp.userData.baseIntensity = lamp.intensity;
+  lamp.userData.phase = 2.4;
+  group.add(lamp); lights.push(lamp);
+  root.add(group);
+  return group;
+}
+
+function makePressureDoorSetpiece(root, item, sector, m, moving, lights) {
+  const p = world(item.anchor), group = new THREE.Group();
+  group.name = 'AuthoredSetpiece_' + item.id;
+  group.position.set(p.x, 0, p.z);
+  group.userData.noBatch = true;
+  const dark = m.black || m.metalDark, frame = m.metalDark || m.metal || m.steel;
+  const signal = sector === 'ossuary' ? (m.violet || m.enemyViolet) : sector === 'choir' ? (m.orange || m.gold) : (m.red || m.enemyRed);
+  const hazard = m.hazard || m.orange || frame;
+  const width = Math.max(6.2, (item.width || 2.1) * CELL);
+  const height = Math.max(4.6, item.height || 5.2);
+  // A central pressure door makes the first room's two side openings legible:
+  // clear the bay, then choose a flank instead of walking at a blank wall.
+  beam(group, dark, 0, height * .48, 0, width * .78, height * .74, .22, moving);
+  beam(group, frame, -width * .47, height * .5, -.15, .3, height, .34, moving);
+  beam(group, frame, width * .47, height * .5, -.15, .3, height, .34, moving);
+  beam(group, frame, 0, height * .97, -.15, width * .98, .3, .34, moving);
+  beam(group, frame, 0, height * .08, -.15, width * .98, .18, .34, moving);
+  const seam = beam(group, frame, 0, height * .48, -.2, .09, height * .72, .08, moving);
+  seam.rotation.z = .02;
+  for (let i = -4; i <= 4; i++) {
+    const blade = beam(group, i % 2 ? hazard : dark, i * width * .09, height * .16, -.28, .08, height * .24, .07, moving);
+    blade.rotation.z = i % 2 ? -.32 : .32;
+  }
+  // The threshold is a wall-facing prop: keep the ring in the X/Y plane so
+  // its emissive silhouette reads from the spawn instead of becoming an
+  // edge-on line. This is the focal signal that turns the far wall into a
+  // destination rather than another anonymous panel.
+  const ring = add(group, new THREE.TorusGeometry(Math.min(1.18, width * .16), .1, 8, 28), signal, 0, height * .53, -.32, moving);
+  ring.rotation.set(0, 0, 0);
+  const innerRing = add(group, new THREE.TorusGeometry(Math.min(.72, width * .1), .045, 6, 24), hazard, 0, height * .53, -.37, moving);
+  innerRing.rotation.set(0, 0, 0);
+  // A narrow vertical status bar gives the door a legible center seam even
+  // when the bloom is subdued or the player is moving through the bay.
+  beam(group, signal, 0, height * .53, -.38, .065, height * .33, .05, moving);
+  add(group, new THREE.SphereGeometry(.16, 12, 8), signal, 0, height * .53, -.42, moving);
+  for (const side of [-1, 1]) {
+    const lamp = new THREE.PointLight(new THREE.Color(item.cue === 'amber' ? '#ff9b4a' : '#ff3d51'), .9, 10, 2);
+    lamp.name = 'PressureDoorLamp_' + item.id + '_' + side;
+    lamp.position.set(side * width * .37, height * .78, -.55);
+    lamp.userData.baseIntensity = lamp.intensity;
+    lamp.userData.phase = side < 0 ? .65 : 2.35;
+    group.add(lamp); lights.push(lamp);
+  }
+  root.add(group);
+  return group;
+}
+
+function makeSetpiece(root, item, sector, m, moving, motion, lights) {
+  if (!item || !item.type) return null;
+  if (item.type === 'tunnel') return makeTunnelSetpiece(root, item, sector, m, moving, lights);
+  if (item.type === 'collapse') return makeCollapseSetpiece(root, item, sector, m, moving);
+  if (item.type === 'bulkhead') return makeBulkheadSetpiece(root, item, sector, m, moving, lights);
+  if (item.type === 'pressure-door') return makePressureDoorSetpiece(root, item, sector, m, moving, lights);
+  return null;
+}
+
 function makeLandmark(root, item, sector, m, moving, anchors) {
   const p = world(item.anchor), type = item.type || '', size = item.size || [3, 4, 2.5];
   const group = new THREE.Group(); group.name = 'AuthoredLandmark_' + item.id; group.position.set(p.x, 0, p.z + (item.playerFacing ? CELL * 1.35 : 0)); group.userData.noBatch = true;
@@ -137,10 +301,10 @@ function makeMachine(root, item, sector, m, moving, motion) {
 
 export function buildAuthoredWorld(root, materials, course = {}) {
   const layout = course.layout || course.world || {}, sector = course.sectorId || course.id || 'bloodworks';
-  const landmarks = course.landmarks || layout.landmarks || [], machinery = course.machinery || layout.machinery || [], moving = [], motion = [], anchors = {};
+  const landmarks = course.landmarks || layout.landmarks || [], machinery = course.machinery || layout.machinery || [], setpieces = course.setpieces || layout.setpieces || [], moving = [], motion = [], lights = [], anchors = {};
+  for (const item of setpieces) makeSetpiece(root, item, sector, materials, moving, motion, lights);
   for (const item of landmarks) makeLandmark(root, item, sector, materials, moving, anchors);
   for (const item of machinery) makeMachine(root, item, sector, materials, moving, motion);
-  const lights = [];
   for (const item of (course.lights || layout.lights || [])) {
     const p = world(item.anchor), light = new THREE.PointLight(new THREE.Color(item.color || '#ff3154'), Math.min(5, item.intensity || 2), 16, 2);
     light.name = 'AuthoredZoneLight_' + (item.role || 'cue'); light.position.set(p.x, 3.2, p.z); light.userData.baseIntensity = light.intensity; light.userData.phase = item.phase || 0; root.add(light); lights.push(light);

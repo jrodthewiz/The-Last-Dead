@@ -1,6 +1,7 @@
 import * as THREE from './vendor/three.module.js';
 import {mergeGeometries} from './vendor/utils/BufferGeometryUtils.js';
 import {applyWeaponMaterialProfile, stabilizeWeaponVertexWear, tagWeaponMechanism} from './weapon-materials.js';
+import {applyWeaponDetailPass} from './weapon-detail-pass.js';
 
 // Image-guided Arc Lance: a long coil weapon with a caged plasma chamber,
 // bone claw emitter and mechanical side frame.  +Y is up, -Z is the firing
@@ -354,6 +355,7 @@ export function createArc(options = {}) {
   root.userData.arc = { kind: 'arc', parts, sockets, materials: mats, textures, reactor, emitter, chargeSlider, recoil: 0, flash: 0, heat: 0, lastShot: 0 };
   addWear(root);
   stabilizeWeaponVertexWear(root, 47);
+  applyWeaponDetailPass(root, 'arc');
   return root;
 }
 

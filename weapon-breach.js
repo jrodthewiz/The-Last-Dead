@@ -1,5 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import {applyWeaponMaterialProfile, stabilizeWeaponVertexWear, tagWeaponMechanism} from './weapon-materials.js';
+import {applyWeaponDetailPass} from './weapon-detail-pass.js';
 
 // Image-guided Breach: a paired infernal shotgun built from the bone-wrapped
 // receiver and twin muzzle silhouette in docs/build08-art/references.  The
@@ -345,6 +346,7 @@ export function createBreach(options = {}) {
   root.userData.breach = { kind: 'breach', parts, sockets, materials, textures, recoilCarriage, barrels, breechBlock, extractors, recoil: 0, flash: 0, heat: 0, lastShot: 0 };
   addVertexWear(root);
   stabilizeWeaponVertexWear(root, 43);
+  applyWeaponDetailPass(root, 'breach');
   return root;
 }
 

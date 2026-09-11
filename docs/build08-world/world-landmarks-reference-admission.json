@@ -1,0 +1,18 @@
+{
+  "admitted": true,
+  "reasons": [],
+  "provenance": {
+    "viewpoint": "reference",
+    "sourcePath": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\build08\\sector-1.png",
+    "width": 1280,
+    "height": 800,
+    "foregroundCoverage": 0.7895,
+    "largestComponentFraction": 0.9996,
+    "pHash": 16066700533039313918,
+    "duplicateOfHash": null
+  },
+  "semanticSuitability": {
+    "verdict": "conditional",
+    "reason": "The landmark silhouette is visible, but the gameplay HUD, weapon foreground, and baked lighting prevent exact isolated material evidence."
+  }
+}

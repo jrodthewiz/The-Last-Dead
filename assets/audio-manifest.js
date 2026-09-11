@@ -11,26 +11,32 @@ export const AUDIO_ASSET_MANIFEST = Object.freeze({
   ],
   "shot": [
     [
+      "./audio/sfx/processed/ossuary-shot.wav",
       "./audio/sfx/cc0-gunshot.mp3"
     ],
     [
+      "./audio/sfx/processed/breach-shot.wav",
       "./audio/sfx/cc0-gunshot-heavy.wav"
     ],
     [
+      "./audio/sfx/processed/arc-lance.wav",
       "./audio/baseline/scifi-laserLarge_000.ogg",
       "./audio/baseline/scifi-laserLarge_001.ogg"
     ],
     [
+      "./audio/sfx/processed/reliquary-launch.wav",
       "./audio/baseline/scifi-thrusterFire_000.ogg",
       "./audio/baseline/scifi-thrusterFire_001.ogg"
     ]
   ],
   "hit": [
+    "./audio/sfx/processed/impact-metal-flesh.wav",
     "./audio/baseline/impact-impactPunch_medium_000.ogg",
     "./audio/baseline/impact-impactPunch_medium_001.ogg",
     "./audio/baseline/impact-impactPunch_medium_002.ogg"
   ],
   "blood": [
+    "./audio/sfx/processed/blood-burst.wav",
     "./audio/baseline/scifi-slime_000.ogg",
     "./audio/baseline/scifi-slime_001.ogg"
   ],

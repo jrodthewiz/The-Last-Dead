@@ -1,6 +1,7 @@
 import * as THREE from './vendor/three.module.js';
 import {mergeGeometries} from './vendor/utils/BufferGeometryUtils.js';
 import {applyWeaponMaterialProfile, stabilizeWeaponVertexWear, tagWeaponMechanism} from './weapon-materials.js';
+import {applyWeaponDetailPass} from './weapon-detail-pass.js';
 
 // Image-guided stylized reconstruction: a ribcage / skull rocket launcher.
 // Coordinate contract: +Y up, -Z is the projectile direction.
@@ -515,6 +516,7 @@ export function createReliquary(options = {}) {
     parts, sockets, materials, textures, recoilCarriage, core, barrel, heatVents, heatBloom,
     recoil: 0, flash: 0, heat: 0, charge: 0, lastShot: 0
   };
+  applyWeaponDetailPass(root, 'reliquary');
   return root;
 }
 

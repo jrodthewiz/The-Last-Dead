@@ -1,6 +1,7 @@
 import * as THREE from './vendor/three.module.js';
 import {mergeGeometries} from './vendor/utils/BufferGeometryUtils.js';
 import {applyWeaponMaterialProfile, stabilizeWeaponVertexWear, tagWeaponMechanism} from './weapon-materials.js';
+import {applyWeaponDetailPass} from './weapon-detail-pass.js';
 // Original image-guided Ossuary. Metres, +Y up, -Z muzzle direction.
 const V=p=>new THREE.Vector3(...p);
 function sweep(points,radii,sides=9){const curve=new THREE.CatmullRomCurve3(points.map(V)),steps=points.length*4,frames=curve.computeFrenetFrames(steps,false),pos=[],uv=[],idx=[];for(let i=0;i<=steps;i++){const t=i/steps,q=t*(radii.length-1),a=Math.min(radii.length-2,Math.floor(q)),r=THREE.MathUtils.lerp(radii[a],radii[a+1],q-a),p=curve.getPointAt(t);for(let j=0;j<=sides;j++){const ang=j/sides*Math.PI*2,v=p.clone().addScaledVector(frames.normals[i],Math.cos(ang)*r).addScaledVector(frames.binormals[i],Math.sin(ang)*r);pos.push(v.x,v.y,v.z);uv.push(j/sides,t);if(i<steps&&j<sides){const n=i*(sides+1)+j;idx.push(n,n+sides+1,n+1,n+1,n+sides+1,n+sides+2);}}}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();return g;}
@@ -122,6 +123,7 @@ export function createOssuary(){
  stabilizeWeaponVertexWear(root,41);
  const textures={albedoMap,bump,roughnessMap};
  root.userData.sculptRuntime={parts,muzzle,chamber,sockets,materials,textures,collider:{type:'box',size:[.4,.75,1.3]},explode(amount){root.updateWorldMatrix(true,true);for(const p of Object.values(parts)){if(!p.userData.explodeHome){const bounds=new THREE.Box3();for(const mesh of p.children)if(mesh.isMesh){mesh.geometry.computeBoundingBox();bounds.union(mesh.geometry.boundingBox);}const center=bounds.isEmpty()?new THREE.Vector3():bounds.getCenter(new THREE.Vector3());p.userData.explodeHome=p.position.clone();p.userData.explodeDelta=center.applyQuaternion(p.quaternion).add(p.position).sub(new THREE.Vector3(0,-.05,-.4));}p.position.copy(p.userData.explodeHome).addScaledVector(p.userData.explodeDelta,amount);}},pick(raycaster){return raycaster.intersectObject(root,true)[0]?.object.parent.name;}};
+ applyWeaponDetailPass(root,'ossuary');
  root.userData.ossuary={chamber,chamberDrive,extractors,bolt,trigger,materials,textures,sockets,shotFx,recoilCarriage,spin:0,recoil:0,flash:0,smoke:0,heat:0,lastShot:0};return root;
 }
 export function animateOssuary(root,shot=0,time=0,dt=.016,state={}){

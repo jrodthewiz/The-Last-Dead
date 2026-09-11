@@ -20,10 +20,10 @@ const SECTOR_SPECS = {
   bloodworks: {
     act: 'act-i', theme: 'bloodworks',
     names: ['Intake Bay', 'Graft Galleries', 'Pulse Court', 'Furnace Spine'],
-    landmarks: [['intake-gate', 'south-gate'], ['graft-gallery-west', 'graft-gallery-east', 'west-pump-bank', 'east-pump-bank'], ['pulse-engine', 'court-hoist', 'pulse-court'], ['furnace-spine', 'intake-crane']],
+    landmarks: [['intake-gate', 'south-gate', 'intake-maintenance-spine'], ['graft-gallery-west', 'graft-gallery-east', 'west-pump-bank', 'east-pump-bank', 'west-service-collapse', 'service-bulkhead-04'], ['pulse-engine', 'court-hoist', 'pulse-court'], ['furnace-spine', 'intake-crane']],
     encounters: [
-      { tier: 1, budget: 5, maxAlive: 4, waves: [0], composition: { stalker: 2, caster: 1 }, tactic: 'Hold the threshold; keep both side lanes open.' },
-      { tier: 2, budget: 9, maxAlive: 5, waves: [1], composition: { skitter: 2, bloodhound: 1, caster: 2 }, tactic: 'Cross the gallery or rotate through the pump banks.' },
+      { tier: 1, budget: 5, maxAlive: 4, waves: [0], composition: { stalker: 2, caster: 1 }, tactic: 'Hold the intake threshold; read the red maintenance spine before the west door opens.' },
+      { tier: 2, budget: 9, maxAlive: 5, waves: [1], composition: { skitter: 2, bloodhound: 1, caster: 2 }, tactic: 'Cross the graft galleries or peek the collapsed service branch before rotating through the pump banks.' },
       { tier: 3, budget: 14, maxAlive: 6, waves: [2], composition: { brute: 2, bloodhound: 1, hexer: 1, caster: 1 }, tactic: 'Break the anchor line; cover the long sight lane.' },
       { tier: 4, budget: 0, maxAlive: 0, waves: [], composition: {}, tactic: 'Use the furnace spine as an exit vestibule.' },
     ],

@@ -205,6 +205,12 @@ export class AudioSystem {
     for (const [type, voices] of this._voices) if (type !== 'music' && GROUP_BY_TYPE[type] !== 'ui') {
       for (const source of voices) { try { source.stop(); } catch {} }
     }
+    // Suspend the shared context after world voices are stopped. UI actions
+    // can explicitly resume it on demand, keeping pause truly silent without
+    // making the pause/retry controls lose their feedback cue.
+    if (this._ctx?.state === 'running') {
+      try { const pending = this._ctx.suspend?.(); pending?.catch?.(() => {}); } catch {}
+    }
   }
 
   async resume() {
@@ -269,6 +275,9 @@ export class AudioSystem {
     const parsed = normalizeEvent(type, weapon, event);
     const name = parsed.name;
     if (this._paused && GROUP_BY_TYPE[name] !== 'ui') return false;
+    if (this._paused && GROUP_BY_TYPE[name] === 'ui' && this._ctx?.state === 'suspended') {
+      try { const pending = this._ctx.resume?.(); pending?.catch?.(() => {}); } catch {}
+    }
     const index = parsed.weapon;
     const details = parsed.details;
     if (name === 'ambience') return this._playAmbience(details);

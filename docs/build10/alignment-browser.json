@@ -3,38 +3,38 @@
     {
       "pitch": -0.8,
       "weapon": 0,
-      "crosshairError": 1.577638816215273e-15,
-      "flashError": 7.131616785230269e-15
+      "crosshairError": 2.9580727804036316e-15,
+      "flashError": 9.07416323802664e-15
     },
     {
       "pitch": -0.8,
       "weapon": 2,
-      "crosshairError": 1.577638816215273e-15,
+      "crosshairError": 2.9580727804036316e-15,
+      "flashError": 7.411934057832477e-15
+    },
+    {
+      "pitch": 0,
+      "weapon": 0,
+      "crosshairError": 1.2548331489208944e-17,
+      "flashError": 7.971988878370802e-15
+    },
+    {
+      "pitch": 0,
+      "weapon": 2,
+      "crosshairError": 1.2548331489208944e-17,
+      "flashError": 7.94721185223203e-15
+    },
+    {
+      "pitch": 0.8,
+      "weapon": 0,
+      "crosshairError": 3.2990657451472353e-16,
+      "flashError": 5.687116766346677e-15
+    },
+    {
+      "pitch": 0.8,
+      "weapon": 2,
+      "crosshairError": 3.2990657451472353e-16,
       "flashError": 4.440892098500626e-15
-    },
-    {
-      "pitch": 0,
-      "weapon": 0,
-      "crosshairError": 5.105380535299387e-17,
-      "flashError": 0
-    },
-    {
-      "pitch": 0,
-      "weapon": 2,
-      "crosshairError": 5.105380535299387e-17,
-      "flashError": 4.440892098500626e-16
-    },
-    {
-      "pitch": 0.8,
-      "weapon": 0,
-      "crosshairError": 3.5569528727135054e-17,
-      "flashError": 8.881784197001252e-16
-    },
-    {
-      "pitch": 0.8,
-      "weapon": 2,
-      "crosshairError": 3.5569528727135054e-17,
-      "flashError": 8.881784197001252e-16
     }
   ],
   "arms": [
@@ -47,10 +47,10 @@
     1280,
     800
   ],
-  "calls": 316,
+  "calls": 239,
   "effects": {
     "impacts": {
-      "marks": 9,
+      "marks": 5,
       "smoke": 0,
       "capacity": {
         "marks": 96,
@@ -62,15 +62,15 @@
   "effectCost": [
     {
       "enabled": false,
-      "fps": 20.48780487804878
+      "fps": 60.107434550756004
     },
     {
       "enabled": true,
-      "fps": 22.807504660717917
+      "fps": 60.02592481802772
     },
     {
       "enabled": false,
-      "fps": 21.76126494836597
+      "fps": 60.030713388316514
     }
   ],
   "errors": [],

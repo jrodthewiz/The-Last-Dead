@@ -1,6 +1,6 @@
 {
-  "startedAt": "2026-09-08T22:38:35.891Z",
-  "url": "http://127.0.0.1:63599/?debug=1&build10=game",
+  "startedAt": "2026-09-11T20:16:01.850Z",
+  "url": "http://127.0.0.1:52048/?debug=1&build10=game",
   "browser": {
     "executablePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
     "headless": true
@@ -9,13 +9,13 @@
     "spawn": {
       "x": 6,
       "y": 10.5,
-      "angle": -1.5707963267948966
+      "angle": -2.782821983319221
     },
     "openLane": {
-      "x": 6,
-      "y": 8,
+      "x": 3.659177056077389,
+      "y": 9.62219139602902,
       "distance": 2.5,
-      "angle": -1.5707963267948966
+      "angle": -2.782821983319221
     }
   },
   "desktop": {
@@ -23,7 +23,7 @@
     "controlledCamera": {
       "x": 6,
       "y": 10.5,
-      "angle": -1.5707963267948966,
+      "angle": -2.782821983319221,
       "pitch": 0,
       "sector": "bloodworks"
     },
@@ -58,15 +58,15 @@
     "audioReady": true,
     "audio": {
       "loaded": true,
-      "decoded": 37,
-      "manifestEntries": 37,
+      "decoded": 77,
+      "manifestEntries": 77,
       "errors": []
     },
     "bellwraith": {
       "preview": {
         "id": 99001,
-        "x": 6,
-        "y": 8,
+        "x": 3.659177056077389,
+        "y": 9.62219139602902,
         "pitch": 0,
         "directorState": "exit"
       },
@@ -78,134 +78,138 @@
       }
     },
     "performance": {
-      "elapsedMs": 30008,
-      "frames": 702,
-      "avgFps": 23.39,
-      "minSampleFps": 15,
-      "maxSampleFps": 32,
+      "elapsedMs": 30003,
+      "frames": 1802,
+      "avgFps": 60.06,
+      "minSampleFps": 60,
+      "maxSampleFps": 62,
       "samples": [
         {
-          "elapsedMs": 1005,
-          "fps": 16
+          "elapsedMs": 1015,
+          "fps": 62
         },
         {
-          "elapsedMs": 2021,
-          "fps": 21
+          "elapsedMs": 2016,
+          "fps": 60
         },
         {
-          "elapsedMs": 3037,
-          "fps": 15
+          "elapsedMs": 3031,
+          "fps": 61
         },
         {
-          "elapsedMs": 4070,
-          "fps": 22
+          "elapsedMs": 4047,
+          "fps": 61
         },
         {
-          "elapsedMs": 5086,
-          "fps": 25
+          "elapsedMs": 5064,
+          "fps": 61
         },
         {
-          "elapsedMs": 6102,
-          "fps": 25
+          "elapsedMs": 6080,
+          "fps": 61
         },
         {
-          "elapsedMs": 7119,
-          "fps": 27
+          "elapsedMs": 7080,
+          "fps": 60
         },
         {
-          "elapsedMs": 8251,
-          "fps": 27
+          "elapsedMs": 8096,
+          "fps": 61
         },
         {
-          "elapsedMs": 9301,
-          "fps": 32
+          "elapsedMs": 9112,
+          "fps": 61
         },
         {
-          "elapsedMs": 10317,
-          "fps": 26
+          "elapsedMs": 10128,
+          "fps": 61
         },
         {
-          "elapsedMs": 11350,
-          "fps": 27
+          "elapsedMs": 11145,
+          "fps": 61
         },
         {
-          "elapsedMs": 12583,
-          "fps": 20
+          "elapsedMs": 12161,
+          "fps": 61
         },
         {
-          "elapsedMs": 13716,
-          "fps": 26
+          "elapsedMs": 13176,
+          "fps": 61
         },
         {
-          "elapsedMs": 14732,
-          "fps": 25
+          "elapsedMs": 14193,
+          "fps": 61
         },
         {
-          "elapsedMs": 15748,
-          "fps": 25
+          "elapsedMs": 15210,
+          "fps": 61
         },
         {
-          "elapsedMs": 16764,
-          "fps": 23
+          "elapsedMs": 16226,
+          "fps": 61
         },
         {
-          "elapsedMs": 17847,
-          "fps": 22
+          "elapsedMs": 17242,
+          "fps": 61
         },
         {
-          "elapsedMs": 18863,
-          "fps": 30
+          "elapsedMs": 18258,
+          "fps": 61
         },
         {
-          "elapsedMs": 19896,
-          "fps": 26
+          "elapsedMs": 19274,
+          "fps": 61
         },
         {
-          "elapsedMs": 20912,
-          "fps": 26
+          "elapsedMs": 20274,
+          "fps": 60
         },
         {
-          "elapsedMs": 22095,
-          "fps": 19
+          "elapsedMs": 21290,
+          "fps": 61
         },
         {
-          "elapsedMs": 23145,
-          "fps": 21
+          "elapsedMs": 22306,
+          "fps": 61
         },
         {
-          "elapsedMs": 24161,
-          "fps": 24
+          "elapsedMs": 23322,
+          "fps": 61
         },
         {
-          "elapsedMs": 25177,
-          "fps": 26
+          "elapsedMs": 24322,
+          "fps": 60
         },
         {
-          "elapsedMs": 26193,
-          "fps": 27
+          "elapsedMs": 25338,
+          "fps": 61
         },
         {
-          "elapsedMs": 27276,
-          "fps": 25
+          "elapsedMs": 26355,
+          "fps": 61
         },
         {
-          "elapsedMs": 28292,
-          "fps": 30
+          "elapsedMs": 27371,
+          "fps": 61
         },
         {
-          "elapsedMs": 29325,
-          "fps": 26
+          "elapsedMs": 28387,
+          "fps": 61
+        },
+        {
+          "elapsedMs": 29403,
+          "fps": 61
         }
       ]
     },
     "rendererInfo": {
       "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F91) Direct3D11 vs_5_0 ps_5_0, D3D11)",
-      "calls": 684,
-      "triangles": 392756,
+      "calls": 150,
+      "triangles": 183068,
       "points": 0,
       "lines": 27,
-      "geometries": 737,
-      "textures": 49,
+      "geometries": 804,
+      "textures": 105,
       "programs": [
         {
           "name": null,
@@ -217,6 +221,42 @@
         },
         {
           "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "RoomWall_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomPanel_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomTrim_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomTrim_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomRecess_bloodworks-0",
           "runnable": null
         },
         {
@@ -352,7 +392,7 @@
           "runnable": null
         },
         {
-          "name": null,
+          "name": "Material_1",
           "runnable": null
         },
         {
@@ -440,6 +480,22 @@
           "runnable": null
         },
         {
+          "name": "BazookaSmokeBillboardsShader",
+          "runnable": null
+        },
+        {
+          "name": "BazookaShockwaveRingsShader",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
           "name": null,
           "runnable": null
         },
@@ -453,6 +509,286 @@
         },
         {
           "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "RoomFloor_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomTrim_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomRecess_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomWall_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "Material_1",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "RoomWall_ossuary-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomPanel_ossuary-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomTrim_ossuary-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomRecess_ossuary-0",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "BazookaSmokeBillboardsShader",
+          "runnable": null
+        },
+        {
+          "name": "BazookaFireBillboardsShader",
+          "runnable": null
+        },
+        {
+          "name": "BazookaShockwaveRingsShader",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "Material_1",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "BazookaSmokeBillboardsShader",
+          "runnable": null
+        },
+        {
+          "name": "BazookaShockwaveRingsShader",
           "runnable": null
         },
         {
@@ -504,7 +840,19 @@
           "runnable": null
         },
         {
-          "name": "Material_1",
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "RoomFloor_ossuary-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomTrim_ossuary-0",
           "runnable": null
         },
         {
@@ -525,38 +873,6 @@
         },
         {
           "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": "Material_1",
-          "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": "Material_1",
           "runnable": null
         },
         {
@@ -596,7 +912,361 @@
           "type": "warning",
           "text": "THREE.WebGLProgram: Program Info Log: (210,81-129): warning X4122: sum of 0.996094 and -2.98545e-017 cannot be represented accurately in double precision\n(209,37-61): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(210,82-106): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(209,37-61): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision\n(210,82-106): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision\n\n\n\u0000",
           "location": {
-            "url": "http://127.0.0.1:63599/vendor/three.core.js",
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
             "lineNumber": 2000,
             "columnNumber": 11
           }
@@ -611,7 +1281,7 @@
     "controlledCamera": {
       "x": 6,
       "y": 10.5,
-      "angle": -1.5707963267948966,
+      "angle": -2.782821983319221,
       "pitch": 0,
       "sector": "bloodworks"
     },
@@ -636,8 +1306,8 @@
     "bellwraith": {
       "preview": {
         "id": 99001,
-        "x": 6,
-        "y": 8,
+        "x": 3.659177056077389,
+        "y": 9.62219139602902,
         "pitch": 0,
         "directorState": "exit"
       },
@@ -656,12 +1326,12 @@
     },
     "rendererInfo": {
       "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F91) Direct3D11 vs_5_0 ps_5_0, D3D11)",
-      "calls": 273,
-      "triangles": 85830,
+      "calls": 343,
+      "triangles": 102556,
       "points": 0,
       "lines": 26,
-      "geometries": 382,
-      "textures": 24,
+      "geometries": 805,
+      "textures": 64,
       "programs": [
         {
           "name": null,
@@ -688,6 +1358,30 @@
           "runnable": null
         },
         {
+          "name": "RoomWall_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomPanel_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomTrim_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomTrim_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomRecess_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
           "name": null,
           "runnable": null
         },
@@ -697,10 +1391,186 @@
         },
         {
           "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "BazookaSmokeBillboardsShader",
+          "runnable": null
+        },
+        {
+          "name": "BazookaShockwaveRingsShader",
           "runnable": null
         },
         {
           "name": "BazookaFireBillboardsShader",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "Material_1",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
           "runnable": null
         },
         {
@@ -768,6 +1638,54 @@
           "runnable": null
         },
         {
+          "name": "RoomFloor_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomTrim_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomRecess_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomWall_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "Material_1",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
           "name": null,
           "runnable": null
         },
@@ -784,9 +1702,352 @@
       "consoleWarnings": [
         {
           "type": "warning",
-          "text": "THREE.WebGLProgram: Program Info Log: (210,81-129): warning X4122: sum of 0.996094 and -2.98545e-017 cannot be represented accurately in double precision\n(209,37-61): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(210,82-106): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(209,37-61): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision\n(210,82-106): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision\n\n\n\u0000",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:63599/vendor/three.core.js",
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:52048/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
             "lineNumber": 2000,
             "columnNumber": 11
           }
@@ -807,35 +2068,35 @@
   "audioSignal": [
     {
       "type": "shot",
-      "peak": 0.014734862372279167
+      "peak": 0.01803528144955635
     },
     {
       "type": "footstep",
-      "peak": 0.004259153269231319
+      "peak": 0.02394002676010132
     },
     {
       "type": "jump",
-      "peak": 0.0010466782841831446
+      "peak": 0.04677446186542511
     },
     {
       "type": "land",
-      "peak": 0.0026698741130530834
+      "peak": 0.09211613982915878
     },
     {
       "type": "enemy-attack",
-      "peak": 0.10722239315509796
+      "peak": 0.027329035103321075
     },
     {
       "type": "kill",
-      "peak": 0.050463445484638214
+      "peak": 0.07120183855295181
     },
     {
       "type": "explosion",
-      "peak": 0.1111316829919815
+      "peak": 0.13505730032920837
     },
     {
       "type": "slide",
-      "peak": 0.054594092071056366
+      "peak": 0.14705069363117218
     }
   ],
   "sectors": [
@@ -844,24 +2105,65 @@
       "diagnostics": {
         "renderer": "three.js",
         "worldBatch": {
-          "removed": 487,
-          "batches": 18
+          "removed": 360,
+          "batches": 15
         },
+        "staticWorld": {
+          "frozen": 118,
+          "pruned": 0
+        },
+        "boundedLighting": true,
+        "transmissionCoverage": 1,
+        "weaponBatch": [
+          {
+            "parents": 0,
+            "groups": 0,
+            "meshesBefore": 80,
+            "meshesAfter": 80,
+            "mergedMeshes": 0,
+            "mergedSources": 0
+          },
+          {
+            "parents": 8,
+            "groups": 17,
+            "meshesBefore": 157,
+            "meshesAfter": 95,
+            "mergedMeshes": 17,
+            "mergedSources": 79
+          },
+          {
+            "parents": 0,
+            "groups": 0,
+            "meshesBefore": 90,
+            "meshesAfter": 90,
+            "mergedMeshes": 0,
+            "mergedSources": 0
+          },
+          {
+            "parents": 0,
+            "groups": 0,
+            "meshesBefore": 100,
+            "meshesAfter": 100,
+            "mergedMeshes": 0,
+            "mergedSources": 0
+          }
+        ],
+        "targetFrameMs": 6.944444444444445,
         "webgl": true,
         "error": null,
         "width": 1280,
         "height": 800,
-        "dpr": 0.75,
-        "renderScale": 0.75,
+        "dpr": 1,
+        "renderScale": 1,
         "fov": 92,
-        "meshes": 708,
-        "instancedMeshes": 31,
-        "geometries": 704,
-        "materials": 103,
-        "triangles": 198334,
-        "calls": 265,
-        "gpuTriangles": 76360,
-        "rendererGeometries": 357,
+        "meshes": 982,
+        "instancedMeshes": 85,
+        "geometries": 856,
+        "materials": 212,
+        "triangles": 348828,
+        "calls": 292,
+        "gpuTriangles": 89864,
+        "rendererGeometries": 803,
         "explosions": {
           "active": 0,
           "fire": 0,
@@ -880,7 +2182,7 @@
             "smoke": 96
           }
         },
-        "rendererTextures": 34,
+        "rendererTextures": 68,
         "enemies": 0,
         "gore": 0,
         "blood": 0,
@@ -897,24 +2199,65 @@
       "diagnostics": {
         "renderer": "three.js",
         "worldBatch": {
-          "removed": 560,
-          "batches": 20
+          "removed": 430,
+          "batches": 17
         },
+        "staticWorld": {
+          "frozen": 132,
+          "pruned": 0
+        },
+        "boundedLighting": true,
+        "transmissionCoverage": 1,
+        "weaponBatch": [
+          {
+            "parents": 0,
+            "groups": 0,
+            "meshesBefore": 80,
+            "meshesAfter": 80,
+            "mergedMeshes": 0,
+            "mergedSources": 0
+          },
+          {
+            "parents": 8,
+            "groups": 17,
+            "meshesBefore": 157,
+            "meshesAfter": 95,
+            "mergedMeshes": 17,
+            "mergedSources": 79
+          },
+          {
+            "parents": 0,
+            "groups": 0,
+            "meshesBefore": 90,
+            "meshesAfter": 90,
+            "mergedMeshes": 0,
+            "mergedSources": 0
+          },
+          {
+            "parents": 0,
+            "groups": 0,
+            "meshesBefore": 100,
+            "meshesAfter": 100,
+            "mergedMeshes": 0,
+            "mergedSources": 0
+          }
+        ],
+        "targetFrameMs": 6.944444444444445,
         "webgl": true,
         "error": null,
         "width": 1280,
         "height": 800,
-        "dpr": 0.75,
-        "renderScale": 0.75,
+        "dpr": 1,
+        "renderScale": 1,
         "fov": 92,
-        "meshes": 687,
-        "instancedMeshes": 31,
-        "geometries": 683,
-        "materials": 103,
-        "triangles": 200706,
-        "calls": 245,
-        "gpuTriangles": 78904,
-        "rendererGeometries": 336,
+        "meshes": 930,
+        "instancedMeshes": 85,
+        "geometries": 801,
+        "materials": 216,
+        "triangles": 351316,
+        "calls": 251,
+        "gpuTriangles": 96896,
+        "rendererGeometries": 743,
         "explosions": {
           "active": 0,
           "fire": 0,
@@ -933,7 +2276,7 @@
             "smoke": 96
           }
         },
-        "rendererTextures": 34,
+        "rendererTextures": 85,
         "enemies": 0,
         "gore": 0,
         "blood": 0,
@@ -950,24 +2293,65 @@
       "diagnostics": {
         "renderer": "three.js",
         "worldBatch": {
-          "removed": 552,
-          "batches": 23
+          "removed": 366,
+          "batches": 20
         },
+        "staticWorld": {
+          "frozen": 127,
+          "pruned": 7
+        },
+        "boundedLighting": true,
+        "transmissionCoverage": 1,
+        "weaponBatch": [
+          {
+            "parents": 0,
+            "groups": 0,
+            "meshesBefore": 80,
+            "meshesAfter": 80,
+            "mergedMeshes": 0,
+            "mergedSources": 0
+          },
+          {
+            "parents": 8,
+            "groups": 17,
+            "meshesBefore": 157,
+            "meshesAfter": 95,
+            "mergedMeshes": 17,
+            "mergedSources": 79
+          },
+          {
+            "parents": 0,
+            "groups": 0,
+            "meshesBefore": 90,
+            "meshesAfter": 90,
+            "mergedMeshes": 0,
+            "mergedSources": 0
+          },
+          {
+            "parents": 0,
+            "groups": 0,
+            "meshesBefore": 100,
+            "meshesAfter": 100,
+            "mergedMeshes": 0,
+            "mergedSources": 0
+          }
+        ],
+        "targetFrameMs": 6.944444444444445,
         "webgl": true,
         "error": null,
         "width": 1280,
         "height": 800,
-        "dpr": 0.75,
-        "renderScale": 0.75,
+        "dpr": 1,
+        "renderScale": 1,
         "fov": 92,
-        "meshes": 739,
-        "instancedMeshes": 31,
-        "geometries": 735,
-        "materials": 102,
-        "triangles": 205282,
-        "calls": 297,
-        "gpuTriangles": 83560,
-        "rendererGeometries": 388,
+        "meshes": 976,
+        "instancedMeshes": 85,
+        "geometries": 844,
+        "materials": 210,
+        "triangles": 351340,
+        "calls": 274,
+        "gpuTriangles": 95696,
+        "rendererGeometries": 791,
         "explosions": {
           "active": 0,
           "fire": 0,
@@ -986,7 +2370,7 @@
             "smoke": 96
           }
         },
-        "rendererTextures": 34,
+        "rendererTextures": 101,
         "enemies": 0,
         "gore": 0,
         "blood": 0,
@@ -1000,9 +2384,9 @@
     }
   ],
   "journey": {
-    "seconds": 120,
-    "restarts": 1,
-    "peakKills": 1,
-    "pauseScreen": "dead"
+    "seconds": 5,
+    "restarts": 0,
+    "peakKills": 0,
+    "pauseScreen": "pause"
   }
 }

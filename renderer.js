@@ -15,7 +15,9 @@ import {createWarden,animateWarden} from './npc-warden.js';
 import {createOssuary,animateOssuary} from './weapon-ossuary.js';
 import {createBreach,animateBreach} from './weapon-breach.js';
 import {createArc,animateArc} from './weapon-arc.js';
+import {createViewmodelArm} from './assets/survivor/viewmodel-arms.js';
 import {CombatVFX} from './combat-vfx.js';
+import {createBloodMask,ProjectileWakes} from './secondary-vfx.js';
 
 // Dead Arrival's simulation is authored in 4 metre cells. The renderer keeps
 // that scale explicit so camera motion, weapon framing, and enemy proportions
@@ -315,7 +317,11 @@ export class Renderer {
     this.goreDroplets.name = 'GoreDroplets';
     this.goreDroplets.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.combatRoot.add(this.goreDroplets);
-    this.bloodPools = new THREE.InstancedMesh(new THREE.CircleGeometry(1, 22), this.materials.blood, MAX_BLOOD);
+    const stainMaterial=this.materials.blood.clone();
+    stainMaterial.map=createBloodMask();stainMaterial.transparent=true;stainMaterial.alphaTest=.08;
+    stainMaterial.depthWrite=false;stainMaterial.polygonOffset=true;stainMaterial.polygonOffsetFactor=-1;
+    stainMaterial.roughness=.29;
+    this.bloodPools = new THREE.InstancedMesh(new THREE.PlaneGeometry(2, 2), stainMaterial, MAX_BLOOD);
     this.bloodPools.name = 'BloodPools';
     this.bloodPools.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.combatRoot.add(this.bloodPools);
@@ -332,6 +338,7 @@ export class Renderer {
     this.projectileReflected.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.projectileCore.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.combatRoot.add(this.projectileHostile, this.projectileReflected, this.projectileCore);
+    this.projectileWakes=new ProjectileWakes(this.combatRoot,MAX_PROJECTILES);
 
     this.projectileTrails = new THREE.LineSegments(lineGeometry(MAX_PROJECTILES), new THREE.LineBasicMaterial({ color: 0xff668c, transparent: true, opacity: 0.62, blending: THREE.AdditiveBlending, depthWrite: false }));
     this.projectileTrails.name = 'ProjectileTrails';
@@ -363,7 +370,7 @@ export class Renderer {
     this.coins.name = 'RicochetCoins';
     this.coins.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.combatRoot.add(this.coins);
-    this.coinGlints = new THREE.LineSegments(lineGeometry(MAX_COINS), new THREE.LineBasicMaterial({ color: 0xfff2a7, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false }));
+    this.coinGlints = new THREE.LineSegments(lineGeometry(MAX_COINS*2), new THREE.LineBasicMaterial({ color: 0xfff2a7, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }));
     this.coinGlints.name = 'CoinGlints';
     this.coinGlints.frustumCulled = false;
     this.combatRoot.add(this.coinGlints);
@@ -375,18 +382,30 @@ export class Renderer {
   _buildWeaponRig() {
     this.weaponRig = new THREE.Group();
     this.weaponRig.name = 'WeaponRig';
+    // Viewmodels render on a dedicated layer so a tiny rig-local fill can
+    // preserve black-metal/bone/brass separation without brightening the
+    // horror arena or changing enemy/world exposure.
+    this.weaponRig.layers.set(1);
+    this.camera.layers.enable(1);
     this.camera.add(this.weaponRig);
     this.weaponGroups = [this._makePulseRevolver(), this._makeBreachShotgun(), this._makeArcLance(), this._makeReliquaryAsset()];
     this.weaponGroups.forEach((group, index) => {
-      group.scale.setScalar(0.55);
+      // Slightly larger hero framing lets the authored micro-detail read in
+      // the FPS view without occluding the reticle or target corridor.
+      group.scale.setScalar(0.64);
       group.visible = index === 0;
       // Viewmodels use the room's reflected light without world-shadow occlusion.
       // Their close camera placement should not cast oversized shadows into the arena.
-      group.traverse(node=>{if(node.isMesh){node.castShadow=false;node.receiveShadow=false;for(const material of (Array.isArray(node.material)?node.material:[node.material]))if(material?.isMeshStandardMaterial)material.envMapIntensity=material.userData.weaponSurface?.envMapIntensity??1.45;}});
+      group.traverse(node=>{node.layers.set(1);if(node.isMesh){node.castShadow=false;node.receiveShadow=false;for(const material of (Array.isArray(node.material)?node.material:[node.material]))if(material?.isMeshStandardMaterial)material.envMapIntensity=material.userData.weaponSurface?.envMapIntensity??1.45;}});
       this.weaponRig.add(group);
     });
+    const viewFill = new THREE.HemisphereLight(0xc9e9ff, 0x2c1820, .42);
+    viewFill.name = 'ViewmodelReadabilityFill';
+    viewFill.layers.set(1);
+    this.weaponRig.add(viewFill);
     this.muzzleFlash = new THREE.Group();
     this.muzzleFlash.name = 'MuzzleFlash';
+    this.muzzleFlash.layers.set(1);
     const flashSize=96,flashPixels=new Uint8Array(flashSize*flashSize*4);
     for(let y=0;y<flashSize;y++)for(let x=0;x<flashSize;x++){
       const px=(x+.5)/flashSize*2-1,py=(y+.5)/flashSize*2-1,r=Math.hypot(px,py),a=Math.atan2(py,px);
@@ -397,9 +416,11 @@ export class Renderer {
     const flashTexture=new THREE.DataTexture(flashPixels,flashSize,flashSize);flashTexture.colorSpace=THREE.SRGBColorSpace;flashTexture.needsUpdate=true;
     const flash = new THREE.Mesh(new THREE.PlaneGeometry(.42,.42),new THREE.MeshBasicMaterial({map:flashTexture,color:0xffba78,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,toneMapped:false}));
     flash.name='MuzzlePressureFlare';
+    flash.layers.set(1);
     this.muzzleFlash.add(flash);
     const flashLight = new THREE.PointLight(0xffb85c, 0, 3, 2);
     flashLight.name = 'MuzzleLight';
+    flashLight.layers.set(1);
     this.muzzleFlash.add(flashLight);
     // Keep the light in the scene's light list even while its intensity is zero.
     // Hiding its parent changes shader defines for every lit material on firing.
@@ -410,35 +431,16 @@ export class Renderer {
   }
 
   _makeArm(side, color = this.materials.viewSleeve, weapon = 0) {
-    const arm = new THREE.Group();
-    arm.name = `${side < 0 ? 'Left' : 'Right'}Arm`;
-    const support = side < 0;
-    const wrist = support ? new THREE.Vector3(-.14,-.20,[-.48,-.52,-.57,-.62][weapon]) : new THREE.Vector3(.095,[-.28,-.32,-.38,-.25][weapon],.16);
-    arm.position.copy(wrist);
-    const elbow = new THREE.Vector3(side*.4,-.85,.9).sub(wrist);
-    const segment = (start,end,r0,r1,material,name) => {
-      const delta=end.clone().sub(start), mesh=new THREE.Mesh(new THREE.CylinderGeometry(r1,r0,delta.length(),12),material);
-      mesh.name=name;mesh.position.copy(start).addScaledVector(delta,.5);
-      mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());arm.add(mesh);return mesh;
-    };
-    segment(new THREE.Vector3(),elbow,.085,.13,color,'TaperedSleeve');
-    segment(new THREE.Vector3(),elbow.clone().multiplyScalar(.17),.096,.103,this.materials.viewGlove,'WristCuff');
-    const palm=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),this.materials.viewGlove);
-    palm.name='GripPalm';palm.scale.set(.075,.105,.095);palm.position.set(support?.025:-.015,.025,-.025);arm.add(palm);
-    for(let i=0;i<4;i++){
-      const y=.075-i*.047;
-      const start=new THREE.Vector3(support?.06:-.035,y,-.045);
-      const knuckle=new THREE.Vector3(support?.13:-.11,y-.005,-.105);
-      const tip=new THREE.Vector3(support?.12:-.16,y-.018,-.055);
-      segment(start,knuckle,.026,.024,this.materials.viewGlove,`Finger${i}Proximal`);
-      segment(knuckle,tip,.024,.019,this.materials.viewGlove,`Finger${i}Tip`);
-      const plate=new THREE.Mesh(new THREE.SphereGeometry(.025,8,6),this.materials.viewPlate);plate.scale.set(1,.65,1.2);plate.position.copy(knuckle);arm.add(plate);
-    }
-    segment(new THREE.Vector3(0,.10,.035),new THREE.Vector3(support?.085:-.09,.06,-.025),.032,.025,this.materials.viewGlove,'Thumb');
-    for(let i=0;i<3;i++){
-      const plate=new THREE.Mesh(new THREE.BoxGeometry(.115,.018,.075),this.materials.viewPlate);
-      plate.name='ForearmPlate';plate.position.copy(elbow).multiplyScalar(.3+i*.15);plate.position.y+=.055;plate.rotation.x=-.35;arm.add(plate);
-    }
+    // The viewmodel arm factory carries explicit wrist/elbow/hand sockets and
+    // curled finger geometry.  Keeping every weapon on the same authored
+    // pose contract prevents the old cylinder arms from floating off grips.
+    const arm = createViewmodelArm(side, weapon, {
+      viewSleeve: color || this.materials.viewSleeve,
+      viewGlove: this.materials.viewGlove,
+      viewPlate: this.materials.viewPlate,
+      viewSkin: this.materials.viewGlove,
+    });
+    arm.userData.weapon = weapon;
     return arm;
   }
 
@@ -1083,8 +1085,11 @@ export class Renderer {
           matrix.compose(position.set(worldX(g.x), (g.z || 0) * CELL, worldZ(g.y)), quat, scale);
           this.goreChunks.setMatrixAt(chunks++, matrix);
         } else if (!g.chunk && droplets < MAX_GORE) {
-          quat.identity();
-          scale.setScalar((g.size || 0.018) * CELL);
+          const velocity=this._dropVelocity ||= new THREE.Vector3(),up=this._dropUp ||= new THREE.Vector3(0,1,0);
+          velocity.set(g.vx||0,g.vz||0,g.vy||0);const speed=velocity.length();
+          if(speed>.01)quat.setFromUnitVectors(up,velocity.multiplyScalar(1/speed));else quat.identity();
+          const radius=(g.size || 0.018)*CELL;
+          scale.set(radius*.78,radius*(1+Math.min(2.2,speed*.7)),radius*.78);
           matrix.compose(position.set(worldX(g.x), (g.z || 0) * CELL, worldZ(g.y)), quat, scale);
           this.goreDroplets.setMatrixAt(droplets++, matrix);
         }
@@ -1092,7 +1097,8 @@ export class Renderer {
       for (const b of run.blood || []) {
         if (blood >= MAX_BLOOD) break;
         quat.setFromEuler(rotation.set(-Math.PI / 2, 0, b.angle || 0));
-        scale.set((b.size || 0.15) * CELL, (b.size || 0.15) * CELL, 1);
+        const stainSize=(b.size || 0.15)*CELL;
+        scale.set(stainSize*1.35,stainSize*(.94+Math.sin(b.angle||0)*.16),1);
         matrix.compose(position.set(worldX(b.x), 0.052, worldZ(b.y)), quat, scale);
         this.bloodPools.setMatrixAt(blood++, matrix);
       }
@@ -1127,6 +1133,7 @@ export class Renderer {
     updateProjectiles(hostile, this.projectileHostile, 1);
     updateProjectiles(reflected, this.projectileReflected, 1.05);
     updateProjectiles(core, this.projectileCore, 1.2);
+    this.projectileWakes.update(run.projectiles,this.settings.reducedMotion);
 
     const pGeo = this.projectileTrails.geometry;
     let pi = 0;
@@ -1174,9 +1181,14 @@ export class Renderer {
       scale.setScalar(1 + Math.min(0.24, Math.hypot(c.vx || 0, c.vy || 0) * 0.02));
       matrix.compose(position.set(worldX(c.x), y, worldZ(c.y)), quat, scale);
       this.coins.setMatrixAt(ci, matrix);
-      const center = new THREE.Vector3(worldX(c.x), y, worldZ(c.y));
-      const glow = 0.22 + Math.abs(Math.sin(now * 0.016 + ci)) * 0.28;
-      setLine(this.coinGlints.geometry, gi++, new THREE.Vector3(center.x - glow, center.y, center.z), new THREE.Vector3(center.x + glow, center.y, center.z));
+      const center=this._glintCenter ||= new THREE.Vector3(),axis=this._glintAxis ||= new THREE.Vector3();
+      const start=this._glintStart ||= new THREE.Vector3(),end=this._glintEnd ||= new THREE.Vector3();
+      center.set(worldX(c.x),y,worldZ(c.y));
+      const glow=.08+Math.pow(Math.max(0,Math.sin(now*.008+ci*2.4)),8)*.32;
+      for(let cross=0;cross<2;cross++){
+        axis.setFromMatrixColumn(this.camera.matrixWorld,cross).multiplyScalar(glow*(cross?.6:1));
+        setLine(this.coinGlints.geometry,gi++,start.copy(center).sub(axis),end.copy(center).add(axis));
+      }
       ci++;
     }
     this.coins.count = ci; this.coins.instanceMatrix.needsUpdate = true;
