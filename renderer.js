@@ -1282,7 +1282,11 @@ export class Renderer {
       this.canvas.width = Math.floor(width * dpr);
       this.canvas.height = Math.floor(height * dpr);
     }
-    this.weaponGroups?.forEach(group=>group.scale.setScalar(width<600?.4:.55));
+    // Keep resize/reflow consistent with the authored close-camera framing.
+    // The rig-only readability fill and articulated hands are composed for the
+    // 0.64 scale; dropping back to .55 here made a window resize silently undo
+    // the intended silhouette/hand read.
+    this.weaponGroups?.forEach(group=>group.scale.setScalar(width<600?.4:.64));
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
   }
