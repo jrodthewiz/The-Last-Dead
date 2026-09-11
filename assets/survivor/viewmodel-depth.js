@@ -6,7 +6,11 @@ export function installViewmodelDepthBoundary(rig) {
   const beforeDraw=renderer=>renderer.getContext().depthRange(0,.01);
   const afterDraw=renderer=>renderer.getContext().depthRange(0,1);
   rig.traverse(object=>{
-    object.renderOrder=1000;
+    // Draw authored hands after the weapon body so a palm sitting on the
+    // grip remains legible in the close camera.  Depth testing is preserved;
+    // this only resolves the equal-depth sort between sibling viewmodel
+    // meshes.
+    object.renderOrder=object.userData?.viewmodelArm?1010:1000;
     if(object.isMesh){object.onBeforeRender=beforeDraw;object.onAfterRender=afterDraw;}
   });
 }

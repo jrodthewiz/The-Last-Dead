@@ -52,7 +52,7 @@ function bar(parent,name,a,b,r,mat){const av=new THREE.Vector3(...a),bv=new THRE
 function plate(parent,name,pos,size,mat){const g=new THREE.BoxGeometry(...size);const m=mesh(parent,g,mat,name,...pos);return m;}
 function jacketShell(parent,mat){const pos=[],uv=[],ix=[],rows=18,segs=36;for(let j=0;j<=rows;j++){const t=j/rows,y=.045+t*.455,rx=.19+.044*Math.sin(t*Math.PI)-.058*Math.pow(t,8),rz=.131+.02*Math.sin(t*Math.PI);for(let i=0;i<=segs;i++){const u=i/segs,a=.38+u*(Math.PI*2-.76),fold=1+.022*Math.sin(a*9+t*24)+.014*Math.sin(a*15-t*8);pos.push(Math.sin(a)*rx*fold,y+(j===0?.009*Math.sin(a*8):0),-Math.cos(a)*rz*fold);uv.push(u,t);if(j&&i){const k=j*(segs+1)+i;ix.push(k,k-segs-2,k-1,k,k-segs-1,k-segs-2);}}}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(ix);g.computeVertexNormals();const m=mat.clone();m.side=THREE.DoubleSide;mesh(parent,g,m,'OpenCanvasJacket');}
 function ear(parent,side,skin){const outline=new THREE.Shape();outline.moveTo(0,-.035);outline.bezierCurveTo(.024,-.033,.035,-.008,.031,.021);if(side<0){outline.lineTo(.025,.027);outline.lineTo(.013,.018);outline.lineTo(.014,.037);}else outline.bezierCurveTo(.029,.049,.006,.049,0,.036);outline.lineTo(-.003,.01);outline.closePath();const g=new THREE.ExtrudeGeometry(outline,{depth:.014,bevelEnabled:true,bevelThickness:.003,bevelSize:.003,bevelSegments:2,steps:1});const e=mesh(parent,g,skin,side<0?'NotchedLeftEar':'RightEar',side*.087,.18,-.006);e.scale.x=side;shape(e,'EarConcha',[.009,.017,.004],[.011,0,-.003],material('scar',0x6f473a));}
-function hand(parent,side,offset=[0,0,0]){const g=new THREE.Group();g.position.set(...offset);parent.add(g);const leather=material('leather',0x342c27),skin=material('skin',0xa8765f,.7);shape(g,'FingerlessGlove',[.046,.066,.027],[0,0,0],leather);for(let i=0;i<4;i++){const f=shape(g,'Finger',[.0095,.043-(i===3?.01:0),.0105],[-.032+i*.020,-.065,-.002],skin);f.rotation.x=-.15;}const thumb=shape(g,'Thumb',[.013,.032,.013],[side*.047,-.015,-.012],skin);thumb.rotation.z=side*.45;for(let i=0;i<4;i++)shape(g,'Knuckle',[.011,.01,.007],[-.032+i*.020,-.025,-.025],skin);return g;}
+function hand(parent,side,offset=[0,0,0],gripping=false){const g=new THREE.Group();g.position.set(...offset);parent.add(g);const leather=material('leather',0x342c27),skin=material('skin',0xa8765f,.7);if(gripping){loft(g,'FingerlessGlove',[[-.045,.034,.024],[0,.050,.031],[.045,.047,.028],[.080,.032,.021]],leather,22);shape(g,'GloveBack',[.047,.046,.022],[0,.021,.020],leather);const cuff=mesh(g,new THREE.CylinderGeometry(.037,.044,.026,18),leather,'GloveCuff');cuff.position.y=.078;for(let i=0;i<4;i++){const x=-.032+i*.021,y=.043-i*.028;shape(g,`GripFingerBase${i}`,[.012,.016,.014],[x,y,-.012],leather);const tip=shape(g,`GripFingerTip${i}`,[.011,.014,.013],[x*.96,y-.008,-.041],skin);tip.rotation.x=-.16;shape(g,`GripNail${i}`,[.009,.006,.004],[x*.96,y-.012,-.054],material('nail',0xb7a69a,.56));}const thumb=shape(g,'GripThumbBase',[.014,.022,.016],[side*.046,.018,-.004],leather);thumb.rotation.z=side*.38;const thumbTip=shape(g,'GripThumbTip',[.012,.018,.014],[side*.058,-.012,-.039],skin);thumbTip.rotation.z=side*.34;for(let i=0;i<4;i++)shape(g,'GripKnuckle',[.011,.009,.007],[-.032+i*.021,.052-i*.028,.006],skin);}else{shape(g,'FingerlessGlove',[.046,.066,.027],[0,0,0],leather);for(let i=0;i<4;i++){const f=shape(g,'Finger',[.0095,.043-(i===3?.01:0),.0105],[-.032+i*.020,-.065,-.002],skin);f.rotation.x=-.15;}const thumb=shape(g,'Thumb',[.013,.032,.013],[side*.047,-.015,-.012],skin);thumb.rotation.z=side*.45;for(let i=0;i<4;i++)shape(g,'Knuckle',[.011,.01,.007],[-.032+i*.020,-.025,-.025],skin);}return g;}
 function detailSurvivor(root){const{pelvis,legs,arms,head}=root.userData,cloth=material('cloth',0x555342),pants=material('pants',0x343431),leather=material('leather',0x342c27),metal=material('metal',0x918579,.4),skin=material('skin',0xa8765f,.7),thread=material('thread',0x8c8063),bandage=material('bandage',0xa79b84);jacketShell(pelvis,cloth);
  // Lapels and opened collar remain connected to jacket instead of floating plates.
  for(const side of[-1,1]){const lapel=plate(pelvis,'CanvasLapel',[side*.095,.418,-.13],[.055,.15,.018],cloth);lapel.rotation.z=side*-.34;plate(pelvis,'ShoulderHarness',[side*.153,.295,-.152],[.034,.33,.014],leather).rotation.z=side*-.14;const buckle=mesh(pelvis,new THREE.TorusGeometry(.022,.004,5,4),metal,'HarnessBuckle',side*.152,.34,-.165);buckle.rotation.z=Math.PI/4;plate(pelvis,'HarnessPouch',[side*.16,.225,-.185],[.065,.10,.035],leather);plate(pelvis,'PocketFlap',[side*.154,.25,-.207],[.07,.028,.008],cloth);const pocket=plate(pelvis,'JacketHipPocket',[side*.16,.07,-.145],[.095,.07,.023],cloth);pocket.rotation.z=side*.06;for(let i=0;i<6;i++)bar(pelvis,'PocketStitch',[side*.16-.039+i*.015,.04,-.159],[side*.16-.035+i*.015,.044,-.16],.0014,thread);}
@@ -65,7 +65,37 @@ function detailSurvivor(root){const{pelvis,legs,arms,head}=root.userData,cloth=m
  const hair=material('hair',0x26231f);const cap=mesh(head,new THREE.SphereGeometry(1,28,14,0,Math.PI*2,0,1.35),hair,'ShortHair');cap.position.set(0,.19,-.003);cap.scale.set(.098,.128,.097);for(let i=0;i<20;i++){const a=i*2.4;const lock=shape(head,'HairClump',[.020,.008,.035],[Math.cos(a)*.068,.291+Math.sin(i*3)*.012,Math.sin(a)*.05],hair);lock.rotation.y=a;}
  bar(head,'HealedCheekScar',[-.063,.174,-.081],[-.052,.132,-.089],.002,material('scar',0x6f473a));root.userData.materials={cloth,pants,skin,leather,bandage};
 }
-export function createSurvivorViewArm(side=1){const root=new THREE.Group();root.name=side<0?'LeftSurvivorArm':'RightSurvivorArm';const sleeve=new THREE.Group();root.add(sleeve);sleeve.position.set(side*.19,-.13,-.08);const end=new THREE.Vector3(side*.30,-.42,-.32),dir=end.clone().sub(sleeve.position);sleeve.quaternion.setFromUnitVectors(new THREE.Vector3(0,-1,0),dir.clone().normalize());const len=dir.length();loft(sleeve,'RuggedFPSSleeve',[[0,.074,.073],[-len*.35,.072,.071],[-len*.66,.058,.058]],material('cloth',0x555342));loft(sleeve,'BareFPSWrist',[[-len*.59,.047,.047],[-len,.035,.035]],material('skin',0xa8765f));for(let i=0;i<6;i++)mesh(sleeve,new THREE.CylinderGeometry(.043,.044,.015,16),material('bandage',0xa79b84),'BloodyWrap',0,-len*.72-i*.014,0);const palm=hand(root,side,end.toArray());palm.rotation.x=-.6;batchStatic(root);return root;}
+export function createSurvivorViewArm(side=1){
+ const root=new THREE.Group();root.name=side<0?'LeftSurvivorArm':'RightSurvivorArm';
+ const cloth=material('cloth',0x555342),skin=material('skin',0xa8765f,.7),bandage=material('bandage',0xa79b84);
+ // The reference arm is a continuous shoulder→wrist assembly. Keep the
+ // socket at the palm and rotate the whole limb onto the weapon grip later;
+ // this prevents the old detached tube + floating hand failure.
+ const limb=new THREE.Group();root.add(limb);
+ // Shoulder starts low in the frame and the wrist rises into the weapon.
+ // This is the critical first-person silhouette: a believable forearm comes
+ // from below the camera, not from a tube hovering beside the receiver.
+ const shoulder=new THREE.Vector3(side*.285,-.60,.10);
+ const wrist=new THREE.Vector3(side*.305,-.20,-.24);
+ const direction=wrist.clone().sub(shoulder),len=direction.length();
+ limb.position.copy(shoulder);
+ limb.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),direction.normalize());
+ loft(limb,'RuggedJacketSleeve',[[0,.078,.082],[len*.20,.077,.080],[len*.40,.072,.076],[len*.56,.064,.068],[len*.66,.056,.060]],cloth,28);
+ shape(limb,'JacketShoulder',[.097,.086,.101],[0,.012,0],cloth);
+ loft(limb,'BareFPSWrist',[[len*.57,.054,.056],[len*.70,.050,.052],[len*.84,.043,.045],[len*.98,.035,.037]],skin,24);
+ for(let i=0;i<7;i++){
+  const wrap=mesh(limb,new THREE.CylinderGeometry(.051-i*.0012,.052-i*.0012,.014,18),bandage,'BloodyWrap');
+  wrap.position.y=len*(.68+i*.032);
+ }
+ const palm=hand(limb,side,[0,len,0],true);palm.name='HandPose';palm.scale.setScalar(.98);palm.rotation.x=-.12;
+ palm.userData.viewmodelHand=true;palm.traverse(node=>{node.userData.viewmodelHand=true;});
+ const gripSocket=new THREE.Object3D();gripSocket.name='GripSocket';palm.add(gripSocket);
+ root.userData={hand:palm,gripSocket,sockets:{wrist:root,hand:gripSocket},side,alignGripOrientation:true};
+ root.userData.sculptRuntime={parts:[limb,palm],pivots:{wrist:root,hand:palm},sockets:{grip:gripSocket},coordinateSystem:'Y-up, viewmodel forward -Z'};
+ root.userData.weaponBatchIgnore=true;
+ root.traverse(node=>{if(node.isMesh){node.userData.viewmodelArm=true;node.userData.weaponBatchIgnore=true;node.castShadow=false;node.receiveShadow=false;}});
+ return root;
+}
 
 function refineFace(root){const h=root.userData.head;h.position.y=.52;const remove=['Head','Jaw','EyeSocket','Eye','Iris','Brow','UpperLip','LowerLip','HairClump','ShortHair','NoseBridge','NoseTip'];for(const m of [...h.children])if(remove.includes(m.name)){h.remove(m);m.geometry?.dispose();}
  const skin=material('skin',0xa8765f,.7);const face=loft(h,'SculptedHead',[[.054,.045,.046,0,-.02],[.072,.062,.068,0,-.025],[.105,.078,.081,0,-.018],[.15,.085,.089,0,-.009],[.20,.088,.091],[.245,.084,.085],[.28,.063,.064],[.296,.018,.025]],skin,36);

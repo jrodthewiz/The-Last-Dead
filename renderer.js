@@ -15,7 +15,8 @@ import {createWarden,animateWarden} from './npc-warden.js';
 import {createOssuary,animateOssuary} from './weapon-ossuary.js';
 import {createBreach,animateBreach} from './weapon-breach.js';
 import {createArc,animateArc} from './weapon-arc.js';
-import {createViewmodelArm} from './assets/survivor/viewmodel-arms.js';
+import {alignViewmodelArmToGrip} from './assets/survivor/viewmodel-arms.js';
+import {createSurvivorViewArm} from './assets/survivor/player-survivor.js';
 import {CombatVFX} from './combat-vfx.js';
 import {createBloodMask,ProjectileWakes} from './secondary-vfx.js';
 
@@ -224,6 +225,7 @@ export class Renderer {
       telegraph: emissive(0xfff0c0, 2.35, { transparent: true, opacity: 0.72, depthWrite: false, side: THREE.DoubleSide }),
       viewSleeve: mat(0x302324, .9, .03),
       viewGlove: mat(0x45392f, .88, .04),
+      viewSkin: mat(0x9a6557, .76, .02),
       viewPlate: mat(0x8d7c5c, .73, .18),
       playerSuit: mat(0x0f1b28, 0.38, 0.78),
       playerTrim: emissive(0x62d6e9, 1.45),
@@ -431,40 +433,95 @@ export class Renderer {
   }
 
   _makeArm(side, color = this.materials.viewSleeve, weapon = 0) {
-    // The viewmodel arm factory carries explicit wrist/elbow/hand sockets and
-    // curled finger geometry.  Keeping every weapon on the same authored
-    // pose contract prevents the old cylinder arms from floating off grips.
-    const arm = createViewmodelArm(side, weapon, {
-      viewSleeve: color || this.materials.viewSleeve,
-      viewGlove: this.materials.viewGlove,
-      viewPlate: this.materials.viewPlate,
-      viewSkin: this.materials.viewGlove,
+    // Reference-driven survivor arm: one continuous sleeve/forearm/palm mesh
+    // with an explicit grip socket that is fitted per weapon below.
+    const arm = createSurvivorViewArm(side);
+    arm.userData.alignGripOrientation = true;
+    // Hands and sleeves are the foreground character layer. Do not let the
+    // weapon's receiver depth-hide the forearm-to-wrist connection.
+    arm.traverse(node => {
+      if (!node.isMesh) return;
+      node.userData.viewmodelArm = true;
+      node.userData.weaponBatchIgnore = true;
+      node.castShadow = false;
+      node.receiveShadow = false;
+      const materials = Array.isArray(node.material) ? node.material : [node.material];
+      node.material = materials.map(material => {
+        if (!material) return material;
+        const foreground = material.clone();
+        // The viewmodel is a deliberate foreground pass; all authored arm
+        // surfaces remain visible while the weapon still self-occludes inside
+        // its own group. This avoids the sleeve disappearing behind the
+        // receiver at common FOVs.
+        foreground.depthTest = false;
+        foreground.depthWrite = false;
+        if (node.name === 'UpperSleeve' || node.name === 'ForearmSleeve' || node.name === 'WristWrap') {
+          foreground.color.set(0x74453d);
+          foreground.roughness = .82;
+        }
+        return foreground;
+      });
+      if (node.material.length === 1) node.material = node.material[0];
     });
     arm.userData.weapon = weapon;
+    arm.userData.viewmodelSource = 'survivor-reference-arm';
     return arm;
   }
 
+  _findWeaponSocket(model, name = 'grip') {
+    return model?.userData?.sculptRuntime?.sockets?.[name]
+      || model?.userData?.ossuary?.sockets?.[name]
+      || model?.userData?.breach?.sockets?.[name]
+      || model?.userData?.arc?.sockets?.[name]
+      || model?.userData?.reliquary?.sockets?.[name]
+      || model?.getObjectByName?.(name)
+      || null;
+  }
+
+  _addViewmodelArms(group, model, weapon, supportPosition = null) {
+    const rightArm = this._makeArm(1, this.materials.viewSleeve, weapon);
+    const leftArm = weapon === 0 ? null : this._makeArm(-1, this.materials.viewSleeve, weapon);
+    group.add(rightArm);
+    if (leftArm) group.add(leftArm);
+
+    const grip = this._findWeaponSocket(model, 'grip');
+    // Keep the palm just in front of the weapon surface so the contact reads
+    // in the FPS view instead of being buried inside the authored grip mesh.
+    const gripOffsetY = [-.10, -.12, -.12, -.12][weapon] ?? -.12;
+    if (grip) alignViewmodelArmToGrip(rightArm, grip, { offset: [.018, gripOffsetY, .038] });
+
+    if (leftArm && supportPosition) {
+      const support = new THREE.Object3D();
+      support.name = 'SupportGripSocket';
+      support.position.set(...supportPosition);
+      support.userData.viewmodelAnchor = true;
+      group.add(support);
+      alignViewmodelArmToGrip(leftArm, support, { offset: [-.018, .008, .032] });
+    }
+    return { rightArm, leftArm };
+  }
+
   _makePulseRevolver() {
-    const group=createOssuary();group.position.set(.3,-.31,-.78);group.rotation.set(.035,.045,-.025);group.add(this._makeArm(1));return group;
+    const group=createOssuary();group.position.set(.3,-.31,-.78);group.rotation.set(.035,.045,-.025);this._addViewmodelArms(group,group,0);return group;
   }
 
   _makeBreachShotgun() {
     const group=new THREE.Group(),model=createBreach();group.name='BreachShotgun';
     group.position.set(.31,-.32,-.88);group.rotation.set(.035,.045,-.025);
-    group.add(model,this._makeArm(-1,this.materials.viewSleeve,1),this._makeArm(1,this.materials.viewSleeve,1));group.userData.model=model;group.userData.muzzle=model.userData.muzzle;return group;
+    group.add(model);this._addViewmodelArms(group,model,1,[0,-.18,-.55]);group.userData.model=model;group.userData.muzzle=model.userData.muzzle;return group;
   }
 
   _makeArcLance() {
     const group=new THREE.Group(),model=createArc();group.name='ArcLance';
     group.position.set(.29,-.31,-.94);group.rotation.set(.035,.045,-.025);
-    group.add(model,this._makeArm(-1,this.materials.viewSleeve,2),this._makeArm(1,this.materials.viewSleeve,2));group.userData.model=model;group.userData.muzzle=model.userData.muzzle;return group;
+    group.add(model);this._addViewmodelArms(group,model,2,[0,-.21,-.60]);group.userData.model=model;group.userData.muzzle=model.userData.muzzle;return group;
   }
   _makeReliquaryAsset() {
     const group = createReliquary({ variant: 'bone-rocket' });
     group.position.set(0.31, -0.32, -0.9);
     group.rotation.set(.035,.045,-.025);
     group.name = 'ReliquaryBazooka';
-    group.add(this._makeArm(-1,this.materials.viewSleeve,3),this._makeArm(1,this.materials.viewSleeve,3));
+    this._addViewmodelArms(group,group,3,[.02,-.18,-.65]);
     return group;
   }
 

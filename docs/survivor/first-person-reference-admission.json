@@ -1,0 +1,10 @@
+{
+  "admitted": true,
+  "viewpoint": "reference",
+  "source": "docs/survivor/first-person/reference-front.png",
+  "width": 470,
+  "height": 1210,
+  "foregroundCoverage": 0.4203,
+  "largestComponentFraction": 0.9994,
+  "technicalNote": "Conditional: low resolution limits micro-detail confidence; the silhouette, sleeve, bandage, glove, and palm relationships are usable."
+}

@@ -1,0 +1,40 @@
+{
+  "name": "Survivor first-person arms",
+  "sourceImage": "docs/survivor/first-person/reference-front.png",
+  "objectClass": { "primaryType": "humanoid arm assembly", "primaryDomain": "character", "formLanguage": ["organic", "articulated"], "confidence": 0.84 },
+  "qualityContract": {
+    "qualityBar": "complex",
+    "definitionOfDone": [
+      "A continuous shoulder-to-wrist arm silhouette enters from below the FPS camera.",
+      "The palm, fingers, thumb, and wrist rotate and translate onto each weapon grip socket without floating or intersecting visibly.",
+      "Two-handed weapons expose a separate support-hand anchor and retain the same anatomical construction."
+    ],
+    "featureReviewTargets": [
+      { "id": "palm-grip-contact", "required": true, "threshold": 0.8 },
+      { "id": "forearm-silhouette", "required": true, "threshold": 0.8 },
+      { "id": "glove-bandage-materials", "required": true, "threshold": 0.7 }
+    ]
+  },
+  "componentTree": [
+    { "id": "ArmRoot", "level": "macro", "topologyClass": "organic", "children": ["Limb", "GripHand", "GripSocket"] },
+    { "id": "Limb", "level": "macro", "topologyClass": "continuous-surface", "children": ["JacketSleeve", "BareFPSWrist", "BloodyWrap"] },
+    { "id": "JacketSleeve", "level": "meso", "topologyClass": "lofted-surface", "material": "canvas" },
+    { "id": "BareFPSWrist", "level": "meso", "topologyClass": "lofted-surface", "material": "skin" },
+    { "id": "GripHand", "level": "macro", "topologyClass": "organic", "children": ["FingerlessGlove", "GripFingerTip", "GripThumbTip", "GripNail"] },
+    { "id": "GripSocket", "level": "micro", "topologyClass": "attachment-anchor", "parentSocket": "weapon.grip" }
+  ],
+  "materials": [
+    { "id": "canvas", "albedo": "olive canvas", "roughness": 0.82, "metalness": 0, "normal": "generated weave" },
+    { "id": "skin", "albedo": "warm medium skin", "roughness": 0.68, "metalness": 0 },
+    { "id": "bandage", "albedo": "desaturated beige with blood stain", "roughness": 0.9, "metalness": 0 },
+    { "id": "leather", "albedo": "near-black brown leather", "roughness": 0.76, "metalness": 0 }
+  ],
+  "actionReady": {
+    "sockets": ["GripSocket", "SupportGripSocket"],
+    "pivots": ["wrist", "hand"],
+    "attachments": [{ "child": "GripHand", "parent": "Limb", "contactType": "overlap", "gapTolerance": 0.005 }]
+  },
+  "knownLimits": [
+    "The front reference does not expose the hidden palm/back surfaces or the exact support-hand pose for every weapon; those regions are inferred and verified in the live game view."
+  ]
+}

@@ -118,8 +118,8 @@ function addFinger(hand, name, side, y, materials) {
   const base = new THREE.Vector3(side * .006, y, -.006);
   const knuckle = base.clone().add(new THREE.Vector3(inward * .053, -.006, -.036));
   const tip = knuckle.clone().add(new THREE.Vector3(inward * .035, -.014, .027));
-  addCapsule(hand, `${name}Proximal`, base, knuckle, .022, materials.viewGlove);
-  addCapsule(hand, `${name}Distal`, knuckle, tip, .019, materials.viewSkin, 10);
+  addCapsule(hand, `${name}Proximal`, base, knuckle, .019, materials.viewGlove);
+  addCapsule(hand, `${name}Distal`, knuckle, tip, .017, materials.viewSkin, 10);
 
   const nail = new THREE.Mesh(new THREE.SphereGeometry(.014, 8, 6), materials.viewPlate);
   nail.name = `${name}Nail`;
@@ -133,8 +133,8 @@ function addThumb(hand, side, materials) {
   const base = new THREE.Vector3(side * .046, -.005, .035);
   const knuckle = base.clone().add(new THREE.Vector3(inward * .022, -.006, -.037));
   const tip = knuckle.clone().add(new THREE.Vector3(inward * .044, -.004, -.019));
-  addCapsule(hand, 'ThumbProximal', base, knuckle, .024, materials.viewGlove);
-  addCapsule(hand, 'ThumbDistal', knuckle, tip, .019, materials.viewSkin, 10);
+  addCapsule(hand, 'ThumbProximal', base, knuckle, .021, materials.viewGlove);
+  addCapsule(hand, 'ThumbDistal', knuckle, tip, .017, materials.viewSkin, 10);
   const nail = new THREE.Mesh(new THREE.SphereGeometry(.014, 8, 6), materials.viewPlate);
   nail.name = 'ThumbNail';
   nail.scale.set(.9, .55, .55);
@@ -148,6 +148,49 @@ function poseFor(side, weapon) {
 }
 
 /**
+ * Move an authored arm so its palm/grip socket meets a weapon socket in the
+ * same viewmodel frame.  The old arm poses were tuned by eye against one
+ * weapon, which made the hand drift visibly away from the grip on the other
+ * three weapons.  Fitting in the shared parent's local space keeps the
+ * correction stable through rig scale, sway, and recoil.
+ */
+export function alignViewmodelArmToGrip(arm, target, { offset = [0, 0, 0] } = {}) {
+  const socket = arm?.userData?.gripSocket;
+  const parent = arm?.parent;
+  if (!socket || !parent || !target) return arm;
+
+  parent.updateWorldMatrix(true, true);
+  arm.updateWorldMatrix(true, true);
+
+  const targetLocal = target.isObject3D
+    ? parent.worldToLocal(target.getWorldPosition(new THREE.Vector3()))
+    : vector(target);
+
+  // The survivor reference arm is authored around a downward-facing hand
+  // axis. Match that axis to the weapon's grip socket before translating so
+  // the fingers wrap the grip instead of floating beside it. Procedural arms
+  // opt in with `alignGripOrientation`; their authored pose remains intact.
+  if (target.isObject3D && arm.userData?.alignGripOrientation) {
+    const parentWorldQ = parent.getWorldQuaternion(new THREE.Quaternion());
+    const targetWorldQ = target.getWorldQuaternion(new THREE.Quaternion());
+    const targetLocalQ = parentWorldQ.invert().multiply(targetWorldQ);
+    arm.quaternion.slerp(targetLocalQ, .86);
+  }
+
+  // Orientation changes the socket's world position, so sample it again
+  // before applying the translation correction. Sampling before the slerp
+  // leaves the hand visibly offset from the grip on angled weapons.
+  arm.updateWorldMatrix(true, true);
+  const currentWorld = socket.getWorldPosition(new THREE.Vector3());
+  const currentLocal = parent.worldToLocal(currentWorld);
+
+  arm.position.add(targetLocal.sub(currentLocal)).add(vector(offset));
+  arm.updateWorldMatrix(true, true);
+  arm.userData.gripTarget = target.isObject3D ? target.name || 'weapon-grip' : 'weapon-grip';
+  return arm;
+}
+
+/**
  * Build one close-camera arm with an explicit wrist and grip socket.  The arm
  * is intentionally stylized, but the bent forearm, cuff break, finger curl,
  * and thumb opposition provide the silhouette and contact cues of a real hold.
@@ -155,10 +198,13 @@ function poseFor(side, weapon) {
 export function createViewmodelArm(side = 1, weapon = 0, materials) {
   const pose = poseFor(side, weapon);
   const wrist = vector(pose.wrist);
-  const elbow = vector(pose.elbow).sub(wrist);
-  const upper = elbow.clone().add(new THREE.Vector3(side * .105, -.27, .22));
-  const cuff = elbow.clone().multiplyScalar(.22);
-  const cuffBack = elbow.clone().multiplyScalar(.38);
+  // Keep the elbow arc in the same shallow depth band as the weapon.  The
+  // former z=.7-.9 control points sat almost on the camera and magnified the
+  // sleeves into disconnected cylinders.
+  const elbow = new THREE.Vector3(side * .22, -.32, .11);
+  const upper = new THREE.Vector3(side * .29, -.49, .035);
+  const cuff = elbow.clone().multiplyScalar(.18);
+  const cuffBack = elbow.clone().multiplyScalar(.36);
   const arm = new THREE.Group();
   arm.name = `${side < 0 ? 'Left' : 'Right'}Arm`;
   arm.position.copy(wrist);
@@ -173,15 +219,14 @@ export function createViewmodelArm(side = 1, weapon = 0, materials) {
 
   // A two-stage sleeve keeps the elbow from reading as a single straight
   // primitive and gives the cuff a believable taper into the wrist.
-  addTube(arm, 'UpperSleeve', [upper, elbow, cuffBack], [.158, .145, .108], materials.viewSleeve, 16);
-  addTube(arm, 'ForearmSleeve', [cuffBack, cuff, new THREE.Vector3()], [.108, .092, .074], materials.viewSleeve, 16);
-  addTube(arm, 'WristWrap', [cuff, new THREE.Vector3(0, .005, -.006)], [.074, .066, .058], materials.viewGlove, 14);
+  const elbowMid = upper.clone().lerp(elbow, .46);
+  addTube(arm, 'UpperSleeve', [upper, elbowMid, elbow, cuffBack], [.13, .135, .12, .094], materials.viewSleeve, 18);
+  addTube(arm, 'ForearmSleeve', [cuffBack, cuff, new THREE.Vector3()], [.094, .081, .066], materials.viewSleeve, 18);
+  addTube(arm, 'WristWrap', [cuff, new THREE.Vector3(0, .005, -.006)], [.068, .059, .052], materials.viewGlove, 16);
 
-  const cuffDirection = cuffBack.clone().sub(upper).normalize();
-  addRing(arm, 'CuffSeam', cuffBack, cuffDirection, .106, .009, materials.viewPlate);
   const elbowPad = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), materials.viewGlove);
   elbowPad.name = 'ElbowPad';
-  elbowPad.scale.set(.145, .105, .135);
+  elbowPad.scale.set(.13, .095, .12);
   elbowPad.position.copy(elbow);
   arm.add(elbowPad);
 
@@ -194,19 +239,19 @@ export function createViewmodelArm(side = 1, weapon = 0, materials) {
 
   const palm = new THREE.Mesh(new THREE.SphereGeometry(1, 18, 12), materials.viewGlove);
   palm.name = 'GripPalm';
-  palm.scale.set(.089, .12, .065);
+  palm.scale.set(.082, .112, .061);
   hand.add(palm);
   const back = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), materials.viewGlove);
   back.name = 'HandBack';
-  back.scale.set(.083, .092, .052);
+  back.scale.set(.076, .086, .049);
   back.position.set(0, .022, .035);
   hand.add(back);
 
-  const yLevels = [.066, .022, -.022, -.066];
+  const yLevels = [.078, .026, -.026, -.078];
   yLevels.forEach((y, index) => addFinger(hand, `Finger${index}`, side, y, materials));
   addThumb(hand, side, materials);
 
-  const knuckleGuard = new THREE.Mesh(new THREE.BoxGeometry(.104, .019, .043), materials.viewPlate);
+  const knuckleGuard = new THREE.Mesh(new THREE.BoxGeometry(.094, .017, .038), materials.viewPlate);
   knuckleGuard.name = 'KnuckleGuard';
   knuckleGuard.position.set(0, .076, .045);
   knuckleGuard.rotation.z = side * -.08;
@@ -217,6 +262,8 @@ export function createViewmodelArm(side = 1, weapon = 0, materials) {
   gripSocket.position.set(0, -.015, -.01);
   hand.add(gripSocket);
   arm.userData.gripSocket = gripSocket;
+  hand.userData.viewmodelHand = true;
+  hand.traverse(node => { node.userData.viewmodelHand = true; });
   arm.userData.sockets = { wrist: arm, elbow: elbowPad, hand: gripSocket };
 
   arm.traverse(node => {
@@ -233,5 +280,6 @@ export const viewmodelArmsContract = Object.freeze({
   poseCount: VIEWMODEL_HOLD_POSES.length,
   hasExplicitWristSockets: true,
   hasArticulatedHands: true,
+  hasGripFitting: true,
   usesSharedMaterials: true,
 });
