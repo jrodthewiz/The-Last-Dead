@@ -28,29 +28,37 @@ function totalTriangles(root) {
 
 test('Story tunnel ribs use segmented load-bearing profiles inside the former rib budget', () => {
   const course = makeDungeonCourse(2);
+  const sourceMaterials = materials();
   const world = new THREE.Group();
-  buildAuthoredWorld(world, materials(), course);
+  buildAuthoredWorld(world, sourceMaterials, course);
   const ribs = [];
   world.traverse(node => { if (node.isMesh && node.name.startsWith('TunnelRib_')) ribs.push(node); });
   assert.ok(ribs.length > 0);
   assert.ok(ribs.every(rib => rib.geometry.type === 'ExtrudeGeometry'));
   assert.ok(ribs.every(rib => rib.geometry.userData.archProfile === 'segmented-load-rib-v2'));
   assert.ok(ribs.every(rib => triangles(rib.geometry) <= 384), 'profiled ribs stay below the old torus geometry budget');
+  assert.ok(ribs.every(rib => rib.userData.afterlifeSurfaceRole === 'roomTrim'), 'ossuary ribs use the shared worn service finish role');
+  assert.ok(ribs.every(rib => rib.material === sourceMaterials.steel), 'ossuary ribs retain the shared source so a late worn-steel map can sync');
 });
 
 test('ossuary detail removes bead-like relics while keeping one merged low-cost draw per role', () => {
   const course = makeDungeonCourse(2);
   const root = new THREE.Group();
-  const detail = buildHorrorDetails(root, materials(), course).detailKit;
+  const sourceMaterials = materials();
+  const detail = buildHorrorDetails(root, sourceMaterials, course).detailKit;
   const colonnade = detail.getObjectByName('HorrorKit_furniture-colonnade');
   const relic = detail.getObjectByName('HorrorKit_relic-skull-niche');
   const glow = detail.getObjectByName('HorrorKit_relic-glow-skull-niche');
-  assert.equal(colonnade.geometry.userData.decorRevision, 'ossuary-load-rib-v2');
-  assert.equal(relic.geometry.userData.decorRevision, 'ossuary-mortuary-niche-v2');
+  assert.equal(colonnade.geometry.userData.decorRevision, 'ossuary-service-frame-v3');
+  assert.equal(relic.geometry.userData.decorRevision, 'ossuary-mortuary-niche-v3');
   assert.ok(triangles(colonnade.geometry) <= 1712, 'rib buttress stays within the old colonnade geometry budget');
   assert.ok(triangles(relic.geometry) <= 516, 'mortuary niche stays within the old plaque geometry budget');
   assert.ok(triangles(glow.geometry) <= 192, 'niche signal stays within the old glow geometry budget');
   assert.equal(detail.children.filter(node => node.isInstancedMesh && /colonnade|skull-niche/.test(node.name)).length, 3);
+  assert.equal(colonnade.material, relic.material, 'service frame and niche share one worn metal material');
+  assert.equal(colonnade.material.userData.wornFinish, 'dread-worn-steel-v1');
+  assert.equal(colonnade.material.userData.roomRole, 'roomTrim');
+  assert.ok(triangles(glow.geometry) < 100, 'niche signal is one attached sill slit rather than a floating cross');
 });
 
 test('campaign ossuary rubble keeps the landmark cue with a restrained finite silhouette', () => {

@@ -148,32 +148,31 @@ function horrorGeometry() {
     }
   }
   G.rack = mergePieces(rackParts);
-  // Ossuary: a load-bearing rib buttress. The old version was a smooth pole
-  // with six identical half-tori and bead-like skulls. A slightly wandering
-  // spine, alternating ribs, and visible collars read as a failed structural
-  // member while keeping the same footprint and one merged draw.
+  // Ossuary: a corroded service frame carrying the crypt roof. The old
+  // revision still read as a bare tree because each rib stopped in mid-air.
+  // Two continuous rails, anchored base plates, a top header and full-width
+  // ribs make every member visibly load-bearing while keeping one merged draw.
   const colonnadeParts = [
-    box(1.35, .18, 1.2, 0, .09, 0),
-    new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0, .2, 0), new THREE.Vector3(.04, 1.05, 0),
-      new THREE.Vector3(-.06, 2.05, .02), new THREE.Vector3(.07, 3.12, -.02),
-      new THREE.Vector3(-.03, 4.18, 0),
-    ]), 10, .145, 5, false),
-    cyl(.34, .42, .16, 8, 0, .27, 0),
+    box(2.62, .18, .82, 0, .09, 0),
+    box(.56, .08, .48, -1.03, .22, 0),
+    box(.56, .08, .48, 1.03, .22, 0),
+    serviceRail(-1, -.24),
+    serviceRail(1, .18),
+    box(2.12, .13, .18, 0, 4.16, 0),
+    box(2.16, .12, .2, 0, .48, 0),
   ];
   for (let i = 0; i < 6; i++) {
     const y = 1.0 + i * .62;
-    const sign = i % 2 ? -1 : 1;
-    const radius = 1.12 - i * .035;
-    colonnadeParts.push(ribRail(sign, y, radius, (i % 3 - 1) * .34));
-    const endX = sign * radius;
-    colonnadeParts.push(cyl(.105, .12, .16, 6, endX, y + .03, (i % 3 - 1) * .16, 0, 0, Math.PI / 2));
-  }
-  for (const y of [.72, 2.24, 3.78]) {
-    colonnadeParts.push(cyl(.19, .19, .08, 7, 0, y, 0));
+    const radius = 1.08 - i * .018;
+    const sag = (i % 3 - 1) * .11;
+    colonnadeParts.push(serviceRib(y, radius, sag));
+    // Short collars sit on the rail faces; they read as bolted joints at this
+    // distance without turning into another row of decorative beads.
+    colonnadeParts.push(cyl(.105, .12, .16, 6, -radius, y, 0, 0, 0, Math.PI / 2));
+    colonnadeParts.push(cyl(.105, .12, .16, 6, radius, y, 0, 0, 0, Math.PI / 2));
   }
   G.colonnade = mergePieces(colonnadeParts);
-  G.colonnade.userData.decorRevision = 'ossuary-load-rib-v2';
+  G.colonnade.userData.decorRevision = 'ossuary-service-frame-v3';
   // Choir: a bell frame whose three mouths hang over the aisle.
   const frameParts = [
     box(.24, 4.2, .24, -1.45, 2.1, 0),
@@ -210,12 +209,12 @@ function horrorGeometry() {
     box(.12, .9, .12, -.58, -.25, 0),
     box(.12, .9, .12, .58, -.25, 0),
     box(1.12, .1, .14, 0, -.72, 0),
-    cyl(.14, .18, .12, 7, 0, -.42, .08, Math.PI / 2),
   ]);
-  G.skullRelic.userData.decorRevision = 'ossuary-mortuary-niche-v2';
+  G.skullRelic.userData.decorRevision = 'ossuary-mortuary-niche-v3';
   G.skullRelicGlow = mergePieces([
-    box(.46, .035, .025, 0, -.2, .18),
-    box(.04, .24, .025, 0, -.2, .18),
+    // One narrow status slit is seated on the sill. The former floating cross
+    // and central lump made this ordinary niche read as a cartoon shrine.
+    box(.46, .035, .025, 0, -.71, .1),
   ]);
   G.mouthRelic = mergePieces([
     torus(.72, .11, 8, 20, 0, 0, .06, 0, 0, 0, Math.PI * 1.75),
@@ -258,8 +257,29 @@ function horrorMaterials(materials, theme) {
     return material;
   };
   const bone = make(family === 'choir' ? 0xc9b08a : family === 'ossuary' ? 0xd0c4a3 : 0xc2ae91, { roughness: .82, metalness: .1, role: 'bone' });
+  const serviceSource = materials.wornSteel || materials.steel || materials.metalDark || materials.metal;
+  const service = serviceSource?.clone ? serviceSource.clone() : make(0x4f5554, { roughness: .74, metalness: .68, role: 'service-frame' });
+  if (serviceSource?.clone) {
+    service.name = `HorrorDetail_${theme.id}_service-frame`;
+    // The shared albedo/roughness maps carry the wear; this restrained tint
+    // keeps the frame in the cold ossuary value range before lighting grades it.
+    service.color?.set(0x4f5554);
+    service.roughness = .74;
+    service.metalness = .68;
+    service.userData = {
+      ...(serviceSource.userData || {}),
+      sharedLibrary: true,
+      roomRole: 'roomTrim',
+      horrorRole: 'service-frame',
+      wornFinish: 'dread-worn-steel-v1',
+    };
+  } else {
+    service.userData.roomRole = 'roomTrim';
+    service.userData.wornFinish = 'dread-worn-steel-v1';
+  }
   const set = {
     bone,
+    service,
     dark: make(0x0a0a10, { roughness: .95, metalness: .05, role: 'recess' }),
     gore: make(family === 'ossuary' ? 0x4a1c2c : 0x5d1620, { roughness: .5, metalness: .06, role: 'gore' }),
     flesh: make(0x6b1f2a, { roughness: .62, metalness: .05, role: 'flesh' }),
@@ -421,7 +441,7 @@ function buildSectorDetailKit(root, materials, course, theme) {
   const furniture = furnitureSpots.map(spot => ({ x: spot.x, z: spot.z, y: 0, ry: spot.yaw, s: .9 + rng() * .25 }));
   if (furniture.length) {
     const key = theme.furniture === 'colonnade' ? 'colonnade' : theme.furniture === 'bell-frame' ? 'bellFrame' : 'rack';
-    const material = theme.furniture === 'colonnade' ? mat.bone : theme.furniture === 'bell-frame' ? mat.brass : (materials.metalDark || mat.dark);
+    const material = theme.furniture === 'colonnade' ? mat.service : theme.furniture === 'bell-frame' ? mat.brass : (materials.metalDark || mat.dark);
     group.add(instancedKit(`furniture-${key}`, furniture, geometry[key], material));
   }
   // Wall relics ride the room shell bands above head height.
@@ -435,7 +455,7 @@ function buildSectorDetailKit(root, materials, course, theme) {
   if (relics.length) {
     const relicGeo = theme.relic === 'skull-niche' ? 'skullRelic' : theme.relic === 'mouth' ? 'mouthRelic' : 'eyeRelic';
     const glowGeo = theme.relic === 'skull-niche' ? 'skullRelicGlow' : theme.relic === 'mouth' ? 'mouthRelicInner' : 'eyeRelicGlow';
-    const relicMaterial = theme.relic === 'mouth' ? mat.gore : theme.relic === 'skull-niche' ? mat.bone : mat.flesh;
+    const relicMaterial = theme.relic === 'mouth' ? mat.gore : theme.relic === 'skull-niche' ? mat.service : mat.flesh;
     const glowMaterial = theme.relic === 'skull-niche' ? mat.accent : theme.relic === 'mouth' ? mat.dark : mat.accent;
     group.add(instancedKit(`relic-${theme.relic}`, relics, geometry[relicGeo], relicMaterial, { castShadow: false }));
     group.add(instancedKit(`relic-glow-${theme.relic}`, relics, geometry[glowGeo], glowMaterial, { castShadow: false, receiveShadow: false }));
