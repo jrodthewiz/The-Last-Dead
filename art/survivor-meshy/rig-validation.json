@@ -1,0 +1,35 @@
+{
+  "clips": {
+    "Walk_Forward": {
+      "frames": [
+        1.0,
+        32.0
+      ],
+      "source": "Meshy included basic animation"
+    },
+    "Run_Forward": {
+      "frames": [
+        1.0,
+        20.0
+      ],
+      "source": "Meshy included basic animation"
+    },
+    "Idle_Relaxed": {
+      "frames": [
+        1,
+        91
+      ],
+      "source": "Blender IK pose and subtle breathing"
+    }
+  },
+  "limits": [
+    "Meshy supplied 24 body joints, with no articulated finger or facial bones.",
+    "Weapon-specific grip and reload animation require a hand topology/rig pass."
+  ],
+  "export_bytes": 34983076,
+  "bones": 24,
+  "meshes": {
+    "TLD_Body_Arms_Torso_Legs": 55873,
+    "TLD_Head_Hide_For_Local_Player": 6377
+  }
+}

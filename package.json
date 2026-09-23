@@ -16,6 +16,9 @@
     "test": "node --test engine.test.mjs && node tests/network.test.mjs",
     "test:engine": "node --test engine.test.mjs",
     "test:network": "node tests/network.test.mjs",
-    "test:coop": "node tests/coop-game.test.mjs"
+    "test:coop": "node tests/coop-game.test.mjs",
+    "test:map": "node --test tests/map-playground.test.mjs",
+    "test:story-art": "node --test tests/dungeon-art.test.mjs",
+    "test:setdressing": "node --test tests/world-setdressing.test.mjs"
   }
 }

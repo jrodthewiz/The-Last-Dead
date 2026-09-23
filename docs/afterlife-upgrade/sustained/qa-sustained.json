@@ -1,0 +1,3896 @@
+{
+  "test": "sustained-playtest",
+  "startedAt": "2026-09-23T09:19:24.792Z",
+  "url": "http://127.0.0.1:5200/dist/?debug=1",
+  "target": {
+    "browser": "Chrome",
+    "executable": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "mode": "headless browser, production dist served by local endpoint",
+    "assistedAim": "target selection and mouse-look deltas derive from debug state; attacks and movement are real input"
+  },
+  "journey": {
+    "requestedMs": 120000,
+    "wallMs": 120281,
+    "simulationSeconds": 18.8,
+    "screens": [
+      {
+        "atMs": 26640,
+        "label": "start",
+        "screen": "play",
+        "state": {
+          "x": 6,
+          "y": 10.5,
+          "z": 0,
+          "angle": -2.782821983319221,
+          "pitch": 0,
+          "speed": 0,
+          "time": 0.47500000000000064,
+          "mode": "play",
+          "health": 100,
+          "energy": 100,
+          "weapon": 0,
+          "shot": 0,
+          "damage": 0,
+          "heal": 0,
+          "aim": 0,
+          "slide": 0,
+          "dashTime": 0,
+          "punch": 0,
+          "hookTime": 0,
+          "hookCooldown": 0,
+          "parryTime": 0,
+          "slam": false,
+          "wallJumps": 0,
+          "style": 0,
+          "styleTotal": 0,
+          "styleLabel": "GET CLOSE. GET LOUD.",
+          "rank": "D",
+          "kills": 0,
+          "combo": 0,
+          "bestCombo": 0,
+          "wave": 0,
+          "waveDelay": 1.7250000000000019,
+          "projectiles": 0,
+          "coreProjectiles": 0,
+          "coins": 0,
+          "coinCharges": 4,
+          "gore": 0,
+          "blood": 0,
+          "tracers": 0,
+          "enemies": [],
+          "exit": {
+            "x": 6,
+            "y": 1
+          },
+          "events": []
+        }
+      },
+      {
+        "atMs": 2120,
+        "label": "wave",
+        "wave": 1,
+        "state": {
+          "x": 5.007257671784073,
+          "y": 9.100671380696362,
+          "z": 0,
+          "angle": -2.782821983319221,
+          "pitch": 0,
+          "speed": 0.012644289552881105,
+          "time": 2.59166666666666,
+          "mode": "play",
+          "health": 100,
+          "energy": 100,
+          "weapon": 0,
+          "shot": 0,
+          "damage": 0,
+          "heal": 0,
+          "aim": 0,
+          "slide": 0,
+          "dashTime": 0,
+          "punch": 0,
+          "hookTime": 0,
+          "hookCooldown": 0,
+          "parryTime": 0,
+          "slam": false,
+          "wallJumps": 0,
+          "style": 0,
+          "styleTotal": 0,
+          "styleLabel": "GET CLOSE. GET LOUD.",
+          "rank": "D",
+          "kills": 0,
+          "combo": 0,
+          "bestCombo": 0,
+          "wave": 1,
+          "waveDelay": 0,
+          "projectiles": 0,
+          "coreProjectiles": 0,
+          "coins": 0,
+          "coinCharges": 4,
+          "gore": 0,
+          "blood": 0,
+          "tracers": 0,
+          "enemies": [
+            {
+              "id": 3,
+              "x": 10.486328759195086,
+              "y": 10.22356607103066,
+              "z": 0,
+              "hp": 5,
+              "kind": 0,
+              "dead": false
+            }
+          ],
+          "exit": {
+            "x": 6,
+            "y": 1
+          },
+          "events": []
+        }
+      },
+      {
+        "atMs": 4944,
+        "label": "combat-gore-screenshot",
+        "state": {
+          "x": 9.098595166446218,
+          "y": 9.348928317225196,
+          "z": 0,
+          "angle": -0.6401553166525539,
+          "pitch": -0.09,
+          "speed": 2.0499999967281584,
+          "time": 4.991666666666704,
+          "mode": "play",
+          "health": 100,
+          "energy": 100,
+          "weapon": 1,
+          "shot": 0,
+          "damage": 0,
+          "heal": 0.3416666666666662,
+          "aim": 0,
+          "slide": 0,
+          "dashTime": 0,
+          "punch": 0,
+          "hookTime": 0,
+          "hookCooldown": 0,
+          "parryTime": 0,
+          "slam": false,
+          "wallJumps": 0,
+          "style": 122.45833333333324,
+          "styleTotal": 128,
+          "styleLabel": "+ HIT",
+          "rank": "C",
+          "kills": 1,
+          "combo": 2,
+          "bestCombo": 2,
+          "wave": 1,
+          "waveDelay": 0,
+          "projectiles": 1,
+          "coreProjectiles": 0,
+          "coins": 0,
+          "coinCharges": 4,
+          "gore": 70,
+          "blood": 7,
+          "tracers": 5,
+          "enemies": [
+            {
+              "id": 3,
+              "x": 9.232622753917678,
+              "y": 9.163934552826124,
+              "z": 0,
+              "hp": -0.9999999999999998,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 9,
+              "x": 9.013323868779864,
+              "y": 10.271455334469813,
+              "z": 0,
+              "hp": 5,
+              "kind": 0,
+              "dead": false
+            },
+            {
+              "id": 16,
+              "x": 1.791970249237047,
+              "y": 10.435505883913475,
+              "z": 0,
+              "hp": 7,
+              "kind": 1,
+              "dead": false
+            },
+            {
+              "id": 23,
+              "x": 1.803552731984778,
+              "y": 9.686908002964994,
+              "z": 0,
+              "hp": 5,
+              "kind": 0,
+              "dead": false
+            }
+          ],
+          "exit": {
+            "x": 6,
+            "y": 1
+          },
+          "events": []
+        }
+      },
+      {
+        "atMs": 6128,
+        "label": "damage-taken",
+        "health": 88,
+        "state": {
+          "x": 11.65123821934459,
+          "y": 9.722310719993251,
+          "z": 0,
+          "angle": -0.6401553166525539,
+          "pitch": -0.09,
+          "speed": 4.74387435212335,
+          "time": 6.100000000000093,
+          "mode": "play",
+          "health": 88,
+          "energy": 74.15000000000015,
+          "weapon": 2,
+          "shot": 0,
+          "damage": 0.058333333333334375,
+          "heal": 0,
+          "aim": 0,
+          "slide": 0.6948939398542961,
+          "dashTime": 0,
+          "punch": 0,
+          "hookTime": 0,
+          "hookCooldown": 0,
+          "parryTime": 0,
+          "slam": false,
+          "wallJumps": 0,
+          "style": 42.7458333333332,
+          "styleTotal": 128,
+          "styleLabel": "+ HIT",
+          "rank": "D",
+          "kills": 1,
+          "combo": 0,
+          "bestCombo": 2,
+          "wave": 1,
+          "waveDelay": 0,
+          "projectiles": 1,
+          "coreProjectiles": 0,
+          "coins": 0,
+          "coinCharges": 4,
+          "gore": 72,
+          "blood": 10,
+          "tracers": 0,
+          "enemies": [
+            {
+              "id": 3,
+              "x": 9.232622753917678,
+              "y": 9.163934552826124,
+              "z": 0,
+              "hp": -0.9999999999999998,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 9,
+              "x": 9.606014135782804,
+              "y": 9.67822025310002,
+              "z": 0,
+              "hp": 5,
+              "kind": 0,
+              "dead": false
+            },
+            {
+              "id": 16,
+              "x": 2.098013921282704,
+              "y": 10.711493247318813,
+              "z": 0,
+              "hp": 7,
+              "kind": 1,
+              "dead": false
+            },
+            {
+              "id": 23,
+              "x": 2.334951816117673,
+              "y": 9.163850282094607,
+              "z": 0,
+              "hp": 5,
+              "kind": 0,
+              "dead": false
+            }
+          ],
+          "exit": {
+            "x": 6,
+            "y": 1
+          },
+          "events": []
+        }
+      },
+      {
+        "atMs": 9892,
+        "label": "damage-taken",
+        "health": 94,
+        "state": {
+          "x": 6.70456471860737,
+          "y": 9.100659487361419,
+          "z": 0,
+          "angle": 3.135029990527033,
+          "pitch": -0.00399999999999999,
+          "speed": 1.4590506501327738,
+          "time": 9.866666666666747,
+          "mode": "play",
+          "health": 94,
+          "energy": 100,
+          "weapon": 1,
+          "shot": 0.24166666666666647,
+          "damage": 0.7833333333333341,
+          "heal": 0,
+          "aim": 0,
+          "slide": 1.33372887656499e-33,
+          "dashTime": 0,
+          "punch": 0,
+          "hookTime": 0,
+          "hookCooldown": 0,
+          "parryTime": 0,
+          "slam": false,
+          "wallJumps": 0,
+          "style": 148.36938541666697,
+          "styleTotal": 431,
+          "styleLabel": "+ HIT",
+          "rank": "C",
+          "kills": 3,
+          "combo": 2,
+          "bestCombo": 3,
+          "wave": 1,
+          "waveDelay": 0,
+          "projectiles": 1,
+          "coreProjectiles": 0,
+          "coins": 0,
+          "coinCharges": 4,
+          "gore": 116,
+          "blood": 32,
+          "tracers": 5,
+          "enemies": [
+            {
+              "id": 3,
+              "x": 9.232622753917678,
+              "y": 9.163934552826124,
+              "z": 0,
+              "hp": -0.9999999999999998,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 9,
+              "x": 10.160693617139785,
+              "y": 9.331095318981628,
+              "z": 0,
+              "hp": -0.9999999999999998,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 16,
+              "x": 2.981893294611979,
+              "y": 11.236924238596247,
+              "z": 0,
+              "hp": 7,
+              "kind": 1,
+              "dead": false
+            },
+            {
+              "id": 23,
+              "x": 4.349648059204742,
+              "y": 9.160015637774528,
+              "z": 0,
+              "hp": -1.0000000000000002,
+              "kind": 0,
+              "dead": true
+            }
+          ],
+          "exit": {
+            "x": 6,
+            "y": 1
+          },
+          "events": []
+        }
+      },
+      {
+        "atMs": 17757,
+        "label": "wave",
+        "wave": 2,
+        "state": {
+          "x": 0.2901157612641877,
+          "y": 6.924995145196432,
+          "z": 0,
+          "angle": -3.128155316652553,
+          "pitch": -0.017999999999999988,
+          "speed": 0.00918392516574809,
+          "time": 17.73333333333297,
+          "mode": "play",
+          "health": 94,
+          "energy": 100,
+          "weapon": 1,
+          "shot": 0,
+          "damage": 0,
+          "heal": 0,
+          "aim": 0,
+          "slide": 6.252721250925761e-102,
+          "dashTime": 0,
+          "punch": 0,
+          "hookTime": 0,
+          "hookCooldown": 0,
+          "parryTime": 0,
+          "slam": false,
+          "wallJumps": 0,
+          "style": 0,
+          "styleTotal": 547,
+          "styleLabel": "+ HIT",
+          "rank": "D",
+          "kills": 4,
+          "combo": 5,
+          "bestCombo": 5,
+          "wave": 2,
+          "waveDelay": 0,
+          "projectiles": 0,
+          "coreProjectiles": 0,
+          "coins": 0,
+          "coinCharges": 4,
+          "gore": 0,
+          "blood": 48,
+          "tracers": 0,
+          "enemies": [
+            {
+              "id": 3,
+              "x": 9.232622753917678,
+              "y": 9.163934552826124,
+              "z": 0,
+              "hp": -0.9999999999999998,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 9,
+              "x": 10.160693617139785,
+              "y": 9.331095318981628,
+              "z": 0,
+              "hp": -0.9999999999999998,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 16,
+              "x": 3.389374295105734,
+              "y": 11.26842600179876,
+              "z": 0,
+              "hp": -0.8000000000000005,
+              "kind": 1,
+              "dead": true
+            },
+            {
+              "id": 23,
+              "x": 4.349648059204742,
+              "y": 9.160015637774528,
+              "z": 0,
+              "hp": -1.0000000000000002,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 493,
+              "x": 9.964380291691338,
+              "y": 7.910078264306435,
+              "z": 0,
+              "hp": 4,
+              "kind": 0,
+              "dead": false
+            }
+          ],
+          "exit": {
+            "x": 6,
+            "y": 1
+          },
+          "events": []
+        }
+      },
+      {
+        "atMs": 26434,
+        "label": "damage-taken",
+        "health": 84,
+        "state": {
+          "x": 0.883979986277972,
+          "y": 8.89973135273701,
+          "z": 0,
+          "angle": 0.5776966571937052,
+          "pitch": -0.009999999999999988,
+          "speed": 0.05473152876798171,
+          "time": 26.374999999999144,
+          "mode": "play",
+          "health": 84,
+          "energy": 78.55000000000024,
+          "weapon": 2,
+          "shot": 0,
+          "damage": 0.9833333333333334,
+          "heal": 0,
+          "aim": 0,
+          "slide": 0.024484271951195204,
+          "dashTime": 0,
+          "punch": 0,
+          "hookTime": 0,
+          "hookCooldown": 0,
+          "parryTime": 0,
+          "slam": false,
+          "wallJumps": 0,
+          "style": 0,
+          "styleTotal": 547,
+          "styleLabel": "+ HIT",
+          "rank": "D",
+          "kills": 4,
+          "combo": 0,
+          "bestCombo": 5,
+          "wave": 2,
+          "waveDelay": 0,
+          "projectiles": 2,
+          "coreProjectiles": 0,
+          "coins": 1,
+          "coinCharges": 3,
+          "gore": 47,
+          "blood": 57,
+          "tracers": 4,
+          "enemies": [
+            {
+              "id": 3,
+              "x": 9.232622753917678,
+              "y": 9.163934552826124,
+              "z": 0,
+              "hp": -0.9999999999999998,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 9,
+              "x": 10.160693617139785,
+              "y": 9.331095318981628,
+              "z": 0,
+              "hp": -0.9999999999999998,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 16,
+              "x": 3.389374295105734,
+              "y": 11.26842600179876,
+              "z": 0,
+              "hp": -0.8000000000000005,
+              "kind": 1,
+              "dead": true
+            },
+            {
+              "id": 23,
+              "x": 4.349648059204742,
+              "y": 9.160015637774528,
+              "z": 0,
+              "hp": -1.0000000000000002,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 493,
+              "x": 3.1630765639117033,
+              "y": 6.9442933724951175,
+              "z": 0,
+              "hp": 4,
+              "kind": 0,
+              "dead": false
+            },
+            {
+              "id": 500,
+              "x": 1.6333893416911907,
+              "y": 9.167633821413318,
+              "z": 0,
+              "hp": 4,
+              "kind": 0,
+              "dead": false
+            },
+            {
+              "id": 506,
+              "x": 8.271011882851322,
+              "y": 7.128290542119891,
+              "z": 0,
+              "hp": 7,
+              "kind": 1,
+              "dead": false
+            },
+            {
+              "id": 508,
+              "x": 4.7673179558217065,
+              "y": 8.837209098633169,
+              "z": 0,
+              "hp": 8,
+              "kind": 0,
+              "dead": false
+            },
+            {
+              "id": 515,
+              "x": 9.03075035934974,
+              "y": 7.157355607665416,
+              "z": 0,
+              "hp": 7,
+              "kind": 1,
+              "dead": false
+            }
+          ],
+          "exit": {
+            "x": 6,
+            "y": 1
+          },
+          "events": []
+        }
+      },
+      {
+        "atMs": 58077,
+        "label": "restart-after-death",
+        "state": {
+          "x": 6,
+          "y": 10.5,
+          "z": 0,
+          "angle": -2.782821983319221,
+          "pitch": 0,
+          "speed": 0,
+          "time": 0.3583333333333336,
+          "mode": "play",
+          "health": 100,
+          "energy": 100,
+          "weapon": 0,
+          "shot": 0,
+          "damage": 0,
+          "heal": 0,
+          "aim": 0,
+          "slide": 0,
+          "dashTime": 0,
+          "punch": 0,
+          "hookTime": 0,
+          "hookCooldown": 0,
+          "parryTime": 0,
+          "slam": false,
+          "wallJumps": 0,
+          "style": 0,
+          "styleTotal": 0,
+          "styleLabel": "GET CLOSE. GET LOUD.",
+          "rank": "D",
+          "kills": 0,
+          "combo": 0,
+          "bestCombo": 0,
+          "wave": 0,
+          "waveDelay": 1.8416666666666681,
+          "projectiles": 0,
+          "coreProjectiles": 0,
+          "coins": 0,
+          "coinCharges": 4,
+          "gore": 0,
+          "blood": 0,
+          "tracers": 0,
+          "enemies": [],
+          "exit": {
+            "x": 6,
+            "y": 1
+          },
+          "events": []
+        }
+      },
+      {
+        "atMs": 58093,
+        "label": "wave",
+        "wave": 0,
+        "state": {
+          "x": 6,
+          "y": 10.5,
+          "z": 0,
+          "angle": -2.782821983319221,
+          "pitch": 0,
+          "speed": 0,
+          "time": 0.37500000000000033,
+          "mode": "play",
+          "health": 100,
+          "energy": 100,
+          "weapon": 0,
+          "shot": 0,
+          "damage": 0,
+          "heal": 0,
+          "aim": 0,
+          "slide": 0,
+          "dashTime": 0,
+          "punch": 0,
+          "hookTime": 0,
+          "hookCooldown": 0,
+          "parryTime": 0,
+          "slam": false,
+          "wallJumps": 0,
+          "style": 0,
+          "styleTotal": 0,
+          "styleLabel": "GET CLOSE. GET LOUD.",
+          "rank": "D",
+          "kills": 0,
+          "combo": 0,
+          "bestCombo": 0,
+          "wave": 0,
+          "waveDelay": 1.8250000000000015,
+          "projectiles": 0,
+          "coreProjectiles": 0,
+          "coins": 0,
+          "coinCharges": 4,
+          "gore": 0,
+          "blood": 0,
+          "tracers": 0,
+          "enemies": [],
+          "exit": {
+            "x": 6,
+            "y": 1
+          },
+          "events": []
+        }
+      },
+      {
+        "atMs": 60399,
+        "label": "wave",
+        "wave": 1,
+        "state": {
+          "x": 4.999365179799556,
+          "y": 9.10077709440786,
+          "z": 0,
+          "angle": -2.782821983319221,
+          "pitch": 0,
+          "speed": 0.014689610407749853,
+          "time": 2.66666666666666,
+          "mode": "play",
+          "health": 100,
+          "energy": 100,
+          "weapon": 0,
+          "shot": 0,
+          "damage": 0,
+          "heal": 0,
+          "aim": 0,
+          "slide": 0,
+          "dashTime": 0,
+          "punch": 0,
+          "hookTime": 0,
+          "hookCooldown": 0,
+          "parryTime": 0,
+          "slam": false,
+          "wallJumps": 0,
+          "style": 0,
+          "styleTotal": 0,
+          "styleLabel": "GET CLOSE. GET LOUD.",
+          "rank": "D",
+          "kills": 0,
+          "combo": 0,
+          "bestCombo": 0,
+          "wave": 1,
+          "waveDelay": 0,
+          "projectiles": 0,
+          "coreProjectiles": 0,
+          "coins": 0,
+          "coinCharges": 4,
+          "gore": 0,
+          "blood": 0,
+          "tracers": 0,
+          "enemies": [
+            {
+              "id": 3,
+              "x": 10.455047410110256,
+              "y": 10.164362582122488,
+              "z": 0,
+              "hp": 5,
+              "kind": 0,
+              "dead": false
+            }
+          ],
+          "exit": {
+            "x": 6,
+            "y": 1
+          },
+          "events": []
+        }
+      },
+      {
+        "atMs": 65130,
+        "label": "damage-taken",
+        "health": 97,
+        "state": {
+          "x": 11.801011601740427,
+          "y": 9.82273766892997,
+          "z": 0,
+          "angle": -0.8988219833192213,
+          "pitch": -0.031999999999999994,
+          "speed": 0.23696570219390628,
+          "time": 7.308333333333486,
+          "mode": "play",
+          "health": 97,
+          "energy": 79.28333333333359,
+          "weapon": 2,
+          "shot": 0,
+          "damage": 0.04166666666666771,
+          "heal": 0,
+          "aim": 0,
+          "slide": 0.01754374746963497,
+          "dashTime": 0,
+          "punch": 0,
+          "hookTime": 0,
+          "hookCooldown": 0,
+          "parryTime": 0,
+          "slam": false,
+          "wallJumps": 0,
+          "style": 398.76197916666575,
+          "styleTotal": 786.5,
+          "styleLabel": "+ FRESH WEAPON",
+          "rank": "B",
+          "kills": 3,
+          "combo": 0,
+          "bestCombo": 4,
+          "wave": 1,
+          "waveDelay": 0,
+          "projectiles": 0,
+          "coreProjectiles": 0,
+          "coins": 1,
+          "coinCharges": 3,
+          "gore": 138,
+          "blood": 27,
+          "tracers": 0,
+          "enemies": [
+            {
+              "id": 3,
+              "x": 8.922850898720158,
+              "y": 9.230061735740929,
+              "z": 0,
+              "hp": -0.9999999999999998,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 9,
+              "x": 8.952734493404746,
+              "y": 10.478572440768092,
+              "z": 0,
+              "hp": -7.58445715257999,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 16,
+              "x": 10.281357656739077,
+              "y": 10.071161018657213,
+              "z": 0,
+              "hp": -6.506273638155745,
+              "kind": 1,
+              "dead": true
+            },
+            {
+              "id": 49,
+              "x": 3.242992799125772,
+              "y": 9.164294959344698,
+              "z": 0,
+              "hp": 5,
+              "kind": 0,
+              "dead": false
+            }
+          ],
+          "exit": {
+            "x": 6,
+            "y": 1
+          },
+          "events": []
+        }
+      },
+      {
+        "atMs": 78006,
+        "label": "wave",
+        "wave": 2,
+        "state": {
+          "x": 0.938008396945187,
+          "y": 6.746946106421897,
+          "z": 0,
+          "angle": 3.1283633238603654,
+          "pitch": -0.005999999999999993,
+          "speed": 0.006799018326742508,
+          "time": 19.10833333333289,
+          "mode": "play",
+          "health": 97,
+          "energy": 100,
+          "weapon": 2,
+          "shot": 0,
+          "damage": 0,
+          "heal": 0,
+          "aim": 0,
+          "slide": 7.380560446561508e-42,
+          "dashTime": 0,
+          "punch": 0,
+          "hookTime": 0,
+          "hookCooldown": 0,
+          "parryTime": 0,
+          "slam": false,
+          "wallJumps": 0,
+          "style": 536.2619791666775,
+          "styleTotal": 1337,
+          "styleLabel": "+ FRESH WEAPON",
+          "rank": "B",
+          "kills": 4,
+          "combo": 5,
+          "bestCombo": 5,
+          "wave": 2,
+          "waveDelay": 0,
+          "projectiles": 0,
+          "coreProjectiles": 0,
+          "coins": 0,
+          "coinCharges": 4,
+          "gore": 0,
+          "blood": 37,
+          "tracers": 0,
+          "enemies": [
+            {
+              "id": 3,
+              "x": 8.922850898720158,
+              "y": 9.230061735740929,
+              "z": 0,
+              "hp": -0.9999999999999998,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 9,
+              "x": 8.952734493404746,
+              "y": 10.478572440768092,
+              "z": 0,
+              "hp": -7.58445715257999,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 16,
+              "x": 10.281357656739077,
+              "y": 10.071161018657213,
+              "z": 0,
+              "hp": -6.506273638155745,
+              "kind": 1,
+              "dead": true
+            },
+            {
+              "id": 49,
+              "x": 5.401026993232107,
+              "y": 9.16000266969599,
+              "z": 0,
+              "hp": -0.40000000000000013,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 386,
+              "x": 9.667098642167424,
+              "y": 7.725609286392763,
+              "z": 0,
+              "hp": 4,
+              "kind": 0,
+              "dead": false
+            }
+          ],
+          "exit": {
+            "x": 6,
+            "y": 1
+          },
+          "events": []
+        }
+      },
+      {
+        "atMs": 96230,
+        "label": "damage-taken",
+        "health": 43,
+        "state": {
+          "x": 8.899618444126952,
+          "y": 6.415356028026375,
+          "z": 0,
+          "angle": 1.2491780166807793,
+          "pitch": -0.009999999999999993,
+          "speed": 0.08526642407005625,
+          "time": 32.79999999999878,
+          "mode": "play",
+          "health": 43,
+          "energy": 100,
+          "weapon": 1,
+          "shot": 0,
+          "damage": 0.9250000000000003,
+          "heal": 0,
+          "aim": 0,
+          "slide": 2.1933858188343768e-60,
+          "dashTime": 0,
+          "punch": 0,
+          "hookTime": 0,
+          "hookCooldown": 0,
+          "parryTime": 0,
+          "slam": false,
+          "wallJumps": 0,
+          "style": 0,
+          "styleTotal": 1629,
+          "styleLabel": "+ HIT",
+          "rank": "D",
+          "kills": 6,
+          "combo": 0,
+          "bestCombo": 8,
+          "wave": 2,
+          "waveDelay": 0,
+          "projectiles": 0,
+          "coreProjectiles": 0,
+          "coins": 0,
+          "coinCharges": 4,
+          "gore": 23,
+          "blood": 71,
+          "tracers": 0,
+          "enemies": [
+            {
+              "id": 3,
+              "x": 8.922850898720158,
+              "y": 9.230061735740929,
+              "z": 0,
+              "hp": -0.9999999999999998,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 9,
+              "x": 8.952734493404746,
+              "y": 10.478572440768092,
+              "z": 0,
+              "hp": -7.58445715257999,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 16,
+              "x": 10.281357656739077,
+              "y": 10.071161018657213,
+              "z": 0,
+              "hp": -6.506273638155745,
+              "kind": 1,
+              "dead": true
+            },
+            {
+              "id": 49,
+              "x": 5.401026993232107,
+              "y": 9.16000266969599,
+              "z": 0,
+              "hp": -0.40000000000000013,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 386,
+              "x": 3.5424232732176915,
+              "y": 7.096591029101363,
+              "z": 0,
+              "hp": -1,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 388,
+              "x": 4.227205738601611,
+              "y": 8.823186938727364,
+              "z": 0,
+              "hp": -0.7999999999999996,
+              "kind": 0,
+              "dead": true
+            },
+            {
+              "id": 389,
+              "x": 7.823672160355954,
+              "y": 7.191623030321216,
+              "z": 0,
+              "hp": 2.8,
+              "kind": 1,
+              "dead": false
+            },
+            {
+              "id": 396,
+              "x": 7.260700897472448,
+              "y": 9.162776198848762,
+              "z": 0,
+              "hp": 8,
+              "kind": 0,
+              "dead": false
+            },
+            {
+              "id": 404,
+              "x": 8.203985185218045,
+              "y": 7.140279438571094,
+              "z": 0,
+              "hp": 7,
+              "kind": 1,
+              "dead": false
+            }
+          ],
+          "exit": {
+            "x": 6,
+            "y": 1
+          },
+          "events": []
+        }
+      },
+      {
+        "atMs": 101860,
+        "label": "restart-after-death",
+        "state": {
+          "x": 6,
+          "y": 10.5,
+          "z": 0,
+          "angle": -2.782821983319221,
+          "pitch": 0,
+          "speed": 0,
+          "time": 0.39166666666666705,
+          "mode": "play",
+          "health": 100,
+          "energy": 100,
+          "weapon": 0,
+          "shot": 0,
+          "damage": 0,
+          "heal": 0,
+          "aim": 0,
+          "slide": 0,
+          "dashTime": 0,
+          "punch": 0,
+          "hookTime": 0,
+          "hookCooldown": 0,
+          "parryTime": 0,
+          "slam": false,
+          "wallJumps": 0,
+          "style": 0,
+          "styleTotal": 0,
+          "styleLabel": "GET CLOSE. GET LOUD.",
+          "rank": "D",
+          "kills": 0,
+          "combo": 0,
+          "bestCombo": 0,
+          "wave": 0,
+          "waveDelay": 1.808333333333335,
+          "projectiles": 0,
+          "coreProjectiles": 0,
+          "coins": 0,
+          "coinCharges": 4,
+          "gore": 0,
+          "blood": 0,
+          "tracers": 0,
+          "enemies": [],
+          "exit": {
+            "x": 6,
+            "y": 1
+          },
+          "events": []
+        }
+      },
+      {
+        "atMs": 101882,
+        "label": "wave",
+        "wave": 0,
+        "state": {
+          "x": 6,
+          "y": 10.5,
+          "z": 0,
+          "angle": -2.782821983319221,
+          "pitch": 0,
+          "speed": 0,
+          "time": 0.4000000000000004,
+          "mode": "play",
+          "health": 100,
+          "energy": 100,
+          "weapon": 0,
+          "shot": 0,
+          "damage": 0,
+          "heal": 0,
+          "aim": 0,
+          "slide": 0,
+          "dashTime": 0,
+          "punch": 0,
+          "hookTime": 0,
+          "hookCooldown": 0,
+          "parryTime": 0,
+          "slam": false,
+          "wallJumps": 0,
+          "style": 0,
+          "styleTotal": 0,
+          "styleLabel": "GET CLOSE. GET LOUD.",
+          "rank": "D",
+          "kills": 0,
+          "combo": 0,
+          "bestCombo": 0,
+          "wave": 0,
+          "waveDelay": 1.8000000000000016,
+          "projectiles": 0,
+          "coreProjectiles": 0,
+          "coins": 0,
+          "coinCharges": 4,
+          "gore": 0,
+          "blood": 0,
+          "tracers": 0,
+          "enemies": [],
+          "exit": {
+            "x": 6,
+            "y": 1
+          },
+          "events": []
+        }
+      },
+      {
+        "atMs": 104119,
+        "label": "wave",
+        "wave": 1,
+        "state": {
+          "x": 4.9989660745542945,
+          "y": 9.100520189236798,
+          "z": 0,
+          "angle": -2.782821983319221,
+          "pitch": 0,
+          "speed": 0.006938942991503438,
+          "time": 2.6499999999999932,
+          "mode": "play",
+          "health": 100,
+          "energy": 100,
+          "weapon": 0,
+          "shot": 0,
+          "damage": 0,
+          "heal": 0,
+          "aim": 0,
+          "slide": 0,
+          "dashTime": 0,
+          "punch": 0,
+          "hookTime": 0,
+          "hookCooldown": 0,
+          "parryTime": 0,
+          "slam": false,
+          "wallJumps": 0,
+          "style": 0,
+          "styleTotal": 0,
+          "styleLabel": "GET CLOSE. GET LOUD.",
+          "rank": "D",
+          "kills": 0,
+          "combo": 0,
+          "bestCombo": 0,
+          "wave": 1,
+          "waveDelay": 0,
+          "projectiles": 0,
+          "coreProjectiles": 0,
+          "coins": 0,
+          "coinCharges": 4,
+          "gore": 0,
+          "blood": 0,
+          "tracers": 0,
+          "enemies": [
+            {
+              "id": 3,
+              "x": 10.462073053338447,
+              "y": 10.17747965563826,
+              "z": 0,
+              "hp": 5,
+              "kind": 0,
+              "dead": false
+            }
+          ],
+          "exit": {
+            "x": 6,
+            "y": 1
+          },
+          "events": []
+        }
+      }
+    ],
+    "waves": [
+      {
+        "wave": 1,
+        "atMs": 2093,
+        "remaining": 1
+      },
+      {
+        "wave": 2,
+        "atMs": 17679,
+        "remaining": 1
+      },
+      {
+        "wave": 0,
+        "atMs": 57176,
+        "remaining": 0
+      },
+      {
+        "wave": 1,
+        "atMs": 60375,
+        "remaining": 1
+      },
+      {
+        "wave": 2,
+        "atMs": 77734,
+        "remaining": 1
+      },
+      {
+        "wave": 0,
+        "atMs": 101075,
+        "remaining": 0
+      },
+      {
+        "wave": 1,
+        "atMs": 104075,
+        "remaining": 1
+      }
+    ],
+    "kills": 7,
+    "bestCombo": 5,
+    "styleTotal": 902,
+    "styleLabels": [
+      "+ HIT",
+      "+ FRESH WEAPON",
+      "+ CORE BLAST"
+    ],
+    "bloodHealObserved": true,
+    "goreObserved": true,
+    "exitReached": false,
+    "deathObserved": true,
+    "restartObserved": true,
+    "final": {
+      "x": 3.1013628663165944,
+      "y": 11.899762935697572,
+      "z": 0,
+      "angle": -0.16630334280629475,
+      "pitch": -0.3820000000000001,
+      "speed": 0.02499563462770027,
+      "time": 18.799999999999574,
+      "mode": "play",
+      "health": 70.6,
+      "energy": 100,
+      "weapon": 1,
+      "shot": 0,
+      "damage": 0,
+      "heal": 0,
+      "aim": 0,
+      "slide": 9.812219829929154e-65,
+      "dashTime": 0,
+      "punch": 0,
+      "hookTime": 0,
+      "hookCooldown": 0,
+      "parryTime": 0,
+      "slam": false,
+      "wallJumps": 0,
+      "style": 61.552083333332114,
+      "styleTotal": 518,
+      "styleLabel": "+ HIT",
+      "rank": "D",
+      "kills": 4,
+      "combo": 2,
+      "bestCombo": 3,
+      "wave": 1,
+      "waveDelay": 2.2,
+      "projectiles": 0,
+      "coreProjectiles": 0,
+      "coins": 0,
+      "coinCharges": 4,
+      "gore": 58,
+      "blood": 46,
+      "tracers": 0,
+      "enemies": [
+        {
+          "id": 3,
+          "x": 9.451408238119674,
+          "y": 9.362215645897951,
+          "z": 0,
+          "hp": -0.9999999999999998,
+          "kind": 0,
+          "dead": true
+        },
+        {
+          "id": 9,
+          "x": 1.6468785236590213,
+          "y": 11.839997885722752,
+          "z": 0,
+          "hp": -0.9999999999999998,
+          "kind": 0,
+          "dead": true
+        },
+        {
+          "id": 16,
+          "x": 2.7529323967209347,
+          "y": 10.91530916288866,
+          "z": 0,
+          "hp": -0.19999999999999996,
+          "kind": 1,
+          "dead": true
+        },
+        {
+          "id": 103,
+          "x": 0.7628723027404174,
+          "y": 11.839830512261265,
+          "z": 0,
+          "hp": -1.0000000000000002,
+          "kind": 0,
+          "dead": true
+        }
+      ],
+      "exit": {
+        "x": 6,
+        "y": 1
+      },
+      "events": []
+    },
+    "finalScreen": "play"
+  },
+  "inputChecks": {
+    "pointerLock": true,
+    "coinAlt": {
+      "before": 4,
+      "after": 3,
+      "activeCoins": 1
+    },
+    "shotgunCore": {
+      "weapon": 1,
+      "coreProjectiles": 0,
+      "projectiles": 0
+    },
+    "arcLance": {
+      "weapon": 2,
+      "tracers": 1,
+      "shot": 0
+    },
+    "parryGrapple": {
+      "punch": 0.26666666666666655,
+      "hookTime": 0,
+      "hookCooldown": 0
+    },
+    "movement": {
+      "speed": 0.010823558575414616,
+      "distance": true,
+      "z": 0,
+      "energy": 74.8833333333335,
+      "dashTime": 0,
+      "slide": 0.34956380228270834
+    }
+  },
+  "performance": {
+    "samples": [
+      {
+        "atMs": 7020,
+        "fps": 60.02087682672254,
+        "renderer": {
+          "renderer": "three.js",
+          "worldBatch": {
+            "removed": 691,
+            "batches": 29
+          },
+          "staticWorld": {
+            "frozen": 190,
+            "pruned": 6
+          },
+          "boundedLighting": true,
+          "afterlifeLighting": {
+            "practicalPool": 6,
+            "authoredCues": 14,
+            "lanternShadow": 512
+          },
+          "afterlifeAtmosphere": {
+            "name": "AfterlifeAtmosphere",
+            "seed": 2935229363,
+            "courseId": "bloodworks",
+            "bounded": true,
+            "coordinateCellMeters": 4,
+            "floorY": 0,
+            "roomCount": 4,
+            "roomIds": [
+              "bloodworks-act-i-entry",
+              "bloodworks-act-i-gallery",
+              "bloodworks-act-i-court",
+              "bloodworks-act-i-objective"
+            ],
+            "mistPatches": 6,
+            "coldSources": 2,
+            "specks": 52,
+            "beams": 0,
+            "drawCalls": 2,
+            "reducedMotion": false,
+            "mobileBudget": false,
+            "noSceneFogMutation": true,
+            "noDynamicLights": true,
+            "disposed": false
+          },
+          "afterlifeSurfaces": {
+            "applied": true,
+            "version": 1,
+            "sector": "bloodworks",
+            "visited": 1385,
+            "meshes": 1279,
+            "changedMeshes": 1017,
+            "changedMaterials": 71,
+            "clonedMaterials": 71,
+            "skipped": 32,
+            "skippedSubtrees": 32,
+            "preservedCues": 274,
+            "materialSyncScheduled": true,
+            "materialSyncPending": 0,
+            "roles": {
+              "roomFloor": 7,
+              "roomFloorInset": 5,
+              "roomRecess": 29,
+              "roomMetal": 551,
+              "roomWall": 33,
+              "roomPanel": 6,
+              "roomTrim": 84,
+              "roomSignal": 165,
+              "roomRust": 42,
+              "roomHazard": 53,
+              "roomBone": 42
+            }
+          },
+          "afterlifeEnemies": 4,
+          "transmissionCoverage": 1,
+          "weaponBatch": [
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 81,
+              "meshesAfter": 81,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 8,
+              "groups": 17,
+              "meshesBefore": 163,
+              "meshesAfter": 101,
+              "mergedMeshes": 17,
+              "mergedSources": 79
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 95,
+              "meshesAfter": 95,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 106,
+              "meshesAfter": 106,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            }
+          ],
+          "survivor": {
+            "status": "ready",
+            "source": "meshy-v02",
+            "viewSleeves": 7,
+            "error": null
+          },
+          "targetFrameMs": 6.944444444444445,
+          "webgl": true,
+          "error": null,
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "renderScale": 1,
+          "fov": 92.83,
+          "meshes": 1083,
+          "instancedMeshes": 137,
+          "geometries": 739,
+          "materials": 387,
+          "triangles": 931461,
+          "calls": 528,
+          "gpuTriangles": 490968,
+          "rendererGeometries": 742,
+          "explosions": {
+            "active": 0,
+            "fire": 0,
+            "smoke": 0,
+            "embers": 0,
+            "rings": 0,
+            "maxExplosions": 18,
+            "reducedMotion": false,
+            "gore": true
+          },
+          "impacts": {
+            "marks": 24,
+            "smoke": 5,
+            "capacity": {
+              "marks": 96,
+              "smoke": 96
+            }
+          },
+          "rendererTextures": 117,
+          "enemyContactShadows": 3,
+          "enemies": 3,
+          "gore": 55,
+          "blood": 12,
+          "projectiles": 0,
+          "tracers": 0,
+          "coins": 0,
+          "world": "bloodworks",
+          "warden": "ready",
+          "wardenInstances": 0
+        }
+      },
+      {
+        "atMs": 13600,
+        "fps": 60.02870938274863,
+        "renderer": {
+          "renderer": "three.js",
+          "worldBatch": {
+            "removed": 691,
+            "batches": 29
+          },
+          "staticWorld": {
+            "frozen": 190,
+            "pruned": 6
+          },
+          "boundedLighting": true,
+          "afterlifeLighting": {
+            "practicalPool": 6,
+            "authoredCues": 14,
+            "lanternShadow": 512
+          },
+          "afterlifeAtmosphere": {
+            "name": "AfterlifeAtmosphere",
+            "seed": 2935229363,
+            "courseId": "bloodworks",
+            "bounded": true,
+            "coordinateCellMeters": 4,
+            "floorY": 0,
+            "roomCount": 4,
+            "roomIds": [
+              "bloodworks-act-i-entry",
+              "bloodworks-act-i-gallery",
+              "bloodworks-act-i-court",
+              "bloodworks-act-i-objective"
+            ],
+            "mistPatches": 6,
+            "coldSources": 2,
+            "specks": 52,
+            "beams": 0,
+            "drawCalls": 2,
+            "reducedMotion": false,
+            "mobileBudget": false,
+            "noSceneFogMutation": true,
+            "noDynamicLights": true,
+            "disposed": false
+          },
+          "afterlifeSurfaces": {
+            "applied": true,
+            "version": 1,
+            "sector": "bloodworks",
+            "visited": 1385,
+            "meshes": 1279,
+            "changedMeshes": 1017,
+            "changedMaterials": 71,
+            "clonedMaterials": 71,
+            "skipped": 32,
+            "skippedSubtrees": 32,
+            "preservedCues": 274,
+            "materialSyncScheduled": true,
+            "materialSyncPending": 0,
+            "roles": {
+              "roomFloor": 7,
+              "roomFloorInset": 5,
+              "roomRecess": 29,
+              "roomMetal": 551,
+              "roomWall": 33,
+              "roomPanel": 6,
+              "roomTrim": 84,
+              "roomSignal": 165,
+              "roomRust": 42,
+              "roomHazard": 53,
+              "roomBone": 42
+            }
+          },
+          "afterlifeEnemies": 4,
+          "transmissionCoverage": 1,
+          "weaponBatch": [
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 81,
+              "meshesAfter": 81,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 8,
+              "groups": 17,
+              "meshesBefore": 163,
+              "meshesAfter": 101,
+              "mergedMeshes": 17,
+              "mergedSources": 79
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 95,
+              "meshesAfter": 95,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 106,
+              "meshesAfter": 106,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            }
+          ],
+          "survivor": {
+            "status": "ready",
+            "source": "meshy-v02",
+            "viewSleeves": 7,
+            "error": null
+          },
+          "targetFrameMs": 6.944444444444445,
+          "webgl": true,
+          "error": null,
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "renderScale": 1,
+          "fov": 92.1,
+          "meshes": 1083,
+          "instancedMeshes": 137,
+          "geometries": 739,
+          "materials": 387,
+          "triangles": 931461,
+          "calls": 225,
+          "gpuTriangles": 252874,
+          "rendererGeometries": 742,
+          "explosions": {
+            "active": 0,
+            "fire": 0,
+            "smoke": 0,
+            "embers": 0,
+            "rings": 0,
+            "maxExplosions": 18,
+            "reducedMotion": false,
+            "gore": true
+          },
+          "impacts": {
+            "marks": 26,
+            "smoke": 0,
+            "capacity": {
+              "marks": 96,
+              "smoke": 96
+            }
+          },
+          "rendererTextures": 117,
+          "enemyContactShadows": 0,
+          "enemies": 0,
+          "gore": 78,
+          "blood": 48,
+          "projectiles": 0,
+          "tracers": 0,
+          "coins": 0,
+          "world": "bloodworks",
+          "warden": "ready",
+          "wardenInstances": 0
+        }
+      },
+      {
+        "atMs": 26369,
+        "fps": 28.70938274827081,
+        "renderer": {
+          "renderer": "three.js",
+          "worldBatch": {
+            "removed": 691,
+            "batches": 29
+          },
+          "staticWorld": {
+            "frozen": 190,
+            "pruned": 6
+          },
+          "boundedLighting": true,
+          "afterlifeLighting": {
+            "practicalPool": 6,
+            "authoredCues": 14,
+            "lanternShadow": 512
+          },
+          "afterlifeAtmosphere": {
+            "name": "AfterlifeAtmosphere",
+            "seed": 2935229363,
+            "courseId": "bloodworks",
+            "bounded": true,
+            "coordinateCellMeters": 4,
+            "floorY": 0,
+            "roomCount": 4,
+            "roomIds": [
+              "bloodworks-act-i-entry",
+              "bloodworks-act-i-gallery",
+              "bloodworks-act-i-court",
+              "bloodworks-act-i-objective"
+            ],
+            "mistPatches": 6,
+            "coldSources": 2,
+            "specks": 52,
+            "beams": 0,
+            "drawCalls": 2,
+            "reducedMotion": false,
+            "mobileBudget": false,
+            "noSceneFogMutation": true,
+            "noDynamicLights": true,
+            "disposed": false
+          },
+          "afterlifeSurfaces": {
+            "applied": true,
+            "version": 1,
+            "sector": "bloodworks",
+            "visited": 1385,
+            "meshes": 1279,
+            "changedMeshes": 1017,
+            "changedMaterials": 71,
+            "clonedMaterials": 71,
+            "skipped": 32,
+            "skippedSubtrees": 32,
+            "preservedCues": 274,
+            "materialSyncScheduled": true,
+            "materialSyncPending": 0,
+            "roles": {
+              "roomFloor": 7,
+              "roomFloorInset": 5,
+              "roomRecess": 29,
+              "roomMetal": 551,
+              "roomWall": 33,
+              "roomPanel": 6,
+              "roomTrim": 84,
+              "roomSignal": 165,
+              "roomRust": 42,
+              "roomHazard": 53,
+              "roomBone": 42
+            }
+          },
+          "afterlifeEnemies": 9,
+          "transmissionCoverage": 0.05567283950617284,
+          "weaponBatch": [
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 81,
+              "meshesAfter": 81,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 8,
+              "groups": 17,
+              "meshesBefore": 163,
+              "meshesAfter": 101,
+              "mergedMeshes": 17,
+              "mergedSources": 79
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 95,
+              "meshesAfter": 95,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 106,
+              "meshesAfter": 106,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            }
+          ],
+          "survivor": {
+            "status": "ready",
+            "source": "meshy-v02",
+            "viewSleeves": 7,
+            "error": null
+          },
+          "targetFrameMs": 6.944444444444445,
+          "webgl": true,
+          "error": null,
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "renderScale": 1,
+          "fov": 94.86,
+          "meshes": 1120,
+          "instancedMeshes": 137,
+          "geometries": 761,
+          "materials": 419,
+          "triangles": 1245379,
+          "calls": 887,
+          "gpuTriangles": 1172730,
+          "rendererGeometries": 760,
+          "explosions": {
+            "active": 1,
+            "fire": 2,
+            "smoke": 2,
+            "embers": 0,
+            "rings": 1,
+            "maxExplosions": 18,
+            "reducedMotion": false,
+            "gore": true
+          },
+          "impacts": {
+            "marks": 48,
+            "smoke": 0,
+            "capacity": {
+              "marks": 96,
+              "smoke": 96
+            }
+          },
+          "rendererTextures": 132,
+          "enemyContactShadows": 5,
+          "enemies": 5,
+          "gore": 52,
+          "blood": 57,
+          "projectiles": 0,
+          "tracers": 0,
+          "coins": 1,
+          "world": "bloodworks",
+          "warden": "ready",
+          "wardenInstances": 0
+        }
+      },
+      {
+        "atMs": 37413,
+        "fps": 33.92927052068368,
+        "renderer": {
+          "renderer": "three.js",
+          "worldBatch": {
+            "removed": 691,
+            "batches": 29
+          },
+          "staticWorld": {
+            "frozen": 190,
+            "pruned": 6
+          },
+          "boundedLighting": true,
+          "afterlifeLighting": {
+            "practicalPool": 6,
+            "authoredCues": 14,
+            "lanternShadow": 512
+          },
+          "afterlifeAtmosphere": {
+            "name": "AfterlifeAtmosphere",
+            "seed": 2935229363,
+            "courseId": "bloodworks",
+            "bounded": true,
+            "coordinateCellMeters": 4,
+            "floorY": 0,
+            "roomCount": 4,
+            "roomIds": [
+              "bloodworks-act-i-entry",
+              "bloodworks-act-i-gallery",
+              "bloodworks-act-i-court",
+              "bloodworks-act-i-objective"
+            ],
+            "mistPatches": 6,
+            "coldSources": 2,
+            "specks": 52,
+            "beams": 0,
+            "drawCalls": 2,
+            "reducedMotion": false,
+            "mobileBudget": false,
+            "noSceneFogMutation": true,
+            "noDynamicLights": true,
+            "disposed": false
+          },
+          "afterlifeSurfaces": {
+            "applied": true,
+            "version": 1,
+            "sector": "bloodworks",
+            "visited": 1385,
+            "meshes": 1279,
+            "changedMeshes": 1017,
+            "changedMaterials": 71,
+            "clonedMaterials": 71,
+            "skipped": 32,
+            "skippedSubtrees": 32,
+            "preservedCues": 274,
+            "materialSyncScheduled": true,
+            "materialSyncPending": 0,
+            "roles": {
+              "roomFloor": 7,
+              "roomFloorInset": 5,
+              "roomRecess": 29,
+              "roomMetal": 551,
+              "roomWall": 33,
+              "roomPanel": 6,
+              "roomTrim": 84,
+              "roomSignal": 165,
+              "roomRust": 42,
+              "roomHazard": 53,
+              "roomBone": 42
+            }
+          },
+          "afterlifeEnemies": 9,
+          "transmissionCoverage": 0.036631944444444446,
+          "weaponBatch": [
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 81,
+              "meshesAfter": 81,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 8,
+              "groups": 17,
+              "meshesBefore": 163,
+              "meshesAfter": 101,
+              "mergedMeshes": 17,
+              "mergedSources": 79
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 95,
+              "meshesAfter": 95,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 106,
+              "meshesAfter": 106,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            }
+          ],
+          "survivor": {
+            "status": "ready",
+            "source": "meshy-v02",
+            "viewSleeves": 7,
+            "error": null
+          },
+          "targetFrameMs": 6.944444444444445,
+          "webgl": true,
+          "error": null,
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "renderScale": 1,
+          "fov": 99.48,
+          "meshes": 1120,
+          "instancedMeshes": 137,
+          "geometries": 761,
+          "materials": 419,
+          "triangles": 1245379,
+          "calls": 951,
+          "gpuTriangles": 819424,
+          "rendererGeometries": 764,
+          "explosions": {
+            "active": 1,
+            "fire": 2,
+            "smoke": 2,
+            "embers": 2,
+            "rings": 1,
+            "maxExplosions": 18,
+            "reducedMotion": false,
+            "gore": true
+          },
+          "impacts": {
+            "marks": 51,
+            "smoke": 1,
+            "capacity": {
+              "marks": 96,
+              "smoke": 96
+            }
+          },
+          "rendererTextures": 132,
+          "enemyContactShadows": 2,
+          "enemies": 2,
+          "gore": 115,
+          "blood": 92,
+          "projectiles": 2,
+          "tracers": 0,
+          "coins": 1,
+          "world": "bloodworks",
+          "warden": "ready",
+          "wardenInstances": 0
+        }
+      },
+      {
+        "atMs": 51766,
+        "fps": 20.010005002501103,
+        "renderer": {
+          "renderer": "three.js",
+          "worldBatch": {
+            "removed": 691,
+            "batches": 29
+          },
+          "staticWorld": {
+            "frozen": 190,
+            "pruned": 6
+          },
+          "boundedLighting": true,
+          "afterlifeLighting": {
+            "practicalPool": 6,
+            "authoredCues": 14,
+            "lanternShadow": 512
+          },
+          "afterlifeAtmosphere": {
+            "name": "AfterlifeAtmosphere",
+            "seed": 2935229363,
+            "courseId": "bloodworks",
+            "bounded": true,
+            "coordinateCellMeters": 4,
+            "floorY": 0,
+            "roomCount": 4,
+            "roomIds": [
+              "bloodworks-act-i-entry",
+              "bloodworks-act-i-gallery",
+              "bloodworks-act-i-court",
+              "bloodworks-act-i-objective"
+            ],
+            "mistPatches": 6,
+            "coldSources": 2,
+            "specks": 52,
+            "beams": 0,
+            "drawCalls": 2,
+            "reducedMotion": false,
+            "mobileBudget": false,
+            "noSceneFogMutation": true,
+            "noDynamicLights": true,
+            "disposed": false
+          },
+          "afterlifeSurfaces": {
+            "applied": true,
+            "version": 1,
+            "sector": "bloodworks",
+            "visited": 1385,
+            "meshes": 1279,
+            "changedMeshes": 1017,
+            "changedMaterials": 71,
+            "clonedMaterials": 71,
+            "skipped": 32,
+            "skippedSubtrees": 32,
+            "preservedCues": 274,
+            "materialSyncScheduled": true,
+            "materialSyncPending": 0,
+            "roles": {
+              "roomFloor": 7,
+              "roomFloorInset": 5,
+              "roomRecess": 29,
+              "roomMetal": 551,
+              "roomWall": 33,
+              "roomPanel": 6,
+              "roomTrim": 84,
+              "roomSignal": 165,
+              "roomRust": 42,
+              "roomHazard": 53,
+              "roomBone": 42
+            }
+          },
+          "afterlifeEnemies": 9,
+          "transmissionCoverage": 0.05266358024691358,
+          "weaponBatch": [
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 81,
+              "meshesAfter": 81,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 8,
+              "groups": 17,
+              "meshesBefore": 163,
+              "meshesAfter": 101,
+              "mergedMeshes": 17,
+              "mergedSources": 79
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 95,
+              "meshesAfter": 95,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 106,
+              "meshesAfter": 106,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            }
+          ],
+          "survivor": {
+            "status": "ready",
+            "source": "meshy-v02",
+            "viewSleeves": 7,
+            "error": null
+          },
+          "targetFrameMs": 6.944444444444445,
+          "webgl": true,
+          "error": null,
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "renderScale": 1,
+          "fov": 92.81,
+          "meshes": 1120,
+          "instancedMeshes": 137,
+          "geometries": 761,
+          "materials": 419,
+          "triangles": 1245379,
+          "calls": 1064,
+          "gpuTriangles": 844404,
+          "rendererGeometries": 764,
+          "explosions": {
+            "active": 0,
+            "fire": 0,
+            "smoke": 0,
+            "embers": 0,
+            "rings": 0,
+            "maxExplosions": 18,
+            "reducedMotion": false,
+            "gore": true
+          },
+          "impacts": {
+            "marks": 46,
+            "smoke": 0,
+            "capacity": {
+              "marks": 96,
+              "smoke": 96
+            }
+          },
+          "rendererTextures": 132,
+          "enemyContactShadows": 2,
+          "enemies": 2,
+          "gore": 37,
+          "blood": 100,
+          "projectiles": 0,
+          "tracers": 0,
+          "coins": 1,
+          "world": "bloodworks",
+          "warden": "ready",
+          "wardenInstances": 0
+        }
+      },
+      {
+        "atMs": 58683,
+        "fps": 40.45941007569918,
+        "renderer": {
+          "renderer": "three.js",
+          "worldBatch": {
+            "removed": 691,
+            "batches": 29
+          },
+          "staticWorld": {
+            "frozen": 190,
+            "pruned": 6
+          },
+          "boundedLighting": true,
+          "afterlifeLighting": {
+            "practicalPool": 6,
+            "authoredCues": 14,
+            "lanternShadow": 512
+          },
+          "afterlifeAtmosphere": {
+            "name": "AfterlifeAtmosphere",
+            "seed": 2935229363,
+            "courseId": "bloodworks",
+            "bounded": true,
+            "coordinateCellMeters": 4,
+            "floorY": 0,
+            "roomCount": 4,
+            "roomIds": [
+              "bloodworks-act-i-entry",
+              "bloodworks-act-i-gallery",
+              "bloodworks-act-i-court",
+              "bloodworks-act-i-objective"
+            ],
+            "mistPatches": 6,
+            "coldSources": 2,
+            "specks": 52,
+            "beams": 0,
+            "drawCalls": 2,
+            "reducedMotion": false,
+            "mobileBudget": false,
+            "noSceneFogMutation": true,
+            "noDynamicLights": true,
+            "disposed": false
+          },
+          "afterlifeSurfaces": {
+            "applied": true,
+            "version": 1,
+            "sector": "bloodworks",
+            "visited": 1385,
+            "meshes": 1279,
+            "changedMeshes": 1017,
+            "changedMaterials": 71,
+            "clonedMaterials": 71,
+            "skipped": 32,
+            "skippedSubtrees": 32,
+            "preservedCues": 274,
+            "materialSyncScheduled": true,
+            "materialSyncPending": 0,
+            "roles": {
+              "roomFloor": 7,
+              "roomFloorInset": 5,
+              "roomRecess": 29,
+              "roomMetal": 551,
+              "roomWall": 33,
+              "roomPanel": 6,
+              "roomTrim": 84,
+              "roomSignal": 165,
+              "roomRust": 42,
+              "roomHazard": 53,
+              "roomBone": 42
+            }
+          },
+          "afterlifeEnemies": 0,
+          "transmissionCoverage": 1,
+          "weaponBatch": [
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 81,
+              "meshesAfter": 81,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 8,
+              "groups": 17,
+              "meshesBefore": 163,
+              "meshesAfter": 101,
+              "mergedMeshes": 17,
+              "mergedSources": 79
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 95,
+              "meshesAfter": 95,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 106,
+              "meshesAfter": 106,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            }
+          ],
+          "survivor": {
+            "status": "ready",
+            "source": "meshy-v02",
+            "viewSleeves": 7,
+            "error": null
+          },
+          "targetFrameMs": 6.944444444444445,
+          "webgl": true,
+          "error": null,
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "renderScale": 1,
+          "fov": 92.86,
+          "meshes": 1054,
+          "instancedMeshes": 137,
+          "geometries": 722,
+          "materials": 362,
+          "triangles": 680509,
+          "calls": 358,
+          "gpuTriangles": 273932,
+          "rendererGeometries": 638,
+          "explosions": {
+            "active": 0,
+            "fire": 0,
+            "smoke": 0,
+            "embers": 0,
+            "rings": 0,
+            "maxExplosions": 18,
+            "reducedMotion": false,
+            "gore": true
+          },
+          "impacts": {
+            "marks": 0,
+            "smoke": 0,
+            "capacity": {
+              "marks": 96,
+              "smoke": 96
+            }
+          },
+          "rendererTextures": 103,
+          "enemyContactShadows": 0,
+          "enemies": 0,
+          "gore": 0,
+          "blood": 0,
+          "projectiles": 0,
+          "tracers": 0,
+          "coins": 0,
+          "world": "bloodworks",
+          "warden": "ready",
+          "wardenInstances": 0
+        }
+      },
+      {
+        "atMs": 68956,
+        "fps": 56.10647181628433,
+        "renderer": {
+          "renderer": "three.js",
+          "worldBatch": {
+            "removed": 691,
+            "batches": 29
+          },
+          "staticWorld": {
+            "frozen": 190,
+            "pruned": 6
+          },
+          "boundedLighting": true,
+          "afterlifeLighting": {
+            "practicalPool": 6,
+            "authoredCues": 14,
+            "lanternShadow": 512
+          },
+          "afterlifeAtmosphere": {
+            "name": "AfterlifeAtmosphere",
+            "seed": 2935229363,
+            "courseId": "bloodworks",
+            "bounded": true,
+            "coordinateCellMeters": 4,
+            "floorY": 0,
+            "roomCount": 4,
+            "roomIds": [
+              "bloodworks-act-i-entry",
+              "bloodworks-act-i-gallery",
+              "bloodworks-act-i-court",
+              "bloodworks-act-i-objective"
+            ],
+            "mistPatches": 6,
+            "coldSources": 2,
+            "specks": 52,
+            "beams": 0,
+            "drawCalls": 2,
+            "reducedMotion": false,
+            "mobileBudget": false,
+            "noSceneFogMutation": true,
+            "noDynamicLights": true,
+            "disposed": false
+          },
+          "afterlifeSurfaces": {
+            "applied": true,
+            "version": 1,
+            "sector": "bloodworks",
+            "visited": 1385,
+            "meshes": 1279,
+            "changedMeshes": 1017,
+            "changedMaterials": 71,
+            "clonedMaterials": 71,
+            "skipped": 32,
+            "skippedSubtrees": 32,
+            "preservedCues": 274,
+            "materialSyncScheduled": true,
+            "materialSyncPending": 0,
+            "roles": {
+              "roomFloor": 7,
+              "roomFloorInset": 5,
+              "roomRecess": 29,
+              "roomMetal": 551,
+              "roomWall": 33,
+              "roomPanel": 6,
+              "roomTrim": 84,
+              "roomSignal": 165,
+              "roomRust": 42,
+              "roomHazard": 53,
+              "roomBone": 42
+            }
+          },
+          "afterlifeEnemies": 4,
+          "transmissionCoverage": 1,
+          "weaponBatch": [
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 81,
+              "meshesAfter": 81,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 8,
+              "groups": 17,
+              "meshesBefore": 163,
+              "meshesAfter": 101,
+              "mergedMeshes": 17,
+              "mergedSources": 79
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 95,
+              "meshesAfter": 95,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 106,
+              "meshesAfter": 106,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            }
+          ],
+          "survivor": {
+            "status": "ready",
+            "source": "meshy-v02",
+            "viewSleeves": 7,
+            "error": null
+          },
+          "targetFrameMs": 6.944444444444445,
+          "webgl": true,
+          "error": null,
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "renderScale": 1,
+          "fov": 92.34,
+          "meshes": 1083,
+          "instancedMeshes": 137,
+          "geometries": 739,
+          "materials": 387,
+          "triangles": 931461,
+          "calls": 423,
+          "gpuTriangles": 351852,
+          "rendererGeometries": 743,
+          "explosions": {
+            "active": 0,
+            "fire": 0,
+            "smoke": 0,
+            "embers": 0,
+            "rings": 0,
+            "maxExplosions": 18,
+            "reducedMotion": false,
+            "gore": true
+          },
+          "impacts": {
+            "marks": 35,
+            "smoke": 3,
+            "capacity": {
+              "marks": 96,
+              "smoke": 96
+            }
+          },
+          "rendererTextures": 117,
+          "enemyContactShadows": 1,
+          "enemies": 1,
+          "gore": 24,
+          "blood": 29,
+          "projectiles": 0,
+          "tracers": 0,
+          "coins": 0,
+          "world": "bloodworks",
+          "warden": "ready",
+          "wardenInstances": 0
+        }
+      },
+      {
+        "atMs": 75512,
+        "fps": 48.5374888236049,
+        "renderer": {
+          "renderer": "three.js",
+          "worldBatch": {
+            "removed": 691,
+            "batches": 29
+          },
+          "staticWorld": {
+            "frozen": 190,
+            "pruned": 6
+          },
+          "boundedLighting": true,
+          "afterlifeLighting": {
+            "practicalPool": 6,
+            "authoredCues": 14,
+            "lanternShadow": 512
+          },
+          "afterlifeAtmosphere": {
+            "name": "AfterlifeAtmosphere",
+            "seed": 2935229363,
+            "courseId": "bloodworks",
+            "bounded": true,
+            "coordinateCellMeters": 4,
+            "floorY": 0,
+            "roomCount": 4,
+            "roomIds": [
+              "bloodworks-act-i-entry",
+              "bloodworks-act-i-gallery",
+              "bloodworks-act-i-court",
+              "bloodworks-act-i-objective"
+            ],
+            "mistPatches": 6,
+            "coldSources": 2,
+            "specks": 52,
+            "beams": 0,
+            "drawCalls": 2,
+            "reducedMotion": false,
+            "mobileBudget": false,
+            "noSceneFogMutation": true,
+            "noDynamicLights": true,
+            "disposed": false
+          },
+          "afterlifeSurfaces": {
+            "applied": true,
+            "version": 1,
+            "sector": "bloodworks",
+            "visited": 1385,
+            "meshes": 1279,
+            "changedMeshes": 1017,
+            "changedMaterials": 71,
+            "clonedMaterials": 71,
+            "skipped": 32,
+            "skippedSubtrees": 32,
+            "preservedCues": 274,
+            "materialSyncScheduled": true,
+            "materialSyncPending": 0,
+            "roles": {
+              "roomFloor": 7,
+              "roomFloorInset": 5,
+              "roomRecess": 29,
+              "roomMetal": 551,
+              "roomWall": 33,
+              "roomPanel": 6,
+              "roomTrim": 84,
+              "roomSignal": 165,
+              "roomRust": 42,
+              "roomHazard": 53,
+              "roomBone": 42
+            }
+          },
+          "afterlifeEnemies": 4,
+          "transmissionCoverage": 0.03666898148148148,
+          "weaponBatch": [
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 81,
+              "meshesAfter": 81,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 8,
+              "groups": 17,
+              "meshesBefore": 163,
+              "meshesAfter": 101,
+              "mergedMeshes": 17,
+              "mergedSources": 79
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 95,
+              "meshesAfter": 95,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 106,
+              "meshesAfter": 106,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            }
+          ],
+          "survivor": {
+            "status": "ready",
+            "source": "meshy-v02",
+            "viewSleeves": 7,
+            "error": null
+          },
+          "targetFrameMs": 6.944444444444445,
+          "webgl": true,
+          "error": null,
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "renderScale": 1,
+          "fov": 92.06,
+          "meshes": 1083,
+          "instancedMeshes": 137,
+          "geometries": 739,
+          "materials": 387,
+          "triangles": 931461,
+          "calls": 389,
+          "gpuTriangles": 465912,
+          "rendererGeometries": 743,
+          "explosions": {
+            "active": 0,
+            "fire": 0,
+            "smoke": 0,
+            "embers": 0,
+            "rings": 0,
+            "maxExplosions": 18,
+            "reducedMotion": false,
+            "gore": true
+          },
+          "impacts": {
+            "marks": 9,
+            "smoke": 0,
+            "capacity": {
+              "marks": 96,
+              "smoke": 96
+            }
+          },
+          "rendererTextures": 117,
+          "enemyContactShadows": 0,
+          "enemies": 0,
+          "gore": 0,
+          "blood": 37,
+          "projectiles": 0,
+          "tracers": 0,
+          "coins": 0,
+          "world": "bloodworks",
+          "warden": "ready",
+          "wardenInstances": 0
+        }
+      },
+      {
+        "atMs": 89697,
+        "fps": 15.923566878981005,
+        "renderer": {
+          "renderer": "three.js",
+          "worldBatch": {
+            "removed": 691,
+            "batches": 29
+          },
+          "staticWorld": {
+            "frozen": 190,
+            "pruned": 6
+          },
+          "boundedLighting": true,
+          "afterlifeLighting": {
+            "practicalPool": 6,
+            "authoredCues": 14,
+            "lanternShadow": 512
+          },
+          "afterlifeAtmosphere": {
+            "name": "AfterlifeAtmosphere",
+            "seed": 2935229363,
+            "courseId": "bloodworks",
+            "bounded": true,
+            "coordinateCellMeters": 4,
+            "floorY": 0,
+            "roomCount": 4,
+            "roomIds": [
+              "bloodworks-act-i-entry",
+              "bloodworks-act-i-gallery",
+              "bloodworks-act-i-court",
+              "bloodworks-act-i-objective"
+            ],
+            "mistPatches": 6,
+            "coldSources": 2,
+            "specks": 52,
+            "beams": 0,
+            "drawCalls": 2,
+            "reducedMotion": false,
+            "mobileBudget": false,
+            "noSceneFogMutation": true,
+            "noDynamicLights": true,
+            "disposed": false
+          },
+          "afterlifeSurfaces": {
+            "applied": true,
+            "version": 1,
+            "sector": "bloodworks",
+            "visited": 1385,
+            "meshes": 1279,
+            "changedMeshes": 1017,
+            "changedMaterials": 71,
+            "clonedMaterials": 71,
+            "skipped": 32,
+            "skippedSubtrees": 32,
+            "preservedCues": 274,
+            "materialSyncScheduled": true,
+            "materialSyncPending": 0,
+            "roles": {
+              "roomFloor": 7,
+              "roomFloorInset": 5,
+              "roomRecess": 29,
+              "roomMetal": 551,
+              "roomWall": 33,
+              "roomPanel": 6,
+              "roomTrim": 84,
+              "roomSignal": 165,
+              "roomRust": 42,
+              "roomHazard": 53,
+              "roomBone": 42
+            }
+          },
+          "afterlifeEnemies": 9,
+          "transmissionCoverage": 0.036814814814814814,
+          "weaponBatch": [
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 81,
+              "meshesAfter": 81,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 8,
+              "groups": 17,
+              "meshesBefore": 163,
+              "meshesAfter": 101,
+              "mergedMeshes": 17,
+              "mergedSources": 79
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 95,
+              "meshesAfter": 95,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 106,
+              "meshesAfter": 106,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            }
+          ],
+          "survivor": {
+            "status": "ready",
+            "source": "meshy-v02",
+            "viewSleeves": 7,
+            "error": null
+          },
+          "targetFrameMs": 6.944444444444445,
+          "webgl": true,
+          "error": null,
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "renderScale": 1,
+          "fov": 95.94,
+          "meshes": 1120,
+          "instancedMeshes": 137,
+          "geometries": 761,
+          "materials": 419,
+          "triangles": 1245379,
+          "calls": 953,
+          "gpuTriangles": 1187628,
+          "rendererGeometries": 765,
+          "explosions": {
+            "active": 0,
+            "fire": 0,
+            "smoke": 0,
+            "embers": 0,
+            "rings": 0,
+            "maxExplosions": 18,
+            "reducedMotion": false,
+            "gore": true
+          },
+          "impacts": {
+            "marks": 31,
+            "smoke": 0,
+            "capacity": {
+              "marks": 96,
+              "smoke": 96
+            }
+          },
+          "rendererTextures": 132,
+          "enemyContactShadows": 4,
+          "enemies": 4,
+          "gore": 60,
+          "blood": 44,
+          "projectiles": 0,
+          "tracers": 0,
+          "coins": 0,
+          "world": "bloodworks",
+          "warden": "ready",
+          "wardenInstances": 0
+        }
+      },
+      {
+        "atMs": 96192,
+        "fps": 48.28396189481908,
+        "renderer": {
+          "renderer": "three.js",
+          "worldBatch": {
+            "removed": 691,
+            "batches": 29
+          },
+          "staticWorld": {
+            "frozen": 190,
+            "pruned": 6
+          },
+          "boundedLighting": true,
+          "afterlifeLighting": {
+            "practicalPool": 6,
+            "authoredCues": 14,
+            "lanternShadow": 512
+          },
+          "afterlifeAtmosphere": {
+            "name": "AfterlifeAtmosphere",
+            "seed": 2935229363,
+            "courseId": "bloodworks",
+            "bounded": true,
+            "coordinateCellMeters": 4,
+            "floorY": 0,
+            "roomCount": 4,
+            "roomIds": [
+              "bloodworks-act-i-entry",
+              "bloodworks-act-i-gallery",
+              "bloodworks-act-i-court",
+              "bloodworks-act-i-objective"
+            ],
+            "mistPatches": 6,
+            "coldSources": 2,
+            "specks": 52,
+            "beams": 0,
+            "drawCalls": 2,
+            "reducedMotion": false,
+            "mobileBudget": false,
+            "noSceneFogMutation": true,
+            "noDynamicLights": true,
+            "disposed": false
+          },
+          "afterlifeSurfaces": {
+            "applied": true,
+            "version": 1,
+            "sector": "bloodworks",
+            "visited": 1385,
+            "meshes": 1279,
+            "changedMeshes": 1017,
+            "changedMaterials": 71,
+            "clonedMaterials": 71,
+            "skipped": 32,
+            "skippedSubtrees": 32,
+            "preservedCues": 274,
+            "materialSyncScheduled": true,
+            "materialSyncPending": 0,
+            "roles": {
+              "roomFloor": 7,
+              "roomFloorInset": 5,
+              "roomRecess": 29,
+              "roomMetal": 551,
+              "roomWall": 33,
+              "roomPanel": 6,
+              "roomTrim": 84,
+              "roomSignal": 165,
+              "roomRust": 42,
+              "roomHazard": 53,
+              "roomBone": 42
+            }
+          },
+          "afterlifeEnemies": 9,
+          "transmissionCoverage": 1,
+          "weaponBatch": [
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 81,
+              "meshesAfter": 81,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 8,
+              "groups": 17,
+              "meshesBefore": 163,
+              "meshesAfter": 101,
+              "mergedMeshes": 17,
+              "mergedSources": 79
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 95,
+              "meshesAfter": 95,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 106,
+              "meshesAfter": 106,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            }
+          ],
+          "survivor": {
+            "status": "ready",
+            "source": "meshy-v02",
+            "viewSleeves": 7,
+            "error": null
+          },
+          "targetFrameMs": 6.944444444444445,
+          "webgl": true,
+          "error": null,
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "renderScale": 1,
+          "fov": 92,
+          "meshes": 1120,
+          "instancedMeshes": 137,
+          "geometries": 761,
+          "materials": 419,
+          "triangles": 1245379,
+          "calls": 294,
+          "gpuTriangles": 452370,
+          "rendererGeometries": 765,
+          "explosions": {
+            "active": 0,
+            "fire": 0,
+            "smoke": 0,
+            "embers": 0,
+            "rings": 0,
+            "maxExplosions": 18,
+            "reducedMotion": false,
+            "gore": true
+          },
+          "impacts": {
+            "marks": 40,
+            "smoke": 10,
+            "capacity": {
+              "marks": 96,
+              "smoke": 96
+            }
+          },
+          "rendererTextures": 132,
+          "enemyContactShadows": 3,
+          "enemies": 3,
+          "gore": 23,
+          "blood": 71,
+          "projectiles": 0,
+          "tracers": 0,
+          "coins": 0,
+          "world": "bloodworks",
+          "warden": "ready",
+          "wardenInstances": 0
+        }
+      },
+      {
+        "atMs": 102989,
+        "fps": 60.01304631441618,
+        "renderer": {
+          "renderer": "three.js",
+          "worldBatch": {
+            "removed": 691,
+            "batches": 29
+          },
+          "staticWorld": {
+            "frozen": 190,
+            "pruned": 6
+          },
+          "boundedLighting": true,
+          "afterlifeLighting": {
+            "practicalPool": 6,
+            "authoredCues": 14,
+            "lanternShadow": 512
+          },
+          "afterlifeAtmosphere": {
+            "name": "AfterlifeAtmosphere",
+            "seed": 2935229363,
+            "courseId": "bloodworks",
+            "bounded": true,
+            "coordinateCellMeters": 4,
+            "floorY": 0,
+            "roomCount": 4,
+            "roomIds": [
+              "bloodworks-act-i-entry",
+              "bloodworks-act-i-gallery",
+              "bloodworks-act-i-court",
+              "bloodworks-act-i-objective"
+            ],
+            "mistPatches": 6,
+            "coldSources": 2,
+            "specks": 52,
+            "beams": 0,
+            "drawCalls": 2,
+            "reducedMotion": false,
+            "mobileBudget": false,
+            "noSceneFogMutation": true,
+            "noDynamicLights": true,
+            "disposed": false
+          },
+          "afterlifeSurfaces": {
+            "applied": true,
+            "version": 1,
+            "sector": "bloodworks",
+            "visited": 1385,
+            "meshes": 1279,
+            "changedMeshes": 1017,
+            "changedMaterials": 71,
+            "clonedMaterials": 71,
+            "skipped": 32,
+            "skippedSubtrees": 32,
+            "preservedCues": 274,
+            "materialSyncScheduled": true,
+            "materialSyncPending": 0,
+            "roles": {
+              "roomFloor": 7,
+              "roomFloorInset": 5,
+              "roomRecess": 29,
+              "roomMetal": 551,
+              "roomWall": 33,
+              "roomPanel": 6,
+              "roomTrim": 84,
+              "roomSignal": 165,
+              "roomRust": 42,
+              "roomHazard": 53,
+              "roomBone": 42
+            }
+          },
+          "afterlifeEnemies": 0,
+          "transmissionCoverage": 1,
+          "weaponBatch": [
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 81,
+              "meshesAfter": 81,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 8,
+              "groups": 17,
+              "meshesBefore": 163,
+              "meshesAfter": 101,
+              "mergedMeshes": 17,
+              "mergedSources": 79
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 95,
+              "meshesAfter": 95,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 106,
+              "meshesAfter": 106,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            }
+          ],
+          "survivor": {
+            "status": "ready",
+            "source": "meshy-v02",
+            "viewSleeves": 7,
+            "error": null
+          },
+          "targetFrameMs": 6.944444444444445,
+          "webgl": true,
+          "error": null,
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "renderScale": 1,
+          "fov": 92.39,
+          "meshes": 1054,
+          "instancedMeshes": 137,
+          "geometries": 722,
+          "materials": 362,
+          "triangles": 680509,
+          "calls": 344,
+          "gpuTriangles": 272696,
+          "rendererGeometries": 639,
+          "explosions": {
+            "active": 0,
+            "fire": 0,
+            "smoke": 0,
+            "embers": 0,
+            "rings": 0,
+            "maxExplosions": 18,
+            "reducedMotion": false,
+            "gore": true
+          },
+          "impacts": {
+            "marks": 0,
+            "smoke": 0,
+            "capacity": {
+              "marks": 96,
+              "smoke": 96
+            }
+          },
+          "rendererTextures": 103,
+          "enemyContactShadows": 0,
+          "enemies": 0,
+          "gore": 0,
+          "blood": 0,
+          "projectiles": 0,
+          "tracers": 0,
+          "coins": 0,
+          "world": "bloodworks",
+          "warden": "ready",
+          "wardenInstances": 0
+        }
+      },
+      {
+        "atMs": 112994,
+        "fps": 60.020876826722784,
+        "renderer": {
+          "renderer": "three.js",
+          "worldBatch": {
+            "removed": 691,
+            "batches": 29
+          },
+          "staticWorld": {
+            "frozen": 190,
+            "pruned": 6
+          },
+          "boundedLighting": true,
+          "afterlifeLighting": {
+            "practicalPool": 6,
+            "authoredCues": 14,
+            "lanternShadow": 512
+          },
+          "afterlifeAtmosphere": {
+            "name": "AfterlifeAtmosphere",
+            "seed": 2935229363,
+            "courseId": "bloodworks",
+            "bounded": true,
+            "coordinateCellMeters": 4,
+            "floorY": 0,
+            "roomCount": 4,
+            "roomIds": [
+              "bloodworks-act-i-entry",
+              "bloodworks-act-i-gallery",
+              "bloodworks-act-i-court",
+              "bloodworks-act-i-objective"
+            ],
+            "mistPatches": 6,
+            "coldSources": 2,
+            "specks": 52,
+            "beams": 0,
+            "drawCalls": 2,
+            "reducedMotion": false,
+            "mobileBudget": false,
+            "noSceneFogMutation": true,
+            "noDynamicLights": true,
+            "disposed": false
+          },
+          "afterlifeSurfaces": {
+            "applied": true,
+            "version": 1,
+            "sector": "bloodworks",
+            "visited": 1385,
+            "meshes": 1279,
+            "changedMeshes": 1017,
+            "changedMaterials": 71,
+            "clonedMaterials": 71,
+            "skipped": 32,
+            "skippedSubtrees": 32,
+            "preservedCues": 274,
+            "materialSyncScheduled": true,
+            "materialSyncPending": 0,
+            "roles": {
+              "roomFloor": 7,
+              "roomFloorInset": 5,
+              "roomRecess": 29,
+              "roomMetal": 551,
+              "roomWall": 33,
+              "roomPanel": 6,
+              "roomTrim": 84,
+              "roomSignal": 165,
+              "roomRust": 42,
+              "roomHazard": 53,
+              "roomBone": 42
+            }
+          },
+          "afterlifeEnemies": 4,
+          "transmissionCoverage": 0.03583179012345679,
+          "weaponBatch": [
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 81,
+              "meshesAfter": 81,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 8,
+              "groups": 17,
+              "meshesBefore": 163,
+              "meshesAfter": 101,
+              "mergedMeshes": 17,
+              "mergedSources": 79
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 95,
+              "meshesAfter": 95,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 106,
+              "meshesAfter": 106,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            }
+          ],
+          "survivor": {
+            "status": "ready",
+            "source": "meshy-v02",
+            "viewSleeves": 7,
+            "error": null
+          },
+          "targetFrameMs": 6.944444444444445,
+          "webgl": true,
+          "error": null,
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "renderScale": 1,
+          "fov": 94.63,
+          "meshes": 1083,
+          "instancedMeshes": 137,
+          "geometries": 739,
+          "materials": 387,
+          "triangles": 931461,
+          "calls": 239,
+          "gpuTriangles": 567916,
+          "rendererGeometries": 744,
+          "explosions": {
+            "active": 0,
+            "fire": 0,
+            "smoke": 0,
+            "embers": 0,
+            "rings": 0,
+            "maxExplosions": 18,
+            "reducedMotion": false,
+            "gore": true
+          },
+          "impacts": {
+            "marks": 45,
+            "smoke": 1,
+            "capacity": {
+              "marks": 96,
+              "smoke": 96
+            }
+          },
+          "rendererTextures": 117,
+          "enemyContactShadows": 2,
+          "enemies": 2,
+          "gore": 43,
+          "blood": 26,
+          "projectiles": 0,
+          "tracers": 0,
+          "coins": 1,
+          "world": "bloodworks",
+          "warden": "ready",
+          "wardenInstances": 0
+        }
+      },
+      {
+        "atMs": 119751,
+        "fps": 60.020876826722784,
+        "renderer": {
+          "renderer": "three.js",
+          "worldBatch": {
+            "removed": 691,
+            "batches": 29
+          },
+          "staticWorld": {
+            "frozen": 190,
+            "pruned": 6
+          },
+          "boundedLighting": true,
+          "afterlifeLighting": {
+            "practicalPool": 6,
+            "authoredCues": 14,
+            "lanternShadow": 512
+          },
+          "afterlifeAtmosphere": {
+            "name": "AfterlifeAtmosphere",
+            "seed": 2935229363,
+            "courseId": "bloodworks",
+            "bounded": true,
+            "coordinateCellMeters": 4,
+            "floorY": 0,
+            "roomCount": 4,
+            "roomIds": [
+              "bloodworks-act-i-entry",
+              "bloodworks-act-i-gallery",
+              "bloodworks-act-i-court",
+              "bloodworks-act-i-objective"
+            ],
+            "mistPatches": 6,
+            "coldSources": 2,
+            "specks": 52,
+            "beams": 0,
+            "drawCalls": 2,
+            "reducedMotion": false,
+            "mobileBudget": false,
+            "noSceneFogMutation": true,
+            "noDynamicLights": true,
+            "disposed": false
+          },
+          "afterlifeSurfaces": {
+            "applied": true,
+            "version": 1,
+            "sector": "bloodworks",
+            "visited": 1385,
+            "meshes": 1279,
+            "changedMeshes": 1017,
+            "changedMaterials": 71,
+            "clonedMaterials": 71,
+            "skipped": 32,
+            "skippedSubtrees": 32,
+            "preservedCues": 274,
+            "materialSyncScheduled": true,
+            "materialSyncPending": 0,
+            "roles": {
+              "roomFloor": 7,
+              "roomFloorInset": 5,
+              "roomRecess": 29,
+              "roomMetal": 551,
+              "roomWall": 33,
+              "roomPanel": 6,
+              "roomTrim": 84,
+              "roomSignal": 165,
+              "roomRust": 42,
+              "roomHazard": 53,
+              "roomBone": 42
+            }
+          },
+          "afterlifeEnemies": 4,
+          "transmissionCoverage": 1,
+          "weaponBatch": [
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 81,
+              "meshesAfter": 81,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 8,
+              "groups": 17,
+              "meshesBefore": 163,
+              "meshesAfter": 101,
+              "mergedMeshes": 17,
+              "mergedSources": 79
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 95,
+              "meshesAfter": 95,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 106,
+              "meshesAfter": 106,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            }
+          ],
+          "survivor": {
+            "status": "ready",
+            "source": "meshy-v02",
+            "viewSleeves": 7,
+            "error": null
+          },
+          "targetFrameMs": 6.944444444444445,
+          "webgl": true,
+          "error": null,
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "renderScale": 1,
+          "fov": 92.43,
+          "meshes": 1083,
+          "instancedMeshes": 137,
+          "geometries": 739,
+          "materials": 387,
+          "triangles": 931461,
+          "calls": 488,
+          "gpuTriangles": 299944,
+          "rendererGeometries": 744,
+          "explosions": {
+            "active": 0,
+            "fire": 0,
+            "smoke": 0,
+            "embers": 0,
+            "rings": 0,
+            "maxExplosions": 18,
+            "reducedMotion": false,
+            "gore": true
+          },
+          "impacts": {
+            "marks": 52,
+            "smoke": 13,
+            "capacity": {
+              "marks": 96,
+              "smoke": 96
+            }
+          },
+          "rendererTextures": 117,
+          "enemyContactShadows": 0,
+          "enemies": 0,
+          "gore": 85,
+          "blood": 46,
+          "projectiles": 0,
+          "tracers": 5,
+          "coins": 0,
+          "world": "bloodworks",
+          "warden": "ready",
+          "wardenInstances": 0
+        }
+      },
+      {
+        "atMs": 120286,
+        "fps": 60.044380629160216,
+        "renderer": {
+          "renderer": "three.js",
+          "worldBatch": {
+            "removed": 691,
+            "batches": 29
+          },
+          "staticWorld": {
+            "frozen": 190,
+            "pruned": 6
+          },
+          "boundedLighting": true,
+          "afterlifeLighting": {
+            "practicalPool": 6,
+            "authoredCues": 14,
+            "lanternShadow": 512
+          },
+          "afterlifeAtmosphere": {
+            "name": "AfterlifeAtmosphere",
+            "seed": 2935229363,
+            "courseId": "bloodworks",
+            "bounded": true,
+            "coordinateCellMeters": 4,
+            "floorY": 0,
+            "roomCount": 4,
+            "roomIds": [
+              "bloodworks-act-i-entry",
+              "bloodworks-act-i-gallery",
+              "bloodworks-act-i-court",
+              "bloodworks-act-i-objective"
+            ],
+            "mistPatches": 6,
+            "coldSources": 2,
+            "specks": 52,
+            "beams": 0,
+            "drawCalls": 2,
+            "reducedMotion": false,
+            "mobileBudget": false,
+            "noSceneFogMutation": true,
+            "noDynamicLights": true,
+            "disposed": false
+          },
+          "afterlifeSurfaces": {
+            "applied": true,
+            "version": 1,
+            "sector": "bloodworks",
+            "visited": 1385,
+            "meshes": 1279,
+            "changedMeshes": 1017,
+            "changedMaterials": 71,
+            "clonedMaterials": 71,
+            "skipped": 32,
+            "skippedSubtrees": 32,
+            "preservedCues": 274,
+            "materialSyncScheduled": true,
+            "materialSyncPending": 0,
+            "roles": {
+              "roomFloor": 7,
+              "roomFloorInset": 5,
+              "roomRecess": 29,
+              "roomMetal": 551,
+              "roomWall": 33,
+              "roomPanel": 6,
+              "roomTrim": 84,
+              "roomSignal": 165,
+              "roomRust": 42,
+              "roomHazard": 53,
+              "roomBone": 42
+            }
+          },
+          "afterlifeEnemies": 4,
+          "transmissionCoverage": 1,
+          "weaponBatch": [
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 81,
+              "meshesAfter": 81,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 8,
+              "groups": 17,
+              "meshesBefore": 163,
+              "meshesAfter": 101,
+              "mergedMeshes": 17,
+              "mergedSources": 79
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 95,
+              "meshesAfter": 95,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            },
+            {
+              "parents": 0,
+              "groups": 0,
+              "meshesBefore": 106,
+              "meshesAfter": 106,
+              "mergedMeshes": 0,
+              "mergedSources": 0
+            }
+          ],
+          "survivor": {
+            "status": "ready",
+            "source": "meshy-v02",
+            "viewSleeves": 7,
+            "error": null
+          },
+          "targetFrameMs": 6.944444444444445,
+          "webgl": true,
+          "error": null,
+          "width": 1440,
+          "height": 900,
+          "dpr": 1,
+          "renderScale": 1,
+          "fov": 92.21,
+          "meshes": 1083,
+          "instancedMeshes": 137,
+          "geometries": 739,
+          "materials": 387,
+          "triangles": 931461,
+          "calls": 444,
+          "gpuTriangles": 290020,
+          "rendererGeometries": 744,
+          "explosions": {
+            "active": 0,
+            "fire": 0,
+            "smoke": 0,
+            "embers": 0,
+            "rings": 0,
+            "maxExplosions": 18,
+            "reducedMotion": false,
+            "gore": true
+          },
+          "impacts": {
+            "marks": 49,
+            "smoke": 5,
+            "capacity": {
+              "marks": 96,
+              "smoke": 96
+            }
+          },
+          "rendererTextures": 117,
+          "enemyContactShadows": 0,
+          "enemies": 0,
+          "gore": 58,
+          "blood": 46,
+          "projectiles": 0,
+          "tracers": 0,
+          "coins": 0,
+          "world": "bloodworks",
+          "warden": "ready",
+          "wardenInstances": 0
+        }
+      }
+    ],
+    "fps": {
+      "min": 15.923566878981005,
+      "max": 60.044380629160216,
+      "median": 56.10647181628433
+    },
+    "diagnostics": {
+      "renderer": "three.js",
+      "worldBatch": {
+        "removed": 691,
+        "batches": 29
+      },
+      "staticWorld": {
+        "frozen": 190,
+        "pruned": 6
+      },
+      "boundedLighting": true,
+      "afterlifeLighting": {
+        "practicalPool": 6,
+        "authoredCues": 14,
+        "lanternShadow": 512
+      },
+      "afterlifeAtmosphere": {
+        "name": "AfterlifeAtmosphere",
+        "seed": 2935229363,
+        "courseId": "bloodworks",
+        "bounded": true,
+        "coordinateCellMeters": 4,
+        "floorY": 0,
+        "roomCount": 4,
+        "roomIds": [
+          "bloodworks-act-i-entry",
+          "bloodworks-act-i-gallery",
+          "bloodworks-act-i-court",
+          "bloodworks-act-i-objective"
+        ],
+        "mistPatches": 6,
+        "coldSources": 2,
+        "specks": 52,
+        "beams": 0,
+        "drawCalls": 2,
+        "reducedMotion": false,
+        "mobileBudget": false,
+        "noSceneFogMutation": true,
+        "noDynamicLights": true,
+        "disposed": false
+      },
+      "afterlifeSurfaces": {
+        "applied": true,
+        "version": 1,
+        "sector": "bloodworks",
+        "visited": 1385,
+        "meshes": 1279,
+        "changedMeshes": 1017,
+        "changedMaterials": 71,
+        "clonedMaterials": 71,
+        "skipped": 32,
+        "skippedSubtrees": 32,
+        "preservedCues": 274,
+        "materialSyncScheduled": true,
+        "materialSyncPending": 0,
+        "roles": {
+          "roomFloor": 7,
+          "roomFloorInset": 5,
+          "roomRecess": 29,
+          "roomMetal": 551,
+          "roomWall": 33,
+          "roomPanel": 6,
+          "roomTrim": 84,
+          "roomSignal": 165,
+          "roomRust": 42,
+          "roomHazard": 53,
+          "roomBone": 42
+        }
+      },
+      "afterlifeEnemies": 4,
+      "transmissionCoverage": 1,
+      "weaponBatch": [
+        {
+          "parents": 0,
+          "groups": 0,
+          "meshesBefore": 81,
+          "meshesAfter": 81,
+          "mergedMeshes": 0,
+          "mergedSources": 0
+        },
+        {
+          "parents": 8,
+          "groups": 17,
+          "meshesBefore": 163,
+          "meshesAfter": 101,
+          "mergedMeshes": 17,
+          "mergedSources": 79
+        },
+        {
+          "parents": 0,
+          "groups": 0,
+          "meshesBefore": 95,
+          "meshesAfter": 95,
+          "mergedMeshes": 0,
+          "mergedSources": 0
+        },
+        {
+          "parents": 0,
+          "groups": 0,
+          "meshesBefore": 106,
+          "meshesAfter": 106,
+          "mergedMeshes": 0,
+          "mergedSources": 0
+        }
+      ],
+      "survivor": {
+        "status": "ready",
+        "source": "meshy-v02",
+        "viewSleeves": 7,
+        "error": null
+      },
+      "targetFrameMs": 6.944444444444445,
+      "webgl": true,
+      "error": null,
+      "width": 1440,
+      "height": 900,
+      "dpr": 1,
+      "renderScale": 1,
+      "fov": 92.21,
+      "meshes": 1083,
+      "instancedMeshes": 137,
+      "geometries": 739,
+      "materials": 387,
+      "triangles": 931461,
+      "calls": 444,
+      "gpuTriangles": 290020,
+      "rendererGeometries": 744,
+      "explosions": {
+        "active": 0,
+        "fire": 0,
+        "smoke": 0,
+        "embers": 0,
+        "rings": 0,
+        "maxExplosions": 18,
+        "reducedMotion": false,
+        "gore": true
+      },
+      "impacts": {
+        "marks": 49,
+        "smoke": 5,
+        "capacity": {
+          "marks": 96,
+          "smoke": 96
+        }
+      },
+      "rendererTextures": 117,
+      "enemyContactShadows": 0,
+      "enemies": 0,
+      "gore": 58,
+      "blood": 46,
+      "projectiles": 0,
+      "tracers": 0,
+      "coins": 0,
+      "world": "bloodworks",
+      "warden": "ready",
+      "wardenInstances": 0
+    },
+    "pixel": null
+  },
+  "artifacts": [
+    {
+      "path": "docs/afterlife-upgrade/sustained/combat-gore.png",
+      "label": "combat gore and blood during active shotgun attack",
+      "bytes": 545921,
+      "pixelError": "Cannot read properties of undefined (reading 'toFixed')"
+    },
+    {
+      "path": "docs/afterlife-upgrade/sustained/sustained-active-final.png",
+      "label": "active final sustained-play screenshot",
+      "bytes": 723381,
+      "pixelError": "Cannot read properties of undefined (reading 'toFixed')"
+    }
+  ],
+  "console": {
+    "errors": [],
+    "pageErrors": [],
+    "failedRequests": [],
+    "badResponses": []
+  },
+  "issues": [],
+  "fatal": null,
+  "finishedAt": "2026-09-23T09:21:52.447Z",
+  "status": "pass-with-findings"
+}

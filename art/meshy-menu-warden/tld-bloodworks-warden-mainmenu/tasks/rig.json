@@ -1,0 +1,25 @@
+{
+  "id": "01a0c5c1-ba1b-7546-a5b3-54696144cabf",
+  "type": "rig",
+  "name": "",
+  "status": "SUCCEEDED",
+  "created_at": 1790024217487,
+  "progress": 100,
+  "started_at": 1790024217495,
+  "finished_at": 1790024265546,
+  "expires_at": 1790283465546,
+  "task_error": null,
+  "result": {
+    "rigged_character_fbx_url": "<redacted-signed-url>",
+    "rigged_character_glb_url": "<redacted-signed-url>",
+    "basic_animations": {
+      "walking_glb_url": "<redacted-signed-url>",
+      "walking_fbx_url": "<redacted-signed-url>",
+      "walking_armature_glb_url": "<redacted-signed-url>",
+      "running_glb_url": "<redacted-signed-url>",
+      "running_fbx_url": "<redacted-signed-url>",
+      "running_armature_glb_url": "<redacted-signed-url>"
+    }
+  },
+  "consumed_credits": 5
+}

@@ -1,0 +1,216 @@
+{
+  "url": "http://127.0.0.1:5200/",
+  "views": [
+    {
+      "file": "0-specimenVat.png",
+      "instance": 0,
+      "score": 0,
+      "firstHit": "SetDressing_specimenVat_glass",
+      "hitDistance": 4.243390653828725,
+      "sector": "bloodworks",
+      "x": 2.6875712778475624,
+      "y": 4.677667556839965,
+      "angle": -1.4582769043652828,
+      "pitch": 0.03997868712329004,
+      "fps": 36.01008282319055,
+      "calls": 260,
+      "triangles": 236123,
+      "geometries": 673,
+      "textures": 91,
+      "canvas": [
+        960,
+        540
+      ]
+    },
+    {
+      "file": "0-gurney.png",
+      "instance": 0,
+      "score": 0.1,
+      "firstHit": "WorldBatch_SetDressing_cloth",
+      "hitDistance": 3.918435642013768,
+      "sector": "bloodworks",
+      "x": 0.6218222121764887,
+      "y": 10.511116718340565,
+      "angle": -1.6021762869812106,
+      "pitch": -0.1378697638871328,
+      "fps": 36.01008282319055,
+      "calls": 428,
+      "triangles": 264643,
+      "geometries": 700,
+      "textures": 91,
+      "canvas": [
+        960,
+        540
+      ]
+    },
+    {
+      "file": "0-crateStack.png",
+      "instance": 0,
+      "score": 0.1,
+      "firstHit": "WorldBatch_SetDressing_cloth",
+      "hitDistance": 3.3108768110337836,
+      "sector": "bloodworks",
+      "x": 7.76305963740165,
+      "y": 1.6276952646308385,
+      "angle": 1.0227984637814769,
+      "pitch": -0.16700090275726928,
+      "fps": 36.01008282319055,
+      "calls": 357,
+      "triangles": 247273,
+      "geometries": 709,
+      "textures": 92,
+      "canvas": [
+        960,
+        540
+      ]
+    },
+    {
+      "file": "0-gate.png",
+      "sector": "bloodworks",
+      "x": 2,
+      "y": 10.3,
+      "angle": -1.5707963267948966,
+      "pitch": 0.05,
+      "fps": 46.98512137823039,
+      "calls": 452,
+      "triangles": 267711,
+      "geometries": 709,
+      "textures": 92,
+      "canvas": [
+        960,
+        540
+      ]
+    },
+    {
+      "file": "1-skullMound.png",
+      "instance": 0,
+      "score": 0.1,
+      "firstHit": "WorldBatch_SetDressing_bone",
+      "hitDistance": 3.4870424830603697,
+      "sector": "ossuary",
+      "x": 2.7483868023037377,
+      "y": 10.502806989390908,
+      "angle": -1.6425697547409241,
+      "pitch": -0.23317980064681643,
+      "fps": 60.02870938274836,
+      "calls": 408,
+      "triangles": 277391,
+      "geometries": 659,
+      "textures": 91,
+      "canvas": [
+        960,
+        540
+      ]
+    },
+    {
+      "file": "1-coffinStack.png",
+      "instance": 1,
+      "score": 0.1,
+      "firstHit": null,
+      "hitDistance": null,
+      "sector": "ossuary",
+      "x": 9.100354754779023,
+      "y": 10.53616158227937,
+      "angle": -1.6586761693495815,
+      "pitch": -0.10618685961384297,
+      "fps": 60.02870938274836,
+      "calls": 431,
+      "triangles": 280467,
+      "geometries": 662,
+      "textures": 91,
+      "canvas": [
+        960,
+        540
+      ]
+    },
+    {
+      "file": "1-candleAltar.png",
+      "instance": 0,
+      "score": 0.1,
+      "firstHit": "WorldBatch_SetDressing_cloth",
+      "hitDistance": 3.5077298047282635,
+      "sector": "ossuary",
+      "x": 1.8637579250034513,
+      "y": 10.508289266377808,
+      "angle": 1.58743221528386,
+      "pitch": -0.1651555602933599,
+      "fps": 33.95142334813272,
+      "calls": 89,
+      "triangles": 218119,
+      "geometries": 662,
+      "textures": 91,
+      "canvas": [
+        960,
+        540
+      ]
+    },
+    {
+      "file": "2-fallenBell.png",
+      "instance": 0,
+      "score": 0,
+      "firstHit": "WorldBatch_SetDressing_brass",
+      "hitDistance": 3.64399993332382,
+      "sector": "choir",
+      "x": 5.268582699866966,
+      "y": 1.9691176329739393,
+      "angle": 3.141592653589793,
+      "pitch": -0.07136104241208822,
+      "fps": 53.48291155752669,
+      "calls": 220,
+      "triangles": 200617,
+      "geometries": 635,
+      "textures": 89,
+      "canvas": [
+        960,
+        540
+      ]
+    },
+    {
+      "file": "2-choirStall.png",
+      "instance": 0,
+      "score": 0.1,
+      "firstHit": "WorldBatch_SetDressing_cloth",
+      "hitDistance": 3.5806936185509897,
+      "sector": "choir",
+      "x": 10.430256360481167,
+      "y": 7.523385102243293,
+      "angle": 1.6672543524790107,
+      "pitch": -0.16474323825715878,
+      "fps": 37.046499744506846,
+      "calls": 152,
+      "triangles": 178863,
+      "geometries": 639,
+      "textures": 89,
+      "canvas": [
+        960,
+        540
+      ]
+    }
+  ],
+  "sectorCounts": [
+    {
+      "sector": 0,
+      "counts": {
+        "specimenVat": 5,
+        "gurney": 5,
+        "crateStack": 6
+      }
+    },
+    {
+      "sector": 1,
+      "counts": {
+        "skullMound": 5,
+        "coffinStack": 4,
+        "candleAltar": 3
+      }
+    },
+    {
+      "sector": 2,
+      "counts": {
+        "fallenBell": 3,
+        "choirStall": 7
+      }
+    }
+  ],
+  "errors": []
+}

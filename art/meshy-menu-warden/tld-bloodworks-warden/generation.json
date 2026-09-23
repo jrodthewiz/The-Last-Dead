@@ -1,0 +1,41 @@
+{
+  "formatVersion": 1,
+  "pipeline": "meshy-multi-image-source-rig-v1",
+  "characterId": "tld-bloodworks-warden",
+  "label": "Bloodworks Warden",
+  "heightMeters": 2.2,
+  "texturePrompt": "Dark industrial horror Warden: weathered black iron armor plates, ash-gray exposed skin, muted ember-red fissures and restrained red eye glow. Preserve the menu character proportions and layered silhouette; no background props or extra objects; balanced PBR roughness.",
+  "createdAt": "2026-09-21T05:35:06.850Z",
+  "updatedAt": "2026-09-21T05:35:26.968Z",
+  "status": "IN_PROGRESS",
+  "sourceRequest": {
+    "endpoint": "/openapi/v1/multi-image-to-3d",
+    "imageCount": 1,
+    "aiModel": "latest",
+    "poseMode": "t-pose",
+    "textured": true,
+    "pbr": true,
+    "targetFormats": [
+      "glb"
+    ]
+  },
+  "sources": [
+    {
+      "file": "sources/source-01.png",
+      "originalFileName": "menu-warden-reference.png",
+      "sha256": "3e67cd19b170198ad01ee0b96f5262e4edcc55ebb6dbcf830760c4e676546b62",
+      "byteSize": 545414,
+      "mimeType": "image/png"
+    }
+  ],
+  "source": {
+    "submitStartedAt": "2026-09-21T05:35:06.865Z",
+    "submissionUnknown": true,
+    "submitError": {
+      "at": "2026-09-21T05:35:07.079Z",
+      "category": "submission-unknown",
+      "httpStatus": null
+    }
+  },
+  "rig": {}
+}

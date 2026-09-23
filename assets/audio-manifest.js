@@ -12,11 +12,12 @@ export const AUDIO_ASSET_MANIFEST = Object.freeze({
   "shot": [
     [
       "./audio/sfx/processed/ossuary-shot.wav",
-      "./audio/sfx/cc0-gunshot.mp3"
+      "./audio/sourced/weapons/ossuary-02.ogg",
+      "./audio/sourced/weapons/ossuary-03.ogg"
     ],
     [
       "./audio/sfx/processed/breach-shot.wav",
-      "./audio/sfx/cc0-gunshot-heavy.wav"
+      "./audio/sourced/weapons/breach-02.ogg"
     ],
     [
       "./audio/sfx/processed/arc-lance.wav",
@@ -25,20 +26,19 @@ export const AUDIO_ASSET_MANIFEST = Object.freeze({
     ],
     [
       "./audio/sfx/processed/reliquary-launch.wav",
-      "./audio/baseline/scifi-thrusterFire_000.ogg",
-      "./audio/baseline/scifi-thrusterFire_001.ogg"
+      "./audio/sourced/weapons/reliquary-02.ogg"
     ]
   ],
   "hit": [
     "./audio/sfx/processed/impact-metal-flesh.wav",
+    "./audio/sfx/cc0-bullet-hit.wav",
     "./audio/baseline/impact-impactPunch_medium_000.ogg",
     "./audio/baseline/impact-impactPunch_medium_001.ogg",
     "./audio/baseline/impact-impactPunch_medium_002.ogg"
   ],
   "blood": [
     "./audio/sfx/processed/blood-burst.wav",
-    "./audio/baseline/scifi-slime_000.ogg",
-    "./audio/baseline/scifi-slime_001.ogg"
+    "./audio/sfx/cc0-splat-hit.wav"
   ],
   "explosion": [
     "./audio/baseline/scifi-explosionCrunch_000.ogg",
@@ -46,8 +46,8 @@ export const AUDIO_ASSET_MANIFEST = Object.freeze({
     "./audio/baseline/scifi-explosionCrunch_002.ogg"
   ],
   "rocket": [
-    "./audio/baseline/scifi-thrusterFire_000.ogg",
-    "./audio/baseline/scifi-thrusterFire_001.ogg"
+    "./audio/sfx/processed/reliquary-launch.wav",
+    "./audio/sourced/weapons/reliquary-02.ogg"
   ],
   "bulletcrackle": [
     "./audio/sfx/cc0-bullet-crackle.wav"
@@ -94,12 +94,32 @@ export const AUDIO_ASSET_MANIFEST = Object.freeze({
     "./audio/baseline/impact-impactPunch_medium_002.ogg"
   ],
   "enemyattack": [
-    "./audio/baseline/zombie-fastzombie1.ogg",
-    "./audio/baseline/zombie-zombienoise1.ogg"
+    "./audio/sourced/enemies/zombie-attack-01.ogg",
+    "./audio/sourced/enemies/zombie-attack-02.ogg",
+    "./audio/sourced/enemies/zombie-attack-03.ogg",
+    "./audio/sourced/enemies/zombie-attack-04.ogg",
+    "./audio/sourced/enemies/zombie-attack-05.ogg",
+    "./audio/sourced/enemies/zombie-attack-06.ogg",
+    "./audio/sourced/enemies/zombie-attack-07.ogg",
+    "./audio/sourced/enemies/zombie-attack-08.ogg",
+    "./audio/sourced/enemies/zombie-attack-09.ogg",
+    "./audio/sourced/enemies/zombie-attack-10.ogg",
+    "./audio/sourced/enemies/zombie-attack-11.ogg",
+    "./audio/sourced/enemies/zombie-attack-12.ogg"
   ],
   "moan": [
-    "./audio/baseline/zombie-zombienoise2.ogg",
-    "./audio/baseline/zombie-zombienoise3.ogg"
+    "./audio/sourced/enemies/zombie-moan-01.ogg",
+    "./audio/sourced/enemies/zombie-moan-02.ogg",
+    "./audio/sourced/enemies/zombie-moan-03.ogg",
+    "./audio/sourced/enemies/zombie-moan-04.ogg",
+    "./audio/sourced/enemies/zombie-moan-05.ogg",
+    "./audio/sourced/enemies/zombie-moan-06.ogg",
+    "./audio/sourced/enemies/zombie-moan-07.ogg",
+    "./audio/sourced/enemies/zombie-moan-08.ogg",
+    "./audio/sourced/enemies/zombie-moan-09.ogg",
+    "./audio/sourced/enemies/zombie-moan-10.ogg",
+    "./audio/sourced/enemies/zombie-moan-11.ogg",
+    "./audio/sourced/enemies/zombie-moan-12.ogg"
   ],
   "enemydeath": [
     "./audio/enemy/enemy-death-01.wav",

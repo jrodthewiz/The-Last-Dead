@@ -1,0 +1,1739 @@
+{
+  "schemaVersion": 1,
+  "kind": "img2threejs.material-analysis",
+  "referenceId": "black-gullet-material-regions",
+  "manifest": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-regions.json",
+  "registry": "C:\\Users\\wolfk\\.codex\\skills\\img2threejs\\docs\\materials\\material-reference.json",
+  "targetThreshold": 0.7,
+  "notObservedMaterials": [],
+  "unresolvedNotObservedMaterials": [],
+  "regions": [
+    {
+      "componentId": "MawBasaltFrame",
+      "regionId": "outer-basalt",
+      "materialSpecId": "dark-basalt",
+      "hypothesis": {
+        "componentId": "MawBasaltFrame",
+        "regionId": "outer-basalt",
+        "materialId": null,
+        "family": "stone",
+        "subtype": "basalt",
+        "finish": "rough-matte",
+        "aliases": [],
+        "confidence": 0.829,
+        "source": "vision"
+      },
+      "assignment": {
+        "materialId": "stone.natural",
+        "status": "probe",
+        "source": "vision",
+        "confidence": 0.5388499999999999,
+        "method": "family-fallback",
+        "alternatives": [],
+        "evidence": {
+          "crop": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\00-outer-basalt.png",
+            "bbox": {
+              "x": 190,
+              "y": 760,
+              "width": 115,
+              "height": 105
+            },
+            "sourceWidth": 1536,
+            "sourceHeight": 1024,
+            "loaderWarnings": [],
+            "coverage": 0.0077
+          },
+          "pbr": {
+            "ok": true,
+            "verdict": "pass",
+            "confidence": 0.829,
+            "estimatedFidelity": 0.829,
+            "targetThreshold": 0.7,
+            "materialId": "dark-basalt",
+            "sourceImage": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\00-outer-basalt.png",
+            "outDir": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt",
+            "palette": [
+              "#251D19",
+              "#393029",
+              "#120D09",
+              "#65503F",
+              "#9D8268"
+            ],
+            "maps": {
+              "albedo": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_albedo.png",
+                "url": "dark-basalt_albedo.png",
+                "channel": "albedo",
+                "source": "reference-pixel-extraction"
+              },
+              "roughness": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_roughness.png",
+                "url": "dark-basalt_roughness.png",
+                "channel": "roughness",
+                "source": "reference-pixel-extraction"
+              },
+              "height": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_height.png",
+                "url": "dark-basalt_height.png",
+                "channel": "height",
+                "source": "reference-pixel-extraction"
+              },
+              "normal": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_normal.png",
+                "url": "dark-basalt_normal.png",
+                "channel": "normal",
+                "source": "reference-pixel-extraction"
+              },
+              "ao": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_ao.png",
+                "url": "dark-basalt_ao.png",
+                "channel": "ao",
+                "source": "reference-pixel-extraction"
+              }
+            },
+            "diagnostics": {
+              "sourceWidth": 115,
+              "sourceHeight": 105,
+              "mapSize": 512,
+              "cropBBoxPixels": {
+                "x": 0,
+                "y": 0,
+                "width": 115,
+                "height": 105
+              },
+              "mask": {
+                "backgroundColor": "#2A201E",
+                "backgroundNoise": 45.453,
+                "transparentPixelFraction": 0.0,
+                "foregroundCoverage": 0.9688
+              },
+              "mapStats": {
+                "valueRange": 0.4797,
+                "heightP90Gradient": 0.10922,
+                "roughnessBase": 0.781,
+                "roughnessVariation": 0.165,
+                "normalStrength": 0.284,
+                "blurRadius": 10
+              },
+              "palette": [
+                "#251D19",
+                "#393029",
+                "#120D09",
+                "#65503F",
+                "#9D8268"
+              ]
+            },
+            "warnings": [
+              "image is not clearly isolated from background; using most pixels as material evidence",
+              "object/background separation is weak",
+              "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+            ],
+            "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+          },
+          "texture": {
+            "finishClass": "candy-coat",
+            "recipe": {
+              "metalness": 0.35,
+              "roughness": 0.18,
+              "clearcoat": 0.6,
+              "clearcoatRoughness": 0.15,
+              "transmission": 0.0,
+              "ior": 1.5,
+              "envMapIntensity": 0.7,
+              "anisotropy": 0.0,
+              "procedural": "gradient-smoke"
+            },
+            "palette": [
+              "#29201A",
+              "#30271F",
+              "#725C4B",
+              "#40362F",
+              "#3C3029"
+            ],
+            "paletteHueRisk": [],
+            "gradientAxis": "horizontal",
+            "stats": {
+              "meanLum": 52.7,
+              "meanSaturation": 0.338,
+              "gradientStrength": 0.27,
+              "mottle": 0.074,
+              "streakRatio": 1.4,
+              "hueSpread": 0.011,
+              "specularFraction": 0.0
+            }
+          }
+        },
+        "profileId": "stone.natural",
+        "family": "stone",
+        "subtype": "natural",
+        "finish": "rough-or-polished",
+        "renderPrior": {
+          "metalness": 0.0,
+          "roughness": 0.78,
+          "clearcoat": 0.0
+        },
+        "requiredMaps": [
+          "map",
+          "roughnessMap",
+          "normalMap"
+        ],
+        "optionalMaps": [
+          "aoMap",
+          "displacementMap",
+          "clearcoatMap"
+        ],
+        "validationViews": [
+          "albedo-unlit",
+          "neutral-studio",
+          "grazing",
+          "reference-beauty"
+        ],
+        "sourceRefs": [
+          "three.mesh-standard",
+          "three.mesh-physical",
+          "adobe.pbr-guide-1",
+          "mit.material-recognition"
+        ],
+        "visualCues": [
+          "multi-scale mineral pattern",
+          "fracture or pore relief",
+          "polished stone retains dielectric reflection"
+        ]
+      },
+      "observations": [
+        "chromatic base-colour response",
+        "visible meso/micro variation",
+        "strong image-space gradient; verify it is material pattern, not lighting",
+        "single-image PBR inference requires controlled render validation"
+      ],
+      "crop": {
+        "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\00-outer-basalt.png",
+        "bbox": {
+          "x": 190,
+          "y": 760,
+          "width": 115,
+          "height": 105
+        },
+        "sourceWidth": 1536,
+        "sourceHeight": 1024,
+        "loaderWarnings": [],
+        "coverage": 0.0077
+      },
+      "textureAnalysis": {
+        "finishClass": "candy-coat",
+        "recipe": {
+          "metalness": 0.35,
+          "roughness": 0.18,
+          "clearcoat": 0.6,
+          "clearcoatRoughness": 0.15,
+          "transmission": 0.0,
+          "ior": 1.5,
+          "envMapIntensity": 0.7,
+          "anisotropy": 0.0,
+          "procedural": "gradient-smoke"
+        },
+        "palette": [
+          "#29201A",
+          "#30271F",
+          "#725C4B",
+          "#40362F",
+          "#3C3029"
+        ],
+        "paletteHueRisk": [],
+        "gradientAxis": "horizontal",
+        "stats": {
+          "meanLum": 52.7,
+          "meanSaturation": 0.338,
+          "gradientStrength": 0.27,
+          "mottle": 0.074,
+          "streakRatio": 1.4,
+          "hueSpread": 0.011,
+          "specularFraction": 0.0
+        }
+      },
+      "pbrReport": {
+        "ok": true,
+        "verdict": "pass",
+        "confidence": 0.829,
+        "estimatedFidelity": 0.829,
+        "targetThreshold": 0.7,
+        "materialId": "dark-basalt",
+        "sourceImage": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\00-outer-basalt.png",
+        "outDir": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt",
+        "palette": [
+          "#251D19",
+          "#393029",
+          "#120D09",
+          "#65503F",
+          "#9D8268"
+        ],
+        "maps": {
+          "albedo": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_albedo.png",
+            "url": "dark-basalt_albedo.png",
+            "channel": "albedo",
+            "source": "reference-pixel-extraction"
+          },
+          "roughness": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_roughness.png",
+            "url": "dark-basalt_roughness.png",
+            "channel": "roughness",
+            "source": "reference-pixel-extraction"
+          },
+          "height": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_height.png",
+            "url": "dark-basalt_height.png",
+            "channel": "height",
+            "source": "reference-pixel-extraction"
+          },
+          "normal": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_normal.png",
+            "url": "dark-basalt_normal.png",
+            "channel": "normal",
+            "source": "reference-pixel-extraction"
+          },
+          "ao": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_ao.png",
+            "url": "dark-basalt_ao.png",
+            "channel": "ao",
+            "source": "reference-pixel-extraction"
+          }
+        },
+        "diagnostics": {
+          "sourceWidth": 115,
+          "sourceHeight": 105,
+          "mapSize": 512,
+          "cropBBoxPixels": {
+            "x": 0,
+            "y": 0,
+            "width": 115,
+            "height": 105
+          },
+          "mask": {
+            "backgroundColor": "#2A201E",
+            "backgroundNoise": 45.453,
+            "transparentPixelFraction": 0.0,
+            "foregroundCoverage": 0.9688
+          },
+          "mapStats": {
+            "valueRange": 0.4797,
+            "heightP90Gradient": 0.10922,
+            "roughnessBase": 0.781,
+            "roughnessVariation": 0.165,
+            "normalStrength": 0.284,
+            "blurRadius": 10
+          },
+          "palette": [
+            "#251D19",
+            "#393029",
+            "#120D09",
+            "#65503F",
+            "#9D8268"
+          ]
+        },
+        "warnings": [
+          "image is not clearly isolated from background; using most pixels as material evidence",
+          "object/background separation is weak",
+          "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+        ],
+        "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+      },
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\00-outer-basalt.png",
+        "extractor": "stage1_intake/extract_pbr_evidence.py",
+        "method": "single-image pixel evidence with de-lighting estimate; not photogrammetry",
+        "usable": true,
+        "verdict": "pass",
+        "confidence": 0.829,
+        "estimatedFidelity": 0.829,
+        "targetThreshold": 0.7,
+        "hardLimit": "A single image cannot uniquely recover true albedo/roughness/normal/AO; maps are reference-derived estimates.",
+        "maps": {
+          "albedo": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_albedo.png",
+            "url": "dark-basalt_albedo.png",
+            "channel": "albedo",
+            "source": "reference-pixel-extraction"
+          },
+          "roughness": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_roughness.png",
+            "url": "dark-basalt_roughness.png",
+            "channel": "roughness",
+            "source": "reference-pixel-extraction"
+          },
+          "height": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_height.png",
+            "url": "dark-basalt_height.png",
+            "channel": "height",
+            "source": "reference-pixel-extraction"
+          },
+          "normal": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_normal.png",
+            "url": "dark-basalt_normal.png",
+            "channel": "normal",
+            "source": "reference-pixel-extraction"
+          },
+          "ao": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_ao.png",
+            "url": "dark-basalt_ao.png",
+            "channel": "ao",
+            "source": "reference-pixel-extraction"
+          }
+        },
+        "diagnostics": {
+          "sourceWidth": 115,
+          "sourceHeight": 105,
+          "mapSize": 512,
+          "cropBBoxPixels": {
+            "x": 0,
+            "y": 0,
+            "width": 115,
+            "height": 105
+          },
+          "mask": {
+            "backgroundColor": "#2A201E",
+            "backgroundNoise": 45.453,
+            "transparentPixelFraction": 0.0,
+            "foregroundCoverage": 0.9688
+          },
+          "mapStats": {
+            "valueRange": 0.4797,
+            "heightP90Gradient": 0.10922,
+            "roughnessBase": 0.781,
+            "roughnessVariation": 0.165,
+            "normalStrength": 0.284,
+            "blurRadius": 10
+          },
+          "palette": [
+            "#251D19",
+            "#393029",
+            "#120D09",
+            "#65503F",
+            "#9D8268"
+          ]
+        },
+        "warnings": [
+          "image is not clearly isolated from background; using most pixels as material evidence",
+          "object/background separation is weak",
+          "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+        ]
+      },
+      "maps": {
+        "albedo": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_albedo.png",
+          "url": "dark-basalt_albedo.png",
+          "channel": "albedo",
+          "source": "reference-pixel-extraction"
+        },
+        "roughness": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_roughness.png",
+          "url": "dark-basalt_roughness.png",
+          "channel": "roughness",
+          "source": "reference-pixel-extraction"
+        },
+        "height": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_height.png",
+          "url": "dark-basalt_height.png",
+          "channel": "height",
+          "source": "reference-pixel-extraction"
+        },
+        "normal": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_normal.png",
+          "url": "dark-basalt_normal.png",
+          "channel": "normal",
+          "source": "reference-pixel-extraction"
+        },
+        "ao": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-00-outer-basalt\\dark-basalt_ao.png",
+          "url": "dark-basalt_ao.png",
+          "channel": "ao",
+          "source": "reference-pixel-extraction"
+        }
+      }
+    },
+    {
+      "componentId": "MawBoneRibs",
+      "regionId": "warm-bone",
+      "materialSpecId": "warm-bone",
+      "hypothesis": {
+        "componentId": "MawBoneRibs",
+        "regionId": "warm-bone",
+        "materialId": null,
+        "family": "stone",
+        "subtype": "bone",
+        "finish": "matte-porous",
+        "aliases": [],
+        "confidence": 0.829,
+        "source": "vision"
+      },
+      "assignment": {
+        "materialId": "stone.natural",
+        "status": "probe",
+        "source": "vision",
+        "confidence": 0.5388499999999999,
+        "method": "family-fallback",
+        "alternatives": [],
+        "evidence": {
+          "crop": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\01-warm-bone.png",
+            "bbox": {
+              "x": 285,
+              "y": 500,
+              "width": 55,
+              "height": 155
+            },
+            "sourceWidth": 1536,
+            "sourceHeight": 1024,
+            "loaderWarnings": [],
+            "coverage": 0.0054
+          },
+          "pbr": {
+            "ok": true,
+            "verdict": "pass",
+            "confidence": 0.829,
+            "estimatedFidelity": 0.829,
+            "targetThreshold": 0.7,
+            "materialId": "warm-bone",
+            "sourceImage": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\01-warm-bone.png",
+            "outDir": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone",
+            "palette": [
+              "#22170F",
+              "#AC8764",
+              "#553A25",
+              "#CDB092",
+              "#876243"
+            ],
+            "maps": {
+              "albedo": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_albedo.png",
+                "url": "warm-bone_albedo.png",
+                "channel": "albedo",
+                "source": "reference-pixel-extraction"
+              },
+              "roughness": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_roughness.png",
+                "url": "warm-bone_roughness.png",
+                "channel": "roughness",
+                "source": "reference-pixel-extraction"
+              },
+              "height": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_height.png",
+                "url": "warm-bone_height.png",
+                "channel": "height",
+                "source": "reference-pixel-extraction"
+              },
+              "normal": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_normal.png",
+                "url": "warm-bone_normal.png",
+                "channel": "normal",
+                "source": "reference-pixel-extraction"
+              },
+              "ao": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_ao.png",
+                "url": "warm-bone_ao.png",
+                "channel": "ao",
+                "source": "reference-pixel-extraction"
+              }
+            },
+            "diagnostics": {
+              "sourceWidth": 55,
+              "sourceHeight": 155,
+              "mapSize": 512,
+              "cropBBoxPixels": {
+                "x": 0,
+                "y": 0,
+                "width": 55,
+                "height": 155
+              },
+              "mask": {
+                "backgroundColor": "#8D6543",
+                "backgroundNoise": 80.66,
+                "transparentPixelFraction": 0.0,
+                "foregroundCoverage": 0.9989
+              },
+              "mapStats": {
+                "valueRange": 0.6777,
+                "heightP90Gradient": 0.07751,
+                "roughnessBase": 0.748,
+                "roughnessVariation": 0.139,
+                "normalStrength": 0.247,
+                "blurRadius": 10
+              },
+              "palette": [
+                "#22170F",
+                "#AC8764",
+                "#553A25",
+                "#CDB092",
+                "#876243"
+              ]
+            },
+            "warnings": [
+              "image is not clearly isolated from background; using most pixels as material evidence",
+              "object/background separation is weak",
+              "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+            ],
+            "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+          },
+          "texture": {
+            "finishClass": "candy-coat",
+            "recipe": {
+              "metalness": 0.35,
+              "roughness": 0.18,
+              "clearcoat": 0.6,
+              "clearcoatRoughness": 0.15,
+              "transmission": 0.0,
+              "ior": 1.5,
+              "envMapIntensity": 0.7,
+              "anisotropy": 0.0,
+              "procedural": "gradient-smoke"
+            },
+            "palette": [
+              "#A0826A",
+              "#7A5F49",
+              "#463120",
+              "#66492F",
+              "#B9997B"
+            ],
+            "paletteHueRisk": [],
+            "gradientAxis": "horizontal",
+            "stats": {
+              "meanLum": 98.0,
+              "meanSaturation": 0.473,
+              "gradientStrength": 0.47,
+              "mottle": 0.058,
+              "streakRatio": 0.9,
+              "hueSpread": 0.004,
+              "specularFraction": 0.0
+            }
+          }
+        },
+        "profileId": "stone.natural",
+        "family": "stone",
+        "subtype": "natural",
+        "finish": "rough-or-polished",
+        "renderPrior": {
+          "metalness": 0.0,
+          "roughness": 0.78,
+          "clearcoat": 0.0
+        },
+        "requiredMaps": [
+          "map",
+          "roughnessMap",
+          "normalMap"
+        ],
+        "optionalMaps": [
+          "aoMap",
+          "displacementMap",
+          "clearcoatMap"
+        ],
+        "validationViews": [
+          "albedo-unlit",
+          "neutral-studio",
+          "grazing",
+          "reference-beauty"
+        ],
+        "sourceRefs": [
+          "three.mesh-standard",
+          "three.mesh-physical",
+          "adobe.pbr-guide-1",
+          "mit.material-recognition"
+        ],
+        "visualCues": [
+          "multi-scale mineral pattern",
+          "fracture or pore relief",
+          "polished stone retains dielectric reflection"
+        ]
+      },
+      "observations": [
+        "chromatic base-colour response",
+        "visible meso/micro variation",
+        "strong image-space gradient; verify it is material pattern, not lighting",
+        "single-image PBR inference requires controlled render validation"
+      ],
+      "crop": {
+        "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\01-warm-bone.png",
+        "bbox": {
+          "x": 285,
+          "y": 500,
+          "width": 55,
+          "height": 155
+        },
+        "sourceWidth": 1536,
+        "sourceHeight": 1024,
+        "loaderWarnings": [],
+        "coverage": 0.0054
+      },
+      "textureAnalysis": {
+        "finishClass": "candy-coat",
+        "recipe": {
+          "metalness": 0.35,
+          "roughness": 0.18,
+          "clearcoat": 0.6,
+          "clearcoatRoughness": 0.15,
+          "transmission": 0.0,
+          "ior": 1.5,
+          "envMapIntensity": 0.7,
+          "anisotropy": 0.0,
+          "procedural": "gradient-smoke"
+        },
+        "palette": [
+          "#A0826A",
+          "#7A5F49",
+          "#463120",
+          "#66492F",
+          "#B9997B"
+        ],
+        "paletteHueRisk": [],
+        "gradientAxis": "horizontal",
+        "stats": {
+          "meanLum": 98.0,
+          "meanSaturation": 0.473,
+          "gradientStrength": 0.47,
+          "mottle": 0.058,
+          "streakRatio": 0.9,
+          "hueSpread": 0.004,
+          "specularFraction": 0.0
+        }
+      },
+      "pbrReport": {
+        "ok": true,
+        "verdict": "pass",
+        "confidence": 0.829,
+        "estimatedFidelity": 0.829,
+        "targetThreshold": 0.7,
+        "materialId": "warm-bone",
+        "sourceImage": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\01-warm-bone.png",
+        "outDir": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone",
+        "palette": [
+          "#22170F",
+          "#AC8764",
+          "#553A25",
+          "#CDB092",
+          "#876243"
+        ],
+        "maps": {
+          "albedo": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_albedo.png",
+            "url": "warm-bone_albedo.png",
+            "channel": "albedo",
+            "source": "reference-pixel-extraction"
+          },
+          "roughness": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_roughness.png",
+            "url": "warm-bone_roughness.png",
+            "channel": "roughness",
+            "source": "reference-pixel-extraction"
+          },
+          "height": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_height.png",
+            "url": "warm-bone_height.png",
+            "channel": "height",
+            "source": "reference-pixel-extraction"
+          },
+          "normal": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_normal.png",
+            "url": "warm-bone_normal.png",
+            "channel": "normal",
+            "source": "reference-pixel-extraction"
+          },
+          "ao": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_ao.png",
+            "url": "warm-bone_ao.png",
+            "channel": "ao",
+            "source": "reference-pixel-extraction"
+          }
+        },
+        "diagnostics": {
+          "sourceWidth": 55,
+          "sourceHeight": 155,
+          "mapSize": 512,
+          "cropBBoxPixels": {
+            "x": 0,
+            "y": 0,
+            "width": 55,
+            "height": 155
+          },
+          "mask": {
+            "backgroundColor": "#8D6543",
+            "backgroundNoise": 80.66,
+            "transparentPixelFraction": 0.0,
+            "foregroundCoverage": 0.9989
+          },
+          "mapStats": {
+            "valueRange": 0.6777,
+            "heightP90Gradient": 0.07751,
+            "roughnessBase": 0.748,
+            "roughnessVariation": 0.139,
+            "normalStrength": 0.247,
+            "blurRadius": 10
+          },
+          "palette": [
+            "#22170F",
+            "#AC8764",
+            "#553A25",
+            "#CDB092",
+            "#876243"
+          ]
+        },
+        "warnings": [
+          "image is not clearly isolated from background; using most pixels as material evidence",
+          "object/background separation is weak",
+          "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+        ],
+        "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+      },
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\01-warm-bone.png",
+        "extractor": "stage1_intake/extract_pbr_evidence.py",
+        "method": "single-image pixel evidence with de-lighting estimate; not photogrammetry",
+        "usable": true,
+        "verdict": "pass",
+        "confidence": 0.829,
+        "estimatedFidelity": 0.829,
+        "targetThreshold": 0.7,
+        "hardLimit": "A single image cannot uniquely recover true albedo/roughness/normal/AO; maps are reference-derived estimates.",
+        "maps": {
+          "albedo": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_albedo.png",
+            "url": "warm-bone_albedo.png",
+            "channel": "albedo",
+            "source": "reference-pixel-extraction"
+          },
+          "roughness": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_roughness.png",
+            "url": "warm-bone_roughness.png",
+            "channel": "roughness",
+            "source": "reference-pixel-extraction"
+          },
+          "height": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_height.png",
+            "url": "warm-bone_height.png",
+            "channel": "height",
+            "source": "reference-pixel-extraction"
+          },
+          "normal": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_normal.png",
+            "url": "warm-bone_normal.png",
+            "channel": "normal",
+            "source": "reference-pixel-extraction"
+          },
+          "ao": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_ao.png",
+            "url": "warm-bone_ao.png",
+            "channel": "ao",
+            "source": "reference-pixel-extraction"
+          }
+        },
+        "diagnostics": {
+          "sourceWidth": 55,
+          "sourceHeight": 155,
+          "mapSize": 512,
+          "cropBBoxPixels": {
+            "x": 0,
+            "y": 0,
+            "width": 55,
+            "height": 155
+          },
+          "mask": {
+            "backgroundColor": "#8D6543",
+            "backgroundNoise": 80.66,
+            "transparentPixelFraction": 0.0,
+            "foregroundCoverage": 0.9989
+          },
+          "mapStats": {
+            "valueRange": 0.6777,
+            "heightP90Gradient": 0.07751,
+            "roughnessBase": 0.748,
+            "roughnessVariation": 0.139,
+            "normalStrength": 0.247,
+            "blurRadius": 10
+          },
+          "palette": [
+            "#22170F",
+            "#AC8764",
+            "#553A25",
+            "#CDB092",
+            "#876243"
+          ]
+        },
+        "warnings": [
+          "image is not clearly isolated from background; using most pixels as material evidence",
+          "object/background separation is weak",
+          "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+        ]
+      },
+      "maps": {
+        "albedo": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_albedo.png",
+          "url": "warm-bone_albedo.png",
+          "channel": "albedo",
+          "source": "reference-pixel-extraction"
+        },
+        "roughness": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_roughness.png",
+          "url": "warm-bone_roughness.png",
+          "channel": "roughness",
+          "source": "reference-pixel-extraction"
+        },
+        "height": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_height.png",
+          "url": "warm-bone_height.png",
+          "channel": "height",
+          "source": "reference-pixel-extraction"
+        },
+        "normal": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_normal.png",
+          "url": "warm-bone_normal.png",
+          "channel": "normal",
+          "source": "reference-pixel-extraction"
+        },
+        "ao": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-01-warm-bone\\warm-bone_ao.png",
+          "url": "warm-bone_ao.png",
+          "channel": "ao",
+          "source": "reference-pixel-extraction"
+        }
+      }
+    },
+    {
+      "componentId": "MawMetalClamps",
+      "regionId": "aged-bronze",
+      "materialSpecId": "aged-bronze",
+      "hypothesis": {
+        "componentId": "MawMetalClamps",
+        "regionId": "aged-bronze",
+        "materialId": null,
+        "family": "metal",
+        "subtype": "bronze",
+        "finish": "aged-satin",
+        "aliases": [],
+        "confidence": 0.827,
+        "source": "vision"
+      },
+      "assignment": {
+        "materialId": null,
+        "status": "request-input",
+        "source": "vision",
+        "confidence": 0.0,
+        "method": "unresolved",
+        "alternatives": [
+          "metal.aluminum",
+          "metal.brass",
+          "metal.copper",
+          "metal.gold",
+          "metal.steel-brushed",
+          "metal.steel-polished"
+        ],
+        "evidence": {
+          "crop": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\02-aged-bronze.png",
+            "bbox": {
+              "x": 272,
+              "y": 331,
+              "width": 94,
+              "height": 63
+            },
+            "sourceWidth": 1536,
+            "sourceHeight": 1024,
+            "loaderWarnings": [],
+            "coverage": 0.0038
+          },
+          "pbr": {
+            "ok": true,
+            "verdict": "pass",
+            "confidence": 0.827,
+            "estimatedFidelity": 0.827,
+            "targetThreshold": 0.7,
+            "materialId": "aged-bronze",
+            "sourceImage": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\02-aged-bronze.png",
+            "outDir": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze",
+            "palette": [
+              "#3C2B1E",
+              "#573F2C",
+              "#7E6044",
+              "#1F130A",
+              "#BB9C79"
+            ],
+            "maps": {
+              "albedo": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_albedo.png",
+                "url": "aged-bronze_albedo.png",
+                "channel": "albedo",
+                "source": "reference-pixel-extraction"
+              },
+              "roughness": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_roughness.png",
+                "url": "aged-bronze_roughness.png",
+                "channel": "roughness",
+                "source": "reference-pixel-extraction"
+              },
+              "height": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_height.png",
+                "url": "aged-bronze_height.png",
+                "channel": "height",
+                "source": "reference-pixel-extraction"
+              },
+              "normal": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_normal.png",
+                "url": "aged-bronze_normal.png",
+                "channel": "normal",
+                "source": "reference-pixel-extraction"
+              },
+              "ao": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_ao.png",
+                "url": "aged-bronze_ao.png",
+                "channel": "ao",
+                "source": "reference-pixel-extraction"
+              }
+            },
+            "diagnostics": {
+              "sourceWidth": 94,
+              "sourceHeight": 63,
+              "mapSize": 512,
+              "cropBBoxPixels": {
+                "x": 0,
+                "y": 0,
+                "width": 94,
+                "height": 63
+              },
+              "mask": {
+                "backgroundColor": "#322014",
+                "backgroundNoise": 26.077,
+                "transparentPixelFraction": 0.0,
+                "foregroundCoverage": 0.9976
+              },
+              "mapStats": {
+                "valueRange": 0.4721,
+                "heightP90Gradient": 0.11678,
+                "roughnessBase": 0.769,
+                "roughnessVariation": 0.173,
+                "normalStrength": 0.293,
+                "blurRadius": 10
+              },
+              "palette": [
+                "#3C2B1E",
+                "#573F2C",
+                "#7E6044",
+                "#1F130A",
+                "#BB9C79"
+              ]
+            },
+            "warnings": [
+              "image is not clearly isolated from background; using most pixels as material evidence",
+              "object/background separation is weak",
+              "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+            ],
+            "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+          },
+          "texture": {
+            "finishClass": "candy-coat",
+            "recipe": {
+              "metalness": 0.35,
+              "roughness": 0.18,
+              "clearcoat": 0.6,
+              "clearcoatRoughness": 0.15,
+              "transmission": 0.0,
+              "ior": 1.5,
+              "envMapIntensity": 0.7,
+              "anisotropy": 0.0,
+              "procedural": "gradient-smoke"
+            },
+            "palette": [
+              "#342B24",
+              "#3B2C21",
+              "#634B39",
+              "#6C4E35",
+              "#5C432B"
+            ],
+            "paletteHueRisk": [],
+            "gradientAxis": "horizontal",
+            "stats": {
+              "meanLum": 65.5,
+              "meanSaturation": 0.508,
+              "gradientStrength": 0.251,
+              "mottle": 0.072,
+              "streakRatio": 1.38,
+              "hueSpread": 0.003,
+              "specularFraction": 0.0
+            }
+          }
+        }
+      },
+      "observations": [
+        "chromatic base-colour response",
+        "visible meso/micro variation",
+        "strong image-space gradient; verify it is material pattern, not lighting",
+        "single-image PBR inference requires controlled render validation"
+      ],
+      "crop": {
+        "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\02-aged-bronze.png",
+        "bbox": {
+          "x": 272,
+          "y": 331,
+          "width": 94,
+          "height": 63
+        },
+        "sourceWidth": 1536,
+        "sourceHeight": 1024,
+        "loaderWarnings": [],
+        "coverage": 0.0038
+      },
+      "textureAnalysis": {
+        "finishClass": "candy-coat",
+        "recipe": {
+          "metalness": 0.35,
+          "roughness": 0.18,
+          "clearcoat": 0.6,
+          "clearcoatRoughness": 0.15,
+          "transmission": 0.0,
+          "ior": 1.5,
+          "envMapIntensity": 0.7,
+          "anisotropy": 0.0,
+          "procedural": "gradient-smoke"
+        },
+        "palette": [
+          "#342B24",
+          "#3B2C21",
+          "#634B39",
+          "#6C4E35",
+          "#5C432B"
+        ],
+        "paletteHueRisk": [],
+        "gradientAxis": "horizontal",
+        "stats": {
+          "meanLum": 65.5,
+          "meanSaturation": 0.508,
+          "gradientStrength": 0.251,
+          "mottle": 0.072,
+          "streakRatio": 1.38,
+          "hueSpread": 0.003,
+          "specularFraction": 0.0
+        }
+      },
+      "pbrReport": {
+        "ok": true,
+        "verdict": "pass",
+        "confidence": 0.827,
+        "estimatedFidelity": 0.827,
+        "targetThreshold": 0.7,
+        "materialId": "aged-bronze",
+        "sourceImage": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\02-aged-bronze.png",
+        "outDir": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze",
+        "palette": [
+          "#3C2B1E",
+          "#573F2C",
+          "#7E6044",
+          "#1F130A",
+          "#BB9C79"
+        ],
+        "maps": {
+          "albedo": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_albedo.png",
+            "url": "aged-bronze_albedo.png",
+            "channel": "albedo",
+            "source": "reference-pixel-extraction"
+          },
+          "roughness": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_roughness.png",
+            "url": "aged-bronze_roughness.png",
+            "channel": "roughness",
+            "source": "reference-pixel-extraction"
+          },
+          "height": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_height.png",
+            "url": "aged-bronze_height.png",
+            "channel": "height",
+            "source": "reference-pixel-extraction"
+          },
+          "normal": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_normal.png",
+            "url": "aged-bronze_normal.png",
+            "channel": "normal",
+            "source": "reference-pixel-extraction"
+          },
+          "ao": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_ao.png",
+            "url": "aged-bronze_ao.png",
+            "channel": "ao",
+            "source": "reference-pixel-extraction"
+          }
+        },
+        "diagnostics": {
+          "sourceWidth": 94,
+          "sourceHeight": 63,
+          "mapSize": 512,
+          "cropBBoxPixels": {
+            "x": 0,
+            "y": 0,
+            "width": 94,
+            "height": 63
+          },
+          "mask": {
+            "backgroundColor": "#322014",
+            "backgroundNoise": 26.077,
+            "transparentPixelFraction": 0.0,
+            "foregroundCoverage": 0.9976
+          },
+          "mapStats": {
+            "valueRange": 0.4721,
+            "heightP90Gradient": 0.11678,
+            "roughnessBase": 0.769,
+            "roughnessVariation": 0.173,
+            "normalStrength": 0.293,
+            "blurRadius": 10
+          },
+          "palette": [
+            "#3C2B1E",
+            "#573F2C",
+            "#7E6044",
+            "#1F130A",
+            "#BB9C79"
+          ]
+        },
+        "warnings": [
+          "image is not clearly isolated from background; using most pixels as material evidence",
+          "object/background separation is weak",
+          "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+        ],
+        "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+      },
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\02-aged-bronze.png",
+        "extractor": "stage1_intake/extract_pbr_evidence.py",
+        "method": "single-image pixel evidence with de-lighting estimate; not photogrammetry",
+        "usable": true,
+        "verdict": "pass",
+        "confidence": 0.827,
+        "estimatedFidelity": 0.827,
+        "targetThreshold": 0.7,
+        "hardLimit": "A single image cannot uniquely recover true albedo/roughness/normal/AO; maps are reference-derived estimates.",
+        "maps": {
+          "albedo": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_albedo.png",
+            "url": "aged-bronze_albedo.png",
+            "channel": "albedo",
+            "source": "reference-pixel-extraction"
+          },
+          "roughness": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_roughness.png",
+            "url": "aged-bronze_roughness.png",
+            "channel": "roughness",
+            "source": "reference-pixel-extraction"
+          },
+          "height": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_height.png",
+            "url": "aged-bronze_height.png",
+            "channel": "height",
+            "source": "reference-pixel-extraction"
+          },
+          "normal": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_normal.png",
+            "url": "aged-bronze_normal.png",
+            "channel": "normal",
+            "source": "reference-pixel-extraction"
+          },
+          "ao": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_ao.png",
+            "url": "aged-bronze_ao.png",
+            "channel": "ao",
+            "source": "reference-pixel-extraction"
+          }
+        },
+        "diagnostics": {
+          "sourceWidth": 94,
+          "sourceHeight": 63,
+          "mapSize": 512,
+          "cropBBoxPixels": {
+            "x": 0,
+            "y": 0,
+            "width": 94,
+            "height": 63
+          },
+          "mask": {
+            "backgroundColor": "#322014",
+            "backgroundNoise": 26.077,
+            "transparentPixelFraction": 0.0,
+            "foregroundCoverage": 0.9976
+          },
+          "mapStats": {
+            "valueRange": 0.4721,
+            "heightP90Gradient": 0.11678,
+            "roughnessBase": 0.769,
+            "roughnessVariation": 0.173,
+            "normalStrength": 0.293,
+            "blurRadius": 10
+          },
+          "palette": [
+            "#3C2B1E",
+            "#573F2C",
+            "#7E6044",
+            "#1F130A",
+            "#BB9C79"
+          ]
+        },
+        "warnings": [
+          "image is not clearly isolated from background; using most pixels as material evidence",
+          "object/background separation is weak",
+          "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+        ]
+      },
+      "maps": {
+        "albedo": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_albedo.png",
+          "url": "aged-bronze_albedo.png",
+          "channel": "albedo",
+          "source": "reference-pixel-extraction"
+        },
+        "roughness": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_roughness.png",
+          "url": "aged-bronze_roughness.png",
+          "channel": "roughness",
+          "source": "reference-pixel-extraction"
+        },
+        "height": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_height.png",
+          "url": "aged-bronze_height.png",
+          "channel": "height",
+          "source": "reference-pixel-extraction"
+        },
+        "normal": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_normal.png",
+          "url": "aged-bronze_normal.png",
+          "channel": "normal",
+          "source": "reference-pixel-extraction"
+        },
+        "ao": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-02-aged-bronze\\aged-bronze_ao.png",
+          "url": "aged-bronze_ao.png",
+          "channel": "ao",
+          "source": "reference-pixel-extraction"
+        }
+      }
+    },
+    {
+      "componentId": "MawMembrane",
+      "regionId": "oxblood-web",
+      "materialSpecId": "oxblood-web",
+      "hypothesis": {
+        "componentId": "MawMembrane",
+        "regionId": "oxblood-web",
+        "materialId": null,
+        "family": "fabric",
+        "subtype": "organic-membrane",
+        "finish": "damp-matte",
+        "aliases": [],
+        "confidence": 0.754,
+        "source": "vision"
+      },
+      "assignment": {
+        "materialId": null,
+        "status": "request-input",
+        "source": "vision",
+        "confidence": 0.0,
+        "method": "unresolved",
+        "alternatives": [
+          "fabric.silk-satin",
+          "fabric.velvet",
+          "fabric.woven-matte"
+        ],
+        "evidence": {
+          "crop": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\03-oxblood-web.png",
+            "bbox": {
+              "x": 455,
+              "y": 422,
+              "width": 560,
+              "height": 280
+            },
+            "sourceWidth": 1536,
+            "sourceHeight": 1024,
+            "loaderWarnings": [],
+            "coverage": 0.0997
+          },
+          "pbr": {
+            "ok": true,
+            "verdict": "pass",
+            "confidence": 0.754,
+            "estimatedFidelity": 0.754,
+            "targetThreshold": 0.7,
+            "materialId": "oxblood-web",
+            "sourceImage": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\03-oxblood-web.png",
+            "outDir": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web",
+            "palette": [
+              "#090604",
+              "#120805",
+              "#200E0A",
+              "#34221D",
+              "#705E50"
+            ],
+            "maps": {
+              "albedo": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_albedo.png",
+                "url": "oxblood-web_albedo.png",
+                "channel": "albedo",
+                "source": "reference-pixel-extraction"
+              },
+              "roughness": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_roughness.png",
+                "url": "oxblood-web_roughness.png",
+                "channel": "roughness",
+                "source": "reference-pixel-extraction"
+              },
+              "height": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_height.png",
+                "url": "oxblood-web_height.png",
+                "channel": "height",
+                "source": "reference-pixel-extraction"
+              },
+              "normal": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_normal.png",
+                "url": "oxblood-web_normal.png",
+                "channel": "normal",
+                "source": "reference-pixel-extraction"
+              },
+              "ao": {
+                "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_ao.png",
+                "url": "oxblood-web_ao.png",
+                "channel": "ao",
+                "source": "reference-pixel-extraction"
+              }
+            },
+            "diagnostics": {
+              "sourceWidth": 560,
+              "sourceHeight": 280,
+              "mapSize": 512,
+              "cropBBoxPixels": {
+                "x": 0,
+                "y": 0,
+                "width": 560,
+                "height": 280
+              },
+              "mask": {
+                "backgroundColor": "#17130F",
+                "backgroundNoise": 59.674,
+                "transparentPixelFraction": 0.0,
+                "foregroundCoverage": 0.9981
+              },
+              "mapStats": {
+                "valueRange": 0.1795,
+                "heightP90Gradient": 0.13084,
+                "roughnessBase": 0.747,
+                "roughnessVariation": 0.196,
+                "normalStrength": 0.31,
+                "blurRadius": 10
+              },
+              "palette": [
+                "#090604",
+                "#120805",
+                "#200E0A",
+                "#34221D",
+                "#705E50"
+              ]
+            },
+            "warnings": [
+              "image is not clearly isolated from background; using most pixels as material evidence",
+              "object/background separation is weak",
+              "single-image inverse rendering cannot prove true physical PBR; confidence is capped",
+              "low value range weakens height/roughness inference"
+            ],
+            "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+          },
+          "texture": {
+            "finishClass": "painted-metal",
+            "recipe": {
+              "metalness": 0.0,
+              "roughness": 0.5,
+              "clearcoat": 1.0,
+              "clearcoatRoughness": 0.05,
+              "transmission": 0.0,
+              "ior": 1.5,
+              "envMapIntensity": 1.0,
+              "anisotropy": 0.0,
+              "procedural": "flat-clearcoat"
+            },
+            "palette": [
+              "#20110D",
+              "#120805",
+              "#0B0604",
+              "#251712",
+              "#271F19"
+            ],
+            "paletteHueRisk": [],
+            "gradientAxis": "horizontal",
+            "stats": {
+              "meanLum": 17.9,
+              "meanSaturation": 0.617,
+              "gradientStrength": 0.227,
+              "mottle": 0.033,
+              "streakRatio": 1.71,
+              "hueSpread": 0.011,
+              "specularFraction": 0.0
+            }
+          }
+        }
+      },
+      "observations": [
+        "chromatic base-colour response",
+        "strong image-space gradient; verify it is material pattern, not lighting",
+        "single-image PBR inference requires controlled render validation"
+      ],
+      "crop": {
+        "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\03-oxblood-web.png",
+        "bbox": {
+          "x": 455,
+          "y": 422,
+          "width": 560,
+          "height": 280
+        },
+        "sourceWidth": 1536,
+        "sourceHeight": 1024,
+        "loaderWarnings": [],
+        "coverage": 0.0997
+      },
+      "textureAnalysis": {
+        "finishClass": "painted-metal",
+        "recipe": {
+          "metalness": 0.0,
+          "roughness": 0.5,
+          "clearcoat": 1.0,
+          "clearcoatRoughness": 0.05,
+          "transmission": 0.0,
+          "ior": 1.5,
+          "envMapIntensity": 1.0,
+          "anisotropy": 0.0,
+          "procedural": "flat-clearcoat"
+        },
+        "palette": [
+          "#20110D",
+          "#120805",
+          "#0B0604",
+          "#251712",
+          "#271F19"
+        ],
+        "paletteHueRisk": [],
+        "gradientAxis": "horizontal",
+        "stats": {
+          "meanLum": 17.9,
+          "meanSaturation": 0.617,
+          "gradientStrength": 0.227,
+          "mottle": 0.033,
+          "streakRatio": 1.71,
+          "hueSpread": 0.011,
+          "specularFraction": 0.0
+        }
+      },
+      "pbrReport": {
+        "ok": true,
+        "verdict": "pass",
+        "confidence": 0.754,
+        "estimatedFidelity": 0.754,
+        "targetThreshold": 0.7,
+        "materialId": "oxblood-web",
+        "sourceImage": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\03-oxblood-web.png",
+        "outDir": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web",
+        "palette": [
+          "#090604",
+          "#120805",
+          "#200E0A",
+          "#34221D",
+          "#705E50"
+        ],
+        "maps": {
+          "albedo": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_albedo.png",
+            "url": "oxblood-web_albedo.png",
+            "channel": "albedo",
+            "source": "reference-pixel-extraction"
+          },
+          "roughness": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_roughness.png",
+            "url": "oxblood-web_roughness.png",
+            "channel": "roughness",
+            "source": "reference-pixel-extraction"
+          },
+          "height": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_height.png",
+            "url": "oxblood-web_height.png",
+            "channel": "height",
+            "source": "reference-pixel-extraction"
+          },
+          "normal": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_normal.png",
+            "url": "oxblood-web_normal.png",
+            "channel": "normal",
+            "source": "reference-pixel-extraction"
+          },
+          "ao": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_ao.png",
+            "url": "oxblood-web_ao.png",
+            "channel": "ao",
+            "source": "reference-pixel-extraction"
+          }
+        },
+        "diagnostics": {
+          "sourceWidth": 560,
+          "sourceHeight": 280,
+          "mapSize": 512,
+          "cropBBoxPixels": {
+            "x": 0,
+            "y": 0,
+            "width": 560,
+            "height": 280
+          },
+          "mask": {
+            "backgroundColor": "#17130F",
+            "backgroundNoise": 59.674,
+            "transparentPixelFraction": 0.0,
+            "foregroundCoverage": 0.9981
+          },
+          "mapStats": {
+            "valueRange": 0.1795,
+            "heightP90Gradient": 0.13084,
+            "roughnessBase": 0.747,
+            "roughnessVariation": 0.196,
+            "normalStrength": 0.31,
+            "blurRadius": 10
+          },
+          "palette": [
+            "#090604",
+            "#120805",
+            "#200E0A",
+            "#34221D",
+            "#705E50"
+          ]
+        },
+        "warnings": [
+          "image is not clearly isolated from background; using most pixels as material evidence",
+          "object/background separation is weak",
+          "single-image inverse rendering cannot prove true physical PBR; confidence is capped",
+          "low value range weakens height/roughness inference"
+        ],
+        "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+      },
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\03-oxblood-web.png",
+        "extractor": "stage1_intake/extract_pbr_evidence.py",
+        "method": "single-image pixel evidence with de-lighting estimate; not photogrammetry",
+        "usable": true,
+        "verdict": "pass",
+        "confidence": 0.754,
+        "estimatedFidelity": 0.754,
+        "targetThreshold": 0.7,
+        "hardLimit": "A single image cannot uniquely recover true albedo/roughness/normal/AO; maps are reference-derived estimates.",
+        "maps": {
+          "albedo": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_albedo.png",
+            "url": "oxblood-web_albedo.png",
+            "channel": "albedo",
+            "source": "reference-pixel-extraction"
+          },
+          "roughness": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_roughness.png",
+            "url": "oxblood-web_roughness.png",
+            "channel": "roughness",
+            "source": "reference-pixel-extraction"
+          },
+          "height": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_height.png",
+            "url": "oxblood-web_height.png",
+            "channel": "height",
+            "source": "reference-pixel-extraction"
+          },
+          "normal": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_normal.png",
+            "url": "oxblood-web_normal.png",
+            "channel": "normal",
+            "source": "reference-pixel-extraction"
+          },
+          "ao": {
+            "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_ao.png",
+            "url": "oxblood-web_ao.png",
+            "channel": "ao",
+            "source": "reference-pixel-extraction"
+          }
+        },
+        "diagnostics": {
+          "sourceWidth": 560,
+          "sourceHeight": 280,
+          "mapSize": 512,
+          "cropBBoxPixels": {
+            "x": 0,
+            "y": 0,
+            "width": 560,
+            "height": 280
+          },
+          "mask": {
+            "backgroundColor": "#17130F",
+            "backgroundNoise": 59.674,
+            "transparentPixelFraction": 0.0,
+            "foregroundCoverage": 0.9981
+          },
+          "mapStats": {
+            "valueRange": 0.1795,
+            "heightP90Gradient": 0.13084,
+            "roughnessBase": 0.747,
+            "roughnessVariation": 0.196,
+            "normalStrength": 0.31,
+            "blurRadius": 10
+          },
+          "palette": [
+            "#090604",
+            "#120805",
+            "#200E0A",
+            "#34221D",
+            "#705E50"
+          ]
+        },
+        "warnings": [
+          "image is not clearly isolated from background; using most pixels as material evidence",
+          "object/background separation is weak",
+          "single-image inverse rendering cannot prove true physical PBR; confidence is capped",
+          "low value range weakens height/roughness inference"
+        ]
+      },
+      "maps": {
+        "albedo": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_albedo.png",
+          "url": "oxblood-web_albedo.png",
+          "channel": "albedo",
+          "source": "reference-pixel-extraction"
+        },
+        "roughness": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_roughness.png",
+          "url": "oxblood-web_roughness.png",
+          "channel": "roughness",
+          "source": "reference-pixel-extraction"
+        },
+        "height": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_height.png",
+          "url": "oxblood-web_height.png",
+          "channel": "height",
+          "source": "reference-pixel-extraction"
+        },
+        "normal": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_normal.png",
+          "url": "oxblood-web_normal.png",
+          "channel": "normal",
+          "source": "reference-pixel-extraction"
+        },
+        "ao": {
+          "path": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-evidence\\pbr-03-oxblood-web\\oxblood-web_ao.png",
+          "url": "oxblood-web_ao.png",
+          "channel": "ao",
+          "source": "reference-pixel-extraction"
+        }
+      }
+    }
+  ],
+  "status": "probe",
+  "limitations": [
+    "PBR extraction is reference-derived inference, not inverse rendering.",
+    "A crop must be checked against the component visible footprint before accepting material scores."
+  ],
+  "artifact": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\story-map-art\\black-gullet-material-analysis.json"
+}

@@ -65,6 +65,43 @@ function detailSurvivor(root){const{pelvis,legs,arms,head}=root.userData,cloth=m
  const hair=material('hair',0x26231f);const cap=mesh(head,new THREE.SphereGeometry(1,28,14,0,Math.PI*2,0,1.35),hair,'ShortHair');cap.position.set(0,.19,-.003);cap.scale.set(.098,.128,.097);for(let i=0;i<20;i++){const a=i*2.4;const lock=shape(head,'HairClump',[.020,.008,.035],[Math.cos(a)*.068,.291+Math.sin(i*3)*.012,Math.sin(a)*.05],hair);lock.rotation.y=a;}
  bar(head,'HealedCheekScar',[-.063,.174,-.081],[-.052,.132,-.089],.002,material('scar',0x6f473a));root.userData.materials={cloth,pants,skin,leather,bandage};
 }
+function gripFinger(parent,name,a,b,radius,mat){
+ const start=new THREE.Vector3(...a),end=new THREE.Vector3(...b),direction=end.clone().sub(start);
+ const part=mesh(parent,new THREE.CapsuleGeometry(radius,Math.max(.004,direction.length()-radius*2),4,10),mat,name);
+ part.position.copy(start).add(end).multiplyScalar(.5);
+ part.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),direction.normalize());
+ return part;
+}
+function curvedGripFinger(parent,name,points,radius,mat){
+ const curve=new THREE.CatmullRomCurve3(points.map(point=>new THREE.Vector3(...point)));
+ return mesh(parent,new THREE.TubeGeometry(curve,12,radius,8,false),mat,name);
+}
+function viewGripHand(parent,side,position){
+ const grip=new THREE.Group();grip.name='HandPose';grip.position.copy(position);parent.add(grip);
+ const leather=material('leather',0x342c27).clone(),skin=material('skin',0xa8765f,.7),thread=material('thread',0x8c8063);
+ leather.color.multiplyScalar(1.22);
+ // A broad glove back and opposed fingertips make the hand read as wrapped
+ // around a vertical grip, rather than four dots hanging beside the gun.
+ loft(grip,'FingerlessGlove',[[-.09,.041,.039],[-.065,.056,.039],[-.015,.063,.042],[.035,.061,.040],[.072,.048,.032]],leather,24);
+ shape(grip,'GloveBack',[.064,.063,.027],[0,.012,.029],leather);
+ const thumbPad=shape(grip,'ThumbPad',[.019,.044,.021],[side*.057,.025,.038],leather);
+ thumbPad.rotation.z=-side*.28;
+ const cuff=mesh(grip,new THREE.CylinderGeometry(.057,.051,.029,20),leather,'GloveCuff',0,-.075,0);
+ cuff.rotation.z=side*.05;
+ // Each finger follows the front face and rolls around the far side of a
+ // vertical grip. The exposed tips can depth-occlude behind the weapon.
+ for(let i=0;i<3;i++){
+  const y=.045-i*.034;
+  const path=[[side*.048,y,.025],[side*.025,y-.006,.062],[-side*.020,y-.010,.067],[-side*.055,y-.016,.029],[-side*.061,y-.027,-.020]];
+  curvedGripFinger(grip,`GripFinger${i}`,path.slice(0,4),.011-i*.0005,leather);
+  gripFinger(grip,`GripFingertip${i}`,path[3],path[4],.0085-i*.0003,skin).userData.gripFarSide=true;
+ }
+ curvedGripFinger(grip,'GripThumb',[[side*.051,.038,.035],[side*.075,.053,.028],[side*.072,.057,-.005],[side*.042,.045,-.041]],.012,leather);
+ gripFinger(grip,'GripThumbTip',[side*.042,.045,-.041],[side*.014,.036,-.054],.009,skin).userData.gripFarSide=true;
+ // Two restrained seams give the leather a sense of construction at FPS size.
+ for(const x of[-.033,.033])bar(grip,'GloveSeam',[x,-.045,.052],[x,.034,.053],.0015,thread);
+ return grip;
+}
 export function createSurvivorViewArm(side=1){
  const root=new THREE.Group();root.name=side<0?'LeftSurvivorArm':'RightSurvivorArm';
  const cloth=material('cloth',0x555342),skin=material('skin',0xa8765f,.7),bandage=material('bandage',0xa79b84);
@@ -87,7 +124,7 @@ export function createSurvivorViewArm(side=1){
   const wrap=mesh(limb,new THREE.CylinderGeometry(.051-i*.0012,.052-i*.0012,.014,18),bandage,'BloodyWrap');
   wrap.position.y=len*(.68+i*.032);
  }
- const palm=hand(limb,side,[0,len,0],true);palm.name='HandPose';palm.scale.setScalar(.98);palm.rotation.x=-.12;
+ const palm=viewGripHand(limb,side,new THREE.Vector3(0,len,0));palm.scale.set(side<0?3.10:2.85,2.15,2.08);palm.rotation.x=-.12;
  palm.userData.viewmodelHand=true;palm.traverse(node=>{node.userData.viewmodelHand=true;});
  const gripSocket=new THREE.Object3D();gripSocket.name='GripSocket';palm.add(gripSocket);
  root.userData={hand:palm,gripSocket,sockets:{wrist:root,hand:gripSocket},side,alignGripOrientation:true};

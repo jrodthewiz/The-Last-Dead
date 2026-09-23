@@ -613,6 +613,23 @@ input:focus-visible,
   text-transform: uppercase;
 }
 
+.settings-note {
+  margin: -8px 0 0;
+  color: var(--dim);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.setting-section-title {
+  margin-bottom: -10px;
+  color: var(--blood-hot);
+  font-family: var(--ui-font);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
 .icon-button {
   min-width: 44px;
   min-height: 44px;

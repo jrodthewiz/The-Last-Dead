@@ -1,0 +1,16 @@
+{
+  "taskId": "01a09513-bd80-77e7-b91a-d90df084f03e",
+  "additionalCredits": 0,
+  "assets": [
+    {
+      "name": "walking",
+      "bytes": 34811804,
+      "sha256": "3ad71f30e8e990fc5ed8a8d46c7291ce46b657aa604bb944ae45b2ba47e29e9c"
+    },
+    {
+      "name": "running",
+      "bytes": 34807188,
+      "sha256": "b502626c8800b9d177f053e08a30d9bf2c437808f8f3f96c09decbdd15579df9"
+    }
+  ]
+}

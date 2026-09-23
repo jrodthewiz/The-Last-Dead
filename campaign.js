@@ -30,7 +30,9 @@ export const ENEMY_PROFILES = freezeDeep({
   hexer: { kind: 1, hp: 10, speed: .34, attack: 2.25, windup: .72, projectileSpeed: 1.28, contactDamage: 19, cost: 3, role: 'ranged' },
   mireSinger: { kind: 1, hp: 13, speed: .25, attack: 2.6, windup: .9, projectileSpeed: 1.45, contactDamage: 23, cost: 4, role: 'ranged' },
   brute: { kind: 2, hp: 10, speed: .3, attack: 2.6, windup: .65, projectileSpeed: 1.4, contactDamage: 18, cost: 3, role: 'anchor' },
-  warden: { kind: 2, hp: 17, speed: .24, attack: 3, windup: .8, projectileSpeed: 1.2, contactDamage: 24, cost: 5, role: 'anchor' },
+  warden: { kind: 2, hp: 17, speed: .24, attack: 3, windup: .8, projectileSpeed: 1.2, contactDamage: 24, cost: 5, role: 'anchor', hitRadius: .2, hitHeight: .72 },
+  wardenBulwark: { kind: 2, hp: 30, speed: .2, attack: 3.2, windup: .95, projectileSpeed: 1.25, contactDamage: 30, cost: 7, role: 'anchor', hitRadius: .23, hitHeight: .78 },
+  wardenColossus: { kind: 2, hp: 55, speed: .16, attack: 3.8, windup: 1.2, projectileSpeed: 1.45, contactDamage: 35, cost: 11, role: 'anchor', hitRadius: .3, hitHeight: 1.05 },
   bellwraith: { kind: 3, hp: 14, speed: .62, attack: 2.2, windup: .52, projectileSpeed: 1.65, contactDamage: 20, cost: 4, role: 'teleport' },
   bellwraithEcho: { kind: 3, hp: 9, speed: .86, attack: 1.55, windup: .34, projectileSpeed: 1.8, contactDamage: 15, cost: 3, role: 'teleport' },
 });
@@ -95,7 +97,7 @@ export const CAMPAIGN_SECTORS = freezeDeep([
         entry(2, 'brute', 1, 2.02, 3), entry(1, 'caster', 3, 2.62, 2),
       ]),
       wave(18, 6, [
-        entry(3, 'bellwraith', 2, .25, 4), entry(2, 'warden', 0, .8, 5),
+        entry(3, 'bellwraith', 2, .25, 4), entry(2, 'wardenBulwark', 0, .8, 5),
         entry(0, 'bloodhound', 5, 1.35, 2), entry(1, 'hexer', 7, 1.88, 3),
         entry(3, 'bellwraithEcho', 4, 2.5, 3), entry(2, 'brute', 1, 3.1, 3),
       ]),
@@ -122,11 +124,11 @@ export const CAMPAIGN_SECTORS = freezeDeep([
         entry(0, 'bloodhound', 7, 1.24, 2), entry(1, 'mireSinger', 1, 1.78, 4),
         entry(3, 'bellwraithEcho', 6, 2.35, 3), entry(0, 'skitter', 2, 2.9, 1),
       ]),
-      wave(27, 8, [
+      wave(30, 8, [
         entry(3, 'bellwraith', 0, .2, 4), entry(3, 'bellwraith', 1, .66, 4),
         entry(2, 'warden', 3, 1.14, 5), entry(1, 'mireSinger', 4, 1.68, 4),
         entry(0, 'bloodhound', 6, 2.25, 2), entry(3, 'bellwraithEcho', 7, 2.8, 3),
-        entry(2, 'warden', 5, 3.4, 5),
+        entry(2, 'wardenColossus', 5, 3.4, 8),
       ]),
     ],
   },
@@ -201,9 +203,17 @@ export const CAMPAIGN_LAYOUTS = freezeDeep([
           // Pull the sealed threshold just into the intake bay so it catches
           // the spawn-facing composition instead of disappearing inside the
           // room-shell wall at the exact cell boundary.
-          anchor: [5.45, 9.18],
-          width: 2.15,
-          height: 5.4,
+          anchor: [4.8, 10.25],
+          width: 1.7,
+          height: 5.05,
+          cue: 'red',
+        },
+        {
+          id: 'intake-recovery-cluster',
+          type: 'recovery-cluster',
+          anchor: [4.8, 10.25],
+          width: 1.7,
+          height: 5.05,
           cue: 'red',
         },
         {
@@ -406,14 +416,16 @@ function isBlocked(cells, width, height, x, y) {
   return cells[cy * width + cx]?.every(Boolean) ?? true;
 }
 
-function canTraverse(cells, width, height, x, y, nx, ny) {
+// Exported so the map playground can reuse the exact traversal rules the
+// simulation uses instead of re-deriving them from the cell bitfield.
+export function canTraverse(cells, width, height, x, y, nx, ny) {
   if (nx < 0 || ny < 0 || nx >= width || ny >= height) return false;
   if (isBlocked(cells, width, height, x + .5, y + .5) || isBlocked(cells, width, height, nx + .5, ny + .5)) return false;
   const direction = nx === x + 1 ? 1 : nx === x - 1 ? 3 : ny === y + 1 ? 2 : 0;
   return !cells[y * width + x][direction] && !cells[ny * width + nx][opposite[direction]];
 }
 
-function reachableCells(cells, width, height, origin) {
+export function reachableCells(cells, width, height, origin) {
   const startX = Math.floor(origin.x);
   const startY = Math.floor(origin.y);
   if (isBlocked(cells, width, height, origin.x, origin.y)) return new Set();

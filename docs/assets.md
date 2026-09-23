@@ -1,6 +1,6 @@
 # Dead Arrival asset ledger
 
-This staging folder owns the first visual and audio handoff for the industrial gothic arena FPS. The runtime is deliberately usable offline: provider files are loaded after an interaction gesture when available, and `assets/audio.js` synthesizes the same combat events when provider files are absent.
+This staging folder owns the first visual and audio handoff for the industrial gothic arena FPS. The game runs offline from bundled assets. Its current audio runtime loads local samples after an interaction gesture and stays silent if a file is missing or cannot decode; it no longer synthesizes combat-event fallbacks.
 
 ## Skill and reference ledger
 
@@ -66,16 +66,16 @@ The Tripo hero enemy attempt was blocked before a task ID could be issued. The i
 
 ## Audio matrix
 
-| Event | Provider path when available | Runtime fallback | Group |
-| --- | --- | --- | --- |
-| Revolver / shotgun / arc shot | `assets/audio/sfx/weapon-hand-cannon.mp3`, `weapon-breach-shotgun.mp3`, `weapon-arc-lance.mp3` | weapon-specific transient, sub hit, filtered crack | `sfx` |
-| Hit / enemy impact | `assets/audio/sfx/hit-metal-flesh.mp3` | square metallic thump plus filtered noise | `sfx` |
-| Parry / reflect | `assets/audio/sfx/parry-impact.mp3` | rising glassy metallic ping | `sfx` |
-| Dash / boost | `assets/audio/sfx/dash-burst.mp3` | filtered noise sweep plus rising saw | `sfx` |
-| Blood / kill / gore | `assets/audio/sfx/blood-burst.mp3` | wet low noise and sub drop | `sfx` |
-| Bloodworks room tone | `assets/audio/ambience/bloodworks-loop.mp3` | looping filtered noise and 47 Hz machinery hum | `ambience` |
+| Event | Current bundled sample | Group |
+| --- | --- | --- |
+| Weapon shots | Weapon-specific pools in `assets/audio-manifest.js` | `sfx` |
+| Hit / enemy impact | Kenney impact recordings plus CC0 bullet-hit sample | `sfx` |
+| Blood / gore | Kenney slime sample plus CC0 splat sample | `sfx` |
+| Creature attack / moan | 24 CC0 zombie one-shots | `sfx` |
+| Movement / parry / UI | Bundled CC0 and Kenney sample pools | `sfx` / `ui` |
+| Arena ambience / music | Bundled CC0 loops | `ambience` / `music` |
 
-`assets/audio.js` exports `AudioSystem` and `AUDIO_ASSET_MANIFEST`. It implements the required `async unlock()`, `setVolume(v)`, `setMuted(bool)`, `pause()`, `resume()`, `play(type, weapon = 0)`, and `dispose()` methods. The constructor does not resume audio, fetch optional provider files, or start ambience. The first playable build therefore produces no 404 noise and uses synthesized events by default. Pass `{ providerAssets: true }` only after the MP3s have been generated and copied to the manifest paths. Call `unlock()` from the title-screen pointer/key gesture, then start ambience explicitly:
+`assets/audio.js` exports `AudioSystem` and `AUDIO_ASSET_MANIFEST`. It implements the required `async unlock()`, `setVolume(v)`, `setMuted(bool)`, `pause()`, `resume()`, `play(type, weapon = 0)`, and `dispose()` methods. The constructor does not resume audio or start ambience. Call `unlock()` from the title-screen pointer/key gesture, then start ambience explicitly:
 
 ```js
 import { AudioSystem } from './assets/audio.js';
@@ -86,16 +86,13 @@ window.addEventListener('pointerdown', () => audio.unlock(), { once: true });
 await audio.unlock();
 audio.play('ambience');
 
-// Once generated files exist, opt in to loading them:
-// const audio = new AudioSystem({ providerAssets: true });
-
 // Engine event mapping:
 // shot -> audio.play('shot', run.weapon)
 // hit / kill / damage / parry / dash / jump / slam / coin -> matching names
 ```
 
-Loads are best effort and caught individually, so a missing MP3 never blocks scene startup. Web Audio pause/resume is wired to the game pause state; `setMuted` and `setVolume` affect all groups through the master gain. The fallback sounds are intentionally short and mix-safe so rapid fire and parry events do not allocate long-lived media elements.
+Loads are best effort and caught individually, so a missing file never blocks scene startup. Web Audio pause/resume is wired to the game pause state; `setMuted` and `setVolume` affect all groups through the master gain. Missing or undecodable samples are reported through `debugInfo.errors` and remain silent.
 
 ## Remaining asset work
 
-Provider generation can be re-run without changing renderer code after the three keys are supplied. Drop generated MP3s at the manifest paths above to replace synthesized events. The next visual pass should derive normal/roughness/height variants from the material image or replace it with a provider-produced PBR set, then add the Tripo revenant GLB and inspect its bounds, triangle count, material count and pivot before shipping. Generated audio should be checked for loop seams, decode errors, and duplicate ambience sources in the browser QA pass.
+The next visual pass should derive normal/roughness/height variants from the material image or replace it with a provider-produced PBR set, then add the Tripo revenant GLB and inspect its bounds, triangle count, material count and pivot before shipping. Audio source and license details live in [audio-sources.md](audio-sources.md).

@@ -1,0 +1,41 @@
+{
+  "formatVersion": 1,
+  "pipeline": "meshy-multi-image-source-rig-v1",
+  "characterId": "tld-bloodworks-warden-meshy-01",
+  "label": "Bloodworks Warden",
+  "heightMeters": 2.2,
+  "texturePrompt": "Faithfully preserve the T-pose Warden reference: layered weathered black iron armor, pale ash-gray exposed skin, restrained ember-red fissures and small red eye glow; no extra weapons or props; game-ready rough PBR.",
+  "createdAt": "2026-09-21T06:04:22.665Z",
+  "updatedAt": "2026-09-21T06:04:24.443Z",
+  "status": "IN_PROGRESS",
+  "sourceRequest": {
+    "endpoint": "/openapi/v1/multi-image-to-3d",
+    "imageCount": 1,
+    "aiModel": "latest",
+    "poseMode": "t-pose",
+    "textured": true,
+    "pbr": true,
+    "targetFormats": [
+      "glb"
+    ]
+  },
+  "sources": [
+    {
+      "file": "sources/source-01.png",
+      "originalFileName": "warden-tpose-front.png",
+      "sha256": "3853fec3e0c8bacb1a83fa064c246239e765133c641cc07ad3224c74573263b6",
+      "byteSize": 1901836,
+      "mimeType": "image/png"
+    }
+  ],
+  "source": {
+    "submitStartedAt": "2026-09-21T06:04:22.680Z",
+    "submissionUnknown": false,
+    "submitError": {
+      "at": "2026-09-21T06:04:24.443Z",
+      "category": "definite-rejection",
+      "httpStatus": 400
+    }
+  },
+  "rig": {}
+}

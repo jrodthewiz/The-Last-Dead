@@ -16,7 +16,7 @@ const processed = [
 const preview = await startServer({ root: path.resolve('dist'), port: 0, host: '127.0.0.1' });
 const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROME_PATH, args: ['--use-angle=d3d11'] });
 const errors = [];
-const result = { processed: [], browser: null, accentSignals: [], errors };
+const result = { processed: [], browser: null, settings: null, errors };
 try {
   for (const file of processed) {
     const info = await stat(file);
@@ -34,47 +34,57 @@ try {
     const d = window.__DEAD_ARRIVAL__;
     const a = d.audio;
     const mod = await import('/assets/audio.js');
-    const mini = new mod.AudioSystem({ manifest: {} });
-    const signals = [];
-    const render = async (type, weapon = 0, details = {}) => {
-      const context = new OfflineAudioContext(1, 48000 * 1.25, 48000);
-      mini._ctx = context;
-      mini._master = context.createGain();
-      mini._master.connect(context.destination);
-      mini._groups.clear();
-      mini._sources.clear();
-      const normalizedType = type === 'kill' ? 'enemydeath' : type;
-      mini._synth(normalizedType, weapon, details);
-      mini._synthAccent(normalizedType, weapon, details);
-      const rendered = await context.startRendering();
-      const samples = rendered.getChannelData(0);
-      let peak = 0, power = 0, finite = true;
-      for (const value of samples) {
-        finite = finite && Number.isFinite(value);
-        peak = Math.max(peak, Math.abs(value));
-        power += value * value;
-      }
-      signals.push({ type, weapon, enemyKind: details.enemyKind, peak, rms: Math.sqrt(power / samples.length), finite });
-    };
-    for (let weapon = 0; weapon < 4; weapon++) await render('shot', weapon, { cooldown: 0 });
-    for (const kind of [0, 1, 2]) {
-      await render('enemyattack', 0, { enemyKind: kind, cooldown: 0 });
-      await render('kill', 0, { enemyKind: kind, cooldown: 0 });
-      await render('hit', 0, { enemyKind: kind, cooldown: 0 });
+    const generatedMethods = ['_synth', '_synthAccent', '_synthAmbience']
+      .filter(name => typeof mod.AudioSystem.prototype[name] === 'function');
+    const originalGroup = a._group;
+    const routedGroups = [];
+    let voiceEventPlayed = false;
+    try {
+      a._group = function (name) { routedGroups.push(name); return originalGroup.call(this, name); };
+      voiceEventPlayed = a.play('enemyattack');
+    } finally {
+      a._group = originalGroup;
     }
-    await render('explosion', 3, { cooldown: 0 });
     return {
       loaded: a.debugInfo.loaded,
       decoded: a.debugInfo.decoded,
       manifestEntries: a.debugInfo.manifestEntries,
+      normalizedPools: a.debugInfo.normalizedPools,
+      normalizedSamples: a.debugInfo.normalizedSamples,
       loadErrors: a.debugInfo.errors,
-      signals,
+      generatedMethods,
+      voiceEventPlayed,
+      routedGroups,
     };
   });
-  result.accentSignals = result.browser.signals;
+  await page.evaluate(() => window.__DEAD_ARRIVAL__.pause());
+  await page.locator('.pause-screen [data-action="settings"]').click();
+  const testVolumes = { volume: .67, sfxVolume: .82, voiceVolume: .61, musicVolume: .37, ambienceVolume: .44, uiVolume: .29 };
+  for (const [name, value] of Object.entries(testVolumes)) {
+    await page.locator(`[data-setting="${name}"]`).evaluate((slider, next) => {
+      slider.value = String(next);
+      slider.dispatchEvent(new Event('input', { bubbles: true }));
+    }, value);
+  }
+  result.settings = await page.evaluate(() => ({
+    saved: JSON.parse(localStorage.getItem('dead-arrival-prefs-v1') || '{}'),
+    liveMaster: window.__DEAD_ARRIVAL__.audio._volume,
+    liveGroups: { ...window.__DEAD_ARRIVAL__.audio._groupVolumes },
+  }));
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => Boolean(window.__DEAD_ARRIVAL__?.ui?.prefs));
+  result.settings.restored = await page.evaluate(() => ({
+    prefs: { ...window.__DEAD_ARRIVAL__.ui.prefs },
+    master: window.__DEAD_ARRIVAL__.audio._volume,
+    groups: { ...window.__DEAD_ARRIVAL__.audio._groupVolumes },
+  }));
   await writeFile('docs/build10-audio/audio-runtime.json', JSON.stringify(result, null, 2));
   console.log(JSON.stringify(result));
-  if (!result.processed.every(item => item.exists && item.bytes > 1000) || !result.browser.loaded || result.browser.decoded < 37 || result.browser.loadErrors.length || result.accentSignals.some(signal => !signal.finite || signal.rms <= 0 || signal.peak >= 1.05) || errors.length) process.exitCode = 1;
+  const settingsPersisted = Object.entries(testVolumes).every(([name, value]) => Math.abs(Number(result.settings.restored.prefs[name]) - value) < .001);
+  const groupSettings = { sfxVolume: 'sfx', voiceVolume: 'voice', musicVolume: 'music', ambienceVolume: 'ambience', uiVolume: 'ui' };
+  const liveApplied = Object.entries(groupSettings).every(([pref, group]) => Math.abs(Number(result.settings.liveGroups[group]) - testVolumes[pref]) < .001);
+  const restoredApplied = Object.entries(groupSettings).every(([pref, group]) => Math.abs(Number(result.settings.restored.groups[group]) - testVolumes[pref]) < .001);
+  if (!result.processed.every(item => item.exists && item.bytes > 1000) || !result.browser.loaded || !result.browser.manifestEntries || result.browser.decoded !== result.browser.manifestEntries || result.browser.normalizedPools < 20 || result.browser.normalizedSamples < 60 || result.browser.loadErrors.length || result.browser.generatedMethods.length || !result.browser.voiceEventPlayed || !result.browser.routedGroups.includes('voice') || !settingsPersisted || !liveApplied || !restoredApplied || errors.length) process.exitCode = 1;
 } finally {
   await browser.close();
   preview.server.closeAllConnections();

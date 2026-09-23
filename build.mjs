@@ -9,6 +9,7 @@ const DIST_ROOT = path.resolve(PROJECT_ROOT, 'dist');
 // publish tests, docs, source maps from another project, or local secrets.
 export const RUNTIME_FILES = [
   'index.html',
+  'map-playground.html',
   'app.js',
   'main.js',
   'peer.js',
@@ -20,9 +21,16 @@ export const RUNTIME_FILES = [
   'renderer.js',
   'world-horror.js',
   'world-authored.js',
+  'world-setdressing.js',
+  'dungeon-art-direction.js',
+  'dungeon-architecture.js',
   'world-polish.js',
   'world-static.js',
   'bounded-lighting.js',
+  'afterlife-lighting.js',
+  'afterlife-atmosphere.js',
+  'afterlife-surfaces.js',
+  'npc-afterlife.js',
   'transmission-region.js',
   'weapon-batching.js',
   'room-materials.js',
@@ -45,8 +53,8 @@ export const RUNTIME_FILES = [
   'weapon-arc.js',
   'style.css',
 ];
-export const RUNTIME_DIRECTORIES = ['vendor', 'assets', 'public'];
-export const REQUIRED_RUNTIME_FILES = ['index.html', 'main.js', 'peer.js', 'engine.js', 'renderer.js', 'ui.js', 'audio.js', 'styles.css', 'campaign.js', 'explosion-vfx.js', 'weapon-reliquary.js', 'npc-bellwraith.js', 'world-polish.js', 'world-authored.js', 'horror-ui.css', 'weapon-breach.js', 'weapon-arc.js', 'impact-vfx.js', 'weapon-materials.js', 'weapon-detail-pass.js'];
+export const RUNTIME_DIRECTORIES = ['vendor', 'assets', 'public', 'playground'];
+export const REQUIRED_RUNTIME_FILES = ['index.html', 'map-playground.html', 'main.js', 'peer.js', 'engine.js', 'renderer.js', 'ui.js', 'audio.js', 'styles.css', 'campaign.js', 'explosion-vfx.js', 'weapon-reliquary.js', 'npc-bellwraith.js', 'world-polish.js', 'world-authored.js', 'world-setdressing.js', 'dungeon-art-direction.js', 'dungeon-architecture.js', 'horror-ui.css', 'weapon-breach.js', 'weapon-arc.js', 'impact-vfx.js', 'weapon-materials.js', 'weapon-detail-pass.js'];
 
 function isInside(root, candidate) {
   const relative = path.relative(root, candidate);

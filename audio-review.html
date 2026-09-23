@@ -23,7 +23,7 @@
 </head>
 <body>
   <h1>THE LAST DEAD / AUDIO REVIEW</h1>
-  <p>Audition the current gameplay mix and the long-form horror beds. A button click unlocks Web Audio; music and ambience are looped through the same lifecycle used by the game.</p>
+  <p>Audition the bundled sampled gameplay mix and long-form horror beds. A button click unlocks Web Audio; music and ambience use the same lifecycle as the game. Missing or undecodable clips stay silent; there is no generated synth fallback.</p>
   <div class="toolbar">
     <label>Volume <input id="volume" type="range" min="0" max="1" step=".05" value=".5"></label>
     <button id="stop" type="button">Pause audio</button>
@@ -45,7 +45,7 @@
     const sceneNames = { menu: 'Menu music', play: 'Gameplay music + ambience', pause: 'Pause / fade out', dead: 'Death music', win: 'Win music' };
     const report = label => {
       const info = audio.debugInfo;
-      status.textContent = `${info.decoded}/${info.manifestEntries} decoded · ${info.errors.length} errors · scene ${audio.scene} · ${label}`;
+      status.textContent = `${info.decoded}/${info.manifestEntries} decoded · ${info.normalizedSamples} variants level-matched · ${info.errors.length} errors · scene ${audio.scene} · ${label}`;
     };
     const unlock = async () => {
       await audio.unlock();

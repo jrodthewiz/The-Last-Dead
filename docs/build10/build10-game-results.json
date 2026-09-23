@@ -1,6 +1,6 @@
 {
-  "startedAt": "2026-09-11T20:47:41.601Z",
-  "url": "http://127.0.0.1:64723/?debug=1&build10=game",
+  "startedAt": "2026-09-11T22:10:58.801Z",
+  "url": "http://127.0.0.1:56119/?debug=1&build10=game",
   "browser": {
     "executablePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
     "headless": true
@@ -42,7 +42,7 @@
           "active": 1,
           "fire": 2,
           "smoke": 2,
-          "embers": 10,
+          "embers": 20,
           "rings": 1,
           "maxExplosions": 18,
           "reducedMotion": false,
@@ -78,138 +78,138 @@
       }
     },
     "performance": {
-      "elapsedMs": 30009,
-      "frames": 1782,
-      "avgFps": 59.38,
-      "minSampleFps": 56,
+      "elapsedMs": 30019,
+      "frames": 1542,
+      "avgFps": 51.37,
+      "minSampleFps": 15,
       "maxSampleFps": 61,
       "samples": [
         {
-          "elapsedMs": 1005,
-          "fps": 61
+          "elapsedMs": 1015,
+          "fps": 57
         },
         {
-          "elapsedMs": 2021,
-          "fps": 61
+          "elapsedMs": 2048,
+          "fps": 51
         },
         {
-          "elapsedMs": 3037,
-          "fps": 61
+          "elapsedMs": 3081,
+          "fps": 47
         },
         {
-          "elapsedMs": 4054,
-          "fps": 61
-        },
-        {
-          "elapsedMs": 5070,
-          "fps": 61
-        },
-        {
-          "elapsedMs": 6086,
-          "fps": 61
-        },
-        {
-          "elapsedMs": 7102,
-          "fps": 61
-        },
-        {
-          "elapsedMs": 8118,
+          "elapsedMs": 4097,
           "fps": 56
         },
         {
-          "elapsedMs": 9135,
-          "fps": 56
-        },
-        {
-          "elapsedMs": 10151,
+          "elapsedMs": 5130,
           "fps": 60
         },
         {
-          "elapsedMs": 11167,
+          "elapsedMs": 6146,
+          "fps": 58
+        },
+        {
+          "elapsedMs": 7162,
+          "fps": 54
+        },
+        {
+          "elapsedMs": 8178,
           "fps": 59
         },
         {
-          "elapsedMs": 12183,
+          "elapsedMs": 9195,
+          "fps": 56
+        },
+        {
+          "elapsedMs": 10227,
           "fps": 58
         },
         {
-          "elapsedMs": 13199,
+          "elapsedMs": 11244,
+          "fps": 52
+        },
+        {
+          "elapsedMs": 12260,
+          "fps": 50
+        },
+        {
+          "elapsedMs": 13276,
+          "fps": 52
+        },
+        {
+          "elapsedMs": 14292,
+          "fps": 45
+        },
+        {
+          "elapsedMs": 15308,
+          "fps": 57
+        },
+        {
+          "elapsedMs": 16325,
+          "fps": 59
+        },
+        {
+          "elapsedMs": 17358,
           "fps": 58
         },
         {
-          "elapsedMs": 14216,
-          "fps": 60
+          "elapsedMs": 18374,
+          "fps": 54
         },
         {
-          "elapsedMs": 15232,
+          "elapsedMs": 19407,
           "fps": 61
         },
         {
-          "elapsedMs": 16248,
+          "elapsedMs": 20423,
+          "fps": 48
+        },
+        {
+          "elapsedMs": 21439,
+          "fps": 56
+        },
+        {
+          "elapsedMs": 22455,
+          "fps": 55
+        },
+        {
+          "elapsedMs": 23471,
+          "fps": 57
+        },
+        {
+          "elapsedMs": 24488,
           "fps": 61
         },
         {
-          "elapsedMs": 17248,
-          "fps": 60
+          "elapsedMs": 25504,
+          "fps": 57
         },
         {
-          "elapsedMs": 18264,
-          "fps": 61
+          "elapsedMs": 26520,
+          "fps": 46
         },
         {
-          "elapsedMs": 19281,
-          "fps": 61
+          "elapsedMs": 27553,
+          "fps": 46
         },
         {
-          "elapsedMs": 20297,
-          "fps": 61
+          "elapsedMs": 28586,
+          "fps": 15
         },
         {
-          "elapsedMs": 21313,
-          "fps": 61
-        },
-        {
-          "elapsedMs": 22313,
-          "fps": 60
-        },
-        {
-          "elapsedMs": 23329,
-          "fps": 61
-        },
-        {
-          "elapsedMs": 24345,
-          "fps": 61
-        },
-        {
-          "elapsedMs": 25361,
-          "fps": 61
-        },
-        {
-          "elapsedMs": 26361,
-          "fps": 60
-        },
-        {
-          "elapsedMs": 27377,
-          "fps": 61
-        },
-        {
-          "elapsedMs": 28393,
-          "fps": 61
-        },
-        {
-          "elapsedMs": 29393,
-          "fps": 60
+          "elapsedMs": 29619,
+          "fps": 40
         }
       ]
     },
     "rendererInfo": {
       "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F91) Direct3D11 vs_5_0 ps_5_0, D3D11)",
-      "calls": 148,
-      "triangles": 219004,
+      "calls": 130,
+      "triangles": 223388,
       "points": 0,
       "lines": 27,
-      "geometries": 873,
-      "textures": 104,
+      "geometries": 811,
+      "textures": 116,
       "programs": [
         {
           "name": null,
@@ -257,6 +257,66 @@
         },
         {
           "name": "RoomRecess_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "RoomWall_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomPanel_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomTrim_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomTrim_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomRecess_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
           "runnable": null
         },
         {
@@ -380,11 +440,7 @@
           "runnable": null
         },
         {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
+          "name": "RoomBone_bloodworks-0",
           "runnable": null
         },
         {
@@ -393,26 +449,6 @@
         },
         {
           "name": "Material_1",
-          "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
           "runnable": null
         },
         {
@@ -516,31 +552,7 @@
           "runnable": null
         },
         {
-          "name": "RoomFloor_bloodworks-0",
-          "runnable": null
-        },
-        {
-          "name": "RoomTrim_bloodworks-0",
-          "runnable": null
-        },
-        {
-          "name": "RoomRecess_bloodworks-0",
-          "runnable": null
-        },
-        {
-          "name": "RoomWall_bloodworks-0",
-          "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
+          "name": "RoomBone_bloodworks-0",
           "runnable": null
         },
         {
@@ -553,6 +565,18 @@
         },
         {
           "name": "Material_1",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
           "runnable": null
         },
         {
@@ -668,6 +692,10 @@
           "runnable": null
         },
         {
+          "name": null,
+          "runnable": null
+        },
+        {
           "name": "BazookaSmokeBillboardsShader",
           "runnable": null
         },
@@ -712,6 +740,10 @@
           "runnable": null
         },
         {
+          "name": "RoomBone_ossuary-0",
+          "runnable": null
+        },
+        {
           "name": null,
           "runnable": null
         },
@@ -789,10 +821,6 @@
         },
         {
           "name": "BazookaShockwaveRingsShader",
-          "runnable": null
-        },
-        {
-          "name": null,
           "runnable": null
         },
         {
@@ -856,15 +884,7 @@
           "runnable": null
         },
         {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
+          "name": "RoomBone_ossuary-0",
           "runnable": null
         },
         {
@@ -912,7 +932,7 @@
           "type": "warning",
           "text": "THREE.WebGLProgram: Program Info Log: (210,81-129): warning X4122: sum of 0.996094 and -2.98545e-017 cannot be represented accurately in double precision\n(209,37-61): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(210,82-106): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(209,37-61): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision\n(210,82-106): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision\n\n\n\u0000",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -923,7 +943,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -934,7 +954,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -945,7 +965,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -956,7 +976,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -967,7 +987,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -978,7 +998,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -989,7 +1009,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1000,7 +1020,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1011,7 +1031,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1022,7 +1042,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1033,7 +1053,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1044,7 +1064,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1055,7 +1075,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1066,7 +1086,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1077,7 +1097,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1088,7 +1108,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1099,7 +1119,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1110,7 +1130,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1121,7 +1141,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1132,7 +1152,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1143,7 +1163,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1154,7 +1174,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1165,7 +1185,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1176,7 +1196,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1187,7 +1207,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1198,7 +1218,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1209,7 +1229,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1220,7 +1240,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1231,7 +1251,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1242,7 +1262,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1253,7 +1273,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1264,7 +1284,359 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1326,13 +1698,61 @@
     },
     "rendererInfo": {
       "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F91) Direct3D11 vs_5_0 ps_5_0, D3D11)",
-      "calls": 360,
-      "triangles": 139048,
+      "calls": 365,
+      "triangles": 139384,
       "points": 0,
       "lines": 26,
-      "geometries": 874,
-      "textures": 64,
+      "geometries": 945,
+      "textures": 63,
       "programs": [
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
+        {
+          "name": "RoomWall_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomPanel_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomTrim_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomTrim_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": "RoomRecess_bloodworks-0",
+          "runnable": null
+        },
+        {
+          "name": null,
+          "runnable": null
+        },
         {
           "name": null,
           "runnable": null
@@ -1434,6 +1854,10 @@
           "runnable": null
         },
         {
+          "name": null,
+          "runnable": null
+        },
+        {
           "name": "BazookaSmokeBillboardsShader",
           "runnable": null
         },
@@ -1502,7 +1926,7 @@
           "runnable": null
         },
         {
-          "name": null,
+          "name": "RoomBone_bloodworks-0",
           "runnable": null
         },
         {
@@ -1515,26 +1939,6 @@
         },
         {
           "name": "Material_1",
-          "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
           "runnable": null
         },
         {
@@ -1638,19 +2042,7 @@
           "runnable": null
         },
         {
-          "name": "RoomFloor_bloodworks-0",
-          "runnable": null
-        },
-        {
-          "name": "RoomTrim_bloodworks-0",
-          "runnable": null
-        },
-        {
-          "name": "RoomRecess_bloodworks-0",
-          "runnable": null
-        },
-        {
-          "name": "RoomWall_bloodworks-0",
+          "name": "RoomBone_bloodworks-0",
           "runnable": null
         },
         {
@@ -1684,14 +2076,6 @@
         {
           "name": null,
           "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
-        },
-        {
-          "name": null,
-          "runnable": null
         }
       ],
       "wardenStatus": "ready"
@@ -1704,7 +2088,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1715,7 +2099,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1726,7 +2110,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1737,7 +2121,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1748,7 +2132,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1759,7 +2143,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1770,7 +2154,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1781,7 +2165,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1792,7 +2176,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1803,7 +2187,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1814,7 +2198,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1825,7 +2209,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1836,7 +2220,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1847,7 +2231,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1858,7 +2242,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1869,7 +2253,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1880,7 +2264,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1891,7 +2275,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1902,7 +2286,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1913,7 +2297,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1924,7 +2308,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1935,7 +2319,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1946,7 +2330,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1957,7 +2341,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1968,7 +2352,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1979,7 +2363,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -1990,7 +2374,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -2001,7 +2385,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -2012,7 +2396,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -2023,7 +2407,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -2034,7 +2418,7 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -2045,7 +2429,359 @@
           "type": "warning",
           "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
           "location": {
-            "url": "http://127.0.0.1:64723/vendor/three.core.js",
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
+            "line": 2000,
+            "column": 11,
+            "lineNumber": 2000,
+            "columnNumber": 11
+          }
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLRenderer: Texture marked for update but no image data found.",
+          "location": {
+            "url": "http://127.0.0.1:56119/vendor/three.core.js",
             "line": 2000,
             "column": 11,
             "lineNumber": 2000,
@@ -2068,35 +2804,35 @@
   "audioSignal": [
     {
       "type": "shot",
-      "peak": 0.020916055887937546
+      "peak": 0.01950535550713539
     },
     {
       "type": "footstep",
-      "peak": 0.019059807062149048
+      "peak": 0.02113940753042698
     },
     {
       "type": "jump",
-      "peak": 0.019500702619552612
+      "peak": 0.04409546032547951
     },
     {
       "type": "land",
-      "peak": 0.08521486818790436
+      "peak": 0.10963334888219833
     },
     {
       "type": "enemy-attack",
-      "peak": 0.024098267778754234
+      "peak": 0.025132931768894196
     },
     {
       "type": "kill",
-      "peak": 0.07129550725221634
+      "peak": 0.10722772777080536
     },
     {
       "type": "explosion",
-      "peak": 0.14821965992450714
+      "peak": 0.12954378128051758
     },
     {
       "type": "slide",
-      "peak": 0.14483582973480225
+      "peak": 0.07922366261482239
     }
   ],
   "sectors": [
@@ -2109,41 +2845,41 @@
           "batches": 15
         },
         "staticWorld": {
-          "frozen": 118,
+          "frozen": 126,
           "pruned": 0
         },
         "boundedLighting": true,
-        "transmissionCoverage": 1,
+        "transmissionCoverage": 0.09413671875,
         "weaponBatch": [
           {
             "parents": 0,
             "groups": 0,
-            "meshesBefore": 80,
-            "meshesAfter": 80,
+            "meshesBefore": 62,
+            "meshesAfter": 62,
             "mergedMeshes": 0,
             "mergedSources": 0
           },
           {
             "parents": 8,
             "groups": 17,
-            "meshesBefore": 157,
-            "meshesAfter": 95,
+            "meshesBefore": 121,
+            "meshesAfter": 59,
             "mergedMeshes": 17,
             "mergedSources": 79
           },
           {
             "parents": 0,
             "groups": 0,
-            "meshesBefore": 90,
-            "meshesAfter": 90,
+            "meshesBefore": 54,
+            "meshesAfter": 54,
             "mergedMeshes": 0,
             "mergedSources": 0
           },
           {
             "parents": 0,
             "groups": 0,
-            "meshesBefore": 100,
-            "meshesAfter": 100,
+            "meshesBefore": 64,
+            "meshesAfter": 64,
             "mergedMeshes": 0,
             "mergedSources": 0
           }
@@ -2156,14 +2892,14 @@
         "dpr": 1,
         "renderScale": 1,
         "fov": 92,
-        "meshes": 1051,
+        "meshes": 1018,
         "instancedMeshes": 85,
-        "geometries": 925,
-        "materials": 212,
-        "triangles": 351446,
-        "calls": 358,
-        "gpuTriangles": 128116,
-        "rendererGeometries": 872,
+        "geometries": 864,
+        "materials": 248,
+        "triangles": 388858,
+        "calls": 789,
+        "gpuTriangles": 251756,
+        "rendererGeometries": 810,
         "explosions": {
           "active": 0,
           "fire": 0,
@@ -2182,7 +2918,7 @@
             "smoke": 96
           }
         },
-        "rendererTextures": 67,
+        "rendererTextures": 79,
         "enemies": 0,
         "gore": 0,
         "blood": 0,
@@ -2212,32 +2948,32 @@
           {
             "parents": 0,
             "groups": 0,
-            "meshesBefore": 80,
-            "meshesAfter": 80,
+            "meshesBefore": 62,
+            "meshesAfter": 62,
             "mergedMeshes": 0,
             "mergedSources": 0
           },
           {
             "parents": 8,
             "groups": 17,
-            "meshesBefore": 157,
-            "meshesAfter": 95,
+            "meshesBefore": 121,
+            "meshesAfter": 59,
             "mergedMeshes": 17,
             "mergedSources": 79
           },
           {
             "parents": 0,
             "groups": 0,
-            "meshesBefore": 90,
-            "meshesAfter": 90,
+            "meshesBefore": 54,
+            "meshesAfter": 54,
             "mergedMeshes": 0,
             "mergedSources": 0
           },
           {
             "parents": 0,
             "groups": 0,
-            "meshesBefore": 100,
-            "meshesAfter": 100,
+            "meshesBefore": 64,
+            "meshesAfter": 64,
             "mergedMeshes": 0,
             "mergedSources": 0
           }
@@ -2250,14 +2986,14 @@
         "dpr": 1,
         "renderScale": 1,
         "fov": 92,
-        "meshes": 930,
+        "meshes": 804,
         "instancedMeshes": 85,
-        "geometries": 801,
-        "materials": 216,
-        "triangles": 351694,
-        "calls": 250,
-        "gpuTriangles": 132932,
-        "rendererGeometries": 743,
+        "geometries": 675,
+        "materials": 248,
+        "triangles": 379946,
+        "calls": 216,
+        "gpuTriangles": 141508,
+        "rendererGeometries": 617,
         "explosions": {
           "active": 0,
           "fire": 0,
@@ -2276,7 +3012,7 @@
             "smoke": 96
           }
         },
-        "rendererTextures": 84,
+        "rendererTextures": 97,
         "enemies": 0,
         "gore": 0,
         "blood": 0,
@@ -2306,32 +3042,32 @@
           {
             "parents": 0,
             "groups": 0,
-            "meshesBefore": 80,
-            "meshesAfter": 80,
+            "meshesBefore": 62,
+            "meshesAfter": 62,
             "mergedMeshes": 0,
             "mergedSources": 0
           },
           {
             "parents": 8,
             "groups": 17,
-            "meshesBefore": 157,
-            "meshesAfter": 95,
+            "meshesBefore": 121,
+            "meshesAfter": 59,
             "mergedMeshes": 17,
             "mergedSources": 79
           },
           {
             "parents": 0,
             "groups": 0,
-            "meshesBefore": 90,
-            "meshesAfter": 90,
+            "meshesBefore": 54,
+            "meshesAfter": 54,
             "mergedMeshes": 0,
             "mergedSources": 0
           },
           {
             "parents": 0,
             "groups": 0,
-            "meshesBefore": 100,
-            "meshesAfter": 100,
+            "meshesBefore": 64,
+            "meshesAfter": 64,
             "mergedMeshes": 0,
             "mergedSources": 0
           }
@@ -2344,14 +3080,14 @@
         "dpr": 1,
         "renderScale": 1,
         "fov": 92,
-        "meshes": 976,
+        "meshes": 850,
         "instancedMeshes": 85,
-        "geometries": 844,
-        "materials": 210,
-        "triangles": 351718,
-        "calls": 272,
-        "gpuTriangles": 131348,
-        "rendererGeometries": 791,
+        "geometries": 718,
+        "materials": 242,
+        "triangles": 379970,
+        "calls": 239,
+        "gpuTriangles": 140308,
+        "rendererGeometries": 665,
         "explosions": {
           "active": 0,
           "fire": 0,
@@ -2370,7 +3106,7 @@
             "smoke": 96
           }
         },
-        "rendererTextures": 100,
+        "rendererTextures": 112,
         "enemies": 0,
         "gore": 0,
         "blood": 0,

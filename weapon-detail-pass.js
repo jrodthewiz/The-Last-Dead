@@ -26,8 +26,14 @@ function plate(points, depth = .012, bevel = .003) {
 }
 
 function material(color, roughness, metalness, emissive = 0x000000, intensity = 0) {
+  const reflective = metalness > .55;
   const m = new THREE.MeshPhysicalMaterial({
-    color, roughness, metalness, clearcoat: .28, clearcoatRoughness: .2,
+    color, roughness, metalness,
+    // Match the factory profiles so the micro-detail belongs to the same
+    // manufactured object instead of becoming a separate mirror-bright kit.
+    envMapIntensity: reflective ? .46 : .2,
+    clearcoat: reflective ? .22 : .08,
+    clearcoatRoughness: reflective ? .28 : .38,
     emissive, emissiveIntensity: intensity,
   });
   m.userData.weaponMicroDetail = true;

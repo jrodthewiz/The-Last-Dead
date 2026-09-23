@@ -1,83 +1,57 @@
-# Audio baseline � September 8, 2026
+ Audio sources and runtime
 
-The active event-to-file map is `assets/audio-manifest.js`. Change a pool there to replace a sound without changing gameplay. The runtime resolves paths relative to `assets/audio.js`. All files are bundled; runtime playback needs no external service.
+Updated September 20, 2026. The active event map is `assets/audio-manifest.js`; the runtime loads only bundled files from `assets/audio/`. The audio layer uses sampled assets throughout. Missing or undecodable files stay silent and appear in `AudioSystem.debugInfo.errors`; no oscillator or noise fallback is generated.
 
-52 new Ogg samples were imported unchanged from these CC0 packs:
+## Sampled audio refresh
 
-| Pack | Author | Source |
+This pass replaces the in-repo synthetic combat and creature clips with licensed sample-library material and removes the runtime synthesis paths.
+
+| Use | Runtime pool | Source |
 | --- | --- | --- |
-| Impact Sounds | Kenney | https://kenney.nl/assets/impact-sounds |
-| Interface Sounds | Kenney | https://kenney.nl/assets/interface-sounds |
-| Sci-fi Sounds | Kenney | https://kenney.nl/assets/sci-fi-sounds |
-| Zombie noises and moans | ianzazz | https://opengameart.org/content/zombie-noises-and-moans |
+| Ossuary pistol | `processed/ossuary-shot.wav`, `sourced/weapons/ossuary-02.ogg`, `sourced/weapons/ossuary-03.ogg` | Three P226 report takes from the Free Firearm Sound Library |
+| Breach shotgun | `processed/breach-shot.wav`, `sourced/weapons/breach-02.ogg` | Two 12-gauge report takes from the same library |
+| Arc Lance | `processed/arc-lance.wav`, two Kenney sci-fi laser samples | Tesla-generator discharge plus curated sci-fi samples |
+| Reliquary / rocket | `processed/reliquary-launch.wav`, `sourced/weapons/reliquary-02.ogg` | Shortened Kenney thruster effects |
+| Impact | `processed/impact-metal-flesh.wav`, `cc0-bullet-hit.wav`, and the Kenney medium-impact variants | CC0 bullet-hit effect and Kenney Impact Sounds |
+| Blood | `processed/blood-burst.wav`, `cc0-splat-hit.wav` | Kenney slime sample and a CC0 splat effect |
+| Zombie attack / moan | 12 attack and 12 moan variants in `sourced/enemies/` | Zombies Sound Pack |
 
-The exact original filenames are in `assets/audio/baseline/provenance.json`; the three Kenney license files ship beside the samples. Zombie files are CC0 per the linked author page. Source archives are preserved in ignored `.art-source/audio-baseline/`, which is not needed at runtime. No YouTube excerpts were used.
+The [Free Firearm Sound Library](https://opengameart.org/content/the-free-firearm-sound-library) is CC0 1.0. Its included report takes are recordings of a Walther PPQ 9 mm pistol and a Benelli Nova 12-gauge shotgun; the source project describes its excerpts and edits in its [audio README](https://github.com/yegors/hard-lines/blob/main/public/audio/README.md). The Arc Lance primary is from BMacZero's CC0 [Electricity Sound Effects](https://opengameart.org/content/electricity-sound-effects-0), recorded from a small Tesla generator. Creature clips are from artisticdude's CC0 [Zombies Sound Pack](https://opengameart.org/content/zombies-sound-pack). The pack does not label event semantics, so its first 12 ordered one-shots are assigned to attacks and the remaining 12 to moans in our manifest.
 
-The pistol, shotgun, dungeon ambience, enemy death/jump and bullet-crackle recordings retain their existing sources documented below. Weapon pools now have consistent identities; the previous processed/unprocessed random alternation and synthesized accents are removed. Missing/undecodable samples retain procedural fallback.
+The six short WAV stems in `sfx/processed/` are derived from the sources named above or the already licensed Kenney library. Firearm recordings are resampled to 48 kHz PCM; the Kenney launch effects are trimmed to one-shot length and faded. Zombie variants are converted to Vorbis Ogg with a small safety attenuation. These are local edits of source recordings and sound effects, not generated synthesis. The source archives are kept in ignored `.art-source/audio-incoming/` for preservation and are not needed at runtime.
 
-Movement, punch, damage, parry, gore, spawn, wave, low health, death, victory, coin and menus all have sample pools. Some intentionally share recordings as placeholders (jump/footsteps, player damage/punch, enemy land/heavy impact, heartbeat/soft impact). Final bespoke sound design and listening approval remain future work.
+## Existing bundled sources
 
-Menus have click, back, confirmation, hover/focus and setting-change cues. Hover starts only after an audio-unlocking gesture. Pause stops world voices and ambience while allowing menu cues; resume starts ambience through the existing game hook. Muting uses the existing master volume.
-
-Browser verification: all 71 manifest entries decoded without errors; paused gameplay playback rejected; paused UI accepted; resumed gameplay accepted. Build passed. Open `/audio-review.html` locally to audition every pool and weapon with the actual game mix.
-
----
-
-## Background music
-
-The background beds are bundled loops under `assets/audio/music/` and are selected by `assets/audio-manifest.js`:
-
-| Runtime key | Bundled file | Source / author | License | Use |
-| --- | --- | --- | --- | --- |
-| `music-menu` | `insistent-menu.ogg` | [Insistent: background loop](https://opengameart.org/content/insistent-background-loop), yd | CC0 | Restrained dark menu bed |
-| `music-play` | `abandoned-passages.ogg` | [Abandoned passages (horror ambience loop)](https://opengameart.org/content/abandoned-passages-horror-ambience-loop), congusbongus | CC0 | Low, unsettling gameplay bed |
-
-The source files were downloaded from OpenGameArt on 2026-09-09 and renamed only for the local runtime. CC0 permits commercial use and does not require attribution; the source pages are retained here for provenance. No YouTube excerpts or third-party API credentials are used.
-
-`AudioSystem.setScene('menu'|'play'|'pause'|'dead'|'win')` owns the music lifecycle. The call is safe before unlock, remembers the requested scene, and starts after the next user gesture. Scene changes crossfade one loop at a time. `play` also starts the existing dungeon ambience; `menu`, `dead`, and `win` stop it. `pause` fades music to silence while keeping its source resumable, and `resume()` restores the previous scene without stacking another loop.
-
----
-
-# Audio sources and runtime matrix
-
-The Last Dead ships a compact sample-backed audio layer in assets/audio.js. The source recordings below are imported from OpenGameArt pages that identify the files as CC0 (Creative Commons Zero / public domain dedication). The URLs are retained for provenance and license review.
-
-## Sources
-
-| Source page | Imported files | License / credit |
+| Source | Use | License |
 | --- | --- | --- |
-| https://opengameart.org/content/basic-sound-effects | gunshot_0.mp3, explosion_0.mp3, explosion_distant_0.mp3, button_0.mp3, coin1_0.mp3, coin2_0.mp3 | CC0, author n4; no attribution required |
-| https://opengameart.org/content/loopable-dungeon-ambience | dungeon_ambient_1_0.ogg | CC0, author JaggedStone; no attribution required |
-| https://opengameart.org/content/footsteps-0 | 01-footstep_0.ogg and 02-footstep.ogg through 06-footstep.ogg | CC0, author GboxMikeFozzy; no attribution required |
-| https://opengameart.org/content/jump-landing-sound | jumpland44100.mp3 | CC0, author MentalSanityOff / qubodup submission; no attribution required |
-| https://opengameart.org/content/various-sound-effects-0 | snd_gunshot1.wav, snd_bulletcrackle.wav, snd_bullethit.wav, snd_splathit.wav, dull_explosion.wav, snd_enemyjump.wav, snd_enemyland.wav, snd_enemyscream.wav, snd_death1.wav, snd_death2.wav, moan.wav | CC0, author Spring Spring / Julie Damsgaard; page requests optional credit but does not require it |
+| [Kenney Impact Sounds](https://kenney.nl/assets/impact-sounds) | Hits, movement, parries, and metallic events | CC0; license file ships with the pack |
+| [Kenney Interface Sounds](https://kenney.nl/assets/interface-sounds) | Menu clicks, hover, confirmation, and settings | CC0; license file ships with the pack |
+| [Kenney Sci-fi Sounds](https://kenney.nl/assets/sci-fi-sounds) | Weapons, explosions, spawn, and effects | CC0; license file ships with the pack |
+| [Basic Sound Effects](https://opengameart.org/content/basic-sound-effects), n4 | Existing explosions, coin and button effects | CC0 |
+| [Loopable Dungeon Ambience](https://opengameart.org/content/loopable-dungeon-ambience), JaggedStone | Existing dungeon room tone | CC0 |
+| [Footsteps](https://opengameart.org/content/footsteps-0), GboxMikeFozzy | Concrete footsteps | CC0 |
+| [Jump / Landing](https://opengameart.org/content/jump-landing-sound), MentalSanityOff / qubodup submission | Existing jump and landing sample | CC0 |
+| [Various Sound Effects](https://opengameart.org/content/various-sound-effects-0), Spring Spring / Julie Damsgaard | Bullet crackle/hit, splat, enemy movement/death and related cues | CC0; the page invites optional credit |
+| [Insistent: Background Loop](https://opengameart.org/content/insistent-background-loop), yd | Menu music | CC0 |
+| [Abandoned Passages](https://opengameart.org/content/abandoned-passages-horror-ambience-loop), congusbongus | Gameplay music | CC0 |
 
-The project keeps renamed copies so gameplay code does not depend on upstream filenames. Source pages were checked on 2026-09-08. We do not ship any API keys or provider credentials.
+Original imported filenames are recorded in `assets/audio/baseline/provenance.json`; source pages and the shipped license files provide the license record. The dungeon ambience, enemy death/jump and bullet-crackle recordings keep their existing sources.
 
-## Runtime matrix
+## Runtime event map
 
-| Event | Runtime key | Sample variants | Group | Fallback |
-| --- | --- | --- | --- | --- |
-| Revolver / weapon 0 fire | shot, weapon 0 | CC0 gunshot + heavy shot | sfx | layered transient/noise |
-| Shotgun / weapon 1 fire | shot, weapon 1 | heavy shot + CC0 explosion | sfx | low boom + report |
-| Arc lance / weapon 2 fire | shot, weapon 2 | bullet crackle + gunshot | sfx | rising saw/noise |
-| Rocket / blast | rocket or explosion | distant explosion + dull explosion | sfx | sub boom + lowpass noise |
-| Bullet / flesh impact | hit, blood | bullet hit + splat | sfx | square transient/noise |
-| Movement | footstep | six footstep variants | sfx | low thump/noise |
-| Jump / landing | jump, land | jump-land + enemy land | sfx | rising tone / low impact |
-| Dash / slide | dash | procedural | sfx | filtered burst |
-| Enemy attack / movement | enemyattack, enemyjump, enemyland, moan | scream, moan, jump, land samples | sfx | distorted tonal growl |
-| Enemy death | enemydeath (aliases kill, dead) | two death variants | sfx | descending growl/noise |
-| Coin / UI | coin, ui, confirm, cancel, fail | CC0 UI / coin samples | ui | short synthesized signal |
-| Arena ambience | ambience | loopable dungeon ambience | ambience | generated lowpass noise + transformer hum |
+| Event | Manifest pool | Notes |
+| --- | --- | --- |
+| Four weapon fires | `shot` with weapon indices 0-3 | Separate pools; the launch pool is reused for rocket launch |
+| Explosions | `explosion` | Three short bundled effects |
+| Hit / blood | `hit`, `blood` | Separate dry impact and wet splat pools |
+| Movement / combat | `footstep`, `jump`, `land`, `dash`, `slide`, `hook`, `parry`, `punch`, `damage` | Existing bundled CC0/Kenney effects |
+| Creatures | `enemyattack`, `moan`, `enemydeath`, `enemyjump`, `enemyland` | Attacks and moans use 24 fresh variants |
+| Arena feedback | `spawn`, `wave`, `win`, `death`, `heartbeat`, `coin` | Existing bundled sample pools |
+| Interface | `ui`, `hover`, `confirm`, `cancel`, `pause`, `fail`, `toggle`, `equip` | Kenney interface pack |
+| Music / ambience | `music-menu`, `music-play`, `ambience` | Bundled loops; no network requests |
 
-## Integration notes
+`AudioSystem.unlock()` is called from the existing user gesture. After decode, the runtime measures active RMS for each one-shot variant pool and trims or boosts variants toward their pool median, bounded to +/-6 dB. This keeps alternate shots, footsteps, creature clips, and interface cues consistent without flattening the separate music and ambience beds. A master compressor limits peaks after the group mix. The runtime keeps separate `sfx`, `ui`, `ambience`, `voice`, and `music` groups, applies event-specific filters and optional spatial panning, and manages pause/resume and music crossfades. `play('shot', weapon)` selects the matching weapon pool. Missing files do not block startup; their load errors are available for review.
 
-- AudioSystem.unlock() is called from the existing pointer/key gesture when a run begins. It creates master, sfx, ui, ambience, voice, and music groups.
-- play(type, weapon, event) remains compatible with the old two-argument calls. The optional event object accepts position, volume, group, variant, rate, detune, cooldown, loop, refDistance, maxDistance, and rolloffFactor.
-- play('shot', weapon) chooses from the weapon-specific sample pool. play('kill') aliases to enemydeath; play('fire') aliases to shot; play('slam') aliases to land.
-- updateListener({x, y, z, forwardX, forwardY, forwardZ, upX, upY, upZ}) updates the Web Audio listener for optional HRTF spatial event playback.
-- play('ambience') is idempotent and starts one loop. stopAmbience() stops it cleanly. Pause stops world voices; UI remains available.
-- setScene('menu'|'play'|'pause'|'dead'|'win') crossfades one music loop, starts gameplay ambience for `play`, and keeps pause/resume from stacking sources.
-- If any file is missing or cannot decode, the same event uses the built-in procedural synthesizer, so offline local testing remains functional.
-- The runtime uses per-event variant selection, minor sample-rate variation, master/group gain controls, browser gesture unlock, and source disposal.
+The Settings drawer is available from the pause screen. Master, effects, enemy voices, music, ambience, and interface sliders update the live mixer immediately and persist in browser local storage. Existing saves keep their master `volume` setting; newly added group levels default to 100% of the game's existing balanced group mix.
+
+Open `/audio-review.html` on the local game server to audition event pools and scene beds with the game audio system. No paid library, external audio API, generated audio provider, or provider credential was used for this refresh.

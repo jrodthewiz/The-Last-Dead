@@ -1,0 +1,726 @@
+{
+  "targetName": "Black Gullet Story Threshold",
+  "sourceImage": "assets/concepts/black-gullet-concept-v01.png",
+  "preSpecAssessment": {
+    "objectClass": {
+      "primaryType": "architectural threshold landmark",
+      "primaryDomain": "object",
+      "formLanguage": [
+        "broken arch",
+        "skeletal ribs",
+        "recessed throat",
+        "asymmetric organic hardware"
+      ],
+      "structureKind": [
+        "load-bearing masonry frame",
+        "interleaved bone ribs",
+        "rear membrane web",
+        "grounded footing"
+      ],
+      "motionPotential": [
+        "static architecture",
+        "small emissive ember pulse only"
+      ],
+      "materialFamilies": [
+        "charcoal basalt",
+        "warm ivory bone",
+        "opaque oxblood membrane",
+        "aged bronze",
+        "dark tendon cable",
+        "damp stone floor"
+      ],
+      "notes": "A compound, primarily frontal architectural threshold with a broad grounded base, tall open center, low-detail inferred rear, and a small amber depth cue. Model as static visual dressing around the existing course collision and lane."
+    },
+    "complexity": {
+      "tier": "complex",
+      "scores": {
+        "silhouetteComplexity": 3,
+        "componentCount": 3,
+        "hierarchyDepth": 3,
+        "repetitionDensity": 3,
+        "materialLayerCount": 3,
+        "localDetailDensity": 3,
+        "occlusionRisk": 3,
+        "actionReadinessNeed": 3
+      },
+      "estimatedCounts": {
+        "macroComponents": 4,
+        "mesoComponents": 10,
+        "microFeatureGroups": 20,
+        "materialLayers": 7,
+        "repetitionSystems": 4
+      },
+      "reasoning": [
+        "The silhouette is a compound arch whose centered negative opening must remain readable at approach distance.",
+        "The visible construction crosses basalt blocks, several pale ribs, clamps, cables, a web, teeth, and a deep ember through at least three hierarchy levels.",
+        "A single frontal concept leaves the hidden rear profile uncertain; complexity is driven by the visible assembly, not by invented unseen ornament."
+      ]
+    },
+    "specDepthDecision": {
+      "requiredDepth": "complex",
+      "minimumComponentLevels": [
+        "macro",
+        "meso",
+        "micro"
+      ],
+      "needsRepetitionSystems": true,
+      "needsMaterialLocalOverrides": true,
+      "needsMultipleReviewViews": true,
+      "needsActionReadyHierarchy": true,
+      "rationale": "The front view maps to four structural masses, ten meso systems, seven materials, and four geometry-producing repetitions; the existing F5 lane and course define fit."
+    },
+    "unknownsToResolveBeforeImplementation": [],
+    "detailInventory": {
+      "scanMethod": "grid-4x4",
+      "targetMinDetails": 10,
+      "note": "Twenty inspected crop-classified details map to named geometry or material features. The opening and exterior clear zones are explicit negative-space constraints.",
+      "details": [
+        {
+          "id": "crown-bone-spur",
+          "kind": "ridge",
+          "description": "A pale, tapered load rib breaks above the dark crown; its edge is chipped and the face carries shallow pits.",
+          "region": {
+            "x": 0,
+            "y": 0,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "Crown silhouette and bone-to-stone value separation.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "MawBoneRibs/crown-spurs"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r0c0.png",
+          "confidence": 0.91
+        },
+        {
+          "id": "crown-keystone-fracture",
+          "kind": "seam",
+          "description": "The crown gathers several pale ribs against a thick charcoal cap; the joints are irregular and the central cap is darker than the bone.",
+          "region": {
+            "x": 0.25,
+            "y": 0,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "Top silhouette, structural hierarchy, and arch depth.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "MawBasaltFrame/broken-block-silhouette"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r0c1.png",
+          "confidence": 0.91
+        },
+        {
+          "id": "outer-arch-course",
+          "kind": "chip",
+          "description": "Large dark blocks step around the outer curve with broken corners; a pale rib tracks just inside the stone.",
+          "region": {
+            "x": 0.5,
+            "y": 0,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "macro",
+          "affects": "Approach silhouette and readable arch thickness.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "MawBasaltFrame/broken-block-silhouette"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r0c2.png",
+          "confidence": 0.93
+        },
+        {
+          "id": "upper-exterior-negative-space",
+          "kind": "hole",
+          "description": "This crop is empty cool-gray background outside the structure. Keep the exterior contour isolated and do not add floating ornament here.",
+          "region": {
+            "x": 0.75,
+            "y": 0,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "macro",
+          "affects": "Silhouette separation and uncluttered exterior edge.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "root/no-exterior-intrusions"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r0c3.png",
+          "confidence": 0.96
+        },
+        {
+          "id": "square-bronze-collar",
+          "kind": "fastener",
+          "description": "A square bronze clamp overlaps the pale vertical rib and dark stone backing. A round fastener sits on the face; the collar has a raised upper and lower lip.",
+          "region": {
+            "x": 0,
+            "y": 0.25,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "micro",
+          "affects": "Construction contact and material contrast.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "MawMetalClamps/square-bronze-collar"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r1c0.png",
+          "confidence": 0.95
+        },
+        {
+          "id": "paired-tendon-cables",
+          "kind": "linework",
+          "description": "Two dark red-brown flexible lines leave the collar underside and follow the bone rib down; both ends remain visibly socketed.",
+          "region": {
+            "x": 0,
+            "y": 0.25,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "Hardware attachment and one-sided accent rhythm.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "MawCables/twin-red-tendon-lines"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r1c0.png",
+          "confidence": 0.92
+        },
+        {
+          "id": "hanging-crown-teeth",
+          "kind": "ridge",
+          "description": "Uneven ivory teeth hang from the inner crown, varying in length and spacing while stopping above the middle walking lane.",
+          "region": {
+            "x": 0.25,
+            "y": 0.25,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "Inner opening silhouette and scale cue.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "MawTeeth/irregular-hanging-crown"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r1c1.png",
+          "confidence": 0.94
+        },
+        {
+          "id": "recessed-vascular-web",
+          "kind": "linework",
+          "description": "An opaque oxblood web sits behind the front ribs. Thick branching strands frame several dark openings instead of filling the throat with a flat sheet.",
+          "region": {
+            "x": 0.25,
+            "y": 0.25,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "Layered depth, color accent, and visible aperture.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "MawMembrane/open-vascular-web"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r1c1.png",
+          "confidence": 0.93
+        },
+        {
+          "id": "right-broken-voussoirs",
+          "kind": "chip",
+          "description": "Dark, chunky arch stones alternate with pale ribs along the right curve; some blocks are fractured and sit at slightly different depth.",
+          "region": {
+            "x": 0.5,
+            "y": 0.25,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "Asymmetrical structural rhythm and depth.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "MawBasaltFrame/chipped-exposed-edges"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r1c2.png",
+          "confidence": 0.91
+        },
+        {
+          "id": "lateral-bone-spurs",
+          "kind": "ridge",
+          "description": "Several pale pointed spurs project inward from the side and crown, with the longest kept outside the standing center lane.",
+          "region": {
+            "x": 0.5,
+            "y": 0.25,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "Threatening side silhouette without blocking traversal.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "MawBoneRibs/crown-spurs"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r1c2.png",
+          "confidence": 0.89
+        },
+        {
+          "id": "lower-rib-slot",
+          "kind": "hole",
+          "description": "A pale upright rib shows an elongated natural opening with softened chipped edges; a bronze clamp wraps its base.",
+          "region": {
+            "x": 0,
+            "y": 0.5,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "Bone identity and collar attachment point.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "MawBoneRibs/porous-longitudinal-grooves"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r2c0.png",
+          "confidence": 0.9
+        },
+        {
+          "id": "deep-clear-throat",
+          "kind": "hole",
+          "description": "The center remains a deep nearly-black void behind the layered web and teeth; preserve a tall, open, walk-through aperture.",
+          "region": {
+            "x": 0.25,
+            "y": 0.5,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "macro",
+          "affects": "Functional aperture and strong value hierarchy.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "root/dark-clear-walk-through"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r2c1.png",
+          "confidence": 0.97
+        },
+        {
+          "id": "recessed-amber-ember",
+          "kind": "emissive",
+          "description": "A tiny warm amber light is visible deep in the throat, occupying very little area against the dark void.",
+          "region": {
+            "x": 0.25,
+            "y": 0.5,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "micro",
+          "affects": "Far-distance focal point and depth cue.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "MawEmber/deep-amber-votive"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r2c1.png",
+          "confidence": 0.95
+        },
+        {
+          "id": "vascular-web-branches",
+          "kind": "linework",
+          "description": "Thin red-brown branches cross and fork through the left side of the membrane, leaving large negative openings.",
+          "region": {
+            "x": 0.5,
+            "y": 0.5,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "micro",
+          "affects": "Organic repetition, membrane depth, and color variation.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "MawMembrane/open-vascular-web"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r2c2.png",
+          "confidence": 0.91
+        },
+        {
+          "id": "cable-to-stone-socket",
+          "kind": "linework",
+          "description": "A long reddish cable runs diagonally over the lateral bone and terminates at a bronze plate fixed into the basalt course.",
+          "region": {
+            "x": 0.75,
+            "y": 0.5,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "Attachment continuity and asymmetrical hardware placement.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "MawCables/twin-red-tendon-lines"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r2c3.png",
+          "confidence": 0.88
+        },
+        {
+          "id": "rooted-basalt-footing",
+          "kind": "chip",
+          "description": "Broad dark stone blocks anchor the vertical structure to the ground, with small chips gathered at the foot of the ribs.",
+          "region": {
+            "x": 0,
+            "y": 0.75,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "macro",
+          "affects": "Stable base silhouette and floor contact.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "MawBasaltFooting/rooted-blocks-and-rubble"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r3c0.png",
+          "confidence": 0.94
+        },
+        {
+          "id": "bone-to-floor-contact",
+          "kind": "seam",
+          "description": "Pale ribs widen into the footing and meet separate dark blocks at ground level; no unsupported bone ends hover above the floor.",
+          "region": {
+            "x": 0.25,
+            "y": 0.75,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "Believable load transfer and grounded silhouette.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "MawBoneRibs/rooted-contact"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r3c1.png",
+          "confidence": 0.92
+        },
+        {
+          "id": "damp-floor-streaks",
+          "kind": "gloss",
+          "description": "The floor is charcoal and mostly matte, with narrow broken warm highlights close to the structure rather than an even glossy reflection.",
+          "region": {
+            "x": 0.25,
+            "y": 0.75,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "micro",
+          "affects": "Footing contact, approach readability, and surface roughness contrast.",
+          "mapsTo": {
+            "type": "material.localOverrides",
+            "ref": "damp-basalt/narrow-damp-streaks"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r3c1.png",
+          "confidence": 0.9
+        },
+        {
+          "id": "broken-base-rubble",
+          "kind": "chip",
+          "description": "Angular basalt fragments and a few pale bone chips collect against the side feet while leaving the center approach clear.",
+          "region": {
+            "x": 0.5,
+            "y": 0.75,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "micro",
+          "affects": "Grounded transitions and low-level framing.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "MawBasaltFooting/rooted-blocks-and-rubble"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r3c2.png",
+          "confidence": 0.88
+        },
+        {
+          "id": "side-depth-continuation",
+          "kind": "contour",
+          "description": "The oblique edge reveals a short continuation of stone and bone depth behind the front face; hidden rear geometry is intentionally lower-detail and inferred.",
+          "region": {
+            "x": 0.75,
+            "y": 0.75,
+            "width": 0.25,
+            "height": 0.25,
+            "units": "normalized"
+          },
+          "scale": "meso",
+          "affects": "Structural depth without overbuilding unseen faces.",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "MawBasaltFrame/restrained-rear-continuation"
+          },
+          "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r3c3.png",
+          "confidence": 0.73
+        }
+      ]
+    },
+    "anatomy": {
+      "applies": false,
+      "styleHeads": 0,
+      "proportions": {
+        "headUnit": 0,
+        "torso": 0,
+        "legs": 0,
+        "shoulderWidth": 0,
+        "hipWidth": 0
+      },
+      "pose": {
+        "type": "unassessed",
+        "jointAngles": {}
+      },
+      "faceLandmarks": {
+        "eyeLine": 0,
+        "eyeSpacing": 0,
+        "noseBase": 0,
+        "mouthLine": 0,
+        "hairline": 0
+      },
+      "features": [],
+      "confidence": 0,
+      "note": "Only meaningful when objectClass.primaryDomain is character or hybrid. Set applies=true and fill from forge/stage1_intake/extract_landmarks.py. See grimoire/character/reconstruction.md and grimoire/character/likeness_maximization.md."
+    },
+    "sourceImage": "assets\\concepts\\black-gullet-concept-v01.png"
+  },
+  "qualityContract": {
+    "qualityBar": "complex",
+    "definitionOfDone": [
+      "The rendered model matches the reference silhouette, primary proportions, visible component hierarchy, material response, and most recognizable local features for the selected fidelity tier.",
+      "The dark stone and pale load-bearing ribs read as the dominant doorway silhouette at far, design, and near views.",
+      "The throat keeps the existing F5 collision topology and a tested standing center lane clear across the threshold.",
+      "Oxblood membrane strands, crown teeth, bronze attachments, and ember remain layered secondary details rather than occluding the aperture.",
+      "All visible cable, clamp, rib, and footing contacts have a named parent and a measured overlap/tolerance in the spec."
+    ],
+    "minimumSpecDepth": {
+      "macroComponents": 4,
+      "mesoComponents": 10,
+      "microFeatureGroups": 6,
+      "materialLayers": 4,
+      "repetitionSystems": 2,
+      "reviewViewpoints": 4
+    },
+    "featureGroups": [
+      {
+        "id": "overall-silhouette",
+        "name": "Overall silhouette and proportions",
+        "required": true,
+        "qualityCriteria": [
+          "Bounding shape, dominant curves, negative spaces, and scale relationships are explicitly described."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "model reads as a generic placeholder instead of the reference object",
+          "major proportions are guessed without evidence"
+        ]
+      },
+      {
+        "id": "primary-structure",
+        "name": "Primary structure and hierarchy",
+        "required": true,
+        "qualityCriteria": [
+          "Major parts, joints, seams, contact points, and parent-child relationships are named before code generation."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "large visible parts are merged into one mesh",
+          "component hierarchy is too shallow for the observed complexity"
+        ]
+      },
+      {
+        "id": "attachment-joint-correctness",
+        "name": "Attachment and joint correctness",
+        "required": true,
+        "qualityCriteria": [
+          "Every visible child appendage, branch, limb, handle, connector, tube, cable, horn, wing, leg, or hinged part has an attachment contract with parent socket, localStart/localEnd, contact type, embed/overlap, and gap tolerance."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "child part root floats away from the parent",
+          "branch/limb/tube is centered in space instead of pivoting from its root",
+          "parent-child transform mixes world and local coordinates"
+        ]
+      },
+      {
+        "id": "surface-material-response",
+        "name": "Surface material response",
+        "required": true,
+        "qualityCriteria": [
+          "Albedo zones, roughness, normal/bump/displacement intent, cavity dirt, edge wear, and local overrides are specified where visible.",
+          "Important materials define independent albedo, roughness, height/normal, and AO responses instead of reusing one texture for unrelated PBR channels.",
+          "Surface response is decomposed into macro, meso, and micro frequency bands with scale and amplitude tied to object scale."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "surface looks like flat plastic",
+          "local material variation is missing or not tied to image evidence"
+        ]
+      },
+      {
+        "id": "reference-lookdev",
+        "name": "Reference color, material, and lighting response",
+        "required": true,
+        "qualityCriteria": [
+          "Material-pass names the reference-derived albedo palette, roughness variation, tactile normal/bump/displacement response, and local masks.",
+          "When a source image is available, run reference PBR extraction and require confidence >= 0.7 before treating maps as implementation-ready.",
+          "Lighting-pass names key/fill/rim or environment light, exposure, tone mapping, background, and contact shadow behavior.",
+          "Neutral, grazing-angle, and reference-matched renders prove that surface relief survives relighting and is not painted into albedo."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "model has acceptable shape but reads as flat shaded or plastic",
+          "colors are a generic average instead of reference-observed local color zones",
+          "lighting is evenly ambient and cannot reproduce the source value range"
+        ]
+      },
+      {
+        "id": "approach-silhouette",
+        "name": "Approach silhouette and negative opening",
+        "required": true,
+        "qualityCriteria": [
+          "The broken stone frame and pale ribs dominate over the portal accents.",
+          "The central opening reads as deep and remains visually and physically traversable."
+        ],
+        "evidenceRefs": [
+          "full-object",
+          "far-view"
+        ],
+        "failureModes": [
+          "portal rings dominate the doorway at approach distance",
+          "silhouette is lost against the room"
+        ]
+      },
+      {
+        "id": "ground-contact-and-cable-attachments",
+        "name": "Grounding and cable attachment",
+        "required": true,
+        "qualityCriteria": [
+          "Footing stones visibly root the ribs into the floor.",
+          "Cables terminate beneath clamps with the specified overlap and do not float."
+        ],
+        "evidenceRefs": [
+          "lower-detail-view",
+          "side-view"
+        ],
+        "failureModes": [
+          "floating hardware",
+          "unresolved bone-to-stone gaps"
+        ]
+      }
+    ],
+    "visualDeltaChecks": [
+      "silhouette and negative-space delta",
+      "component hierarchy depth delta",
+      "repetition density and distribution delta",
+      "material albedo/roughness/normal response delta",
+      "local feature placement and scale delta",
+      "far-view stone/bone silhouette ratio",
+      "clear lane dimensions versus actual raycast geometry",
+      "cable/clamp contact overlap and membrane-to-aperture separation"
+    ],
+    "antiShallowSpecRules": [
+      "Do not proceed to code if qualityContract.qualityBar is unassessed.",
+      "Do not proceed to code if the spec only contains a root component for a moderate or complex object.",
+      "Do not proceed to code if required featureGroups are not represented by componentTree, materials, or repetitionSystems.",
+      "Do not proceed to code if visible local features are described only in prose and not attached to components/materials/evidenceRefs.",
+      "Do not proceed past structural-pass if attached child parts lack attachment.parentSocket, localStart, localEnd, embedDepth/overlap, and gapTolerance.",
+      "Do not pass material look-dev when albedo is reused as roughness, height, normal, or AO.",
+      "Do not pass material look-dev without macro, meso, and micro surface frequency bands for close-up materials.",
+      "Do not pass reference-fidelity material look-dev from a source image without usable referencePbr maps or an explicit documented limitation.",
+      "Do not patch a spec with extracted PBR maps when extraction confidence is below the target threshold unless the user explicitly accepts lower fidelity.",
+      "Do not place adjacent separate-geometry parts below 0.02 world-unit seam overlap (source: grimoire/build/geometry_patterns.md).",
+      "Do not satisfy raised or recessed relief, fasteners, or grip structure with a map alone when the feature affects form; use geometry or displacement (source: grimoire/build/geometry_patterns.md)."
+    ]
+  },
+  "authoringInstruction": "Image zones were directly inspected and classified before spec authoring. Use the documented conditional assumptions for hidden rear surfaces; keep all visible details linked to the componentTree or materials and include an action-ready part hierarchy.",
+  "localSpecSearch": {
+    "collection": "core_3d",
+    "query": "Black Gullet Story Threshold basalt bone gateway ribbed stone arch throat passage",
+    "index": {
+      "status": "hit",
+      "reason": "current",
+      "fingerprint": "6857e5ab528b42ac12f4f411f862610a0bffce8e47aee3610a7603c318072fe8"
+    },
+    "matches": [
+      {
+        "record_id": "core.pbr-wearness-alpha-mask",
+        "file_path": "docs/raw/img2threejs-skill-dataset.json",
+        "heading": null,
+        "key_path": "categories.material_pbr[9]",
+        "score": 2.637270505976,
+        "snippets": [
+          "... visible scratches/chips even at low float (Factory New range); Alpha <128: durable, resists scratching; Alpha = 0 (black): absolute durability, paint never scratches regardless of float value Dấu hiệu nhận diện: Alpha ~196: sơn bong ..."
+        ],
+        "source_refs": [
+          {
+            "path": "docs/raw/img2threejs-skill-dataset.json",
+            "heading": null,
+            "key_path": "categories.material_pbr[9]"
+          }
+        ],
+        "evidence_refs": [
+          {
+            "kind": "source",
+            "ref": "docs/raw/img2threejs-skill-dataset.json",
+            "note": "img2threejs NotebookLM research distillation"
+          }
+        ]
+      },
+      {
+        "record_id": "core.pbr-subsurface-scattering-sss",
+        "file_path": "docs/raw/img2threejs-skill-dataset.json",
+        "heading": null,
+        "key_path": "categories.material_pbr[5]",
+        "score": 2.467928320111,
+        "snippets": [
+          "... polymer). Recognition cues: Edges/thin sections of the material glow softly when backlit rather than showing a hard black silhouette; Relevant mainly to glove leather/polymer trims and agent-model skin, not metal weapon parts Dấu hiệu ..."
+        ],
+        "source_refs": [
+          {
+            "path": "docs/raw/img2threejs-skill-dataset.json",
+            "heading": null,
+            "key_path": "categories.material_pbr[5]"
+          }
+        ],
+        "evidence_refs": [
+          {
+            "kind": "source",
+            "ref": "docs/raw/img2threejs-skill-dataset.json",
+            "note": "img2threejs NotebookLM research distillation"
+          }
+        ]
+      }
+    ]
+  }
+}

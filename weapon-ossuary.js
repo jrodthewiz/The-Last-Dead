@@ -124,7 +124,7 @@ export function createOssuary(){
  const textures={albedoMap,bump,roughnessMap};
  root.userData.sculptRuntime={parts,muzzle,chamber,sockets,materials,textures,collider:{type:'box',size:[.4,.75,1.3]},explode(amount){root.updateWorldMatrix(true,true);for(const p of Object.values(parts)){if(!p.userData.explodeHome){const bounds=new THREE.Box3();for(const mesh of p.children)if(mesh.isMesh){mesh.geometry.computeBoundingBox();bounds.union(mesh.geometry.boundingBox);}const center=bounds.isEmpty()?new THREE.Vector3():bounds.getCenter(new THREE.Vector3());p.userData.explodeHome=p.position.clone();p.userData.explodeDelta=center.applyQuaternion(p.quaternion).add(p.position).sub(new THREE.Vector3(0,-.05,-.4));}p.position.copy(p.userData.explodeHome).addScaledVector(p.userData.explodeDelta,amount);}},pick(raycaster){return raycaster.intersectObject(root,true)[0]?.object.parent.name;}};
  applyWeaponDetailPass(root,'ossuary');
- root.userData.ossuary={chamber,chamberDrive,extractors,bolt,trigger,materials,textures,sockets,shotFx,recoilCarriage,spin:0,recoil:0,flash:0,smoke:0,heat:0,lastShot:0};return root;
+ root.userData.ossuary={chamber,chamberDrive,extractors,bolt,trigger,jaw:parts.jaw,ribs:parts.ribs,materials,textures,sockets,shotFx,recoilCarriage,spin:0,recoil:0,flash:0,smoke:0,heat:0,jawTension:0,lastShot:0};return root;
 }
 export function animateOssuary(root,shot=0,time=0,dt=.016,state={}){
  const s=root.userData.ossuary;if(!s)return;
@@ -142,6 +142,7 @@ export function animateOssuary(root,shot=0,time=0,dt=.016,state={}){
  s.flash=Math.max(0,s.flash-delta*11);
  s.smoke=Math.max(0,s.smoke-delta*2.1);
  s.heat=THREE.MathUtils.damp(s.heat,0,1.45,delta);
+ s.jawTension=THREE.MathUtils.damp(s.jawTension,0,13,delta);
  s.recoilCarriage.position.z=s.recoil*.055;
  s.recoilCarriage.rotation.x=s.recoil*-.022;
  s.recoilCarriage.rotation.y=s.recoil*.004;
@@ -152,6 +153,14 @@ export function animateOssuary(root,shot=0,time=0,dt=.016,state={}){
  s.chamberDrive.rotation.z=Math.sin(time*5.5+s.spin)*.12+s.recoil*.16;
  s.extractors.position.z=-s.recoil*.068;
  s.extractors.rotation.y=s.recoil*.14;
+ // The skull is part of the firing mechanism: each shot pulls the jaw down
+ // and flexes the rib cage before it settles back into the idle breathing
+ // motion.  This is two existing groups, so the animation adds no draw calls.
+ const jawBreath=Math.sin(time*2.15)*.014;
+ s.jaw.rotation.x=-s.jawTension*.22+jawBreath;
+ s.jaw.position.y=-s.jawTension*.008;
+ s.ribs.rotation.z=Math.sin(time*2.15+.7)*.012+s.jawTension*.045;
+ s.ribs.scale.set(1+s.jawTension*.018,1+s.jawTension*.028,1);
  s.materials.glow.emissiveIntensity=1.6+shotValue*4+s.heat*2.8+Math.sin(time*2.7)*.15;
  s.materials.ember.emissiveIntensity=1.8+s.heat*5.4+s.flash*5+Math.sin(time*6.5)*.18;
  const fx=s.shotFx;

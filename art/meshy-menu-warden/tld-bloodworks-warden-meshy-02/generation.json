@@ -1,0 +1,41 @@
+{
+  "formatVersion": 1,
+  "pipeline": "meshy-multi-image-source-rig-v1",
+  "characterId": "tld-bloodworks-warden-meshy-02",
+  "label": "Bloodworks Warden",
+  "heightMeters": 2.2,
+  "texturePrompt": "Faithfully preserve the armored Warden reference with weathered black iron plates, pale ash-gray uninjured surfaces and restrained ember-red armor lights; no weapons or props; game-ready rough PBR.",
+  "createdAt": "2026-09-21T06:08:58.809Z",
+  "updatedAt": "2026-09-21T06:09:01.309Z",
+  "status": "IN_PROGRESS",
+  "sourceRequest": {
+    "endpoint": "/openapi/v1/multi-image-to-3d",
+    "imageCount": 1,
+    "aiModel": "latest",
+    "poseMode": "t-pose",
+    "textured": true,
+    "pbr": true,
+    "targetFormats": [
+      "glb"
+    ]
+  },
+  "sources": [
+    {
+      "file": "sources/source-01.png",
+      "originalFileName": "warden-tpose-front.png",
+      "sha256": "337d70c0fd4b17991fd5985f02f1086c724acdd89344c824273e3e8c5ab09e83",
+      "byteSize": 1840688,
+      "mimeType": "image/png"
+    }
+  ],
+  "source": {
+    "submitStartedAt": "2026-09-21T06:08:58.822Z",
+    "submissionUnknown": false,
+    "submitError": {
+      "at": "2026-09-21T06:09:01.309Z",
+      "category": "definite-rejection",
+      "httpStatus": 400
+    }
+  },
+  "rig": {}
+}

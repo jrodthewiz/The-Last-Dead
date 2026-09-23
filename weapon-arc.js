@@ -291,6 +291,23 @@ export function createArc(options = {}) {
   grip.rotation.x = -.2;
   add(grip, new THREE.CylinderGeometry(.105, .14, .42, 14), 'leather', [0, -.08, .08], [1, 1, 1], [0, 0, 0], 'grip-core');
   for (let i = 0; i < 6; i++) add(grip, new THREE.TorusGeometry(.12, .012, 6, 16), i % 2 ? 'brass' : 'boneDark', [0, -.08 - i * .055, .08], [1, 1, 1], [0, 0, 0], `grip-wrap-${i}`);
+  // The support hand is fitted below the front rail in the FPS view. Give it
+  // a deliberate load-bearing surface instead of making the palm disappear
+  // into the reactor cage and lower rail assembly.
+  const supportGrip = part('support-grip');
+  supportGrip.position.set(-.035, -.34, -.54);
+  supportGrip.rotation.x = -.42;
+  // Let the lower end show below the palm so the support fingers have a
+  // visible load path in the up/down and oblique gameplay views.
+  add(supportGrip, new THREE.CylinderGeometry(.082, .095, .46, 14), 'boneDark', [0, -.12, 0], [1, 1, 1], [0, 0, 0], 'support-grip-core');
+  for (let i = 0; i < 5; i++) {
+    add(supportGrip, new THREE.TorusGeometry(.095, .010, 6, 16), 'brass', [0, .035 - i * .082, 0], [1, 1, 1], [Math.PI / 2, 0, 0], `support-grip-wrap-${i}`);
+  }
+  // Pale end collars keep the curled fingertips readable where the dark
+  // leather glove meets the foregrip, especially at the mobile scale.
+  for (const [i, y] of [[0, .035], [1, -.293]]) {
+    add(supportGrip, new THREE.TorusGeometry(.105, .012, 7, 18), 'bone', [0, y, 0], [1, 1, 1], [Math.PI / 2, 0, 0], `support-grip-contact-${i}`);
+  }
   const guard = part('trigger-guard');
   add(guard, sweep([[0, -.05, -.02], [0, -.17, .02], [0, -.22, .14], [0, -.16, .25], [0, -.05, .28]], [.018, .023, .024, .02, .015], 8), 'frameEdge', [0, 0, 0], [1, 1, 1], [0, 0, 0], 'trigger-guard');
   add(guard, new THREE.CapsuleGeometry(.022, .095, 6, 10), 'brass', [0, -.12, .12], [1, 1, 1], [Math.PI / 2, 0, 0], 'trigger');
@@ -335,7 +352,7 @@ export function createArc(options = {}) {
   heat.name = 'heat';
   heat.position.set(0, .04, -.48);
   reactor.add(heat);
-  const sockets = { muzzle, projectileOrigin, muzzleFlash, shotArc, recoil: root, heat, inspect, grip, corePulse: reactor };
+  const sockets = { muzzle, projectileOrigin, muzzleFlash, shotArc, recoil: root, heat, inspect, grip, supportGrip, corePulse: reactor };
   root.userData.muzzle = muzzle;
   root.userData.projectileOrigin = projectileOrigin;
   const home = new Map();

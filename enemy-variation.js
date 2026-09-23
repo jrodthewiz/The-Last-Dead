@@ -1,10 +1,7 @@
 // Deterministic, bounded enemy appearance families.
 //
-// The visual meshes stay shared with the imported/procedural enemy assets. A
-// profile only changes material uniforms and the already-existing surface map;
-// no textures or shader materials are cloned in the frame loop. Keeping these
-// profiles in one registry also gives campaign designers a stable visual
-// vocabulary when they add rooms or waves.
+// Profiles share the existing enemy meshes and animations. Warden profiles may
+// also change stature so campaign waves can reuse one rig at boss scale.
 
 const freeze = value => Object.freeze(value);
 
@@ -46,8 +43,18 @@ const WARDEN_PROFILES = freeze({
   }),
   warden: freeze({
     key: 'warden', label: 'Marrow Brass', kind: 2,
-    tint: 0x9b886b, roughness: .47, metalness: .55,
-    emissive: 0x3b2414, emissiveIntensity: .18, signal: 0xffc06a,
+    tint: 0xffffff, roughness: .47, metalness: .55,
+    emissive: 0x3b2414, emissiveIntensity: .18, signal: 0xffc06a, modelScale: 1,
+  }),
+  wardenBulwark: freeze({
+    key: 'wardenBulwark', label: 'Bloodworks Bulwark', kind: 2,
+    tint: 0xffffff, roughness: .55, metalness: .63,
+    emissive: 0x3a160d, emissiveIntensity: .2, signal: 0xff7844, modelScale: 1.28,
+  }),
+  wardenColossus: freeze({
+    key: 'wardenColossus', label: 'Ossuary Colossus', kind: 2,
+    tint: 0xffffff, roughness: .61, metalness: .68,
+    emissive: 0x541410, emissiveIntensity: .26, signal: 0xff4936, modelScale: 1.55,
   }),
 });
 
@@ -133,4 +140,3 @@ export function applyBellwraithVariant(materials, profile) {
 export function variationProfileCount() {
   return profilesByKey.size;
 }
-

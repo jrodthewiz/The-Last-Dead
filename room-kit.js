@@ -130,13 +130,31 @@ function addPortalAt(room, lib, palette, axis, side, localOffset, moving, label 
     [halfOpening, 2.72, 0, 0, 0, 0, .32, 5.55, .36],
     [0, 5.5, 0, 0, 0, 0, halfOpening * 2 + .65, .35, .42],
   ], `${portal.name}_Frame`, { castShadow: true });
-  const ring = mesh(portal, lib.portalRing, palette.signal, [0, 2.65, -.04], [1.36, 1.36, 1.36], `${portal.name}_SignalRing`);
-  ring.rotation.x = Math.PI / 2;
+  // The status ring stands on the crown as a beacon instead of hovering flat
+  // in the doorway, where it read as a stray halo at glancing angles.
+  const ring = mesh(portal, lib.portalRing, palette.signal, [0, 4.72, .24], [.34, .34, .34], `${portal.name}_SignalRing`);
+  ring.userData.baseScale = .34;
   const gate = new THREE.Group();
   gate.name = `${portal.name}_Gate`; gate.position.z = -.08; gate.userData.noBatch = true; gate.userData.roomGate = true;
   const gateCore = mesh(gate, lib.box, palette.shadow, [0, 2.65, .02], [halfOpening * 2 - .24, 4.5, .08], `${portal.name}_GateCore`, { castShadow: false });
   gateCore.material.side = THREE.DoubleSide;
   mesh(gate, lib.box, palette.signal, [0, 2.65, -.04], [halfOpening * 1.78, .055, .045], `${portal.name}_GateSignal`);
+  // A locked gate reads as a containment shutter instead of a flat slab:
+  // proud slats, hazard-banded edges and a lock wheel give the silhouette
+  // depth from both rooms while the whole group still collapses on open.
+  const span = halfOpening * 2 - .3, slats = [];
+  for (let i = 0; i < 9; i++) for (const face of [-1, 1]) slats.push([0, .62 + i * .5, face * .075, 0, 0, 0, span, .11, .06]);
+  instance(gate, lib.box, palette.metal, slats, `${portal.name}_GateSlats`);
+  const bands = [];
+  for (const edge of [-1, 1]) for (let i = 0; i < 5; i++) for (const face of [-1, 1]) bands.push([edge * (halfOpening - .32), .7 + i * .95, face * .07, 0, 0, edge * .6, .09, .5, .05]);
+  instance(gate, lib.box, palette.hazard, bands, `${portal.name}_GateHazard`);
+  for (const edge of [-1, 1]) for (const face of [-1, 1]) mesh(gate, lib.box, palette.signal, [edge * (halfOpening - .16), 2.65, face * .09], [.05, 4.3, .03], `${portal.name}_GateEdgeSignal`);
+  for (const face of [-1, 1]) {
+    const wheel = mesh(gate, lib.portalRing, palette.metal, [0, 2.65, face * .12], [.42, .42, 1.6], `${portal.name}_GateLockWheel`);
+    wheel.rotation.y = face < 0 ? Math.PI : 0;
+    mesh(gate, lib.box, palette.metal, [0, 2.65, face * .12], [.9, .08, .06], `${portal.name}_GateLockSpoke`);
+    mesh(gate, lib.box, palette.metal, [0, 2.65, face * .12], [.08, .9, .06], `${portal.name}_GateLockSpoke`);
+  }
   portal.add(gate); room.group.add(portal);
   moving.push({ root: portal, ring, gate, portalId, open: initialOpen ?? !portalId, phase: (side + 1) * .7 + room.style * .33 + (axis === 'x' ? .19 : 0) });
   return portal;
@@ -208,6 +226,7 @@ function buildRoom(room, materials, course, lib, moving) {
   group.userData.roomBoundsCells = { min: [room.center[0] - room.size[0] * .5, room.center[1] - room.size[1] * .5], max: [room.center[0] + room.size[0] * .5, room.center[1] + room.size[1] * .5] };
   group.userData.staticBatchEligible = true;
   group.userData.noBatch = false;
+  const isBloodworksIntake = sector === 'bloodworks' && (room.id === 'bloodworks-act-i-entry' || room.name === 'Intake Bay');
 
   const floorTilesA = [], floorTilesB = [];
   const cols = Math.max(2, Math.floor(width / 3.8)), rows = Math.max(2, Math.floor(depth / 3.8));
@@ -265,11 +284,21 @@ function buildRoom(room, materials, course, lib, moving) {
   // one instanced draw per material and skip the carved door spans, so their
   // silhouette still agrees with the progression barrier geometry.
   const relief = [], reliefTrim = [], reliefSignals = [];
+  const recoveryVariants = [];
   const panelWidth = Math.min(3.05, Math.max(1.8, width * .18)), panelHeight = 1.12;
   const hitsGap = (center, half, gaps) => gaps.some(gap => center + half > gap[0] && center - half < gap[1]);
   const addPanel = (axis, side, along, gaps) => {
     const panelHalf = panelWidth * .5;
     if (hitsGap(along, panelHalf, gaps)) return;
+    // Intake's right wall gets exactly two authored degradation states. The
+    // rest of the room keeps the instanced panel rhythm so the combat lane
+    // remains easy to parse instead of becoming a field of random damage.
+    if (isBloodworksIntake && axis === 'x' && side === 1) {
+      const first = -halfD + panelWidth * .65;
+      const step = panelWidth + .7;
+      if (Math.abs(along - (first + step)) < .12) { recoveryVariants.push({ along, kind: 'open' }); return; }
+      if (Math.abs(along - (first + step * 2)) < .12) { recoveryVariants.push({ along, kind: 'stained' }); return; }
+    }
     const yRows = [1.02, 2.58, 4.14];
     for (const y of yRows) {
       const normalOffset = axis === 'z' ? side * halfD - side * .215 : side * halfW - side * .215;
@@ -292,6 +321,38 @@ function buildRoom(room, materials, course, lib, moving) {
   instance(group, lib.box, palette.panel, relief, `${group.name}_ReliefPanels`, { receiveShadow: true });
   instance(group, lib.box, palette.trim, reliefTrim, `${group.name}_ReliefTrim`, { receiveShadow: false });
   instance(group, lib.box, palette.signal, reliefSignals, `${group.name}_ReliefSignals`, { receiveShadow: false });
+  for (const variant of recoveryVariants) {
+    const wallX = halfW - .24, panelHalf = panelWidth * .5;
+    const base = mesh(group, lib.box, palette.shadow, [wallX, 2.58, variant.along], [panelWidth * (variant.kind === 'open' ? 1.08 : 1.02), 3.66, .08], `${group.name}_RecoveryBay_${variant.kind}`, { receiveShadow: true });
+    base.rotation.y = Math.PI / 2;
+    const jambPositions = variant.kind === 'open' ? [variant.along + panelHalf + .34] : [variant.along - panelHalf, variant.along + panelHalf];
+    for (const z of jambPositions) {
+      const jamb = mesh(group, lib.box, palette.trim, [wallX - .09, 2.58, z], [.12, 3.86, .1], `${group.name}_RecoveryBayJamb_${variant.kind}`, { receiveShadow: true });
+      jamb.rotation.y = Math.PI / 2;
+      if (variant.kind === 'open') { jamb.position.y += .12; jamb.rotation.z = .075; }
+    }
+    if (variant.kind === 'open') {
+      // Exposed recovery piping sits inside the cavity and is deliberately
+      // matte: the silhouette and depth do the storytelling, not emissive
+      // clutter.
+      const vertical = mesh(group, lib.pipe, palette.metal, [wallX - .2, 2.58, variant.along - .48], [1, 3.15, 1], `${group.name}_RecoveryPipeVertical`, { receiveShadow: true });
+      const cross = mesh(group, lib.pipe, palette.hazard, [wallX - .2, 2.58, variant.along + .18], [1, 1.18, 1], `${group.name}_RecoveryPipeCross`, { receiveShadow: true });
+      cross.rotation.x = Math.PI / 2;
+      vertical.rotation.z = .04;
+      const looseHeader = mesh(group, lib.box, palette.metal, [wallX - .17, 4.45, variant.along + .22], [panelWidth * .48, .1, .18], `${group.name}_RecoveryPipeHeader`, { receiveShadow: true });
+      looseHeader.rotation.y = Math.PI / 2;
+      looseHeader.rotation.z = .065;
+    } else {
+      // A patched containment plate and two dark fasteners make the second
+      // bay read as failed containment rather than another pristine panel.
+      const patch = mesh(group, lib.box, palette.bone, [wallX - .16, 2.58, variant.along], [panelWidth * .72, 1.28, .12], `${group.name}_RecoveryPatch`, { receiveShadow: true });
+      patch.rotation.y = Math.PI / 2;
+      for (const y of [2.05, 3.12]) {
+        const fastener = mesh(group, lib.box, palette.shadow, [wallX - .24, y, variant.along], [panelWidth * .55, .08, .08], `${group.name}_RecoveryPatchFastener`, { receiveShadow: false });
+        fastener.rotation.y = Math.PI / 2;
+      }
+    }
+  }
   const floorRelief = [];
   for (let along = -halfW + 1.8; along <= halfW - 1.8; along += 3.6) {
     floorRelief.push([along, .12, 0, 0, 0, 0, .92, .035, .06]);
@@ -394,7 +455,7 @@ export function buildRoomKit(root, materials, course = {}) {
     for (const item of moving) {
       item.ring.rotation.z = time * .8 + item.phase;
       const pulse = 1 + Math.sin(time * 2.2 + item.phase) * .035;
-      item.ring.scale.setScalar(pulse);
+      item.ring.scale.setScalar(pulse * (item.ring.userData.baseScale ?? 1));
       const target = item.open ? 0.035 : 1;
       item.gate.scale.y += (target - item.gate.scale.y) * .12;
       item.gate.position.z = -.08 + Math.sin(time * 1.4 + item.phase) * .025;

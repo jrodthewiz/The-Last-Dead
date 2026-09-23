@@ -13,7 +13,7 @@ test('static graph preserves transforms and moving door pivots',()=>{
 test('bloodworks maintenance spine is visual-only and authored as a readable route', () => {
  const course = createCampaignCourse(0);
  const setpieces = course.layout?.setpieces || [];
- assert.deepEqual(setpieces.map(item => item.type), ['pressure-door', 'tunnel', 'collapse', 'bulkhead']);
+ assert.deepEqual(setpieces.map(item => item.type), ['pressure-door', 'recovery-cluster', 'tunnel', 'collapse', 'bulkhead']);
  assert.equal(course.setpieces, setpieces);
  assert.equal(course.cells.length, course.w * course.h);
  assert.equal(course.playerSpawn.x, 6);

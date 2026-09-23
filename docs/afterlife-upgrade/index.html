@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Last Dead — Forsaken Afterlife</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b0e10;color:#deddd4;font:16px/1.5 system-ui,sans-serif}main{max-width:1500px;margin:auto;padding:28px}header{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}h1{font-family:Georgia,serif;font-size:clamp(28px,4vw,52px);font-weight:400;line-height:1.05;margin:8px 0 12px}.eyebrow{text-transform:uppercase;letter-spacing:.2em;font-size:11px;color:#99b3ba}p{max-width:760px;color:#a7adae}a,button{color:#dcddd3}nav{display:flex;gap:10px;flex-wrap:wrap}a.button,button{font:inherit;background:#20282b;border:1px solid #415157;padding:10px 16px;text-decoration:none;cursor:pointer;border-radius:3px}button[aria-pressed=true]{background:#bdcaca;color:#101719}figure{margin:24px 0 16px}figure img{width:100%;display:block;border:1px solid #313d40;background:#030506}figcaption{font-size:13px;color:#acb5b7;margin-top:9px}.scenes{margin:14px 0}.detail{border-top:1px solid #303a3d;margin-top:30px;padding-top:20px}footer{margin-top:28px;font-size:13px;color:#91a1a7}@media(max-width:600px){main{padding:18px}button,a.button{padding:9px 12px}}
+</style>
+<main>
+<header><div><div class="eyebrow">The Last Dead · In-game art update</div><h1>Forsaken Afterlife</h1></div><nav><a class="button" href="../../?dungeon=2">Play the Catacombs</a><a class="button" href="../../">Play the game</a></nav></header>
+<p>Cold light reveals damp plaster, worn bone, and human figures in the dark. The floor catches small reflections; low mist moves through the spaces between them.</p>
+<nav aria-label="Comparison"><button data-view="catacombs-afterlife.png" aria-pressed="true">Upgraded game</button><button data-view="../artstyle-experiments-2026-09-23/sources/04-comparison-source.png" aria-pressed="false">Original game</button><button data-view="../artstyle-experiments-2026-09-23/07-forsaken-afterlife.png" aria-pressed="false">Concept reference</button></nav>
+<figure><img id="view" src="catacombs-afterlife.png" alt="Actual upgraded Catacombs gameplay with human enemies, wet floor, and cold light"><figcaption id="caption">Actual game rendering. Fixed comparison camera with a naturally spawned first wave.</figcaption></figure>
+<nav class="scenes" aria-label="Other game scenes"><button data-view="active-play.png">Active play</button><button data-view="dungeon-1.png">Foundry</button><button data-view="dungeon-2.png">Graft Galleries</button><button data-view="dungeon-3.png">Catacombs</button><button data-view="dungeon-4.png">Resonance</button><button data-view="dungeon-5.png">Last Descent</button><button data-view="campaign-1.png">Campaign</button></nav>
+<p class="detail">The update runs in the existing game: six local practical lights, a cold lantern, restrained ankle mist, an ImageGen plaster material, and pale human enemy variants. Movement, combat, floor layouts, and progression retain their existing rules.</p>
+<footer><a href="implementation-report.md">Implementation and QA evidence</a> · <a href="../artstyle-experiments-2026-09-23/index.html#style-07">All art experiments</a></footer>
+</main>
+<script>
+const image=document.querySelector('#view'),caption=document.querySelector('#caption');
+document.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',()=>{image.src=button.dataset.view;image.alt=button.textContent;document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));caption.textContent=button.textContent==='Concept reference'?'ImageGen concept paintover used as art direction. This image is not an in-game frame.':button.textContent==='Original game'?'Original game screenshot, before the afterlife update.':'Actual game rendering. '+button.textContent+'.';}));
+</script>
+</html>

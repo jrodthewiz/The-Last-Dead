@@ -14,11 +14,17 @@ so the visual route and the gameplay route agree.
 
 ## Procedural setpiece contract
 
-- Macro: one maintenance tunnel spine, one low collapse, one sealed bulkhead.
-- Meso: repeated dark-steel arch ribs, overhead conduits, hazard stripes, cable
-  junctions, and alternating signal lamps.
-- Micro: asymmetric rubble silhouettes, warning lamp pulses, beveled wheel and
-  conduit separation, and small emissive blades that mark the next combat beat.
+- Macro: one maintenance tunnel spine, one spawn-facing pressure lock, one low
+  collapse, and one sealed service bulkhead.
+- Meso: repeated dark-steel arch ribs, grounded jambs, overhead conduits, hazard
+  stripes, cable junctions, segmented shutter ribs, alternating signal lamps, and
+  one anchored quarantine-service manifold at the lock threshold. Intake's right
+  wall uses only two deterministic degradation bays and one continuous utility run
+  toward the maintenance spine.
+- Micro: asymmetric rubble silhouettes, warning lamp pulses, fabricated lock
+  fasteners, beveled wheel and conduit separation, a stained drain seam, routed
+  hose junctions, and one damaged inspection canister that makes the recovery
+  plant's former job legible without prop scatter.
 - Materials: dark steel and rusted conduits with a red emergency signal in
   Bloodworks. The same factory can take violet or orange accents for later sectors.
 - Runtime: all pieces are visual only and live in `layout.setpieces`; collision,

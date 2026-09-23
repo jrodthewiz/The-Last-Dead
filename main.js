@@ -4,9 +4,14 @@ import {Renderer} from './renderer.js';
 import {UI} from './ui.js';
 import {PeerJsSession} from './signaling.js';
 import {AudioSystem} from './assets/audio.js';
+import {makeDungeonCourse,DUNGEON_LAYERS} from './playground/map/dungeon-course.js';
 const canvas=document.querySelector('#world');
 const renderer=new Renderer(canvas),audio=new AudioSystem();
-let run=newRun(makeCampaignCourse(0),{requireEntry:true}),screen='menu',session=null,signal=null,signalAbort=null,signalRoom='',network='SOLO',settings={sensitivity:1,volume:.5,reducedMotion:false,gore:true,autoRun:false},last=0,acc=0,netClock=0,hudClock=0,frames=0,fps=60,fpsClock=0,remoteInput={},remoteSeen=0,remoteParry=0,parrySequence=0,remoteHook=0,hookSequence=0,snapshotSeq=0,lastSnapshot=-1,netEventSeq=0,lastNetEvent=-1,netEvents=[];
+const requestedDungeonIndex=new URLSearchParams(location.search).has('dungeon')?clamp(Number(new URLSearchParams(location.search).get('dungeon'))||0,0,DUNGEON_LAYERS.length-1):null;
+// ?debug&sector=N starts a campaign descent directly for visual QA.
+const requestedSector=new URLSearchParams(location.search).has('debug')?clamp(Math.floor(Number(new URLSearchParams(location.search).get('sector'))||0),0,2):0;
+const startingCourse=()=>requestedDungeonIndex===null?makeCampaignCourse(requestedSector):makeDungeonCourse(requestedDungeonIndex);
+let run=newRun(startingCourse(),{requireEntry:true}),screen='menu',session=null,signal=null,signalAbort=null,signalRoom='',network='SOLO',settings={sensitivity:1,volume:.5,sfxVolume:1,voiceVolume:1,musicVolume:1,ambienceVolume:1,uiVolume:1,reducedMotion:false,gore:true,autoRun:false},last=0,acc=0,netClock=0,hudClock=0,frames=0,fps=60,fpsClock=0,remoteInput={},remoteSeen=0,remoteParry=0,parrySequence=0,remoteHook=0,hookSequence=0,snapshotSeq=0,lastSnapshot=-1,netEventSeq=0,lastNetEvent=-1,netEvents=[];
 const keys=new Set(),touches=new Map(),pulses=new Set();let fire=false,alt=false,lastStep=0,lastHeartbeat=0;
 const playerFields=['x','y','z','angle','pitch','vx','vy','vz','speed','distance','time','mode','health','energy','weapon','cooldowns','fireCooldown','shot','damage','heal','aim','slide','dashTime','punch','hookTime','hookCooldown','hookTarget','parryTime','parryCooldown','slam','wallJumps','style','styleTotal','styleLabel','rank','kills','combo','bestCombo','lastWeapon','repeat','coinCharges','coinRegen','altCooldown','respawnTime'];
 const playerData=p=>Object.fromEntries(playerFields.map(k=>[k,p[k]]));
@@ -14,7 +19,7 @@ function snapshot(){return{seq:++snapshotSeq,host:playerData(run),guest:run.peer
 function releaseFormFocus(){const active=document.activeElement;if(active&&typeof active.blur==='function')active.blur();}
 function resetInput(){releaseFormFocus();keys.clear();touches.clear();pulses.clear();fire=false;alt=false;}
 function pointerLock(){if(screen==='play')audio.unlock().then(()=>{if(screen==='play'){audio.resume();audio.play('ambience');}});if(matchMedia('(pointer:coarse)').matches||document.pointerLockElement===canvas)return;try{canvas.requestPointerLock()?.catch(()=>ui.toast('Click the arena to capture your mouse. Arrow keys also aim.'));}catch{}}
-function configure(value){settings={...settings,...value};run.autoRun=!!settings.autoRun;renderer.setSettings?.(settings);audio.setVolume(settings.volume);audio.setMuted(settings.volume===0);}
+function configure(value){settings={...settings,...value};run.autoRun=!!settings.autoRun;renderer.setSettings?.(settings);audio.setVolume(settings.volume);audio.setMuted(settings.volume===0);audio.setGroupVolume('sfx',settings.sfxVolume??1);audio.setGroupVolume('voice',settings.voiceVolume??1);audio.setGroupVolume('music',settings.musicVolume??1);audio.setGroupVolume('ambience',settings.ambienceVolume??1);audio.setGroupVolume('ui',settings.uiVolume??1);}
 function begin(coop=false){
  if(renderer.renderer&&!renderer._weaponsPrepared){
   if(!renderer._warmupPromise)renderer.render(run,performance.now());
@@ -24,14 +29,14 @@ function begin(coop=false){
   }
   return;
  }
-if(!coop&&session?.connected){session.close();session=null;network='SOLO';}run=newRun(makeCampaignCourse(0),{requireEntry:true});run.mode='play';run.autoRun=!!settings.autoRun;if(coop)addPeer(run);screen='play';acc=0;netEvents=[];resetInput();remoteInput={};remoteParry=0;remoteHook=0;parrySequence=0;hookSequence=0;remoteSeen=performance.now();ui.play?.();ui.hide?.();document.body.classList.add('playing');audio.setScene?.('play');audio.unlock().then(()=>{if(screen!=='play')return;audio.resume();audio.play('ambience');});pointerLock();if(coop)session.send({t:'start',s:snapshot()});ui.toast('DESCENT 01 // THE BLOODWORKS');}
+if(!coop&&session?.connected){session.close();session=null;network='SOLO';}const course=!coop&&requestedDungeonIndex!==null?makeDungeonCourse(requestedDungeonIndex):makeCampaignCourse(coop?0:requestedSector);run=newRun(course,{requireEntry:!course.dungeon});run.mode='play';run.autoRun=!!settings.autoRun;if(coop)addPeer(run);screen='play';acc=0;netEvents=[];resetInput();remoteInput={};remoteParry=0;remoteHook=0;parrySequence=0;hookSequence=0;remoteSeen=performance.now();ui.play?.();ui.hide?.();document.body.classList.add('playing');audio.setScene?.('play');audio.unlock().then(()=>{if(screen!=='play')return;audio.resume();audio.play('ambience');});pointerLock();if(coop)session.send({t:'start',s:snapshot()});ui.toast(course.dungeon?`FLOOR ${String(course.dungeonIndex+1).padStart(2,'0')} // ${course.name.toUpperCase()}`:`DESCENT ${String(run.sectorIndex+1).padStart(2,'0')} // ${run.sectorName.toUpperCase()}`);}
 function pause(){if(screen!=='play')return;screen='pause';resetInput();document.exitPointerLock?.();if(!session?.connected)run.mode='pause';audio.setScene?.('pause');audio.pause();ui.pause();if(session?.connected)ui.toast('Co-op stays live while your menu is open.');}
 function resume(){if(screen!=='pause')return;screen='play';run.mode='play';ui.play?.();ui.hide?.();document.body.classList.add('playing');audio.setScene?.('play');audio.unlock().then(()=>{if(screen!=='play')return;audio.resume();audio.play('ambience');});pointerLock();}
 function cancelSignal(){signalAbort?.abort();signalAbort=null;signal?.abort?.();signal=null;signalRoom='';}
 function showRoomCode(code){if(ui.setRoomCode)ui.setRoomCode(code);else ui.setOffer?.(code);}
 function setCoopBusy(busy,message=''){ui.setConnectionBusy?.(busy,message);if(message)ui.networkStatus(message);}
 function coopError(error){return error?.code==='SIGNALING_ABORTED'?'Co-op cancelled.':error?.message||'The co-op connection failed.';}
-function menu(){resetInput();document.exitPointerLock?.();cancelSignal();audio.setScene?.('menu');screen='menu';run.mode='ready';session?.close();session=null;network='SOLO';run=newRun(makeCampaignCourse(0),{requireEntry:true});ui.menu();document.body.classList.remove('playing');}
+function menu(){resetInput();document.exitPointerLock?.();cancelSignal();audio.setScene?.('menu');screen='menu';run.mode='ready';session?.close();session=null;network='SOLO';run=newRun(startingCourse(),{requireEntry:true});ui.menu();document.body.classList.remove('playing');}
 function restart(){if(session?.connected&&session.role==='guest'){session.send({t:'restart-request'});ui.toast('Restart requested from host.');return;}begin(!!session?.connected);}
 function disconnected(){cancelSignal();network='DISCONNECTED';ui.networkStatus(network);setCoopBusy(false,network);resetInput();if(session?.role==='guest'){screen='pause';run.mode='pause';audio.setScene?.('pause');audio.pause();document.exitPointerLock?.();ui.pause();ui.toast('Host disconnected. Start solo to continue in a fresh arena.');}else if(run.peer){delete run.peer;ui.toast('Partner disconnected. Continuing solo.');}}
 function makeSession(){cancelSignal();session?.close();let active;active=new PeerJsSession({onStatus:text=>{if(session!==active)return;network=text;ui.networkStatus(text);},onMessage:(message,transport)=>{if(session===active)receive(message,transport);},onConnect:()=>{if(session!==active)return;network='P2P CONNECTED';setCoopBusy(false,network);ui.networkStatus(network);if(active.role==='host')begin(true);else ui.toast('Connected. Waiting for host arena…');},onDisconnect:()=>{if(session===active)disconnected();}});session=active;return active;}

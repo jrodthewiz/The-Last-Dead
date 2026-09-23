@@ -1,0 +1,193 @@
+{
+  "formatVersion": 1,
+  "pipeline": "meshy-multi-image-source-rig-v1",
+  "characterId": "tld-survivor-v02",
+  "label": "The Last Dead Survivor",
+  "heightMeters": 1.78,
+  "texturePrompt": "Faithfully preserve The Last Dead Survivor from every reference view, including clothing, equipment, colors, and material wear.",
+  "createdAt": "2026-09-12T10:01:00.357Z",
+  "updatedAt": "2026-09-12T10:05:50.961Z",
+  "status": "RIG_COMPLETE",
+  "sourceRequest": {
+    "endpoint": "/openapi/v1/multi-image-to-3d",
+    "imageCount": 2,
+    "aiModel": "latest",
+    "poseMode": "t-pose",
+    "textured": true,
+    "pbr": true,
+    "targetFormats": [
+      "glb"
+    ]
+  },
+  "sources": [
+    {
+      "file": "sources/source-01.png",
+      "originalFileName": "survivor-front.png",
+      "sha256": "54fa9702933ce66e672427180a03367a3d81dae8c69b6b01d5aa2a6851a7ef58",
+      "byteSize": 1687445,
+      "mimeType": "image/png"
+    },
+    {
+      "file": "sources/source-02.png",
+      "originalFileName": "survivor-back.png",
+      "sha256": "91637af5721253d30a479586b9d9d13b9a98c64aa5208df30e5a5be3c9d454f1",
+      "byteSize": 1678881,
+      "mimeType": "image/png"
+    }
+  ],
+  "source": {
+    "submitStartedAt": "2026-09-12T10:01:00.378Z",
+    "taskId": "01a09510-2f99-76ca-8cf0-71efa0184c45",
+    "status": "SUCCEEDED",
+    "submittedAt": "2026-09-12T10:01:06.432Z",
+    "progress": 100,
+    "lastCheckedAt": "2026-09-12T10:04:51.857Z",
+    "asset": {
+      "file": "model.glb",
+      "sha256": "f18ef126ec4f5482fe4281f92ba35a7279bb0b21383249f1e763276f9808e9fc",
+      "byteSize": 30167344,
+      "inspection": {
+        "ok": true,
+        "assetKind": "character",
+        "sourceContract": "duals-meshy-unrigged-character-v1",
+        "meshCount": 1,
+        "size": [
+          1.8990789651870728,
+          1.7848970293998718,
+          0.3641950786113739
+        ]
+      },
+      "savedAt": "2026-09-12T10:04:53.454Z"
+    },
+    "preview": {
+      "file": "preview.png",
+      "sha256": "49a7b2502f18bb3905124d042c867f0bd4a1c60c2305fde26af5f9ef186bc380",
+      "byteSize": 90617,
+      "savedAt": "2026-09-12T10:04:53.530Z"
+    }
+  },
+  "rig": {
+    "submitStartedAt": "2026-09-12T10:04:53.537Z",
+    "taskId": "01a09513-bd80-77e7-b91a-d90df084f03e",
+    "status": "SUCCEEDED",
+    "submittedAt": "2026-09-12T10:04:58.492Z",
+    "progress": 100,
+    "lastCheckedAt": "2026-09-12T10:05:49.682Z",
+    "asset": {
+      "file": "rigged.glb",
+      "sha256": "642dccba34fea5fcaddb941e29af1dd8b9e84708f4b7d135e804260731b159ba",
+      "byteSize": 34799028,
+      "inspection": {
+        "ok": true,
+        "assetKind": "character",
+        "rigSignature": "5ffdb5b68ed5512aad776d7800581d236eac4a27eca2438aafb0f15683adbbda",
+        "rootMotionBaseline": {
+          "x": -0.21647946536540985,
+          "y": 92.24296569824219,
+          "z": 1.2997442483901978
+        },
+        "jointCount": 24,
+        "topology": [
+          {
+            "name": "Head",
+            "parentJointName": "neck"
+          },
+          {
+            "name": "Hips",
+            "parentJointName": null
+          },
+          {
+            "name": "LeftArm",
+            "parentJointName": "LeftShoulder"
+          },
+          {
+            "name": "LeftFoot",
+            "parentJointName": "LeftLeg"
+          },
+          {
+            "name": "LeftForeArm",
+            "parentJointName": "LeftArm"
+          },
+          {
+            "name": "LeftHand",
+            "parentJointName": "LeftForeArm"
+          },
+          {
+            "name": "LeftLeg",
+            "parentJointName": "LeftUpLeg"
+          },
+          {
+            "name": "LeftShoulder",
+            "parentJointName": "Spine"
+          },
+          {
+            "name": "LeftToeBase",
+            "parentJointName": "LeftFoot"
+          },
+          {
+            "name": "LeftUpLeg",
+            "parentJointName": "Hips"
+          },
+          {
+            "name": "RightArm",
+            "parentJointName": "RightShoulder"
+          },
+          {
+            "name": "RightFoot",
+            "parentJointName": "RightLeg"
+          },
+          {
+            "name": "RightForeArm",
+            "parentJointName": "RightArm"
+          },
+          {
+            "name": "RightHand",
+            "parentJointName": "RightForeArm"
+          },
+          {
+            "name": "RightLeg",
+            "parentJointName": "RightUpLeg"
+          },
+          {
+            "name": "RightShoulder",
+            "parentJointName": "Spine"
+          },
+          {
+            "name": "RightToeBase",
+            "parentJointName": "RightFoot"
+          },
+          {
+            "name": "RightUpLeg",
+            "parentJointName": "Hips"
+          },
+          {
+            "name": "Spine",
+            "parentJointName": "Spine01"
+          },
+          {
+            "name": "Spine01",
+            "parentJointName": "Spine02"
+          },
+          {
+            "name": "Spine02",
+            "parentJointName": "Hips"
+          },
+          {
+            "name": "head_end",
+            "parentJointName": "Head"
+          },
+          {
+            "name": "headfront",
+            "parentJointName": "Head"
+          },
+          {
+            "name": "neck",
+            "parentJointName": "Spine"
+          }
+        ]
+      },
+      "savedAt": "2026-09-12T10:05:50.958Z"
+    }
+  },
+  "completedAt": "2026-09-12T10:05:50.961Z"
+}

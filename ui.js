@@ -6,6 +6,11 @@ const PREFS_KEY = 'dead-arrival-prefs-v1';
 const DEFAULT_PREFS = Object.freeze({
   sensitivity: 1,
   volume: 0.5,
+  sfxVolume: 1,
+  voiceVolume: 1,
+  musicVolume: 1,
+  ambienceVolume: 1,
+  uiVolume: 1,
   reducedMotion: false,
   gore: true,
   autoRun: false,
@@ -46,6 +51,11 @@ function loadPrefs() {
     return {
       sensitivity: clamp(merged.sensitivity, 0.25, 2),
       volume: clamp(merged.volume, 0, 1),
+      sfxVolume: clamp(merged.sfxVolume, 0, 1),
+      voiceVolume: clamp(merged.voiceVolume, 0, 1),
+      musicVolume: clamp(merged.musicVolume, 0, 1),
+      ambienceVolume: clamp(merged.ambienceVolume, 0, 1),
+      uiVolume: clamp(merged.uiVolume, 0, 1),
       reducedMotion: merged.reducedMotion === true || merged.reducedMotion === 'true' || merged.reducedMotion === 1,
       gore: merged.gore !== false && merged.gore !== 'false' && merged.gore !== 0,
       autoRun: merged.autoRun === true || merged.autoRun === 'true' || merged.autoRun === 1,
@@ -74,7 +84,53 @@ function enemyTotal(run) {
 // The room director is the source of truth for the campaign route.  Keep the
 // fallback here deliberately display-only so older snapshots and the menu
 // preview remain readable while the live run migrates to room_progression.
-function roomProgression(run = {}) {
+export function roomProgression(run = {}) {
+  if (run.course?.dungeon) {
+    const course = run.course;
+    const state = run.dungeonProgression || {};
+    const waveCount = Math.max(1, Math.round(Number(run.waveCount || course.waveCount) || 1));
+    const wave = clamp(run.wave || 0, 0, waveCount);
+    const remaining = enemyCount(run);
+    const total = enemyTotal(run);
+    const pending = remaining ? 0 : wave < waveCount ? 1 : 0;
+    const keys = course.keys || [];
+    const collected = state.keysCollected || [];
+    const missingKey = keys.find(key => !collected.includes(key.id));
+    const exitReady = state.exitReady === true;
+    const room = (course.rooms || []).find(item => run.x >= item.bounds.minX && run.x < item.bounds.maxX && run.y >= item.bounds.minZ && run.y < item.bounds.maxZ);
+    const phase = exitReady ? 'exit' : remaining ? 'combat' : wave < waveCount ? 'intermission' : 'key';
+    const nextWaveIndex = Math.max(0, Math.min(waveCount - 1, wave));
+    const nextWaveRooms = [...new Set((course.waveSpawns?.[nextWaveIndex] || [])
+      .map(spawn => course.rooms?.find(item => item.id === spawn.roomId)?.name)
+      .filter(Boolean))];
+    const staging = nextWaveRooms.length
+      ? `${nextWaveRooms.slice(0, 2).join(' / ').toUpperCase()}${nextWaveRooms.length > 2 ? ` +${nextWaveRooms.length - 2}` : ''}`
+      : 'NEXT THRESHOLD';
+    const intermission = phase === 'intermission';
+    const countdown = Math.ceil(Math.max(0, Number(run.waveDelay) || 0));
+    const progress = exitReady ? 1 : Math.max(0, Math.min(.99, (Math.max(0, wave - 1) + (total ? (total - remaining) / Math.max(1, total) : 0)) / waveCount));
+    return {
+      dungeon: true,
+      sectorIndex: course.dungeonIndex,
+      sectorCount: course.dungeonCount,
+      sectorName: course.name,
+      roomIndex: Math.min(waveCount - 1, Math.max(0, wave - 1)),
+      roomCount: waveCount,
+      roomName: room?.name || (wave < waveCount ? `Descent wave ${wave + 1}` : 'Exit spine'),
+      wave,
+      waveCount,
+      remaining,
+      total,
+      pending,
+      state: phase,
+      exitReady,
+      progress,
+      sync: true,
+      objective: exitReady ? 'REACH THE DESCENT LIFT' : remaining ? `CLEAR WAVE ${wave} / ${waveCount}` : intermission ? `WAVE ${String(wave + 1).padStart(2, '0')} / ${String(waveCount).padStart(2, '0')} IN ${countdown}s` : missingKey ? `FIND ${missingKey.name.toUpperCase()}` : 'REACH THE DESCENT LIFT',
+      subtitle: intermission ? `NEXT THREAT ZONE: ${staging}` : exitReady ? `FLOOR ${String(course.dungeonIndex + 1).padStart(2, '0')} COMPLETE` : missingKey ? `${missingKey.name.toUpperCase()} REQUIRED FOR THE LIFT` : `KEY SECURED · FLOOR ${course.dungeonIndex + 1} / ${course.dungeonCount}`,
+      threat: remaining ? `${remaining} REMAIN` : pending ? 'NEXT WAVE INCOMING' : exitReady ? 'EXIT SIGNAL LIVE' : missingKey && wave >= waveCount ? 'KEY REQUIRED' : 'NO ACTIVE THREATS',
+    };
+  }
   // `roomProgression` is the live contract owned by room-progression.js. The
   // snake_case keys are retained only for older snapshots during migration.
   const hasLiveContract = !!run.roomProgression;
@@ -324,7 +380,7 @@ export class UI {
   _updatePref(name, value) {
     if (!(name in DEFAULT_PREFS)) return;
     let next = value;
-    if (typeof DEFAULT_PREFS[name] === 'number') next = clamp(value, name === 'sensitivity' ? 0.25 : 0, 2);
+    if (typeof DEFAULT_PREFS[name] === 'number') next = clamp(value, name === 'sensitivity' ? 0.25 : 0, name === 'sensitivity' ? 2 : 1);
     if (typeof DEFAULT_PREFS[name] === 'boolean') next = Boolean(value === true || value === 'true' || value === 'on');
     this.prefs = { ...this.prefs, [name]: next };
     savePrefs(this.prefs);
@@ -336,10 +392,11 @@ export class UI {
     this.root.dataset.reducedMotion = this.prefs.reducedMotion ? 'true' : 'false';
     this.root.dataset.gore = this.prefs.gore ? 'true' : 'false';
     this.root.style.setProperty('--ui-sensitivity', String(this.prefs.sensitivity));
-    const sensitivityValue = this.root.querySelector('[data-setting-value="sensitivity"]');
-    const volumeValue = this.root.querySelector('[data-setting-value="volume"]');
-    if (sensitivityValue) sensitivityValue.textContent = `${Number(this.prefs.sensitivity).toFixed(2)}x`;
-    if (volumeValue) volumeValue.textContent = `${Math.round(Number(this.prefs.volume) * 100)}%`;
+    this.root.querySelectorAll('[data-setting-value]').forEach((output) => {
+      const name = output.dataset.settingValue;
+      const value = Number(this.prefs[name]) || 0;
+      output.textContent = name === 'sensitivity' ? `${value.toFixed(2)}x` : `${Math.round(value * 100)}%`;
+    });
     const settings = this.root.querySelectorAll('[data-setting]');
     settings.forEach((control) => {
       const value = this.prefs[control.dataset.setting];
@@ -373,10 +430,19 @@ export class UI {
   }
 
   _settingsMarkup() {
+    const audioSlider = (name, title, description) => `<div class="setting-row"><div class="setting-copy"><strong>${title}</strong><span>${description}</span></div><output class="setting-value" data-setting-value="${name}">${Math.round(Number(this.prefs[name]) * 100)}%</output><input type="range" min="0" max="1" step="0.01" value="${esc(this.prefs[name])}" data-setting="${name}" aria-label="${title}" /></div>`;
     return `<aside class="settings-drawer" aria-hidden="true" aria-label="Settings">
       <div class="settings-heading"><h2>Settings</h2><button class="icon-button" type="button" data-action="close-settings" aria-label="Close settings">x</button></div>
+      <p class="settings-note">Audio changes apply immediately and save on this device.</p>
+      <div class="setting-section-title">Audio mix</div>
+      ${audioSlider('volume', 'Master volume', 'All game audio')}
+      ${audioSlider('sfxVolume', 'Sound effects', 'Weapons, impacts, and movement')}
+      ${audioSlider('voiceVolume', 'Enemy voices', 'Attacks, moans, and deaths')}
+      ${audioSlider('musicVolume', 'Music', 'Menu and gameplay score')}
+      ${audioSlider('ambienceVolume', 'Ambience', 'Room tone and atmosphere')}
+      ${audioSlider('uiVolume', 'Interface', 'Menus and setting cues')}
+      <div class="setting-section-title">Gameplay</div>
       <div class="setting-row"><div class="setting-copy"><strong>Look sensitivity</strong></div><output class="setting-value" data-setting-value="sensitivity">${Number(this.prefs.sensitivity).toFixed(2)}x</output><input type="range" min="0.25" max="2" step="0.05" value="${esc(this.prefs.sensitivity)}" data-setting="sensitivity" aria-label="Look sensitivity" /></div>
-      <div class="setting-row"><div class="setting-copy"><strong>Volume</strong></div><output class="setting-value" data-setting-value="volume">${Math.round(this.prefs.volume * 100)}%</output><input type="range" min="0" max="1" step="0.05" value="${esc(this.prefs.volume)}" data-setting="volume" aria-label="Volume" /></div>
       <label class="setting-row"><span class="setting-copy"><strong>Reduced motion</strong></span><span class="toggle"><input type="checkbox" data-setting="reducedMotion" ${this.prefs.reducedMotion ? 'checked' : ''} /><span class="toggle-track"></span></span></label>
       <label class="setting-row"><span class="setting-copy"><strong>Gore effects</strong></span><span class="toggle"><input type="checkbox" data-setting="gore" ${this.prefs.gore ? 'checked' : ''} /><span class="toggle-track"></span></span></label>
       <label class="setting-row"><span class="setting-copy"><strong>Auto-run</strong></span><span class="toggle"><input type="checkbox" data-setting="autoRun" ${this.prefs.autoRun ? 'checked' : ''} /><span class="toggle-track"></span></span></label>
@@ -456,13 +522,16 @@ export class UI {
     this.run = run;
     const courseName = run.course?.name || 'The Bloodworks';
     const kills = Number(run.kills) || 0;
-    const wave = win ? (run.sectorCount||3) : (run.sectorIndex||0);
+    const dungeon = run.course?.dungeon === true;
+    const wave = dungeon ? (win ? run.dungeonProgression?.floorsCleared || run.course.dungeonIndex + 1 : run.course.dungeonIndex + 1) : (win ? (run.sectorCount||3) : (run.sectorIndex||0));
+    const total = dungeon ? run.course.dungeonCount : 3;
+    const progressLabel = dungeon ? 'floors cleared' : 'sectors cleared';
     const style = Number(run.styleTotal) || Number(run.style) || 0;
     const combo = Number(run.bestCombo) || Number(run.combo) || 0;
     const time = Number(run.time) || 0;
     const old = this.root.querySelector('.screen');
     if (old) old.remove();
-    this.root.insertAdjacentHTML('afterbegin', `<section class="screen finish-screen" aria-label="${win ? 'Arena cleared' : 'Run over'}"><div class="finish-backdrop"></div><div class="finish-card ${win ? 'is-win' : 'is-dead'}"><span class="kicker">${win ? 'SUBJECT COMPLETE // EXIT SIGNAL FOUND' : 'THE DESCENT CLAIMS ANOTHER.'}</span><h2>${win ? 'DEBT <em>PAID.</em>' : 'YOU ARE <em>DEAD.</em>'}</h2><p class="finish-copy">${win ? `${esc(courseName)} is quiet for now. Keep the style high and make the next pass hurt more.` : 'The arena keeps moving. Go again with a faster line, a sharper parry, and no respect for the incoming fire.'}</p><div class="results"><div class="result"><strong>${fmt(time, 1)}s</strong><span class="result-label">run time</span></div><div class="result"><strong>${String(kills).padStart(2, '0')}</strong><span class="result-label">eliminated</span></div><div class="result"><strong>${String(combo).padStart(2, '0')}</strong><span class="result-label">best combo</span></div></div><div class="results"><div class="result"><strong>${String(wave).padStart(2, '0')} / 03</strong><span class="result-label">sectors cleared</span></div><div class="result"><strong>${Math.round(style)}</strong><span class="result-label">style earned</span></div><div class="result"><strong>${esc(run.rank || (win ? 'S' : 'D'))}</strong><span class="result-label">final rank</span></div></div><div class="finish-actions"><button class="primary-button" type="button" data-action="restart">${win ? 'Run it back' : 'RISE AGAIN'} <span>-></span></button><button class="secondary-button" type="button" data-action="menu">Return to menu</button></div></div></section>`);
+    this.root.insertAdjacentHTML('afterbegin', `<section class="screen finish-screen" aria-label="${win ? dungeon ? 'Descent cleared' : 'Arena cleared' : 'Run over'}"><div class="finish-backdrop"></div><div class="finish-card ${win ? 'is-win' : 'is-dead'}"><span class="kicker">${win ? 'SUBJECT COMPLETE // EXIT SIGNAL FOUND' : 'THE DESCENT CLAIMS ANOTHER.'}</span><h2>${win ? 'DEBT <em>PAID.</em>' : 'YOU ARE <em>DEAD.</em>'}</h2><p class="finish-copy">${win ? `${esc(courseName)} is quiet for now. Keep the style high and make the next pass hurt more.` : 'The arena keeps moving. Go again with a faster line, a sharper parry, and no respect for the incoming fire.'}</p><div class="results"><div class="result"><strong>${fmt(time, 1)}s</strong><span class="result-label">run time</span></div><div class="result"><strong>${String(kills).padStart(2, '0')}</strong><span class="result-label">eliminated</span></div><div class="result"><strong>${String(combo).padStart(2, '0')}</strong><span class="result-label">best combo</span></div></div><div class="results"><div class="result"><strong>${String(wave).padStart(2, '0')} / ${String(total).padStart(2, '0')}</strong><span class="result-label">${progressLabel}</span></div><div class="result"><strong>${Math.round(style)}</strong><span class="result-label">style earned</span></div><div class="result"><strong>${esc(run.rank || (win ? 'S' : 'D'))}</strong><span class="result-label">final rank</span></div></div><div class="finish-actions"><button class="primary-button" type="button" data-action="restart">${win ? 'Run it back' : 'RISE AGAIN'} <span>-></span></button><button class="secondary-button" type="button" data-action="menu">Return to menu</button></div></div></section>`);
     return this;
   }
 
@@ -475,7 +544,7 @@ export class UI {
         <div class="objective-line"><strong class="hud-value" data-hud="objective">CLEAR INTAKE BAY</strong><span class="room-threat" data-hud="room-threat">THREAT ACTIVE</span></div>
         <span class="hud-sub" data-hud="objective-sub">HUNT THEM DOWN</span>
         <div class="objective-progressline"><div class="objective-progress"><i data-hud="objective-progress"></i></div><span class="room-progress-label" data-hud="room-progress-label">00% CLEAR</span></div>
-        <div class="room-route" data-hud="room-route" role="progressbar" aria-label="Room progression" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+        <div class="room-route" data-hud="room-route" role="progressbar" aria-label="Encounter progression" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
       </div></div>
        <div class="run-clock"><span data-hud="run-clock">00:00</span><small data-hud="network">SOLO</small><small data-hud="fps" hidden></small></div>
        <div class="hud-cluster"><div class="rank"><span class="rank-caption">STYLE</span><strong data-hud="rank">D</strong><div class="rank-meter"><i data-hud="style-fill"></i></div><span data-hud="style-label">GET CLOSE.</span><div class="combat-feed" aria-live="off"></div></div><button class="hud-pause" type="button" data-action="pause" aria-label="Pause game">II</button></div></div>
@@ -492,6 +561,7 @@ export class UI {
   _updateRoomRoute(progression) {
     const route = this.root.querySelector('[data-hud="room-route"]');
     if (!route) return;
+    const stageLabel = progression.dungeon ? 'Wave' : 'Room';
     const count = Math.max(1, Math.min(12, Math.round(progression.roomCount) || 1));
     if (this._roomRouteCount !== count || route.children.length !== count) {
       route.replaceChildren(...Array.from({ length: count }, (_, index) => {
@@ -509,7 +579,7 @@ export class UI {
         step.style.setProperty('--step-progress', '0%');
       });
       route.setAttribute('aria-valuenow', '0');
-      route.setAttribute('aria-label', 'Room progression synchronizing');
+      route.setAttribute('aria-label', `${stageLabel} progression synchronizing`);
       return;
     }
     const current = Math.max(0, Math.min(count - 1, Math.round(progression.roomIndex) || 0));
@@ -522,7 +592,7 @@ export class UI {
     });
     const overall = ((current + fraction) / count) * 100;
     route.setAttribute('aria-valuenow', String(Math.round(Math.max(0, Math.min(100, overall)))));
-    route.setAttribute('aria-label', `Room ${current + 1} of ${count}, ${Math.round(fraction * 100)} percent clear`);
+    route.setAttribute('aria-label', `${stageLabel} ${current + 1} of ${count}, ${Math.round(fraction * 100)} percent clear`);
   }
 
   hud(run = this.run, { network = this._network, fps = null } = {}) {
@@ -578,7 +648,8 @@ export class UI {
     this._setHud('network', network || 'OFFLINE');
     const fpsNode = this.root.querySelector('[data-hud="fps"]');
     if (fpsNode) { fpsNode.hidden = !this.debug; if (this.debug) fpsNode.textContent = fps ? `${Math.round(fps)} FPS` : '-- FPS'; }
-    const sectorRoman = ['I', 'II', 'III'][Math.min(2, Math.max(0, Math.round(progression.sectorIndex)))] || String(Math.round(progression.sectorIndex) + 1).padStart(2, '0');
+    const floorIndex = Math.max(0, Math.round(run.course?.dungeon ? run.course.dungeonIndex : progression.sectorIndex));
+    const sectorRoman = ['I', 'II', 'III', 'IV', 'V'][floorIndex] || String(floorIndex + 1).padStart(2, '0');
     const sectorTitle = progression.sectorName.replace(/^The /, '');
     const intermission = progression.state === 'intermission';
     const fallbackObjective = exitReady
@@ -589,7 +660,7 @@ export class UI {
     const fallbackSubtitle = exitReady ? 'EXIT SIGNAL LIVE' : intermission ? 'BREACH WINDOW OPEN' : 'HUNT THEM DOWN';
     const fallbackThreat = remaining ? `${remaining} REMAIN${pending ? ` / ${pending} INCOMING` : ''}` : pending ? `${pending} INCOMING` : 'NO ACTIVE THREATS';
     this._setHud('sector', `${sectorRoman} / ${sectorTitle}`);
-    this._setHud('room-index', progression.sync ? `ROOM ${String(Math.round(progression.roomIndex) + 1).padStart(2, '0')} / ${String(progression.roomCount).padStart(2, '0')}` : 'ROOM -- / --');
+    this._setHud('room-index', progression.sync ? run.course?.dungeon ? `WAVE ${String(Math.max(1, currentWave)).padStart(2, '0')} / ${String(progression.waveCount).padStart(2, '0')}` : `ROOM ${String(Math.round(progression.roomIndex) + 1).padStart(2, '0')} / ${String(progression.roomCount).padStart(2, '0')}` : 'ROOM -- / --');
     this._setHud('room-name', progression.roomName);
     this._setHud('objective', progression.objective || fallbackObjective);
     this._setHud('objective-sub', progression.subtitle || fallbackSubtitle);

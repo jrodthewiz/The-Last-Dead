@@ -1,0 +1,95 @@
+{
+  "clips": {
+    "Idle_Ready": {
+      "frames": 60,
+      "max_ik_error": {
+        "hand.L": 1.155200448233742e-05,
+        "foot.L": 4.051199674937854e-07,
+        "hand.R": 1.1349325404559998e-05,
+        "foot.R": 4.051199674937854e-07
+      }
+    },
+    "Walk_Forward": {
+      "frames": 30,
+      "max_ik_error": {
+        "hand.L": 1.9747097300276498e-05,
+        "foot.L": 2.8624029140834693e-05,
+        "hand.R": 1.742902297359492e-05,
+        "foot.R": 2.857065972411994e-05
+      }
+    },
+    "Sprint_Forward": {
+      "frames": 24,
+      "max_ik_error": {
+        "hand.L": 1.6326058275563932e-05,
+        "foot.L": 4.868654292674393e-05,
+        "hand.R": 1.922582442310814e-05,
+        "foot.R": 4.79531018738007e-05
+      }
+    },
+    "Crouch_Idle": {
+      "frames": 60,
+      "max_ik_error": {
+        "hand.L": 1.0564040529149155e-05,
+        "foot.L": 4.743240205317164e-05,
+        "hand.R": 2.2696875255479026e-05,
+        "foot.R": 4.743240205317164e-05
+      }
+    },
+    "Jump": {
+      "frames": 36,
+      "max_ik_error": {
+        "hand.L": 2.086964946800229e-05,
+        "foot.L": 7.244862588014901e-05,
+        "hand.R": 1.3740601842339204e-05,
+        "foot.R": 7.244862588014901e-05
+      }
+    },
+    "Slide": {
+      "frames": 45,
+      "max_ik_error": {
+        "hand.L": 3.39206630823866e-05,
+        "foot.L": 4.4774049456252335e-05,
+        "hand.R": 3.0446394447566755e-05,
+        "foot.R": 4.4774049456252335e-05
+      }
+    },
+    "Recoil": {
+      "frames": 12,
+      "max_ik_error": {
+        "hand.L": 2.000372111614735e-05,
+        "foot.L": 4.051199674937854e-07,
+        "hand.R": 1.5902228865808132e-05,
+        "foot.R": 4.051199674937854e-07
+      }
+    }
+  },
+  "skin": {
+    "TLD_arm.L": {
+      "vertices": 5773,
+      "bad_weights": 0
+    },
+    "TLD_arm.R": {
+      "vertices": 5773,
+      "bad_weights": 0
+    },
+    "TLD_head": {
+      "vertices": 3758,
+      "bad_weights": 0
+    },
+    "TLD_leg.L": {
+      "vertices": 2903,
+      "bad_weights": 0
+    },
+    "TLD_leg.R": {
+      "vertices": 2903,
+      "bad_weights": 0
+    },
+    "TLD_torso": {
+      "vertices": 2107,
+      "bad_weights": 0
+    }
+  },
+  "errors": [],
+  "glb_bytes": 18879264
+}

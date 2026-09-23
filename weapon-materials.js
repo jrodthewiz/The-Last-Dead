@@ -6,22 +6,24 @@ import * as THREE from './vendor/three.module.js';
 // gun.  Values are intentionally conservative for the renderer's existing HDR
 // exposure and preserve each weapon's dark iron / warm bone identity.
 const DEFAULTS = {
-  steel: { roughness: .58, metalness: .76, envMapIntensity: .58, colorScale: .88 },
-  steelEdge: { roughness: .46, metalness: .84, envMapIntensity: .54, colorScale: .76 },
-  frame: { roughness: .56, metalness: .78, envMapIntensity: .58, colorScale: .9 },
-  frameEdge: { roughness: .46, metalness: .84, envMapIntensity: .54, colorScale: .76 },
-  metal: { roughness: .6, metalness: .72, envMapIntensity: .52, colorScale: .86 },
-  iron: { roughness: .58, metalness: .74, envMapIntensity: .54, colorScale: .86 },
-  ironEdge: { roughness: .47, metalness: .82, envMapIntensity: .52, colorScale: .76 },
-  bone: { roughness: .91, metalness: 0, envMapIntensity: .27, colorScale: .84, bumpScale: .012 },
-  boneDark: { roughness: .95, metalness: 0, envMapIntensity: .2, colorScale: .92, bumpScale: .008 },
-  horn: { roughness: .93, metalness: 0, envMapIntensity: .2, colorScale: .9, bumpScale: .008 },
-  leather: { roughness: .88, metalness: .025, envMapIntensity: .16, colorScale: .98, bumpScale: .009 },
-  brass: { roughness: .5, metalness: .78, envMapIntensity: .48, colorScale: .8 },
-  steelEdgeWarm: { roughness: .5, metalness: .78, envMapIntensity: .48, colorScale: .8 },
-  black: { roughness: .9, metalness: .16, envMapIntensity: .22, colorScale: .92 },
-  dark: { roughness: .95, metalness: .05, envMapIntensity: .12, colorScale: .9 },
-  soot: { roughness: .97, metalness: 0, envMapIntensity: .08, colorScale: .9 },
+  // Keep the body values restrained, but give machined edges enough albedo to
+  // separate from the dark receiver under the game's low fill light.
+  steel: { roughness: .58, metalness: .76, envMapIntensity: .54, colorScale: .93 },
+  steelEdge: { roughness: .46, metalness: .84, envMapIntensity: .5, colorScale: .84 },
+  frame: { roughness: .56, metalness: .78, envMapIntensity: .54, colorScale: .94 },
+  frameEdge: { roughness: .46, metalness: .84, envMapIntensity: .5, colorScale: .84 },
+  metal: { roughness: .6, metalness: .72, envMapIntensity: .5, colorScale: .9 },
+  iron: { roughness: .58, metalness: .74, envMapIntensity: .5, colorScale: .9 },
+  ironEdge: { roughness: .47, metalness: .82, envMapIntensity: .48, colorScale: .84 },
+  bone: { roughness: .91, metalness: 0, envMapIntensity: .25, colorScale: .88, bumpScale: .012 },
+  boneDark: { roughness: .95, metalness: 0, envMapIntensity: .18, colorScale: .94, bumpScale: .008 },
+  horn: { roughness: .93, metalness: 0, envMapIntensity: .18, colorScale: .92, bumpScale: .008 },
+  leather: { roughness: .88, metalness: .025, envMapIntensity: .14, colorScale: .99, bumpScale: .009 },
+  brass: { roughness: .5, metalness: .78, envMapIntensity: .45, colorScale: .86 },
+  steelEdgeWarm: { roughness: .5, metalness: .78, envMapIntensity: .45, colorScale: .85 },
+  black: { roughness: .9, metalness: .16, envMapIntensity: .2, colorScale: .95 },
+  dark: { roughness: .95, metalness: .05, envMapIntensity: .11, colorScale: .93 },
+  soot: { roughness: .97, metalness: 0, envMapIntensity: .07, colorScale: .93 },
 };
 
 function clamp(value, low, high) {
@@ -69,10 +71,19 @@ export function stabilizeWeaponVertexWear(root, seed = 37) {
   root.traverse(node => {
     if (!node.isMesh || !node.geometry?.attributes?.color) return;
     const colors = node.geometry.attributes.color;
+    const positions = node.geometry.attributes.position;
+    const normals = node.geometry.attributes.normal;
+    // Use a broad, surface-space variation instead of vertex-index noise. The
+    // index sequence makes the same plate pick up disconnected white speckle.
+    const nameSeed = String(node.name || '').split('').reduce((sum, char) => sum + char.charCodeAt(0), 0) * .013;
     for (let i = 0; i < colors.count; i++) {
-      const n = Math.sin((i + seed) * 12.9898 + seed * 1.37) * .5 + .5;
-      const base = clamp(.895 + n * .07, .86, .975);
-      colors.setXYZ(i, base, base * .975, base * .925);
+      const x = positions ? positions.getX(i) : i * .01;
+      const y = positions ? positions.getY(i) : 0;
+      const z = positions ? positions.getZ(i) : 0;
+      const broad = Math.sin(x * 7.1 + y * 4.3 + z * 5.7 + seed * .17 + nameSeed) * .5 + .5;
+      const face = normals ? Math.max(0, normals.getY(i) * .24 + normals.getZ(i) * .18) : 0;
+      const base = clamp(.91 + broad * .045 + face * .018, .875, .985);
+      colors.setXYZ(i, base, base * .972, base * .925);
     }
     colors.needsUpdate = true;
   });

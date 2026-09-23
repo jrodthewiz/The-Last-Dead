@@ -376,6 +376,37 @@ export function createReliquary(options = {}) {
     const y = .02 - i * .045;
     add(grip, sweep([[-.09, y, -.11], [.09, y + .018, -.11], [.09, y + .014, .1], [-.09, y - .01, .1]], [.012, .014, .014, .012], 6), 'boneDark');
   }
+
+  // Give the support hand a real load-bearing contact under the barrel.  The
+  // launcher used to offer only the shroud ribs at this location, so the
+  // support palm and fingers disappeared into the bone silhouette at a
+  // three-quarter angle.  This short leather foregrip is deliberately kept
+  // below the shroud and its socket is exported for the viewmodel arm to fit
+  // against directly.
+  const supportGrip = part('support-grip');
+  // Set the socket just outboard and forward of the lower shroud.  The
+  // earlier centerline placement put the support fingers directly behind
+  // the side rail in aim/mobile views even though the palm was touching the
+  // handle.  This small offset keeps the bracket attached while opening a
+  // clean sightline to the thumb and curled fingertips.
+  supportGrip.position.set(-.13, -.34, -.62);
+  const supportGripSocket = new THREE.Object3D();
+  supportGripSocket.name = 'SupportGripSocket';
+  supportGripSocket.userData.viewmodelAnchor = true;
+  supportGrip.add(supportGripSocket);
+  add(supportGrip, profile([
+    [-.072, .155], [.072, .155], [.066, .095], [.074, -.09],
+    [.046, -.165], [-.046, -.165], [-.074, -.09], [-.064, .095]
+  ], .18, .014), 'leather', [0, 0, 0], [1, 1, 1], [0, 0, 0], 'support-grip-leather');
+  // A compact saddle bridges the handle into the underside of the barrel so
+  // the thumb and fingers have a visible mechanical contact to read against.
+  add(supportGrip, new THREE.BoxGeometry(.16, .042, .16), 'ironEdge', [0, .15, 0], [1, 1, 1], [0, 0, 0], 'support-grip-saddle');
+  for (const y of [-.105, -.01, .085]) {
+    add(supportGrip, new THREE.TorusGeometry(.068, .008, 6, 14), 'brass', [0, y, 0], [1, 1, 1], [Math.PI / 2, 0, 0], 'support-grip-band-' + y);
+  }
+  for (const side of [-1, 1]) {
+    add(supportGrip, sweep([[side * .067, .13, -.07], [side * .105, .17, 0], [side * .067, .13, .07]], [.012, .014, .008], 7), 'boneDark', [0, 0, 0], [1, 1, 1], [0, 0, 0], 'support-grip-lug-' + side);
+  }
   const guard = part('trigger-guard');
   add(guard, sweep([[0, -.05, -.23], [0, -.22, -.19], [0, -.26, -.04], [0, -.2, .12], [0, -.06, .16]], [.018, .022, .02, .018, .015], 8), 'ironEdge');
   add(guard, sweep([[0, -.07, -.08], [0, -.15, -.105], [0, -.18, -.035]], [.012, .011, .006], 7), 'brass');
@@ -439,8 +470,15 @@ export function createReliquary(options = {}) {
   add(shroudDetail, new THREE.CylinderGeometry(.224, .235, .47, 10, 1, true), 'steelDark', [0, .015, -.67], [1, 1, 1], [Math.PI / 2, 0, Math.PI / 10], 'shroud-shell');
   for (let i = 0; i < 6; i++) {
     const a = i / 6 * Math.PI * 2;
-    add(shroudDetail, new THREE.BoxGeometry(.027, .043, .38), 'ironEdge', [Math.cos(a) * .225, .015 + Math.sin(a) * .225, -.67], [1, 1, 1], [0, 0, -a], 'shroud-rib-' + i);
-    add(shroudDetail, new THREE.BoxGeometry(.032, .026, .075), 'soot', [Math.cos(a) * .239, .015 + Math.sin(a) * .239, -.68], [1, 1, 1], [0, 0, -a], 'shroud-vent-' + i);
+    // The lower-left diagonal rib used to sit directly over the support
+    // thumb and fingertip curl. Shorten and move that one decorative rib
+    // toward the muzzle, leaving the load-bearing foregrip sightline open.
+    const supportClear = i === 4;
+    const ribZ = supportClear ? -.84 : -.67;
+    const ventZ = supportClear ? -.84 : -.68;
+    const ribScale = supportClear ? [.96, .96, .52] : [1, 1, 1];
+    add(shroudDetail, new THREE.BoxGeometry(.027, .043, .38), 'ironEdge', [Math.cos(a) * .225, .015 + Math.sin(a) * .225, ribZ], ribScale, [0, 0, -a], 'shroud-rib-' + i);
+    add(shroudDetail, new THREE.BoxGeometry(.032, .026, .075), 'soot', [Math.cos(a) * .239, .015 + Math.sin(a) * .239, ventZ], [1, 1, 1], [0, 0, -a], 'shroud-vent-' + i);
   }
   const trigger = guard;
   add(trigger, new THREE.BoxGeometry(.024, .085, .03), 'brass', [0, -.16, .015], [1, 1, 1], [.18, 0, 0], 'trigger-blade');
@@ -482,7 +520,7 @@ export function createReliquary(options = {}) {
   inspect.name = 'inspect';
   inspect.position.set(0, .1, .25);
   root.add(inspect);
-  const sockets = {muzzle, projectileOrigin, muzzleFlash, heatBloom, recoil: recoilCarriage, heat, inspect, grip, corePulse: core, explosion};
+  const sockets = {muzzle, projectileOrigin, muzzleFlash, heatBloom, recoil: recoilCarriage, heat, inspect, grip, supportGrip: supportGripSocket, corePulse: core, explosion};
   root.userData.muzzle = muzzle;
   root.userData.projectileOrigin = projectileOrigin;
   root.userData.resourcesReady = resourcesReady;

@@ -1,0 +1,196 @@
+{
+  "formatVersion": 1,
+  "pipeline": "meshy-multi-image-source-rig-v1",
+  "characterId": "tld-bloodworks-warden-mainmenu",
+  "label": "Bloodworks Warden",
+  "heightMeters": 2.2,
+  "texturePrompt": "Dark industrial horror Warden. Preserve the tall broad-shouldered armored humanoid silhouette, layered weathered black iron plates, pale ash-gray exposed skin, restrained ember-red fissures and small red eye glow. Keep the face and body faithful to the supplied main-menu reference; no weapons or props; game-ready rough PBR.",
+  "createdAt": "2026-09-21T20:49:57.367Z",
+  "updatedAt": "2026-09-21T20:57:50.261Z",
+  "status": "RIG_COMPLETE",
+  "sourceRequest": {
+    "endpoint": "/openapi/v1/multi-image-to-3d",
+    "imageCount": 1,
+    "aiModel": "latest",
+    "poseMode": "t-pose",
+    "textured": true,
+    "pbr": true,
+    "targetFormats": [
+      "glb"
+    ]
+  },
+  "sources": [
+    {
+      "file": "sources/source-01.png",
+      "originalFileName": "menu-warden-reference.png",
+      "sha256": "3e67cd19b170198ad01ee0b96f5262e4edcc55ebb6dbcf830760c4e676546b62",
+      "byteSize": 545414,
+      "mimeType": "image/png"
+    }
+  ],
+  "source": {
+    "submitStartedAt": "2026-09-21T20:52:31.011Z",
+    "taskId": "01a0c5bd-e860-76f7-845d-7a9ccd260b9b",
+    "status": "SUCCEEDED",
+    "submittedAt": "2026-09-21T20:52:34.646Z",
+    "progress": 100,
+    "lastCheckedAt": "2026-09-21T20:56:37.253Z",
+    "asset": {
+      "file": "model.glb",
+      "sha256": "a3fae563e389afed70c7fbcccb0c3e8eea5435691aef66e243f125edbf8cf2b0",
+      "byteSize": 39397964,
+      "inspection": {
+        "ok": true,
+        "assetKind": "character",
+        "sourceContract": "duals-meshy-unrigged-character-v1",
+        "meshCount": 1,
+        "size": [
+          1.9027378559112549,
+          1.6677988767623901,
+          0.35965389013290405
+        ]
+      },
+      "savedAt": "2026-09-21T20:56:41.418Z"
+    },
+    "preview": {
+      "file": "preview.png",
+      "sha256": "c4602d41553cf97e47b7121adcf390f9626a67a574ed18ab82f02d28de085941",
+      "byteSize": 81138,
+      "savedAt": "2026-09-21T20:56:41.514Z"
+    }
+  },
+  "rig": {
+    "submitStartedAt": "2026-09-21T20:56:41.518Z",
+    "taskId": "01a0c5c1-ba1b-7546-a5b3-54696144cabf",
+    "status": "SUCCEEDED",
+    "submittedAt": "2026-09-21T20:56:56.361Z",
+    "progress": 100,
+    "lastCheckedAt": "2026-09-21T20:57:47.805Z",
+    "asset": {
+      "file": "rigged.glb",
+      "sha256": "0444ec0cafd761883f2561bc42b6c65f449fb2a88cea9516cf9cd8a3c7f71bbc",
+      "byteSize": 33903176,
+      "inspection": {
+        "ok": true,
+        "assetKind": "character",
+        "rigSignature": "5ffdb5b68ed5512aad776d7800581d236eac4a27eca2438aafb0f15683adbbda",
+        "rootMotionBaseline": {
+          "x": -0.018396392464637756,
+          "y": 113.60397338867188,
+          "z": 0.02809383161365986
+        },
+        "jointCount": 24,
+        "topology": [
+          {
+            "name": "Head",
+            "parentJointName": "neck"
+          },
+          {
+            "name": "Hips",
+            "parentJointName": null
+          },
+          {
+            "name": "LeftArm",
+            "parentJointName": "LeftShoulder"
+          },
+          {
+            "name": "LeftFoot",
+            "parentJointName": "LeftLeg"
+          },
+          {
+            "name": "LeftForeArm",
+            "parentJointName": "LeftArm"
+          },
+          {
+            "name": "LeftHand",
+            "parentJointName": "LeftForeArm"
+          },
+          {
+            "name": "LeftLeg",
+            "parentJointName": "LeftUpLeg"
+          },
+          {
+            "name": "LeftShoulder",
+            "parentJointName": "Spine"
+          },
+          {
+            "name": "LeftToeBase",
+            "parentJointName": "LeftFoot"
+          },
+          {
+            "name": "LeftUpLeg",
+            "parentJointName": "Hips"
+          },
+          {
+            "name": "RightArm",
+            "parentJointName": "RightShoulder"
+          },
+          {
+            "name": "RightFoot",
+            "parentJointName": "RightLeg"
+          },
+          {
+            "name": "RightForeArm",
+            "parentJointName": "RightArm"
+          },
+          {
+            "name": "RightHand",
+            "parentJointName": "RightForeArm"
+          },
+          {
+            "name": "RightLeg",
+            "parentJointName": "RightUpLeg"
+          },
+          {
+            "name": "RightShoulder",
+            "parentJointName": "Spine"
+          },
+          {
+            "name": "RightToeBase",
+            "parentJointName": "RightFoot"
+          },
+          {
+            "name": "RightUpLeg",
+            "parentJointName": "Hips"
+          },
+          {
+            "name": "Spine",
+            "parentJointName": "Spine01"
+          },
+          {
+            "name": "Spine01",
+            "parentJointName": "Spine02"
+          },
+          {
+            "name": "Spine02",
+            "parentJointName": "Hips"
+          },
+          {
+            "name": "head_end",
+            "parentJointName": "Head"
+          },
+          {
+            "name": "headfront",
+            "parentJointName": "Head"
+          },
+          {
+            "name": "neck",
+            "parentJointName": "Spine"
+          }
+        ]
+      },
+      "savedAt": "2026-09-21T20:57:50.259Z"
+    }
+  },
+  "runtime": {
+    "asset": "assets/models/bloodworks-warden.glb",
+    "blenderSource": "art/meshy-menu-warden/TLD_Bloodworks_Warden_Animation_Source.blend",
+    "actions": ["TLD_TPose", "TLD_Idle", "TLD_Walk"],
+    "variants": [
+      {"key": "warden", "modelScale": 1.0},
+      {"key": "wardenBulwark", "modelScale": 1.28},
+      {"key": "wardenColossus", "modelScale": 1.55}
+    ]
+  },
+  "completedAt": "2026-09-21T20:57:50.261Z"
+}

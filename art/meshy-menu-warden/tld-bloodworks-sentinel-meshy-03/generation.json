@@ -1,0 +1,185 @@
+{
+  "formatVersion": 1,
+  "pipeline": "meshy-multi-image-source-rig-v1",
+  "characterId": "tld-bloodworks-sentinel-meshy-03",
+  "label": "Bloodworks Sentinel",
+  "heightMeters": 1.85,
+  "texturePrompt": "Preserve a fully enclosed industrial service android with smooth warm ivory and graphite protective armor, clean utility joints, open articulated hands, and one small cyan helmet status light.",
+  "createdAt": "2026-09-21T06:17:08.440Z",
+  "updatedAt": "2026-09-21T06:30:08.854Z",
+  "status": "RIG_COMPLETE",
+  "sourceRequest": {
+    "endpoint": "/openapi/v1/multi-image-to-3d",
+    "imageCount": 1,
+    "aiModel": "latest",
+    "poseMode": "t-pose",
+    "textured": true,
+    "pbr": true,
+    "targetFormats": [
+      "glb"
+    ]
+  },
+  "sources": [
+    {
+      "file": "sources/source-01.png",
+      "originalFileName": "sentinel-tpose-front.png",
+      "sha256": "fa64cbaa7ebd8b46c10254e682915e0e3e48231a4e569b09721811dfb9fb4877",
+      "byteSize": 1675494,
+      "mimeType": "image/png"
+    }
+  ],
+  "source": {
+    "submitStartedAt": "2026-09-21T06:17:08.459Z",
+    "taskId": "01a0c29c-762f-7471-9d10-3a65a62fdd9c",
+    "status": "SUCCEEDED",
+    "submittedAt": "2026-09-21T06:17:12.445Z",
+    "progress": 100,
+    "lastCheckedAt": "2026-09-21T06:26:16.183Z",
+    "asset": {
+      "file": "model.glb",
+      "sha256": "9c10f7897fee13b99e0935b702ddb9ab60d90e77ea793551847db4e0256a3354",
+      "byteSize": 42241124,
+      "inspection": {
+        "ok": true,
+        "assetKind": "character",
+        "sourceContract": "duals-meshy-unrigged-character-v1",
+        "meshCount": 1,
+        "size": [
+          1.6776530146598816,
+          1.9018468856811523,
+          0.3875710964202881
+        ]
+      },
+      "savedAt": "2026-09-21T06:26:22.201Z"
+    },
+    "preview": {
+      "file": "preview.png",
+      "sha256": "4b949a710f0c6d2572e5cd0ef9f49d95f5538045f0749b05f3366cccf902599f",
+      "byteSize": 75928,
+      "savedAt": "2026-09-21T06:26:22.294Z"
+    }
+  },
+  "rig": {
+    "submitStartedAt": "2026-09-21T06:26:22.300Z",
+    "taskId": "01a0c2a4-e89a-713e-bb95-824ab8362cf3",
+    "status": "SUCCEEDED",
+    "progress": 100,
+    "lastCheckedAt": "2026-09-21T06:30:06.173Z",
+    "asset": {
+      "file": "rigged.glb",
+      "sha256": "a2e83808a7a9d63697a5a9d446435e9f93ada8fd4108332e50202e5a52083402",
+      "byteSize": 34055564,
+      "inspection": {
+        "ok": true,
+        "assetKind": "character",
+        "rigSignature": "5ffdb5b68ed5512aad776d7800581d236eac4a27eca2438aafb0f15683adbbda",
+        "rootMotionBaseline": {
+          "x": 0.12656617164611816,
+          "y": 107.4896011352539,
+          "z": 0.7514280676841736
+        },
+        "jointCount": 24,
+        "topology": [
+          {
+            "name": "Head",
+            "parentJointName": "neck"
+          },
+          {
+            "name": "Hips",
+            "parentJointName": null
+          },
+          {
+            "name": "LeftArm",
+            "parentJointName": "LeftShoulder"
+          },
+          {
+            "name": "LeftFoot",
+            "parentJointName": "LeftLeg"
+          },
+          {
+            "name": "LeftForeArm",
+            "parentJointName": "LeftArm"
+          },
+          {
+            "name": "LeftHand",
+            "parentJointName": "LeftForeArm"
+          },
+          {
+            "name": "LeftLeg",
+            "parentJointName": "LeftUpLeg"
+          },
+          {
+            "name": "LeftShoulder",
+            "parentJointName": "Spine"
+          },
+          {
+            "name": "LeftToeBase",
+            "parentJointName": "LeftFoot"
+          },
+          {
+            "name": "LeftUpLeg",
+            "parentJointName": "Hips"
+          },
+          {
+            "name": "RightArm",
+            "parentJointName": "RightShoulder"
+          },
+          {
+            "name": "RightFoot",
+            "parentJointName": "RightLeg"
+          },
+          {
+            "name": "RightForeArm",
+            "parentJointName": "RightArm"
+          },
+          {
+            "name": "RightHand",
+            "parentJointName": "RightForeArm"
+          },
+          {
+            "name": "RightLeg",
+            "parentJointName": "RightUpLeg"
+          },
+          {
+            "name": "RightShoulder",
+            "parentJointName": "Spine"
+          },
+          {
+            "name": "RightToeBase",
+            "parentJointName": "RightFoot"
+          },
+          {
+            "name": "RightUpLeg",
+            "parentJointName": "Hips"
+          },
+          {
+            "name": "Spine",
+            "parentJointName": "Spine01"
+          },
+          {
+            "name": "Spine01",
+            "parentJointName": "Spine02"
+          },
+          {
+            "name": "Spine02",
+            "parentJointName": "Hips"
+          },
+          {
+            "name": "head_end",
+            "parentJointName": "Head"
+          },
+          {
+            "name": "headfront",
+            "parentJointName": "Head"
+          },
+          {
+            "name": "neck",
+            "parentJointName": "Spine"
+          }
+        ]
+      },
+      "savedAt": "2026-09-21T06:30:08.849Z"
+    }
+  },
+  "completedAt": "2026-09-21T06:30:08.854Z"
+}

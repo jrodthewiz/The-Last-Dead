@@ -1,0 +1,65 @@
+{
+  "referenceId": "black-gullet-material-regions",
+  "regions": [
+    {
+      "componentId": "MawBasaltFrame",
+      "regionId": "outer-basalt",
+      "sourceImage": "../../assets/concepts/black-gullet-concept-v01.png",
+      "bbox": {
+        "x": 190,
+        "y": 760,
+        "width": 115,
+        "height": 105
+      },
+      "family": "stone",
+      "subtype": "basalt",
+      "finish": "rough-matte",
+      "materialSpecId": "dark-basalt"
+    },
+    {
+      "componentId": "MawBoneRibs",
+      "regionId": "warm-bone",
+      "sourceImage": "../../assets/concepts/black-gullet-concept-v01.png",
+      "bbox": {
+        "x": 285,
+        "y": 500,
+        "width": 55,
+        "height": 155
+      },
+      "family": "stone",
+      "subtype": "bone",
+      "finish": "matte-porous",
+      "materialSpecId": "warm-bone"
+    },
+    {
+      "componentId": "MawMetalClamps",
+      "regionId": "aged-bronze",
+      "sourceImage": "../../assets/concepts/black-gullet-concept-v01.png",
+      "bbox": {
+        "x": 272,
+        "y": 331,
+        "width": 94,
+        "height": 63
+      },
+      "family": "metal",
+      "subtype": "bronze",
+      "finish": "aged-satin",
+      "materialSpecId": "aged-bronze"
+    },
+    {
+      "componentId": "MawMembrane",
+      "regionId": "oxblood-web",
+      "sourceImage": "../../assets/concepts/black-gullet-concept-v01.png",
+      "bbox": {
+        "x": 455,
+        "y": 422,
+        "width": 560,
+        "height": 280
+      },
+      "family": "fabric",
+      "subtype": "organic-membrane",
+      "finish": "damp-matte",
+      "materialSpecId": "oxblood-web"
+    }
+  ]
+}

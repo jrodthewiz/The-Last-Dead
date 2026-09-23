@@ -258,6 +258,30 @@ export function createBreach(options = {}) {
   grip.rotation.x = -.24;
   add(grip, profile([[-.1, .1], [.1, .1], [.08, -.3], [.03, -.38], [-.08, -.33]], .23, .02), 'leather', [0, 0, 0], [1, 1, 1], [0, 0, 0], 'grip-shell');
   for (let i = 0; i < 7; i++) add(grip, sweep([[-.105, .06 - i * .05, -.11], [.105, .03 - i * .05, .1]], [.014, .014], 7), i % 3 === 0 ? 'brass' : 'boneDark', [0, 0, 0], [1, 1, 1], [0, 0, 0], `grip-wrap-${i}`);
+
+  // The support hand needs a real load-bearing surface below the twin barrels.
+  // Keep this socket's local +Y axis along the fore-end so the viewmodel hand
+  // can curl around it instead of resting against the rib cage.  The short
+  // leather body and collars expose a clear contact region without changing
+  // the shotgun's skeletal silhouette.
+  const supportGrip = part('support-grip');
+  // Bias the fore-end down and slightly toward the camera so the support
+  // thumb and curled fingers clear the receiver on the left oblique view.
+  // A small lower/cameraward bias keeps the support palm under the receiver
+  // in the down and aim poses, where the upper ribs otherwise hide its curl.
+  supportGrip.position.set(-.11, -.265, -.36);
+  supportGrip.rotation.x = -Math.PI / 2;
+  add(supportGrip, new THREE.CapsuleGeometry(.082, .30, 6, 12), 'leather', [0, 0, 0], [1, 1, 1], [0, 0, 0], 'support-grip-body');
+  for (const z of [-.12, .12]) {
+    const collar = add(supportGrip, new THREE.TorusGeometry(.087, .012, 8, 18), z === -.12 ? 'brass' : 'boneDark', [0, z, 0], [1, 1, 1], [Math.PI / 2, 0, 0], `support-grip-collar-${z}`);
+    collar.userData.gripContact = true;
+  }
+  supportGrip.userData.gripContact = true;
+  const supportBracket = part('support-grip-bracket');
+  add(supportBracket, sweep([
+    [0, -.175, -.26], [-.04, -.215, -.29], [-.08, -.245, -.33], [-.11, -.265, -.36]
+  ], [.027, .036, .041, .030], 8), 'steelEdge', [0, 0, 0], [1, 1, 1], [0, 0, 0], 'support-grip-saddle');
+  supportBracket.userData.gripContact = true;
   const guard = part('trigger-guard');
   add(guard, sweep([[0, -.06, -.13], [0, -.18, -.08], [0, -.24, .02], [0, -.18, .13], [0, -.06, .17]], [.018, .023, .024, .02, .015], 8), 'steelEdge', [0, 0, 0], [1, 1, 1], [0, 0, 0], 'trigger-guard');
   add(guard, new THREE.CapsuleGeometry(.024, .1, 6, 10), 'brass', [0, -.13, .01], [1, 1, 1], [Math.PI / 2, 0, 0], 'trigger');
@@ -326,7 +350,7 @@ export function createBreach(options = {}) {
   inspect.position.set(0, .1, .26);
   root.add(inspect);
 
-  const sockets = { muzzle, projectileOrigin, muzzleFlash, recoil: recoilCarriage, heat, inspect, grip };
+  const sockets = { muzzle, projectileOrigin, muzzleFlash, recoil: recoilCarriage, heat, inspect, grip, supportGrip };
   root.userData.muzzle = muzzle;
   root.userData.projectileOrigin = projectileOrigin;
   const home = new Map();

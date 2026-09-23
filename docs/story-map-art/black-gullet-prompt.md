@@ -1,0 +1,7 @@
+# Black Gullet Altar concept brief
+
+Generated 2026-09-21 as a shape and material reference for [black-gullet-concept-v01.png](../../assets/concepts/black-gullet-concept-v01.png).
+
+> Create a single premium horror-FPS environment prop concept: the Black Gullet Altar for the final floor of a five-floor descent. It must read first as a monumental architectural threshold that a player could walk through, never as a humanoid face or a creature. Build a 7-meter-high, 9-meter-wide asymmetrical pointed arch from load-bearing ivory bone struts, dark porous basalt and a few aged bronze clamps. The arch encloses one deep, clearly open black throat cavity with a stretched dark oxblood membrane set well behind the opening, an uneven upper and lower jaw frame, seven irregular ivory teeth, two tendon cables tied into the side trusses, and one tiny ember far inside the cavity. One side of the arch is cracked and sags slightly, as if the building itself is failing. No blood splatter, no gore piles, no skull face, no eyes, no character, no text, no UI, no extra props. Use a clean three-quarter front view on a charcoal-gray studio background with a subtle floor contact shadow, a warm top key and a cool back rim so the silhouette and cavity read clearly. Sculpted hard-surface/organic construction with plausible joints, strong large-to-small shape hierarchy, restrained material palette, game-ready concept sheet, high-detail but readable silhouette.
+
+The reference guides a procedural Three.js mesh; it is not used as a material map or a claimed generated 3D model.

@@ -1,4 +1,4 @@
-import {updateSurvivors} from './assets/survivor/survivor-runtime.js';
+import {updateSurvivors,prepareSurvivors,disposeSurvivors} from './assets/survivor/survivor-runtime.js';
 import {installViewmodelDepthBoundary} from './assets/survivor/viewmodel-depth.js';
 import * as THREE from './vendor/three.module.js';
 import {buildHorrorDetails} from './world-horror.js';
@@ -8,6 +8,10 @@ import {roomMaterialsReady} from './room-materials.js';
 import {TransmissionRegion} from './transmission-region.js';
 import {batchStaticWeaponMeshes} from './weapon-batching.js';
 import {installBoundedLightEvaluation} from './bounded-lighting.js';
+import {AfterlifeLighting,afterlifeTheme} from './afterlife-lighting.js';
+import {AfterlifeAtmosphere} from './afterlife-atmosphere.js';
+import {applyAfterlifeSurfaces} from './afterlife-surfaces.js';
+import {createAfterlifeEnemy,animateAfterlifeEnemy} from './npc-afterlife.js';
 import {GLTFLoader} from './vendor/loaders/GLTFLoader.js';
 import {createReliquary,animateReliquary} from './weapon-reliquary.js';
 import {createBellwraith,animateBellwraith,warmBellwraithVariants} from './npc-bellwraith.js';
@@ -26,10 +30,14 @@ import {createBloodMask,ProjectileWakes} from './secondary-vfx.js';
 const CELL = 4;
 const MAX_GORE = 260;
 const MAX_BLOOD = 128;
+const MAX_LIMBS = 64;
+const MAX_ENEMY_SHADOWS = 96;
 const MAX_PROJECTILES = 96;
 const MAX_TRACERS = 128;
 const MAX_COINS = 64;
 const TAU = Math.PI * 2;
+// These menu-derived variants share one rig and locomotion set; scale changes stay in the enemy profile.
+const BLOODWORKS_WARDEN_VARIANTS = new Set(['warden', 'wardenBulwark', 'wardenColossus']);
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const damp = (a, b, lambda, dt) => a + (b - a) * (1 - Math.exp(-lambda * Math.max(0, dt)));
@@ -40,6 +48,8 @@ const dampAngle = (a, b, lambda, dt) => {
 const worldX = x => x * CELL;
 const worldZ = y => y * CELL;
 const enemyColor = kind => [0xef405f, 0x9d67f5, 0xff8c42][kind % 3];
+const markSharedGltf = scene => scene?.traverse(o=>{if(o.geometry)o.geometry.userData.sharedAsset=true;for(const m of (Array.isArray(o.material)?o.material:[o.material]).filter(Boolean)){for(const value of Object.values(m))if(value?.isTexture)value.userData.sharedAsset=true;}});
+const loadGltf = url => new Promise(resolve=>new GLTFLoader().load(url,resolve,undefined,()=>resolve(null)));
 
 function mat(color, roughness = 0.58, metalness = 0.25, options = {}) {
   return new THREE.MeshStandardMaterial({
@@ -74,16 +84,51 @@ function shadow(mesh, cast = true, receive = true) {
   return mesh;
 }
 
+function disableShadowCasting(root) {
+  root?.traverse?.(node => {
+    if (node.isMesh) node.castShadow = false;
+  });
+}
+
+function contactShadowTexture() {
+  const size = 48;
+  const data = new Uint8Array(size * size * 4);
+  const center = (size - 1) * .5;
+  const radius = center - 1;
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const distance = Math.hypot(x - center, y - center) / radius;
+      const t = Math.max(0, Math.min(1, (1 - distance) / .72));
+      const alpha = Math.round(255 * .34 * t * t * (3 - 2 * t));
+      const offset = (y * size + x) * 4;
+      data[offset] = 255;
+      data[offset + 1] = 255;
+      data[offset + 2] = 255;
+      data[offset + 3] = alpha;
+    }
+  }
+  const texture = new THREE.DataTexture(data, size, size, THREE.RGBAFormat);
+  texture.colorSpace = THREE.NoColorSpace;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.needsUpdate = true;
+  return texture;
+}
+
 function disposeObject(root, forceShared = false) {
   const geometries = new Set();
   const materials = new Set();
+  const skeletons = new Set();
   root?.traverse?.(obj => {
     if (obj.geometry) geometries.add(obj.geometry);
+    if (obj.skeleton) skeletons.add(obj.skeleton);
+    if (obj.userData.afterlife?.actorState?.mixer) obj.userData.afterlife.actorState.mixer.stopAllAction();
     if (obj.material) {
       if (Array.isArray(obj.material)) obj.material.forEach(m => materials.add(m));
       else materials.add(obj.material);
     }
   });
+  skeletons.forEach(skeleton => skeleton.dispose?.());
   geometries.forEach(g => {if(forceShared||!g.userData?.sharedAsset)g.dispose?.();});
   materials.forEach(m => {
     if (!forceShared && m.userData?.sharedLibrary) return;
@@ -131,11 +176,14 @@ export class Renderer {
     this._enemyVisuals = new Map();
     this._peer = null;
     this._exit = null;
+    this._dungeonPickups = [];
+    this._dungeonRevision = 0;
     this._diag = {};
 
     this._materialManager = new THREE.LoadingManager();
     this._materialsReady = new Promise(resolve => { this._materialManager.onLoad = resolve; });
     this.materials = this._createMaterials();
+    this._activeWorldPalette = { wall: 0xd9dce0, panel: 0xd9dce0 };
     Object.values(this.materials).forEach(m=>{m.userData.sharedLibrary=true;});
     this._loadMaterialReference();
     this._loadWeaponMaterials();
@@ -151,6 +199,11 @@ export class Renderer {
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
       this.renderer.toneMappingExposure = 1.12;
       this.renderer.shadowMap.enabled = true;
+      // The arena's architecture is static. Refresh its directional depth map
+      // only after a world build; animated actors use inexpensive contact
+      // shadows instead of forcing the whole level through the shadow pass.
+      this.renderer.shadowMap.autoUpdate = false;
+      this.renderer.shadowMap.needsUpdate = true;
       this.renderer.shadowMap.type = THREE.PCFShadowMap;
       this.renderer.setPixelRatio(1);
     } catch (error) {
@@ -162,22 +215,38 @@ export class Renderer {
 
     this._setupEnvironment();
     this._setupLighting();
+    this.afterlifeLighting = new AfterlifeLighting(this.scene);
     this._buildCombatPools();
     this._buildWeaponRig();
+    this._survivorReady=prepareSurvivors(this).then(()=>{
+      this._afterlifeClips = Object.values(this._survivors?.peer?.userData.actions || {}).map(action=>action.getClip());
+    });
     this._wardenStatus='loading';
-    this._wardenReady = new Promise(resolve => new GLTFLoader().load('./assets/models/evil-warden.glb',g=>{g.scene.traverse(o=>{if(o.geometry)o.geometry.userData.sharedAsset=true;for(const m of (Array.isArray(o.material)?o.material:[o.material]).filter(Boolean)){for(const value of Object.values(m))if(value?.isTexture)value.userData.sharedAsset=true;}});this.wardenTemplate=g.scene;this.wardenClips=g.animations;this._wardenStatus='ready';resolve();},undefined,e=>{this._wardenStatus='fallback';resolve();}));
+    this.wardenTemplate=null;
+    this.bloodworksWardenTemplate=null;
+    this.wardenClips=[];
+    this.bloodworksWardenClips=[];
+    const legacyWardenLoaded=loadGltf('./assets/models/evil-warden.glb').then(warden=>{
+      if(warden){markSharedGltf(warden.scene);this.wardenTemplate=warden.scene;this.wardenClips=warden.animations||[];}
+    });
+    const bloodworksWardenLoaded=loadGltf('./assets/models/bloodworks-warden.glb').then(warden=>{
+      if(warden){markSharedGltf(warden.scene);this.bloodworksWardenTemplate=warden.scene;this.bloodworksWardenClips=warden.animations||[];}
+    });
+    this._wardenReady=Promise.all([legacyWardenLoaded,bloodworksWardenLoaded]).then(()=>{
+      this._wardenStatus=this.wardenTemplate||this.bloodworksWardenTemplate?'ready':'fallback';
+    });
     this.resize();
   }
 
   _setupEnvironment() {
     if (!this.renderer) return;
-    // Soft reflected studio/ceiling light gives metals readable faces, even in shadow.
+    // Narrow, cold reflections preserve wet material detail without filling every recess.
     const c=document.createElement('canvas');c.width=1024;c.height=512;
     const g=c.getContext('2d'),gradient=g.createLinearGradient(0,0,0,512);
-    gradient.addColorStop(0,'#aebacb');gradient.addColorStop(.46,'#7d8898');gradient.addColorStop(.65,'#464a53');gradient.addColorStop(1,'#28232a');g.fillStyle=gradient;g.fillRect(0,0,1024,512);
-    for(let i=0;i<5;i++){g.fillStyle=i%2?'#ffe3c3':'#e9f2ff';g.fillRect(65+i*190,70,94,65);g.fillStyle='#b09b87';g.fillRect(85+i*190,245,70,10);}
+    gradient.addColorStop(0,'#404c54');gradient.addColorStop(.46,'#242e34');gradient.addColorStop(.65,'#111719');gradient.addColorStop(1,'#07090b');g.fillStyle=gradient;g.fillRect(0,0,1024,512);
+    for(let i=0;i<3;i++){g.fillStyle='#a7bdc8';g.fillRect(100+i*330,110,34,110);}
     const texture=new THREE.CanvasTexture(c);texture.colorSpace=THREE.SRGBColorSpace;texture.mapping=THREE.EquirectangularReflectionMapping;
-    const pmrem=new THREE.PMREMGenerator(this.renderer);this._envTarget=pmrem.fromEquirectangular(texture);this.scene.environment=this._envTarget.texture;this.scene.environmentIntensity=.65;texture.dispose();pmrem.dispose();
+    const pmrem=new THREE.PMREMGenerator(this.renderer);this._envTarget=pmrem.fromEquirectangular(texture);this.scene.environment=this._envTarget.texture;this.scene.environmentIntensity=.4;texture.dispose();pmrem.dispose();
     const tile=document.createElement('canvas');tile.width=tile.height=256;const t=tile.getContext('2d');t.fillStyle='#747b80';t.fillRect(0,0,256,256);t.strokeStyle='#333b40';t.lineWidth=5;t.strokeRect(4,4,248,248);t.strokeStyle='#9da4a7';t.lineWidth=1;t.strokeRect(9,9,238,238);
     let seed=9182;for(let i=0;i<650;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;const x=seed%256;seed=(Math.imul(seed,1664525)+1013904223)>>>0;const y=seed%256;t.strokeStyle=i%2?'#eef8ff10':'#11182016';t.beginPath();t.moveTo(x,y);t.lineTo(x+4+i%19,y+1);t.stroke();}
     for(const x of[17,239])for(const y of[17,239]){t.fillStyle='#202a30';t.beginPath();t.arc(x,y,3,0,Math.PI*2);t.fill();t.fillStyle='#b9c0c2';t.fillRect(x-1,y-2,2,2);}
@@ -235,7 +304,7 @@ export class Renderer {
   _loadMaterialReference() {
     if (typeof document === 'undefined') return;
     try {
-      const texture = new THREE.TextureLoader(this._materialManager).load('./assets/textures/crypt-wall-albedo.webp', loaded => {
+      const texture = new THREE.TextureLoader(this._materialManager).load('./assets/textures/afterlife-plaster-v1.png', loaded => {
         loaded.colorSpace = THREE.SRGBColorSpace;
         loaded.wrapS = THREE.RepeatWrapping;
         loaded.wrapT = THREE.RepeatWrapping;
@@ -245,7 +314,7 @@ export class Renderer {
         for (const material of [this.materials.wall, this.materials.wallPanel]) {
           material.map = loaded;
           material.bumpMap=bump;material.bumpScale=.065;material.roughness=.79;
-          material.color.set(0xd9dce0);
+          material.color.set(material === this.materials.wall ? this._activeWorldPalette.wall : this._activeWorldPalette.panel);
           material.metalness=.28;
           material.envMapIntensity=1.25;
           material.needsUpdate = true;
@@ -266,44 +335,37 @@ export class Renderer {
   }
 
   _setupLighting() {
-    const hemi = new THREE.HemisphereLight(0xbacac5, 0x20100d, 1.25);
+    const hemi = new THREE.HemisphereLight(0x8cabb6, 0x171313, .6);
     hemi.name = 'CathedralFill';
     this.scene.add(hemi);
-    const key = new THREE.DirectionalLight(0xffd2a3, 2.2);
+    const key = new THREE.DirectionalLight(0xb0bdc4, .85);
     key.name = 'ForgeKey';
     key.position.set(24, 32, -20);
     key.target.position.set(24, 0, 24);
     key.castShadow = true;
+    key.shadow.autoUpdate = false;
+    key.shadow.needsUpdate = true;
     key.shadow.mapSize.set(1024, 1024);
     key.shadow.camera.near = 1;
     key.shadow.camera.far = 120;
-    key.shadow.camera.left = -36;
-    key.shadow.camera.right = 36;
-    key.shadow.camera.top = 36;
-    key.shadow.camera.bottom = -36;
+    key.shadow.camera.left = -56;
+    key.shadow.camera.right = 56;
+    key.shadow.camera.top = 56;
+    key.shadow.camera.bottom = -56;
     key.shadow.bias = -0.0006;
     this.scene.add(key, key.target);
-    const coolFill = new THREE.DirectionalLight(0x8ba9ab, 1.2);
+    const coolFill = new THREE.DirectionalLight(0x83989e, .2);
     coolFill.name = 'CoolArenaFill';
     coolFill.position.set(-34, 12, 14);
     coolFill.target.position.set(24, 1.5, 24);
     this.scene.add(coolFill, coolFill.target);
-    const rim = new THREE.DirectionalLight(0xe83b23, 1.05);
+    const rim = new THREE.DirectionalLight(0x6b3d39, .16);
     rim.name = 'AbyssRim';
     rim.position.set(-28, 14, 42);
     rim.target.position.set(24, 0, 24);
     this.scene.add(rim, rim.target);
-    const pools = [
-      [0xff3a59, 4.2, 9, 7],
-      [0x7e4eff, 3.4, 39, 9],
-      [0xff7b3e, 3.5, 28, 35],
-      [0x26d8f0, 2.6, 7, 39],
-    ];
-    for (const [color, intensity, x, z] of pools) {
-      const light = new THREE.PointLight(color, intensity, 24, 2.0);
-      light.position.set(x, 4.3, z);
-      this.scene.add(light);
-    }
+    this._worldKeyLight = key;
+    this._worldRimLight = rim;
   }
 
   _buildCombatPools() {
@@ -319,6 +381,23 @@ export class Renderer {
     this.goreDroplets.name = 'GoreDroplets';
     this.goreDroplets.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.combatRoot.add(this.goreDroplets);
+    const enemyShadowMaterial = new THREE.MeshBasicMaterial({
+      color: 0x160b0e,
+      map: contactShadowTexture(),
+      transparent: true,
+      opacity: .72,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    this.enemyContactShadows = new THREE.InstancedMesh(new THREE.PlaneGeometry(2, 2), enemyShadowMaterial, MAX_ENEMY_SHADOWS);
+    this.enemyContactShadows.name = 'EnemyContactShadows';
+    this.enemyContactShadows.count = 0;
+    this.enemyContactShadows.castShadow = false;
+    this.enemyContactShadows.receiveShadow = false;
+    this.enemyContactShadows.frustumCulled = false;
+    this.enemyContactShadows.renderOrder = 1;
+    this.enemyContactShadows.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.combatRoot.add(this.enemyContactShadows);
     const stainMaterial=this.materials.blood.clone();
     stainMaterial.map=createBloodMask();stainMaterial.transparent=true;stainMaterial.alphaTest=.08;
     stainMaterial.depthWrite=false;stainMaterial.polygonOffset=true;stainMaterial.polygonOffsetFactor=-1;
@@ -327,6 +406,24 @@ export class Renderer {
     this.bloodPools.name = 'BloodPools';
     this.bloodPools.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.combatRoot.add(this.bloodPools);
+    // Detached limbs share four instanced pools (arm, leg, skull, eye) so a
+    // dismembered wave costs four draw calls no matter how much of it is
+    // scattered across the floor.
+    const boneMaterial = new THREE.MeshStandardMaterial({ color: 0xc9b69c, roughness: .78, metalness: .08 });
+    const eyeMaterial = new THREE.MeshStandardMaterial({ color: 0x8d1622, roughness: .32, metalness: .05, emissive: 0x3a0409, emissiveIntensity: .8 });
+    this.limbMaterials = { arm: this.materials.gore, leg: this.materials.gore, head: boneMaterial, eye: eyeMaterial };
+    const limbPool = (name, geometry, material, count = MAX_LIMBS) => {
+      const mesh = new THREE.InstancedMesh(geometry, material, count);
+      mesh.name = name;
+      mesh.frustumCulled = false;
+      mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      this.combatRoot.add(mesh);
+      return mesh;
+    };
+    this.limbArms = limbPool('SeveredArms', new THREE.CapsuleGeometry(.085, .42, 4, 7), this.limbMaterials.arm);
+    this.limbLegs = limbPool('SeveredLegs', new THREE.CapsuleGeometry(.1, .56, 4, 7), this.limbMaterials.leg);
+    this.limbHeads = limbPool('SeveredSkulls', new THREE.IcosahedronGeometry(.19, 1), this.limbMaterials.head, 32);
+    this.limbEyes = limbPool('SeveredEyes', new THREE.SphereGeometry(.055, 7, 6), this.limbMaterials.eye, 24);
 
     const projectileGeo = new THREE.IcosahedronGeometry(0.12, 1);
     const projectileCoreGeo = new THREE.IcosahedronGeometry(0.19, 1);
@@ -453,7 +550,7 @@ export class Renderer {
         // surfaces remain visible while the weapon still self-occludes inside
         // its own group. This avoids the sleeve disappearing behind the
         // receiver at common FOVs.
-        foreground.depthTest = false;
+        foreground.depthTest = !!node.userData.gripFarSide;
         foreground.depthWrite = false;
         if (node.name === 'UpperSleeve' || node.name === 'ForearmSleeve' || node.name === 'WristWrap') {
           foreground.color.set(0x74453d);
@@ -487,16 +584,32 @@ export class Renderer {
     const grip = this._findWeaponSocket(model, 'grip');
     // Keep the palm just in front of the weapon surface so the contact reads
     // in the FPS view instead of being buried inside the authored grip mesh.
-    const gripOffsetY = [-.10, -.12, -.12, -.12][weapon] ?? -.12;
-    if (grip) alignViewmodelArmToGrip(rightArm, grip, { offset: [.018, gripOffsetY, .038] });
+    const rightGripOffset = weapon === 0 ? [.030, -.035, .120]
+      : weapon === 1 ? [.030, -.055, .130]
+      : weapon === 2 ? [.030, -.050, .220]
+      : [.040, -.040, .240];
+    if (grip) alignViewmodelArmToGrip(rightArm, grip, { offset: rightGripOffset });
+    if (weapon === 0) rightArm.userData.hand.rotation.y = .70;
+    if (weapon === 1) rightArm.userData.hand.rotation.y = .45;
+    if (weapon === 2) rightArm.userData.hand.rotation.y = .48;
+    if (weapon === 3) rightArm.userData.hand.rotation.y = .55;
 
-    if (leftArm && supportPosition) {
-      const support = new THREE.Object3D();
-      support.name = 'SupportGripSocket';
-      support.position.set(...supportPosition);
-      support.userData.viewmodelAnchor = true;
-      group.add(support);
+    const authoredSupport = leftArm && this._findWeaponSocket(model, 'supportGrip');
+    if (leftArm && (authoredSupport || supportPosition)) {
+      const support = authoredSupport || new THREE.Object3D();
+      if (!authoredSupport) {
+        support.name = 'SupportGripSocket';
+        support.position.set(...supportPosition);
+        support.userData.viewmodelAnchor = true;
+        group.add(support);
+      }
+      // A sideways fore-end should turn the hand, not swing the whole sleeve
+      // across the screen. Keep the shotgun forearm's authored entry angle.
+      if (weapon === 1 && authoredSupport) leftArm.userData.alignGripOrientation = false;
       alignViewmodelArmToGrip(leftArm, support, { offset: [-.018, .008, .032] });
+      if (weapon === 1 && authoredSupport) leftArm.userData.hand.rotation.x = -.8;
+      if (weapon === 2 && !authoredSupport) leftArm.userData.hand.rotation.x = -.42;
+      if (weapon === 3) leftArm.userData.hand.rotation.x = -.50;
     }
     return { rightArm, leftArm };
   }
@@ -508,20 +621,20 @@ export class Renderer {
   _makeBreachShotgun() {
     const group=new THREE.Group(),model=createBreach();group.name='BreachShotgun';
     group.position.set(.31,-.32,-.88);group.rotation.set(.035,.045,-.025);
-    group.add(model);this._addViewmodelArms(group,model,1,[0,-.18,-.55]);group.userData.model=model;group.userData.muzzle=model.userData.muzzle;return group;
+    group.add(model);this._addViewmodelArms(group,model,1,[-.035,-.26,-.43]);group.userData.model=model;group.userData.muzzle=model.userData.muzzle;return group;
   }
 
   _makeArcLance() {
     const group=new THREE.Group(),model=createArc();group.name='ArcLance';
     group.position.set(.29,-.31,-.94);group.rotation.set(.035,.045,-.025);
-    group.add(model);this._addViewmodelArms(group,model,2,[0,-.21,-.60]);group.userData.model=model;group.userData.muzzle=model.userData.muzzle;return group;
+    group.add(model);this._addViewmodelArms(group,model,2,[-.035,-.34,-.54]);group.userData.model=model;group.userData.muzzle=model.userData.muzzle;return group;
   }
   _makeReliquaryAsset() {
     const group = createReliquary({ variant: 'bone-rocket' });
     group.position.set(0.31, -0.32, -0.9);
     group.rotation.set(.035,.045,-.025);
     group.name = 'ReliquaryBazooka';
-    this._addViewmodelArms(group,group,3,[.02,-.18,-.65]);
+    this._addViewmodelArms(group,group,3,[-.095,-.33,-.56]);
     return group;
   }
 
@@ -580,8 +693,10 @@ export class Renderer {
     return group;
   }
   _buildWorld(course) {
+    this.afterlifeAtmosphere?.dispose();
     if (this.worldRoot) {
       const retired=this.worldRoot;
+      retired.userData.afterlifeSurfaceDisposed = true;
       this.scene.remove(retired);
       // compileAsync polls material programs after returning. Keep an outgoing
       // room's resources alive until its shader poll finishes, even on restart.
@@ -597,25 +712,78 @@ export class Renderer {
     this.scene.add(this.worldRoot);
     this._course = course;
     this._worldKey = course?.index ?? `${course?.w}x${course?.h}`;
+    this._dungeonRevision = course?.dungeonRevision ?? 0;
     const width = (course?.w || 12) * CELL;
     const depth = (course?.h || 12) * CELL;
+    const spawn = course?.playerSpawn;
+    const shadowCenterX = Number.isFinite(spawn?.x) ? worldX(spawn.x) : width * .5;
+    const shadowCenterZ = Number.isFinite(spawn?.y) ? worldZ(spawn.y) : depth * .5;
+    this._worldKeyLight.target.position.set(shadowCenterX, 0, shadowCenterZ);
+    this._worldKeyLight.position.set(shadowCenterX, 32, shadowCenterZ - 44);
+    this._worldKeyLight.target.updateMatrixWorld(true);
+    this._worldKeyLight.updateMatrixWorld(true);
+    this._worldKeyLight.shadow.camera.updateProjectionMatrix();
     this._buildFloor(width, depth);
     this._buildWalls(course);
+    if (!course?.dungeon) this._buildIntakeRecoveryCavity(course);
     this._buildCover(course);
     this._buildIndustrialShell(width, depth);
     this._buildExit(course?.exit || { x: 6, y: 1 });
     this.horror=buildHorrorDetails(this.worldRoot,this.materials,course);
     buildCathedralKit(this.worldRoot,this.materials,course);
-    const animatedWorld=[this._exit?.root,this.horror.organ,this.horror.core,...(this.horror.authored?.moving||[])];
+    this._dungeonPickups=this._buildDungeonPickups(course);
+    const dynamicShadowRoots=[this.horror.organ,this.horror.core,...this._dungeonPickups.map(item=>item.root),...(this.horror.authored?.moving||[])];
+    for (const root of dynamicShadowRoots) disableShadowCasting(root);
+    disableShadowCasting(this._exit?.gate);
+    const animatedWorld=[this._exit?.root,...dynamicShadowRoots];
+    if (this.horror.theme) {
+      const theme = afterlifeTheme(this.horror.theme);
+      this.scene.background.set(theme.background);
+      this.scene.fog.color.set(theme.fog);
+      this.scene.fog.near = theme.fogNear;
+      this.scene.fog.far = theme.fogFar;
+      if (this.renderer) this.renderer.toneMappingExposure = theme.exposure ?? 1.12;
+      this._activeWorldPalette = {
+        wall: theme.wallSurface ?? 0xd9dce0,
+        panel: theme.panelSurface ?? 0xd9dce0,
+      };
+      this.materials.wall.color.set(this._activeWorldPalette.wall);
+      this.materials.wallPanel.color.set(this._activeWorldPalette.panel);
+      this.materials.floorTrim.color.set(theme.trimSurface ?? 0x774655);
+      this.materials.floor.color.set(theme.floorSurface ?? 0x414644);
+      this.materials.floorAlt.color.set(theme.floorAltSurface ?? 0x343a37);
+      if (theme.key && this._worldKeyLight) this._worldKeyLight.color.set(theme.key);
+      if (theme.rim && this._worldRimLight) this._worldRimLight.color.set(theme.rim);
+    }
+    this._afterlifeSurfaceDiagnostics = applyAfterlifeSurfaces(this.worldRoot, {
+      sector: course?.sectorId || course?.id,
+      excludeRoots: [this._exit?.root, ...this._dungeonPickups.map(item => item.root)],
+      materialRoles: new Map([
+        [this.materials.wall, 'roomWall'], [this.materials.wallPanel, 'roomPanel'],
+        [this.materials.wallDeep, 'roomRecess'], [this.materials.floor, 'roomFloor'],
+        [this.materials.floorAlt, 'roomFloorInset'], [this.materials.floorTrim, 'roomTrim'],
+        [this.materials.metal, 'roomMetal'], [this.materials.metalDark, 'roomMetal'],
+        [this.materials.steel, 'roomMetal'], [this.materials.rust, 'roomRust'],
+        [this.materials.hazard, 'roomHazard'], [this.materials.red, 'roomSignal'],
+        [this.materials.violet, 'roomSignal'], [this.materials.orange, 'roomSignal'],
+      ]),
+      materialSources: this.materials,
+      // Readiness is coordinated by the renderer's asset promise; no polling
+      // is needed for these synchronous world clones after a start/restart.
+      sourceReady: this._materialsReady,
+    });
+    this.afterlifeLighting.rebuild(this.worldRoot);
     const roomChunks=this.horror.roomChunks||this.horror.authored?.roomChunks||[];
     this._roomBatches=roomChunks.map(room=>batchStaticWorld(room,animatedWorld));
     this._worldBatch=batchStaticWorld(this.worldRoot,[...animatedWorld,...roomChunks]);
     this._worldStatic=finalizeStaticWorld(this.worldRoot,animatedWorld);
-    if (this.horror.theme) {
-      this.scene.background.set(this.horror.theme.background);
-      this.scene.fog.color.set(this.horror.theme.fog);
-      this.scene.fog.near = this.horror.theme.fogNear;
-      this.scene.fog.far = this.horror.theme.fogFar;
+    this.afterlifeAtmosphere = new AfterlifeAtmosphere(this.worldRoot, course, {
+      mobile: this.width < 800,
+      reducedMotion: this.settings.reducedMotion,
+    });
+    if (this.renderer && this._worldKeyLight?.shadow) {
+      this._worldKeyLight.shadow.needsUpdate = true;
+      this.renderer.shadowMap.needsUpdate = true;
     }
   }
 
@@ -680,17 +848,21 @@ export class Renderer {
     const cells = course?.renderCells || course?.cells || [];
     const seen = new Set();
     const segments = [];
-    for (let cy = 0; cy < (course?.h || 12); cy++) for (let cx = 0; cx < (course?.w || 12); cx++) {
-      const sides = cells[cy * (course?.w || 12) + cx] || [0, 0, 0, 0];
-      for (let d = 0; d < 4; d++) {
-        if (!sides[d]) continue;
-        const key = d === 0 ? `h:${cx},${cy}` : d === 2 ? `h:${cx},${cy + 1}` : d === 1 ? `v:${cx + 1},${cy}` : `v:${cx},${cy}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        const horizontal = d === 0 || d === 2;
-        const x = horizontal ? cx * CELL + CELL / 2 : (d === 1 ? (cx + 1) * CELL : cx * CELL);
-        const z = horizontal ? (d === 0 ? cy * CELL : (cy + 1) * CELL) : cy * CELL + CELL / 2;
-        segments.push({ x, z, horizontal, key });
+    if (course?.dungeon && Array.isArray(course.walls)) {
+      for (const wall of course.walls) segments.push({ x: wall.x * CELL, z: wall.z * CELL, horizontal: wall.horizontal, key: `d:${wall.direction}:${wall.cx},${wall.cy}` });
+    } else {
+      for (let cy = 0; cy < (course?.h || 12); cy++) for (let cx = 0; cx < (course?.w || 12); cx++) {
+        const sides = cells[cy * (course?.w || 12) + cx] || [0, 0, 0, 0];
+        for (let d = 0; d < 4; d++) {
+          if (!sides[d]) continue;
+          const key = d === 0 ? `h:${cx},${cy}` : d === 2 ? `h:${cx},${cy + 1}` : d === 1 ? `v:${cx + 1},${cy}` : `v:${cx},${cy}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          const horizontal = d === 0 || d === 2;
+          const x = horizontal ? cx * CELL + CELL / 2 : (d === 1 ? (cx + 1) * CELL : cx * CELL);
+          const z = horizontal ? (d === 0 ? cy * CELL : (cy + 1) * CELL) : cy * CELL + CELL / 2;
+          segments.push({ x, z, horizontal, key });
+        }
       }
     }
     const max = Math.max(1, segments.length);
@@ -732,6 +904,149 @@ export class Renderer {
     }
     [shellH, shellV, panelH, panelV, trimH, trimV, signalH, signalV, pipeH, pipeV].forEach(pool => { pool.count = pool === shellH || pool === panelH || pool === trimH || pool === signalH || pool === pipeH ? h : v; pool.instanceMatrix.needsUpdate = true; });
     this.worldRoot.add(shellH, shellV, panelH, panelV, trimH, trimV, signalH, signalV, pipeH, pipeV);
+    this._buildStoryWallRelief(course, segments);
+  }
+
+  _buildStoryWallRelief(course, segments) {
+    const art = course?.artDirection;
+    if (!course?.dungeon || !art || !segments.length) return;
+
+    const palette = this.materials;
+    const pools = new Map();
+    const matrixObject = new THREE.Object3D();
+    const addPool = (name, geometry, material) => {
+      const pool = new THREE.InstancedMesh(geometry, material, Math.max(1, segments.length));
+      pool.name = `StoryWallRelief_${art.wallRelief}_${name}`;
+      pool.userData.storyWallRelief = art.wallRelief;
+      pool.castShadow = true;
+      pool.receiveShadow = true;
+      pool.frustumCulled = false;
+      pool.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+      pools.set(name, { mesh: pool, count: 0 });
+      this.worldRoot.add(pool);
+      return pools.get(name);
+    };
+    const place = (poolName, segment, along, y, scale, depth = 0, rotation = 0) => {
+      const pool = pools.get(poolName);
+      if (!pool || pool.count >= pool.mesh.instanceMatrix.count) return;
+      const normalOffset = segment.horizontal ? .24 + depth : .38 + depth;
+      matrixObject.position.set(
+        segment.horizontal ? segment.x + along : segment.x + normalOffset,
+        y,
+        segment.horizontal ? segment.z + normalOffset : segment.z + along,
+      );
+      matrixObject.rotation.set(0, segment.horizontal ? 0 : Math.PI / 2, rotation);
+      matrixObject.scale.set(scale[0], scale[1], scale[2]);
+      matrixObject.updateMatrix();
+      pool.mesh.setMatrixAt(pool.count++, matrixObject.matrix);
+    };
+    const every = (index, interval) => index % interval === 0;
+
+    if (art.wallRelief === 'pressure-gauges') {
+      addPool('GaugeFrame', new THREE.BoxGeometry(.08, 2.5, .13), palette.metalDark);
+      addPool('GaugeBezel', new THREE.TorusGeometry(.37, .065, 6, 20), palette.gold);
+      addPool('GaugeFace', new THREE.CircleGeometry(.29, 18), palette.wallDeep);
+      addPool('GaugeNeedle', new THREE.BoxGeometry(.035, .23, .035), palette.orange);
+      segments.forEach((segment, index) => {
+        if (!every(index, 6)) return;
+        for (const side of [-1, 1]) place('GaugeFrame', segment, side * 1.1, 3.15, [1, 1, 1], .035);
+        place('GaugeBezel', segment, 0, 3.55, [1, 1, 1], .075);
+        place('GaugeFace', segment, 0, 3.55, [1, 1, 1], .12);
+        place('GaugeNeedle', segment, .035, 3.56, [1, 1, 1], .16, -.34);
+      });
+    } else if (art.wallRelief === 'observation-slits') {
+      addPool('SlitRecess', new THREE.BoxGeometry(.48, 1.35, .1), palette.wallDeep);
+      addPool('SlitGlass', new THREE.BoxGeometry(.2, .92, .055), palette.cyan);
+      addPool('SlitTrim', new THREE.BoxGeometry(.07, 1.55, .12), palette.steel);
+      addPool('SlitCap', new THREE.BoxGeometry(.52, .08, .14), palette.floorTrim);
+      segments.forEach((segment, index) => {
+        if (!every(index, 5)) return;
+        place('SlitRecess', segment, 0, 3.2, [1, 1, 1], .065);
+        place('SlitGlass', segment, 0, 3.25, [1, 1, 1], .145);
+        for (const side of [-1, 1]) place('SlitTrim', segment, side * .3, 3.2, [1, 1, 1], .16);
+        for (const y of [2.4, 4.0]) place('SlitCap', segment, 0, y, [1, 1, 1], .16);
+      });
+    } else if (art.wallRelief === 'skull-ossuaries') {
+      addPool('BoneNiche', new THREE.TorusGeometry(.64, .09, 6, 18, Math.PI), palette.steel);
+      addPool('NicheSkull', new THREE.IcosahedronGeometry(.34, 1), palette.enemyArmor);
+      addPool('NicheSocket', new THREE.SphereGeometry(.065, 8, 6), palette.wallDeep);
+      addPool('NicheJaw', new THREE.BoxGeometry(.42, .08, .12), palette.floorTrim);
+      segments.forEach((segment, index) => {
+        if (!every(index, 5)) return;
+        place('BoneNiche', segment, 0, 3.52, [1.1, 1.18, 1], .12);
+        place('NicheSkull', segment, 0, 3.15, [.85, 1.08, .54], .16);
+        for (const side of [-1, 1]) place('NicheSocket', segment, side * .13, 3.2, [1, 1, .55], .22);
+        place('NicheJaw', segment, 0, 2.91, [1, 1, 1], .21);
+      });
+    } else if (art.wallRelief === 'choir-resonators') {
+      addPool('ResonatorPipe', new THREE.CylinderGeometry(.07, .12, 2.25, 8), palette.gold);
+      addPool('ResonatorBell', new THREE.TorusGeometry(.25, .07, 6, 15), palette.steel);
+      addPool('ResonatorClapper', new THREE.SphereGeometry(.07, 8, 6), palette.orange);
+      addPool('ResonatorBridge', new THREE.BoxGeometry(1.5, .1, .16), palette.metalDark);
+      segments.forEach((segment, index) => {
+        if (!every(index, 5)) return;
+        for (let i = 0; i < 3; i++) {
+          const along = (i - 1) * .39, y = 3.05 + (i % 2) * .22;
+          place('ResonatorPipe', segment, along, y, [1, .74 + (i % 2) * .2, 1], .09);
+          place('ResonatorBell', segment, along, y + .82, [.8, 1, 1], .1);
+          place('ResonatorClapper', segment, along, y + .62, [1, 1, 1], .17);
+        }
+        place('ResonatorBridge', segment, 0, 2.6, [1, 1, 1], .08);
+      });
+    } else if (art.wallRelief === 'throat-ribs') {
+      addPool('ThroatRib', new THREE.CapsuleGeometry(.095, 1.9, 4, 8), palette.steel);
+      addPool('ThroatRing', new THREE.TorusGeometry(.52, .12, 7, 18), palette.rust);
+      addPool('ThroatVoid', new THREE.CircleGeometry(.42, 18), palette.wallDeep);
+      addPool('ThroatEmber', new THREE.SphereGeometry(.095, 8, 6), palette.red);
+      segments.forEach((segment, index) => {
+        if (!every(index, 5)) return;
+        for (const side of [-1, 1]) place('ThroatRib', segment, side * .52, 3.2, [1, 1, 1], .1, side * -.11);
+        place('ThroatRing', segment, 0, 3.38, [1.18, .64, 1], .15);
+        place('ThroatVoid', segment, 0, 3.38, [1.05, .66, 1], .19);
+        place('ThroatEmber', segment, 0, 3.38, [1, 1, 1], .24);
+      });
+    }
+
+    for (const { mesh, count } of pools.values()) {
+      mesh.count = count;
+      mesh.instanceMatrix.needsUpdate = true;
+    }
+  }
+
+  _buildIntakeRecoveryCavity(course) {
+    if (course?.sectorId !== 'bloodworks') return;
+    // The player-facing north wall is the h:*,9 segment resolved on the
+    // rightward camera turn. Keep the intervention to one bay: it is a
+    // silhouette break, not a new clutter layer across the room.
+    const wallX = 7.5 * CELL;
+    const wallZ = 9 * CELL + .55;
+    const cavity = shadow(new THREE.Mesh(new THREE.BoxGeometry(3.9, 4.78, .14), this.materials.wallDeep), true, true);
+    cavity.name = 'IntakeOpenMaintenanceCavity';
+    cavity.position.set(wallX, 2.96, wallZ);
+    cavity.userData.noBatch = true;
+    this.worldRoot.add(cavity);
+
+    // One frame side is intentionally missing; the remaining jamb is offset
+    // and slightly kicked so the opening reads from the combat lane at a glance.
+    const looseJamb = shadow(new THREE.Mesh(new THREE.BoxGeometry(.13, 4.04, .16), this.materials.metal), true, true);
+    looseJamb.name = 'IntakeOpenMaintenanceOffsetFrame';
+    looseJamb.position.set(wallX + 1.98, 3.05, wallZ - .02);
+    looseJamb.rotation.z = .075;
+    looseJamb.userData.noBatch = true;
+    this.worldRoot.add(looseJamb);
+
+    const verticalFeed = shadow(new THREE.Mesh(new THREE.CylinderGeometry(.13, .13, 3.3, 8), this.materials.rust), true, true);
+    verticalFeed.name = 'IntakeOpenMaintenanceVerticalFeed';
+    verticalFeed.position.set(wallX - 1.05, 2.55, wallZ - .08);
+    verticalFeed.rotation.z = .04;
+    verticalFeed.userData.noBatch = true;
+    this.worldRoot.add(verticalFeed);
+    const crossFeed = shadow(new THREE.Mesh(new THREE.CylinderGeometry(.105, .105, 1.9, 8), this.materials.metalDark), true, true);
+    crossFeed.name = 'IntakeOpenMaintenanceCrossFeed';
+    crossFeed.position.set(wallX + .2, 2.8, wallZ - .08);
+    crossFeed.rotation.z = Math.PI / 2;
+    crossFeed.userData.noBatch = true;
+    this.worldRoot.add(crossFeed);
   }
 
   _buildWallSegment(x, z, horizontal, key) {
@@ -880,6 +1195,37 @@ export class Renderer {
     this._exit = { root, gate, ring, threshold, unlocked: false };
   }
 
+  _buildDungeonPickups(course) {
+    if (!course?.dungeon) return [];
+    return (course.keys || []).map(key => {
+      const root = new THREE.Group();
+      root.name = `DungeonKey_${key.id}`;
+      root.position.set(worldX(key.x), 0, worldZ(key.y));
+      root.userData.noBatch = true;
+      const core = new THREE.Mesh(new THREE.OctahedronGeometry(.24, 0), this.materials.gold);
+      core.position.y = 1.05;
+      core.castShadow = true;
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(.38, .035, 7, 22), this.materials.gold);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.y = .8;
+      const glow = new THREE.PointLight(0xffc24e, .8, 5, 2);
+      glow.position.y = 1.15;
+      root.add(core, ring, glow);
+      this.worldRoot.add(root);
+      return { id: key.id, root, core, ring, baseY: 1.05 };
+    });
+  }
+
+  _updateDungeonPickups(run, now) {
+    const collected = new Set(run.dungeonProgression?.keysCollected || []);
+    for (const item of this._dungeonPickups || []) {
+      item.root.visible = !collected.has(item.id);
+      item.core.position.y = item.baseY + Math.sin(now * .003 + item.core.id) * .12;
+      item.core.rotation.y = now * .0012;
+      item.ring.rotation.z = now * .0015;
+    }
+  }
+
   _makeEnemy(kind, variant = '') {
     const group = new THREE.Group();
     group.name = `EnemyKind${kind}`;
@@ -1015,15 +1361,26 @@ export class Renderer {
     const enemies = run.course?.enemies || [];
     for (const enemy of enemies) {
       let entry = this._enemyVisuals.get(enemy.id);
-      const useWarden = !!this.wardenTemplate && enemy.kind >= 0 && enemy.kind < 3;
+      const useAfterlife = enemy.kind < 2 && this._survivors?.status === 'ready' && this._afterlifeClips?.length;
+      const wantsBloodworksWarden = enemy.kind === 2 && BLOODWORKS_WARDEN_VARIANTS.has(enemy.variant);
+      const useBloodworksWarden = wantsBloodworksWarden && this.bloodworksWardenTemplate;
+      const template = useAfterlife ? this._survivors.template : useBloodworksWarden ? this.bloodworksWardenTemplate : this.wardenTemplate;
+      const clips = useBloodworksWarden ? this.bloodworksWardenClips : this.wardenClips;
+      const useWarden = !useAfterlife && !!template && enemy.kind >= 0 && enemy.kind < 3;
+      const makeActor = () => useAfterlife
+        ? createAfterlifeEnemy(template, this._afterlifeClips, enemy.kind, enemy.variant, (enemy.id * 1.618) % TAU)
+        : useWarden ? createWarden(template,clips,enemy.kind,enemy.variant)
+        : enemy.kind === 3 ? createBellwraith({ variant: enemy.variant, phase: enemy.phase || 0 }) : this._makeEnemy(enemy.kind, enemy.variant);
       if (!entry) {
-        entry = { root: useWarden ? createWarden(this.wardenTemplate,this.wardenClips,enemy.kind,enemy.variant) : enemy.kind === 3 ? createBellwraith({ variant: enemy.variant, phase: enemy.phase || 0 }) : this._makeEnemy(enemy.kind, enemy.variant), seed: (enemy.id * 1.618) % TAU, variant: enemy.variant || '' };
+        entry = { root: makeActor(), template: useAfterlife || useWarden ? template : null, seed: (enemy.id * 1.618) % TAU, variant: enemy.variant || '' };
         this._enemyVisuals.set(enemy.id, entry);
+        disableShadowCasting(entry.root);
         this.worldRoot.add(entry.root);
       }
-      if(useWarden&&!entry.root.userData.warden){this.worldRoot.remove(entry.root);disposeObject(entry.root);entry.root=createWarden(this.wardenTemplate,this.wardenClips,enemy.kind,enemy.variant);this.worldRoot.add(entry.root);}
+      if((useAfterlife||useWarden)&&entry.template!==template){this.worldRoot.remove(entry.root);disposeObject(entry.root);entry.root=makeActor();disableShadowCasting(entry.root);entry.template=template;this.worldRoot.add(entry.root);}
       alive.add(enemy.id);
       const root = entry.root;
+      if(root.userData.afterlife){root.position.set(worldX(enemy.x),0,worldZ(enemy.y));root.rotation.y=-Math.atan2(run.y-enemy.y,run.x-enemy.x)-Math.PI/2;animateAfterlifeEnemy(root,enemy,now,entry.seed);continue;}
       if(root.userData.warden){root.position.set(worldX(enemy.x),0,worldZ(enemy.y));root.rotation.y=-Math.atan2(run.y-enemy.y,run.x-enemy.x)-Math.PI/2;animateWarden(root,enemy,now,entry.seed);continue;}
        if (root.userData.bellwraith) {
           const floorOffset = root.userData.bellwraith?.floorOffset ?? 0.22;
@@ -1075,6 +1432,25 @@ export class Renderer {
         this._enemyVisuals.delete(id);
       }
     }
+    let shadowCount = 0;
+    const rotation = this._combatEuler ||= new THREE.Euler();
+    const quaternion = this._combatQuat ||= new THREE.Quaternion();
+    const scale = this._combatScale ||= new THREE.Vector3();
+    const matrix = this._combatMatrix ||= new THREE.Matrix4();
+    const position = this._enemyShadowPosition ||= new THREE.Vector3();
+    quaternion.setFromEuler(rotation.set(-Math.PI / 2, 0, 0));
+    for (const enemy of enemies) {
+      if (enemy.dead || shadowCount >= MAX_ENEMY_SHADOWS) continue;
+      const entry = this._enemyVisuals.get(enemy.id);
+      if (!entry?.root.visible) continue;
+      const visualScale = entry.root.userData.warden?.modelScale ?? 1;
+      const radius = (enemy.kind === 2 ? 1.18 : enemy.kind === 3 ? 1.12 : .96) * visualScale;
+      scale.set(radius, radius * .68, 1);
+      matrix.compose(position.set(worldX(enemy.x), .026, worldZ(enemy.y)), quaternion, scale);
+      this.enemyContactShadows.setMatrixAt(shadowCount++, matrix);
+    }
+    this.enemyContactShadows.count = shadowCount;
+    this.enemyContactShadows.instanceMatrix.needsUpdate = true;
   }
 
   _updatePeer(run, now) {
@@ -1101,6 +1477,7 @@ export class Renderer {
       const ring = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.028, 8, 24), this.materials.cyan);
       ring.rotation.x = Math.PI / 2; ring.position.y = 0.9;
       root.add(suit, plate, visor, head, left, right, ring);
+      disableShadowCasting(root);
       this._peer = { root, ring, left, right };
       this.worldRoot.add(root);
     }
@@ -1116,7 +1493,7 @@ export class Renderer {
   _updateExit(run, now) {
     if (!this._exit) return;
     const active = (run.course?.enemies || []).some(e => !e.dead);
-    const open = (run.wave || 0) >= 3 && !active;
+    const open = run.course?.dungeon ? run.dungeonProgression?.exitReady === true : (run.wave || 0) >= (run.waveCount || 3) && !active;
     this._exit.unlocked = open;
     const gateY = open ? 4.2 : 0;
     this._exit.gate.position.y = damp(this._exit.gate.position.y, gateY, 5, this._frameDt || 0.016);
@@ -1159,6 +1536,32 @@ export class Renderer {
         matrix.compose(position.set(worldX(b.x), 0.052, worldZ(b.y)), quat, scale);
         this.bloodPools.setMatrixAt(blood++, matrix);
       }
+      // Severed limbs: tumble while airborne, then lie where they land.
+      let arms = 0, legs = 0, heads = 0, eyes = 0;
+      for (const limb of run.limbs || []) {
+        const scaleFactor = (limb.scale || 1) * CELL * 0.42;
+        const resting = limb.rest === true;
+        const spin = limb.angle || 0;
+        if (resting) quat.setFromEuler(rotation.set(-Math.PI / 2 + 0.12, spin, spin * 0.35));
+        else quat.setFromEuler(rotation.set(spin * 1.6, spin, spin * 0.8));
+        const settle = resting ? 0.92 + (limb.settle || 0) * 0.08 : 1;
+        scale.setScalar(Math.max(0.2, scaleFactor * settle));
+        matrix.compose(position.set(worldX(limb.x), Math.max(0.045, (limb.z || 0) * CELL * 0.55), worldZ(limb.y)), quat, scale);
+        if (limb.kind === 'arm' && arms < MAX_LIMBS) {
+          this.limbArms.setMatrixAt(arms++, matrix);
+        } else if (limb.kind === 'leg' && legs < MAX_LIMBS) {
+          this.limbLegs.setMatrixAt(legs++, matrix);
+        } else if (limb.kind === 'head' && heads < 32) {
+          this.limbHeads.setMatrixAt(heads++, matrix);
+        } else if (limb.kind === 'eye' && eyes < 24) {
+          this.limbEyes.setMatrixAt(eyes++, matrix);
+        }
+      }
+      this.limbArms.count = arms;
+      this.limbLegs.count = legs;
+      this.limbHeads.count = heads;
+      this.limbEyes.count = eyes;
+      for (const mesh of [this.limbArms, this.limbLegs, this.limbHeads, this.limbEyes]) mesh.instanceMatrix.needsUpdate = true;
     }
     this.goreChunks.count = chunks;
     this.goreDroplets.count = droplets;
@@ -1343,7 +1746,10 @@ export class Renderer {
     // The rig-only readability fill and articulated hands are composed for the
     // 0.64 scale; dropping back to .55 here made a window resize silently undo
     // the intended silhouette/hand read.
-    this.weaponGroups?.forEach(group=>group.scale.setScalar(width<600?.4:.64));
+    this.weaponGroups?.forEach(group=>{
+      group.scale.setScalar(width<600?.4:.64);
+      group.traverse(node=>{if(node.name.startsWith('MeshySleeve_')){const widthScale = width < 600 ? .78 : 1;node.scale.set(widthScale,1,widthScale);}});
+    });
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
   }
@@ -1360,7 +1766,7 @@ export class Renderer {
     for (const group of this.weaponGroups) group.traverse(object => {
       if (object.userData.resourcesReady) weaponResources.push(object.userData.resourcesReady);
     });
-    await Promise.all([this._materialsReady, this._wardenReady, roomMaterialsReady(), ...weaponResources]);
+    await Promise.all([this._materialsReady, this._wardenReady, this._survivorReady, roomMaterialsReady(), ...weaponResources]);
     const renderer = this.renderer;
     if (!renderer || this._course !== course) return;
     // Keep a representative skinned enemy alive so its programs are compiled
@@ -1370,7 +1776,15 @@ export class Renderer {
       this._wardenWarmup.visible = false;
       this.scene.add(this._wardenWarmup);
     }
+    if (this.bloodworksWardenTemplate && !this._bloodworksWardenWarmup) {
+      this._bloodworksWardenWarmup = createWarden(this.bloodworksWardenTemplate, this.bloodworksWardenClips, 2, 'warden');
+      this._bloodworksWardenWarmup.visible = false;
+      this.scene.add(this._bloodworksWardenWarmup);
+    }
     if(!this._bellWarmups){warmBellwraithVariants();this._bellWarmups=['bellwraith','echo','rustBell','ivoryBell'].map(variant=>{const actor=createBellwraith({variant});actor.visible=false;this.scene.add(actor);return actor;});}
+    if(this._survivors?.status==='ready'&&!this._afterlifeWarmups){
+      this._afterlifeWarmups=[0,1].map(kind=>{const actor=createAfterlifeEnemy(this._survivors.template,this._afterlifeClips,kind);actor.visible=false;disableShadowCasting(actor);this.scene.add(actor);return actor;});
+    }
     const screenPrograms = renderer.compileAsync(this.scene, this.camera);
     const previousTarget = renderer.getRenderTarget();
     const linearTarget = new THREE.WebGLRenderTarget(1, 1);
@@ -1402,7 +1816,12 @@ export class Renderer {
       this._wardenWarmup.visible = true;
       this.camera.getWorldPosition(this._wardenWarmup.position).addScaledVector(this.camera.getWorldDirection(new THREE.Vector3()), 4);
     }
+    if (this._bloodworksWardenWarmup) {
+      this._bloodworksWardenWarmup.visible = true;
+      this.camera.getWorldPosition(this._bloodworksWardenWarmup.position).addScaledVector(this.camera.getWorldDirection(new THREE.Vector3()), 4);
+    }
     for(const actor of this._bellWarmups||[]){actor.visible=true;this.camera.getWorldPosition(actor.position).addScaledVector(this.camera.getWorldDirection(new THREE.Vector3()),4);}
+    for(const actor of this._afterlifeWarmups||[]){actor.visible=true;this.camera.getWorldPosition(actor.position).addScaledVector(this.camera.getWorldDirection(new THREE.Vector3()),4);}
     try {
       for (let weapon = 0; weapon < this.weaponGroups.length; weapon++) {
         this.weaponGroups.forEach((group, i) => { group.visible = i === weapon; });
@@ -1414,7 +1833,9 @@ export class Renderer {
         object.frustumCulled = culled;
       }
       if (this._wardenWarmup) this._wardenWarmup.visible = false;
+      if (this._bloodworksWardenWarmup) this._bloodworksWardenWarmup.visible = false;
       for(const actor of this._bellWarmups||[])actor.visible=false;
+      for(const actor of this._afterlifeWarmups||[])actor.visible=false;
       this.weaponGroups.forEach((group, i) => { group.visible = visibility[i]; });
       renderer.render(this.scene, this.camera);
     }
@@ -1426,12 +1847,15 @@ export class Renderer {
     this._frameDt = this._lastNow ? clamp((nowMs - this._lastNow) / 1000, 0.001, 0.05) : 0.016;
     this._lastNow = nowMs;
     const key = run.course.index ?? `${run.course.w}:${run.course.h}`;
-    if (this._worldKey !== key || this._course !== run.course) this._buildWorld(run.course);
-    if(this.horror){this.horror.setRoomProgression?.(run.roomProgression);this.horror.authored?.animate(this.settings.reducedMotion?0:nowMs*.001);const pulse=1+Math.sin(nowMs*.002)*.025;this.horror.organ.scale.set(1.5*pulse,2.1,1.15*pulse);}
+    if (this._worldKey !== key || this._course !== run.course || this._dungeonRevision !== (run.course.dungeonRevision ?? 0)) this._buildWorld(run.course);
+    if(this.horror){this.horror.setRoomProgression?.(run.roomProgression);this.horror.authored?.animate(this.settings.reducedMotion?0:nowMs*.001);if(this.horror.organ){const pulse=1+Math.sin(nowMs*.002)*.025;this.horror.organ.scale.set(1.5*pulse,2.1,1.15*pulse);}}
     this._updateCamera(run, nowMs);
+    this.afterlifeLighting.update(this.camera, this.renderer, nowMs, this.settings.reducedMotion);
+    this.afterlifeAtmosphere?.update(run, nowMs, this.camera, { reducedMotion: this.settings.reducedMotion });
     this._updateEnemies(run, nowMs);
     this._updatePeer(run, nowMs);
     this._updateExit(run, nowMs);
+    this._updateDungeonPickups(run, nowMs);
     this._updateCombat(run, nowMs);
     updateSurvivors(this, run, nowMs);
     if (this.renderer && this._warmupCourse !== run.course) {
@@ -1469,8 +1893,13 @@ export class Renderer {
       worldBatch: this._worldBatch || null,
       staticWorld: this._worldStatic || null,
       boundedLighting: this._boundedLighting,
+      afterlifeLighting: this.afterlifeLighting?.diagnostics(),
+      afterlifeAtmosphere: this.afterlifeAtmosphere?.diagnostics(),
+      afterlifeSurfaces: this._afterlifeSurfaceDiagnostics,
+      afterlifeEnemies: [...this._enemyVisuals.values()].filter(e=>e.root.userData.afterlife).length,
       transmissionCoverage: this._transmissionRegion?.coverage ?? 1,
       weaponBatch: this._weaponBatch,
+      survivor: {status:this._survivors?.status||'pending',source:this._survivors?.local?.userData?.source||'procedural-fallback',viewSleeves:this._survivors?.viewSleeves||0,error:this._survivors?.error||null},
       targetFrameMs: 1000 / 144,
       webgl: !!this.renderer,
       error: this.rendererError ? String(this.rendererError.message || this.rendererError) : null,
@@ -1490,6 +1919,7 @@ export class Renderer {
       explosions: this.weaponFX?.explosions?.diagnostics?.() || null,
       impacts: this.weaponFX?.impacts?.diagnostics?.() || null,
       rendererTextures: info?.memory?.textures || 0,
+      enemyContactShadows: this.enemyContactShadows?.count || 0,
       enemies: (run.course?.enemies || []).filter(e => !e.dead).length,
       gore: this.settings.gore ? (run.gore || []).length : 0,
       blood: this.settings.gore ? (run.blood || []).length : 0,
@@ -1507,13 +1937,20 @@ export class Renderer {
   }
 
   dispose() {
+    this.afterlifeAtmosphere?.dispose();
+    this.afterlifeLighting?.dispose();
+    if (this.worldRoot) this.worldRoot.userData.afterlifeSurfaceDisposed = true;
+    disposeSurvivors(this);
     if (this.worldRoot) disposeObject(this.worldRoot);
     if (this.combatRoot) disposeObject(this.combatRoot);
     if (this.weaponRig) disposeObject(this.weaponRig);
     this.materials && Object.values(this.materials).forEach(m => m.dispose?.());
     if(this._wardenWarmup){this._wardenWarmup.removeFromParent();disposeObject(this._wardenWarmup);}
+    if(this._bloodworksWardenWarmup){this._bloodworksWardenWarmup.removeFromParent();disposeObject(this._bloodworksWardenWarmup);}
     for(const actor of this._bellWarmups||[]){actor.removeFromParent();disposeObject(actor);}
+    for(const actor of this._afterlifeWarmups||[]){actor.removeFromParent();disposeObject(actor);}
     if(this.wardenTemplate)disposeObject(this.wardenTemplate,true);
+    if(this.bloodworksWardenTemplate)disposeObject(this.bloodworksWardenTemplate,true);
     this._envTarget?.dispose();
     this._transmissionRegion?.dispose();
     this.renderer?.dispose?.();

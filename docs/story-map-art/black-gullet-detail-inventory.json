@@ -1,0 +1,411 @@
+{
+  "sourceImage": "assets/concepts/black-gullet-concept-v01.png",
+  "zonesDir": "docs/story-map-art/black-gullet-detail-zones",
+  "detailInventory": {
+    "scanMethod": "grid-4x4",
+    "targetMinDetails": 10,
+    "details": [
+      {
+        "id": "crown-bone-spur",
+        "kind": "ridge",
+        "description": "A pale, tapered load rib breaks above the dark crown; its edge is chipped and the face carries shallow pits.",
+        "region": {
+          "x": 0,
+          "y": 0,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "meso",
+        "affects": "Crown silhouette and bone-to-stone value separation.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "MawBoneRibs/crown-spurs"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r0c0.png",
+        "confidence": 0.91
+      },
+      {
+        "id": "crown-keystone-fracture",
+        "kind": "seam",
+        "description": "The crown gathers several pale ribs against a thick charcoal cap; the joints are irregular and the central cap is darker than the bone.",
+        "region": {
+          "x": 0.25,
+          "y": 0,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "meso",
+        "affects": "Top silhouette, structural hierarchy, and arch depth.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "MawBasaltFrame/broken-block-silhouette"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r0c1.png",
+        "confidence": 0.91
+      },
+      {
+        "id": "outer-arch-course",
+        "kind": "chip",
+        "description": "Large dark blocks step around the outer curve with broken corners; a pale rib tracks just inside the stone.",
+        "region": {
+          "x": 0.5,
+          "y": 0,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "macro",
+        "affects": "Approach silhouette and readable arch thickness.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "MawBasaltFrame/broken-block-silhouette"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r0c2.png",
+        "confidence": 0.93
+      },
+      {
+        "id": "upper-exterior-negative-space",
+        "kind": "hole",
+        "description": "This crop is empty cool-gray background outside the structure. Keep the exterior contour isolated and do not add floating ornament here.",
+        "region": {
+          "x": 0.75,
+          "y": 0,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "macro",
+        "affects": "Silhouette separation and uncluttered exterior edge.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "root/no-exterior-intrusions"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r0c3.png",
+        "confidence": 0.96
+      },
+      {
+        "id": "square-bronze-collar",
+        "kind": "fastener",
+        "description": "A square bronze clamp overlaps the pale vertical rib and dark stone backing. A round fastener sits on the face; the collar has a raised upper and lower lip.",
+        "region": {
+          "x": 0,
+          "y": 0.25,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "micro",
+        "affects": "Construction contact and material contrast.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "MawMetalClamps/square-bronze-collar"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r1c0.png",
+        "confidence": 0.95
+      },
+      {
+        "id": "paired-tendon-cables",
+        "kind": "linework",
+        "description": "Two dark red-brown flexible lines leave the collar underside and follow the bone rib down; both ends remain visibly socketed.",
+        "region": {
+          "x": 0,
+          "y": 0.25,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "meso",
+        "affects": "Hardware attachment and one-sided accent rhythm.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "MawCables/twin-red-tendon-lines"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r1c0.png",
+        "confidence": 0.92
+      },
+      {
+        "id": "hanging-crown-teeth",
+        "kind": "ridge",
+        "description": "Uneven ivory teeth hang from the inner crown, varying in length and spacing while stopping above the middle walking lane.",
+        "region": {
+          "x": 0.25,
+          "y": 0.25,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "meso",
+        "affects": "Inner opening silhouette and scale cue.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "MawTeeth/irregular-hanging-crown"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r1c1.png",
+        "confidence": 0.94
+      },
+      {
+        "id": "recessed-vascular-web",
+        "kind": "linework",
+        "description": "An opaque oxblood web sits behind the front ribs. Thick branching strands frame several dark openings instead of filling the throat with a flat sheet.",
+        "region": {
+          "x": 0.25,
+          "y": 0.25,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "meso",
+        "affects": "Layered depth, color accent, and visible aperture.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "MawMembrane/open-vascular-web"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r1c1.png",
+        "confidence": 0.93
+      },
+      {
+        "id": "right-broken-voussoirs",
+        "kind": "chip",
+        "description": "Dark, chunky arch stones alternate with pale ribs along the right curve; some blocks are fractured and sit at slightly different depth.",
+        "region": {
+          "x": 0.5,
+          "y": 0.25,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "meso",
+        "affects": "Asymmetrical structural rhythm and depth.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "MawBasaltFrame/chipped-exposed-edges"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r1c2.png",
+        "confidence": 0.91
+      },
+      {
+        "id": "lateral-bone-spurs",
+        "kind": "ridge",
+        "description": "Several pale pointed spurs project inward from the side and crown, with the longest kept outside the standing center lane.",
+        "region": {
+          "x": 0.5,
+          "y": 0.25,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "meso",
+        "affects": "Threatening side silhouette without blocking traversal.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "MawBoneRibs/crown-spurs"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r1c2.png",
+        "confidence": 0.89
+      },
+      {
+        "id": "lower-rib-slot",
+        "kind": "hole",
+        "description": "A pale upright rib shows an elongated natural opening with softened chipped edges; a bronze clamp wraps its base.",
+        "region": {
+          "x": 0,
+          "y": 0.5,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "meso",
+        "affects": "Bone identity and collar attachment point.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "MawBoneRibs/porous-longitudinal-grooves"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r2c0.png",
+        "confidence": 0.9
+      },
+      {
+        "id": "deep-clear-throat",
+        "kind": "hole",
+        "description": "The center remains a deep nearly-black void behind the layered web and teeth; preserve a tall, open, walk-through aperture.",
+        "region": {
+          "x": 0.25,
+          "y": 0.5,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "macro",
+        "affects": "Functional aperture and strong value hierarchy.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "root/dark-clear-walk-through"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r2c1.png",
+        "confidence": 0.97
+      },
+      {
+        "id": "recessed-amber-ember",
+        "kind": "emissive",
+        "description": "A tiny warm amber light is visible deep in the throat, occupying very little area against the dark void.",
+        "region": {
+          "x": 0.25,
+          "y": 0.5,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "micro",
+        "affects": "Far-distance focal point and depth cue.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "MawEmber/deep-amber-votive"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r2c1.png",
+        "confidence": 0.95
+      },
+      {
+        "id": "vascular-web-branches",
+        "kind": "linework",
+        "description": "Thin red-brown branches cross and fork through the left side of the membrane, leaving large negative openings.",
+        "region": {
+          "x": 0.5,
+          "y": 0.5,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "micro",
+        "affects": "Organic repetition, membrane depth, and color variation.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "MawMembrane/open-vascular-web"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r2c2.png",
+        "confidence": 0.91
+      },
+      {
+        "id": "cable-to-stone-socket",
+        "kind": "linework",
+        "description": "A long reddish cable runs diagonally over the lateral bone and terminates at a bronze plate fixed into the basalt course.",
+        "region": {
+          "x": 0.75,
+          "y": 0.5,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "meso",
+        "affects": "Attachment continuity and asymmetrical hardware placement.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "MawCables/twin-red-tendon-lines"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r2c3.png",
+        "confidence": 0.88
+      },
+      {
+        "id": "rooted-basalt-footing",
+        "kind": "chip",
+        "description": "Broad dark stone blocks anchor the vertical structure to the ground, with small chips gathered at the foot of the ribs.",
+        "region": {
+          "x": 0,
+          "y": 0.75,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "macro",
+        "affects": "Stable base silhouette and floor contact.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "MawBasaltFooting/rooted-blocks-and-rubble"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r3c0.png",
+        "confidence": 0.94
+      },
+      {
+        "id": "bone-to-floor-contact",
+        "kind": "seam",
+        "description": "Pale ribs widen into the footing and meet separate dark blocks at ground level; no unsupported bone ends hover above the floor.",
+        "region": {
+          "x": 0.25,
+          "y": 0.75,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "meso",
+        "affects": "Believable load transfer and grounded silhouette.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "MawBoneRibs/rooted-contact"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r3c1.png",
+        "confidence": 0.92
+      },
+      {
+        "id": "damp-floor-streaks",
+        "kind": "gloss",
+        "description": "The floor is charcoal and mostly matte, with narrow broken warm highlights close to the structure rather than an even glossy reflection.",
+        "region": {
+          "x": 0.25,
+          "y": 0.75,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "micro",
+        "affects": "Footing contact, approach readability, and surface roughness contrast.",
+        "mapsTo": {
+          "type": "material.localOverrides",
+          "ref": "damp-basalt/narrow-damp-streaks"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r3c1.png",
+        "confidence": 0.9
+      },
+      {
+        "id": "broken-base-rubble",
+        "kind": "chip",
+        "description": "Angular basalt fragments and a few pale bone chips collect against the side feet while leaving the center approach clear.",
+        "region": {
+          "x": 0.5,
+          "y": 0.75,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "micro",
+        "affects": "Grounded transitions and low-level framing.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "MawBasaltFooting/rooted-blocks-and-rubble"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r3c2.png",
+        "confidence": 0.88
+      },
+      {
+        "id": "side-depth-continuation",
+        "kind": "contour",
+        "description": "The oblique edge reveals a short continuation of stone and bone depth behind the front face; hidden rear geometry is intentionally lower-detail and inferred.",
+        "region": {
+          "x": 0.75,
+          "y": 0.75,
+          "width": 0.25,
+          "height": 0.25,
+          "units": "normalized"
+        },
+        "scale": "meso",
+        "affects": "Structural depth without overbuilding unseen faces.",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "MawBasaltFrame/restrained-rear-continuation"
+        },
+        "evidenceRef": "docs/story-map-art/black-gullet-detail-zones/zone-r3c3.png",
+        "confidence": 0.73
+      }
+    ]
+  },
+  "authoringInstruction": "Zone stubs were classified from each saved crop. Every observed feature maps to a component local feature or material local override; the three negative-space constraints are intentional and preserve silhouette and traversal."
+}

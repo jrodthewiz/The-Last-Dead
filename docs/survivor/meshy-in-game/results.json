@@ -1,0 +1,179 @@
+{
+  "loaded": {
+    "status": "ready",
+    "viewSleeves": 7,
+    "local": "meshy-v02",
+    "headHidden": true,
+    "armsHidden": true
+  },
+  "movement": {
+    "start": {
+      "x": 6,
+      "y": 10.5
+    },
+    "moved": {
+      "x": 5.407905658563984,
+      "y": 10.144460556485063
+    }
+  },
+  "jump": {
+    "z": 0.21041666666666656,
+    "animation": "Jump"
+  },
+  "slide": {
+    "slide": 0.6321205588285574,
+    "animation": "Slide"
+  },
+  "aim": -1.0333333333333343,
+  "weapons": [
+    {
+      "index": 0,
+      "name": "Ossuary",
+      "shot": 0.8833333333333333,
+      "tracers": 1,
+      "projectiles": 0,
+      "visible": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "sleeves": [],
+      "grips": [
+        {
+          "source": "meshy-v02-sleeve-with-fitted-grip",
+          "sleeve": true,
+          "world": [
+            24.338059332164935,
+            1.187870488737572,
+            40.94904513503978
+          ]
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "name": "BreachShotgun",
+      "shot": 0.8833333333333333,
+      "tracers": 6,
+      "projectiles": 0,
+      "visible": [
+        false,
+        true,
+        false,
+        false
+      ],
+      "sleeves": [],
+      "grips": [
+        {
+          "source": "meshy-v02-sleeve-with-fitted-grip",
+          "sleeve": true,
+          "world": [
+            24.343090782973945,
+            1.1560527988257567,
+            40.80829272277615
+          ]
+        },
+        {
+          "source": "meshy-v02-sleeve-with-fitted-grip",
+          "sleeve": true,
+          "world": [
+            24.30604245785846,
+            1.3040510144034092,
+            40.44535589164438
+          ]
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "name": "ArcLance",
+      "shot": 0.7666666666666666,
+      "tracers": 6,
+      "projectiles": 0,
+      "visible": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "sleeves": [],
+      "grips": [
+        {
+          "source": "meshy-v02-sleeve-with-fitted-grip",
+          "sleeve": true,
+          "world": [
+            24.321566841665675,
+            1.074858311631929,
+            40.69691154854473
+          ]
+        },
+        {
+          "source": "meshy-v02-sleeve-with-fitted-grip",
+          "sleeve": true,
+          "world": [
+            24.284067979610402,
+            1.2106534475242132,
+            40.30606974165536
+          ]
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "name": "ReliquaryBazooka",
+      "shot": 0.8833333333333333,
+      "tracers": 1,
+      "projectiles": 1,
+      "visible": [
+        false,
+        false,
+        false,
+        true
+      ],
+      "sleeves": [],
+      "grips": [
+        {
+          "source": "meshy-v02-sleeve-with-fitted-grip",
+          "sleeve": true,
+          "world": [
+            24.344806830462023,
+            1.1624151015461166,
+            40.78822907811632
+          ]
+        },
+        {
+          "source": "meshy-v02-sleeve-with-fitted-grip",
+          "sleeve": true,
+          "world": [
+            24.315959699475297,
+            1.2561387728883537,
+            40.344224611850535
+          ]
+        }
+      ]
+    }
+  ],
+  "stability": {
+    "before": [
+      -0.582309127675006,
+      -0.07520591665028822,
+      0.011606905411630623,
+      0.80939822062913
+    ],
+    "after": [
+      -0.582309127675006,
+      -0.07520591665028822,
+      0.011606905411630623,
+      0.80939822062913
+    ],
+    "position": [
+      24,
+      0.1413872689627763,
+      42.460345849328995
+    ],
+    "samples": 81
+  },
+  "errors": [],
+  "httpErrors": []
+}

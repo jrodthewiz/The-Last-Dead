@@ -1,0 +1,39 @@
+{
+  "file": "C:\\Users\\wolfk\\Desktop\\thelastdead\\art\\survivor-rig\\The_Last_Dead_Survivor_Rig_v01.blend",
+  "bones": 62,
+  "deform_bones": 54,
+  "meshes": 6,
+  "vertices": 23217,
+  "triangles": 32852,
+  "clips": [
+    [
+      "Idle_Ready",
+      60
+    ],
+    [
+      "Walk_Forward",
+      30
+    ],
+    [
+      "Sprint_Forward",
+      24
+    ],
+    [
+      "Crouch_Idle",
+      60
+    ],
+    [
+      "Jump",
+      36
+    ],
+    [
+      "Slide",
+      45
+    ],
+    [
+      "Recoil",
+      12
+    ]
+  ],
+  "weights_normalized": true
+}

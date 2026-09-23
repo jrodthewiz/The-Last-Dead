@@ -1,0 +1,40 @@
+{
+  "formatVersion": 1,
+  "pipeline": "meshy-multi-image-source-rig-v1",
+  "characterId": "afterlife-ash-witness",
+  "label": "Ash Witness",
+  "heightMeters": 1.86,
+  "texturePrompt": "Preserve the pale ash-gray skin, hollow dark eyes, tilted almost-human face, frayed dark cardigan, faded shirt, worn trousers and scuffed shoes. Keep clear separate limbs, realistic distressed fabric and restrained desaturated afterlife palette. No extra props, no text, no logo.",
+  "createdAt": "2026-09-23T09:48:56.063Z",
+  "updatedAt": "2026-09-23T09:50:08.463Z",
+  "status": "IN_PROGRESS",
+  "sourceRequest": {
+    "endpoint": "/openapi/v1/multi-image-to-3d",
+    "imageCount": 1,
+    "aiModel": "latest",
+    "poseMode": "t-pose",
+    "textured": true,
+    "pbr": true,
+    "targetFormats": [
+      "glb"
+    ]
+  },
+  "sources": [
+    {
+      "file": "sources/source-01.png",
+      "originalFileName": "afterlife-ash-witness-tpose.png",
+      "sha256": "eadc1e2fcbd2441fa11e7a9f4e4bf983b1d4968ac64aa5f1723fa281aa401a8e",
+      "byteSize": 1630740,
+      "mimeType": "image/png"
+    }
+  ],
+  "source": {
+    "submitStartedAt": "2026-09-23T09:48:56.090Z",
+    "taskId": "01a0cdab-1572-734a-85da-4dc9103af798",
+    "status": "IN_PROGRESS",
+    "submittedAt": "2026-09-23T09:49:00.320Z",
+    "progress": 45,
+    "lastCheckedAt": "2026-09-23T09:50:08.463Z"
+  },
+  "rig": {}
+}
