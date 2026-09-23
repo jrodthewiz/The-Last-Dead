@@ -13,6 +13,8 @@ Visual review covered `desktop.png`, `laptop.png`, `tablet.png`, `mobile.png`, `
 
 ## Verification
 
+The isolated production snapshot at `6572ffa144bacfe934f914dbf059552a43d11613` passed the build, 41 unit tests, the two-context WebRTC check, and the six-viewport browser check. The browser run included 120 seconds of gameplay and returned to the same three title figures with no browser or asset errors. The screenshots and `qa-results.json` beside this document come from that snapshot. Other tasks continued editing the working folder during verification.
+
 Run `npm run build`, then `node tests/cinematic-menu.mjs` with `PLAYWRIGHT_PATH` and `CHROME_PATH` set when needed. The test serves the production build on an ephemeral local port, opens an independent browser, and writes `qa-results.json`. Set `MENU_SUSTAINED_SECONDS=120` for the sustained gameplay and return-to-title check.
 
 The browser checks cover six viewport sizes (1536×864, 1366×768, 768×1024, 390×844, 320×640, and 844×390), text fit, 44px controls, pointer tracking, settings and co-op panels, reduced motion, canvas pixel range, entering the game, movement, firing, and returning to the same three title figures. Console and asset errors are captured. The scene uses approximately 155 draw calls and 86,000 triangles on desktop, with a single 1024px shadow map. Mobile checks are Chrome emulation, not measurements on a physical phone.
