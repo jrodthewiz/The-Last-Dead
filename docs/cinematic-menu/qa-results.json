@@ -1,0 +1,332 @@
+{
+  "errors": [],
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1536,
+      "height": 864,
+      "viewportWidth": 1536,
+      "scrollWidth": 1536,
+      "scrollHeight": 864,
+      "titleRight": 610,
+      "controls": [
+        {
+          "action": "start",
+          "x": 119.1875,
+          "width": 326,
+          "height": 57
+        },
+        {
+          "action": "coop-toggle",
+          "x": 119.1875,
+          "width": 326,
+          "height": 48
+        },
+        {
+          "action": "settings",
+          "x": 119.1875,
+          "width": 326,
+          "height": 44
+        },
+        {
+          "action": "guide",
+          "x": 119.1875,
+          "width": 326,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "name": "laptop",
+      "width": 1366,
+      "height": 768,
+      "viewportWidth": 1366,
+      "scrollWidth": 1366,
+      "scrollHeight": 768,
+      "titleRight": 610,
+      "controls": [
+        {
+          "action": "start",
+          "x": 106.4375,
+          "width": 326,
+          "height": 57
+        },
+        {
+          "action": "coop-toggle",
+          "x": 106.4375,
+          "width": 326,
+          "height": 48
+        },
+        {
+          "action": "settings",
+          "x": 106.4375,
+          "width": 326,
+          "height": 44
+        },
+        {
+          "action": "guide",
+          "x": 106.4375,
+          "width": 326,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "name": "tablet",
+      "width": 768,
+      "height": 1024,
+      "viewportWidth": 768,
+      "scrollWidth": 768,
+      "scrollHeight": 1024,
+      "titleRight": 368.625,
+      "controls": [
+        {
+          "action": "start",
+          "x": 61.59375,
+          "width": 307.03125,
+          "height": 57
+        },
+        {
+          "action": "coop-toggle",
+          "x": 61.59375,
+          "width": 307.03125,
+          "height": 48
+        },
+        {
+          "action": "settings",
+          "x": 61.59375,
+          "width": 307.03125,
+          "height": 44
+        },
+        {
+          "action": "guide",
+          "x": 61.59375,
+          "width": 307.03125,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "scrollHeight": 844,
+      "titleRight": 360,
+      "controls": [
+        {
+          "action": "start",
+          "x": 34,
+          "width": 326,
+          "height": 57
+        },
+        {
+          "action": "coop-toggle",
+          "x": 34,
+          "width": 326,
+          "height": 48
+        },
+        {
+          "action": "settings",
+          "x": 34,
+          "width": 326,
+          "height": 44
+        },
+        {
+          "action": "guide",
+          "x": 34,
+          "width": 326,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "name": "small-phone",
+      "width": 320,
+      "height": 640,
+      "viewportWidth": 320,
+      "scrollWidth": 320,
+      "scrollHeight": 676,
+      "titleRight": 290,
+      "controls": [
+        {
+          "action": "start",
+          "x": 34,
+          "width": 256,
+          "height": 57
+        },
+        {
+          "action": "coop-toggle",
+          "x": 34,
+          "width": 256,
+          "height": 48
+        },
+        {
+          "action": "settings",
+          "x": 34,
+          "width": 256,
+          "height": 44
+        },
+        {
+          "action": "guide",
+          "x": 34,
+          "width": 256,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "name": "landscape",
+      "width": 844,
+      "height": 390,
+      "viewportWidth": 844,
+      "scrollWidth": 844,
+      "scrollHeight": 398,
+      "titleRight": 405.109375,
+      "controls": [
+        {
+          "action": "start",
+          "x": 73.203125,
+          "width": 326,
+          "height": 57
+        },
+        {
+          "action": "coop-toggle",
+          "x": 73.203125,
+          "width": 326,
+          "height": 48
+        },
+        {
+          "action": "settings",
+          "x": 73.203125,
+          "width": 326,
+          "height": 44
+        },
+        {
+          "action": "guide",
+          "x": 73.203125,
+          "width": 326,
+          "height": 44
+        }
+      ]
+    }
+  ],
+  "controls": {
+    "coopPanel": true,
+    "controlsPanel": true,
+    "settings": true,
+    "systemReducedMotion": true,
+    "startMoveFireReturn": true
+  },
+  "screenshots": [
+    "gaze-right.png",
+    "desktop.png",
+    "laptop.png",
+    "tablet.png",
+    "mobile.png",
+    "small-phone.png",
+    "landscape.png",
+    "game-start.png",
+    "gameplay.png"
+  ],
+  "gaze": {
+    "left": {
+      "active": true,
+      "ready": true,
+      "figures": 3,
+      "gazeAlignment": [
+        1,
+        1,
+        0.9999
+      ],
+      "camera": [
+        -0.02449332578263163,
+        1.6530915816080585,
+        5.860213967050452
+      ],
+      "time": 7.746500000000014,
+      "calls": 155,
+      "triangles": 85972,
+      "head": [
+        0.36183993025928507,
+        -0.02417096029294516,
+        -0.004096985125595321,
+        0.9319178312820037
+      ],
+      "geometryCount": 564
+    },
+    "right": {
+      "active": true,
+      "ready": true,
+      "figures": 3,
+      "gazeAlignment": [
+        0.9999,
+        1,
+        1
+      ],
+      "camera": [
+        0.09547043056515686,
+        1.6852016849266493,
+        5.869540268251211
+      ],
+      "time": 9.578999999999999,
+      "calls": 155,
+      "triangles": 85972,
+      "head": [
+        0.30589371647106345,
+        0.059662894157040854,
+        -0.03585803244007543,
+        0.9495175484391286
+      ],
+      "geometryCount": 564
+    }
+  },
+  "reducedMotion": {
+    "cameraStable": true,
+    "headStable": true
+  },
+  "pixels": {
+    "low": 0.6666666666666666,
+    "high": 189.33333333333334,
+    "mean": 15.84284979423887
+  },
+  "gameStart": {
+    "x": 6,
+    "y": 10.5,
+    "angle": -2.782821983319221,
+    "pitch": 0,
+    "mode": "play",
+    "camera": [
+      0,
+      0,
+      0
+    ]
+  },
+  "returned": {
+    "active": true,
+    "ready": true,
+    "figures": 3,
+    "gazeAlignment": [
+      0.9998,
+      1,
+      1
+    ],
+    "camera": [
+      0.04737100787331419,
+      1.6437950674159376,
+      5.870625570978282
+    ],
+    "time": 18.72509999999981,
+    "calls": 155,
+    "triangles": 85972,
+    "head": [
+      0.322991385688119,
+      0.03942963663884469,
+      -0.028093852352810072,
+      0.9451627394188665
+    ],
+    "geometryCount": 566
+  },
+  "result": "PASS"
+}

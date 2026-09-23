@@ -2,6 +2,7 @@ import * as THREE from './vendor/three.module.js';
 import {mergeGeometries} from './vendor/utils/BufferGeometryUtils.js';
 import {applyWeaponMaterialProfile, stabilizeWeaponVertexWear, tagWeaponMechanism} from './weapon-materials.js';
 import {applyWeaponDetailPass} from './weapon-detail-pass.js';
+import {buildOssuaryRedesign, animateOssuaryRedesign} from './weapon-occult-redesign.js';
 // Original image-guided Ossuary. Metres, +Y up, -Z muzzle direction.
 const V=p=>new THREE.Vector3(...p);
 function sweep(points,radii,sides=9){const curve=new THREE.CatmullRomCurve3(points.map(V)),steps=points.length*4,frames=curve.computeFrenetFrames(steps,false),pos=[],uv=[],idx=[];for(let i=0;i<=steps;i++){const t=i/steps,q=t*(radii.length-1),a=Math.min(radii.length-2,Math.floor(q)),r=THREE.MathUtils.lerp(radii[a],radii[a+1],q-a),p=curve.getPointAt(t);for(let j=0;j<=sides;j++){const ang=j/sides*Math.PI*2,v=p.clone().addScaledVector(frames.normals[i],Math.cos(ang)*r).addScaledVector(frames.binormals[i],Math.sin(ang)*r);pos.push(v.x,v.y,v.z);uv.push(j/sides,t);if(i<steps&&j<sides){const n=i*(sides+1)+j;idx.push(n,n+sides+1,n+1,n+1,n+sides+1,n+sides+2);}}}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();return g;}
@@ -9,6 +10,7 @@ function profile(points,depth,bevel=.012,holes=[]){const shape=new THREE.Shape(p
 function makeWearMap(seed=73){const size=64,data=new Uint8Array(size*size*4);for(let y=0;y<size;y++)for(let x=0;x<size;x++){const i=(y*size+x)*4,n=Math.sin((x+seed)*12.9898+(y-seed)*78.233)*43758.5453,f=n-Math.floor(n),grain=Math.sin(x*.2+Math.sin(y*.05)*2)*.5+.5,pit=Math.max(0,f-.76)*3.5,v=Math.max(38,Math.min(255,202+grain*34-pit*100));data[i]=v;data[i+1]=Math.max(0,v-9);data[i+2]=Math.max(0,v-19);data[i+3]=255;}const t=new THREE.DataTexture(data,size,size,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;t.generateMipmaps=true;t.colorSpace=THREE.SRGBColorSpace;t.userData.sharedAsset=true;t.needsUpdate=true;return t;}
 let sharedWearMap;function getWearMap(){return sharedWearMap||(sharedWearMap=makeWearMap());}
 export function createOssuary(){
+ return buildOssuaryRedesign();
  const root=new THREE.Group();root.name='Ossuary';const parts={};
  const materials={
   boneDark:new THREE.MeshStandardMaterial({color:0x493631,roughness:.95,metalness:0}),
@@ -129,6 +131,7 @@ export function createOssuary(){
  root.userData.ossuary={chamber,chamberDrive,extractors,bolt,trigger,jaw:parts.jaw,ribs:parts.ribs,materials,textures,sockets,shotFx,recoilCarriage,spin:0,recoil:0,flash:0,smoke:0,heat:0,jawTension:0,lastShot:0};return root;
 }
 export function animateOssuary(root,shot=0,time=0,dt=.016,state={}){
+ animateOssuaryRedesign(root,shot,time,dt,state);return;
  const s=root.userData.ossuary;if(!s)return;
  const delta=Math.max(.001,Number(dt)||.016);
  const shotValue=Number(shot)||0;

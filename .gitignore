@@ -20,3 +20,5 @@ node_modules/
 .cua-native-repair.ps1
 .read-process-env.ps1
 *.blend[0-9]*
+__pycache__/
+*.py[cod]

@@ -1,9 +1,10 @@
-"""Author lightweight Ash Witness animation clips in a fresh Blender scene.
+"""Author the Ash Witness Dread v02 animation clips in a fresh Blender scene.
 
 This script is intentionally self-contained and headless-friendly. It imports one
-Meshy rigged GLB, authors three small additive pose actions, pushes them to NLA
-tracks for glTF export, and saves a dedicated .blend source plus an uncompressed
-GLB export. The follow-up package script applies texture/geometry compression.
+Meshy rigged GLB, authors a compact zombie gait plus attack/recoil actions, pushes
+them to NLA tracks for glTF export, and saves a dedicated .blend source plus an
+uncompressed GLB export. The follow-up package script applies texture/geometry
+compression.
 """
 
 import argparse
@@ -166,24 +167,149 @@ def make_shuffle(armature, mapping):
     spine = resolve_bone(["Spine02", "Spine01", "Spine"], mapping)
     left_leg = resolve_bone(["LeftUpLeg", "LeftThigh"], mapping)
     right_leg = resolve_bone(["RightUpLeg", "RightThigh"], mapping)
+    left_knee = resolve_bone(["LeftLeg", "LeftShin"], mapping)
+    right_knee = resolve_bone(["RightLeg", "RightShin"], mapping)
+    left_foot = resolve_bone(["LeftFoot"], mapping)
+    right_foot = resolve_bone(["RightFoot"], mapping)
+    left_shoulder = resolve_bone(["LeftShoulder"], mapping)
+    right_shoulder = resolve_bone(["RightShoulder"], mapping)
+    neck = resolve_bone(["neck", "Neck"], mapping)
     head = resolve_bone(["Head", "head"], mapping)
+    # Six readable contact/passing poses: one foot reaches while the other
+    # supports, the pelvis carries weight laterally, and the head follows late.
+    # The first and last poses match so the clip loops without a pop.
     key_relaxed_arms(action, armature, mapping, [
-        (1, 1.02, 1.20, 0.05, 0.15),
-        (9, 1.18, 1.00, 0.15, 0.04),
-        (18, 1.00, 1.19, 0.04, 0.16),
-        (27, 1.17, 1.01, 0.14, 0.05),
-        (36, 1.02, 1.20, 0.05, 0.15),
+        (1, 1.08, 1.22, 0.08, 0.18),
+        (7, 1.17, 1.06, 0.15, 0.08),
+        (13, 1.02, 1.18, 0.06, 0.16),
+        (19, 1.15, 1.04, 0.14, 0.06),
+        (25, 1.04, 1.20, 0.07, 0.17),
+        (31, 1.16, 1.05, 0.14, 0.07),
+        (36, 1.08, 1.22, 0.08, 0.18),
     ])
     if hips:
-        key_location(action, armature, hips, [(1, (0.0, 0.0, 0.0)), (9, (0.0, 0.015, 0.0)), (18, (0.0, 0.0, 0.0)), (27, (0.0, -0.008, 0.0)), (36, (0.0, 0.0, 0.0))])
+        key_location(action, armature, hips, [
+            (1, (-0.035, 0.0, 0.0)), (7, (0.018, 0.0, 0.022)),
+            (13, (0.042, 0.0, -0.012)), (19, (-0.018, 0.0, 0.022)),
+            (25, (-0.044, 0.0, -0.012)), (31, (0.012, 0.0, 0.022)),
+            (36, (-0.035, 0.0, 0.0)),
+        ])
     if spine:
-        key_rotation(action, armature, spine, [(1, (0.0, 0.0, -0.03)), (18, (0.018, 0.0, 0.025)), (36, (0.0, 0.0, -0.03))])
+        key_rotation(action, armature, spine, [
+            (1, (0.08, 0.0, -0.04)), (7, (0.13, 0.0, 0.02)),
+            (13, (0.05, 0.0, 0.05)), (19, (0.14, 0.0, 0.01)),
+            (25, (0.04, 0.0, -0.05)), (31, (0.12, 0.0, -0.01)),
+            (36, (0.08, 0.0, -0.04)),
+        ])
     if left_leg:
-        key_rotation(action, armature, left_leg, [(1, (0.10, 0.0, 0.0)), (18, (-0.08, 0.0, 0.0)), (36, (0.10, 0.0, 0.0))])
+        key_rotation(action, armature, left_leg, [
+            (1, (-0.28, 0.0, 0.0)), (7, (-0.10, 0.0, 0.0)),
+            (13, (0.18, 0.0, 0.0)), (19, (0.28, 0.0, 0.0)),
+            (25, (0.06, 0.0, 0.0)), (31, (-0.18, 0.0, 0.0)),
+            (36, (-0.28, 0.0, 0.0)),
+        ])
     if right_leg:
-        key_rotation(action, armature, right_leg, [(1, (-0.08, 0.0, 0.0)), (18, (0.10, 0.0, 0.0)), (36, (-0.08, 0.0, 0.0))])
+        key_rotation(action, armature, right_leg, [
+            (1, (0.20, 0.0, 0.0)), (7, (0.05, 0.0, 0.0)),
+            (13, (-0.20, 0.0, 0.0)), (19, (-0.28, 0.0, 0.0)),
+            (25, (-0.02, 0.0, 0.0)), (31, (0.18, 0.0, 0.0)),
+            (36, (0.20, 0.0, 0.0)),
+        ])
+    if left_knee:
+        key_rotation(action, armature, left_knee, [
+            (1, (0.16, 0.0, 0.0)), (7, (0.08, 0.0, 0.0)),
+            (13, (0.04, 0.0, 0.0)), (19, (0.18, 0.0, 0.0)),
+            (25, (0.10, 0.0, 0.0)), (31, (0.04, 0.0, 0.0)),
+            (36, (0.16, 0.0, 0.0)),
+        ])
+    if right_knee:
+        key_rotation(action, armature, right_knee, [
+            (1, (0.06, 0.0, 0.0)), (7, (0.12, 0.0, 0.0)),
+            (13, (0.20, 0.0, 0.0)), (19, (0.08, 0.0, 0.0)),
+            (25, (0.14, 0.0, 0.0)), (31, (0.20, 0.0, 0.0)),
+            (36, (0.06, 0.0, 0.0)),
+        ])
+    if left_foot:
+        key_rotation(action, armature, left_foot, [(1, (-0.04, 0.0, 0.0)), (7, (-0.02, 0.0, 0.0)), (13, (0.02, 0.0, 0.0)), (19, (0.04, 0.0, 0.0)), (25, (0.0, 0.0, 0.0)), (31, (-0.02, 0.0, 0.0)), (36, (-0.04, 0.0, 0.0))])
+    if right_foot:
+        key_rotation(action, armature, right_foot, [(1, (0.02, 0.0, 0.0)), (7, (0.0, 0.0, 0.0)), (13, (-0.04, 0.0, 0.0)), (19, (-0.02, 0.0, 0.0)), (25, (0.02, 0.0, 0.0)), (31, (0.04, 0.0, 0.0)), (36, (0.02, 0.0, 0.0))])
+    if left_shoulder:
+        key_rotation(action, armature, left_shoulder, [(1, (0.0, 0.0, -0.10)), (7, (0.02, 0.0, -0.16)), (13, (0.0, 0.0, -0.06)), (19, (0.02, 0.0, -0.14)), (25, (0.0, 0.0, -0.05)), (31, (0.02, 0.0, -0.12)), (36, (0.0, 0.0, -0.10))])
+    if right_shoulder:
+        key_rotation(action, armature, right_shoulder, [(1, (0.0, 0.0, 0.08)), (7, (0.0, 0.0, 0.13)), (13, (0.02, 0.0, 0.05)), (19, (0.0, 0.0, 0.12)), (25, (0.02, 0.0, 0.04)), (31, (0.0, 0.0, 0.10)), (36, (0.0, 0.0, 0.08))])
+    if neck:
+        key_rotation(action, armature, neck, [(1, (0.06, 0.0, -0.05)), (7, (0.03, 0.0, -0.02)), (13, (0.10, 0.0, 0.03)), (19, (0.04, 0.0, 0.06)), (25, (0.11, 0.0, 0.02)), (31, (0.05, 0.0, -0.01)), (36, (0.06, 0.0, -0.05))])
     if head:
-        key_rotation(action, armature, head, [(1, (0.015, 0.0, -0.04)), (18, (-0.025, 0.02, 0.02)), (36, (0.015, 0.0, -0.04))])
+        # The head reaches each new weight shift one pose late.
+        key_rotation(action, armature, head, [(1, (0.02, 0.0, -0.08)), (7, (0.01, 0.0, -0.05)), (13, (0.08, 0.02, 0.01)), (19, (0.02, 0.01, 0.08)), (25, (0.09, -0.01, 0.04)), (31, (0.03, 0.0, -0.02)), (36, (0.02, 0.0, -0.08))])
+    linearize(action)
+    return action
+
+
+def make_attack_lunge(armature, mapping):
+    """A short in-place melee lunge whose contact lands near the engine strike."""
+    action = action_for(armature, "AshWitness_AttackLunge", 20, loop=False)
+    hips = resolve_bone(["Hips", "hips"], mapping)
+    spine = resolve_bone(["Spine02", "Spine01", "Spine"], mapping)
+    neck = resolve_bone(["neck", "Neck"], mapping)
+    head = resolve_bone(["Head", "head"], mapping)
+    left_arm = resolve_bone(["LeftArm", "LeftUpperArm"], mapping)
+    right_arm = resolve_bone(["RightArm", "RightUpperArm"], mapping)
+    left_forearm = resolve_bone(["LeftForeArm", "LeftLowerArm"], mapping)
+    right_forearm = resolve_bone(["RightForeArm", "RightLowerArm"], mapping)
+    left_leg = resolve_bone(["LeftUpLeg", "LeftThigh"], mapping)
+    right_leg = resolve_bone(["RightUpLeg", "RightThigh"], mapping)
+    if hips:
+        key_location(action, armature, hips, [(1, (0.0, 0.0, 0.0)), (4, (0.0, -0.05, 0.02)), (8, (0.0, 0.12, -0.015)), (11, (0.0, 0.16, -0.02)), (15, (0.0, 0.05, 0.0)), (20, (0.0, 0.0, 0.0))])
+    if spine:
+        key_rotation(action, armature, spine, [(1, (0.04, 0.0, 0.0)), (4, (-0.10, 0.0, -0.02)), (8, (0.22, 0.0, 0.04)), (11, (0.42, 0.0, 0.08)), (15, (0.18, 0.0, 0.03)), (20, (0.04, 0.0, 0.0))])
+    if neck:
+        key_rotation(action, armature, neck, [(1, (0.04, 0.0, 0.0)), (4, (0.02, 0.0, -0.03)), (8, (0.10, 0.0, 0.04)), (11, (0.20, 0.0, 0.08)), (15, (0.14, 0.0, 0.04)), (20, (0.04, 0.0, 0.0))])
+    if head:
+        key_rotation(action, armature, head, [(1, (0.02, 0.0, -0.06)), (4, (0.02, 0.0, -0.08)), (8, (0.04, 0.0, 0.02)), (11, (0.13, 0.01, 0.10)), (15, (0.16, 0.0, 0.06)), (20, (0.02, 0.0, -0.06))])
+    if left_arm:
+        key_rotation(action, armature, left_arm, [(1, (1.10, 0.0, -0.10)), (4, (0.86, 0.0, -0.18)), (8, (0.42, 0.0, -0.22)), (11, (0.18, 0.0, -0.25)), (15, (0.64, 0.0, -0.18)), (20, (1.10, 0.0, -0.10))])
+    if right_arm:
+        key_rotation(action, armature, right_arm, [(1, (1.14, 0.0, 0.10)), (4, (0.92, 0.0, 0.16)), (8, (0.62, 0.0, 0.22)), (11, (0.46, 0.0, 0.24)), (15, (0.82, 0.0, 0.14)), (20, (1.14, 0.0, 0.10))])
+    if left_forearm:
+        key_rotation(action, armature, left_forearm, [(1, (0.10, 0.0, 0.0)), (4, (0.22, 0.0, 0.0)), (8, (0.42, 0.0, 0.0)), (11, (0.58, 0.0, 0.0)), (15, (0.30, 0.0, 0.0)), (20, (0.10, 0.0, 0.0))])
+    if right_forearm:
+        key_rotation(action, armature, right_forearm, [(1, (0.10, 0.0, 0.0)), (4, (0.20, 0.0, 0.0)), (8, (0.34, 0.0, 0.0)), (11, (0.44, 0.0, 0.0)), (15, (0.24, 0.0, 0.0)), (20, (0.10, 0.0, 0.0))])
+    if left_leg:
+        key_rotation(action, armature, left_leg, [(1, (0.0, 0.0, 0.0)), (4, (-0.12, 0.0, 0.0)), (8, (-0.30, 0.0, 0.0)), (11, (-0.20, 0.0, 0.0)), (15, (-0.08, 0.0, 0.0)), (20, (0.0, 0.0, 0.0))])
+    if right_leg:
+        key_rotation(action, armature, right_leg, [(1, (0.0, 0.0, 0.0)), (4, (0.10, 0.0, 0.0)), (8, (0.24, 0.0, 0.0)), (11, (0.18, 0.0, 0.0)), (15, (0.06, 0.0, 0.0)), (20, (0.0, 0.0, 0.0))])
+    linearize(action)
+    return action
+
+
+def make_hit_recoil(armature, mapping):
+    """A compact readable hit response, leaving collision and flash timing to the engine."""
+    action = action_for(armature, "AshWitness_HitRecoil", 14, loop=False)
+    hips = resolve_bone(["Hips", "hips"], mapping)
+    spine = resolve_bone(["Spine02", "Spine01", "Spine"], mapping)
+    neck = resolve_bone(["neck", "Neck"], mapping)
+    head = resolve_bone(["Head", "head"], mapping)
+    left_arm = resolve_bone(["LeftArm", "LeftUpperArm"], mapping)
+    right_arm = resolve_bone(["RightArm", "RightUpperArm"], mapping)
+    left_forearm = resolve_bone(["LeftForeArm", "LeftLowerArm"], mapping)
+    right_forearm = resolve_bone(["RightForeArm", "RightLowerArm"], mapping)
+    if hips:
+        key_location(action, armature, hips, [(1, (0.0, 0.0, 0.0)), (3, (0.0, -0.07, 0.02)), (6, (0.0, -0.11, 0.04)), (9, (0.0, -0.04, 0.01)), (14, (0.0, 0.0, 0.0))])
+    if spine:
+        key_rotation(action, armature, spine, [(1, (0.06, 0.0, 0.0)), (3, (-0.14, 0.0, -0.05)), (6, (-0.28, 0.0, -0.10)), (9, (-0.12, 0.0, -0.04)), (14, (0.06, 0.0, 0.0))])
+    if neck:
+        key_rotation(action, armature, neck, [(1, (0.04, 0.0, 0.0)), (3, (0.03, 0.0, -0.02)), (6, (-0.12, 0.0, -0.08)), (9, (-0.08, 0.0, -0.03)), (14, (0.04, 0.0, 0.0))])
+    if head:
+        key_rotation(action, armature, head, [(1, (0.02, 0.0, -0.05)), (3, (0.0, 0.0, -0.08)), (6, (-0.18, 0.0, -0.13)), (9, (-0.11, 0.0, -0.05)), (14, (0.02, 0.0, -0.05))])
+    if left_arm:
+        key_rotation(action, armature, left_arm, [(1, (1.10, 0.0, -0.10)), (3, (0.94, 0.0, -0.16)), (6, (0.78, 0.0, -0.22)), (9, (0.96, 0.0, -0.16)), (14, (1.10, 0.0, -0.10))])
+    if right_arm:
+        key_rotation(action, armature, right_arm, [(1, (1.14, 0.0, 0.10)), (3, (1.00, 0.0, 0.16)), (6, (0.88, 0.0, 0.22)), (9, (1.02, 0.0, 0.15)), (14, (1.14, 0.0, 0.10))])
+    if left_forearm:
+        key_rotation(action, armature, left_forearm, [(1, (0.10, 0.0, 0.0)), (3, (0.16, 0.0, 0.0)), (6, (0.24, 0.0, 0.0)), (9, (0.16, 0.0, 0.0)), (14, (0.10, 0.0, 0.0))])
+    if right_forearm:
+        key_rotation(action, armature, right_forearm, [(1, (0.10, 0.0, 0.0)), (3, (0.14, 0.0, 0.0)), (6, (0.22, 0.0, 0.0)), (9, (0.14, 0.0, 0.0)), (14, (0.10, 0.0, 0.0))])
     linearize(action)
     return action
 
@@ -257,7 +383,13 @@ def main():
     armature.name = "AshWitness_Rig"
     armature.data.name = "AshWitness_Skeleton"
     mapping = bone_name_map(armature)
-    actions = [make_idle(armature, mapping), make_shuffle(armature, mapping), make_collapse(armature, mapping)]
+    actions = [
+        make_idle(armature, mapping),
+        make_shuffle(armature, mapping),
+        make_attack_lunge(armature, mapping),
+        make_hit_recoil(armature, mapping),
+        make_collapse(armature, mapping),
+    ]
     armature.animation_data_clear()
     armature.animation_data_create()
     for action in actions:
@@ -271,7 +403,7 @@ def main():
     bpy.context.scene.render.resolution_percentage = 50
     bpy.context.scene["afterlifeCharacter"] = "Ash Witness"
     bpy.context.scene["meshSource"] = "Meshy multi-image-to-3d + Meshy rigging"
-    bpy.context.scene["animationSource"] = "Blender-authored additive pose clips"
+    bpy.context.scene["animationSource"] = "Blender-authored Dread v02 gait, lunge, recoil, and collapse clips"
     bpy.context.scene["clipNames"] = [action.name for action in actions]
     bpy.ops.wm.save_as_mainfile(filepath=str(blend_path))
 
@@ -293,13 +425,15 @@ def main():
         "blend": str(blend_path),
         "export": str(export_path),
         "source": "Meshy multi-image-to-3d + Meshy rigging",
-        "animationSource": "Blender-authored additive pose clips",
+        "animationSource": "Blender-authored Dread v02 gait, lunge, recoil, and collapse clips",
         "bones": sorted(mapping.values()),
         "boneCount": len(mapping),
         "clips": [{"name": action.name, "frameStart": int(action.get("clipStart", 1)), "frameEnd": int(action.get("clipEnd", 1)), "loop": bool(action.get("loop", False))} for action in actions],
         "notes": [
             "Idle uses a 2.4 second breathing cycle with a restrained head cant.",
-            "Shuffle uses a 1.5 second in-place foot/shoulder asymmetry.",
+            "Shuffle uses six planted contact/passing poses with delayed head and asymmetrical arms.",
+            "AttackLunge lands its bodyweight lunge near the engine's 0.28 second melee strike.",
+            "HitRecoil uses a short backstep response for enemy flash/stagger events.",
             "Collapse uses a 1.8 second forward fold with knees and arms softening.",
             "This export is intentionally pre-compression; the package step owns runtime size reduction.",
         ],

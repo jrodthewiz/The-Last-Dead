@@ -1,0 +1,62 @@
+/* The title sits inside the live world. These rules are scoped to the home screen. */
+#ui .menu-screen {
+  display: block; padding: 0; place-items:normal; text-align:left;
+  background: linear-gradient(90deg, rgba(3,7,8,.87), rgba(3,7,8,.58) 30%, rgba(3,7,8,.04) 62%, rgba(3,7,8,.06)), linear-gradient(0deg, rgba(2,5,6,.75), transparent 32%, transparent 76%, rgba(2,5,6,.35));
+  overflow: auto;
+}
+#ui .menu-screen::before { opacity:.018; background:repeating-linear-gradient(0deg,transparent 0 3px,#d5e5d8 4px,transparent 5px); mix-blend-mode:soft-light; }
+#ui .menu-screen::after { position:fixed; opacity:1; background:radial-gradient(ellipse at 65% 43%,transparent 17%,rgba(1,4,5,.14) 65%,rgba(1,4,5,.75)); }
+#ui .menu-shell {
+  display:flex; flex-direction:column; justify-content:center; align-items:flex-start;
+  width:min(610px,48%); min-height:100%; max-height:none; gap:34px;
+  padding:100px 0 105px max(7.5vw,env(safe-area-inset-left,0px)); margin:0;
+  border:0; background:none; overflow:visible;
+}
+#ui .menu-shell::before,#ui .menu-shell::after { display:none; }
+#ui .menu-copy { width:100%; max-width:none; min-height:0; }
+#ui .brand-lockup { display:block; }
+#ui .menu-eyebrow { margin:0 0 29px; color:#9aa6a0; font:10px/1.5 'Courier New',monospace; letter-spacing:.27em; }
+#ui .brand-title { display:block; margin:0; filter:none; font-family:Georgia,'Times New Roman',serif; text-shadow:0 4px 30px #0007; }
+#ui .brand-title>span { display:block; writing-mode:horizontal-tb; margin:0 0 12px 4px; color:#d8d5c7; font:normal clamp(20px,2.5vw,38px)/1.2 Georgia,serif; letter-spacing:.3em; }
+#ui .brand-title em { display:block; color:#e4dfd0; font:normal clamp(80px,10.2vw,155px)/.83 Georgia,'Times New Roman',serif; letter-spacing:.04em; }
+#ui .menu-whisper { margin:25px 0 0 4px; color:#a2aca6; font:italic 16px/1.5 Georgia,serif; letter-spacing:.055em; }
+#ui .menu-actions { width:100%; max-width:330px; gap:3px; overflow:visible; padding:0 0 0 4px; }
+#ui .start-button { display:flex; align-items:center; justify-content:space-between; min-height:57px; padding:15px 0; margin:0 0 17px; border-top:1px solid #939e873b; border-bottom:1px solid #939e873b; color:#d8d8c9; }
+#ui .start-button .menu-choice { font:normal 12px/1.4 'Courier New',monospace; letter-spacing:.2em; }
+#ui .menu-enter-arrow { font:25px/1 Georgia,serif; color:#ba4d43; }
+#ui .start-button::before,#ui .start-button::after { display:none; }
+#ui .menu-link,#ui .coop-toggle,#ui .coop-toggle b { font:normal 11px/1.4 'Courier New',monospace; letter-spacing:.2em; color:#a9b3ad; }
+#ui .menu-link,#ui .coop-toggle { min-height:44px; padding:11px 0; }
+#ui .menu-link:hover,#ui .coop-toggle:hover,#ui .start-button:hover { color:#f0e8d6; transform:translateX(4px); }
+#ui .menu-link:active,#ui .coop-toggle:active,#ui .start-button:active { color:#d67968; transform:translateX(2px); }
+#ui .menu-screen button:focus-visible { outline:1px solid #bd837099; outline-offset:4px; }
+#ui .coop-toggle i { color:#87938e; font-size:17px; }
+#ui .coop-panel { background:#0a1414f5; border-color:#68716a50; }
+#ui .field-guide { background:#0a1414eb; padding:14px; border-color:#68716a50; }
+#ui .cinema-frame,#ui .cinema-footer { position:absolute; left:max(4vw,env(safe-area-inset-left,0px)); right:max(4vw,env(safe-area-inset-right,0px)); z-index:2; display:flex; justify-content:space-between; gap:20px; pointer-events:none; color:#91a09a; font:9px/1.5 'Courier New',monospace; letter-spacing:.2em; }
+#ui .cinema-frame { top:max(35px,env(safe-area-inset-top,0px)); padding-bottom:13px; border-bottom:1px solid #b7c1ad26; }
+#ui .cinema-footer { bottom:max(30px,env(safe-area-inset-bottom,0px)); color:#828c86; }
+#ui .cinema-footer span:last-child { color:#bc7265; }
+#ui[data-screen="menu"]::before { opacity:.035; }
+@media(max-width:700px) {
+  #ui .menu-screen { background:linear-gradient(0deg,#030708ed 0%,#030708b5 35%,#03070816 68%,#03070844),linear-gradient(90deg,#03070866,transparent 75%); }
+  #ui .menu-shell { width:100%; min-height:100%; padding:36vh max(30px,env(safe-area-inset-left,0px)) 74px; gap:23px; justify-content:flex-start; }
+  #ui .menu-eyebrow { font-size:8px; margin-bottom:15px; letter-spacing:.16em; }
+  #ui .brand-title>span { font-size:20px; margin-bottom:8px; letter-spacing:.25em; }
+  #ui .brand-title em { font-size:clamp(69px,21vw,103px); }
+  #ui .menu-whisper { font-size:13px; margin-top:15px; }
+  #ui .menu-actions { max-width:none; width:min(100%,350px); gap:0; }
+  #ui .start-button { margin-bottom:5px; }
+  #ui .cinema-frame { left:25px; right:25px; top:max(23px,env(safe-area-inset-top,0px)); font-size:7px; letter-spacing:.1em; }
+  #ui .cinema-footer { position:relative; bottom:auto; left:auto; right:auto; margin:-38px 30px 20px; font-size:7px; }
+}
+@media(max-height:600px) and (min-width:701px) {
+  #ui .menu-shell { padding-top:76px; padding-bottom:16px; gap:18px; width:48%; }
+  #ui .menu-eyebrow,#ui .menu-whisper,#ui .cinema-footer { display:none; }
+  #ui .brand-title em { font-size:68px; }
+  #ui .brand-title>span { font-size:18px; }
+  #ui .menu-actions { gap:0; }
+  #ui .start-button { margin-bottom:5px; min-height:47px; }
+  #ui .menu-link,#ui .coop-toggle { min-height:44px; }
+}
+@media(prefers-reduced-motion:reduce) { #ui .menu-screen button { transition:none; } }

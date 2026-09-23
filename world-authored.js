@@ -11,7 +11,7 @@ const F5_GULLET_FRAME = new THREE.MeshStandardMaterial({
 });
 F5_GULLET_FRAME.name = 'F5GulletFrameBasalt';
 F5_GULLET_FRAME.userData.sharedLibrary = true;
-const F3_BONE_FRAME = new THREE.MeshStandardMaterial({ color: 0x8f897b, roughness: .94, metalness: 0 });
+const F3_BONE_FRAME = new THREE.MeshStandardMaterial({ color: 0x706b64, roughness: .96, metalness: 0 });
 F3_BONE_FRAME.name = 'F3BoneFrame';
 F3_BONE_FRAME.userData.sharedLibrary = true;
 const world = p => ({ x: (p?.[0] ?? 6) * CELL, z: (p?.[1] ?? 6) * CELL });
@@ -29,6 +29,31 @@ const cable = (parent, material, a, b, radius = .05, moving) => {
   o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize());
   return o;
 };
+
+function segmentedTunnelRib(radius, band = .44, depth = .38, segments = 14) {
+  const outer = radius + band * .5;
+  const inner = Math.max(.2, radius - band * .5);
+  const shape = new THREE.Shape();
+  for (let i = 0; i <= segments; i++) {
+    const angle = Math.PI - i / segments * Math.PI;
+    const x = Math.cos(angle) * outer;
+    const y = Math.sin(angle) * outer;
+    if (i === 0) shape.moveTo(x, y); else shape.lineTo(x, y);
+  }
+  for (let i = segments; i >= 0; i--) {
+    const angle = Math.PI - i / segments * Math.PI;
+    shape.lineTo(Math.cos(angle) * inner, Math.sin(angle) * inner);
+  }
+  shape.closePath();
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth, steps: 1, curveSegments: 1,
+    bevelEnabled: true, bevelSegments: 1, bevelSize: .026, bevelThickness: .018,
+  });
+  geometry.translate(0, 0, -depth * .5);
+  geometry.computeVertexNormals();
+  geometry.userData.archProfile = 'segmented-load-rib-v2';
+  return geometry;
+}
 const annulusGeometry = (outer, inner, depth, bevel = .025, segments = 40) => {
   const shape = new THREE.Shape();
   for (let i = 0; i <= segments; i++) {
@@ -83,10 +108,16 @@ function makeTunnelSetpiece(root, item, sector, m, moving, lights, art) {
   group.userData.noBatch = true;
   const dark = m.black || m.metalDark;
   const isF5ThroatTunnel = item.id?.startsWith('f5-sp-throat');
+  const isOssuaryTunnel = item.id?.startsWith('f3-');
+  // Catacombs ribs are load-bearing service frames, so use the shared worn
+  // metal source when the renderer provides it.  Keeping the source material
+  // itself here lets the one-shot afterlife surface pass sync a late-loaded
+  // map without allocating another texture or material library.
+  const ossuaryFrame = m.wornSteel || m.steel || m.metalDark || m.metal || F3_BONE_FRAME;
   let edge = isF5ThroatTunnel
     ? F5_GULLET_FRAME
     : item.id?.startsWith('f4-') ? (m.rust || m.metalDark || dark)
-    : item.id?.startsWith('f3-') ? F3_BONE_FRAME
+    : isOssuaryTunnel ? ossuaryFrame
     : item.id?.startsWith('f2-') ? (m.metal || m.steel || dark)
     : (m.metalDark || m.steel || m.floorTrim || dark);
   const signal = tunnelSignalMaterial(m, sector, art);
@@ -120,8 +151,13 @@ function makeTunnelSetpiece(root, item, sector, m, moving, lights, art) {
     const tangent = next.clone().sub(previous); tangent.y = 0;
     const yaw = Math.atan2(tangent.x, tangent.z);
     const crownY = archHeight * .5 + radius;
-    const arch = add(group, new THREE.TorusGeometry(radius, .22, 8, 24, Math.PI), edge, point.x, archHeight * .5, point.z, moving);
+    const arch = add(group, segmentedTunnelRib(radius, .44, .38, 14), edge, point.x, archHeight * .5, point.z, moving);
     arch.name = `TunnelRib_${item.id}_${i}`;
+    arch.userData.archProfile = 'segmented-load-rib-v2';
+    if (isOssuaryTunnel) {
+      arch.userData.afterlifeSurfaceRole = 'roomTrim';
+      arch.userData.wornFinish = 'dread-worn-steel-v1';
+    }
     arch.rotation.y = yaw;
     arches.push(arch);
     // Grounded jambs turn the overhead ribs into a tunnel kit instead of
@@ -131,8 +167,10 @@ function makeTunnelSetpiece(root, item, sector, m, moving, lights, art) {
     for (const side of [-1, 1]) {
       const leg = beam(group, edge, point.x + span.x * side, archHeight * .25, point.z + span.z * side, .42, archHeight * .5, .38, moving);
       leg.rotation.y = yaw;
+      if (isOssuaryTunnel) { leg.userData.afterlifeSurfaceRole = 'roomTrim'; leg.userData.wornFinish = 'dread-worn-steel-v1'; }
       const shoulder = beam(group, edge, point.x + span.x * side, archHeight * .5, point.z + span.z * side, .68, .48, .52, moving);
       shoulder.rotation.y = yaw;
+      if (isOssuaryTunnel) { shoulder.userData.afterlifeSurfaceRole = 'roomTrim'; shoulder.userData.wornFinish = 'dread-worn-steel-v1'; }
       // A recessed face and restrained cap define the rib-to-jamb joint.
       const joint = beam(group, dark, point.x + span.x * side, archHeight * .5, point.z + span.z * side, .48, .19, .55);
       joint.name = `TunnelJoint_${item.id}_${i}_${side}`;
@@ -140,6 +178,7 @@ function makeTunnelSetpiece(root, item, sector, m, moving, lights, art) {
       joint.castShadow = false;
       const plinth = beam(group, edge, point.x + span.x * side, .15, point.z + span.z * side, .72, .3, .62, moving);
       plinth.rotation.y = yaw;
+      if (isOssuaryTunnel) { plinth.userData.afterlifeSurfaceRole = 'roomTrim'; plinth.userData.wornFinish = 'dread-worn-steel-v1'; }
       const foot = beam(group, signal, point.x + span.x * side, .05, point.z + span.z * side, .36, .055, .25, moving);
       foot.rotation.y = yaw;
       // Flush threshold edge strips echo the jamb spacing; the central lane

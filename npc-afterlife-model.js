@@ -6,6 +6,8 @@ export const AFTERLIFE_ASH_WITNESS_URL = './assets/models/afterlife-ash-witness.
 export const AFTERLIFE_ASH_WITNESS_CLIPS = Object.freeze({
  idle: 'AshWitness_Idle',
  shuffle: 'AshWitness_Shuffle',
+ attack: 'AshWitness_AttackLunge',
+ hit: 'AshWitness_HitRecoil',
  collapse: 'AshWitness_Collapse',
 });
 
@@ -85,11 +87,15 @@ export function createAfterlifeModel(asset,kind=0,seed=0){
  const mixer=clips.length?new THREE.AnimationMixer(model):null;
  const idleClip=findClip(clips,AFTERLIFE_ASH_WITNESS_CLIPS.idle);
  const shuffleClip=findClip(clips,AFTERLIFE_ASH_WITNESS_CLIPS.shuffle);
+ const attackClip=findClip(clips,AFTERLIFE_ASH_WITNESS_CLIPS.attack);
+ const hitClip=findClip(clips,AFTERLIFE_ASH_WITNESS_CLIPS.hit);
  const collapseClip=findClip(clips,AFTERLIFE_ASH_WITNESS_CLIPS.collapse);
  const actions={};
  if(mixer){
   if(idleClip){actions.idle=mixer.clipAction(idleClip);actions.idle.setLoop(THREE.LoopRepeat,Infinity).setEffectiveWeight(1).play();}
   if(shuffleClip){actions.shuffle=mixer.clipAction(shuffleClip);actions.shuffle.setLoop(THREE.LoopRepeat,Infinity).setEffectiveWeight(0).play();}
+  if(attackClip){actions.attack=mixer.clipAction(attackClip);actions.attack.setLoop(THREE.LoopOnce,1);actions.attack.clampWhenFinished=true;actions.attack.setEffectiveWeight(0);}
+  if(hitClip){actions.hit=mixer.clipAction(hitClip);actions.hit.setLoop(THREE.LoopOnce,1);actions.hit.clampWhenFinished=true;actions.hit.setEffectiveWeight(0);}
   if(collapseClip){actions.collapse=mixer.clipAction(collapseClip);actions.collapse.setLoop(THREE.LoopOnce,1);actions.collapse.clampWhenFinished=true;actions.collapse.setEffectiveWeight(0);}
   mixer.update(0);
  }
@@ -99,7 +105,13 @@ export function createAfterlifeModel(asset,kind=0,seed=0){
   kind, seed, last:0, motion:0, deadAt:null, lastPosition:new THREE.Vector3(), hasLastPosition:false,
   sourceHeight:size.y, normalization:scale,
   idleAction:actions.idle||null, shuffleAction:actions.shuffle||null,
+  attackAction:actions.attack||null, hitAction:actions.hit||null,
   collapseAction:actions.collapse||null, collapseStarted:false,
+  attackActive:false, hitActive:false, attackStartedAt:null, hitStartedAt:null,
+  // Keep the one-shot readable while preserving a continuous locomotion pose.
+  // The values are deliberately short so combat still tracks the simulation.
+  shotBlendIn:.085, shotBlendOut:.11, clipBlend:null,
+  lastHits:0, lastFlash:0, lastStagger:0,
  };
  // `afterlife` is an object so the shared disposer can stop its mixer; the
  // string marker is explicit for diagnostics and remains distinct from the
@@ -110,10 +122,51 @@ export function createAfterlifeModel(asset,kind=0,seed=0){
  return root;
 }
 
-const setWeights=(state,idleWeight,shuffleWeight,collapseWeight)=>{
+const setWeights=(state,idleWeight,shuffleWeight,collapseWeight,attackWeight=0,hitWeight=0)=>{
  if(state.idleAction)state.idleAction.setEffectiveWeight(idleWeight);
  if(state.shuffleAction)state.shuffleAction.setEffectiveWeight(shuffleWeight);
+ if(state.attackAction)state.attackAction.setEffectiveWeight(attackWeight);
+ if(state.hitAction)state.hitAction.setEffectiveWeight(hitWeight);
  if(state.collapseAction)state.collapseAction.setEffectiveWeight(collapseWeight);
+};
+
+const startOneShot=(state,key,now)=>{
+ const action=state[`${key}Action`];
+ if(!action)return false;
+ action.reset().setEffectiveWeight(1).play();
+ state[`${key}Active`]=true;
+ state[`${key}StartedAt`]=now;
+ state.clipBlend={key, startedAt:now, alpha:0, phase:'in'};
+ return true;
+};
+
+const stopOneShot=(state,key)=>{
+ const action=state[`${key}Action`];
+ if(action)action.stop().setEffectiveWeight(0);
+ state[`${key}Active`]=false;
+ state[`${key}StartedAt`]=null;
+ if(state.clipBlend?.key===key)state.clipBlend=null;
+};
+
+const locomotionWeights=(state)=>{
+ const shuffleWeight=Math.max(0,Math.min(1,(state.motion-.08)/.65));
+ return {
+  idle:state.shuffleAction?1-shuffleWeight:1,
+  shuffle:state.shuffleAction?shuffleWeight:0,
+ };
+};
+
+const oneShotWeight=(state,key)=>{
+ const action=state[`${key}Action`];
+ const blend=state.clipBlend?.key===key?state.clipBlend:null;
+ if(!action||!blend)return 1;
+ const duration=Math.max(.001,action.getClip().duration||0);
+ const fadeIn=Math.min(1,Math.max(0,(state.last-blend.startedAt)/1000/Math.max(.001,state.shotBlendIn)));
+ const fadeOut=Math.min(1,Math.max(0,(duration-action.time)/Math.max(.001,state.shotBlendOut)));
+ const alpha=Math.min(fadeIn,fadeOut);
+ blend.alpha=alpha;
+ blend.phase=fadeIn<1?'in':fadeOut<1?'out':'hold';
+ return alpha;
 };
 
 /**
@@ -130,8 +183,11 @@ export function animateAfterlifeModel(root,enemy={},now=0,seed=0){
  state.lastPosition.set(root.position.x,root.position.y,root.position.z);state.hasLastPosition=true;
  const moved=Math.min(2.2,Math.max(0,measuredSpeed));
  state.motion+=(moved-state.motion)*Math.min(1,dt*10);
- const attackElapsed=Number(enemy.attack);
- const warning=!!enemy.attacking||(Number.isFinite(attackElapsed)&&attackElapsed>=0&&attackElapsed<.3);
+ // `enemy.attack === 0` means the cooldown is ready in engine.js; it is not
+ // an attack countdown. Only the explicit windup/swing flags may drive this
+ // visual telegraph, otherwise every idle enemy would lunge forever.
+ const strike=Number(enemy.strike)||0;
+ const warning=!enemy.dead&&(!!enemy.attacking||strike>0);
  state.warning=warning;
  state.warningRing.visible=warning&&!enemy.dead;
  state.warningRing.scale.setScalar(1+Math.min(1,state.motion)*.12);
@@ -142,17 +198,38 @@ export function animateAfterlifeModel(root,enemy={},now=0,seed=0){
   if(warning){material.emissive.r+=.18;material.emissive.g+=.018;material.emissive.b+=.012;material.emissiveIntensity=Math.max(.42,Number(material.userData.baseEmissiveIntensity)||0);}
   else material.emissiveIntensity=Number(material.userData.baseEmissiveIntensity)||0;
  }
+ const hitCount=Number(enemy.hits)||0;
+ const flash=Number(enemy.flash)||0;
+ const stagger=Number(enemy.stagger)||0;
+ const hitEdge=hitCount>state.lastHits||(flash>.01&&state.lastFlash<=.01)||(stagger>.01&&state.lastStagger<=.01);
+ state.lastHits=hitCount;state.lastFlash=flash;state.lastStagger=stagger;
  if(enemy.dead){
+  stopOneShot(state,'attack');
+  stopOneShot(state,'hit');
   if(!state.collapseStarted){
    state.collapseStarted=true;state.deadAt=now;
    if(state.collapseAction){state.collapseAction.reset().setEffectiveWeight(1).play();}
   }
-  setWeights(state,0,0,state.collapseAction?1:0);
+  setWeights(state,0,0,state.collapseAction?1:0,0,0);
  }else{
   state.collapseStarted=false;state.deadAt=null;
-  const shuffleWeight=Math.max(0,Math.min(1,(state.motion-.08)/.65));
-  setWeights(state,state.shuffleAction?1-shuffleWeight:1,state.shuffleAction?shuffleWeight:0,0);
-  if(state.shuffleAction)state.shuffleAction.setEffectiveTimeScale(Math.max(.65,Math.min(1.5,.78+state.motion*.42)));
+  if(hitEdge){
+   stopOneShot(state,'attack');
+   startOneShot(state,'hit',now);
+  }
+  const attackTrigger=!!enemy.attacking&&!state.attackActive&&!state.hitActive;
+  if(attackTrigger)startOneShot(state,'attack',now);
+  const locomotion=locomotionWeights(state);
+  if(state.hitActive){
+   const shot=oneShotWeight(state,'hit');
+   setWeights(state,locomotion.idle*(1-shot),locomotion.shuffle*(1-shot),0,0,shot);
+  }else if(state.attackActive){
+   const shot=oneShotWeight(state,'attack');
+   setWeights(state,locomotion.idle*(1-shot),locomotion.shuffle*(1-shot),0,shot,0);
+  }else{
+   setWeights(state,locomotion.idle,locomotion.shuffle,0,0,0);
+   if(state.shuffleAction)state.shuffleAction.setEffectiveTimeScale(Math.max(.65,Math.min(1.5,.78+state.motion*.42)));
+  }
  }
  // Keep combat telegraph ownership with the enemy simulation. This marker is
  // useful to renderer diagnostics and lets a future attack clip be layered in
@@ -160,6 +237,8 @@ export function animateAfterlifeModel(root,enemy={},now=0,seed=0){
  state.attacking=!!enemy.attacking;
  state.attackWindow=Number(enemy.windup||0);
  state.mixer?.update(dt);
+ if(state.attackActive&&state.attackAction&&state.attackAction.time>=state.attackAction.getClip().duration-.001&&!warning&&strike<=0)stopOneShot(state,'attack');
+ if(state.hitActive&&state.hitAction&&state.hitAction.time>=state.hitAction.getClip().duration-.001)stopOneShot(state,'hit');
  return true;
 }
 

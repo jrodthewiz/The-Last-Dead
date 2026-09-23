@@ -567,8 +567,12 @@ export function tick(r,dt,input={}){if(r.mode!=='play')return;dt=clamp(dt,0,.05)
   }
   r.pools=r.pools.filter(pool=>pool.life>0);
  }
- // Wounds keep weeping and stains spread, so blood reads as volume, not decal spam.
- for(const b of r.blood)b.size=Math.min(.46,(b.size||.12)+dt*.035);
+ // Residue settles only a little; a pin-sized drip must never grow into a
+ // room-wide disk. Age also drives the renderer's wet-to-dry response.
+ for(const b of r.blood){
+  b.baseSize??=b.size||.12;b.age=(b.age||0)+dt;
+  b.size=b.baseSize*(1+.16*(1-Math.exp(-b.age*1.3)));
+ }
  r.style=Math.max(0,r.style-dt*35);r.rank=r.style>1400?'SSS':r.style>1100?'SS':r.style>800?'S':r.style>550?'A':r.style>300?'B':r.style>120?'C':'D';
  if(r.campaign){
   updateCampaignDirector(r,dt);

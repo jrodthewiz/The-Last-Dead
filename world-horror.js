@@ -73,6 +73,58 @@ function skullParts(x = 0, y = 0, z = 0, scale = 1) {
   ];
 }
 
+function archedBand(radius, band, depth, segments = 12) {
+  const outer = radius + band * .5;
+  const inner = Math.max(.18, radius - band * .5);
+  const shape = new THREE.Shape();
+  for (let i = 0; i <= segments; i++) {
+    const angle = Math.PI - i / segments * Math.PI;
+    const x = Math.cos(angle) * outer;
+    const y = Math.sin(angle) * outer;
+    if (i === 0) shape.moveTo(x, y); else shape.lineTo(x, y);
+  }
+  for (let i = segments; i >= 0; i--) {
+    const angle = Math.PI - i / segments * Math.PI;
+    shape.lineTo(Math.cos(angle) * inner, Math.sin(angle) * inner);
+  }
+  shape.closePath();
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth, steps: 1, curveSegments: 1,
+    bevelEnabled: true, bevelSegments: 1, bevelSize: .018, bevelThickness: .018,
+  });
+  geometry.translate(0, 0, -depth * .5);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+function serviceRail(sign, lean = 0) {
+  const points = [
+    new THREE.Vector3(sign * 1.08, .22, 0),
+    new THREE.Vector3(sign * 1.1, 1.15, lean * .08),
+    new THREE.Vector3(sign * 1.07, 2.12, lean * .16),
+    new THREE.Vector3(sign * 1.04, 3.16, lean * .12),
+    new THREE.Vector3(sign * 1.0, 4.16, 0),
+  ];
+  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 10, .075, 5, false);
+}
+
+// A full-width rib makes a single service frame: every curved member meets
+// both rails, so the silhouette reads as installed hardware rather than loose
+// branches. Small depth offsets keep the frame from looking mathematically
+// mirrored while preserving the same footprint and one merged draw.
+function serviceRib(y, radius, sag = 0) {
+  const points = [
+    new THREE.Vector3(-radius, y, 0),
+    new THREE.Vector3(-radius * .72, y + .1 + sag * .16, -.015),
+    new THREE.Vector3(-radius * .35, y + .17 + sag * .28, sag * .15),
+    new THREE.Vector3(0, y + .2 + sag * .34, sag * .22),
+    new THREE.Vector3(radius * .35, y + .17 - sag * .24, sag * .08),
+    new THREE.Vector3(radius * .72, y + .1 - sag * .12, -.012),
+    new THREE.Vector3(radius, y, 0),
+  ];
+  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 10, .072, 5, false);
+}
+
 let HORROR_GEOMETRY = null;
 function horrorGeometry() {
   if (HORROR_GEOMETRY) return HORROR_GEOMETRY;
@@ -96,18 +148,32 @@ function horrorGeometry() {
     }
   }
   G.rack = mergePieces(rackParts);
-  // Ossuary: a load-bearing colonnade of spine and ribs.
+  // Ossuary: a load-bearing rib buttress. The old version was a smooth pole
+  // with six identical half-tori and bead-like skulls. A slightly wandering
+  // spine, alternating ribs, and visible collars read as a failed structural
+  // member while keeping the same footprint and one merged draw.
   const colonnadeParts = [
-    box(1.5, .22, 1.5, 0, .11, 0),
-    cyl(.16, .24, 5.2, 9, 0, 2.7, 0),
-    cyl(.4, .48, .2, 10, 0, .3, 0),
+    box(1.35, .18, 1.2, 0, .09, 0),
+    new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, .2, 0), new THREE.Vector3(.04, 1.05, 0),
+      new THREE.Vector3(-.06, 2.05, .02), new THREE.Vector3(.07, 3.12, -.02),
+      new THREE.Vector3(-.03, 4.18, 0),
+    ]), 10, .145, 5, false),
+    cyl(.34, .42, .16, 8, 0, .27, 0),
   ];
   for (let i = 0; i < 6; i++) {
-    colonnadeParts.push(torus(1.25 - i * .06, .075, 6, 20, 0, 1.05 + i * .78, 0, 0, 0, 0, Math.PI));
+    const y = 1.0 + i * .62;
+    const sign = i % 2 ? -1 : 1;
+    const radius = 1.12 - i * .035;
+    colonnadeParts.push(ribRail(sign, y, radius, (i % 3 - 1) * .34));
+    const endX = sign * radius;
+    colonnadeParts.push(cyl(.105, .12, .16, 6, endX, y + .03, (i % 3 - 1) * .16, 0, 0, Math.PI / 2));
   }
-  colonnadeParts.push(...skullParts(-.55, 4.2, 0, 1.15));
-  colonnadeParts.push(...skullParts(.5, 3.5, .1, 1));
+  for (const y of [.72, 2.24, 3.78]) {
+    colonnadeParts.push(cyl(.19, .19, .08, 7, 0, y, 0));
+  }
   G.colonnade = mergePieces(colonnadeParts);
+  G.colonnade.userData.decorRevision = 'ossuary-load-rib-v2';
   // Choir: a bell frame whose three mouths hang over the aisle.
   const frameParts = [
     box(.24, 4.2, .24, -1.45, 2.1, 0),
@@ -136,21 +202,20 @@ function horrorGeometry() {
     sphere(.1, 8, 6, 0, 0, .4),
     torus(.13, .022, 5, 12, 0, 0, .36, Math.PI / 2),
   ]);
+  // Ossuary wall relic: an open, recessed mortuary niche. Its thin arch and
+  // jambs let the wall value show through instead of presenting a flat plaque
+  // with three pale skull beads.
   G.skullRelic = mergePieces([
-    box(1.35, 1.5, .16, 0, 0, -.06),
-    torus(.62, .07, 6, 16, 0, .28, .04, 0, 0, 0, Math.PI),
-    box(.14, .95, .2, -.62, -.2, .04),
-    box(.14, .95, .2, .62, -.2, .04),
-    box(1.4, .14, .3, 0, -.72, .06),
-    ...skullParts(-.32, .05, .22, 1.05),
-    ...skullParts(.3, .0, .22, .95),
-    ...skullParts(0, .45, .2, .8),
+    archedBand(.58, .12, .12, 12),
+    box(.12, .9, .12, -.58, -.25, 0),
+    box(.12, .9, .12, .58, -.25, 0),
+    box(1.12, .1, .14, 0, -.72, 0),
+    cyl(.14, .18, .12, 7, 0, -.42, .08, Math.PI / 2),
   ]);
+  G.skullRelic.userData.decorRevision = 'ossuary-mortuary-niche-v2';
   G.skullRelicGlow = mergePieces([
-    sphere(.045, 6, 5, -.4, .06, .38),
-    sphere(.045, 6, 5, -.24, .06, .38),
-    sphere(.045, 6, 5, .22, .01, .38),
-    sphere(.045, 6, 5, .38, .01, .38),
+    box(.46, .035, .025, 0, -.2, .18),
+    box(.04, .24, .025, 0, -.2, .18),
   ]);
   G.mouthRelic = mergePieces([
     torus(.72, .11, 8, 20, 0, 0, .06, 0, 0, 0, Math.PI * 1.75),

@@ -7,6 +7,12 @@ import {AudioSystem} from './assets/audio.js';
 import {makeDungeonCourse,DUNGEON_LAYERS} from './playground/map/dungeon-course.js';
 const canvas=document.querySelector('#world');
 const renderer=new Renderer(canvas),audio=new AudioSystem();
+const motionPreference=matchMedia('(prefers-reduced-motion: reduce)');
+renderer._systemReducedMotion=motionPreference.matches;
+motionPreference.addEventListener('change',event=>{renderer._systemReducedMotion=event.matches;});
+addEventListener('pointermove',event=>{if(screen==='menu'&&event.pointerType!=='touch')renderer.menuCinematic?.setPointer(event.clientX/innerWidth*2-1,1-event.clientY/innerHeight*2);},{passive:true});
+addEventListener('blur',()=>renderer.menuCinematic?.setPointer(0,0));
+document.addEventListener('pointerleave',()=>renderer.menuCinematic?.setPointer(0,0));
 const requestedDungeonIndex=new URLSearchParams(location.search).has('dungeon')?clamp(Number(new URLSearchParams(location.search).get('dungeon'))||0,0,DUNGEON_LAYERS.length-1):null;
 // ?debug&sector=N starts a campaign descent directly for visual QA.
 const requestedSector=new URLSearchParams(location.search).has('debug')?clamp(Math.floor(Number(new URLSearchParams(location.search).get('sector'))||0),0,2):0;
@@ -130,6 +136,6 @@ function processEvents(){
 }
 function frame(t){const dt=Math.min(.1,last?(t-last)/1000:0);last=t;frames++;fpsClock+=dt;if(fpsClock>.75){fps=frames/fpsClock;frames=0;fpsClock=0;}const live=screen==='play'||(session?.connected&&screen==='pause');if(live&&run.mode==='play'){acc=Math.min(acc+dt,.1);const i=intent();let stepped=false;while(acc>=1/120){stepped=true;if(session?.connected&&session.role==='guest'){tickPlayer(run,1/120,i);if(i.fire||i.alt){if(run.cooldowns[run.weapon]<=0){run.shot=1;run.cooldowns[run.weapon]=weapons[run.weapon].interval;audio.play('shot',run.weapon);}}}else{if(i.fire||i.alt)shoot(run,i.alt);if(run.peer){const ri=performance.now()-remoteSeen<350?remoteInput:{};if(Number.isFinite(ri.angle)){run.peer.angle=ri.angle;run.peer.pitch=ri.pitch;switchWeapon(run.peer,ri.weapon);}tickPlayer(run.peer,1/120,ri);if(ri.fire||ri.alt)shoot(run.peer,ri.alt);if(ri.parry>remoteParry){remoteParry=ri.parry;parry(run.peer);}if(ri.hook>remoteHook){remoteHook=ri.hook;grapple(run.peer);}}tick(run,1/120,i);}acc-=1/120;}if(stepped&&(!session?.connected||session.role==='host'))pulses.clear();netClock+=dt;if(session?.connected&&netClock>=.05){netClock=0;if(session.role==='host')session.send({t:'snapshot',s:snapshot()});else{session.send({t:'input',i:{...i,angle:run.angle,pitch:run.pitch,weapon:run.weapon}});pulses.clear();}}processEvents();}
  if(['win','dead'].includes(run.mode)&&!['win','dead'].includes(screen)){screen=run.mode;resetInput();document.exitPointerLock?.();audio.pause();audio.setScene?.(run.mode);ui.finish(run,run.mode==='win');if(session?.role==='host'&&session.connected)session.send({t:'snapshot',s:snapshot()});}
- renderer.render(run,t);hudClock+=dt;if(hudClock>=1/30){hudClock=0;ui.hud(run,{network:session?.connected?'P2P / '+Math.round(session.rtt||0)+' MS':network,fps});}requestAnimationFrame(frame);}
+ if(screen==='menu')renderer.renderMenu(run,t);else renderer.render(run,t);hudClock+=dt;if(hudClock>=1/30){hudClock=0;ui.hud(run,{network:session?.connected?'P2P / '+Math.round(session.rtt||0)+' MS':network,fps});}requestAnimationFrame(frame);}
 configure(ui.prefs||settings);audio.setScene?.('menu');ui.menu();requestAnimationFrame(frame);
 if(new URLSearchParams(location.search).has('debug'))window.__DEAD_ARRIVAL__={get run(){return run;},get screen(){return screen;},get session(){return session;},get fps(){return fps;},renderer,audio,begin,pause,resume,snapshot,receive,ui};

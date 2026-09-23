@@ -453,8 +453,9 @@ export class UI {
   menu() {
     this.screen='menu';this.root.dataset.screen='menu';this.root.dataset.settingsOpen='false';this.run=null;this._roomCode='';this._connectionBusy=false;
     this.root.innerHTML=`<section class="screen menu-screen" aria-label="The Last Dead main menu">
-     <div class="menu-shell"><div class="menu-copy"><div class="brand-lockup"><h1 class="brand-title"><span>THE</span><em>LAST<br>DEAD</em></h1></div></div>
-     <nav class="menu-actions" aria-label="Main menu"><button class="primary-button start-button" type="button" data-action="start"><span class="menu-choice">PLAY</span></button>
+     <div class="cinema-frame" aria-hidden="true"><span>THE BLOODWORKS</span><span>NO ONE LEAVES ALONE</span></div>
+     <div class="menu-shell"><div class="menu-copy"><div class="brand-lockup"><p class="menu-eyebrow">SOMETHING REMEMBERS YOU.</p><h1 class="brand-title"><span>THE LAST</span><em>DEAD</em></h1><p class="menu-whisper">It knows you're here.</p></div></div>
+     <nav class="menu-actions" aria-label="Main menu"><button class="primary-button start-button" type="button" data-action="start"><span class="menu-choice">ENTER THE DESCENT</span><span class="menu-enter-arrow" aria-hidden="true">⟶</span></button>
           <div class="coop-access"><button class="coop-toggle" type="button" data-action="coop-toggle" aria-expanded="false" aria-controls="coop-form"><span><b>CO-OP</b></span><i data-coop-icon>+</i></button>
                         <div class="coop-panel" id="coop-form" data-coop-panel hidden aria-label="Co-op connection">
               <div class="network-panel">
@@ -469,7 +470,7 @@ export class UI {
       <button class="menu-link" type="button" data-action="settings">SETTINGS</button>
       <button class="menu-link" type="button" data-action="guide" aria-expanded="false">CONTROLS</button>
       <div class="field-guide" hidden><h2>Controls</h2><div class="guide-controls"><b>WASD</b><span>Move / aim</span><b>SPACE / SHIFT</b><span>Jump / dash</span><b>CTRL / F / E</b><span>Slide / parry / tether</span><b>1 2 3 4</b><span>Switch weapons</span><b>RIGHT CLICK</b><span>Alternate fire</span></div></div>
-     </nav></div>
+     </nav></div><div class="cinema-footer" aria-hidden="true"><span>KEEP BREATHING.</span><span>DON'T LOOK AWAY.</span></div>
     </section>${this._settingsMarkup()}`;
     this._applyPrefs();this._syncCoopControls();queueMicrotask(()=>this.root.querySelector('.start-button')?.focus({preventScroll:true}));return this;
   }

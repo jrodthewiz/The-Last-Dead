@@ -92,7 +92,7 @@ try {
     assert.equal(report.comparison.ashWitness.loaded, true, 'new Meshy/Blender asset loaded');
     assert.equal(report.comparison.ashWitness.error, null);
     assert.ok(report.comparison.ashWitness.instances >= 2, 'natural melee enemies use Ash Witness');
-    assert.equal(report.comparison.ashWitness.clips.length, 3, 'three authored Blender clips shipped');
+    assert.ok(report.comparison.ashWitness.clips.length >= 3, 'authored Blender clips shipped');
     assert.equal(report.comparison.afterlifeMapDesign.externalPropsAttached.length, 2);
     assert.deepEqual(report.comparison.afterlifeMapDesign.externalPropErrors, []);
     report.floorTexture = await page.evaluate(() => {

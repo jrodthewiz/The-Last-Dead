@@ -15,17 +15,18 @@
     "meshProvider": "Meshy multi-image-to-3d + Meshy rigging",
     "meshTaskId": "01a0cdab-1572-734a-85da-4dc9103af798",
     "rigTaskId": "01a0cdaf-1182-7473-b631-c659f7d0e138",
-    "blenderSource": ".art-source/afterlife-iteration/Ash_Witness_Afterlife_v01.blend",
+    "blenderSource": ".art-source/afterlife-iteration/Ash_Witness_Dread_v02.blend",
     "blenderAuthoringScript": "scripts/afterlife-character-blender.py",
     "packageScript": "scripts/afterlife-character-package.mjs",
+    "animationSource": "Blender-authored Dread v02 gait, lunge, recoil, and collapse clips",
     "sourceRigSha256": "0299f4e7fc8375b4e466decfd23fb00048529fefe003eacbb951262ca00e2c76",
-    "runtimeSha256": "d445478c7fbebae0530a859197a1c6fedd49af08b012eb9c7470362bb2002540",
-    "runtimeBytes": 2387428,
+    "runtimeSha256": "b950b94bafe1c2d4a78c6198709405214d962e6688ecc7aa4b18f1b067b8fa67",
+    "runtimeBytes": 2440060,
     "runtimeTriangles": 27512,
     "compression": {
       "texture": "512px WebP quality 74",
       "geometry": "Meshoptimizer simplifier ratio 0.35, border locked; no runtime decoder required",
-      "sourceBytes": 32748472
+      "sourceBytes": 32813700
     }
   },
   "rig": {
@@ -45,7 +46,19 @@
       "name": "AshWitness_Shuffle",
       "durationSeconds": 1.5,
       "loop": true,
-      "purpose": "In-place uneven gait with soft shoulder counter-motion."
+      "purpose": "Six-pose planted-foot zombie gait with delayed head and asymmetric arms."
+    },
+    "attack": {
+      "name": "AshWitness_AttackLunge",
+      "durationSeconds": 0.833333,
+      "loop": false,
+      "purpose": "Short in-place bodyweight lunge timed to the melee strike window."
+    },
+    "hit": {
+      "name": "AshWitness_HitRecoil",
+      "durationSeconds": 0.583333,
+      "loop": false,
+      "purpose": "Delayed head and torso recoil for flash/stagger feedback."
     },
     "collapse": {
       "name": "AshWitness_Collapse",
@@ -59,7 +72,7 @@
     "mixer": "new THREE.AnimationMixer(gltf.scene)",
     "clipLookup": "gltf.animations.find((clip) => clip.name === manifest.clips.idle.name)",
     "update": "mixer.update(deltaSeconds)",
-    "transition": "fadeOut(0.12); next.reset().fadeIn(0.12).play()",
+    "transition": "fadeOut(0.12); next.reset().fadeIn(0.12).play(); attack/hit use LoopOnce and clampWhenFinished",
     "fallback": "If the GLB is unavailable, retain the current procedural enemy factory."
   }
 }

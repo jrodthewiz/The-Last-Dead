@@ -141,13 +141,25 @@ const FACTORIES = {
   // Ossuary: a mound of skulls banked against the wall with votive candles.
   skullMound(L, rng) {
     L.stone.push(lathe([[0, 0], [1.3, 0], [1.05, .35], [.6, .8], [.15, 1.05], [0, 1.08]], 14, 0, 0, 0, 0, 0, 0, 1, 1, .8));
-    for (let i = 0; i < 28; i++) {
-      const a = i / 28 * TAU * 3 + rng() * .6, r = .25 + (i % 5) * .22 + rng() * .1, h = Math.max(0, 1.05 - r * .85);
-      // The skull's +z face points outward from the mound, not tangentially.
-      skull(L, Math.cos(a) * r, h + .1, Math.sin(a) * r * .8, 1 + rng() * .32, Math.PI / 2 - a + (rng() - .5) * .4, (rng() - .5) * .55);
+    // Most of the old 28-piece bead pile collapsed into pale spheres at play
+    // distance. Use a few dark, irregular load fragments for the mass and keep
+    // only a small number of legible remains at the exposed face.
+    const fragments = [
+      [-.8, .18, .1, .9, .58, .72], [-.3, .24, .18, .72, .66, .86], [.28, .16, .08, .82, .48, .72],
+      [.72, .2, .2, .66, .74, .8], [-.62, .48, -.02, .62, .7, .64], [.04, .52, .12, .78, .58, .7],
+      [.58, .46, .08, .56, .62, .68], [-.34, .76, .02, .48, .56, .58], [.3, .72, .06, .46, .5, .62],
+    ];
+    for (const [x, y, z, sx, sy, sz] of fragments) {
+      const rock = ico(.3 + rng() * .08, x, y, z, rng() * .4, rng() * TAU, rng() * .3, sx, sy, sz);
+      L.stone.push(rock);
     }
-    for (let i = 0; i < 5; i++) skull(L, (i - 2) * .38, .2 + (i % 2) * .06, .98 - Math.abs(i - 2) * .08, 1.35 + rng() * .12, (rng() - .5) * .25, (rng() - .5) * .2);
-    for (let i = 0; i < 7; i++) {
+    const remains = [
+      [-.58, .32, .66, 1.12], [-.18, .22, .93, 1.18], [.3, .3, .84, 1.08], [.68, .25, .65, 1.02],
+    ];
+    for (const [x, y, z, scale] of remains) {
+      skull(L, x, y, z, scale + rng() * .08, (rng() - .5) * .3, (rng() - .5) * .2);
+    }
+    for (let i = 0; i < 5; i++) {
       const a = rng() * Math.PI, r = 1.45 + rng() * .3, h = .12 + rng() * .25;
       L.wax.push(cyl(.035, .045, h, 6, Math.cos(a) * r, h * .5, Math.sin(a) * r * .8));
       L.flame.push(cone(.028, .09, 5, Math.cos(a) * r, h + .05, Math.sin(a) * r * .8));
@@ -315,6 +327,7 @@ export function buildSetDressingProp(kind, mats, seed = 1) {
   const group = new THREE.Group();
   group.name = 'SetDressing_' + kind;
   group.userData.setDressing = kind;
+  if (kind === 'skullMound') group.userData.decorRevision = 'ossuary-rubble-remains-v2';
   group.userData.parts = SETDRESSING_SPECS[kind]?.parts || [];
   for (const [key, parts] of Object.entries(layers)) {
     if (!parts.length) continue;

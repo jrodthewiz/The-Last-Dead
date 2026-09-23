@@ -102,7 +102,7 @@ const report = {
   runtimeBudgetBytes: MAX_BYTES,
   notes: [
     'The model is a visual enemy asset; collision remains procedural in the game.',
-    'The three Blender-authored clips are preserved as named GLB animations.',
+    'The Blender-authored Dread v02 clips are preserved as named GLB animations.',
     'Material and geometry reduction is intentionally conservative enough to keep the face and clothing readable in cold low light.',
   ],
 };

@@ -25,7 +25,9 @@ import {createArc,animateArc} from './weapon-arc.js';
 import {alignViewmodelArmToGrip} from './assets/survivor/viewmodel-arms.js';
 import {createSurvivorViewArm} from './assets/survivor/player-survivor.js';
 import {CombatVFX} from './combat-vfx.js';
-import {createBloodMask,ProjectileWakes} from './secondary-vfx.js';
+import {MenuCinematic} from './menu-cinematic.js';
+import {ProjectileWakes} from './secondary-vfx.js';
+import {createBloodResiduePool,bloodAtlasReady,disposeBloodAtlas} from './blood-surface.js';
 
 // Dead Arrival's simulation is authored in 4 metre cells. The renderer keeps
 // that scale explicit so camera motion, weapon framing, and enemy proportions
@@ -33,7 +35,7 @@ import {createBloodMask,ProjectileWakes} from './secondary-vfx.js';
 const CELL = 4;
 const MAX_GORE = 260;
 const MAX_BLOOD = 128;
-const MAX_LIMBS = 64;
+
 const MAX_ENEMY_SHADOWS = 96;
 const MAX_PROJECTILES = 96;
 const MAX_TRACERS = 128;
@@ -298,7 +300,7 @@ export class Renderer {
       cyan: emissive(0x57e9ff, 1.7),
       gold: emissive(0xffc24e, 1.35, { roughness: 0.25, metalness: 0.86 }),
       blood: mat(0x641721, 0.86, 0.12, { transparent: true, opacity: 0.82, depthWrite: false, side: THREE.DoubleSide }),
-      gore: mat(0x8e2237, 0.64, 0.18),
+      gore: mat(0x38090b, 0.32, 0),
       enemyArmor: mat(0x4a5567, 0.56, 0.58),
       enemyTrim: mat(0x242d3c, 0.68, 0.46),
       weapon: mat(0x4d6071, 0.52, 0.76),
@@ -435,33 +437,9 @@ export class Renderer {
     this.enemyContactShadows.renderOrder = 1;
     this.enemyContactShadows.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.combatRoot.add(this.enemyContactShadows);
-    const stainMaterial=this.materials.blood.clone();
-    stainMaterial.map=createBloodMask();stainMaterial.transparent=true;stainMaterial.alphaTest=.08;
-    stainMaterial.depthWrite=false;stainMaterial.polygonOffset=true;stainMaterial.polygonOffsetFactor=-1;
-    stainMaterial.roughness=.29;
-    this.bloodPools = new THREE.InstancedMesh(new THREE.PlaneGeometry(2, 2), stainMaterial, MAX_BLOOD);
-    this.bloodPools.name = 'BloodPools';
-    this.bloodPools.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.bloodPools = createBloodResiduePool(MAX_BLOOD);
     this.combatRoot.add(this.bloodPools);
-    // Detached limbs share four instanced pools (arm, leg, skull, eye) so a
-    // dismembered wave costs four draw calls no matter how much of it is
-    // scattered across the floor.
-    const boneMaterial = new THREE.MeshStandardMaterial({ color: 0xc9b69c, roughness: .78, metalness: .08 });
-    const eyeMaterial = new THREE.MeshStandardMaterial({ color: 0x8d1622, roughness: .32, metalness: .05, emissive: 0x3a0409, emissiveIntensity: .8 });
-    this.limbMaterials = { arm: this.materials.gore, leg: this.materials.gore, head: boneMaterial, eye: eyeMaterial };
-    const limbPool = (name, geometry, material, count = MAX_LIMBS) => {
-      const mesh = new THREE.InstancedMesh(geometry, material, count);
-      mesh.name = name;
-      mesh.frustumCulled = false;
-      mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-      this.combatRoot.add(mesh);
-      return mesh;
-    };
-    this.limbArms = limbPool('SeveredArms', new THREE.CapsuleGeometry(.085, .42, 4, 7), this.limbMaterials.arm);
-    this.limbLegs = limbPool('SeveredLegs', new THREE.CapsuleGeometry(.1, .56, 4, 7), this.limbMaterials.leg);
-    this.limbHeads = limbPool('SeveredSkulls', new THREE.IcosahedronGeometry(.19, 1), this.limbMaterials.head, 32);
-    this.limbEyes = limbPool('SeveredEyes', new THREE.SphereGeometry(.055, 7, 6), this.limbMaterials.eye, 24);
-
+    // Death reads through the authored corpse clip and fluid residue; the old capsule limb proxies are retired.
     const projectileGeo = new THREE.IcosahedronGeometry(0.12, 1);
     const projectileCoreGeo = new THREE.IcosahedronGeometry(0.19, 1);
     this.projectileHostile = new THREE.InstancedMesh(projectileGeo, this.materials.red, MAX_PROJECTILES);
@@ -1560,14 +1538,14 @@ export class Renderer {
         if (g.chunk && chunks < MAX_GORE) {
           const spin = (g.spin || 0) + now * 0.003;
           quat.setFromEuler(rotation.set(spin * 1.3, spin * 0.7, spin * 0.5));
-          scale.setScalar((g.size || 0.035) * CELL * (g.chunk ? 1.2 : 0.72));
+          scale.set((g.size || .035) * CELL * .7, (g.size || .035) * CELL * .34, (g.size || .035) * CELL * .48);
           matrix.compose(position.set(worldX(g.x), (g.z || 0) * CELL, worldZ(g.y)), quat, scale);
           this.goreChunks.setMatrixAt(chunks++, matrix);
-        } else if (!g.chunk && droplets < MAX_GORE) {
+        } else if (!g.chunk && g.z > .012 && droplets < MAX_GORE) {
           const velocity=this._dropVelocity ||= new THREE.Vector3(),up=this._dropUp ||= new THREE.Vector3(0,1,0);
           velocity.set(g.vx||0,g.vz||0,g.vy||0);const speed=velocity.length();
           if(speed>.01)quat.setFromUnitVectors(up,velocity.multiplyScalar(1/speed));else quat.identity();
-          const radius=(g.size || 0.018)*CELL;
+          const radius=(g.size || 0.018)*CELL*.5;
           scale.set(radius*.78,radius*(1+Math.min(2.2,speed*.7)),radius*.78);
           matrix.compose(position.set(worldX(g.x), (g.z || 0) * CELL, worldZ(g.y)), quat, scale);
           this.goreDroplets.setMatrixAt(droplets++, matrix);
@@ -1577,36 +1555,11 @@ export class Renderer {
         if (blood >= MAX_BLOOD) break;
         quat.setFromEuler(rotation.set(-Math.PI / 2, 0, b.angle || 0));
         const stainSize=(b.size || 0.15)*CELL;
-        scale.set(stainSize*1.35,stainSize*(.94+Math.sin(b.angle||0)*.16),1);
-        matrix.compose(position.set(worldX(b.x), 0.052, worldZ(b.y)), quat, scale);
+        scale.set(stainSize*1.65,stainSize*(1.1+Math.sin(b.angle||0)*.16),1);
+        matrix.compose(position.set(worldX(b.x), 0.026+(blood%5)*.0005, worldZ(b.y)), quat, scale);
+        this.bloodPools.geometry.attributes.bloodState.setXY(blood, (b.baseSize??b.size)<.14?3:Math.abs(b.id||blood)%3, Math.min(1,(b.age||0)/38));
         this.bloodPools.setMatrixAt(blood++, matrix);
       }
-      // Severed limbs: tumble while airborne, then lie where they land.
-      let arms = 0, legs = 0, heads = 0, eyes = 0;
-      for (const limb of run.limbs || []) {
-        const scaleFactor = (limb.scale || 1) * CELL * 0.42;
-        const resting = limb.rest === true;
-        const spin = limb.angle || 0;
-        if (resting) quat.setFromEuler(rotation.set(-Math.PI / 2 + 0.12, spin, spin * 0.35));
-        else quat.setFromEuler(rotation.set(spin * 1.6, spin, spin * 0.8));
-        const settle = resting ? 0.92 + (limb.settle || 0) * 0.08 : 1;
-        scale.setScalar(Math.max(0.2, scaleFactor * settle));
-        matrix.compose(position.set(worldX(limb.x), Math.max(0.045, (limb.z || 0) * CELL * 0.55), worldZ(limb.y)), quat, scale);
-        if (limb.kind === 'arm' && arms < MAX_LIMBS) {
-          this.limbArms.setMatrixAt(arms++, matrix);
-        } else if (limb.kind === 'leg' && legs < MAX_LIMBS) {
-          this.limbLegs.setMatrixAt(legs++, matrix);
-        } else if (limb.kind === 'head' && heads < 32) {
-          this.limbHeads.setMatrixAt(heads++, matrix);
-        } else if (limb.kind === 'eye' && eyes < 24) {
-          this.limbEyes.setMatrixAt(eyes++, matrix);
-        }
-      }
-      this.limbArms.count = arms;
-      this.limbLegs.count = legs;
-      this.limbHeads.count = heads;
-      this.limbEyes.count = eyes;
-      for (const mesh of [this.limbArms, this.limbLegs, this.limbHeads, this.limbEyes]) mesh.instanceMatrix.needsUpdate = true;
     }
     this.goreChunks.count = chunks;
     this.goreDroplets.count = droplets;
@@ -1614,6 +1567,7 @@ export class Renderer {
     this.goreChunks.instanceMatrix.needsUpdate = true;
     this.goreDroplets.instanceMatrix.needsUpdate = true;
     this.bloodPools.instanceMatrix.needsUpdate = true;
+    this.bloodPools.geometry.attributes.bloodState.needsUpdate = true;
 
     const hostile = [], reflected = [], core = [];
     for (const p of run.projectiles || []) {
@@ -1811,7 +1765,7 @@ export class Renderer {
     for (const group of this.weaponGroups) group.traverse(object => {
       if (object.userData.resourcesReady) weaponResources.push(object.userData.resourcesReady);
     });
-    await Promise.all([this._materialsReady, this._wardenReady, this._survivorReady, this._ashWitnessReady, roomMaterialsReady(), ...weaponResources]);
+    await Promise.all([this._materialsReady, this._wardenReady, this._survivorReady, this._ashWitnessReady, roomMaterialsReady(), bloodAtlasReady(), ...weaponResources]);
     const renderer = this.renderer;
     if (!renderer || this._course !== course) return;
     // Keep a representative skinned enemy alive so its programs are compiled
@@ -1882,12 +1836,25 @@ export class Renderer {
       for(const actor of this._bellWarmups||[])actor.visible=false;
       for(const actor of this._afterlifeWarmups||[])actor.visible=false;
       this.weaponGroups.forEach((group, i) => { group.visible = visibility[i]; });
-      renderer.render(this.scene, this.camera);
+      if (this.menuCinematic?.active) this.menuCinematic.render(renderer);
+      else renderer.render(this.scene, this.camera);
     }
     this._weaponsPrepared = true;
   }
 
+  renderMenu(run, nowMs) {
+    if (!this.renderer) return;
+    if (this._warmupCourse !== run.course) this.render(run, nowMs);
+    this.menuCinematic ||= new MenuCinematic({ materials: this.materials, environment: this.scene.environment });
+    this.menuCinematic.active = true;
+    this.menuCinematic.setAsset(this._ashWitnessAsset);
+    this.menuCinematic.update(nowMs, this.width, this.height, this.settings.reducedMotion || this._systemReducedMotion);
+    this.menuCinematic.render(this.renderer);
+    this.canvas.dataset.menuScene = this.menuCinematic.actors.length ? 'ready' : 'loading';
+  }
+
   render(run, nowMs = (typeof performance !== 'undefined' ? performance.now() : 0)) {
+    if (this.menuCinematic) { this.menuCinematic.active = false; this.menuCinematic.lastNow = null; }
     if (!run?.course) return;
     this._frameDt = this._lastNow ? clamp((nowMs - this._lastNow) / 1000, 0.001, 0.05) : 0.016;
     this._lastNow = nowMs;
@@ -1980,11 +1947,13 @@ export class Renderer {
   }
 
   diagnostics() {
-    return { ...this._diag };
+    return { ...this._diag, menu: this.menuCinematic?.diagnostics(this.renderer) || null };
   }
 
   dispose() {
+    disposeBloodAtlas();
     this._isDisposed = true;
+    this.menuCinematic?.dispose();
     this.afterlifeAtmosphere?.dispose();
     this.afterlifeLighting?.dispose();
     if (this.worldRoot) this.worldRoot.userData.afterlifeSurfaceDisposed = true;
@@ -2009,3 +1978,4 @@ export class Renderer {
 }
 
 export default Renderer;
+

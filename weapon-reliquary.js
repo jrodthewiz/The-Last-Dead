@@ -2,6 +2,7 @@ import * as THREE from './vendor/three.module.js';
 import {mergeGeometries} from './vendor/utils/BufferGeometryUtils.js';
 import {applyWeaponMaterialProfile, stabilizeWeaponVertexWear, tagWeaponMechanism} from './weapon-materials.js';
 import {applyWeaponDetailPass} from './weapon-detail-pass.js';
+import {buildReliquaryRedesign, animateReliquaryRedesign} from './weapon-occult-redesign.js';
 
 // Image-guided stylized reconstruction: a ribcage / skull rocket launcher.
 // Coordinate contract: +Y up, -Z is the projectile direction.
@@ -244,6 +245,7 @@ function makeMaterials() {
 }
 
 export function createReliquary(options = {}) {
+  return buildReliquaryRedesign(options);
   const root = new THREE.Group();
   root.name = 'Reliquary';
   const parts = {};
@@ -562,6 +564,7 @@ export function createReliquary(options = {}) {
 }
 
 export function animateReliquary(root, shot = 0, time = 0, dt = .016, state = {}) {
+  animateReliquaryRedesign(root, shot, time, dt, state); return;
   const meta = root?.userData?.reliquary;
   if (!meta) return;
   const delta = Math.max(.001, Number(dt) || .016);
