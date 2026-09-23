@@ -1,0 +1,42 @@
+{
+  "errors": [],
+  "diagnostics": {
+    "wheelchair": {
+      "kind": "wheelchair",
+      "version": 1,
+      "triangleBudget": 3000,
+      "source": "references/wheelchair.png",
+      "approximation": "single-view image-guided, low-poly procedural reconstruction",
+      "meshes": 42,
+      "triangles": 2004,
+      "materials": 5,
+      "bounds": [
+        0.6899999994039535,
+        1.1030567072033883,
+        1.0330000174045564
+      ]
+    },
+    "cabinet": {
+      "kind": "mourningCabinet",
+      "version": 1,
+      "triangleBudget": 3000,
+      "source": "references/mourning-cabinet.png",
+      "approximation": "single-view image-guided, low-poly procedural reconstruction",
+      "meshes": 24,
+      "triangles": 352,
+      "materials": 3,
+      "bounds": [
+        0.7200000286102295,
+        2.024999999850989,
+        0.3570000027120114
+      ]
+    },
+    "render": {
+      "frame": 31,
+      "calls": 67,
+      "triangles": 2358,
+      "points": 0,
+      "lines": 0
+    }
+  }
+}

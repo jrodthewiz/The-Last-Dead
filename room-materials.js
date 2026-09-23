@@ -45,8 +45,8 @@ const AFTERLIFE_SURFACE_PROFILE = Object.freeze({
   roomWall: Object.freeze({ color: 0x727b7b, roughness: .88, metalness: .08, moisture: 'wall' }),
   roomPanel: Object.freeze({ color: 0x586060, roughness: .74, metalness: .42, moisture: 'panel' }),
   roomTrim: Object.freeze({ color: 0x4b5354, roughness: .58, metalness: .62, moisture: 'trim' }),
-  roomFloor: Object.freeze({ color: 0x6a7070, roughness: .86, metalness: .2, moisture: 'floor' }),
-  roomFloorInset: Object.freeze({ color: 0x5c6464, roughness: .82, metalness: .18, moisture: 'floor' }),
+  roomFloor: Object.freeze({ color: 0x777b75, roughness: .96, metalness: .045, moisture: 'floor' }),
+  roomFloorInset: Object.freeze({ color: 0x666c66, roughness: .94, metalness: .06, moisture: 'floor' }),
   roomRecess: Object.freeze({ color: 0x070a0b, roughness: .97, metalness: .02, moisture: null }),
   roomHazard: Object.freeze({ color: 0x655247, roughness: .62, metalness: .46, moisture: 'metal' }),
   roomSignal: Object.freeze({ color: 0x666866, roughness: .5, metalness: .28, moisture: null, emissiveIntensity: .12 }),
@@ -72,15 +72,15 @@ const AFTERLIFE_CUE_PROFILE = Object.freeze({
 const ALBEDO_FILES = Object.freeze({
   bloodworks: Object.freeze({
     wall: 'dead-arrival-industrial-flesh-metal.png', panel: 'gunmetal_albedo.png',
-    floor: 'crypt-wall-albedo.webp', bone: 'dead-arrival-industrial-flesh-metal.png',
+    floor: 'afterlife-institutional-floor-v1.webp', bone: 'dead-arrival-industrial-flesh-metal.png',
   }),
   ossuary: Object.freeze({
     wall: 'crypt-wall-albedo.webp', panel: 'crypt-wall-albedo.webp',
-    floor: 'crypt-wall-albedo.webp', bone: 'dead-arrival-industrial-flesh-metal.png',
+    floor: 'afterlife-institutional-floor-v1.webp', bone: 'dead-arrival-industrial-flesh-metal.png',
   }),
   choir: Object.freeze({
     wall: 'worn-oxblood-leather-v1.png', panel: 'gunmetal_albedo.png',
-    floor: 'crypt-wall-albedo.webp', bone: 'dead-arrival-industrial-flesh-metal.png',
+    floor: 'afterlife-institutional-floor-v1.webp', bone: 'dead-arrival-industrial-flesh-metal.png',
   }),
 });
 
@@ -593,7 +593,7 @@ function surfaceTexture(sector, style, purpose) {
 // authored roughness maps already present on the room materials.
 function moistureTexture(purpose = 'wall') {
   if (typeof document === 'undefined') return null;
-  const key = `afterlife:${purpose}:1`;
+  const key = `afterlife:${purpose}:2`;
   const cached = AFTERLIFE_MOISTURE_TILES.get(key);
   if (cached) return cached;
   const size = 256;
@@ -602,14 +602,16 @@ function moistureTexture(purpose = 'wall') {
   const g = canvas.getContext('2d');
   if (!g) return null;
   const random = hash(seedFor('afterlife', 1, purpose));
-  g.fillStyle = purpose === 'floor' ? '#b9bbb6' : '#c4c4bd';
+  // Most of the floor stays dry. Sparse smoother islands catch the lantern
+  // without making every tile look like polished sheet metal.
+  g.fillStyle = purpose === 'floor' ? '#f2f2f2' : '#c4c4bd';
   g.fillRect(0, 0, size, size);
-  const patches = purpose === 'floor' ? 22 : purpose === 'metal' ? 16 : 14;
+  const patches = purpose === 'floor' ? 3 : purpose === 'metal' ? 16 : 14;
   for (let i = 0; i < patches; i++) {
     const x = random() * size, y = random() * size;
     const rx = size * (.045 + random() * .15), ry = rx * (.3 + random() * .85);
     const gradient = g.createRadialGradient(x, y, Math.min(rx, ry) * .12, x, y, Math.max(rx, ry));
-    const damp = 72 + Math.floor(random() * 40);
+    const damp = (purpose === 'floor' ? 128 : 72) + Math.floor(random() * 40);
     gradient.addColorStop(0, `rgb(${damp},${damp + 2},${damp + 1})`);
     gradient.addColorStop(.58, `rgb(${damp + 34},${damp + 34},${damp + 30})`);
     gradient.addColorStop(1, 'rgba(190,191,184,0)');
@@ -619,7 +621,7 @@ function moistureTexture(purpose = 'wall') {
     g.fillRect(x - rx * 1.25, y - ry * 1.25, rx * 2.5, ry * 2.5);
     g.restore();
   }
-  const streakCount = purpose === 'floor' ? 9 : 14;
+  const streakCount = purpose === 'floor' ? 0 : 14;
   for (let i = 0; i < streakCount; i++) {
     const x = random() * size, y = random() * size * .58, length = size * (.12 + random() * .44);
     const gradient = g.createLinearGradient(x, y, x, y + length);
@@ -642,7 +644,7 @@ function moistureTexture(purpose = 'wall') {
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
   texture.anisotropy = 4;
   texture.userData.sharedAsset = true;
-  texture.userData.afterlifeMoisture = { purpose, version: 1 };
+  texture.userData.afterlifeMoisture = { purpose, version: 2 };
   AFTERLIFE_MOISTURE_TILES.set(key, texture);
   return texture;
 }

@@ -147,7 +147,9 @@ function makeMaterials() {
     boneDark: new THREE.MeshStandardMaterial({ color: 0x6e4e3c, roughness: .9, metalness: 0 }),
     leather: new THREE.MeshStandardMaterial({ color: 0x24131a, roughness: .78, metalness: .03 }),
     brass: new THREE.MeshStandardMaterial({ color: 0x9c672c, roughness: .35, metalness: .83 }),
-    ember: new THREE.MeshStandardMaterial({ color: 0xff4b23, emissive: 0xff1807, emissiveIntensity: 3.2, roughness: .22, metalness: .2 }),
+    // Primers read as a warm material cue at rest; the pressure dump supplies
+    // the hot pulse when the long shotgun action actually fires.
+    ember: new THREE.MeshStandardMaterial({ color: 0xff4b23, emissive: 0xff1807, emissiveIntensity: .6, roughness: .22, metalness: .2 }),
     muzzle: new THREE.MeshBasicMaterial({ color: 0xffb56c, transparent: true, opacity: .92, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }),
     muzzleCore: new THREE.MeshBasicMaterial({ color: 0xffffe8, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }),
     muzzleHalo: new THREE.MeshBasicMaterial({ color: 0xff6b32, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }),
@@ -216,6 +218,15 @@ export function createBreach(options = {}) {
   for (const side of [-1, 1]) {
     add(breechBlock, new THREE.CylinderGeometry(.012, .016, .24, 8), 'steelEdge', [side * .14, .13, -.18], [1, 1, 1], [Math.PI / 2, 0, 0], 'breech-guide-' + side);
     add(breechBlock, new THREE.TorusGeometry(.026, .006, 6, 12), 'brass', [side * .14, .13, -.18], [1, 1, 1], [Math.PI / 2, 0, 0], 'breech-ring-' + side);
+  }
+  // Twin pressure valves sit above the breech and visibly dump pressure when
+  // the action cycles.  They are deliberately four low-segment meshes so the
+  // shotgun gains a readable moving mechanism without a new light or effect.
+  const pressureValve = part('pressure-valve', recoilCarriage);
+  tagWeaponMechanism(pressureValve, 'pressure-valve', 'z');
+  for (const side of [-1, 1]) {
+    add(pressureValve, new THREE.CylinderGeometry(.018, .018, .12, 8), 'brass', [side * .15, .245, -.24], [1, 1, 1], [0, 0, 0], 'pressure-valve-stem-' + side);
+    add(pressureValve, new THREE.TorusGeometry(.026, .006, 6, 14), 'steelEdge', [side * .15, .31, -.24], [1, 1, 1], [Math.PI / 2, 0, 0], 'pressure-valve-cap-' + side);
   }
   const extractors = part('shell-extractors', recoilCarriage);
   tagWeaponMechanism(extractors, 'dual-shell-extractor', 'z');
@@ -367,7 +378,7 @@ export function createBreach(options = {}) {
     explode,
     pick(raycaster) { const hit = raycaster.intersectObject(root, true)[0]; return hit?.object?.parent?.name || hit?.object?.name || null; },
   };
-  root.userData.breach = { kind: 'breach', parts, sockets, materials, textures, recoilCarriage, barrels, breechBlock, extractors, recoil: 0, flash: 0, heat: 0, lastShot: 0 };
+  root.userData.breach = { kind: 'breach', parts, sockets, materials, textures, recoilCarriage, barrels, breechBlock, extractors, ribcage: parts.ribcage, pressureValve, recoil: 0, flash: 0, heat: 0, pressurePulse: 0, lastShot: 0 };
   addVertexWear(root);
   stabilizeWeaponVertexWear(root, 43);
   applyWeaponDetailPass(root, 'breach');
@@ -383,19 +394,29 @@ export function animateBreach(root, time = 0, shot = 0, dt = .016, state = {}) {
     meta.recoil = 1;
     meta.flash = 1;
     meta.heat = Math.min(1, meta.heat + .34);
+    meta.pressurePulse = 1;
   }
   meta.lastShot = shotValue;
   meta.recoil = THREE.MathUtils.damp(meta.recoil, 0, 14, delta);
   meta.flash = Math.max(0, meta.flash - delta * 9);
   meta.heat = THREE.MathUtils.damp(meta.heat, 0, 1.4, delta);
+  meta.pressurePulse = THREE.MathUtils.damp(meta.pressurePulse, 0, 10, delta);
   meta.recoilCarriage.position.z = meta.recoil * .058;
   meta.recoilCarriage.rotation.x = meta.recoil * -.018;
   meta.breechBlock.position.z = -meta.recoil * .065;
   meta.breechBlock.rotation.x = meta.recoil * -.06;
   meta.extractors.position.z = -meta.recoil * .05;
   meta.extractors.rotation.y = meta.recoil * .12;
-  meta.barrels.rotation.z = Math.sin(time * 1.7) * .002;
-  meta.materials.ember.emissiveIntensity = 2.8 + meta.heat * 5.2 + Math.sin(time * 7) * .16;
+  // The twin tubes breathe against the rib cage while the valves lift in a
+  // short, readable pressure dump.  The idle motion is tiny; the shot pulse
+  // is large enough to communicate the long shotgun cadence in first person.
+  const pressure = meta.pressurePulse;
+  meta.pressureValve.position.y = pressure * .018;
+  meta.pressureValve.rotation.z = Math.sin(time * 4.8) * pressure * .035 + pressure * .075;
+  meta.ribcage.scale.set(1 + pressure * .028, 1 + pressure * .018, 1);
+  meta.ribcage.rotation.z = Math.sin(time * 2.4) * .009 + pressure * .026;
+  meta.barrels.rotation.z = Math.sin(time * 1.7) * .002 + pressure * .012;
+  meta.materials.ember.emissiveIntensity = .45 + meta.heat * 2.9 + meta.flash * 6.1 + Math.sin(time * 7) * .05;
   meta.materials.muzzle.opacity = .55 + meta.flash * .4;
   meta.materials.muzzleCore.opacity = meta.flash * .95;
   meta.materials.muzzleHalo.opacity = meta.flash * .72;

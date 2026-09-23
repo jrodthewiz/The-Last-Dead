@@ -11,7 +11,10 @@ import {installBoundedLightEvaluation} from './bounded-lighting.js';
 import {AfterlifeLighting,afterlifeTheme} from './afterlife-lighting.js';
 import {AfterlifeAtmosphere} from './afterlife-atmosphere.js';
 import {applyAfterlifeSurfaces} from './afterlife-surfaces.js';
+import {buildAfterlifeMapDesign} from './world-afterlife-design.js';
+import {createAfterlifeWheelchair, createAfterlifeMourningCabinet} from './afterlife-props.js';
 import {createAfterlifeEnemy,animateAfterlifeEnemy} from './npc-afterlife.js';
+import {loadAfterlifeModel,createAfterlifeModel,animateAfterlifeModel} from './npc-afterlife-model.js';
 import {GLTFLoader} from './vendor/loaders/GLTFLoader.js';
 import {createReliquary,animateReliquary} from './weapon-reliquary.js';
 import {createBellwraith,animateBellwraith,warmBellwraithVariants} from './npc-bellwraith.js';
@@ -123,6 +126,10 @@ function disposeObject(root, forceShared = false) {
     if (obj.geometry) geometries.add(obj.geometry);
     if (obj.skeleton) skeletons.add(obj.skeleton);
     if (obj.userData.afterlife?.actorState?.mixer) obj.userData.afterlife.actorState.mixer.stopAllAction();
+    if (obj.userData.afterlife?.mixer) {
+      obj.userData.afterlife.mixer.stopAllAction();
+      obj.userData.afterlife.mixer.uncacheRoot(obj.userData.afterlife.model);
+    }
     if (obj.material) {
       if (Array.isArray(obj.material)) obj.material.forEach(m => materials.add(m));
       else materials.add(obj.material);
@@ -235,6 +242,13 @@ export class Renderer {
     this._wardenReady=Promise.all([legacyWardenLoaded,bloodworksWardenLoaded]).then(()=>{
       this._wardenStatus=this.wardenTemplate||this.bloodworksWardenTemplate?'ready':'fallback';
     });
+    this._ashWitnessAsset = null;
+    this._ashWitnessError = null;
+    this._ashWitnessReady = loadAfterlifeModel(new GLTFLoader()).then(asset => {
+      markSharedGltf(asset.template);
+      if (this._isDisposed) { disposeObject(asset.template, true); return; }
+      this._ashWitnessAsset = asset;
+    }).catch(error => { this._ashWitnessError = String(error?.message || error); });
     this.resize();
   }
 
@@ -247,6 +261,7 @@ export class Renderer {
     for(let i=0;i<3;i++){g.fillStyle='#a7bdc8';g.fillRect(100+i*330,110,34,110);}
     const texture=new THREE.CanvasTexture(c);texture.colorSpace=THREE.SRGBColorSpace;texture.mapping=THREE.EquirectangularReflectionMapping;
     const pmrem=new THREE.PMREMGenerator(this.renderer);this._envTarget=pmrem.fromEquirectangular(texture);this.scene.environment=this._envTarget.texture;this.scene.environmentIntensity=.4;texture.dispose();pmrem.dispose();
+    if (!this.materials.floor.map) {
     const tile=document.createElement('canvas');tile.width=tile.height=256;const t=tile.getContext('2d');t.fillStyle='#747b80';t.fillRect(0,0,256,256);t.strokeStyle='#333b40';t.lineWidth=5;t.strokeRect(4,4,248,248);t.strokeStyle='#9da4a7';t.lineWidth=1;t.strokeRect(9,9,238,238);
     let seed=9182;for(let i=0;i<650;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;const x=seed%256;seed=(Math.imul(seed,1664525)+1013904223)>>>0;const y=seed%256;t.strokeStyle=i%2?'#eef8ff10':'#11182016';t.beginPath();t.moveTo(x,y);t.lineTo(x+4+i%19,y+1);t.stroke();}
     for(const x of[17,239])for(const y of[17,239]){t.fillStyle='#202a30';t.beginPath();t.arc(x,y,3,0,Math.PI*2);t.fill();t.fillStyle='#b9c0c2';t.fillRect(x-1,y-2,2,2);}
@@ -257,6 +272,7 @@ export class Renderer {
     t.fillStyle='#1d292c';t.fillRect(105,225,46,9);t.fillStyle='#9b9275';t.fillRect(111,228,34,2);
     for(let i=0;i<5000;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;const x=seed%256;seed=(Math.imul(seed,1664525)+1013904223)>>>0;const y=seed%256;t.fillStyle=i%3?'#131c2214':'#b6a68a15';t.fillRect(x,y,1+i%3,1);}
     const floorTexture=new THREE.CanvasTexture(tile);floorTexture.colorSpace=THREE.SRGBColorSpace;floorTexture.anisotropy=Math.min(8,this.renderer.capabilities.getMaxAnisotropy());for(const m of[this.materials.floor,this.materials.floorAlt]){m.map=floorTexture;m.color.set(0x414644);m.metalness=.32;m.roughness=.67;m.bumpMap=floorTexture;m.bumpScale=.025;}
+    }
     this.materials.floorAlt.color.set(0x343a37);
     for(const m of[this.materials.weapon,this.materials.weaponDark,this.materials.weaponTrim,this.materials.metal,this.materials.steel,this.materials.enemyArmor])m.envMapIntensity=1.7;
   }
@@ -264,6 +280,7 @@ export class Renderer {
   _createMaterials() {
     return {
       floor: mat(0x303542, 0.84, 0.28),
+      afterlifeWood: mat(0xc2b6a5, .93, 0),
       floorAlt: mat(0x444252, 0.78, 0.34),
       floorTrim: mat(0x774655, 0.5, 0.5),
       wall: mat(0x455061, 0.78, 0.46),
@@ -321,6 +338,26 @@ export class Renderer {
         }
       });
       texture.colorSpace = THREE.SRGBColorSpace;
+      const floorMap = new THREE.TextureLoader(this._materialManager).load('./assets/textures/afterlife-institutional-floor-v1.webp');
+      floorMap.colorSpace = THREE.SRGBColorSpace;
+      floorMap.wrapS = floorMap.wrapT = THREE.RepeatWrapping;
+      floorMap.anisotropy = Math.min(4, this.renderer?.capabilities?.getMaxAnisotropy?.() || 4);
+      floorMap.userData.sharedAsset = true;
+      const woodMap = new THREE.TextureLoader(this._materialManager).load('./assets/textures/afterlife-cabinet-wood-v1.webp');
+      woodMap.colorSpace = THREE.SRGBColorSpace;
+      woodMap.wrapS = woodMap.wrapT = THREE.RepeatWrapping;
+      woodMap.anisotropy = 4;
+      woodMap.userData.sharedAsset = true;
+      this.materials.afterlifeWood.map = woodMap;
+      // Assign the loader's texture immediately so world material clones see
+      // the same asynchronously populated source from their first build.
+      for (const material of [this.materials.floor, this.materials.floorAlt]) {
+        material.map = floorMap;
+        material.bumpMap = null;
+        material.metalness = .045;
+        material.roughness = .96;
+        material.needsUpdate = true;
+      }
     } catch {
       // The procedural material library remains the offline fallback.
     }
@@ -731,6 +768,12 @@ export class Renderer {
     this._buildExit(course?.exit || { x: 6, y: 1 });
     this.horror=buildHorrorDetails(this.worldRoot,this.materials,course);
     buildCathedralKit(this.worldRoot,this.materials,course);
+    this.afterlifeMapDesign = buildAfterlifeMapDesign(this.worldRoot, this.materials, course, {
+      propFactories: {
+        wheelchair: () => { const prop=createAfterlifeWheelchair(); prop.userData.afterlifeSkip=true; return prop; },
+        'mourning-cabinet': () => { const prop=createAfterlifeMourningCabinet({materials:{wood:this.materials.afterlifeWood}}); prop.userData.afterlifeSkip=true; return prop; },
+      },
+    });
     this._dungeonPickups=this._buildDungeonPickups(course);
     const dynamicShadowRoots=[this.horror.organ,this.horror.core,...this._dungeonPickups.map(item=>item.root),...(this.horror.authored?.moving||[])];
     for (const root of dynamicShadowRoots) disableShadowCasting(root);
@@ -1361,13 +1404,14 @@ export class Renderer {
     const enemies = run.course?.enemies || [];
     for (const enemy of enemies) {
       let entry = this._enemyVisuals.get(enemy.id);
-      const useAfterlife = enemy.kind < 2 && this._survivors?.status === 'ready' && this._afterlifeClips?.length;
+      const useAshWitness = enemy.kind === 0 && this._ashWitnessAsset;
+      const useAfterlife = useAshWitness || (enemy.kind < 2 && this._survivors?.status === 'ready' && this._afterlifeClips?.length);
       const wantsBloodworksWarden = enemy.kind === 2 && BLOODWORKS_WARDEN_VARIANTS.has(enemy.variant);
       const useBloodworksWarden = wantsBloodworksWarden && this.bloodworksWardenTemplate;
-      const template = useAfterlife ? this._survivors.template : useBloodworksWarden ? this.bloodworksWardenTemplate : this.wardenTemplate;
+      const template = useAshWitness ? this._ashWitnessAsset.template : useAfterlife ? this._survivors.template : useBloodworksWarden ? this.bloodworksWardenTemplate : this.wardenTemplate;
       const clips = useBloodworksWarden ? this.bloodworksWardenClips : this.wardenClips;
       const useWarden = !useAfterlife && !!template && enemy.kind >= 0 && enemy.kind < 3;
-      const makeActor = () => useAfterlife
+      const makeActor = () => useAshWitness ? createAfterlifeModel(this._ashWitnessAsset, enemy.kind, (enemy.id * 1.618) % TAU) : useAfterlife
         ? createAfterlifeEnemy(template, this._afterlifeClips, enemy.kind, enemy.variant, (enemy.id * 1.618) % TAU)
         : useWarden ? createWarden(template,clips,enemy.kind,enemy.variant)
         : enemy.kind === 3 ? createBellwraith({ variant: enemy.variant, phase: enemy.phase || 0 }) : this._makeEnemy(enemy.kind, enemy.variant);
@@ -1380,6 +1424,7 @@ export class Renderer {
       if((useAfterlife||useWarden)&&entry.template!==template){this.worldRoot.remove(entry.root);disposeObject(entry.root);entry.root=makeActor();disableShadowCasting(entry.root);entry.template=template;this.worldRoot.add(entry.root);}
       alive.add(enemy.id);
       const root = entry.root;
+      if(root.userData.afterlifeModel){root.position.set(worldX(enemy.x),0,worldZ(enemy.y));root.rotation.y=-Math.atan2(run.y-enemy.y,run.x-enemy.x)-Math.PI/2;animateAfterlifeModel(root,enemy,now,entry.seed);continue;}
       if(root.userData.afterlife){root.position.set(worldX(enemy.x),0,worldZ(enemy.y));root.rotation.y=-Math.atan2(run.y-enemy.y,run.x-enemy.x)-Math.PI/2;animateAfterlifeEnemy(root,enemy,now,entry.seed);continue;}
       if(root.userData.warden){root.position.set(worldX(enemy.x),0,worldZ(enemy.y));root.rotation.y=-Math.atan2(run.y-enemy.y,run.x-enemy.x)-Math.PI/2;animateWarden(root,enemy,now,entry.seed);continue;}
        if (root.userData.bellwraith) {
@@ -1766,7 +1811,7 @@ export class Renderer {
     for (const group of this.weaponGroups) group.traverse(object => {
       if (object.userData.resourcesReady) weaponResources.push(object.userData.resourcesReady);
     });
-    await Promise.all([this._materialsReady, this._wardenReady, this._survivorReady, roomMaterialsReady(), ...weaponResources]);
+    await Promise.all([this._materialsReady, this._wardenReady, this._survivorReady, this._ashWitnessReady, roomMaterialsReady(), ...weaponResources]);
     const renderer = this.renderer;
     if (!renderer || this._course !== course) return;
     // Keep a representative skinned enemy alive so its programs are compiled
@@ -1783,7 +1828,7 @@ export class Renderer {
     }
     if(!this._bellWarmups){warmBellwraithVariants();this._bellWarmups=['bellwraith','echo','rustBell','ivoryBell'].map(variant=>{const actor=createBellwraith({variant});actor.visible=false;this.scene.add(actor);return actor;});}
     if(this._survivors?.status==='ready'&&!this._afterlifeWarmups){
-      this._afterlifeWarmups=[0,1].map(kind=>{const actor=createAfterlifeEnemy(this._survivors.template,this._afterlifeClips,kind);actor.visible=false;disableShadowCasting(actor);this.scene.add(actor);return actor;});
+      this._afterlifeWarmups=[0,1].map(kind=>{const actor=kind===0&&this._ashWitnessAsset?createAfterlifeModel(this._ashWitnessAsset,kind):createAfterlifeEnemy(this._survivors.template,this._afterlifeClips,kind);actor.visible=false;disableShadowCasting(actor);this.scene.add(actor);return actor;});
     }
     const screenPrograms = renderer.compileAsync(this.scene, this.camera);
     const previousTarget = renderer.getRenderTarget();
@@ -1896,7 +1941,9 @@ export class Renderer {
       afterlifeLighting: this.afterlifeLighting?.diagnostics(),
       afterlifeAtmosphere: this.afterlifeAtmosphere?.diagnostics(),
       afterlifeSurfaces: this._afterlifeSurfaceDiagnostics,
+      afterlifeMapDesign: this.afterlifeMapDesign?.diagnostics,
       afterlifeEnemies: [...this._enemyVisuals.values()].filter(e=>e.root.userData.afterlife).length,
+      ashWitness: { loaded: !!this._ashWitnessAsset, error: this._ashWitnessError, instances: [...this._enemyVisuals.values()].filter(e=>e.root.userData.afterlifeModel).length, clips: this._ashWitnessAsset?.clips.map(clip => clip.name) || [] },
       transmissionCoverage: this._transmissionRegion?.coverage ?? 1,
       weaponBatch: this._weaponBatch,
       survivor: {status:this._survivors?.status||'pending',source:this._survivors?.local?.userData?.source||'procedural-fallback',viewSleeves:this._survivors?.viewSleeves||0,error:this._survivors?.error||null},
@@ -1937,6 +1984,7 @@ export class Renderer {
   }
 
   dispose() {
+    this._isDisposed = true;
     this.afterlifeAtmosphere?.dispose();
     this.afterlifeLighting?.dispose();
     if (this.worldRoot) this.worldRoot.userData.afterlifeSurfaceDisposed = true;
@@ -1945,10 +1993,12 @@ export class Renderer {
     if (this.combatRoot) disposeObject(this.combatRoot);
     if (this.weaponRig) disposeObject(this.weaponRig);
     this.materials && Object.values(this.materials).forEach(m => m.dispose?.());
+    this.materials.afterlifeWood.map?.dispose();
     if(this._wardenWarmup){this._wardenWarmup.removeFromParent();disposeObject(this._wardenWarmup);}
     if(this._bloodworksWardenWarmup){this._bloodworksWardenWarmup.removeFromParent();disposeObject(this._bloodworksWardenWarmup);}
     for(const actor of this._bellWarmups||[]){actor.removeFromParent();disposeObject(actor);}
     for(const actor of this._afterlifeWarmups||[]){actor.removeFromParent();disposeObject(actor);}
+    if(this._ashWitnessAsset)disposeObject(this._ashWitnessAsset.template,true);
     if(this.wardenTemplate)disposeObject(this.wardenTemplate,true);
     if(this.bloodworksWardenTemplate)disposeObject(this.bloodworksWardenTemplate,true);
     this._envTarget?.dispose();

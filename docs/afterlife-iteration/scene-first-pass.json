@@ -1,0 +1,199 @@
+{
+  "errors": [],
+  "diagnostics": {
+    "renderer": "three.js",
+    "worldBatch": {
+      "removed": 2272,
+      "batches": 47
+    },
+    "staticWorld": {
+      "frozen": 157,
+      "pruned": 57
+    },
+    "boundedLighting": true,
+    "afterlifeLighting": {
+      "practicalPool": 6,
+      "authoredCues": 18,
+      "lanternShadow": 512
+    },
+    "afterlifeAtmosphere": {
+      "name": "AfterlifeAtmosphere",
+      "seed": 915775324,
+      "courseId": "f3-catacombs",
+      "bounded": true,
+      "coordinateCellMeters": 4,
+      "floorY": 0,
+      "roomCount": 11,
+      "roomIds": [
+        "f3-entry",
+        "f3-hub",
+        "f3-cryptW",
+        "f3-cryptE",
+        "f3-court",
+        "f3-vault",
+        "f3-niche",
+        "f3-ossuaryS",
+        "f3-stores",
+        "f3-tomb",
+        "f3-apse"
+      ],
+      "mistPatches": 21,
+      "coldSources": 10,
+      "specks": 40,
+      "beams": 0,
+      "drawCalls": 2,
+      "reducedMotion": false,
+      "mobileBudget": false,
+      "noSceneFogMutation": true,
+      "noDynamicLights": true,
+      "disposed": false
+    },
+    "afterlifeSurfaces": {
+      "applied": true,
+      "version": 1,
+      "sector": "ossuary",
+      "visited": 2423,
+      "meshes": 2318,
+      "changedMeshes": 1603,
+      "changedMaterials": 45,
+      "clonedMaterials": 45,
+      "skipped": 27,
+      "skippedSubtrees": 27,
+      "preservedCues": 40,
+      "materialSyncScheduled": true,
+      "materialSyncPending": 0,
+      "roles": {
+        "roomFloor": 15,
+        "roomFloorInset": 1,
+        "roomRecess": 2,
+        "roomMetal": 1097,
+        "roomWall": 42,
+        "roomPanel": 2,
+        "roomTrim": 52,
+        "roomSignal": 95,
+        "roomRust": 22,
+        "roomBone": 181,
+        "roomHazard": 94
+      }
+    },
+    "afterlifeMapDesign": {
+      "name": "AfterlifeMapDesign",
+      "version": "afterlife-map-design-v1",
+      "courseId": "f3-catacombs",
+      "profile": "ossuary",
+      "thresholds": 3,
+      "routeMeters": 0,
+      "sightlineBreaks": 3,
+      "upperSilhouettePieces": 3,
+      "propsFallback": 0,
+      "draws": 5,
+      "triangles": 288,
+      "propSlots": [
+        {
+          "id": "mourning-cabinet:f3-cryptW",
+          "kind": "mourning-cabinet",
+          "roomId": "f3-cryptW"
+        },
+        {
+          "id": "wheelchair:f3-entry",
+          "kind": "wheelchair",
+          "roomId": "f3-entry"
+        }
+      ],
+      "externalPropsAttached": [
+        "mourning-cabinet:f3-cryptW",
+        "wheelchair:f3-entry"
+      ],
+      "externalPropsMissing": [],
+      "externalPropErrors": [],
+      "collisionChanged": false
+    },
+    "afterlifeEnemies": 2,
+    "transmissionCoverage": 1,
+    "weaponBatch": [
+      {
+        "parents": 0,
+        "groups": 0,
+        "meshesBefore": 81,
+        "meshesAfter": 81,
+        "mergedMeshes": 0,
+        "mergedSources": 0
+      },
+      {
+        "parents": 8,
+        "groups": 17,
+        "meshesBefore": 167,
+        "meshesAfter": 105,
+        "mergedMeshes": 17,
+        "mergedSources": 79
+      },
+      {
+        "parents": 0,
+        "groups": 0,
+        "meshesBefore": 95,
+        "meshesAfter": 95,
+        "mergedMeshes": 0,
+        "mergedSources": 0
+      },
+      {
+        "parents": 0,
+        "groups": 0,
+        "meshesBefore": 106,
+        "meshesAfter": 106,
+        "mergedMeshes": 0,
+        "mergedSources": 0
+      }
+    ],
+    "survivor": {
+      "status": "ready",
+      "source": "meshy-v02",
+      "viewSleeves": 7,
+      "error": null
+    },
+    "targetFrameMs": 6.944444444444445,
+    "webgl": true,
+    "error": null,
+    "width": 1536,
+    "height": 864,
+    "dpr": 1,
+    "renderScale": 1,
+    "fov": 92,
+    "meshes": 709,
+    "instancedMeshes": 73,
+    "geometries": 632,
+    "materials": 337,
+    "triangles": 781542,
+    "calls": 245,
+    "gpuTriangles": 396892,
+    "rendererGeometries": 628,
+    "explosions": {
+      "active": 0,
+      "fire": 0,
+      "smoke": 0,
+      "embers": 0,
+      "rings": 0,
+      "maxExplosions": 18,
+      "reducedMotion": false,
+      "gore": true
+    },
+    "impacts": {
+      "marks": 0,
+      "smoke": 0,
+      "capacity": {
+        "marks": 96,
+        "smoke": 96
+      }
+    },
+    "rendererTextures": 80,
+    "enemyContactShadows": 2,
+    "enemies": 2,
+    "gore": 0,
+    "blood": 0,
+    "projectiles": 0,
+    "tracers": 0,
+    "coins": 0,
+    "world": "f3-catacombs",
+    "warden": "ready",
+    "wardenInstances": 0
+  }
+}

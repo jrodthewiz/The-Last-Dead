@@ -18,6 +18,7 @@ const MIX_PROFILES = Object.freeze({
   default: { group: 'sfx', volume: .38, maxVoices: 10, highpass: 45, lowpass: 11000 },
   ambience: { group: 'ambience', volume: .32, maxVoices: 1, highpass: 38, lowpass: 5200 },
   shot: { group: 'sfx', volume: .45, maxVoices: 4, highpass: 70, lowpass: 9000, cooldown: .018 },
+  mechanism: { group: 'sfx', volume: .10, maxVoices: 4, highpass: 700, lowpass: 7600, cooldown: .018 },
   rocket: { group: 'sfx', volume: .42, maxVoices: 3, highpass: 40, lowpass: 7200, cooldown: .08, refDistance: 2, maxDistance: 42 },
   explosion: { group: 'sfx', volume: .40, maxVoices: 5, highpass: 42, lowpass: 6800, cooldown: .05, refDistance: 1.8, maxDistance: 38 },
   hit: { group: 'sfx', volume: .25, maxVoices: 8, highpass: 80, lowpass: 6200, cooldown: .025 },
@@ -33,6 +34,7 @@ const MIX_PROFILES = Object.freeze({
   enemyland: { group: 'sfx', volume: .25, maxVoices: 3, highpass: 55, lowpass: 3300, cooldown: .1, refDistance: 2, maxDistance: 32 },
   enemydeath: { group: 'voice', volume: .30, maxVoices: 4, highpass: 65, lowpass: 4300, cooldown: .04, refDistance: 2.4, maxDistance: 36 },
   moan: { group: 'voice', volume: .18, maxVoices: 2, highpass: 90, lowpass: 3600, cooldown: .5, refDistance: 3, maxDistance: 42 },
+  'distant-scream': { group: 'voice', volume: .10, maxVoices: 1, highpass: 80, lowpass: 2900, cooldown: 12, refDistance: 3, maxDistance: 45, rolloffFactor: 1.25 },
   parry: { group: 'sfx', volume: .24, maxVoices: 3, highpass: 160, lowpass: 9000, cooldown: .08 },
   punch: { group: 'sfx', volume: .18, maxVoices: 4, highpass: 80, lowpass: 5200, cooldown: .06 },
   damage: { group: 'sfx', volume: .15, maxVoices: 3, highpass: 90, lowpass: 5000, cooldown: .1 },
@@ -50,6 +52,11 @@ const MUSIC_SCENES = Object.freeze({
   dead: { key: 'music-menu', volume: .10, rate: .92 },
   win: { key: 'music-menu', volume: .07, rate: .86 },
 });
+const AMBIENCE_PRESETS = Object.freeze([
+  { variant: 0, volume: .28, rate: .96, highpass: 40, lowpass: 3500 }, // Foundry pressure
+  { variant: 1, volume: .25, rate: 1.02, highpass: 62, lowpass: 4700 }, // Ward ventilation
+  { variant: 0, volume: .23, rate: .93, highpass: 34, lowpass: 6500 }, // Ossuary resonance
+]);
 const SCENE_ALIASES = Object.freeze({
   game: 'play', gameplay: 'play', playing: 'play', ready: 'menu', loss: 'dead', victory: 'win',
 });
@@ -78,7 +85,7 @@ function sampleRms(buffer) {
 }
 function normalizationPoolKey(key) {
   const parts = key.split(':');
-  if (parts[0] === 'shot') return parts.length > 2 ? `shot:${parts[1]}` : null;
+  if (parts[0] === 'shot' || parts[0] === 'mechanism') return parts.length > 2 ? `${parts[0]}:${parts[1]}` : null;
   if (parts[0] === 'ambience' || parts[0].startsWith('music-')) return null;
   return parts.length > 1 ? parts.slice(0, -1).join(':') : null;
 }
@@ -115,6 +122,7 @@ function normalizeEvent(type, weapon, event) {
     ambient: 'ambience', boost: 'dash', slam: 'land',
     'rocket-launch': 'rocket', rocketfire: 'rocket',
     'rocket-detonate':'explosion','rocket-jump':'jump','spawn-telegraph':'moan',
+    'horror-approach':'moan',
     'sector-transition':'wave',
     menu: 'ui', select: 'confirm', error: 'fail',
   };
@@ -129,6 +137,8 @@ export class AudioSystem {
     this._volume = clamp(options.volume ?? 0.8, 0, 1);
     this._muted = Boolean(options.muted);
     this._groupVolumes = Object.fromEntries(GROUPS.map(name => [name, clamp(options.groupVolumes?.[name] ?? GROUP_VOLUME_DEFAULTS[name], 0, 1)]));
+    this._atmosphereFactor = 1;
+    this._atmosphereTimer = null;
     this._paused = false;
     this._ctx = null;
     this._master = null;
@@ -140,6 +150,8 @@ export class AudioSystem {
     this._normalizedSamples = 0;
     this._sources = new Set();
     this._ambientSource = null;
+    this._ambientGain = null;
+    this._ambiencePresetIndex = 0;
     this._musicSource = null;
     this._musicGain = null;
     this._musicKey = '';
@@ -226,8 +238,20 @@ export class AudioSystem {
     if (!GROUPS.includes(group)) return level;
     this._groupVolumes[group] = level;
     const gain = this._groups.get(group);
-    if (gain && this._ctx) gain.gain.setTargetAtTime((GROUP_BASE_LEVELS[group] ?? .6) * level, now(this._ctx), 0.015);
+    if (gain && this._ctx) gain.gain.setTargetAtTime(this._groupTarget(group), now(this._ctx), 0.015);
     return level;
+  }
+
+  /** Briefly lower only music and room tone so a quiet, positional cue can land. */
+  duckAtmosphere(factor = .55, fadeIn = .7, hold = 1.8, fadeOut = 1.1) {
+    this._atmosphereFactor = clamp(factor, .25, 1);
+    if (this._atmosphereTimer) clearTimeout(this._atmosphereTimer);
+    this._applyAtmosphere(fadeIn);
+    this._atmosphereTimer = setTimeout(() => {
+      this._atmosphereFactor = 1;
+      this._applyAtmosphere(fadeOut);
+      this._atmosphereTimer = null;
+    }, Math.max(0, (fadeIn + hold) * 1000));
   }
 
   pause() {
@@ -284,6 +308,23 @@ export class AudioSystem {
     this._stopAmbient();
   }
 
+  setAmbiencePreset(index = 0) {
+    const next = Math.abs(Math.floor(Number(index) || 0)) % AMBIENCE_PRESETS.length;
+    if (next === this._ambiencePresetIndex) return next;
+    this._ambiencePresetIndex = next;
+    if (!this._ctx || !this._ambientSource || this._musicScene !== 'play' || this._paused) return next;
+    const t = now(this._ctx), oldSource = this._ambientSource, oldGain = this._ambientGain;
+    if (oldGain) {
+      oldGain.gain.cancelScheduledValues(t);
+      oldGain.gain.setTargetAtTime(.0001, t, .16);
+    }
+    try { oldSource.stop(t + .55); } catch {}
+    this._ambientSource = null;
+    this._ambientGain = null;
+    this._playAmbience({ fadeIn: .55 });
+    return next;
+  }
+
   updateListener(listener = {}) {
     const L = this._ctx?.listener;
     if (!L) return false;
@@ -314,6 +355,12 @@ export class AudioSystem {
     const details = parsed.details;
     if (name === 'ambience') return this._playAmbience(details);
     const profile = { ...resolveMix(name, index) };
+    if (details.type === 'horror-approach') Object.assign(profile, {
+      volume: .15, maxVoices: 1, highpass: 110,
+      lowpass: details.occluded ? 1050 : 2550,
+      detune: -75, modulationHz: 40, modulationDepth: .14,
+      refDistance: 5, maxDistance: 40, rolloffFactor: 1.2,
+    });
     if (name === 'hover') { profile.volume = .065; profile.cooldown = .07; }
     const mix = { ...profile, group: GROUP_BY_TYPE[name] || profile.group, ...details };
     const cooldown = Number(details.cooldown ?? profile.cooldown ?? 0);
@@ -327,6 +374,10 @@ export class AudioSystem {
     const buffer = this._chooseBuffer(name, index, details.variant);
     if (buffer) {
       this._playBuffer(buffer, name, index, mix);
+      // Keep the tactile layer coupled to the real shot event. It is a tiny
+      // sampled tail with the same spatial details, so it adds weapon identity
+      // without a second gameplay event or a per-frame synthesizer.
+      if (name === 'shot' || name === 'rocket') this._playMechanism(index, details);
       return true;
     }
     return false;
@@ -334,12 +385,15 @@ export class AudioSystem {
   dispose() {
     if (this._disposed) return;
     this._disposed = true;
+    if (this._atmosphereTimer) clearTimeout(this._atmosphereTimer);
+    this._atmosphereTimer = null;
     for (const source of this._sources) {
       try { source.stop(); } catch {}
       try { source.disconnect(); } catch {}
     }
     this._sources.clear();
     this._ambientSource = null;
+    this._ambientGain = null;
     this._musicSource = null;
     this._musicGain = null;
     this._musicKey = '';
@@ -366,14 +420,30 @@ export class AudioSystem {
     return this._groups.get(name) || this._master || this._ctx.destination;
   }
 
+  _groupTarget(group) {
+    const atmosphere = group === 'ambience' || group === 'music' ? this._atmosphereFactor : 1;
+    return (GROUP_BASE_LEVELS[group] ?? .6) * this._groupVolumes[group] * atmosphere;
+  }
+
+  _applyAtmosphere(duration = .8) {
+    if (!this._ctx) return;
+    const t = now(this._ctx), timeConstant = Math.max(.02, Number(duration) / 3 || .02);
+    for (const group of ['ambience', 'music']) {
+      const gain = this._groups.get(group);
+      if (!gain) continue;
+      gain.gain.cancelScheduledValues(t);
+      gain.gain.setTargetAtTime(this._groupTarget(group), t, timeConstant);
+    }
+  }
+
   _resolveUrl(path) {
     try { return new URL(path, this.baseUrl).href; } catch { return path; }
   }
 
   _manifestEntries(type, value) {
-    if (type === 'shot' && Array.isArray(value) && value.some(entry => Array.isArray(entry))) {
+    if ((type === 'shot' || type === 'mechanism') && Array.isArray(value) && value.some(entry => Array.isArray(entry))) {
       return value.flatMap((entry, weapon) => list(entry).map((path, variant) => ({
-        key: 'shot:' + weapon + ':' + variant, path,
+        key: type + ':' + weapon + ':' + variant, path,
       })));
     }
     return list(value).map((path, variant) => ({ key: type + ':' + variant, path }));
@@ -432,11 +502,11 @@ export class AudioSystem {
 
   _chooseBuffer(name, weapon = 0, variant) {
     const keys = [];
-    if (name === 'shot') {
-      const prefix = 'shot:' + Math.max(0, weapon) + ':';
+    if (name === 'shot' || name === 'mechanism') {
+      const prefix = name + ':' + Math.max(0, weapon) + ':';
       for (const key of this._buffers.keys()) if (key.startsWith(prefix)) keys.push(key);
       if (!keys.length && weapon !== 0) {
-        for (const key of this._buffers.keys()) if (key.startsWith('shot:0:')) keys.push(key);
+        for (const key of this._buffers.keys()) if (key.startsWith(name + ':0:')) keys.push(key);
       }
     } else {
       for (const key of this._buffers.keys()) if (key.startsWith(name + ':')) keys.push(key);
@@ -451,6 +521,20 @@ export class AudioSystem {
     if (!Number.isFinite(Number(variant)) && keys.length > 1 && index === previous) index = (index + 1) % keys.length;
     this._lastVariant.set(poolKey, index);
     return this._buffers.get(keys[index]) || null;
+  }
+
+  _playMechanism(weapon = 0, details = {}) {
+    const buffer = this._chooseBuffer('mechanism', weapon, details.variant);
+    if (!buffer) return false;
+    this._playBuffer(buffer, 'mechanism', weapon, {
+      ...details,
+      group: 'sfx',
+      volume: details.mechanismVolume ?? .10,
+      maxVoices: 4,
+      highpass: 700,
+      lowpass: 7600,
+    });
+    return true;
   }
 
   _createSpatialNode(details) {
@@ -519,16 +603,43 @@ export class AudioSystem {
     const rateMax = type === 'footstep' ? 1.07 : 1.03;
     source.playbackRate.value = clamp(profile.rate ?? random(rateMin, rateMax), 0.5, 2);
     if (profile.detune !== undefined) source.detune.value = Number(profile.detune) || 0;
-    gain.gain.setValueAtTime(level * (this._bufferGains.get(buffer) ?? 1), now(this._ctx));
+    const t = now(this._ctx), bufferGain = level * (this._bufferGains.get(buffer) ?? 1);
+    if (type === 'ambience' && Number(profile.fadeIn) > 0) {
+      gain.gain.setValueAtTime(.0001, t);
+      gain.gain.setTargetAtTime(bufferGain, t, Math.max(.02, Number(profile.fadeIn) / 3));
+    } else gain.gain.setValueAtTime(bufferGain, t);
     source.connect(gain);
     let node = this._filterNode(gain, profile);
+    source.loop = type === 'ambience' || Boolean(profile.loop);
+    const modulationHz = clamp(profile.modulationHz, 0, 150);
+    const modulationDepth = clamp(profile.modulationDepth, 0, .35);
+    if (!source.loop && modulationHz > 0 && modulationDepth > 0 && this._ctx.createOscillator) {
+      try {
+        const t = now(this._ctx), tremolo = this._ctx.createGain();
+        const lfo = this._ctx.createOscillator(), lfoDepth = this._ctx.createGain();
+        tremolo.gain.setValueAtTime(1 - modulationDepth / 2, t);
+        lfo.type = 'sine';
+        lfo.frequency.setValueAtTime(modulationHz, t);
+        lfoDepth.gain.setValueAtTime(modulationDepth / 2, t);
+        lfo.connect(lfoDepth).connect(tremolo.gain);
+        node.connect(tremolo);
+        node = tremolo;
+        const cleanup = () => {
+          try { lfo.stop(); } catch {}
+          try { lfo.disconnect(); lfoDepth.disconnect(); tremolo.disconnect(); } catch {}
+        };
+        source.addEventListener?.('ended', cleanup, { once: true });
+        lfo.start(t);
+        lfo.stop(t + buffer.duration / Math.max(.5, source.playbackRate.value) + .1);
+      } catch {}
+    }
     const spatial = this._createSpatialNode(profile);
     if (spatial) node.connect(spatial).connect(this._group(group));
     else node.connect(this._group(group));
-    source.loop = type === 'ambience' || Boolean(profile.loop);
     if (source.loop && type === 'ambience') {
       this._stopAmbient();
       this._ambientSource = source;
+      this._ambientGain = gain;
     }
     this._track(source, source.loop, type);
     source.start();
@@ -537,9 +648,10 @@ export class AudioSystem {
 
   _playAmbience(details = {}) {
     if (this._ambientSource) return true;
-    const buffer = this._chooseBuffer('ambience', 0, details.variant);
+    const preset = AMBIENCE_PRESETS[this._ambiencePresetIndex] || AMBIENCE_PRESETS[0];
+    const buffer = this._chooseBuffer('ambience', 0, details.variant ?? preset.variant);
     if (buffer) {
-      this._playBuffer(buffer, 'ambience', 0, { ...details, group: 'ambience', loop: true, volume: details.volume ?? .32 });
+      this._playBuffer(buffer, 'ambience', 0, { ...preset, ...details, group: 'ambience', loop: true, volume: details.volume ?? preset.volume });
       return true;
     }
     return false;
@@ -627,6 +739,7 @@ export class AudioSystem {
       this._voices.get('ambience')?.delete(this._ambientSource);
       try { this._ambientSource.disconnect(); } catch {}
       this._ambientSource = null;
+      this._ambientGain = null;
     }
   }
 }

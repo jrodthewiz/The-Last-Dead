@@ -173,8 +173,10 @@ function materials() {
     boneDark: new THREE.MeshStandardMaterial({ color: 0x604c3f, roughness: .9, metalness: 0 }),
     leather: new THREE.MeshStandardMaterial({ color: 0x20151b, roughness: .78, metalness: .05 }),
     brass: new THREE.MeshStandardMaterial({ color: 0xa46b32, roughness: .32, metalness: .86 }),
-    glass: new THREE.MeshPhysicalMaterial({ color: 0x1c5e9d, emissive: 0x091c87, emissiveIntensity: 1.8, roughness: .16, metalness: .22, transmission: .08, transparent: true, opacity: .88 }),
-    energy: new THREE.MeshStandardMaterial({ color: 0x6fd9ff, emissive: 0x536aff, emissiveIntensity: 7, roughness: .14, metalness: .08 }),
+    // Keep the cage legible as blue glass in the dark room; charge energy is
+    // reserved for the shot pulse instead of a permanent neon tube.
+    glass: new THREE.MeshPhysicalMaterial({ color: 0x1c5e9d, emissive: 0x091c87, emissiveIntensity: .45, roughness: .16, metalness: .22, transmission: .08, transparent: true, opacity: .88 }),
+    energy: new THREE.MeshStandardMaterial({ color: 0x6fd9ff, emissive: 0x536aff, emissiveIntensity: 1, roughness: .14, metalness: .08 }),
     energySoft: new THREE.MeshBasicMaterial({ color: 0x75bfff, transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false }),
     muzzle: new THREE.MeshBasicMaterial({ color: 0x9edaff, transparent: true, opacity: .9, blending: THREE.AdditiveBlending, depthWrite: false }),
     muzzleCore: new THREE.MeshBasicMaterial({ color: 0xe8fbff, transparent: true, opacity: .94, blending: THREE.AdditiveBlending, depthWrite: false }),
@@ -369,7 +371,7 @@ export function createArc(options = {}) {
     explode,
     pick(raycaster) { const hit = raycaster.intersectObject(root, true)[0]; return hit?.object?.parent?.name || hit?.object?.name || null; },
   };
-  root.userData.arc = { kind: 'arc', parts, sockets, materials: mats, textures, reactor, emitter, chargeSlider, recoil: 0, flash: 0, heat: 0, lastShot: 0 };
+  root.userData.arc = { kind: 'arc', parts, sockets, materials: mats, textures, reactor, emitter, chargeSlider, baffles: parts['reactor-baffles'], heatVents: parts['reactor-heat-vents'], coilGuards: parts['coil-guards'], recoil: 0, flash: 0, heat: 0, cagePulse: 0, lastShot: 0 };
   addWear(root);
   stabilizeWeaponVertexWear(root, 47);
   applyWeaponDetailPass(root, 'arc');
@@ -385,19 +387,30 @@ export function animateArc(root, time = 0, shot = 0, dt = .016, state = {}) {
     meta.recoil = 1;
     meta.flash = 1;
     meta.heat = Math.min(1, meta.heat + .3);
+    meta.cagePulse = 1;
   }
   meta.lastShot = shotValue;
   meta.recoil = THREE.MathUtils.damp(meta.recoil, 0, 16, delta);
   meta.flash = Math.max(0, meta.flash - delta * 11);
   meta.heat = THREE.MathUtils.damp(meta.heat, 0, 1.25, delta);
+  meta.cagePulse = THREE.MathUtils.damp(meta.cagePulse, 0, 7, delta);
+  const haunt = .5 + .5 * Math.sin(time * 1.7 + Math.sin(time * .43) * .55);
+  const charge = THREE.MathUtils.clamp(meta.heat * .68 + meta.cagePulse * .6 + haunt * .1, 0, 1);
   meta.reactor.rotation.z = time * (.45 + meta.heat * 2.2);
-  meta.chargeSlider.position.z = Math.sin(time * 3.2) * .14 - meta.heat * .035;
-  meta.chargeSlider.rotation.y = meta.heat * .22;
+  meta.chargeSlider.position.z = Math.sin(time * 3.2 + charge * .8) * (.12 + charge * .025) - charge * .035;
+  meta.chargeSlider.rotation.y = charge * .22;
+  // The cage opens a fraction around the unstable core, then settles into a
+  // low, irregular pulse.  All three groups already exist and remain shared
+  // geometry; only transforms are touched in the frame loop.
+  meta.baffles.scale.set(1 + charge * .085, 1 + charge * .025, 1);
+  meta.heatVents.scale.set(1 + charge * .18, 1 + charge * .04, 1);
+  meta.heatVents.position.z = -charge * .012;
+  meta.coilGuards.rotation.z = Math.sin(time * 2.1) * .012 + charge * .034;
   meta.recoil *= 1;
   root.position.z = meta.recoil * .028;
   root.rotation.x = meta.recoil * -.012;
-  meta.materials.energy.emissiveIntensity = 4.4 + meta.heat * 7 + Math.sin(time * 9) * .45;
-  meta.materials.glass.emissiveIntensity = 1.25 + meta.heat * 3.2;
+  meta.materials.energy.emissiveIntensity = .72 + meta.heat * 6.6 + meta.cagePulse * 3.8 + Math.sin(time * 9) * .08;
+  meta.materials.glass.emissiveIntensity = .36 + meta.heat * 3.2 + meta.cagePulse * 1.8;
   meta.materials.energySoft.opacity = .34 + meta.heat * .18;
   meta.materials.muzzle.opacity = .55 + meta.flash * .4;
   meta.materials.muzzleCore.opacity = .42 + meta.flash * .52;

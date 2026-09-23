@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Afterlife Props Preview</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; }
+    html, body { margin: 0; min-height: 100%; background: #070a0c; color: #d2d7d4; }
+    body { overflow: hidden; }
+    #stage { position: fixed; inset: 0; }
+    #info { position: fixed; left: 18px; top: 16px; max-width: 420px; padding: 12px 14px; border: 1px solid rgba(188,204,198,.18); background: rgba(7,10,12,.72); box-shadow: 0 12px 45px rgba(0,0,0,.28); backdrop-filter: blur(7px); }
+    h1 { margin: 0 0 4px; font-size: 15px; letter-spacing: .12em; text-transform: uppercase; color: #b7c2bf; }
+    p { margin: 4px 0 0; font-size: 12px; line-height: 1.45; color: #82908d; }
+    #stats { margin-top: 8px; font: 11px ui-monospace, SFMono-Regular, Consolas, monospace; color: #aab6b2; white-space: pre; }
+  </style>
+</head>
+<body>
+  <div id="stage"></div>
+  <aside id="info">
+    <h1>Forsaken Afterlife // Prop Loop</h1>
+    <p>Lightweight procedural factories: abandoned wheelchair + mourning cabinet. Static capture route for a single visual review.</p>
+    <div id="stats">building…</div>
+  </aside>
+  <script type="module">
+    import * as THREE from '../../vendor/three.module.js';
+    import { createAfterlifeWheelchair, createAfterlifeReliquary } from '../../afterlife-props.js';
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x070a0c);
+    scene.fog = new THREE.Fog(0x070a0c, 8, 18);
+    const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, .05, 40);
+    camera.position.set(3.25, 1.75, 4.5);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.25));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.querySelector('#stage').append(renderer.domElement);
+
+    const hemi = new THREE.HemisphereLight(0xc2d0d2, 0x202426, 1.85);
+    scene.add(hemi);
+    const key = new THREE.DirectionalLight(0xc6d6d8, 4.0);
+    key.position.set(-3, 6, 4); key.castShadow = true; key.shadow.mapSize.set(512, 512); key.shadow.camera.near = .1; key.shadow.camera.far = 18;
+    scene.add(key);
+    const rim = new THREE.PointLight(0x93aeb1, 1.2, 8, 2);
+    rim.position.set(1.4, 1.4, -2.2); scene.add(rim);
+
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), new THREE.MeshStandardMaterial({ color: 0x171b1b, roughness: .9, metalness: .08 }));
+    floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+    const display = new THREE.Group();
+    scene.add(display);
+    const wheelchair = createAfterlifeWheelchair({ name: 'Preview_Wheelchair', reference: 'references/wheelchair.png' });
+    const woodMap = new THREE.TextureLoader().load('../../assets/textures/afterlife-cabinet-wood-v1.webp');
+    woodMap.colorSpace=THREE.SRGBColorSpace;woodMap.wrapS=woodMap.wrapT=THREE.RepeatWrapping;
+    const wood = new THREE.MeshStandardMaterial({color:0xc2b6a5,roughness:.93,metalness:0,map:woodMap});
+    const cabinet = createAfterlifeReliquary({ name: 'Preview_MourningCabinet', reference: 'references/mourning-cabinet.png', materials:{wood} });
+    wheelchair.position.set(-.72, 0, .05);
+    wheelchair.rotation.y = -.18;
+    cabinet.position.set(.72, 0, -.08);
+    // The reference front faces the camera; the map can rotate this root when
+    // it is authored against a corridor wall.
+    cabinet.rotation.y = Math.PI + .08;
+    display.add(wheelchair, cabinet);
+    const target = new THREE.Vector3(0, .9, 0);
+    camera.lookAt(target);
+
+    function stats() {
+      const a = wheelchair.userData.afterlifePropDiagnostics;
+      const b = cabinet.userData.afterlifePropDiagnostics;
+      document.querySelector('#stats').textContent = `wheelchair  ${a.triangles} tris / ${a.materials} slots\nmourning cabinet  ${b.triangles} tris / ${b.materials} slots\nrenderer  ${renderer.info.render.calls} draw calls`;
+    }
+    function resize() { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); }
+    addEventListener('resize', resize);
+    let angle = 0;
+    function render() {
+      display.rotation.y = angle;
+      renderer.render(scene, camera);
+      stats();
+      requestAnimationFrame(render);
+    }
+    window.__AFTERLIFE_PROPS_PREVIEW__ = {
+      scene, camera, renderer, display, wheelchair, cabinet,
+      setAngle(value) { angle = Number(value) || 0; display.rotation.y = angle; renderer.render(scene, camera); },
+      diagnostics() { return { wheelchair: wheelchair.userData.afterlifePropDiagnostics, cabinet: cabinet.userData.afterlifePropDiagnostics, render: renderer.info.render }; },
+    };
+    render();
+  </script>
+</body>
+</html>

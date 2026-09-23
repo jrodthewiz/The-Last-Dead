@@ -1,0 +1,28 @@
+{
+  "date": "2026-09-23",
+  "generator": "ImageGen",
+  "assets": [
+    {
+      "kind": "procedural model reference",
+      "path": "references/wheelchair.png",
+      "prompt": "Create one clean 3D model reference image of a single abandoned antique hospital wheelchair, front three-quarter view, entirely visible against plain matte warm-grey background, studio neutral light without dramatic effects. Believable early twentieth-century steel tubular wheelchair: two large thin 12-spoke rear wheels, small plain front casters, dark cracked oxblood canvas seat and sagging narrow backrest, curved black rubber handles, folding footrests and elegant bent tube arm supports, slim worn metal frame, slight rust. No person, no ghost, no gore, no labels, no scenery. An ominous empty everyday object suitable for a restrained afterlife horror game. Precise readable construction with very few parts, attractive coherent silhouette for efficient procedural Three.js reconstruction. Object should be structurally possible, wheel planes parallel, seat horizontal. One view only, no panels or typography. Square image, 1024px."
+    },
+    {
+      "kind": "procedural model reference",
+      "path": "references/mourning-cabinet.png",
+      "prompt": "A narrow 2.05 m antique institutional mourning cabinet, worn dark wood, dirty frosted-glass upper panels, short corroded brass handles, no carved ornament; clean three-quarter neutral studio reference."
+    },
+    {
+      "kind": "runtime diffuse texture",
+      "path": "../../assets/textures/afterlife-institutional-floor-v1.webp",
+      "sourceArchive": ".art-source/afterlife-iteration/institutional-floor-original.png",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "bytes": 271080,
+      "prompt": "Generate a seamless tileable PBR diffuse/albedo texture, square 1024x1024, directly orthographic top down, fills the whole image, for worn mid-century institutional floor tiles in a haunted abandoned hospital. Four by four large unevenly aged square tiles with very narrow dark charcoal grout, desaturated warm grey and pale green-grey linoleum or stone, subtle rubbed traffic scuffs, a few hairline cracks, ingrained dusty grime mainly along joints. Mostly dry, chalky, matte. Low contrast small-scale grain. Distinct material roughness represented only by subtle discoloration. No perspective, no shadows, no baked lighting, no vignette, no reflected lights, no photographic scene, no objects, no text, no border, no blood, no black holes. Restrained ordinary believable surface made frightening by lighting elsewhere. Edges should join seamlessly.",
+      "processing": "Resize to 1024px and WebP quality86; original preserved. No code-painted art changes."
+    }
+  ]
+}

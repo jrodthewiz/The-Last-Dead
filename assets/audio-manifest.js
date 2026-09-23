@@ -1,7 +1,11 @@
 // Replace individual event pools here. Paths resolve relative to assets/audio.js.
 export const AUDIO_ASSET_MANIFEST = Object.freeze({
   "ambience": [
-    "./audio/ambience/ossuary-dungeon.ogg"
+    "./audio/ambience/ossuary-dungeon.ogg",
+    "./audio/afterlife/air-corridor-loop.ogg"
+  ],
+  "distant-scream": [
+    "./audio/sourced/horror/distant-scream-rough.ogg"
   ],
   "music-menu": [
     "./audio/music/insistent-menu.ogg"
@@ -27,6 +31,23 @@ export const AUDIO_ASSET_MANIFEST = Object.freeze({
     [
       "./audio/sfx/processed/reliquary-launch.wav",
       "./audio/sourced/weapons/reliquary-02.ogg"
+    ]
+  ],
+  // Short, low-level mechanical tails are layered by AudioSystem.play('shot')
+  // so each weapon keeps its main report while gaining a distinct tactile
+  // latch without increasing gameplay event traffic.
+  "mechanism": [
+    [
+      "./audio/afterlife/weapon-latch-metal.ogg"
+    ],
+    [
+      "./audio/afterlife/weapon-latch-bone.ogg"
+    ],
+    [
+      "./audio/afterlife/weapon-latch-metal.ogg"
+    ],
+    [
+      "./audio/afterlife/weapon-latch-bone.ogg"
     ]
   ],
   "hit": [
@@ -105,7 +126,8 @@ export const AUDIO_ASSET_MANIFEST = Object.freeze({
     "./audio/sourced/enemies/zombie-attack-09.ogg",
     "./audio/sourced/enemies/zombie-attack-10.ogg",
     "./audio/sourced/enemies/zombie-attack-11.ogg",
-    "./audio/sourced/enemies/zombie-attack-12.ogg"
+    "./audio/sourced/enemies/zombie-attack-12.ogg",
+    "./audio/afterlife/enemy-onset.ogg"
   ],
   "moan": [
     "./audio/sourced/enemies/zombie-moan-01.ogg",
@@ -119,7 +141,8 @@ export const AUDIO_ASSET_MANIFEST = Object.freeze({
     "./audio/sourced/enemies/zombie-moan-09.ogg",
     "./audio/sourced/enemies/zombie-moan-10.ogg",
     "./audio/sourced/enemies/zombie-moan-11.ogg",
-    "./audio/sourced/enemies/zombie-moan-12.ogg"
+    "./audio/sourced/enemies/zombie-moan-12.ogg",
+    "./audio/afterlife/room-creak.ogg"
   ],
   "enemydeath": [
     "./audio/enemy/enemy-death-01.wav",

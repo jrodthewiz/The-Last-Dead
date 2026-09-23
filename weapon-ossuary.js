@@ -21,8 +21,10 @@ export function createOssuary(){
   steel:new THREE.MeshStandardMaterial({color:0xa8a5a0,roughness:.3,metalness:.9}),
   ironEdge:new THREE.MeshStandardMaterial({color:0x766064,roughness:.34,metalness:.82}),
   brass:new THREE.MeshStandardMaterial({color:0x925b35,roughness:.31,metalness:.8}),
-  glow:new THREE.MeshStandardMaterial({color:0xff294f,emissive:0xff123b,emissiveIntensity:2.1,roughness:.33,metalness:.08}),
-  ember:new THREE.MeshStandardMaterial({color:0xff6b3b,emissive:0xb21d18,emissiveIntensity:2.4,roughness:.28,metalness:.08}),
+  // Energy accents stay subdued in the afterlife room and only bloom on the
+  // firing beat, so the weapon does not compete with the cold lantern pool.
+  glow:new THREE.MeshStandardMaterial({color:0xff294f,emissive:0xff123b,emissiveIntensity:.45,roughness:.33,metalness:.08}),
+  ember:new THREE.MeshStandardMaterial({color:0xff6b3b,emissive:0xb21d18,emissiveIntensity:.65,roughness:.28,metalness:.08}),
   muzzle:new THREE.MeshBasicMaterial({color:0xff8c51,transparent:true,opacity:.95,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false}),
   muzzleHot:new THREE.MeshBasicMaterial({color:0xffe5b0,transparent:true,opacity:.95,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false}),
   muzzleRing:new THREE.MeshBasicMaterial({color:0xff4d32,transparent:true,opacity:.75,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false}),
@@ -136,6 +138,7 @@ export function animateOssuary(root,shot=0,time=0,dt=.016,state={}){
   s.flash=1;
   s.smoke=1;
   s.heat=Math.min(1,s.heat+.28);
+  s.jawTension=1;
  }
  s.lastShot=shotValue;
  s.recoil=THREE.MathUtils.damp(s.recoil,0,16,delta);
@@ -161,8 +164,8 @@ export function animateOssuary(root,shot=0,time=0,dt=.016,state={}){
  s.jaw.position.y=-s.jawTension*.008;
  s.ribs.rotation.z=Math.sin(time*2.15+.7)*.012+s.jawTension*.045;
  s.ribs.scale.set(1+s.jawTension*.018,1+s.jawTension*.028,1);
- s.materials.glow.emissiveIntensity=1.6+shotValue*4+s.heat*2.8+Math.sin(time*2.7)*.15;
- s.materials.ember.emissiveIntensity=1.8+s.heat*5.4+s.flash*5+Math.sin(time*6.5)*.18;
+ s.materials.glow.emissiveIntensity=.32+shotValue*5.2+s.heat*2.2+s.flash*1.3+Math.sin(time*2.7)*.05;
+ s.materials.ember.emissiveIntensity=.48+s.heat*2.6+s.flash*6.2+Math.sin(time*6.5)*.06;
  const fx=s.shotFx;
  const flashAlpha=Math.min(1,s.flash*1.35);
  s.materials.muzzle.opacity=.08+flashAlpha*.9;

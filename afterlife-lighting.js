@@ -44,6 +44,7 @@ export class AfterlifeLighting {
 
   rebuild(world) {
     this.candidates.length = 0;
+    this.nextPracticalSelection = 0;
     world.updateMatrixWorld(true);
     world.traverse(node => {
       if (!node.isPointLight || !Number.isFinite(node.userData.baseIntensity)) return;
@@ -80,8 +81,13 @@ export class AfterlifeLighting {
       renderer.shadowMap.needsUpdate = true;
     }
     this.lantern.shadow.autoUpdate = false;
-    for (const cue of this.candidates) cue.score = cue.position.distanceToSquared(this.position);
-    this.candidates.sort((a, b) => a.score - b.score);
+    // Authored practicals are stationary. Re-rank five times a second;
+    // lantern aiming and the six selected light envelopes still update each frame.
+    if (now >= (this.nextPracticalSelection || 0)) {
+      for (const cue of this.candidates) cue.score = cue.position.distanceToSquared(this.position);
+      this.candidates.sort((a, b) => a.score - b.score);
+      this.nextPracticalSelection = now + 200;
+    }
     this.pools.forEach((light, i) => {
       const cue = this.candidates[i];
       if (!cue || cue.score > 48 * 48) { light.intensity = 0; return; }

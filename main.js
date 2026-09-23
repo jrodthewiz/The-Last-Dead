@@ -1,5 +1,5 @@
 import {syncRoomGateCells} from './room-progression.js';
-import {makeCourse,makeCampaignCourse,newRun,tick,tickPlayer,shoot,parry,grapple,look,switchWeapon,addPeer,clamp,weapons} from './engine.js';
+import {makeCourse,makeCampaignCourse,newRun,tick,tickPlayer,shoot,parry,grapple,look,switchWeapon,addPeer,clamp,weapons,castRay,angleDiff} from './engine.js';
 import {Renderer} from './renderer.js';
 import {UI} from './ui.js';
 import {PeerJsSession} from './signaling.js';
@@ -13,6 +13,8 @@ const requestedSector=new URLSearchParams(location.search).has('debug')?clamp(Ma
 const startingCourse=()=>requestedDungeonIndex===null?makeCampaignCourse(requestedSector):makeDungeonCourse(requestedDungeonIndex);
 let run=newRun(startingCourse(),{requireEntry:true}),screen='menu',session=null,signal=null,signalAbort=null,signalRoom='',network='SOLO',settings={sensitivity:1,volume:.5,sfxVolume:1,voiceVolume:1,musicVolume:1,ambienceVolume:1,uiVolume:1,reducedMotion:false,gore:true,autoRun:false},last=0,acc=0,netClock=0,hudClock=0,frames=0,fps=60,fpsClock=0,remoteInput={},remoteSeen=0,remoteParry=0,parrySequence=0,remoteHook=0,hookSequence=0,snapshotSeq=0,lastSnapshot=-1,netEventSeq=0,lastNetEvent=-1,netEvents=[];
 const keys=new Set(),touches=new Map(),pulses=new Set();let fire=false,alt=false,lastStep=0,lastHeartbeat=0;
+let horrorRunRef=null,lastHorrorCueAt=-Infinity,nextHorrorCheck=0,horrorQuietSince=null,distantScreamPlayed=false;
+const heardDungeonScares=new Set();
 const playerFields=['x','y','z','angle','pitch','vx','vy','vz','speed','distance','time','mode','health','energy','weapon','cooldowns','fireCooldown','shot','damage','heal','aim','slide','dashTime','punch','hookTime','hookCooldown','hookTarget','parryTime','parryCooldown','slam','wallJumps','style','styleTotal','styleLabel','rank','kills','combo','bestCombo','lastWeapon','repeat','coinCharges','coinRegen','altCooldown','respawnTime'];
 const playerData=p=>Object.fromEntries(playerFields.map(k=>[k,p[k]]));
 function snapshot(){return{seq:++snapshotSeq,host:playerData(run),guest:run.peer?playerData(run.peer):null,wave:run.wave,waveDelay:run.waveDelay,enemies:run.course.enemies,projectiles:run.projectiles,coins:run.coins,gore:run.gore.slice(-110),blood:run.blood,tracers:run.tracers,campaign:run.campaign,sectorIndex:run.sectorIndex,sectorCount:run.sectorCount,sectorId:run.sectorId,sectorName:run.sectorName,waveCount:run.waveCount,director:run.director?Object.fromEntries(['state','budget','spent','remainingBudget','aliveCap','active','pending','elapsed'].map(k=>[k,run.director[k]])):null,roomProgression:run.roomProgression||null,spawnTelegraphs:run.spawnTelegraphs||[],explosions:run.explosions||[],audioEvents:netEvents.slice(-20)};}
@@ -55,7 +57,77 @@ document.addEventListener('pointerdown',e=>{const b=e.target.closest?.('[data-ac
 const release=e=>{touches.delete(e.pointerId);if(e.pointerType!=='touch'){if(e.button===0)fire=false;if(e.button===2)alt=false;}};addEventListener('pointerup',release);addEventListener('pointercancel',release);canvas.addEventListener('contextmenu',e=>e.preventDefault());canvas.addEventListener('wheel',e=>{if(screen!=='play')return;e.preventDefault();switchWeapon(run,(run.weapon+(e.deltaY>0?1:weapons.length-1))%weapons.length);},{passive:false});
 document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&screen==='play')pause();});addEventListener('blur',()=>{resetInput();if(screen==='play')pause();});document.addEventListener('visibilitychange',()=>{if(document.hidden&&screen==='play')pause();});addEventListener('resize',()=>renderer.resize());
 const spatialEvent=e=>{const details={...e,id:e.id??e.enemyId??e.projectileId};return Number.isFinite(e.x)&&Number.isFinite(e.y)?{...details,position:{x:e.x*4,y:(e.z||0)*4,z:e.y*4}}:details;};
-function processEvents(){if(run.distance<lastStep)lastStep=0;if(run.time<lastHeartbeat)lastHeartbeat=0;if(run.distance-lastStep>.4&&run.z<.02&&run.slide<.3){lastStep=run.distance;audio.play('footstep');}if(run.health>0&&run.health<35&&run.time-lastHeartbeat>.8){lastHeartbeat=run.time;audio.play('heartbeat');}audio.updateListener?.({x:run.x*4,y:(run.z+.4)*4,z:run.y*4,forwardX:Math.cos(run.angle)*Math.cos(run.pitch),forwardY:Math.sin(run.pitch),forwardZ:Math.sin(run.angle)*Math.cos(run.pitch)});for(const e of [...run.events,...(run.peer?.events||[])]){ui.combatEvent?.(e);audio.play(e.type,e.weapon??run.weapon,spatialEvent(e));if(e.type==='wave')ui.toast('WAVE '+e.wave+' / '+(run.waveCount||3)+' — INCOMING');if(e.type==='sector-transition')ui.toast('DESCENT '+(e.sectorIndex+1)+' // '+e.sectorName.toUpperCase());if(session?.role==='host'&&['enemy-attack','explosion','spawn','wave','sector-transition'].includes(e.type)){netEvents.push({...e,seq:++netEventSeq});netEvents=netEvents.slice(-20);}}run.events.length=0;if(run.peer?.events)run.peer.events.length=0;}
+function horrorSourcePoint(minDistance,maxDistance){
+ const candidates=(run.course.spawnPoints||[]).map(p=>{
+  const dx=p.x-run.x,dy=p.y-run.y,d=Math.hypot(dx,dy),angle=Math.atan2(dy,dx);
+  const occluded=castRay(run.course,run.x,run.y,angle,d).dist<d-.12;
+  const offscreen=Math.abs(angleDiff(angle,run.angle))>.95;
+  return{...p,d,occluded,offscreen,score:Math.abs(d-(minDistance+maxDistance)/2)+(occluded?0:1.3)+(offscreen?0:4)};
+ }).filter(p=>p.d>=minDistance&&p.d<=maxDistance&&p.offscreen).sort((a,b)=>a.score-b.score);
+ if(candidates.length)return candidates[0];
+ return{x:run.x-Math.cos(run.angle)*minDistance,y:run.y-Math.sin(run.angle)*minDistance,d:minDistance,occluded:false,offscreen:true};
+}
+function updateDungeonScareAudio(){
+ const course=run.course,progression=run.dungeonProgression;
+ if(!course?.dungeon||!progression||!audio.assetsLoaded)return;
+ const roomId=progression.activeRoomId;
+ if(!roomId||(course.enemies||[]).some(e=>!e.dead))return;
+ const scare=(course.scares||[]).find(item=>item.roomId===roomId&&!heardDungeonScares.has(item.id)&&(item.kind==='scream'||item.kind==='watcher'));
+ if(!scare)return;
+ const [x,y]=scare.at||[],d=Math.hypot(x-run.x,y-run.y),angle=Math.atan2(y-run.y,x-run.x);
+ const occluded=castRay(course,run.x,run.y,angle,d).dist<d-.12;
+ const cueType=scare.kind==='scream'?'distant-scream':'horror-approach';
+ const cue=spatialEvent({type:cueType,x,y,z:.08,id:'dungeon-'+scare.id,enemyId:'dungeon-'+scare.id,occluded,cooldown:18,volume:scare.kind==='scream'?.22:.13});
+ const played=audio.play(cueType,0,cue);
+ heardDungeonScares.add(scare.id);
+ if(played)audio.duckAtmosphere(.55,.75,1.8,1.2);
+}
+function updateHorrorAudio(){
+ if(run!==horrorRunRef){horrorRunRef=run;lastHorrorCueAt=-Infinity;nextHorrorCheck=0;horrorQuietSince=null;distantScreamPlayed=false;heardDungeonScares.clear();}
+ if(screen!=='play'||run.mode!=='play'||run.health<=0)return;
+ const time=run.time||0;
+ if(time>=nextHorrorCheck&&time-lastHorrorCueAt>=8){
+  nextHorrorCheck=time+.4;
+  const enemies=(run.course.enemies||[]).filter(e=>!e.dead&&!e.attacking).map(e=>({e,d:Math.hypot(e.x-run.x,e.y-run.y)})).filter(t=>t.d>=2.7&&t.d<=8.2).sort((a,b)=>a.d-b.d);
+  for(const {e,d} of enemies){
+   const angle=Math.atan2(e.y-run.y,e.x-run.x),ray=castRay(run.course,run.x,run.y,angle,d),occluded=ray.dist<d-.12;
+   if(!occluded&&Math.abs(angleDiff(angle,run.angle))<.82)continue;
+   const cue=spatialEvent({type:'horror-approach',x:e.x,y:e.y,z:.08,enemyId:e.id,occluded,cooldown:8,volume:.15});
+   if(audio.play('horror-approach',0,cue)){
+    audio.duckAtmosphere(.68,.65,1.5,1.1);
+    lastHorrorCueAt=time;
+    break;
+   }
+  }
+ }
+ if(run.director?.state==='exit'){
+  if(horrorQuietSince===null)horrorQuietSince=time;
+  if(!distantScreamPlayed&&time-horrorQuietSince>=2.8){
+   const source=horrorSourcePoint(5,10);
+   if(audio.play('distant-scream',0,{id:'distant-scream-'+run.sectorIndex,position:{x:source.x*4,y:1.2,z:source.y*4},volume:.25})){
+    audio.duckAtmosphere(.5,.8,2,1.2);
+    distantScreamPlayed=true;
+   }
+  }
+ }else horrorQuietSince=null;
+ updateDungeonScareAudio();
+}
+function processEvents(){
+ if(run.distance<lastStep)lastStep=0;
+ if(run.time<lastHeartbeat)lastHeartbeat=0;
+ if(run.distance-lastStep>.4&&run.z<.02&&run.slide<.3){lastStep=run.distance;audio.play('footstep');}
+ if(run.health>0&&run.health<35&&run.time-lastHeartbeat>.8){lastHeartbeat=run.time;audio.play('heartbeat');}
+ audio.updateListener?.({x:run.x*4,y:(run.z+.4)*4,z:run.y*4,forwardX:Math.cos(run.angle)*Math.cos(run.pitch),forwardY:Math.sin(run.pitch),forwardZ:Math.sin(run.angle)*Math.cos(run.pitch)});
+ audio.setAmbiencePreset?.(run.sectorIndex??0);
+ updateHorrorAudio();
+ for(const e of [...run.events,...(run.peer?.events||[])]){
+  ui.combatEvent?.(e);audio.play(e.type,e.weapon??run.weapon,spatialEvent(e));
+  if(e.type==='wave')ui.toast('WAVE '+e.wave+' / '+(run.waveCount||3)+' — INCOMING');
+  if(e.type==='sector-transition')ui.toast('DESCENT '+(e.sectorIndex+1)+' // '+e.sectorName.toUpperCase());
+  if(session?.role==='host'&&['enemy-attack','explosion','spawn','wave','sector-transition'].includes(e.type)){netEvents.push({...e,seq:++netEventSeq});netEvents=netEvents.slice(-20);}
+ }
+ run.events.length=0;if(run.peer?.events)run.peer.events.length=0;
+}
 function frame(t){const dt=Math.min(.1,last?(t-last)/1000:0);last=t;frames++;fpsClock+=dt;if(fpsClock>.75){fps=frames/fpsClock;frames=0;fpsClock=0;}const live=screen==='play'||(session?.connected&&screen==='pause');if(live&&run.mode==='play'){acc=Math.min(acc+dt,.1);const i=intent();let stepped=false;while(acc>=1/120){stepped=true;if(session?.connected&&session.role==='guest'){tickPlayer(run,1/120,i);if(i.fire||i.alt){if(run.cooldowns[run.weapon]<=0){run.shot=1;run.cooldowns[run.weapon]=weapons[run.weapon].interval;audio.play('shot',run.weapon);}}}else{if(i.fire||i.alt)shoot(run,i.alt);if(run.peer){const ri=performance.now()-remoteSeen<350?remoteInput:{};if(Number.isFinite(ri.angle)){run.peer.angle=ri.angle;run.peer.pitch=ri.pitch;switchWeapon(run.peer,ri.weapon);}tickPlayer(run.peer,1/120,ri);if(ri.fire||ri.alt)shoot(run.peer,ri.alt);if(ri.parry>remoteParry){remoteParry=ri.parry;parry(run.peer);}if(ri.hook>remoteHook){remoteHook=ri.hook;grapple(run.peer);}}tick(run,1/120,i);}acc-=1/120;}if(stepped&&(!session?.connected||session.role==='host'))pulses.clear();netClock+=dt;if(session?.connected&&netClock>=.05){netClock=0;if(session.role==='host')session.send({t:'snapshot',s:snapshot()});else{session.send({t:'input',i:{...i,angle:run.angle,pitch:run.pitch,weapon:run.weapon}});pulses.clear();}}processEvents();}
  if(['win','dead'].includes(run.mode)&&!['win','dead'].includes(screen)){screen=run.mode;resetInput();document.exitPointerLock?.();audio.pause();audio.setScene?.(run.mode);ui.finish(run,run.mode==='win');if(session?.role==='host'&&session.connected)session.send({t:'snapshot',s:snapshot()});}
  renderer.render(run,t);hudClock+=dt;if(hudClock>=1/30){hudClock=0;ui.hud(run,{network:session?.connected?'P2P / '+Math.round(session.rtt||0)+' MS':network,fps});}requestAnimationFrame(frame);}

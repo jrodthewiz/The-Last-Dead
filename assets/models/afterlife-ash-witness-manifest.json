@@ -1,0 +1,65 @@
+{
+  "formatVersion": 1,
+  "id": "afterlife-ash-witness",
+  "label": "Ash Witness",
+  "runtime": {
+    "file": "afterlife-ash-witness.glb",
+    "url": "/assets/models/afterlife-ash-witness.glb",
+    "heightMeters": 1.86,
+    "visualOnly": true,
+    "collision": "Use the existing procedural enemy capsule/hurtbox. Do not derive physics from the mesh."
+  },
+  "provenance": {
+    "conceptSource": ".art-source/afterlife-iteration/references/afterlife-ash-witness-tpose.png",
+    "conceptGenerator": "ImageGen",
+    "meshProvider": "Meshy multi-image-to-3d + Meshy rigging",
+    "meshTaskId": "01a0cdab-1572-734a-85da-4dc9103af798",
+    "rigTaskId": "01a0cdaf-1182-7473-b631-c659f7d0e138",
+    "blenderSource": ".art-source/afterlife-iteration/Ash_Witness_Afterlife_v01.blend",
+    "blenderAuthoringScript": "scripts/afterlife-character-blender.py",
+    "packageScript": "scripts/afterlife-character-package.mjs",
+    "sourceRigSha256": "0299f4e7fc8375b4e466decfd23fb00048529fefe003eacbb951262ca00e2c76",
+    "runtimeSha256": "d445478c7fbebae0530a859197a1c6fedd49af08b012eb9c7470362bb2002540",
+    "runtimeBytes": 2387428,
+    "runtimeTriangles": 27512,
+    "compression": {
+      "texture": "512px WebP quality 74",
+      "geometry": "Meshoptimizer simplifier ratio 0.35, border locked; no runtime decoder required",
+      "sourceBytes": 32748472
+    }
+  },
+  "rig": {
+    "rootBone": "Hips",
+    "jointCount": 24,
+    "heightMeters": 1.86,
+    "notes": "Meshy/Blender export faces +Z; wrapper applies a PI yaw so the runtime actor presents local -Z while preserving the authored 1.86m scale."
+  },
+  "clips": {
+    "idle": {
+      "name": "AshWitness_Idle",
+      "durationSeconds": 2.416667,
+      "loop": true,
+      "purpose": "Quiet breathing and a restrained head cant."
+    },
+    "shuffle": {
+      "name": "AshWitness_Shuffle",
+      "durationSeconds": 1.5,
+      "loop": true,
+      "purpose": "In-place uneven gait with soft shoulder counter-motion."
+    },
+    "collapse": {
+      "name": "AshWitness_Collapse",
+      "durationSeconds": 1.833333,
+      "loop": false,
+      "purpose": "Forward fold for death or a brief scare beat."
+    }
+  },
+  "integration": {
+    "loader": "GLTFLoader.load('/assets/models/afterlife-ash-witness.glb')",
+    "mixer": "new THREE.AnimationMixer(gltf.scene)",
+    "clipLookup": "gltf.animations.find((clip) => clip.name === manifest.clips.idle.name)",
+    "update": "mixer.update(deltaSeconds)",
+    "transition": "fadeOut(0.12); next.reset().fadeIn(0.12).play()",
+    "fallback": "If the GLB is unavailable, retain the current procedural enemy factory."
+  }
+}

@@ -159,7 +159,7 @@ function styleMaterial(source, role, cue, options, pendingSync = null, lineObjec
     material.opacity = Math.min(Number.isFinite(source.opacity) ? source.opacity : 1, options.seamOpacity ?? .1);
   }
   if ('envMapIntensity' in material) {
-    const envScale = role === 'roomFloor' || role === 'roomFloorInset' ? .58 : role === 'roomMetal' || role === 'roomTrim' ? .52 : .36;
+    const envScale = role === 'roomFloor' || role === 'roomFloorInset' ? .22 : role === 'roomMetal' || role === 'roomTrim' ? .52 : .36;
     material.envMapIntensity = Math.min(Number.isFinite(source.envMapIntensity) ? source.envMapIntensity : 1, envScale);
   }
   const mapCapableRole = role === 'roomWall' || role === 'roomPanel' || role === 'roomFloor' || role === 'roomFloorInset' || role === 'roomTrim' || role === 'roomMetal' || role === 'roomBone';

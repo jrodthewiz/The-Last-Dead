@@ -224,13 +224,15 @@ function makeMaterials() {
     leather: new THREE.MeshStandardMaterial({color: 0x291217, roughness: .82, metalness: .03}),
     soot: new THREE.MeshStandardMaterial({color: 0x060609, roughness: .97, metalness: 0}),
     brass: new THREE.MeshStandardMaterial({color: 0x8d5025, roughness: .38, metalness: .8}),
+    // The relic's red is a material signature at rest; its ceremonial flare
+    // is driven by the short ritual pulse below.
     ember: new THREE.MeshStandardMaterial({
-      color: 0xff1739, emissive: 0xff092e, emissiveIntensity: 2.8,
+      color: 0xff1739, emissive: 0xff092e, emissiveIntensity: .6,
       roughness: .3, metalness: .15
     }),
     steelDark: new THREE.MeshStandardMaterial({color: 0x17161a, roughness: .78, metalness: .56}),
     muzzle: new THREE.MeshStandardMaterial({
-      color: 0xff5a32, emissive: 0xff1f0b, emissiveIntensity: 3.8,
+      color: 0xff5a32, emissive: 0xff1f0b, emissiveIntensity: .65,
       transparent: true, opacity: .95, roughness: .18
     }),
     heatGlow: new THREE.MeshBasicMaterial({color: 0xff3b21, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false}),
@@ -552,7 +554,8 @@ export function createReliquary(options = {}) {
     kind: 'reliquary',
     variant: options.variant || 'bone-rocket',
     parts, sockets, materials, textures, recoilCarriage, core, barrel, heatVents, heatBloom,
-    recoil: 0, flash: 0, heat: 0, charge: 0, lastShot: 0
+    muzzleClaws: parts['muzzle-claws'], ribcage: parts.ribcage,
+    recoil: 0, flash: 0, heat: 0, charge: 0, ritualPulse: 0, lastShot: 0
   };
   applyWeaponDetailPass(root, 'reliquary');
   return root;
@@ -567,19 +570,30 @@ export function animateReliquary(root, shot = 0, time = 0, dt = .016, state = {}
     meta.recoil = 1;
     meta.flash = 1;
     meta.heat = Math.min(1, meta.heat + .34);
+    meta.ritualPulse = 1;
   }
   meta.lastShot = shotValue;
   meta.recoil = THREE.MathUtils.damp(meta.recoil, 0, 13, delta);
   meta.flash = Math.max(0, meta.flash - delta * 8);
   meta.heat = THREE.MathUtils.damp(meta.heat, 0, 1.3, delta);
+  meta.ritualPulse = THREE.MathUtils.damp(meta.ritualPulse, 0, 8, delta);
+  const ritual = THREE.MathUtils.clamp(meta.heat * .62 + meta.ritualPulse * .64, 0, 1);
   meta.recoilCarriage.position.z = meta.recoil * .065;
   meta.recoilCarriage.rotation.x = meta.recoil * -.018;
   meta.core.rotation.z += delta * (1.4 + meta.heat * 5.2);
-  meta.heatVents.rotation.z = Math.sin(time * 4.2) * .045 + meta.heat * .12;
-  meta.heatVents.position.z = -meta.heat * .025;
-  meta.core.scale.setScalar(1 + meta.heat * .08 + Math.sin(time * 5.5) * .018);
-  meta.materials.ember.emissiveIntensity = 2.2 + meta.heat * 4.4 + Math.sin(time * 6.5) * .18;
-  meta.materials.muzzle.emissiveIntensity = 2.2 + meta.flash * 10;
+  meta.heatVents.rotation.z = Math.sin(time * 4.2 + ritual * .5) * .045 + ritual * .12;
+  meta.heatVents.position.z = -ritual * .025;
+  meta.heatVents.scale.set(1 + ritual * .2, 1 + ritual * .06, 1);
+  // The relic opens like a small ceremony: muzzle claws and ribs part around
+  // the core, then return as the pressure bleeds off.  These are existing
+  // articulated groups, so the effect costs no additional runtime meshes.
+  meta.muzzleClaws.scale.set(.7 + ritual * .08, .7 + ritual * .045, .7 + ritual * .02);
+  meta.muzzleClaws.rotation.y = Math.sin(time * 2.8) * .012 + ritual * .035;
+  meta.ribcage.scale.set(1 + ritual * .03, 1 + ritual * .02, 1);
+  meta.ribcage.rotation.z = Math.sin(time * 2.2 + .8) * .01 + ritual * .018;
+  meta.core.scale.setScalar(1 + ritual * .08 + Math.sin(time * 5.5) * .018);
+  meta.materials.ember.emissiveIntensity = .48 + meta.heat * 2.8 + meta.ritualPulse * 4.8 + Math.sin(time * 6.5) * .06;
+  meta.materials.muzzle.emissiveIntensity = .5 + meta.flash * 11 + meta.heat * 1.4;
   meta.materials.flashCore.opacity = .35 + meta.flash * .6;
   meta.materials.flashShell.opacity = .08 + meta.flash * .52;
   meta.materials.flashRing.opacity = .12 + meta.flash * .68;

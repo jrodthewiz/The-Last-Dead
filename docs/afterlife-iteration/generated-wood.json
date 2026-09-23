@@ -1,0 +1,13 @@
+{
+  "generator": "ImageGen",
+  "date": "2026-09-23",
+  "prompt": "Create a seamless tiling PBR diffuse/albedo texture, square image 1024px, for dark weathered walnut cabinet wood in an abandoned institutional ward. Fine vertical wood grain, restrained grey-brown desaturated tones, worn thin varnish, small pale chips and rubbed scratches, occasional tiny grime specks. Legible grain at medium distance; mostly mid-dark rather than black. One continuous wood surface, no boards, no seams, no bevels, no objects, no metal, no glass, no frame, no text, no perspective, no shadows or specular highlights, no lighting or vignette. Flat orthographic technical texture with uniform neutral illumination and seamlessly matching borders.",
+  "archive": ".art-source/afterlife-iteration/cabinet-wood-original.png",
+  "runtime": "assets/textures/afterlife-cabinet-wood-v1.webp",
+  "dimensions": [
+    512,
+    512
+  ],
+  "bytes": 40548,
+  "purpose": "Shared diffuse texture for procedural mourning cabinets; no new material pass."
+}
