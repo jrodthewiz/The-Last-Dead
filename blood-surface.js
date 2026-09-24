@@ -26,9 +26,9 @@ export function disposeBloodAtlas() { atlas?.dispose(); atlas = null; ready = Pr
 
 /** One lit, non-emissive material for four irregular residue silhouettes. */
 export function createBloodSurfaceMaterial({instanced = false, variant = 0, dry = 0, opacity = 1} = {}) {
-  const material = new THREE.MeshStandardMaterial({
+  const material = new THREE.MeshPhysicalMaterial({
     name: 'BloodResiduePBR', color: 0xb4a7a1, map: bloodAtlas(),
-    roughness: .3, metalness: 0, envMapIntensity: .22,
+    roughness: .46, metalness: 0, envMapIntensity: .12, specularIntensity: .18,
     transparent: true, opacity, alphaTest: .015, depthWrite: false,
     side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1,
   });
@@ -55,7 +55,7 @@ export function createBloodSurfaceMaterial({instanced = false, variant = 0, dry 
     `);
     shader.fragmentShader = shader.fragmentShader.replace('#include <roughnessmap_fragment>', `
       #include <roughnessmap_fragment>
-      roughnessFactor = mix(.26, .88, clamp(vBloodState.y, 0., 1.));
+      roughnessFactor = mix(.46, .88, clamp(vBloodState.y, 0., 1.));
       #ifdef USE_MAP
         roughnessFactor = min(.95, roughnessFactor + (1. - sampledDiffuseColor.a) * .14);
       #endif

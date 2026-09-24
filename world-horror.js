@@ -148,31 +148,47 @@ function horrorGeometry() {
     }
   }
   G.rack = mergePieces(rackParts);
-  // Ossuary: a corroded service frame carrying the crypt roof. The old
-  // revision still read as a bare tree because each rib stopped in mid-air.
-  // Two continuous rails, anchored base plates, a top header and full-width
-  // ribs make every member visibly load-bearing while keeping one merged draw.
+  // Ossuary: a mortuary service console bolted to the wall. The former
+  // arched-rib frame still read as a bare tree at the spawn camera even after
+  // its rails were connected. Straight uprights, tray rails, a rear service
+  // panel and a grounded base make the purpose legible while keeping one
+  // merged, instanced draw and the same footprint.
   const colonnadeParts = [
     box(2.62, .18, .82, 0, .09, 0),
     box(.56, .08, .48, -1.03, .22, 0),
     box(.56, .08, .48, 1.03, .22, 0),
-    serviceRail(-1, -.24),
-    serviceRail(1, .18),
-    box(2.12, .13, .18, 0, 4.16, 0),
+    box(.18, 3.78, .24, -1.06, 2.08, 0),
+    box(.18, 3.78, .24, 1.06, 2.08, 0),
+    box(2.16, .16, .22, 0, 4.02, 0),
     box(2.16, .12, .2, 0, .48, 0),
+    box(1.86, .1, .54, 0, 1.08, .06),
+    box(1.86, .1, .54, 0, 2.12, .06),
+    box(1.86, .1, .54, 0, 3.16, .06),
+    box(1.96, 3.18, .12, 0, 2.12, -.24),
   ];
-  for (let i = 0; i < 6; i++) {
-    const y = 1.0 + i * .62;
-    const radius = 1.08 - i * .018;
-    const sag = (i % 3 - 1) * .11;
-    colonnadeParts.push(serviceRib(y, radius, sag));
-    // Short collars sit on the rail faces; they read as bolted joints at this
-    // distance without turning into another row of decorative beads.
-    colonnadeParts.push(cyl(.105, .12, .16, 6, -radius, y, 0, 0, 0, Math.PI / 2));
-    colonnadeParts.push(cyl(.105, .12, .16, 6, radius, y, 0, 0, 0, Math.PI / 2));
+  for (const [index, y] of [1.08, 2.12, 3.16].entries()) {
+    colonnadeParts.push(box(.12, .16, .62, -1.0, y, .06));
+    colonnadeParts.push(box(.12, .16, .62, 1.0, y, .06));
+    // Folded, chamfered drawer fronts sit in their rails. The middle drawer
+    // is pulled forward: real depth and an asymmetric silhouette at game scale.
+    const face = new THREE.Shape();
+    face.moveTo(-.84, -.38); face.lineTo(.84, -.38);
+    face.lineTo(.93, -.29); face.lineTo(.93, .29);
+    face.lineTo(.84, .38); face.lineTo(-.84, .38);
+    face.lineTo(-.93, .29); face.lineTo(-.93, -.29); face.closePath();
+    const front = new THREE.ExtrudeGeometry(face, {depth:.055, steps:1, bevelEnabled:true, bevelSegments:1, bevelSize:.028, bevelThickness:.025});
+    const depth = index === 1 ? .62 : .22;
+    colonnadeParts.push(place(front, 0, y + .4, depth));
+    if (index === 1) colonnadeParts.push(box(1.78, .07, .8, 0, y + .07, .22));
+    const handle = new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-.3, 0, 0), new THREE.Vector3(-.25, 0, .13),
+      new THREE.Vector3(.25, 0, .13), new THREE.Vector3(.3, 0, 0),
+    ]), 8, .035, 5, false);
+    colonnadeParts.push(place(handle, 0, y + .38, depth + .08));
+    colonnadeParts.push(box(.32, .1, .018, .52, y + .6, depth + .065));
   }
   G.colonnade = mergePieces(colonnadeParts);
-  G.colonnade.userData.decorRevision = 'ossuary-service-frame-v3';
+  G.colonnade.userData.decorRevision = 'ossuary-mortuary-console-v4';
   // Choir: a bell frame whose three mouths hang over the aisle.
   const frameParts = [
     box(.24, 4.2, .24, -1.45, 2.1, 0),

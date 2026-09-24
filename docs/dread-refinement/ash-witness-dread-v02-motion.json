@@ -1,0 +1,40 @@
+{
+  "character": "Ash Witness",
+  "sourceBlend": ".art-source/afterlife-iteration/Ash_Witness_Dread_v02.blend",
+  "fps": 24,
+  "ok": true,
+  "gates": {
+    "shuffleHasFootTransfer": true,
+    "attackHasBodyweightMotion": true,
+    "attackHasDelayedHeadCue": true,
+    "hitHasRecoil": true
+  },
+  "clips": {
+    "AshWitness_Shuffle": {
+      "durationSeconds": 1.5,
+      "leftFootPathMeters": 1.018548,
+      "rightFootPathMeters": 0.904018,
+      "leftFootRangeMeters": 0.500269,
+      "rightFootRangeMeters": 0.447527,
+      "note": "Contact/transfer sample; root translation remains simulation-owned."
+    },
+    "AshWitness_AttackLunge": {
+      "durationSeconds": 0.833333,
+      "hipsRangeMeters": 0.058122,
+      "spineRotationRangeRadians": 0.645896,
+      "headRangeMeters": 0.398304,
+      "note": "Left wrist reaches forward on the rig's Blender -Y axis at chest height; right arm stays lowered for counterbalance."
+    },
+    "AshWitness_HitRecoil": {
+      "durationSeconds": 0.583333,
+      "spineRotationRangeRadians": 0.286165,
+      "headRangeMeters": 0.230164
+    },
+    "AshWitness_Collapse": {
+      "durationSeconds": 1.833333,
+      "spineRotationRangeRadians": 1.352369,
+      "headRangeMeters": 0.684407
+    }
+  },
+  "method": "Blender headless world-space bone sampling; no IK or baked root translation."
+}

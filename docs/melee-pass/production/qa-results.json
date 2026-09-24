@@ -1,0 +1,645 @@
+{
+  "errors": [],
+  "frames": [
+    {
+      "name": "bat-idle",
+      "weapon": 6,
+      "progress": 1,
+      "contact": 0,
+      "sawRev": 0,
+      "sawContact": 0,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0.92,
+        -0.32,
+        -0.22
+      ],
+      "chainPhase": 0,
+      "enemy": {
+        "id": 97002,
+        "hp": 40,
+        "hits": 0,
+        "dead": false,
+        "x": 19.5,
+        "y": 23.53,
+        "lift": 0
+      },
+      "headY": 1.6950235862091854,
+      "calls": 248,
+      "triangles": 214317,
+      "textures": 69,
+      "armsConnected": true,
+      "tracerBeams": 0,
+      "pixelLevels": 56
+    },
+    {
+      "name": "bat-windup",
+      "weapon": 6,
+      "progress": 0.12254901960784312,
+      "contact": 0,
+      "sawRev": 0,
+      "sawContact": 0,
+      "position": [
+        -0.01805751417361856,
+        0,
+        0
+      ],
+      "rotation": [
+        0.8780885228333078,
+        -0.8127431811112814,
+        -0.4682830677223329
+      ],
+      "chainPhase": 0,
+      "enemy": {
+        "id": 97002,
+        "hp": 40,
+        "hits": 0,
+        "dead": false,
+        "x": 19.5,
+        "y": 23.530000103333343,
+        "lift": 0
+      },
+      "headY": 1.6949865310786452,
+      "calls": 248,
+      "triangles": 214161,
+      "textures": 69,
+      "armsConnected": true,
+      "tracerBeams": 0,
+      "pixelLevels": 58
+    },
+    {
+      "name": "bat-contact",
+      "weapon": 6,
+      "progress": 0.4044117647058826,
+      "contact": 0.17166666666666666,
+      "sawRev": 0,
+      "sawContact": 0,
+      "position": [
+        0.025043940840149864,
+        0.29824236639400553,
+        -0.055219704200749314
+      ],
+      "rotation": [
+        0.4182423663940056,
+        1.2826364504089918,
+        -0.6354301526244144
+      ],
+      "chainPhase": 0,
+      "enemy": {
+        "id": 97002,
+        "hp": 33,
+        "hits": 1,
+        "dead": false,
+        "x": 19.5,
+        "y": 23.51548402827896,
+        "lift": 0.0024375
+      },
+      "reaction": {
+        "version": "melee-reaction-v1",
+        "boneCount": 13,
+        "active": true,
+        "lastHitId": 1,
+        "lastKind": "bat",
+        "hitCount": 1,
+        "dead": false,
+        "maxOffset": 0.06528008959569039,
+        "finite": true
+      },
+      "headY": 1.6969816914875318,
+      "calls": 248,
+      "triangles": 215165,
+      "textures": 69,
+      "armsConnected": true,
+      "tracerBeams": 0,
+      "pixelLevels": 132
+    },
+    {
+      "name": "bat-followthrough",
+      "weapon": 6,
+      "progress": 0.6617647058823527,
+      "contact": 0,
+      "sawRev": 0,
+      "sawContact": 0,
+      "position": [
+        0.021566023878063667,
+        0.07188674626021223,
+        -0.05750939700816979
+      ],
+      "rotation": [
+        0.42241542692647194,
+        1.0599048058139262,
+        -0.14108494030484084
+      ],
+      "chainPhase": 0,
+      "enemy": {
+        "id": 97002,
+        "hp": 33,
+        "hits": 1,
+        "dead": false,
+        "x": 19.5,
+        "y": 23.431691808123766,
+        "lift": 0
+      },
+      "reaction": {
+        "version": "melee-reaction-v1",
+        "boneCount": 13,
+        "active": true,
+        "lastHitId": 1,
+        "lastKind": "bat",
+        "hitCount": 1,
+        "dead": false,
+        "maxOffset": 0.2053993396799954,
+        "finite": true
+      },
+      "headY": 1.6890911866826832,
+      "calls": 248,
+      "triangles": 214805,
+      "textures": 69,
+      "armsConnected": true,
+      "tracerBeams": 0,
+      "pixelLevels": 97
+    },
+    {
+      "name": "bat-return",
+      "weapon": 6,
+      "progress": 1,
+      "contact": 0,
+      "sawRev": 0,
+      "sawContact": 0,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0.92,
+        -0.32,
+        -0.22
+      ],
+      "chainPhase": 0,
+      "enemy": {
+        "id": 97002,
+        "hp": 33,
+        "hits": 1,
+        "dead": false,
+        "x": 19.5,
+        "y": 23.41648962114067,
+        "lift": 0
+      },
+      "reaction": {
+        "version": "melee-reaction-v1",
+        "boneCount": 13,
+        "active": true,
+        "lastHitId": 1,
+        "lastKind": "bat",
+        "hitCount": 1,
+        "dead": false,
+        "maxOffset": 0.10071314369517374,
+        "finite": true
+      },
+      "headY": 1.6857618472460243,
+      "calls": 248,
+      "triangles": 214485,
+      "textures": 69,
+      "armsConnected": true,
+      "tracerBeams": 0,
+      "pixelLevels": 84
+    },
+    {
+      "name": "bat-finisher",
+      "weapon": 6,
+      "progress": 0.4003267973856214,
+      "contact": 0.17166666666666666,
+      "sawRev": 0,
+      "sawContact": 0,
+      "position": [
+        0.025000249622713334,
+        0.3399880181097599,
+        -0.08000124811356665
+      ],
+      "rotation": [
+        0.33999001509146687,
+        1.4000149773628001,
+        -0.6399740392378133
+      ],
+      "chainPhase": 0,
+      "enemy": {
+        "id": 97003,
+        "hp": -11,
+        "hits": 1,
+        "dead": true,
+        "x": 19.5,
+        "y": 23.484471314473492,
+        "lift": 0.0209375
+      },
+      "reaction": {
+        "version": "melee-reaction-v1",
+        "boneCount": 13,
+        "active": true,
+        "lastHitId": 1,
+        "lastKind": "bat",
+        "hitCount": 1,
+        "dead": true,
+        "maxOffset": 0.12392519385972524,
+        "finite": true
+      },
+      "headY": 1.769845225718569,
+      "calls": 247,
+      "triangles": 216959,
+      "textures": 69,
+      "armsConnected": true,
+      "tracerBeams": 0,
+      "pixelLevels": 161
+    },
+    {
+      "name": "bat-corpse",
+      "weapon": 6,
+      "progress": 1,
+      "contact": 0,
+      "sawRev": 0,
+      "sawContact": 0,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0.92,
+        -0.32,
+        -0.22
+      ],
+      "chainPhase": 0,
+      "enemy": {
+        "id": 97003,
+        "hp": -11,
+        "hits": 1,
+        "dead": true,
+        "x": 19.5,
+        "y": 22.788592137287,
+        "lift": 0
+      },
+      "reaction": {
+        "version": "melee-reaction-v1",
+        "boneCount": 13,
+        "active": true,
+        "lastHitId": 1,
+        "lastKind": "bat",
+        "hitCount": 1,
+        "dead": true,
+        "maxOffset": 0.25749101901837457,
+        "finite": true
+      },
+      "headY": 0.08999999999999996,
+      "calls": 244,
+      "triangles": 213551,
+      "textures": 69,
+      "armsConnected": true,
+      "tracerBeams": 0,
+      "pixelLevels": 91
+    },
+    {
+      "name": "chainsaw-idle",
+      "weapon": 7,
+      "progress": 1,
+      "contact": 0,
+      "sawRev": 0,
+      "sawContact": 0,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0.32,
+        0.58,
+        -0.1
+      ],
+      "chainPhase": 0.05522759999974964,
+      "enemy": {
+        "id": 97004,
+        "hp": 80,
+        "hits": 0,
+        "dead": false,
+        "x": 19.5,
+        "y": 23.53000024800002,
+        "lift": 0
+      },
+      "headY": 1.6949319728288903,
+      "calls": 248,
+      "triangles": 211857,
+      "textures": 69,
+      "armsConnected": true,
+      "tracerBeams": 0,
+      "pixelLevels": 60
+    },
+    {
+      "name": "chainsaw-contact",
+      "weapon": 7,
+      "progress": 1,
+      "contact": 0.18,
+      "sawRev": 1,
+      "sawContact": 0.15,
+      "position": [
+        -0.002869917433147033,
+        0,
+        0
+      ],
+      "rotation": [
+        0.31141367765076716,
+        0.58,
+        -0.09800416108690327
+      ],
+      "chainPhase": 0.3500721333330828,
+      "enemy": {
+        "id": 97004,
+        "hp": 76.25,
+        "hits": 3,
+        "dead": false,
+        "x": 19.5,
+        "y": 23.508985144112074,
+        "lift": 0
+      },
+      "reaction": {
+        "version": "melee-reaction-v1",
+        "boneCount": 13,
+        "active": true,
+        "lastHitId": 3,
+        "lastKind": "chainsaw",
+        "hitCount": 3,
+        "dead": false,
+        "maxOffset": 0.02486784893344599,
+        "finite": true
+      },
+      "headY": 1.6931923484894795,
+      "calls": 252,
+      "triangles": 216669,
+      "textures": 69,
+      "armsConnected": true,
+      "tracerBeams": 0,
+      "pixelLevels": 143
+    },
+    {
+      "name": "chainsaw-return",
+      "weapon": 7,
+      "progress": 1,
+      "contact": 0,
+      "sawRev": 0,
+      "sawContact": 0,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0.32,
+        0.58,
+        -0.1
+      ],
+      "chainPhase": 0.5557629333330505,
+      "enemy": {
+        "id": 97004,
+        "hp": 76.25,
+        "hits": 3,
+        "dead": false,
+        "x": 19.5,
+        "y": 23.488634875134817,
+        "lift": 0
+      },
+      "reaction": {
+        "version": "melee-reaction-v1",
+        "boneCount": 13,
+        "active": true,
+        "lastHitId": 3,
+        "lastKind": "chainsaw",
+        "hitCount": 3,
+        "dead": false,
+        "maxOffset": 0.0064048572879049455,
+        "finite": true
+      },
+      "headY": 1.6948210933141425,
+      "calls": 252,
+      "triangles": 215565,
+      "textures": 69,
+      "armsConnected": true,
+      "tracerBeams": 0,
+      "pixelLevels": 68
+    },
+    {
+      "name": "chainsaw-shove",
+      "weapon": 7,
+      "progress": 0.4036458333333332,
+      "contact": 0.17166666666666666,
+      "sawRev": 0,
+      "sawContact": 0,
+      "position": [
+        0,
+        0,
+        -0.07227197139433213
+      ],
+      "rotation": [
+        0.2526333294025993,
+        0.8151121380070756,
+        -0.06698787378512638
+      ],
+      "chainPhase": 0.5619177333330151,
+      "enemy": {
+        "id": 97004,
+        "hp": 73.25,
+        "hits": 4,
+        "dead": false,
+        "x": 19.5,
+        "y": 23.475084111311425,
+        "lift": 0.0020375000000000002
+      },
+      "reaction": {
+        "version": "melee-reaction-v1",
+        "boneCount": 13,
+        "active": true,
+        "lastHitId": 4,
+        "lastKind": "bat",
+        "hitCount": 4,
+        "dead": false,
+        "maxOffset": 0.07103307436782755,
+        "finite": true
+      },
+      "headY": 1.6990005560943389,
+      "calls": 252,
+      "triangles": 214169,
+      "textures": 69,
+      "armsConnected": true,
+      "tracerBeams": 0,
+      "pixelLevels": 134
+    },
+    {
+      "name": "bat-mobile",
+      "weapon": 6,
+      "progress": 1,
+      "contact": 0,
+      "sawRev": 0,
+      "sawContact": 0,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0.92,
+        -0.32,
+        -0.22
+      ],
+      "chainPhase": 0,
+      "enemy": {
+        "id": 97005,
+        "hp": 70,
+        "hits": 8,
+        "dead": false,
+        "x": 19.5,
+        "y": 23.419165125516997,
+        "lift": 0
+      },
+      "reaction": {
+        "version": "melee-reaction-v1",
+        "boneCount": 13,
+        "active": true,
+        "lastHitId": 8,
+        "lastKind": "chainsaw",
+        "hitCount": 8,
+        "dead": false,
+        "maxOffset": 0.007280164370572326,
+        "finite": true
+      },
+      "headY": 1.690791569480234,
+      "calls": 198,
+      "triangles": 208397,
+      "textures": 69,
+      "armsConnected": true,
+      "tracerBeams": 0,
+      "pixelLevels": 62
+    },
+    {
+      "name": "chainsaw-mobile",
+      "weapon": 7,
+      "progress": 1,
+      "contact": 0,
+      "sawRev": 0,
+      "sawContact": 0,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0.32,
+        0.58,
+        -0.1
+      ],
+      "chainPhase": 0.5075997333327975,
+      "enemy": {
+        "id": 97005,
+        "hp": 70,
+        "hits": 8,
+        "dead": false,
+        "x": 19.5,
+        "y": 23.418504063661313,
+        "lift": 0
+      },
+      "reaction": {
+        "version": "melee-reaction-v1",
+        "boneCount": 13,
+        "active": true,
+        "lastHitId": 8,
+        "lastKind": "chainsaw",
+        "hitCount": 8,
+        "dead": false,
+        "maxOffset": 0.0014840983435056906,
+        "finite": true
+      },
+      "headY": 1.6952971134228536,
+      "calls": 202,
+      "triangles": 206621,
+      "textures": 69,
+      "armsConnected": true,
+      "tracerBeams": 0,
+      "pixelLevels": 70
+    }
+  ],
+  "checks": {
+    "bat": "real input: windup/contact/followthrough/return; one hit",
+    "reaction": "lethal impulse, articulated overlay, grounded corpse",
+    "chainsaw": "spin-up, repeated real contacts, release stops damage",
+    "shove": true,
+    "wheelWrap": true,
+    "audioMutedThroughGroups": true,
+    "pauseCancels": true,
+    "mobileFit": true,
+    "restart": true,
+    "audioLifecycle": "one motor/contact loop; group mute; pause, switch, restart, death and dispose cleanup"
+  },
+  "source": "http://127.0.0.1:5200/dist/",
+  "audio": {
+    "loaded": true,
+    "decoded": 126,
+    "manifestEntries": 126,
+    "normalizedPools": 27,
+    "normalizedSamples": 75,
+    "errors": [],
+    "melee": {
+      "weapon": 7,
+      "running": true,
+      "contacting": true,
+      "motorSources": 1,
+      "contactSources": 1,
+      "startupSources": 1,
+      "shutdownSources": 0
+    },
+    "paused": {
+      "weapon": 7,
+      "running": false,
+      "contacting": false,
+      "motorSources": 0,
+      "contactSources": 0,
+      "startupSources": 0,
+      "shutdownSources": 0
+    },
+    "switched": {
+      "weapon": 6,
+      "running": false,
+      "contacting": false,
+      "motorSources": 0,
+      "contactSources": 0,
+      "startupSources": 0,
+      "shutdownSources": 1
+    },
+    "restarted": {
+      "weapon": 0,
+      "running": false,
+      "contacting": false,
+      "motorSources": 0,
+      "contactSources": 0,
+      "startupSources": 0,
+      "shutdownSources": 0
+    },
+    "dead": {
+      "weapon": 7,
+      "running": false,
+      "contacting": false,
+      "motorSources": 0,
+      "contactSources": 0,
+      "startupSources": 0,
+      "shutdownSources": 0
+    },
+    "disposed": {
+      "weapon": 7,
+      "running": false,
+      "contacting": false,
+      "motorSources": 0,
+      "contactSources": 0,
+      "startupSources": 0,
+      "shutdownSources": 0
+    }
+  }
+}

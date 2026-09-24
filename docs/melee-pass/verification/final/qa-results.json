@@ -1,0 +1,434 @@
+{
+  "url": "http://127.0.0.1:5200/dist/",
+  "checks": {
+    "touchBat": true,
+    "touchHeavy": true,
+    "stoppedChainIsStill": true,
+    "touchCancelStopsSaw": true,
+    "touchLandscape": true,
+    "touchWrap": true,
+    "chunkedPayload": true,
+    "coopBat": true,
+    "coalescedTriggerTap": true,
+    "coalescedSwitchCancels": true,
+    "coopSawRelease": true,
+    "coopPause": true,
+    "coopSoak": {
+      "seconds": 120.393,
+      "iterations": 100
+    },
+    "disconnect": true
+  },
+  "errors": [],
+  "samples": [
+    {
+      "seconds": 1.081,
+      "screen": "play",
+      "weapon": 7,
+      "health": 100,
+      "mode": "play",
+      "saw": false,
+      "rev": 0,
+      "sequence": 2,
+      "active": false,
+      "enemies": [
+        {
+          "id": 99006,
+          "hp": 96.25,
+          "hits": 3,
+          "dead": false
+        }
+      ],
+      "audio": {
+        "weapon": 7,
+        "running": false,
+        "contacting": false,
+        "motorSources": 0,
+        "contactSources": 0,
+        "startupSources": 0,
+        "shutdownSources": 1
+      },
+      "memory": {
+        "geometries": 909,
+        "textures": 100
+      }
+    },
+    {
+      "seconds": 12.541,
+      "screen": "play",
+      "weapon": 7,
+      "health": 100,
+      "mode": "play",
+      "saw": false,
+      "rev": 0,
+      "sequence": 7,
+      "active": false,
+      "enemies": [
+        {
+          "id": 99016,
+          "hp": 96.25,
+          "hits": 3,
+          "dead": false
+        }
+      ],
+      "audio": {
+        "weapon": 7,
+        "running": false,
+        "contacting": false,
+        "motorSources": 0,
+        "contactSources": 0,
+        "startupSources": 0,
+        "shutdownSources": 1
+      },
+      "memory": {
+        "geometries": 909,
+        "textures": 100
+      }
+    },
+    {
+      "seconds": 24.77,
+      "screen": "play",
+      "weapon": 7,
+      "health": 100,
+      "mode": "play",
+      "saw": false,
+      "rev": 0,
+      "sequence": 12,
+      "active": false,
+      "enemies": [
+        {
+          "id": 99026,
+          "hp": 96.25,
+          "hits": 3,
+          "dead": false
+        }
+      ],
+      "audio": {
+        "weapon": 7,
+        "running": false,
+        "contacting": false,
+        "motorSources": 0,
+        "contactSources": 0,
+        "startupSources": 0,
+        "shutdownSources": 1
+      },
+      "memory": {
+        "geometries": 909,
+        "textures": 100
+      }
+    },
+    {
+      "seconds": 37.736,
+      "screen": "play",
+      "weapon": 7,
+      "health": 100,
+      "mode": "play",
+      "saw": false,
+      "rev": 0,
+      "sequence": 17,
+      "active": false,
+      "enemies": [
+        {
+          "id": 99036,
+          "hp": 96.25,
+          "hits": 3,
+          "dead": false
+        }
+      ],
+      "audio": {
+        "weapon": 7,
+        "running": false,
+        "contacting": false,
+        "motorSources": 0,
+        "contactSources": 0,
+        "startupSources": 0,
+        "shutdownSources": 1
+      },
+      "memory": {
+        "geometries": 909,
+        "textures": 100
+      }
+    },
+    {
+      "seconds": 50.077,
+      "screen": "play",
+      "weapon": 7,
+      "health": 100,
+      "mode": "play",
+      "saw": false,
+      "rev": 0,
+      "sequence": 22,
+      "active": false,
+      "enemies": [
+        {
+          "id": 99046,
+          "hp": 96.25,
+          "hits": 3,
+          "dead": false
+        }
+      ],
+      "audio": {
+        "weapon": 7,
+        "running": false,
+        "contacting": false,
+        "motorSources": 0,
+        "contactSources": 0,
+        "startupSources": 0,
+        "shutdownSources": 1
+      },
+      "memory": {
+        "geometries": 909,
+        "textures": 100
+      }
+    },
+    {
+      "seconds": 61.46,
+      "screen": "play",
+      "weapon": 7,
+      "health": 100,
+      "mode": "play",
+      "saw": false,
+      "rev": 0,
+      "sequence": 27,
+      "active": false,
+      "enemies": [
+        {
+          "id": 99056,
+          "hp": 96.25,
+          "hits": 3,
+          "dead": false
+        }
+      ],
+      "audio": {
+        "weapon": 7,
+        "running": false,
+        "contacting": false,
+        "motorSources": 0,
+        "contactSources": 0,
+        "startupSources": 0,
+        "shutdownSources": 1
+      },
+      "memory": {
+        "geometries": 909,
+        "textures": 100
+      }
+    },
+    {
+      "seconds": 73.794,
+      "screen": "play",
+      "weapon": 7,
+      "health": 100,
+      "mode": "play",
+      "saw": false,
+      "rev": 0,
+      "sequence": 32,
+      "active": false,
+      "enemies": [
+        {
+          "id": 99066,
+          "hp": 96.25,
+          "hits": 3,
+          "dead": false
+        }
+      ],
+      "audio": {
+        "weapon": 7,
+        "running": false,
+        "contacting": false,
+        "motorSources": 0,
+        "contactSources": 0,
+        "startupSources": 0,
+        "shutdownSources": 1
+      },
+      "memory": {
+        "geometries": 909,
+        "textures": 100
+      }
+    },
+    {
+      "seconds": 86.235,
+      "screen": "play",
+      "weapon": 7,
+      "health": 100,
+      "mode": "play",
+      "saw": false,
+      "rev": 0,
+      "sequence": 37,
+      "active": false,
+      "enemies": [
+        {
+          "id": 99076,
+          "hp": 96.25,
+          "hits": 3,
+          "dead": false
+        }
+      ],
+      "audio": {
+        "weapon": 7,
+        "running": false,
+        "contacting": false,
+        "motorSources": 0,
+        "contactSources": 0,
+        "startupSources": 0,
+        "shutdownSources": 1
+      },
+      "memory": {
+        "geometries": 909,
+        "textures": 100
+      }
+    },
+    {
+      "seconds": 97.994,
+      "screen": "play",
+      "weapon": 7,
+      "health": 100,
+      "mode": "play",
+      "saw": false,
+      "rev": 0,
+      "sequence": 42,
+      "active": false,
+      "enemies": [
+        {
+          "id": 99086,
+          "hp": 96.25,
+          "hits": 3,
+          "dead": false
+        }
+      ],
+      "audio": {
+        "weapon": 7,
+        "running": false,
+        "contacting": false,
+        "motorSources": 0,
+        "contactSources": 0,
+        "startupSources": 0,
+        "shutdownSources": 1
+      },
+      "memory": {
+        "geometries": 909,
+        "textures": 100
+      }
+    },
+    {
+      "seconds": 109.869,
+      "screen": "play",
+      "weapon": 7,
+      "health": 100,
+      "mode": "play",
+      "saw": false,
+      "rev": 0,
+      "sequence": 47,
+      "active": false,
+      "enemies": [
+        {
+          "id": 99096,
+          "hp": 96.25,
+          "hits": 3,
+          "dead": false
+        }
+      ],
+      "audio": {
+        "weapon": 7,
+        "running": false,
+        "contacting": false,
+        "motorSources": 0,
+        "contactSources": 0,
+        "startupSources": 0,
+        "shutdownSources": 1
+      },
+      "memory": {
+        "geometries": 909,
+        "textures": 100
+      }
+    }
+  ],
+  "transport": [
+    {
+      "statuses": [],
+      "sent": 2173,
+      "received": 2162,
+      "rejected": 0,
+      "maxReceivedBytes": 216,
+      "lastSent": {
+        "type": "snapshot",
+        "seq": 2175,
+        "bytes": 22746,
+        "counts": {
+          "enemies": 1,
+          "projectiles": 0,
+          "coins": 0,
+          "gore": 12,
+          "blood": 100,
+          "tracers": 0,
+          "spawnTelegraphs": 0,
+          "explosions": 0
+        },
+        "ok": true,
+        "buffered": 15808
+      },
+      "lastReceived": {
+        "type": "input",
+        "bytes": 216
+      }
+    },
+    {
+      "statuses": [],
+      "sent": 2162,
+      "received": 2173,
+      "rejected": 0,
+      "maxReceivedBytes": 49184,
+      "lastReceived": {
+        "type": "snapshot",
+        "seq": 2175,
+        "bytes": 22746,
+        "counts": {
+          "enemies": 1,
+          "projectiles": 0,
+          "coins": 0,
+          "gore": 12,
+          "blood": 100,
+          "tracers": 0,
+          "spawnTelegraphs": 0,
+          "explosions": 0
+        }
+      },
+      "lastSent": {
+        "type": "input",
+        "bytes": 216,
+        "ok": true,
+        "buffered": 149
+      }
+    }
+  ],
+  "final": {
+    "screen": "play",
+    "weapon": 0,
+    "health": 100,
+    "mode": "play",
+    "saw": false,
+    "rev": 0,
+    "sequence": 52,
+    "active": false,
+    "enemies": [
+      {
+        "id": 99105,
+        "hp": 88,
+        "hits": 1,
+        "dead": false
+      }
+    ],
+    "audio": {
+      "weapon": 0,
+      "running": false,
+      "contacting": false,
+      "motorSources": 0,
+      "contactSources": 0,
+      "startupSources": 0,
+      "shutdownSources": 0
+    },
+    "memory": {
+      "geometries": 909,
+      "textures": 100
+    }
+  }
+}

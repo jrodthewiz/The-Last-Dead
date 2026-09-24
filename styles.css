@@ -849,6 +849,10 @@ input[type="range"] {
 
 .weapon-name { color: var(--amber); font-size: clamp(0.85rem, 1.8vw, 1.18rem); }
 .weapon-slot { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.66rem; }
+.weapon-hint { display: block; min-width: 0; overflow: hidden; color: var(--muted); font-size: 0.52rem; letter-spacing: 0.08em; line-height: 1.2; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.rifle-meter { height: 4px; overflow: hidden; background: rgba(255, 255, 255, 0.12); transform: skewX(-16deg); }
+.rifle-meter i { display: block; width: 0; height: 100%; background: var(--blood-hot); transition: width 90ms linear, background-color 120ms ease; }
+.rifle-meter.is-charge i { background: var(--cyan); }
 .cooldown { height: 3px; background: rgba(255, 255, 255, 0.14); }
 .cooldown i { display: block; width: 0; height: 100%; background: var(--amber); transition: width 90ms linear; }
 

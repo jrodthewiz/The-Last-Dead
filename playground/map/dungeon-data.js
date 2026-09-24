@@ -1,8 +1,10 @@
 // Story mode: the descent.
 //
-// Five long layers, each authored as rooms (sealed boxes), corridors (swept
-// lanes) and openings (every intentional way through a room wall). The
-// dungeon compiler turns this into the engine's cell bitfield.
+// Five long layers, each authored as shaped rooms, corridors and explicit
+// openings. Room profiles let the footprint follow its role: arenas flare
+// around their set pieces, galleries get side bays, and the narrow service
+// spaces keep their own proportions. The compiler turns this into the
+// engine's cell bitfield.
 //
 // Conventions
 //   * one unit is a gameplay cell (4 m); x runs east, z runs south,
@@ -14,7 +16,27 @@
 // Cover uses patterns instead of per-cell lists:
 //   colonnade · corners · center · rows · ring · pillars · checker · edge
 
-const room = (id, name, kind, rect, extra = {}) => ({ id, name, kind, rect, ...extra });
+const ROOM_SHAPE_BY_KIND = Object.freeze({
+  entry: 'threshold',
+  hub: 'crossing',
+  arena: 'octagon',
+  ward: 'bay',
+  hall: 'gallery',
+  loop: 'aisle',
+  vault: 'bastion',
+  side: 'alcove',
+  secret: 'square',
+  exit: 'throat',
+});
+
+const room = (id, name, kind, rect, extra = {}) => ({
+  id,
+  name,
+  kind,
+  rect,
+  shape: extra.shape || ROOM_SHAPE_BY_KIND[kind] || 'chamfer',
+  ...extra,
+});
 const corr = (id, points, width = 2.4, kind = 'hall', extra = {}) => ({ id, points, width, kind, ...extra });
 const open = (id, roomId, side, at, width = 3, kind = 'arch', extra = {}) => ({ id, room: roomId, side, at, width, kind, ...extra });
 const light = (anchor, color, intensity, role) => ({ anchor, color, intensity, role });
@@ -232,7 +254,7 @@ export const DUNGEON_LAYERS = Object.freeze([
     entry: { x: 18.5, z: 21.5, angle: -Math.PI / 2 },
     exit: { x: 18.5, z: 2.5 },
     rooms: [
-      room('f2-entry', 'Sterile Intake', 'entry', [15, 20, 6, 3], {
+      room('f2-entry', 'Sterile Intake', 'entry', [14, 20, 8, 3], {
         encounter: { tier: 2, budget: 6, maxAlive: 4, composition: { stalker: 2, caster: 1 }, tactic: 'Decontaminate the landing before the crossing.' },
       }),
       room('f2-hub', 'Gallery Crossing', 'hub', [14, 13, 8, 4], {
@@ -284,7 +306,8 @@ export const DUNGEON_LAYERS = Object.freeze([
       corr('f2-c-east-loop', [[32, 17], [33, 17], [33, 8], [30, 8]], 2.2, 'loop'),
       corr('f2-c-west-loop', [[3, 17], [2, 17], [2, 8], [3, 8]], 2.2, 'loop'),
       corr('f2-c-exit', [[18, 5], [18, 4]], 2.6, 'hall'),
-      corr('f2-c-vent', [[13, 4], [12, 4]], 1.6, 'vent'),
+      // The theater end meets its walkable north face beyond the octagonal corner cut.
+      corr('f2-c-vent', [[15, 4], [12, 4]], 1.6, 'vent'),
     ],
     openings: [
       open('f2-o-entry-n', 'f2-entry', 'n', 18, 4),
@@ -308,7 +331,7 @@ export const DUNGEON_LAYERS = Object.freeze([
       open('f2-o-scrub-e', 'f2-scrub', 'e', 5, 2),
       open('f2-o-theater-n', 'f2-theater', 'n', 18, 3, 'gate', { key: 'f2-surgical-key', lockedBy: 'key' }),
       open('f2-o-exit-s', 'f2-exit', 's', 18, 3),
-      open('f2-o-theater-vent', 'f2-theater', 'n', 13, 1, 'vent', { secret: true }),
+      open('f2-o-theater-vent', 'f2-theater', 'n', 15, 1, 'vent', { secret: true }),
       open('f2-o-drawer-e', 'f2-drawer', 'e', 4, 1),
     ],
     keys: [
@@ -466,8 +489,9 @@ export const DUNGEON_LAYERS = Object.freeze([
       corr('f3-c-east-stem', [[33, 16], [33, 20], [30, 20]], 2.2, 'loop'),
       corr('f3-c-lat-mid', [[9, 12], [29, 12]], 2.4, 'loop'),
       corr('f3-c-court-s', [[19, 13], [19, 11]], 2.6, 'hall'),
-      corr('f3-c-lat-north-w', [[9, 4], [13, 4]], 2.4, 'loop'),
-      corr('f3-c-lat-north-e', [[25, 4], [29, 4]], 2.4, 'loop'),
+      // Both side rooms branch from the court before its key-locked north gate.
+      corr('f3-c-lat-north-w', [[9, 4], [13, 4], [13, 7], [14, 7]], 2.4, 'loop'),
+      corr('f3-c-lat-north-e', [[24, 7], [25, 7], [25, 4], [29, 4]], 2.4, 'loop'),
       corr('f3-c-apse', [[19, 5], [19, 4]], 2.6, 'hall'),
       corr('f3-c-tomb-vent', [[25, 17], [25, 17]], 1.6, 'vent'),
     ],
@@ -781,7 +805,7 @@ export const DUNGEON_LAYERS = Object.freeze([
     entry: { x: 14.5, z: 19.5, angle: -Math.PI / 2 },
     exit: { x: 14.5, z: 1 },
     rooms: [
-      room('f5-entry', 'Descent Mouth', 'entry', [11, 19, 6, 3], {
+      room('f5-entry', 'Descent Mouth', 'entry', [10, 19, 8, 3], {
         encounter: { tier: 3, budget: 8, maxAlive: 5, composition: { bloodhound: 2, skitter: 1 }, tactic: 'No second wave here: the first arena is the teacher.' },
       }),
       room('f5-hall1', 'First Throat', 'arena', [9, 14, 10, 4], {

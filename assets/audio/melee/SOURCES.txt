@@ -1,0 +1,20 @@
+The Last Dead melee audio provenance
+
+Chainsaw start/contact/stop source recordings:
+Joseph Sardin / BigSoundBank, sounds 0982, 0983, and 0707.
+CC0 (public domain equivalent), with source pages:
+https://bigsoundbank.com/chainsaw-starting-s0982.html
+https://bigsoundbank.com/chainsaw-using-s0983.html
+https://bigsoundbank.com/chainsaw-2-s0707.html
+
+Bat swing variants:
+Swishes Sound Pack by artisticdude, OpenGameArt.org.
+CC0, source page:
+https://opengameart.org/content/swishes-sound-pack
+
+Bat and wall impacts reuse the checked-in Kenney Impact Sounds CC0 pack.
+See ../baseline/impact-LICENSE.txt.
+
+The source recordings were trimmed, normalized, faded, and encoded as OGG
+Vorbis for this project. Attribution is not required by the listed licenses;
+credit is retained here for provenance.

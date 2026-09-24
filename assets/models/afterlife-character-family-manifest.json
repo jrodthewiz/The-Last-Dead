@@ -1,0 +1,51 @@
+{
+  "formatVersion": 1,
+  "purpose": "Candidate visual-only enemies; retain the existing gameplay capsule and hurtbox when integrated.",
+  "characters": [
+    {
+      "id": "ward-attendant",
+      "label": "Ward Attendant",
+      "file": "afterlife-ward-attendant.glb",
+      "heightMeters": 1.95,
+      "suggestedRole": "slow close-range pursuer",
+      "clips": {
+        "idle": "WardAttendant_Idle",
+        "approach": "WardAttendant_Approach",
+        "warning": "WardAttendant_Raise",
+        "strike": "WardAttendant_Strike",
+        "hit": "WardAttendant_Hit",
+        "collapse": "WardAttendant_Collapse"
+      }
+    },
+    {
+      "id": "choir-penitent",
+      "label": "Choir Penitent",
+      "file": "afterlife-choir-penitent.glb",
+      "heightMeters": 2.08,
+      "suggestedRole": "ceremonial ambusher",
+      "clips": {
+        "idle": "ChoirPenitent_Idle",
+        "approach": "ChoirPenitent_Approach",
+        "warning": "ChoirPenitent_Invocation",
+        "strike": "ChoirPenitent_Strike",
+        "hit": "ChoirPenitent_Hit",
+        "collapse": "ChoirPenitent_Collapse"
+      }
+    },
+    {
+      "id": "lantern-husk",
+      "label": "Lantern Husk",
+      "file": "afterlife-lantern-husk.glb",
+      "heightMeters": 2.03,
+      "suggestedRole": "searching corridor scout",
+      "clips": {
+        "idle": "LanternHusk_Idle",
+        "approach": "LanternHusk_Approach",
+        "warning": "LanternHusk_Search",
+        "strike": "LanternHusk_Strike",
+        "hit": "LanternHusk_Hit",
+        "collapse": "LanternHusk_Collapse"
+      }
+    }
+  ]
+}

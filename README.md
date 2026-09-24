@@ -27,14 +27,18 @@ The launcher reuses this project's existing server and refuses to replace anothe
 | Space | Jump; jump beside a wall again to wall-jump |
 | Shift | Directional dash, including in the air |
 | Ctrl | Slide; in the air, ground slam |
-| Left mouse | Fire |
-| Right mouse | Toss coin; eject shotgun core; airburst a Reliquary rocket |
+| Left mouse | Fire / swing bat / hold to rev and cut with chainsaw |
+| Right mouse | Toss coin; eject shotgun core; airburst a rocket; rifle burst / hold to charge; heavy bat strike / chainsaw shove |
 | F | Punch / timed projectile parry |
 | E | Tether: pull light enemies close, pull yourself to heavy enemies |
-| 1 / 2 / 3 / 4 or wheel | Ossuary / shotgun / arc lance / Reliquary |
+| 1–8 or wheel | Ossuary / shotgun / arc lance / Reliquary / Carrion / Mourning / Wake Bat / Ripper Chainsaw |
 | R / Esc | Restart / pause |
 
 Shoot airborne coins for ricochets. Shoot cores to detonate them; the arc lance amplifies the blast. Damage enemies up close to restore health. Mix attacks to increase your style rank. Clear each sector and reach its illuminated exit to descend. The final sector ends the campaign. Settings include look sensitivity, separate master, effects, enemy voice, music, ambience, and interface volumes, reduced motion, gore, and optional auto-run. Audio levels update live and persist on this device. Touch controls and drag-to-look are included.
+
+**Carrion (5)** is an automatic rifle: hold fire to suppress, or tap alternate fire for a tight three-round burst. Heat widens sustained fire and cools automatically; bursts remain precise. **Mourning (6)** fires heavy single shots. Hold alternate fire for 0.55 seconds to charge a shot that pierces up to three enemies; releasing early cancels it. Both rifles have unlimited ammunition, distinct mechanical animations and sampled reports. The touch weapon button cycles all eight slots.
+
+**Wake Bat (7)** cleaves up to two nearby enemies with a committed swing. Alternate fire delivers a slower, harder single-target strike. **Ripper Chainsaw (8)** spins up while fire is held and cuts continuously at close range; alternate fire shoves an enemy back. Both use sampled swings, impacts and motor sounds, directional knockback, blood contact effects and loose-limb reactions on the Ash Witness. Melee is blocked by walls, and switching or pausing cancels pending attacks. See [melee controls and verification](docs/melee-pass/README.md).
 
 ## Two-player co-op
 
@@ -69,7 +73,7 @@ Gameplay: engine.js. Rendering: renderer.js. Inputs/co-op authority: main.js. UI
 
 ## Current scope
 
-This build contains three authored arena sectors, nine paced waves, four enemy families with difficulty variants, and four weapons with combo mechanics. Boss encounters, full advanced combat-tech parity, larger traversal maps, matchmaking and broad device/network certification remain future work. It is an original playable foundation, not full ULTRAKILL feature parity.
+This build contains three authored arena sectors, nine paced waves, four enemy families with difficulty variants, and eight weapons with combo mechanics. Boss encounters, full advanced combat-tech parity, larger traversal maps, matchmaking and broad device/network certification remain future work. It is an original playable foundation, not full ULTRAKILL feature parity.
 
 The original Findle game remains separate. No generation credentials are included. Sampled sound effects, ambience, and music ship locally; variants are level-matched by event pool and a master limiter controls peaks. The pause-screen settings let players adjust master, effects, enemy voices, music, ambience, and interface levels live; preferences save in local storage. Sources and CC0 licensing are recorded in [audio sources](docs/audio-sources.md). New enemy and weapon concepts and procedural reconstruction evidence are in docs/build08-art and docs/build08-enemy-art.
 

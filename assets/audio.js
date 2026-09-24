@@ -19,6 +19,16 @@ const MIX_PROFILES = Object.freeze({
   ambience: { group: 'ambience', volume: .32, maxVoices: 1, highpass: 38, lowpass: 5200 },
   shot: { group: 'sfx', volume: .45, maxVoices: 4, highpass: 70, lowpass: 9000, cooldown: .018 },
   mechanism: { group: 'sfx', volume: .10, maxVoices: 4, highpass: 700, lowpass: 7600, cooldown: .018 },
+  'rifle-charge': { group: 'sfx', volume: .12, maxVoices: 1, highpass: 560, lowpass: 6200, cooldown: .35 },
+  'bat-swing': { group: 'sfx', volume: .28, maxVoices: 4, highpass: 75, lowpass: 7800, cooldown: .045 },
+  'melee-hit': { group: 'sfx', volume: .34, maxVoices: 6, highpass: 55, lowpass: 4600, cooldown: .035 },
+  'melee-wall': { group: 'sfx', volume: .25, maxVoices: 4, highpass: 110, lowpass: 6200, cooldown: .12 },
+  'chainsaw-start': { group: 'sfx', volume: .32, maxVoices: 1, highpass: 48, lowpass: 7600, cooldown: .12 },
+  'chainsaw-motor': { group: 'sfx', volume: .23, maxVoices: 1, highpass: 42, lowpass: 7200 },
+  'chainsaw-contact': { group: 'sfx', volume: .13, maxVoices: 1, highpass: 85, lowpass: 6500 },
+  'chainsaw-hit': { group: 'sfx', volume: .30, maxVoices: 5, highpass: 65, lowpass: 5200, cooldown: .045 },
+  'chainsaw-wall': { group: 'sfx', volume: .24, maxVoices: 4, highpass: 130, lowpass: 6800, cooldown: .065 },
+  'chainsaw-stop': { group: 'sfx', volume: .21, maxVoices: 1, highpass: 45, lowpass: 6800, cooldown: .12 },
   rocket: { group: 'sfx', volume: .42, maxVoices: 3, highpass: 40, lowpass: 7200, cooldown: .08, refDistance: 2, maxDistance: 42 },
   explosion: { group: 'sfx', volume: .40, maxVoices: 5, highpass: 42, lowpass: 6800, cooldown: .05, refDistance: 1.8, maxDistance: 38 },
   hit: { group: 'sfx', volume: .25, maxVoices: 8, highpass: 80, lowpass: 6200, cooldown: .025 },
@@ -35,6 +45,8 @@ const MIX_PROFILES = Object.freeze({
   enemydeath: { group: 'voice', volume: .30, maxVoices: 4, highpass: 65, lowpass: 4300, cooldown: .04, refDistance: 2.4, maxDistance: 36 },
   moan: { group: 'voice', volume: .18, maxVoices: 2, highpass: 90, lowpass: 3600, cooldown: .5, refDistance: 3, maxDistance: 42 },
   'distant-scream': { group: 'voice', volume: .10, maxVoices: 1, highpass: 80, lowpass: 2900, cooldown: 12, refDistance: 3, maxDistance: 45, rolloffFactor: 1.25 },
+  'horror-sting': { group: 'sfx', volume: .13, maxVoices: 1, highpass: 90, lowpass: 6800, cooldown: 16 },
+  'horror-reveal': { group: 'sfx', volume: .11, maxVoices: 1, highpass: 80, lowpass: 4800, cooldown: 20 },
   parry: { group: 'sfx', volume: .24, maxVoices: 3, highpass: 160, lowpass: 9000, cooldown: .08 },
   punch: { group: 'sfx', volume: .18, maxVoices: 4, highpass: 80, lowpass: 5200, cooldown: .06 },
   damage: { group: 'sfx', volume: .15, maxVoices: 3, highpass: 90, lowpass: 5000, cooldown: .1 },
@@ -55,7 +67,9 @@ const MUSIC_SCENES = Object.freeze({
 const AMBIENCE_PRESETS = Object.freeze([
   { variant: 0, volume: .28, rate: .96, highpass: 40, lowpass: 3500 }, // Foundry pressure
   { variant: 1, volume: .25, rate: 1.02, highpass: 62, lowpass: 4700 }, // Ward ventilation
-  { variant: 0, volume: .23, rate: .93, highpass: 34, lowpass: 6500 }, // Ossuary resonance
+  { variant: 2, volume: .23, rate: .96, highpass: 40, lowpass: 4800 }, // Ossuary depth
+  { variant: 2, volume: .19, rate: .88, highpass: 55, lowpass: 3900 }, // Cathedral hush
+  { variant: 0, volume: .26, rate: .91, highpass: 38, lowpass: 4200 }, // Last stand pressure
 ]);
 const SCENE_ALIASES = Object.freeze({
   game: 'play', gameplay: 'play', playing: 'play', ready: 'menu', loss: 'dead', victory: 'win',
@@ -65,6 +79,13 @@ const SHOT_PROFILES = Object.freeze([
   { volume: .50, highpass: 48, lowpass: 6400, cooldown: .08 },
   { volume: .36, highpass: 520, lowpass: 11800, cooldown: .025 },
   { volume: .43, highpass: 42, lowpass: 7600, cooldown: .08 },
+  // Carrion is a short, bright automatic report. Keep a four-voice ceiling
+  // and a small event cooldown so a held trigger stays punchy instead of
+  // turning into a continuous wall of samples.
+  { volume: .36, highpass: 92, lowpass: 9800, cooldown: .055, maxVoices: 4 },
+  // Mourning is deliberately lower and longer. Two voices preserve the
+  // charge/recovery punctuation when a player fires a charged shot.
+  { volume: .54, highpass: 34, lowpass: 6700, cooldown: .11, maxVoices: 2 },
 ]);
 const clamp = (value, min, max) => Math.max(min, Math.min(max, Number(value) || 0));
 const now = context => context?.currentTime ?? 0;
@@ -166,6 +187,20 @@ export class AudioSystem {
     this._lastPlay = new Map();
     this._lastVariant = new Map();
     this._voices = new Map();
+    // The chainsaw owns one persistent engine loop and one optional cutting
+    // loop. Keeping the sources here prevents held input from stacking new
+    // BufferSourceNodes every frame.
+    this._meleeMotorSource = null;
+    this._meleeMotorGain = null;
+    this._meleeContactSource = null;
+    this._meleeContactGain = null;
+    this._meleeStartSource = null;
+    this._meleeStartGain = null;
+    this._meleeStopSource = null;
+    this._meleeStopGain = null;
+    this._meleeWeapon = -1;
+    this._meleeRunning = false;
+    this._meleeContacting = false;
   }
 
   get context() { return this._ctx; }
@@ -177,6 +212,17 @@ export class AudioSystem {
   get musicActive() { return Boolean(this._musicSource); }
   get debugInfo() {
     return Object.freeze({ loaded: this._loaded, decoded: this._buffers.size, manifestEntries: this._assetCount, normalizedPools: this._normalizedPools, normalizedSamples: this._normalizedSamples, errors: this.loadErrors });
+  }
+  meleeDiagnostics() {
+    return Object.freeze({
+      weapon: this._meleeWeapon,
+      running: this._meleeRunning,
+      contacting: this._meleeContacting,
+      motorSources: this._meleeMotorSource ? 1 : 0,
+      contactSources: this._meleeContactSource ? 1 : 0,
+      startupSources: this._meleeStartSource ? 1 : 0,
+      shutdownSources: this._meleeStopSource ? 1 : 0,
+    });
   }
 
   async unlock() {
@@ -256,6 +302,7 @@ export class AudioSystem {
 
   pause() {
     this._paused = true;
+    this._stopMeleeLoops({ playShutdown: false, suppressTail: true });
     this._stopAmbient();
     this._fadeMusic(0.0001, .12);
     for (const [type, voices] of this._voices) if (type !== 'music' && GROUP_BY_TYPE[type] !== 'ui') {
@@ -363,6 +410,14 @@ export class AudioSystem {
     });
     if (name === 'hover') { profile.volume = .065; profile.cooldown = .07; }
     const mix = { ...profile, group: GROUP_BY_TYPE[name] || profile.group, ...details };
+    if (name === 'shot' && index === 4 && details.mode === 'burst') {
+      mix.volume = Math.min(Number(mix.volume) || .36, .34);
+      mix.highpass = 105;
+    }
+    if (name === 'shot' && index === 5 && details.mode === 'charged') {
+      mix.volume = Math.min(1, (Number(mix.volume) || .54) * 1.08);
+      mix.lowpass = 7200;
+    }
     const cooldown = Number(details.cooldown ?? profile.cooldown ?? 0);
     if (cooldown > 0) {
       const sourceId = details.enemyId ?? details.id ?? '';
@@ -371,7 +426,11 @@ export class AudioSystem {
       if (time - (this._lastPlay.get(key) || -Infinity) < cooldown * 1000) return false;
       this._lastPlay.set(key, time);
     }
-    const buffer = this._chooseBuffer(name, index, details.variant);
+    // The engine keeps wall collisions under one event name; route the
+    // chainsaw's metal bite to its dedicated wall pool instead of a bat clang.
+    const buffer = name === 'melee-wall' && index === 7
+      ? this._chooseBuffer('chainsaw-wall', 0, details.variant)
+      : this._chooseBuffer(name, index, details.variant);
     if (buffer) {
       this._playBuffer(buffer, name, index, mix);
       // Keep the tactile layer coupled to the real shot event. It is a tiny
@@ -382,9 +441,75 @@ export class AudioSystem {
     }
     return false;
   }
+
+  /**
+   * Synchronize the sustained melee layer with authoritative gameplay state.
+   *
+   * `active` is the held chainsaw state, `rev` is its normalized engine ramp,
+   * and `contact` is the short cut/wall contact latch. Bat swings and impacts
+   * stay event driven through play('bat-swing' / 'melee-hit' / 'melee-wall').
+   * This method deliberately owns at most one motor loop and one contact loop.
+   */
+  updateMelee(state = {}) {
+    if (this._disposed) return false;
+    const weapon = Math.floor(Number(state.weapon ?? -1));
+    const chainsaw = weapon === 7;
+    const playing = state.playing !== false && !this._paused;
+    const active = chainsaw && Boolean(state.active);
+    const rev = chainsaw ? clamp(state.rev, 0, 1) : 0;
+    const contact = chainsaw && Boolean(state.contact);
+    const position = state.position;
+    const wasRunning = this._meleeRunning;
+    const wasWeapon = this._meleeWeapon;
+    this._meleeWeapon = weapon;
+
+    // A screen transition, pause, death, or weapon switch tears down the
+    // persistent sources. A running saw gets a sampled shutdown tail only
+    // while the context is live; pause/dispose remain silent.
+    if (!chainsaw || !playing) {
+      this._stopMeleeLoops({
+        playShutdown: Boolean(wasRunning && playing && wasWeapon === 7),
+        suppressTail: !playing,
+        position,
+      });
+      this._meleeRunning = false;
+      this._meleeContacting = false;
+      return false;
+    }
+
+    if (!this._ctx || this._ctx.state !== 'running' || !this._loaded) {
+      // unlock() loads buffers asynchronously; keep the state so the next
+      // frame starts cleanly once decoding has completed.
+      this._meleeRunning = active || rev > .015;
+      this._meleeContacting = contact;
+      return false;
+    }
+
+    const shouldRun = active || rev > .015;
+    if (shouldRun && !this._meleeMotorSource) {
+      // A context may finish decoding after the first held frame. Starting
+      // from a missing source still needs its sampled pull/start cue.
+      this._startMeleeStart(position);
+      this._startMeleeMotor(rev, position);
+    }
+    if (this._meleeMotorSource) this._setMeleeMotor(rev);
+
+    if (contact && !this._meleeContactSource) this._startMeleeContact(position);
+    if (!contact && this._meleeContactSource) this._stopMeleeContact();
+    this._meleeRunning = shouldRun;
+    this._meleeContacting = Boolean(contact);
+    if (!shouldRun && this._meleeMotorSource) {
+      this._stopMeleeLoops({ playShutdown: Boolean(wasRunning), position });
+      this._meleeRunning = false;
+      this._meleeContacting = false;
+    }
+    return shouldRun;
+  }
+
   dispose() {
     if (this._disposed) return;
     this._disposed = true;
+    this._stopMeleeLoops({ playShutdown: false, suppressTail: true, immediate: true });
     if (this._atmosphereTimer) clearTimeout(this._atmosphereTimer);
     this._atmosphereTimer = null;
     for (const source of this._sources) {
@@ -505,7 +630,7 @@ export class AudioSystem {
     if (name === 'shot' || name === 'mechanism') {
       const prefix = name + ':' + Math.max(0, weapon) + ':';
       for (const key of this._buffers.keys()) if (key.startsWith(prefix)) keys.push(key);
-      if (!keys.length && weapon !== 0) {
+      if (!keys.length && weapon > 0 && weapon < 4) {
         for (const key of this._buffers.keys()) if (key.startsWith(name + ':0:')) keys.push(key);
       }
     } else {
@@ -523,16 +648,177 @@ export class AudioSystem {
     return this._buffers.get(keys[index]) || null;
   }
 
+  _startMeleeStart(position) {
+    if (this._meleeStartSource || !this._ctx) return false;
+    // A very quick release/restart should never layer a stale shutdown under
+    // the new pull-start cue.
+    this._stopMeleeStop(true);
+    const buffer = this._chooseBuffer('chainsaw-start', 0);
+    if (!buffer) return false;
+    const source = this._playBuffer(buffer, 'chainsaw-start', 0, {
+      group: 'sfx', fadeIn: .012, volume: .30, maxVoices: 1,
+      highpass: 48, lowpass: 7600, position,
+    });
+    if (!source) return false;
+    this._meleeStartSource = source;
+    this._meleeStartGain = source._deadArrivalGain || null;
+    source.addEventListener?.('ended', () => {
+      if (this._meleeStartSource !== source) return;
+      this._meleeStartSource = null;
+      this._meleeStartGain = null;
+    }, { once: true });
+    return true;
+  }
+
+  _startMeleeStop(position) {
+    if (!this._ctx || this._paused || this._meleeStopSource) return false;
+    this._stopMeleeStart(true);
+    const buffer = this._chooseBuffer('chainsaw-stop', 0);
+    if (!buffer) return false;
+    const source = this._playBuffer(buffer, 'chainsaw-stop', 0, {
+      group: 'sfx', fadeIn: .012, volume: .21, maxVoices: 1,
+      highpass: 45, lowpass: 6800, position,
+    });
+    if (!source) return false;
+    this._meleeStopSource = source;
+    this._meleeStopGain = source._deadArrivalGain || null;
+    source.addEventListener?.('ended', () => {
+      if (this._meleeStopSource !== source) return;
+      this._meleeStopSource = null;
+      this._meleeStopGain = null;
+    }, { once: true });
+    return true;
+  }
+
+  _stopMeleeStart(immediate = false) {
+    const source = this._meleeStartSource;
+    const gain = this._meleeStartGain;
+    this._meleeStartSource = null;
+    this._meleeStartGain = null;
+    if (!source) return false;
+    const t = now(this._ctx), fade = immediate ? .004 : .025;
+    try {
+      if (gain) {
+        gain.gain.cancelScheduledValues(t);
+        gain.gain.setTargetAtTime(.0001, t, Math.max(.008, fade / 3));
+      }
+      source.stop(t + (immediate ? .008 : .06));
+    } catch { try { source.stop(); } catch {} }
+    return true;
+  }
+
+  _stopMeleeStop(immediate = false) {
+    const source = this._meleeStopSource;
+    const gain = this._meleeStopGain;
+    this._meleeStopSource = null;
+    this._meleeStopGain = null;
+    if (!source) return false;
+    const t = now(this._ctx), fade = immediate ? .004 : .035;
+    try {
+      if (gain) {
+        gain.gain.cancelScheduledValues(t);
+        gain.gain.setTargetAtTime(.0001, t, Math.max(.008, fade / 3));
+      }
+      source.stop(t + (immediate ? .008 : .07));
+    } catch { try { source.stop(); } catch {} }
+    return true;
+  }
+
+  _startMeleeMotor(rev = 0, position) {
+    if (this._meleeMotorSource || !this._ctx) return false;
+    const buffer = this._chooseBuffer('chainsaw-motor', 0);
+    if (!buffer) return false;
+    const source = this._playBuffer(buffer, 'chainsaw-motor', 0, {
+      group: 'sfx', loop: true, fadeIn: .08, volume: .22,
+      maxVoices: 1, highpass: 42, lowpass: 7200,
+      rate: .82 + clamp(rev, 0, 1) * .34, position,
+    });
+    if (!source) return false;
+    this._meleeMotorSource = source;
+    this._meleeMotorGain = source._deadArrivalGain || null;
+    return true;
+  }
+
+  _setMeleeMotor(rev = 0) {
+    const source = this._meleeMotorSource;
+    if (!source || !this._ctx) return false;
+    const t = now(this._ctx), level = .075 + clamp(rev, 0, 1) * .19;
+    try { source.playbackRate.setTargetAtTime(.82 + clamp(rev, 0, 1) * .34, t, .045); } catch {}
+    if (this._meleeMotorGain) {
+      try { this._meleeMotorGain.gain.setTargetAtTime(level, t, .06); } catch {}
+    }
+    return true;
+  }
+
+  _startMeleeContact(position) {
+    if (this._meleeContactSource || !this._ctx) return false;
+    const buffer = this._chooseBuffer('chainsaw-contact', 0);
+    if (!buffer) return false;
+    const source = this._playBuffer(buffer, 'chainsaw-contact', 0, {
+      group: 'sfx', loop: true, fadeIn: .035, volume: .12,
+      maxVoices: 1, highpass: 85, lowpass: 6500, position,
+    });
+    if (!source) return false;
+    this._meleeContactSource = source;
+    this._meleeContactGain = source._deadArrivalGain || null;
+    return true;
+  }
+
+  _stopMeleeContact(immediate = false) {
+    const source = this._meleeContactSource;
+    const gain = this._meleeContactGain;
+    this._meleeContactSource = null;
+    this._meleeContactGain = null;
+    if (!source) return false;
+    const t = now(this._ctx), fade = immediate ? .005 : .055;
+    try {
+      if (gain) {
+        gain.gain.cancelScheduledValues(t);
+        gain.gain.setTargetAtTime(.0001, t, Math.max(.01, fade / 3));
+      }
+      source.stop(t + (immediate ? .01 : .18));
+    } catch { try { source.stop(); } catch {} }
+    return true;
+  }
+
+  _stopMeleeLoops({ playShutdown = false, suppressTail = false, position, immediate = false } = {}) {
+    // Pull-start is owned by the melee lifecycle, so releasing or switching
+    // weapons cannot leave its transient source audible over the next state.
+    this._stopMeleeStart(immediate);
+    if (suppressTail) this._stopMeleeStop(immediate);
+    if (playShutdown && this._ctx?.state === 'running' && !this._paused) this._startMeleeStop(position);
+    const source = this._meleeMotorSource;
+    const gain = this._meleeMotorGain;
+    this._meleeMotorSource = null;
+    this._meleeMotorGain = null;
+    this._meleeRunning = false;
+    this._meleeContacting = false;
+    this._stopMeleeContact(immediate);
+    if (!source) return false;
+    const t = now(this._ctx), fade = immediate ? .005 : .08;
+    try {
+      if (gain) {
+        gain.gain.cancelScheduledValues(t);
+        gain.gain.setTargetAtTime(.0001, t, Math.max(.01, fade / 3));
+      }
+      source.stop(t + (immediate ? .01 : .22));
+    } catch { try { source.stop(); } catch {} }
+    return true;
+  }
+
   _playMechanism(weapon = 0, details = {}) {
     const buffer = this._chooseBuffer('mechanism', weapon, details.variant);
     if (!buffer) return false;
+    const rifle = weapon === 4 || weapon === 5;
+    const auto = weapon === 4;
     this._playBuffer(buffer, 'mechanism', weapon, {
       ...details,
       group: 'sfx',
-      volume: details.mechanismVolume ?? .10,
-      maxVoices: 4,
-      highpass: 700,
-      lowpass: 7600,
+      volume: details.mechanismVolume ?? (auto ? .075 : weapon === 5 ? .11 : .10),
+      maxVoices: rifle ? (auto ? 3 : 2) : 4,
+      highpass: auto ? 850 : 700,
+      lowpass: auto ? 8200 : 7600,
+      delay: details.mechanismDelay ?? (weapon === 1 ? .13 : auto ? .055 : weapon === 5 ? .095 : .025),
     });
     return true;
   }
@@ -604,10 +890,13 @@ export class AudioSystem {
     source.playbackRate.value = clamp(profile.rate ?? random(rateMin, rateMax), 0.5, 2);
     if (profile.detune !== undefined) source.detune.value = Number(profile.detune) || 0;
     const t = now(this._ctx), bufferGain = level * (this._bufferGains.get(buffer) ?? 1);
-    if (type === 'ambience' && Number(profile.fadeIn) > 0) {
+    if (Number(profile.fadeIn) > 0) {
       gain.gain.setValueAtTime(.0001, t);
       gain.gain.setTargetAtTime(bufferGain, t, Math.max(.02, Number(profile.fadeIn) / 3));
     } else gain.gain.setValueAtTime(bufferGain, t);
+    // Persistent melee loops need to retune their gain while they are live.
+    // Keep the node private to the source so one-shot callers remain unchanged.
+    source._deadArrivalGain = gain;
     source.connect(gain);
     let node = this._filterNode(gain, profile);
     source.loop = type === 'ambience' || Boolean(profile.loop);
@@ -642,7 +931,7 @@ export class AudioSystem {
       this._ambientGain = gain;
     }
     this._track(source, source.loop, type);
-    source.start();
+    source.start(t + Math.max(0, Number(profile.delay) || 0));
     return source;
   }
 

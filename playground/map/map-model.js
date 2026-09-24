@@ -728,6 +728,8 @@ export function buildDungeonScene(index = 0) {
     bounds: { ...room.bounds },
     center: { ...room.center },
     size: { ...room.size },
+    shape: room.shape || 'square',
+    footprint: [...(room.footprint || [])],
     color: room.color || DUNGEON_ROOM_COLORS[room.kind] || '#8b93a7',
     encounter: room.encounter || null,
     portals: [],

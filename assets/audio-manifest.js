@@ -2,7 +2,14 @@
 export const AUDIO_ASSET_MANIFEST = Object.freeze({
   "ambience": [
     "./audio/ambience/ossuary-dungeon.ogg",
-    "./audio/afterlife/air-corridor-loop.ogg"
+    "./audio/afterlife/air-corridor-loop.ogg",
+    "./audio/sourced/horror/dark-cavern-loop.ogg"
+  ],
+  "horror-sting": [
+    "./audio/sourced/horror/string-sting.ogg"
+  ],
+  "horror-reveal": [
+    "./audio/sourced/horror/industrial-reveal.ogg"
   ],
   "distant-scream": [
     "./audio/sourced/horror/distant-scream-rough.ogg"
@@ -31,6 +38,16 @@ export const AUDIO_ASSET_MANIFEST = Object.freeze({
     [
       "./audio/sfx/processed/reliquary-launch.wav",
       "./audio/sourced/weapons/reliquary-02.ogg"
+    ],
+    [
+      "./audio/sfx/processed/carrion-auto-rifle.wav",
+      "./audio/sourced/weapons/carrion-sks-01.ogg",
+      "./audio/sourced/weapons/carrion-sks-02.ogg"
+    ],
+    [
+      "./audio/sfx/processed/mourning-marksman.wav",
+      "./audio/sourced/weapons/mourning-mosin-01.ogg",
+      "./audio/sourced/weapons/mourning-mosin-02.ogg"
     ]
   ],
   // Short, low-level mechanical tails are layered by AudioSystem.play('shot')
@@ -41,14 +58,64 @@ export const AUDIO_ASSET_MANIFEST = Object.freeze({
       "./audio/afterlife/weapon-latch-metal.ogg"
     ],
     [
-      "./audio/afterlife/weapon-latch-bone.ogg"
+      "./audio/sourced/weapons/breach-pump.ogg"
     ],
     [
       "./audio/afterlife/weapon-latch-metal.ogg"
     ],
     [
       "./audio/afterlife/weapon-latch-bone.ogg"
+    ],
+    [
+      "./audio/sourced/weapons/carrion-action.ogg"
+    ],
+    [
+      "./audio/sourced/weapons/mourning-action.ogg"
     ]
+  ],
+  // One-shot cue when Mourning enters its held alternate-fire charge.
+  // The latch keeps the cue tactile without introducing a looping charge bed.
+  "rifle-charge": [
+    "./audio/afterlife/weapon-latch-bone.ogg"
+  ],
+  // Melee events use dedicated sampled pools so a bat never falls through to
+  // a rifle report. The impacts reuse the bundled CC0/Kenney foley set.
+  "bat-swing": [
+    "./audio/melee/bat-swing-01.ogg",
+    "./audio/melee/bat-swing-02.ogg"
+  ],
+  "melee-hit": [
+    "./audio/baseline/impact-impactPunch_heavy_000.ogg",
+    "./audio/baseline/impact-impactPunch_heavy_001.ogg",
+    "./audio/baseline/impact-impactPunch_heavy_002.ogg",
+    "./audio/sfx/cc0-splat-hit.wav"
+  ],
+  "melee-wall": [
+    "./audio/baseline/impact-impactMetal_medium_000.ogg",
+    "./audio/baseline/impact-impactMetal_medium_001.ogg",
+    "./audio/baseline/impact-impactMetal_medium_002.ogg"
+  ],
+  // Chainsaw has separate start, engine, cut, and stop layers. The engine
+  // buffer is looped by AudioSystem.updateMelee; contact is only looped while
+  // the authoritative sawContact flag is live.
+  "chainsaw-start": [
+    "./audio/melee/chainsaw-start.ogg"
+  ],
+  "chainsaw-motor": [
+    "./audio/melee/chainsaw-idle.ogg"
+  ],
+  "chainsaw-contact": [
+    "./audio/melee/chainsaw-contact.ogg"
+  ],
+  "chainsaw-hit": [
+    "./audio/melee/chainsaw-hit.ogg"
+  ],
+  "chainsaw-wall": [
+    "./audio/baseline/impact-impactMetal_medium_001.ogg",
+    "./audio/baseline/impact-impactMetal_medium_002.ogg"
+  ],
+  "chainsaw-stop": [
+    "./audio/melee/chainsaw-stop.ogg"
   ],
   "hit": [
     "./audio/sfx/processed/impact-metal-flesh.wav",

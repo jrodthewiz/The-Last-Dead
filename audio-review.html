@@ -32,7 +32,10 @@
 
   <h2>Scenes</h2>
   <div id="scenes" class="toolbar"></div>
-  <p class="source">Menu bed: <a href="https://opengameart.org/content/insistent-background-loop">Insistent</a> by yd (CC0). Gameplay bed: <a href="https://opengameart.org/content/abandoned-passages-horror-ambience-loop">Abandoned passages</a> by congusbongus (CC0).</p>
+  <p class="source">Menu bed: <a href="https://opengameart.org/content/insistent-background-loop">Insistent</a> by yd (CC0). Gameplay bed: <a href="https://opengameart.org/content/abandoned-passages-horror-ambience-loop">Abandoned passages</a> by congusbongus (CC0). New cavern loop: <a href="https://opengameart.org/content/dark-cavern-ambient">Dark Cavern Ambient</a> by Paul Wortmann (CC0).</p>
+
+  <h2>Room tone presets</h2>
+  <div id="ambience-presets" class="toolbar"></div>
 
   <h2>Event pools</h2>
   <div id="sounds"></div>
@@ -65,13 +68,28 @@
       document.querySelector('#scenes').append(button);
     }
 
+    ['Foundry pressure', 'Ward ventilation', 'Ossuary depth', 'Cathedral hush', 'Last stand pressure'].forEach((label, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = label;
+      button.onclick = async () => {
+        await unlock();
+        audio.setAmbiencePreset(index);
+        audio.setScene('play');
+        audio.play('ambience');
+        document.querySelectorAll('#ambience-presets button').forEach(node => node.dataset.active = String(node === button));
+        report(label);
+      };
+      document.querySelector('#ambience-presets').append(button);
+    });
+
     for (const key of Object.keys(AUDIO_ASSET_MANIFEST)) {
       if (key.startsWith('music-')) continue;
-      const count = key === 'shot' ? 4 : 1;
+      const count = key === 'shot' ? AUDIO_ASSET_MANIFEST.shot.length : 1;
       for (let weapon = 0; weapon < count; weapon++) {
         const button = document.createElement('button');
         button.type = 'button';
-        button.textContent = key === 'shot' ? ['Ossuary', 'Breach shotgun', 'Arc lance', 'Reliquary'][weapon] : key;
+        button.textContent = key === 'shot' ? ['Ossuary', 'Breach shotgun', 'Arc lance', 'Reliquary', 'Carrion rifle', 'Mourning marksman'][weapon] : key;
         button.onclick = async () => {
           await unlock();
           audio.play(key, weapon);

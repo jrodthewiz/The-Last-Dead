@@ -260,21 +260,33 @@ def make_attack_lunge(armature, mapping):
     left_leg = resolve_bone(["LeftUpLeg", "LeftThigh"], mapping)
     right_leg = resolve_bone(["RightUpLeg", "RightThigh"], mapping)
     if hips:
-        key_location(action, armature, hips, [(1, (0.0, 0.0, 0.0)), (4, (0.0, -0.05, 0.02)), (8, (0.0, 0.12, -0.015)), (11, (0.0, 0.16, -0.02)), (15, (0.0, 0.05, 0.0)), (20, (0.0, 0.0, 0.0))])
+        # The imported rig is scaled .01 in Blender. These small forward/up
+        # translations therefore read as a restrained bodyweight transfer in
+        # the normalized runtime model instead of a visible root teleport.
+        key_location(action, armature, hips, [(1, (0.0, 0.0, 0.0)), (4, (0.0, -1.5, 0.45)), (8, (0.0, -4.0, 1.0)), (11, (0.0, -6.0, 1.35)), (15, (0.0, -2.0, 0.4)), (20, (0.0, 0.0, 0.0))])
     if spine:
-        key_rotation(action, armature, spine, [(1, (0.04, 0.0, 0.0)), (4, (-0.10, 0.0, -0.02)), (8, (0.22, 0.0, 0.04)), (11, (0.42, 0.0, 0.08)), (15, (0.18, 0.0, 0.03)), (20, (0.04, 0.0, 0.0))])
+        # Positive local X on Spine02 leans this rig's chest toward its -Y
+        # facing direction. The head and neck intentionally lag this beat.
+        key_rotation(action, armature, spine, [(1, (0.04, 0.0, 0.0)), (4, (-0.14, 0.0, -0.02)), (8, (0.38, 0.0, 0.04)), (11, (0.72, 0.0, 0.10)), (15, (0.34, 0.0, 0.05)), (20, (0.04, 0.0, 0.0))])
     if neck:
-        key_rotation(action, armature, neck, [(1, (0.04, 0.0, 0.0)), (4, (0.02, 0.0, -0.03)), (8, (0.10, 0.0, 0.04)), (11, (0.20, 0.0, 0.08)), (15, (0.14, 0.0, 0.04)), (20, (0.04, 0.0, 0.0))])
+        key_rotation(action, armature, neck, [(1, (0.04, 0.0, 0.0)), (4, (0.02, 0.0, -0.03)), (8, (0.10, 0.0, 0.04)), (11, (0.25, 0.0, 0.08)), (15, (0.18, 0.0, 0.04)), (20, (0.04, 0.0, 0.0))])
     if head:
-        key_rotation(action, armature, head, [(1, (0.02, 0.0, -0.06)), (4, (0.02, 0.0, -0.08)), (8, (0.04, 0.0, 0.02)), (11, (0.13, 0.01, 0.10)), (15, (0.16, 0.0, 0.06)), (20, (0.02, 0.0, -0.06))])
+        # Delay the head turn until after the arm reaches, then settle to the
+        # same restrained cant used by idle.
+        key_rotation(action, armature, head, [(1, (0.02, 0.0, -0.06)), (4, (0.02, 0.0, -0.08)), (8, (0.04, 0.0, 0.02)), (11, (0.07, 0.0, 0.04)), (15, (0.22, 0.0, -0.12)), (20, (0.02, 0.0, -0.06))])
     if left_arm:
-        key_rotation(action, armature, left_arm, [(1, (1.10, 0.0, -0.10)), (4, (0.86, 0.0, -0.18)), (8, (0.42, 0.0, -0.22)), (11, (0.18, 0.0, -0.25)), (15, (0.64, 0.0, -0.18)), (20, (1.10, 0.0, -0.10))])
+        # Rig probe evidence: Blender -Y is forward. A positive local-Z roll
+        # plus a negative forearm-X bend puts the left wrist forward at chest
+        # height; the previous negative-Z values only spread the arms.
+        key_rotation(action, armature, left_arm, [(1, (1.10, 0.0, -0.10)), (4, (0.98, 0.0, 0.18)), (8, (0.66, 0.0, 0.82)), (11, (0.22, 0.0, 1.25)), (15, (0.52, 0.0, 0.88)), (20, (1.10, 0.0, -0.10))])
     if right_arm:
-        key_rotation(action, armature, right_arm, [(1, (1.14, 0.0, 0.10)), (4, (0.92, 0.0, 0.16)), (8, (0.62, 0.0, 0.22)), (11, (0.46, 0.0, 0.24)), (15, (0.82, 0.0, 0.14)), (20, (1.14, 0.0, 0.10))])
+        # Counterbalance stays soft and low instead of opening into a second
+        # sideways reach.
+        key_rotation(action, armature, right_arm, [(1, (1.14, 0.0, 0.10)), (4, (1.08, 0.0, 0.12)), (8, (1.08, 0.0, 0.16)), (11, (1.10, 0.0, 0.12)), (15, (1.12, 0.0, 0.10)), (20, (1.14, 0.0, 0.10))])
     if left_forearm:
-        key_rotation(action, armature, left_forearm, [(1, (0.10, 0.0, 0.0)), (4, (0.22, 0.0, 0.0)), (8, (0.42, 0.0, 0.0)), (11, (0.58, 0.0, 0.0)), (15, (0.30, 0.0, 0.0)), (20, (0.10, 0.0, 0.0))])
+        key_rotation(action, armature, left_forearm, [(1, (0.10, 0.0, 0.0)), (4, (0.12, 0.0, 0.0)), (8, (-0.04, 0.0, 0.0)), (11, (-0.40, 0.0, 0.0)), (15, (-0.16, 0.0, 0.0)), (20, (0.10, 0.0, 0.0))])
     if right_forearm:
-        key_rotation(action, armature, right_forearm, [(1, (0.10, 0.0, 0.0)), (4, (0.20, 0.0, 0.0)), (8, (0.34, 0.0, 0.0)), (11, (0.44, 0.0, 0.0)), (15, (0.24, 0.0, 0.0)), (20, (0.10, 0.0, 0.0))])
+        key_rotation(action, armature, right_forearm, [(1, (0.10, 0.0, 0.0)), (4, (0.14, 0.0, 0.0)), (8, (0.16, 0.0, 0.0)), (11, (0.18, 0.0, 0.0)), (15, (0.14, 0.0, 0.0)), (20, (0.10, 0.0, 0.0))])
     if left_leg:
         key_rotation(action, armature, left_leg, [(1, (0.0, 0.0, 0.0)), (4, (-0.12, 0.0, 0.0)), (8, (-0.30, 0.0, 0.0)), (11, (-0.20, 0.0, 0.0)), (15, (-0.08, 0.0, 0.0)), (20, (0.0, 0.0, 0.0))])
     if right_leg:
@@ -431,8 +443,8 @@ def main():
         "clips": [{"name": action.name, "frameStart": int(action.get("clipStart", 1)), "frameEnd": int(action.get("clipEnd", 1)), "loop": bool(action.get("loop", False))} for action in actions],
         "notes": [
             "Idle uses a 2.4 second breathing cycle with a restrained head cant.",
-            "Shuffle uses six planted contact/passing poses with delayed head and asymmetrical arms.",
-            "AttackLunge lands its bodyweight lunge near the engine's 0.28 second melee strike.",
+            "Shuffle uses six contact/transfer/passing poses with delayed head and asymmetrical arms.",
+            "AttackLunge transfers the hips forward, reaches the left hand along the rig-probed -Y facing axis, delays the head, and recovers near the engine's 0.28 second melee strike.",
             "HitRecoil uses a short backstep response for enemy flash/stagger events.",
             "Collapse uses a 1.8 second forward fold with knees and arms softening.",
             "This export is intentionally pre-compression; the package step owns runtime size reduction.",

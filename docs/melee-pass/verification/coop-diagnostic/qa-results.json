@@ -1,0 +1,489 @@
+{
+  "url": "http://127.0.0.1:5200/dist/",
+  "checks": {
+    "coopBat": true,
+    "coopSawRelease": true,
+    "coopPause": true
+  },
+  "errors": [],
+  "samples": [
+    {
+      "seconds": 1.657,
+      "screen": "play",
+      "weapon": 7,
+      "health": 100,
+      "mode": "play",
+      "saw": false,
+      "rev": 0,
+      "sequence": 1,
+      "active": false,
+      "enemies": [
+        {
+          "id": 99004,
+          "hp": 97.5,
+          "hits": 2,
+          "dead": false
+        }
+      ],
+      "audio": {
+        "weapon": 7,
+        "running": false,
+        "contacting": false,
+        "motorSources": 0,
+        "contactSources": 0,
+        "startupSources": 0,
+        "shutdownSources": 1
+      },
+      "memory": {
+        "geometries": 909,
+        "textures": 100
+      }
+    },
+    {
+      "seconds": 19.999,
+      "screen": "play",
+      "weapon": 7,
+      "health": 100,
+      "mode": "play",
+      "saw": false,
+      "rev": 0,
+      "sequence": 6,
+      "active": false,
+      "enemies": [
+        {
+          "id": 99014,
+          "hp": 100,
+          "hits": 0,
+          "dead": false
+        }
+      ],
+      "audio": {
+        "weapon": 7,
+        "running": false,
+        "contacting": false,
+        "motorSources": 0,
+        "contactSources": 0,
+        "startupSources": 0,
+        "shutdownSources": 1
+      },
+      "memory": {
+        "geometries": 909,
+        "textures": 100
+      }
+    }
+  ],
+  "failure": "page.waitForFunction: Timeout 30000ms exceeded.\n    at peerTarget (C:\\Users\\wolfk\\Desktop\\thelastdead\\tests\\melee-input-coop.mjs:110:14)\n    at async file:///C:/Users/wolfk/Desktop/thelastdead/tests/melee-input-coop.mjs:137:3",
+  "failureStates": [
+    {
+      "screen": "play",
+      "mode": "play",
+      "connected": true,
+      "transport": {
+        "statuses": [
+          {
+            "state": "channel-error",
+            "details": {
+              "type": "status",
+              "state": "channel-error",
+              "role": "host",
+              "connected": true,
+              "error": "Message too big for JSON channel"
+            }
+          },
+          {
+            "state": "channel-error",
+            "details": {
+              "type": "status",
+              "state": "channel-error",
+              "role": "host",
+              "connected": true,
+              "error": "Message too big for JSON channel"
+            }
+          },
+          {
+            "state": "channel-error",
+            "details": {
+              "type": "status",
+              "state": "channel-error",
+              "role": "host",
+              "connected": true,
+              "error": "Message too big for JSON channel"
+            }
+          },
+          {
+            "state": "channel-error",
+            "details": {
+              "type": "status",
+              "state": "channel-error",
+              "role": "host",
+              "connected": true,
+              "error": "Message too big for JSON channel"
+            }
+          },
+          {
+            "state": "channel-error",
+            "details": {
+              "type": "status",
+              "state": "channel-error",
+              "role": "host",
+              "connected": true,
+              "error": "Message too big for JSON channel"
+            }
+          },
+          {
+            "state": "channel-error",
+            "details": {
+              "type": "status",
+              "state": "channel-error",
+              "role": "host",
+              "connected": true,
+              "error": "Message too big for JSON channel"
+            }
+          },
+          {
+            "state": "channel-error",
+            "details": {
+              "type": "status",
+              "state": "channel-error",
+              "role": "host",
+              "connected": true,
+              "error": "Message too big for JSON channel"
+            }
+          },
+          {
+            "state": "channel-error",
+            "details": {
+              "type": "status",
+              "state": "channel-error",
+              "role": "host",
+              "connected": true,
+              "error": "Message too big for JSON channel"
+            }
+          },
+          {
+            "state": "channel-error",
+            "details": {
+              "type": "status",
+              "state": "channel-error",
+              "role": "host",
+              "connected": true,
+              "error": "Message too big for JSON channel"
+            }
+          },
+          {
+            "state": "channel-error",
+            "details": {
+              "type": "status",
+              "state": "channel-error",
+              "role": "host",
+              "connected": true,
+              "error": "Message too big for JSON channel"
+            }
+          }
+        ],
+        "sent": 1312,
+        "received": 1306,
+        "rejected": 0,
+        "lastReceived": {
+          "type": "input",
+          "bytes": 216
+        },
+        "lastSent": {
+          "type": "snapshot",
+          "seq": 1315,
+          "bytes": 16419,
+          "counts": {
+            "enemies": 1,
+            "projectiles": 0,
+            "coins": 0,
+            "gore": 0,
+            "blood": 74,
+            "tracers": 0,
+            "spawnTelegraphs": 0,
+            "explosions": 0
+          },
+          "ok": true,
+          "buffered": 0
+        }
+      },
+      "counts": {
+        "projectiles": 0,
+        "coins": 0,
+        "gore": 0,
+        "blood": 74,
+        "tracers": 0,
+        "spawnTelegraphs": 0,
+        "explosions": 0
+      },
+      "player": {
+        "x": 1.2,
+        "y": 2,
+        "z": 0,
+        "angle": -2.782821983319221,
+        "pitch": 0,
+        "health": 100,
+        "weapon": 0,
+        "sequence": 0,
+        "active": false
+      },
+      "peer": {
+        "x": 2,
+        "y": 2,
+        "z": 0,
+        "angle": -1.5707963267948966,
+        "pitch": 0,
+        "health": 100,
+        "weapon": 7,
+        "mode": "play",
+        "sequence": 10,
+        "active": false
+      },
+      "enemies": [
+        {
+          "id": 99023,
+          "x": 2,
+          "y": 1.3300373343332135,
+          "z": 0,
+          "hp": 100,
+          "maxHp": 100,
+          "kind": 0,
+          "variant": "stalker",
+          "dead": false,
+          "flash": 0,
+          "hits": 0,
+          "attack": 968.891666666694,
+          "phase": 30.108333333332265,
+          "moveSpeed": 0.000001,
+          "seesTarget": true,
+          "strike": 0,
+          "stagger": 0,
+          "navTimer": -30.108333333332265
+        }
+      ],
+      "audio": [
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit"
+      ]
+    },
+    {
+      "screen": "play",
+      "mode": "play",
+      "connected": true,
+      "transport": {
+        "statuses": [],
+        "sent": 1304,
+        "received": 337,
+        "rejected": 0,
+        "lastReceived": {
+          "type": "snapshot",
+          "seq": 779,
+          "bytes": 16260,
+          "counts": {
+            "enemies": 1,
+            "projectiles": 0,
+            "coins": 0,
+            "gore": 0,
+            "blood": 68,
+            "tracers": 0,
+            "spawnTelegraphs": 0,
+            "explosions": 0
+          }
+        },
+        "lastSent": {
+          "type": "input",
+          "bytes": 216,
+          "ok": true,
+          "buffered": 244
+        }
+      },
+      "counts": {
+        "projectiles": 0,
+        "coins": 0,
+        "gore": 0,
+        "blood": 68,
+        "tracers": 0,
+        "spawnTelegraphs": 0,
+        "explosions": 0
+      },
+      "player": {
+        "x": 2,
+        "y": 2,
+        "z": 0,
+        "angle": -1.5707963267948966,
+        "pitch": 0,
+        "health": 100,
+        "weapon": 7,
+        "sequence": 10,
+        "active": false
+      },
+      "peer": {
+        "x": 1.2,
+        "y": 2,
+        "z": 0,
+        "angle": -2.782821983319221,
+        "pitch": 0,
+        "health": 100,
+        "weapon": 0,
+        "mode": "play",
+        "sequence": 0,
+        "active": false
+      },
+      "enemies": [
+        {
+          "id": 99022,
+          "x": 2,
+          "y": 1.330003265333323,
+          "z": 0,
+          "hp": 100,
+          "maxHp": 100,
+          "kind": 0,
+          "variant": "stalker",
+          "dead": false,
+          "flash": 0,
+          "hits": 0,
+          "attack": 996.3666666666691,
+          "phase": 2.6333333333333266,
+          "moveSpeed": 0.000001,
+          "seesTarget": true,
+          "strike": 0,
+          "stagger": 0,
+          "navTimer": -2.6333333333333266
+        }
+      ],
+      "audio": [
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "melee-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "chainsaw-hit",
+        "melee-hit"
+      ]
+    }
+  ]
+}

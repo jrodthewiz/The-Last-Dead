@@ -2,7 +2,7 @@
 // Coordinates stay in the compiler's 4 m cells so collision, render geometry,
 // enemy spawns, keys, and the map playground all use the same source.
 import { DUNGEON_LAYERS } from './dungeon-data.js';
-import { OPENING_KINDS, compileLayer, encounterReachForWave, roomClearEncounterSchedule } from './dungeon-compiler.js';
+import { OPENING_KINDS, compileLayer, encounterReachForWave, roomClearEncounterSchedule, roomContainsCell } from './dungeon-compiler.js';
 import { wallSegments } from './grid.js';
 import { dungeonArtDirection } from '../../dungeon-art-direction.js';
 
@@ -86,7 +86,7 @@ function nearestFloorPoint(reach, width, height, x, z, reserved = new Set(), con
 }
 
 function roomAt(rooms, x, z) {
-  return rooms.find(room => x >= room.bounds.minX && x < room.bounds.maxX && z >= room.bounds.minZ && z < room.bounds.maxZ) || null;
+  return rooms.find(room => roomContainsCell(room, x, z)) || null;
 }
 
 export function makeDungeonCourse(index = 0) {

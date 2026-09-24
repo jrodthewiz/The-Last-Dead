@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Last Dead — Chase and impact review</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#080d0f;color:#ded8ca;font:16px/1.65 system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:48px 24px}small{color:#ba756c;letter-spacing:.16em;text-transform:uppercase}h1{font:clamp(32px,6vw,60px)/1.15 Georgia,serif;margin:12px 0}p{max-width:800px;color:#adb6b4}video,img{width:100%;display:block;border:1px solid #34403f;background:#000}video{margin:28px 0}section{display:grid;grid-template-columns:1fr 1fr;gap:24px}figure{margin:24px 0}figcaption{margin-top:10px;font-size:14px;color:#adb6b4}a{color:#dfac99}@media(max-width:680px){section{display:block}}
+</style>
+<main><small>Actual game capture · Chase and impact pass</small><h1>They have to get close.</h1>
+<p>A distance-driven chase, a committed cross-body swipe, and damage synchronized to the reaching hand. The clip below records the real game simulation in fixed time steps.</p>
+<video controls autoplay muted loop playsinline poster="final/stalker-contact.png" src="chase-swipe.mp4"></video>
+<section><figure><img src="final/stalker-contact.png" alt="Zombie reaching into the player's space at the swipe contact frame"><figcaption>Close contact: the zombie reaches the player before damage lands.</figcaption></figure><figure><img src="final/bullet-hit.png" alt="A real bullet hit with directional blood spray"><figcaption>Bullet contact: a brief spray, small droplets, recoil and lasting surface evidence.</figcaption></figure></section>
+<p>Verified: 65 focused tests, a production build, all three zombie attack tempos, 120 seconds of keyboard/mouse play, mobile framing, and return to the cinematic menu. No browser or asset errors.</p>
+<p><a href="README.md">Implementation and reference record</a> · <a href="final/qa-results.json">Browser evidence</a></p></main></html>

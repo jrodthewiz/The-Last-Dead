@@ -1,0 +1,107 @@
+{
+  "character": "Ward Attendant",
+  "source": "C:\\Users\\wolfk\\Desktop\\thelastdead\\.art-source\\character-iteration-2026-09-23\\ward-attendant\\animated.glb",
+  "output": "C:\\Users\\wolfk\\Desktop\\thelastdead\\assets\\models\\afterlife-ward-attendant.glb",
+  "sourceSha256": "1137c9dd6710668560d633ed17efaa1694f1edeb0312f30b272550ffcf79c029",
+  "outputSha256": "30abaa96ee017373d444021031bdce3d1800106ee3e4ed017f8c564f349fc365",
+  "before": {
+    "bytes": 28722328,
+    "meshes": 1,
+    "skins": 1,
+    "joints": [
+      24
+    ],
+    "materials": 1,
+    "textures": 1,
+    "animations": [
+      {
+        "name": "WardAttendant_Approach",
+        "channels": 72
+      },
+      {
+        "name": "WardAttendant_Collapse",
+        "channels": 72
+      },
+      {
+        "name": "WardAttendant_Hit",
+        "channels": 72
+      },
+      {
+        "name": "WardAttendant_Idle",
+        "channels": 72
+      },
+      {
+        "name": "WardAttendant_Raise",
+        "channels": 72
+      },
+      {
+        "name": "WardAttendant_Strike",
+        "channels": 72
+      }
+    ]
+  },
+  "after": {
+    "bytes": 2886764,
+    "meshes": 1,
+    "skins": 1,
+    "joints": [
+      24
+    ],
+    "materials": 1,
+    "textures": 1,
+    "animations": [
+      {
+        "name": "WardAttendant_Approach",
+        "channels": 72
+      },
+      {
+        "name": "WardAttendant_Collapse",
+        "channels": 72
+      },
+      {
+        "name": "WardAttendant_Hit",
+        "channels": 72
+      },
+      {
+        "name": "WardAttendant_Idle",
+        "channels": 72
+      },
+      {
+        "name": "WardAttendant_Raise",
+        "channels": 72
+      },
+      {
+        "name": "WardAttendant_Strike",
+        "channels": 72
+      }
+    ],
+    "sourceTriangles": 60743,
+    "simplifiedTriangles": 35395
+  },
+  "recipe": {
+    "textureFormat": "webp",
+    "textureMaxSize": 512,
+    "textureQuality": 74,
+    "simplifier": {
+      "algorithm": "meshoptimizer",
+      "ratio": 0.35,
+      "error": 0.001,
+      "lockBorder": true
+    },
+    "transforms": [
+      "simplifyPrimitive",
+      "prune",
+      "dedup",
+      "resample",
+      "textureCompress",
+      "sparse"
+    ]
+  },
+  "withinRuntimeBudget": true,
+  "runtimeBudgetBytes": 5242880,
+  "notes": [
+    "The model is a visual enemy asset; collision remains procedural in the game.",
+    "The Blender-authored motion clips are preserved as named GLB animations.",
+    "Material and geometry reduction is intentionally conservative enough to keep the face and clothing readable in cold low light."
+  ]
+}

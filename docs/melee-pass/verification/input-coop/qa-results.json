@@ -1,0 +1,13 @@
+{
+  "url": "http://127.0.0.1:5200/dist/",
+  "checks": {
+    "touchBat": true,
+    "touchHeavy": true,
+    "touchCancelStopsSaw": true,
+    "touchLandscape": true,
+    "touchWrap": true
+  },
+  "errors": [],
+  "samples": [],
+  "failure": "page.waitForFunction: Timeout 30000ms exceeded.\n    at C:\\Users\\wolfk\\Desktop\\thelastdead\\tests\\melee-input-coop.mjs:94:13"
+}

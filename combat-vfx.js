@@ -1,7 +1,7 @@
 import * as THREE from './vendor/three.module.js';
 import {ImpactVFX,RocketVFX} from './impact-vfx.js';
 import {ExplosionVFX} from './explosion-vfx.js';
-const COLORS=[0xff3154,0xffb44b,0x64eaff],UP=new THREE.Vector3(0,1,0),FORWARD=new THREE.Vector3(0,0,1),MAX=128,SPARKS=384,ARC_RINGS=64;
+const COLORS=[0xd7b7a0,0xffb44b,0x64eaff,0xff683f,0xffc58d,0xd8e6d1],UP=new THREE.Vector3(0,1,0),FORWARD=new THREE.Vector3(0,0,1),MAX=128,SPARKS=384,ARC_RINGS=64;
 export class CombatVFX{
  constructor(parent){this.root=new THREE.Group();this.root.name='OssuaryCombatFX';parent.add(this.root);this.seen=new Set();this.origins=new Map();this.particles=[];this.object=new THREE.Object3D();this.a=new THREE.Vector3();this.b=new THREE.Vector3();this.direction=new THREE.Vector3();this.color=new THREE.Color();
  const beamGeo=new THREE.CylinderGeometry(1,1,1,5,1,true);const make=(name,geo,count,opacity)=>{const material=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false});const mesh=new THREE.InstancedMesh(geo,material,count);mesh.name=name;mesh.count=0;mesh.frustumCulled=false;mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);this.root.add(mesh);return mesh;};
@@ -19,12 +19,28 @@ export class CombatVFX{
  for(const t of run.tracers||[]){if(count>=MAX)break;const muzzle=Array.isArray(muzzleSource)?muzzleSource[t.weapon??0]:muzzleSource;current.add(t.id);const color=t.ricochet?0xffe697:COLORS[t.weapon??(t.rail?2:0)],fade=Math.min(1,t.life/(t.duration||.18));this.a.set(t.x*4,t.z*4,t.y*4);this.b.set(t.tx*4,t.tz*4,t.ty*4);
  // Only the local shooter's first segment originates at the visible muzzle; hit endpoints remain authoritative.
  const local=t.ownerId===(run.playerId||'host');
+ if(t.melee){
+  if(!this.seen.has(t.id)){
+   this.impacts.burst(t,gore,run.course?.enemies,run.course);
+   if(t.surface==='wall'||t.surface==='floor')for(let i=0;i<(t.weapon===7?5:3);i++){
+    const a=t.id+i*2.399;this.particles.push({x:this.b.x,y:this.b.y,z:this.b.z,
+     vx:Math.cos(a)*.9+(t.normal?.x||0),vy:.4+i*.12,vz:Math.sin(a)*.9+(t.normal?.y||0),life:.12+i*.018,color:0xe3ae70});
+   }
+  }
+  continue;
+ }
  if(muzzle&&local&&!t.ricochet&&!this.origins.has(t.id))this.origins.set(t.id,muzzle.clone());
   if(this.origins.has(t.id))this.a.copy(this.origins.get(t.id));
   if(t.rail&&ringCount<ARC_RINGS){this.ringDirection.subVectors(this.b,this.a).normalize();this.ringObject.quaternion.setFromUnitVectors(FORWARD,this.ringDirection);const ringLife=Math.max(.06,t.life/(t.duration||.18));const travel=((t.duration||.18)-t.life)/(t.duration||.18),seed=Number(t.id)||0;for(let ri=0;ri<2&&ringCount<ARC_RINGS;ri++){const along=Math.min(.94,Math.max(.08,travel*.9+ri*.23));this.ringPosition.lerpVectors(this.a,this.b,along);this.ringObject.position.copy(this.ringPosition);const pulse=.72+Math.sin((travel+ri*.31)*Math.PI*8+seed)*.28;this.ringObject.scale.setScalar((.62+ringLife*.5)*pulse);this.ringRoll.setFromAxisAngle(this.ringDirection,(travel*18+ri*1.7)%6.283);this.ringObject.quaternion.setFromUnitVectors(FORWARD,this.ringDirection).multiply(this.ringRoll);this.ringObject.updateMatrix();this.arcRings.setMatrixAt(ringCount,this.ringObject.matrix);this.ringColor.set(0x70eaff).multiplyScalar(.55+ringLife*.7);this.arcRings.setColorAt(ringCount,this.ringColor);ringCount++;}}
- this.direction.subVectors(this.b,this.a);const length=this.direction.length();this.object.position.copy(this.a).addScaledVector(this.direction,.5);this.object.quaternion.setFromUnitVectors(UP,this.direction.normalize());const width=(t.rail?.034:.018)*fade;this.object.scale.set(width,length,width);this.object.updateMatrix();this.beams.setMatrixAt(count,this.object.matrix);this.color.set(color).multiplyScalar(fade);this.beams.setColorAt(count,this.color);this.object.scale.set(width*.3,length,width*.3);this.object.updateMatrix();this.cores.setMatrixAt(count,this.object.matrix);this.color.setRGB(fade,fade,fade);this.cores.setColorAt(count,this.color);count++;
+ const ballistic=(t.weapon===0||t.weapon===1||t.weapon===4||t.weapon===5)&&!t.rail&&!t.charged&&!t.ricochet;
+ const tracerAge=Math.max(0,(t.duration||.18)-t.life);
+ const visualFade=ballistic?Math.max(0,1-tracerAge/.055):fade;
+ this.direction.subVectors(this.b,this.a);const fullLength=this.direction.length();
+ const length=ballistic?Math.min(fullLength,2.1):fullLength;
+ const tip=ballistic?Math.min(fullLength,fullLength*(.35+tracerAge/.025)):fullLength;
+ this.object.position.copy(this.a).addScaledVector(this.direction,fullLength>.001?(tip-length*.5)/fullLength:0);this.object.quaternion.setFromUnitVectors(UP,this.direction.normalize());const width=(t.rail?.034:t.charged?.026:t.weapon===4?.010:ballistic?.006:.018)*visualFade;this.object.scale.set(width,length,width);this.object.updateMatrix();this.beams.setMatrixAt(count,this.object.matrix);this.color.set(color).multiplyScalar(visualFade*(ballistic?.42:1));this.beams.setColorAt(count,this.color);this.object.scale.set(width*.3,length,width*.3);this.object.updateMatrix();this.cores.setMatrixAt(count,this.object.matrix);const coreFade=visualFade*(ballistic?.35:1);this.color.setRGB(coreFade,coreFade,coreFade);this.cores.setColorAt(count,this.color);count++;
  if(!this.seen.has(t.id)&&muzzle&&local&&!t.ricochet){for(let i=0;i<4;i++){const a=i*2.399+t.id;this.particles.push({x:muzzle.x,y:muzzle.y,z:muzzle.z,vx:Math.cos(a)*.4,vy:.35+i*.1,vz:Math.sin(a)*.4,life:.16+i*.025,color});}}
- if(!this.seen.has(t.id))this.impacts.burst(t,gore);
+ if(!this.seen.has(t.id))this.impacts.burst(t,gore,run.course?.enemies,run.course);
  if(!this.seen.has(t.id)&&['wall','floor'].includes(t.surface)&&!t.ricochet){for(let i=0;i<7;i++){const a=i*2.399+t.id,v=.8+(i%3)*.7;this.particles.push({x:this.b.x,y:this.b.y,z:this.b.z,vx:Math.cos(a)*v*.4+(t.normal?.x||0)*v,vy:.3+(i%4)*.25+(t.normal?.z||0)*v,vz:Math.sin(a)*v*.4+(t.normal?.y||0)*v,life:.22+(i%3)*.07,color});}}}
  for(const id of this.origins.keys())if(!current.has(id))this.origins.delete(id);this.seen=current;this.beams.count=this.cores.count=count;for(const mesh of[this.beams,this.cores]){mesh.instanceMatrix.needsUpdate=true;if(mesh.instanceColor)mesh.instanceColor.needsUpdate=true;}
   this.particles=this.particles.slice(-SPARKS);let n=0;for(const p of this.particles){p.life-=dt;if(p.life<=0)continue;p.vy-=6*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;this.object.position.set(p.x,Math.max(.03,p.y),p.z);this.object.rotation.set(p.life*5,p.life*8,0);this.object.scale.set(.017,p.life*.11,.017);this.object.updateMatrix();this.sparks.setMatrixAt(n,this.object.matrix);this.color.set(p.color).multiplyScalar(Math.min(1,p.life*5));this.sparks.setColorAt(n++,this.color);}this.particles=this.particles.filter(p=>p.life>0);this.sparks.count=n;this.sparks.instanceMatrix.needsUpdate=true;if(this.sparks.instanceColor)this.sparks.instanceColor.needsUpdate=true;this.arcRings.count=ringCount;this.arcRings.instanceMatrix.needsUpdate=true;if(this.arcRings.instanceColor)this.arcRings.instanceColor.needsUpdate=true;

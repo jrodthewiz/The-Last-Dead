@@ -1,4 +1,4 @@
-// Package a Blender-authored Ash Witness GLB for the browser runtime.
+// Package a Blender-authored humanoid GLB for the browser runtime.
 // Run from a workspace that has @gltf-transform, sharp, and draco3dgltf installed.
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -19,6 +19,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const source = path.resolve(process.argv[2] || path.join(repoRoot, '.codex-temp', 'afterlife-ash-witness', 'ash-witness-authored.glb'));
 const output = path.resolve(process.argv[3] || path.join(repoRoot, 'assets', 'models', 'afterlife-ash-witness.glb'));
 const reportPath = path.resolve(process.argv[4] || path.join(repoRoot, 'assets', 'models', 'afterlife-ash-witness-package.json'));
+const character = process.argv[5] || 'Ash Witness';
 const MAX_BYTES = 5 * 1024 * 1024;
 
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
@@ -71,7 +72,7 @@ await mkdir(path.dirname(output), { recursive: true });
 await writeFile(output, packed);
 const afterRoot = document.getRoot();
 const report = {
-  character: 'Ash Witness',
+  character,
   source,
   output,
   sourceSha256: hash(raw),
@@ -102,7 +103,7 @@ const report = {
   runtimeBudgetBytes: MAX_BYTES,
   notes: [
     'The model is a visual enemy asset; collision remains procedural in the game.',
-    'The Blender-authored Dread v02 clips are preserved as named GLB animations.',
+    'The Blender-authored motion clips are preserved as named GLB animations.',
     'Material and geometry reduction is intentionally conservative enough to keep the face and clothing readable in cold low light.',
   ],
 };

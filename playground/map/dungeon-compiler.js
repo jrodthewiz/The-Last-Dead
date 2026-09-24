@@ -6,7 +6,8 @@
 // playground can draw the real thing and the engine can consume it unchanged.
 //
 // Design rules enforced here:
-//   * rooms are sealed boxes, corridors are carved outside them,
+//   * room footprints follow their authored structural profiles,
+//   * corridors are swept to their true width outside every room footprint,
 //   * every connection between a room and the rest of the level is an authored
 //     opening (arch / door / gate / lift / vent), never an accident of overlap,
 //   * cover blocks are punched into rooms but never into an opening ring, so a
@@ -22,6 +23,117 @@ const SIDE_VECTORS = {
   w: { dx: -1, dz: 0, axis: 'v' },
   e: { dx: 1, dz: 0, axis: 'v' },
 };
+
+const ROOM_SHAPE_PROFILES = Object.freeze({
+  threshold: { bevel: 1 },
+  throat: { bevel: 1 },
+  chamfer: { bevel: 1 },
+  octagon: { bevel: 2 },
+  crossing: { bevel: 1, bays: 'all' },
+  bay: { bevel: 1, bays: 'long' },
+  gallery: { bevel: 1, bays: 'long-pair' },
+  aisle: { bevel: 1, bays: 'long-single' },
+  bastion: { bevel: 1, bays: 'short' },
+  alcove: { bevel: 1, bays: 'quiet-side' },
+  square: { bevel: 0 },
+});
+
+function openingCellsForRoom(room, openings) {
+  const protectedCells = new Set();
+  const { minX, minZ, maxX, maxZ } = room.bounds;
+  for (const opening of openings || []) {
+    if (opening.room !== room.id) continue;
+    const side = SIDE_VECTORS[opening.side];
+    if (!side) continue;
+    const span = Math.max(1, Math.round(opening.width || 3));
+    const start = Math.round(opening.at - (span - 1) / 2);
+    if (side.axis === 'h') {
+      const z = opening.side === 'n' ? minZ : maxZ - 1;
+      for (let x = start; x < start + span; x += 1) protectedCells.add(`${x},${z}`);
+    } else {
+      const x = opening.side === 'w' ? minX : maxX - 1;
+      for (let z = start; z < start + span; z += 1) protectedCells.add(`${x},${z}`);
+    }
+  }
+  return protectedCells;
+}
+
+function roomFootprint(room, protectedCells) {
+  const { minX, minZ, maxX, maxZ } = room.bounds;
+  const width = maxX - minX;
+  const depth = maxZ - minZ;
+  const profile = ROOM_SHAPE_PROFILES[room.shape] || ROOM_SHAPE_PROFILES.chamfer;
+  const bevel = Math.max(0, Math.min(
+    profile.bevel,
+    Math.floor((width - 1) / 2),
+    Math.floor((depth - 1) / 2),
+  ));
+  const cut = new Set();
+
+  // Two-step clips turn larger arenas into faceted courts; one-step clips keep
+  // thresholds and small wards broad enough for their authored doors.
+  for (let y = 0; y < depth; y += 1) {
+    const fromNorth = Math.max(0, bevel - y);
+    const fromSouth = Math.max(0, bevel - (depth - 1 - y));
+    const inset = Math.max(fromNorth, fromSouth);
+    for (let x = 0; x < inset; x += 1) {
+      cut.add(`${minX + x},${minZ + y}`);
+      cut.add(`${maxX - 1 - x},${minZ + y}`);
+    }
+  }
+
+  // Shallow wall bays break up long blank faces and give the route a visible
+  // beat. Authored opening cells are restored after all shape cuts are made.
+  const bayMode = profile.bays;
+  if (bayMode) {
+    const longX = width >= depth;
+    let sides;
+    if (bayMode === 'all') sides = ['n', 'e', 's', 'w'];
+    else if (bayMode === 'short') sides = longX ? ['w', 'e'] : ['n', 's'];
+    else if (bayMode === 'quiet-side') {
+      const openSides = new Set(room.openingSides || []);
+      const candidate = ['n', 'e', 's', 'w'].find(side => !openSides.has(side));
+      sides = candidate ? [candidate] : [];
+    } else sides = longX ? ['n', 's'] : ['w', 'e'];
+
+    const count = bayMode === 'long-pair' ? 2 : 1;
+    for (const side of sides) {
+      const span = side === 'n' || side === 's' ? width : depth;
+      if (span < 6 && bayMode !== 'all' && bayMode !== 'short') continue;
+      const margin = span >= 7 ? 1 : 0;
+      for (let i = 0; i < count; i += 1) {
+        const along = Math.round((span - 1) * (i + 1) / (count + 1));
+        if (along < margin || along >= span - margin) continue;
+        const x = side === 'w' ? minX : side === 'e' ? maxX - 1 : minX + along;
+        const z = side === 'n' ? minZ : side === 's' ? maxZ - 1 : minZ + along;
+        cut.add(`${x},${z}`);
+      }
+    }
+  }
+
+  const footprint = [];
+  let areaCells = 0;
+  for (let y = 0; y < depth; y += 1) {
+    let row = '';
+    for (let x = 0; x < width; x += 1) {
+      const key = `${minX + x},${minZ + y}`;
+      const walkable = !cut.has(key) || protectedCells.has(key);
+      row += walkable ? '1' : '0';
+      if (walkable) areaCells += 1;
+    }
+    footprint.push(row);
+  }
+  room.areaCells = areaCells;
+  room.footprint = footprint;
+}
+
+export function roomContainsCell(room, x, z) {
+  const cellX = Math.floor(x);
+  const cellZ = Math.floor(z);
+  if (!room || cellX < room.bounds.minX || cellX >= room.bounds.maxX || cellZ < room.bounds.minZ || cellZ >= room.bounds.maxZ) return false;
+  if (!room.footprint) return true;
+  return room.footprint[cellZ - room.bounds.minZ]?.[cellX - room.bounds.minX] === '1';
+}
 
 export const OPENING_KINDS = Object.freeze({
   arch: { alwaysOpen: true, label: 'arch' },
@@ -56,32 +168,44 @@ export function compileLayer(layer) {
 
   const rooms = layer.rooms.map((room, order) => {
     const [x, z, w, h] = room.rect;
-    return {
+    const compiledRoom = {
       ...room,
       order,
       bounds: { minX: x, minZ: z, maxX: x + w, maxZ: z + h },
       center: { x: x + w / 2, y: z + h / 2 },
       size: { w, d: h },
-      areaCells: w * h,
+      areaCells: 0,
       areaSqMeters: w * h * CELL * CELL,
       color: room.color,
     };
+    compiledRoom.openingSides = (layer.openings || [])
+      .filter(opening => opening.room === room.id)
+      .map(opening => opening.side);
+    roomFootprint(compiledRoom, openingCellsForRoom(compiledRoom, layer.openings));
+    compiledRoom.areaSqMeters = compiledRoom.areaCells * CELL * CELL;
+    return compiledRoom;
   });
-  const roomAt = (x, z) => rooms.find(room => x >= room.bounds.minX && x < room.bounds.maxX && z >= room.bounds.minZ && z < room.bounds.maxZ) || null;
-  const inAnyRoom = (x, z) => !!roomAt(x, z);
+  const roomAt = (x, z) => rooms.find(room => roomContainsCell(room, x, z)) || null;
+  // Corridors may never carve through a room's bounding footprint. This also
+  // keeps deliberate wall bays as rock instead of accidental side passages.
+  const inAnyRoom = (x, z) => rooms.some(room => (
+    x >= room.bounds.minX && x < room.bounds.maxX
+    && z >= room.bounds.minZ && z < room.bounds.maxZ
+  ));
 
-  // 1 — Rooms are solid boxes of walkable floor.
+  // 1 — Rooms use their authored structural footprint.
   for (const room of rooms) {
     const label = labelFor(`room:${room.id}`);
     for (let z = room.bounds.minZ; z < room.bounds.maxZ; z += 1) {
       for (let x = room.bounds.minX; x < room.bounds.maxX; x += 1) {
+        if (!roomContainsCell(room, x, z)) continue;
         setOpen(x, z);
         cellLabel[index(x, z)] = label;
       }
     }
   }
 
-  // 2 — Corridors carve lanes but never punch through a room box.
+  // 2 — Corridors carve lanes but never punch through a room footprint.
   const corridors = (layer.corridors || []).map((corridor, order) => {
     const half = Math.max(0.5, corridor.width / 2);
     const points = corridor.points;
@@ -92,17 +216,26 @@ export function compileLayer(layer) {
       const b = points[i];
       const distance = Math.hypot(b[0] - a[0], b[1] - a[1]);
       lengthCells += distance;
-      const steps = Math.max(1, Math.ceil(distance * 3));
-      for (let step = 0; step <= steps; step += 1) {
-        const t = step / steps;
-        const px = a[0] + (b[0] - a[0]) * t;
-        const pz = a[1] + (b[1] - a[1]) * t;
-        for (let z = Math.floor(pz - half); z <= Math.ceil(pz + half); z += 1) {
-          for (let x = Math.floor(px - half); x <= Math.ceil(px + half); x += 1) {
-            if (inAnyRoom(x, z)) continue;
-            setOpen(x, z);
-            if (inside(x, z)) cellLabel[index(x, z)] = label;
-          }
+      const vx = b[0] - a[0];
+      const vz = b[1] - a[1];
+      const lengthSquared = vx * vx + vz * vz;
+      const minX = Math.max(0, Math.floor(Math.min(a[0], b[0]) - half - 1));
+      const maxX = Math.min(width - 1, Math.ceil(Math.max(a[0], b[0]) + half + 1));
+      const minZ = Math.max(0, Math.floor(Math.min(a[1], b[1]) - half - 1));
+      const maxZ = Math.min(height - 1, Math.ceil(Math.max(a[1], b[1]) + half + 1));
+      for (let z = minZ; z <= maxZ; z += 1) {
+        for (let x = minX; x <= maxX; x += 1) {
+          const cx = x + 0.5;
+          const cz = z + 0.5;
+          const t = lengthSquared > 0
+            ? Math.max(0, Math.min(1, ((cx - a[0]) * vx + (cz - a[1]) * vz) / lengthSquared))
+            : 0;
+          const dx = cx - (a[0] + t * vx);
+          const dz = cz - (a[1] + t * vz);
+          if (dx * dx + dz * dz > half * half) continue;
+          if (inAnyRoom(x, z)) continue;
+          setOpen(x, z);
+          cellLabel[index(x, z)] = label;
         }
       }
     }
@@ -232,11 +365,17 @@ export function compileLayer(layer) {
   for (const room of rooms) {
     for (let z = room.bounds.minZ; z < room.bounds.maxZ; z += 1) {
       for (let x = room.bounds.minX; x < room.bounds.maxX; x += 1) {
-        if (!isOpen(x, z)) continue;
-        if (x === room.bounds.minX) sealEdge(x, z, 3);
-        if (x === room.bounds.maxX - 1) sealEdge(x, z, 1);
-        if (z === room.bounds.minZ) sealEdge(x, z, 0);
-        if (z === room.bounds.maxZ - 1) sealEdge(x, z, 2);
+        if (!roomContainsCell(room, x, z) || !isOpen(x, z)) continue;
+        const neighbours = [
+          [x, z - 1],
+          [x + 1, z],
+          [x, z + 1],
+          [x - 1, z],
+        ];
+        for (let direction = 0; direction < neighbours.length; direction += 1) {
+          const [nx, nz] = neighbours[direction];
+          if (!roomContainsCell(room, nx, nz)) sealEdge(x, z, direction);
+        }
       }
     }
   }
@@ -278,8 +417,7 @@ export function compileLayer(layer) {
   // Only solid cells inside a room are cover; everything else is the rock the
   // level was carved out of and should read as background, not as hatch marks.
   const coverBlocks = blocks.filter(block => rooms.some(room => (
-    block.x >= room.bounds.minX && block.x < room.bounds.maxX
-    && block.y >= room.bounds.minZ && block.y < room.bounds.maxZ
+    roomContainsCell(room, block.x, block.y)
   )));
   // Only carved boundaries are drawn: the surrounding rock stays a solid mass
   // instead of reading as a lattice of outlined cells.
@@ -289,11 +427,11 @@ export function compileLayer(layer) {
     let reachableCellsInRoom = 0;
     for (let z = room.bounds.minZ; z < room.bounds.maxZ; z += 1) {
       for (let x = room.bounds.minX; x < room.bounds.maxX; x += 1) {
-        if (reach.has(`${x},${z}`)) reachableCellsInRoom += 1;
+        if (roomContainsCell(room, x, z) && reach.has(`${x},${z}`)) reachableCellsInRoom += 1;
       }
     }
     room.reachable = reachableCellsInRoom > 0;
-    room.openCells = room.areaCells - blocks.filter(block => block.x >= room.bounds.minX && block.x < room.bounds.maxX && block.y >= room.bounds.minZ && block.y < room.bounds.maxZ).length;
+    room.openCells = room.areaCells - blocks.filter(block => roomContainsCell(room, block.x, block.y)).length;
     room.openings = openings.filter(opening => opening.roomId === room.id).map(opening => opening.id);
   }
 
@@ -347,7 +485,7 @@ export function compileLayer(layer) {
 }
 
 function roomAtPoint(rooms, x, z) {
-  return rooms.find(room => x >= room.bounds.minX && x < room.bounds.maxX && z >= room.bounds.minZ && z < room.bounds.maxZ) || null;
+  return rooms.find(room => roomContainsCell(room, x, z)) || null;
 }
 
 function setOpeningCells(cells, width, height, opening, open) {
@@ -410,7 +548,7 @@ export function roomClearEncounterSchedule(layer, compiled) {
     if (!room) return false;
     for (let z = room.bounds.minZ; z < room.bounds.maxZ; z += 1) {
       for (let x = room.bounds.minX; x < room.bounds.maxX; x += 1) {
-        if (reach.has(`${x},${z}`)) return true;
+        if (roomContainsCell(room, x, z) && reach.has(`${x},${z}`)) return true;
       }
     }
     return false;
@@ -663,7 +801,7 @@ export function layerDiagnostics(layer, compiled) {
     if (!room.openings.length) {
       push('error', 'room-sealed', `${room.name} has no authored opening.`, { x: room.center.x, y: room.center.y }, room.id);
     }
-    if (room.kind !== 'secret' && room.size.w * room.size.d < 6) {
+    if (room.kind !== 'secret' && room.areaCells < 6) {
       push('warn', 'room-tight', `${room.name} is only ${room.size.w * CELL} × ${room.size.d * CELL} m.`, { x: room.center.x, y: room.center.y }, room.id);
     }
   }
@@ -697,7 +835,7 @@ export function layerDiagnostics(layer, compiled) {
     let roomReachable = false;
     for (let z = room.bounds.minZ; z < room.bounds.maxZ && !roomReachable; z += 1) {
       for (let x = room.bounds.minX; x < room.bounds.maxX; x += 1) {
-        if (waveReach.has(`${x},${z}`)) { roomReachable = true; break; }
+        if (roomContainsCell(room, x, z) && waveReach.has(`${x},${z}`)) { roomReachable = true; break; }
       }
     }
     if (!roomReachable) {

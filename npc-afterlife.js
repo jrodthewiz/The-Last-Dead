@@ -40,7 +40,6 @@ const AFTERLIFE_PROFILES = Object.freeze({
 });
 
 const FALLBACKS = Object.freeze({0: 'stalker', 1: 'caster'});
-const WARNING_WINDOWS = Object.freeze({0: .3, 1: .58});
 const tempScale = new THREE.Vector3();
 const tempPosition = new THREE.Vector3();
 const tempTarget = new THREE.Vector3();
@@ -61,15 +60,14 @@ export function resolveAfterlifeAppearance(kind = 0, requested = '', seed = 0) {
   return choices[seedNumber(seed) % choices.length] || AFTERLIFE_PROFILES[FALLBACKS[kind] || 'stalker'];
 }
 
-// Engine enemy state exposes the attack cooldown continuously. A visual
-// warning begins in the same bounded countdown window as the legacy renderer;
-// `attacking` remains a useful override for committed windups and tests that
-// provide the richer state object.
+// Engine enemy state keeps `attack` as a cooldown/readiness timer. It reaches
+// zero while an enemy is merely eligible to begin a windup, so it is not a
+// visual warning signal. Only the committed windup or the short post-release
+// strike window should change the silhouette and telegraph.
 export function isAfterlifeWarning(kind = 0, enemy = {}) {
   if (enemy?.attacking) return true;
-  const attack = Number(enemy?.attack);
-  const window = WARNING_WINDOWS[kind] ?? .58;
-  return Number.isFinite(attack) && attack >= 0 && attack < window;
+  const strike = Number(enemy?.strike);
+  return Number.isFinite(strike) && strike > 0;
 }
 
 function copySharedTextureFlags(material) {
@@ -504,21 +502,12 @@ export function animateAfterlifeEnemy(root, enemy = {}, now = 0, seed = 0) {
   }
   updateAction(state, moving, dt);
 
-  const warningWindow = WARNING_WINDOWS[state.kind] ?? .58;
   const warning = isAfterlifeWarning(state.kind, enemy);
   const defaultWindup = state.kind === 0 ? .28 : .48;
   const windupTotal = Math.max(.001, Number(enemy.windupTime || enemy.windupDuration || defaultWindup));
   const windup = clamp(Number(enemy.windup || 0) / windupTotal, 0, 1);
   const strike = clamp(Number(enemy.strike || 0) / .22, 0, 1);
-  const attackClock = Number(enemy.attack);
-  const countdownProgress = Number.isFinite(attackClock)
-    ? 1 - clamp(attackClock / warningWindow, 0, 1)
-    : 0;
-  const attackProgress = enemy.attacking
-    ? 1 - windup
-    : warning
-      ? countdownProgress
-      : strike;
+  const attackProgress = enemy.attacking ? 1 - windup : strike;
   applyPosture(state, state.kind, attackProgress, t, Number(seed || state.seed || 0));
   state.actorState.body?.skeleton?.update?.();
   root.updateMatrixWorld(true);

@@ -520,14 +520,48 @@ function drawRooms(panel, origin, mode) {
     const focusRoom = state.focus && /hero|boss|exit|vault|cache|altar/.test(roomId);
     ctx.globalAlpha = state.focus ? (focusRoom ? 0.2 : 0.065) : 0.12;
     ctx.fillStyle = room.color;
-    ctx.fillRect(screen.x, screen.y, width, height);
+    const hasFootprint = Array.isArray(room.footprint) && room.footprint.length > 0;
+    if (hasFootprint) {
+      for (let z = 0; z < room.footprint.length; z += 1) {
+        const row = room.footprint[z] || '';
+        for (let x = 0; x < row.length; x += 1) {
+          if (row[x] !== '1') continue;
+          ctx.fillRect(screen.x + x * scale, screen.y + z * scale, scale, scale);
+        }
+      }
+    } else {
+      ctx.fillRect(screen.x, screen.y, width, height);
+    }
     ctx.globalAlpha = 1;
     ctx.strokeStyle = room.color;
     ctx.lineWidth = 1.6;
-    ctx.strokeRect(screen.x + 0.5, screen.y + 0.5, width - 1, height - 1);
+    if (hasFootprint) {
+      const contains = (x, z) => x >= 0 && z >= 0
+        && z < room.footprint.length
+        && room.footprint[z]?.[x] === '1';
+      ctx.beginPath();
+      for (let z = 0; z < room.footprint.length; z += 1) {
+        const row = room.footprint[z] || '';
+        for (let x = 0; x < row.length; x += 1) {
+          if (!contains(x, z)) continue;
+          const left = screen.x + x * scale;
+          const top = screen.y + z * scale;
+          const right = left + scale;
+          const bottom = top + scale;
+          if (!contains(x, z - 1)) { ctx.moveTo(left, top); ctx.lineTo(right, top); }
+          if (!contains(x + 1, z)) { ctx.moveTo(right, top); ctx.lineTo(right, bottom); }
+          if (!contains(x, z + 1)) { ctx.moveTo(right, bottom); ctx.lineTo(left, bottom); }
+          if (!contains(x - 1, z)) { ctx.moveTo(left, bottom); ctx.lineTo(left, top); }
+        }
+      }
+      ctx.stroke();
+    } else {
+      ctx.strokeRect(screen.x + 0.5, screen.y + 0.5, width - 1, height - 1);
+    }
     if (state.labels && scale > 4.5) {
       const title = `${room.sequence}. ${room.name}`;
-      pill(screen.x + 6, screen.y + 6, title, room.color, 'left', scale > 12 ? 13 : 11);
+      const firstTopCell = hasFootprint ? Math.max(0, room.footprint[0].indexOf('1')) : 0;
+      pill(screen.x + firstTopCell * scale + 6, screen.y + 6, title, room.color, 'left', scale > 12 ? 13 : 11);
       if (scale > 12 && !state.focus && (state.mode !== 'dungeon' || scale < 24)) {
         const encounter = room.encounter || {};
         pill(screen.x + 6, screen.y + 24, `${room.role.toUpperCase()} · TIER ${encounter.tier ?? '-'} · BUDGET ${encounter.budget ?? 0}`, t.dim, 'left', 10.5);

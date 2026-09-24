@@ -227,16 +227,18 @@ function makeTunnelSetpiece(root, item, sector, m, moving, lights, art) {
   // spawn, a long cable cuts across the distant Black Gullet and has no visible
   // support at its near end. Other floors keep their service runs.
   const shortSupportedRun = points.every((point, index) => index === 0 || point.distanceTo(points[index - 1]) <= CELL * 4);
-  if (!isF5ThroatTunnel && shortSupportedRun) {
+  // The entry camera looks straight through this pair of ribs. A ceiling run
+  // between them becomes a bright unsupported diagonal in first person, so
+  // keep the entry crown clean and let the connected jambs carry the frame.
+  if (!isF5ThroatTunnel && shortSupportedRun && item.id !== 'f3-sp-entry-bone-gate') {
     const centerline = points.map(point => new THREE.Vector3(point.x, archHeight * .92, point.z));
     const curve = new THREE.CatmullRomCurve3(centerline);
     const conduit = add(group, new THREE.TubeGeometry(curve, Math.max(10, points.length * 3), .065, 6, false), dark, 0, 0, 0);
     conduit.name = 'TunnelOverheadConduit_' + item.id;
     conduit.userData.explodeWithParent = true;
-    // A second, warm conduit implies the tunnel is still carrying emergency
-    // power instead of reading as a decorative arch kit.
-    const warmline = centerline.map(point => new THREE.Vector3(point.x + .16, point.y - .18, point.z));
-    add(group, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(warmline), Math.max(10, points.length * 3), .035, 5, false), signal, 0, 0, 0);
+    // Keep one dark, supported service conduit. The former second signal line
+    // cut diagonally across the entry arch in the gameplay view and read as a
+    // floating bright rod rather than connected infrastructure.
   }
   root.add(group);
   return group;
@@ -937,10 +939,12 @@ function addF5RouteDressing(root, materials) {
     const z = 74 - i * 7.2;
     const plate = beam(root, floor, 56, .035, z, 7.2, .07, 5.1);
     plate.name = `F5RouteFloorPlate_${i}`;
+    plate.userData.skipAfterlifeSurfaces = true;
     plate.receiveShadow = true;
     for (const x of [52.15, 59.85]) {
       const seam = beam(root, routeGlow, x, .095, z, .075, .05, 3.6);
       seam.name = `F5RouteSeam_${i}_${x < 56 ? 'L' : 'R'}`;
+      seam.userData.skipAfterlifeSurfaces = true;
       seam.receiveShadow = false;
     }
   }
@@ -1024,7 +1028,25 @@ function addF5RouteDressing(root, materials) {
     }
     const plate = beam(root, edge, 56, .07, z, 2.2, .04, .22);
     plate.name = `F5ThresholdPlate_${index}`;
+    plate.userData.skipAfterlifeSurfaces = true;
   }
+}
+
+function removeOssuaryRibBeads(landmark, item, course) {
+  const isOssuary = String(course?.id || course?.sectorId || '').toLowerCase() === 'f3-catacombs';
+  if (!isOssuary || !String(item?.type || '').toLowerCase().includes('rib')) return;
+  const beads = [];
+  landmark.traverse(node => {
+    if (node.isMesh && /^RibStackSkull_/.test(node.name || '')) beads.push(node);
+  });
+  for (const bead of beads) {
+    bead.parent?.remove(bead);
+    // These landmark-only geometries are not shared; the material remains in
+    // the renderer library for the attached rails and spine.
+    bead.geometry?.dispose?.();
+  }
+  landmark.userData.decorRevision = 'ossuary-rib-stack-structure-v3';
+  landmark.userData.primitivePartsRemoved = beads.length;
 }
 
 export function buildAuthoredWorld(root, materials, course = {}) {
@@ -1033,7 +1055,7 @@ export function buildAuthoredWorld(root, materials, course = {}) {
   for (const item of setpieces) makeSetpiece(root, item, sector, materials, moving, motion, lights, course.artDirection);
   for (const item of landmarks) {
     const landmark = course.dungeon ? buildDungeonLandmark(item, materials, course, { moving, motion, anchors, lights }) : null;
-    if (landmark) root.add(landmark);
+    if (landmark) { removeOssuaryRibBeads(landmark, item, course); root.add(landmark); }
     else makeLandmark(root, item, sector, materials, moving, anchors);
   }
   for (const item of machinery) makeMachine(root, item, sector, materials, moving, motion);

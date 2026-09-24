@@ -51,8 +51,9 @@ def main():
     left_foot = find("LeftFoot")
     right_foot = find("RightFoot")
     hips = find("Hips", "hips")
+    spine = find("Spine02", "Spine01", "Spine")
     head = find("Head", "head")
-    required = {"leftFoot": left_foot, "rightFoot": right_foot, "hips": hips, "head": head}
+    required = {"leftFoot": left_foot, "rightFoot": right_foot, "hips": hips, "spine": spine, "head": head}
     if not all(required.values()):
         raise RuntimeError("missing expected bones: %s" % required)
 
@@ -81,12 +82,13 @@ def main():
     def sample(action, seconds):
         armature.animation_data.action = action
         frame = action.get("clipStart", 1) + seconds * fps
-        bpy.context.scene.frame_set(frame)
+        bpy.context.scene.frame_set(int(round(frame)))
         bpy.context.view_layer.update()
         return {
             "leftFoot": list(point(left_foot)),
             "rightFoot": list(point(right_foot)),
             "hips": list(point(hips)),
+            "spineRotation": armature.pose.bones[spine].rotation_quaternion.angle if armature.pose.bones[spine].rotation_mode == "QUATERNION" else armature.pose.bones[spine].rotation_euler.length,
             "head": list(point(head)),
         }
 
@@ -101,17 +103,25 @@ def main():
         points = [vec(sample[key]) for sample in samples]
         return max((distance(a, b) for a in points for b in points), default=0.0)
 
+    def scalar_range(samples, key):
+        values = [float(sample[key]) for sample in samples]
+        return max(values, default=0.0) - min(values, default=0.0)
+
     clip_report = {}
     for name in expected:
         action = actions[name]
         start = float(action.get("clipStart", 1))
         end = float(action.get("clipEnd", start))
-        duration = max(.001, (end - start) / fps)
+        sample_duration = max(.001, (end - start) / fps)
+        # glTF's exported clip duration includes the final keyed frame, so its
+        # runtime duration is end/fps (1.5s for the 1..36 gait action).
+        duration = max(.001, end / fps)
         count = 13 if name == "AshWitness_Shuffle" else 9
-        times = [duration * index / (count - 1) for index in range(count)]
+        times = [sample_duration * index / (count - 1) for index in range(count)]
         samples = [sample(action, seconds) for seconds in times]
         clip_report[name] = {
             "durationSeconds": round(duration, 6),
+            "sampleSpanSeconds": round(sample_duration, 6),
             "sampleSeconds": [round(seconds, 6) for seconds in times],
             "footPathMeters": {
                 "left": round(path_length(samples, "leftFoot"), 6),
@@ -122,6 +132,7 @@ def main():
                 "right": round(max_range(samples, "rightFoot"), 6),
             },
             "hipsRangeMeters": round(max_range(samples, "hips"), 6),
+            "spineRotationRangeRadians": round(scalar_range(samples, "spineRotation"), 6),
             "headRangeMeters": round(max_range(samples, "head"), 6),
         }
 
@@ -132,7 +143,7 @@ def main():
         "ok": (
             shuffle["footPathMeters"]["left"] > .001
             and shuffle["footPathMeters"]["right"] > .001
-            and attack["hipsRangeMeters"] > .02
+            and attack["spineRotationRangeRadians"] > .1
             and attack["headRangeMeters"] > .02
             and hit["headRangeMeters"] > .02
         ),
@@ -142,7 +153,7 @@ def main():
         "clips": clip_report,
         "gates": {
             "shuffleHasFootTransfer": shuffle["footPathMeters"]["left"] > .001 and shuffle["footPathMeters"]["right"] > .001,
-            "attackHasBodyweightMotion": attack["hipsRangeMeters"] > .02,
+            "attackHasBodyweightMotion": attack["spineRotationRangeRadians"] > .1,
             "attackHasDelayedHeadCue": attack["headRangeMeters"] > .02,
             "hitHasRecoil": hit["headRangeMeters"] > .02,
         },

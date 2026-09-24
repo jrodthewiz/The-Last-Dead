@@ -1,0 +1,150 @@
+{
+  "character": "choir-penitent",
+  "image": "choir-penitent-motion-spritesheet.png",
+  "clips": [
+    {
+      "kind": "Idle",
+      "name": "ChoirPenitent_Idle",
+      "start": 1,
+      "end": 58,
+      "loop": true
+    },
+    {
+      "kind": "Approach",
+      "name": "ChoirPenitent_Approach",
+      "start": 1,
+      "end": 36,
+      "loop": true
+    },
+    {
+      "kind": "Strike",
+      "name": "ChoirPenitent_Strike",
+      "start": 1,
+      "end": 20,
+      "loop": false
+    },
+    {
+      "kind": "Hit",
+      "name": "ChoirPenitent_Hit",
+      "start": 1,
+      "end": 14,
+      "loop": false
+    },
+    {
+      "kind": "Collapse",
+      "name": "ChoirPenitent_Collapse",
+      "start": 1,
+      "end": 44,
+      "loop": false
+    },
+    {
+      "kind": "Signature",
+      "name": "ChoirPenitent_Invocation",
+      "start": 1,
+      "end": 36,
+      "loop": false
+    }
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "x": 0,
+      "y": 0,
+      "width": 320,
+      "height": 400,
+      "kind": "Idle",
+      "frame": 18,
+      "file": "01-idle-18.png"
+    },
+    {
+      "index": 1,
+      "x": 320,
+      "y": 0,
+      "width": 320,
+      "height": 400,
+      "kind": "Approach",
+      "frame": 4,
+      "file": "02-approach-04.png"
+    },
+    {
+      "index": 2,
+      "x": 640,
+      "y": 0,
+      "width": 320,
+      "height": 400,
+      "kind": "Approach",
+      "frame": 10,
+      "file": "03-approach-10.png"
+    },
+    {
+      "index": 3,
+      "x": 960,
+      "y": 0,
+      "width": 320,
+      "height": 400,
+      "kind": "Approach",
+      "frame": 16,
+      "file": "04-approach-16.png"
+    },
+    {
+      "index": 4,
+      "x": 1280,
+      "y": 0,
+      "width": 320,
+      "height": 400,
+      "kind": "Signature",
+      "frame": 12,
+      "file": "05-signature-12.png"
+    },
+    {
+      "index": 5,
+      "x": 0,
+      "y": 400,
+      "width": 320,
+      "height": 400,
+      "kind": "Signature",
+      "frame": 24,
+      "file": "06-signature-24.png"
+    },
+    {
+      "index": 6,
+      "x": 320,
+      "y": 400,
+      "width": 320,
+      "height": 400,
+      "kind": "Strike",
+      "frame": 8,
+      "file": "07-strike-08.png"
+    },
+    {
+      "index": 7,
+      "x": 640,
+      "y": 400,
+      "width": 320,
+      "height": 400,
+      "kind": "Strike",
+      "frame": 11,
+      "file": "08-strike-11.png"
+    },
+    {
+      "index": 8,
+      "x": 960,
+      "y": 400,
+      "width": 320,
+      "height": 400,
+      "kind": "Hit",
+      "frame": 6,
+      "file": "09-hit-06.png"
+    },
+    {
+      "index": 9,
+      "x": 1280,
+      "y": 400,
+      "width": 320,
+      "height": 400,
+      "kind": "Collapse",
+      "frame": 28,
+      "file": "10-collapse-28.png"
+    }
+  ]
+}

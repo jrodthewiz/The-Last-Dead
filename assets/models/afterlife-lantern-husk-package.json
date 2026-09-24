@@ -1,0 +1,107 @@
+{
+  "character": "Lantern Husk",
+  "source": "C:\\Users\\wolfk\\Desktop\\thelastdead\\.art-source\\character-iteration-2026-09-23\\lantern-husk\\animated.glb",
+  "output": "C:\\Users\\wolfk\\Desktop\\thelastdead\\assets\\models\\afterlife-lantern-husk.glb",
+  "sourceSha256": "39022725d886895b4127b9c47387749070b7b8b905d23c80c8b6f69b3f63b3c2",
+  "outputSha256": "0f58b41d2c50b5770ef3a09b8a123076232defe387d5c24ca41b84b9f81516ad",
+  "before": {
+    "bytes": 30155552,
+    "meshes": 1,
+    "skins": 1,
+    "joints": [
+      24
+    ],
+    "materials": 1,
+    "textures": 1,
+    "animations": [
+      {
+        "name": "LanternHusk_Approach",
+        "channels": 72
+      },
+      {
+        "name": "LanternHusk_Collapse",
+        "channels": 72
+      },
+      {
+        "name": "LanternHusk_Hit",
+        "channels": 72
+      },
+      {
+        "name": "LanternHusk_Idle",
+        "channels": 72
+      },
+      {
+        "name": "LanternHusk_Search",
+        "channels": 72
+      },
+      {
+        "name": "LanternHusk_Strike",
+        "channels": 72
+      }
+    ]
+  },
+  "after": {
+    "bytes": 3083480,
+    "meshes": 1,
+    "skins": 1,
+    "joints": [
+      24
+    ],
+    "materials": 1,
+    "textures": 1,
+    "animations": [
+      {
+        "name": "LanternHusk_Approach",
+        "channels": 72
+      },
+      {
+        "name": "LanternHusk_Collapse",
+        "channels": 72
+      },
+      {
+        "name": "LanternHusk_Hit",
+        "channels": 72
+      },
+      {
+        "name": "LanternHusk_Idle",
+        "channels": 72
+      },
+      {
+        "name": "LanternHusk_Search",
+        "channels": 72
+      },
+      {
+        "name": "LanternHusk_Strike",
+        "channels": 72
+      }
+    ],
+    "sourceTriangles": 61901,
+    "simplifiedTriangles": 36461
+  },
+  "recipe": {
+    "textureFormat": "webp",
+    "textureMaxSize": 512,
+    "textureQuality": 74,
+    "simplifier": {
+      "algorithm": "meshoptimizer",
+      "ratio": 0.35,
+      "error": 0.001,
+      "lockBorder": true
+    },
+    "transforms": [
+      "simplifyPrimitive",
+      "prune",
+      "dedup",
+      "resample",
+      "textureCompress",
+      "sparse"
+    ]
+  },
+  "withinRuntimeBudget": true,
+  "runtimeBudgetBytes": 5242880,
+  "notes": [
+    "The model is a visual enemy asset; collision remains procedural in the game.",
+    "The Blender-authored motion clips are preserved as named GLB animations.",
+    "Material and geometry reduction is intentionally conservative enough to keep the face and clothing readable in cold low light."
+  ]
+}

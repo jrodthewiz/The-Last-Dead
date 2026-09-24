@@ -93,7 +93,7 @@ test('reduces the un-compacted Breach factory while preserving its animation con
   assert.equal(model.userData.breach.breechBlock, breech);
   assert.equal(model.userData.breach.sockets.muzzleFlash, muzzleFlash);
   assert.equal(model.userData.breach.sockets.heat, heat);
-  assert.equal(breech.userData.weaponMechanism, 'sliding-breech');
+  assert.equal(breech.userData.weaponMechanism, 'break-action-breech');
   assert.equal(muzzleFlash.visible, false);
 });
 

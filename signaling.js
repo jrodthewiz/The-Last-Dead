@@ -341,7 +341,10 @@ export class PeerJsSession {
     this._peer = await this._makePeer();
     if (this._closed) throw new Error('Co-op was cancelled.');
     this._bindPeer();
-    const connection = this._peer.connect(roomCode, { reliable: true, serialization: 'json' });
+    // Combat snapshots exceed PeerJS's 16 KiB JSON channel ceiling once blood
+    // and impact effects accumulate. BinaryPack chunks/reassembles them while
+    // keeping the same plain-object protocol and our 128 KiB application cap.
+    const connection = this._peer.connect(roomCode, { reliable: true, serialization: 'binary' });
     this._bindConnection(connection);
     await new Promise((resolve, reject) => {
       let settled = false;

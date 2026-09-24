@@ -22,6 +22,10 @@ export const weapons=[
  {name:'BREACH SHOTGUN',interval:.72,damage:1.2,range:7,cone:.15,kind:'hitscan'},
  {name:'ARC LANCE',interval:5,damage:12,range:24,cone:.015,kind:'hitscan'},
  {name:'RELIQUARY',alias:'RIFT BAZOOKA',interval:1.1,damage:24,range:30,cone:.01,kind:'rocket',radius:1.65,knockback:4.8},
+ {name:'CARRION',alias:'AUTOMATIC RIFLE',interval:.11,damage:1.45,range:22,cone:.018,kind:'hitscan'},
+ {name:'MOURNING',alias:'MARKSMAN RIFLE',interval:.78,damage:6.5,range:28,cone:.002,kind:'hitscan'},
+ {name:'WAKE BAT',alias:'HEAVY MELEE',interval:.72,damage:7,range:.86,cone:.82,kind:'melee'},
+ {name:'RIPPER',alias:'CHAINSAW',interval:.105,damage:1.25,range:.73,cone:.26,kind:'melee'},
 ];
 
 // The default course remains the compact three-wave combat lab for old tests and
@@ -55,11 +59,13 @@ export function newRun(course, options = {}){
   roomProgression:campaign?createRoomProgression(course,sectorIndex,options):null,
   dungeonProgression:course?.dungeon?{floorIndex:course.dungeonIndex,floorCount:course.dungeonCount,startIndex:course.dungeonIndex,floorsCleared:0,keysCollected:[],activeRoomId:null,combatDoorsReleased:false,exitReady:false,phase:'combat'}:null,
   spawnTelegraphs:[],explosions:[],projectiles:[],coins:[],coinCharges:4,coinRegen:0,altCooldown:0,respawnTime:0,
+  rifleHeat:0,rifleBurst:0,rifleBurstTimer:0,rifleCharge:0,rifleCharging:false,shotSequence:0,lastShotMode:'',
+  meleeActive:false,meleeProgress:1,meleeDuration:0,meleeHeavy:false,meleeResolved:false,meleeSequence:0,meleeContact:0,meleeHitStop:0,sawRev:0,sawActive:false,sawContact:0,sawTick:0,
   gore:[],blood:[],limbs:[],pools:[],tracers:[],events:[],pressed:{},nextId:1,autoRun:false,playerId:'host',campaignComplete:false,
  };
 }
 export function look(r,dx,dy){if(r.mode!=='play')return;r.angle=angleDiff(r.angle+dx*.002,0);r.pitch=clamp(r.pitch-dy*.002,-1.35,1.35);}
-export function switchWeapon(r,i){if(!weapons[i]||r.weapon===i)return;r.weapon=i;r.shot=0;}
+export function switchWeapon(r,i){if(!Number.isInteger(i)||!weapons[i]||r.weapon===i)return;r.weapon=i;r.shot=0;r.rifleBurst=0;r.rifleBurstTimer=0;r.rifleCharge=0;r.rifleCharging=false;r.aim=0;cancelMelee(r);}
 export function eye(r){return EYE+r.z-r.slide*.18;}
 function enemyProfile(e){
  const fallback=e.kind===3?'bellwraith':e.kind===2?'brute':e.kind===1?'caster':'stalker';
@@ -78,7 +84,19 @@ function aliveEnemies(r){return r.course.enemies.filter(e=>!e.dead);}
 function pushEvent(r,type,extra={}){r.events.push({type,...extra});}
 function award(r,amount,label){r.style=Math.min(1800,r.style+amount);r.styleTotal+=amount;r.styleLabel=label;r.combo++;r.bestCombo=Math.max(r.combo,r.bestCombo);}
 function hurt(r,n){if(r.dashTime>0)return;r.health=Math.max(0,r.health-n);r.damage=1;r.style*=.65;r.combo=0;r.events.push({type:'damage',x:r.x,y:r.y,z:eye(r)});}
-function burst(player,e,count=18,hit=null){const r=player.world||player;for(let i=0;i<count;i++){const a=(i*2.399+e.id),v=.35+(i%5)*.15;r.gore.push({id:r.nextId++,x:hit?.x??e.x,y:hit?.y??e.y,z:hit?.z??(.15+(i%7)*.045),vx:Math.cos(a)*v,vy:Math.sin(a)*v,vz:.55+(i%4)*.22,life:2+(i%3),size:i%6===0?.065:.017,chunk:i%6===0,spin:a});}r.gore=r.gore.slice(-220);r.blood.push({id:r.nextId++,x:e.x,y:e.y,size:.12+count*.005,angle:e.id});r.blood=r.blood.slice(-100);}
+function burst(player,e,count=18,hit=null){
+ const r=player.world||player,seed=e.id+(e.hits||0)*13,energy=hit?.energy||1;
+ for(let i=0;i<count;i++){
+  const a=i*2.399+seed,spread=(.10+(i%5)*.055)*energy,jet=(i%3===0?-.28:.52)*energy;
+  const directed=Number.isFinite(hit?.vx),chunk=count>20&&i%9===0;
+  r.gore.push({id:r.nextId++,x:hit?.x??e.x,y:hit?.y??e.y,z:hit?.z??(.15+(i%7)*.045),
+   vx:Math.cos(a)*spread+(directed?hit.vx*jet:0),vy:Math.sin(a)*spread+(directed?hit.vy*jet:0),
+   vz:.16+(i%4)*.095+(directed?(hit.vz||0)*jet:0),life:1.1+(i%3)*.35,
+   size:chunk?.025:.004+(i%4)*.002,chunk,spin:a});
+ }
+ r.gore=r.gore.slice(-220);
+ r.blood.push({id:r.nextId++,x:e.x,y:e.y,size:count>20?.22:.075,angle:seed});r.blood=r.blood.slice(-100);
+}
 // Deterministic gore rolls keep host and guest reads identical without Math.random.
 export const LIMB_KINDS=Object.freeze(['arm','leg','head','eye']);
 const limbRoll=(seed,salt)=>{let x=(seed*2654435761+(salt||0)*40503)>>>0;x^=x>>>13;return (x>>>0)/4294967296;};
@@ -118,7 +136,8 @@ function damageEnemy(r,e,n,label='HIT',hit=null){
  if(e.dead)return;
  e.hp-=n;e.flash=.16;e.hits=(e.hits||0)+1;
  const hx=hit?.x??e.x,hy=hit?.y??e.y,hz=hit?.z??.4;
- burst(r,e,e.hp<=0?34:12,{x:hx,y:hy,z:hz});
+ const shotX=hx-r.x,shotY=hy-r.y,shotZ=hz-eye(r),shotLength=Math.hypot(shotX,shotY,shotZ)||1;
+ burst(r,e,e.hp<=0?34:12,{x:hx,y:hy,z:hz,vx:shotX/shotLength,vy:shotY/shotLength,vz:shotZ/shotLength,energy:clamp(.65+n*.065,.7,1.8)});
  if(r.settings?.gore===false){}
  else if(e.hp<=0)dismember(r,e,{x:hx,y:hy,z:hz},n/6,true);
  else if(n>=5||(e.maxHp&&e.hp<=e.maxHp*.35))dismember(r,e,{x:hx,y:hy,z:hz},n/8,false);
@@ -282,7 +301,7 @@ export function spawnWave(r){
 function updateDungeonProgression(r){
  const course=r.course,progression=r.dungeonProgression;
  if(!course?.dungeon||!progression)return;
- const activeRoom=course.rooms.find(room=>r.x>=room.bounds.minX&&r.x<room.bounds.maxX&&r.y>=room.bounds.minZ&&r.y<room.bounds.maxZ);
+ const activeRoom=course.rooms.find(room=>r.x>=room.bounds.minX&&r.x<room.bounds.maxX&&r.y>=room.bounds.minZ&&r.y<room.bounds.maxZ&&(!room.footprint||room.footprint[Math.floor(r.y)-room.bounds.minZ]?.[Math.floor(r.x)-room.bounds.minX]==='1'));
  progression.activeRoomId=activeRoom?.id||null;
  const active=r.course.enemies.some(enemy=>!enemy.dead);
  if(r.wave>0&&!active)releaseDungeonEncounterGates(r,r.wave);
@@ -318,7 +337,194 @@ function advanceDungeonFloor(r){
 }
 function move(r,dx,dy){const n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.04));for(let i=0;i<n;i++){const nx=r.x+dx/n,ny=r.y+dy/n;if(canTraverseRoomGates(r.course,r.roomProgression,r.x,r.y,nx,r.y)&&canStand(r.course,nx,r.y,.1))r.x=nx;else r.vx=0;if(canTraverseRoomGates(r.course,r.roomProgression,r.x,r.y,r.x,ny)&&canStand(r.course,r.x,ny,.1))r.y=ny;else r.vy=0;}}
 export function parry(r){if(r.mode!=='play'||r.health<=0||r.parryCooldown>0)return false;r.parryTime=.19;r.parryCooldown=.45;r.punch=.3;r.events.push({type:'punch',x:r.x,y:r.y,z:eye(r)});const e=r.course.enemies.filter(e=>!e.dead).find(e=>Math.hypot(e.x-r.x,e.y-r.y)<.65&&Math.abs(angleDiff(Math.atan2(e.y-r.y,e.x-r.x),r.angle))<.9&&castRay(r.course,r.x,r.y,Math.atan2(e.y-r.y,e.x-r.x)).dist>Math.hypot(e.x-r.x,e.y-r.y)-.1);if(e){const interrupt=e.attacking;damageEnemy(r,e,3,interrupt?'+ INTERRUPT':'+ KNUCKLE');e.stagger=.45;e.attacking=false;e.windup=0;if(interrupt)award(r,80,'+ INTERRUPT');}return true;}
+export function cancelMelee(r){
+ r.meleeActive=false;r.meleeProgress=1;r.meleeResolved=false;r.meleeContact=0;r.meleeHitStop=0;
+ r.sawActive=false;r.sawRev=0;r.sawContact=0;r.sawTick=0;
+}
+
+// Contact is sampled at the strike frame, not at button-down. A committed
+// swing may cleave two nearby enemies, but each target takes one hit only.
+function meleeTargets(r,range,cone,limit){
+ const height=eye(r),slope=Math.tan(r.pitch);
+ return r.course.enemies.filter(e=>!e.dead).map(e=>{
+  const dx=e.x-r.x,dy=e.y-r.y,d=Math.hypot(dx,dy),a=Math.atan2(dy,dx);
+  return{e,d,a,z:height+d*slope};
+ }).filter(t=>t.d<=range+enemyHitRadius(t.e,.16)&&Math.abs(angleDiff(t.a,r.angle))<=cone
+  &&t.z>=(t.e.meleeZ||0)-.08&&t.z<=enemyHitHeight(t.e,.52)+(t.e.meleeZ||0)+.08
+  &&castRay(r.course,r.x,r.y,t.a,t.d+.2).dist>t.d-.06)
+ .sort((a,b)=>a.d-b.d||a.e.id-b.e.id).slice(0,limit);
+}
+
+function impulseMeleeEnemy(e,angle,power,kind){
+ const mass=e.kind===2?.46:e.kind===3?.35:1;
+ e.meleeHitId=(e.meleeHitId||0)+1;e.meleeHitAngle=angle;e.meleePower=power;e.meleeKind=kind;
+ const force=(e.dead?1.85:.9)*power*mass;
+ e.meleeVX=clamp((e.meleeVX||0)+Math.cos(angle)*force,-3,3);
+ e.meleeVY=clamp((e.meleeVY||0)+Math.sin(angle)*force,-3,3);
+ e.meleeVZ=Math.max(e.meleeVZ||0,(e.dead?.9:.24)*power*mass);
+ e.meleeSpinV=clamp((e.meleeSpinV||0)+((e.id%2)?1:-1)*power*(e.dead?1.2:.22),-2.5,2.5);
+ if(kind==='bat'||e.dead){e.stagger=Math.max(e.stagger||0,.28+power*.13);e.attacking=false;e.windup=0;e.strike=0;e.slashHit=true;}
+}
+
+function meleeImpact(r,target,damage,power,kind,heavy){
+ const world=r.world||r,{e,a,z}=target,deadBefore=e.dead;
+ const hit={x:e.x,y:e.y,z:clamp(z,(e.meleeZ||0)+.08,enemyHitHeight(e,.52)+(e.meleeZ||0))};
+ damageEnemy(r,e,damage,kind==='chainsaw'?'+ CARVED UP':heavy?'+ HOME RUN':'+ LIGHTS OUT',hit);
+ impulseMeleeEnemy(e,a,power,kind);
+ // A short local contact record feeds the existing bounded splash pool. It
+ // deliberately has no luminous bullet beam or muzzle flash.
+ world.tracers.push({id:world.nextId++,x:r.x,y:r.y,z:eye(r),tx:hit.x,ty:hit.y,tz:hit.z,
+  surface:'flesh',ownerId:playerId(r),life:.14,duration:.14,weapon:r.weapon,hit:true,melee:true,heavy,enemyId:e.id});
+ r.events.push({type:kind==='chainsaw'?'chainsaw-hit':'melee-hit',weapon:r.weapon,heavy,x:hit.x,y:hit.y,z:hit.z,enemyId:e.id,killed:!deadBefore&&e.dead});
+ r.meleeContact=.18;r.shot=.75;
+ if(kind==='bat')r.meleeHitStop=heavy?.065:.042;
+}
+
+function meleeWall(r,range,heavy=false){
+ const world=r.world||r,wall=castRay(r.course,r.x,r.y,r.angle,range);
+ const slope=Math.tan(r.pitch),floor=slope<0?(eye(r)-.01)/-slope:Infinity;
+ const onFloor=floor<wall.dist&&floor<range,distance=onFloor?floor:wall.dist,height=eye(r)+distance*slope;
+ if(distance>=range||height<0||height>1.45)return false;
+ const x=r.x+Math.cos(r.angle)*distance,y=r.y+Math.sin(r.angle)*distance;
+ world.tracers.push({id:world.nextId++,x:r.x,y:r.y,z:eye(r),tx:x,ty:y,tz:height,surface:onFloor?'floor':'wall',
+  normal:onFloor?{x:0,y:0,z:1}:wall.side===0?{x:-Math.sign(Math.cos(r.angle)),y:0,z:0}:{x:0,y:-Math.sign(Math.sin(r.angle)),z:0},
+  ownerId:playerId(r),life:.14,duration:.14,weapon:r.weapon,hit:false,melee:true,heavy});
+ r.events.push({type:'melee-wall',weapon:r.weapon,heavy,x,y,z:height});r.meleeContact=.12;
+ return true;
+}
+
+export function shootMelee(r,secondary=false,predicted=false){
+ if(r.mode!=='play'||r.health<=0||r.weapon<6||r.weapon>7)return false;
+ if(r.weapon===7&&!secondary)return false; // Held cutting is stepped below.
+ if(r.meleeActive||r.cooldowns[r.weapon]>0)return false;
+ r.meleeActive=true;r.meleeProgress=0;r.meleeResolved=false;r.meleeHeavy=secondary;
+ r.meleeDuration=r.weapon===7?.64:secondary?1.02:.68;r.meleeSequence=(r.meleeSequence||0)+1;
+ r.cooldowns[r.weapon]=r.meleeDuration+.04;r.fireCooldown=r.cooldowns[r.weapon];
+ r.events.push({type:'bat-swing',weapon:r.weapon,heavy:secondary,x:r.x,y:r.y,z:eye(r),predicted});
+ return true;
+}
+
+function advanceMelee(r,dt,input){
+ r.meleeContact=Math.max(0,(r.meleeContact||0)-dt);r.sawContact=Math.max(0,(r.sawContact||0)-dt);
+ const predicted=!!input.predictWeapons;
+ if(r.meleeActive&&r.weapon>=6){
+  if(r.meleeHitStop>0)r.meleeHitStop=Math.max(0,r.meleeHitStop-dt);
+  else r.meleeProgress=Math.min(1,r.meleeProgress+dt/r.meleeDuration);
+  if(r.meleeProgress>=.4&&!r.meleeResolved){
+   r.meleeResolved=true;
+   if(!predicted){
+    const shove=r.weapon===7,w=weapons[r.weapon],range=shove?.62:r.meleeHeavy?.95:w.range;
+    const targets=meleeTargets(r,range,shove?.48:r.meleeHeavy?.4:w.cone,r.meleeHeavy?1:2);
+    for(const target of targets)meleeImpact(r,target,shove?3:r.meleeHeavy?12:w.damage,shove?.9:r.meleeHeavy?1.5:1,'bat',r.meleeHeavy);
+    if(!targets.length&&meleeWall(r,range,r.meleeHeavy))r.meleeHitStop=.025;
+   }
+  }
+  if(r.meleeProgress>=1)r.meleeActive=false;
+ }
+ r.sawActive=r.weapon===7&&!!input.fire&&!input.alt&&!r.meleeActive;
+ r.sawRev=clamp((r.sawRev||0)+dt*(r.sawActive?3.8:-3.2),0,1);
+ r.sawTick=Math.max(0,(r.sawTick||0)-dt);
+ if(r.sawActive&&r.sawRev>.62&&r.sawTick<=0){
+  r.sawTick=weapons[7].interval;
+  if(!predicted){
+   const targets=meleeTargets(r,weapons[7].range,weapons[7].cone,1);
+   if(targets.length){meleeImpact(r,targets[0],weapons[7].damage,.12,'chainsaw',false);r.sawContact=.15;}
+   else if(meleeWall(r,weapons[7].range)){r.meleeContact=.08;r.sawContact=0;}
+  }
+ }
+}
+
+// Small swept proxies carry the hit impulse; the renderer's bone springs
+// supply the loose-limb follow-through. Substeps prevent tunnelling at walls.
+function advanceMeleeImpulse(r,e,dt){
+ if(!e.meleeHitId)return;
+ const vx=e.meleeVX||0,vy=e.meleeVY||0,steps=Math.max(1,Math.ceil(Math.hypot(vx,vy)*dt/.035));
+ for(let i=0;i<steps;i++){
+  const mx=(e.meleeVX||0)*dt/steps,my=(e.meleeVY||0)*dt/steps;
+  if(canStand(r.course,e.x+mx,e.y,.16))e.x+=mx;else e.meleeVX=0;
+  if(canStand(r.course,e.x,e.y+my,.16))e.y+=my;else e.meleeVY=0;
+ }
+ e.meleeVZ=(e.meleeVZ||0)-7.5*dt;e.meleeZ=Math.max(0,(e.meleeZ||0)+e.meleeVZ*dt);
+ if(e.meleeZ===0)e.meleeVZ=0;
+ const drag=Math.exp(-dt*(e.dead?3.8:8));e.meleeVX*=drag;e.meleeVY*=drag;
+ e.meleeYaw=clamp((e.meleeYaw||0)+(e.meleeSpinV||0)*dt,-.85,.85);e.meleeSpinV=(e.meleeSpinV||0)*Math.exp(-dt*5);
+}
+
+// Rifles share the authoritative hit rules and pooled tracer path. Prediction
+// only advances the local mechanism/audio state, never enemy health or effects.
+function fireRifleRound(r, mode, predicted = false) {
+ const w=weapons[r.weapon],world=r.world||r,charged=mode==='charged';
+ r.shot=1;r.shotSequence=(r.shotSequence||0)+1;r.lastShotMode=mode;
+ r.repeat=r.lastWeapon===r.weapon?r.repeat+1:0;r.lastWeapon=r.weapon;
+ if(r.weapon===4)r.rifleHeat=clamp((r.rifleHeat||0)+(mode==='burst'?.065:.09),0,1);
+ r.events.push({type:'shot',weapon:r.weapon,mode,x:r.x,y:r.y,z:eye(r),predicted});
+ if(predicted)return true;
+ const spread=r.weapon===4?(mode==='burst'?.0015:.001+w.cone*(r.rifleHeat||0)):(charged?0:w.cone);
+ const a=r.angle+Math.sin(r.shotSequence*2.399963)*spread;
+ const oz=eye(r),slope=Math.tan(r.pitch),wallHit=castRay(r.course,r.x,r.y,a,w.range);
+ const floor=slope<0?Math.max(0,(.01-oz)/slope):Infinity,max=Math.min(w.range,wallHit.dist,floor);
+ const dx=Math.cos(a),dy=Math.sin(a);
+ const targets=r.course.enemies.filter(e=>!e.dead).map(e=>{
+  const ex=e.x-r.x,ey=e.y-r.y,along=ex*dx+ey*dy;
+  return{e,along,side:Math.abs(-ex*dy+ey*dx),z:oz+along*slope};
+ }).filter(t=>t.along>0&&t.along<max+.01&&t.side<enemyHitRadius(t.e,.16)&&t.z>=0&&t.z<enemyHitHeight(t.e,.52))
+ .sort((a,b)=>a.along-b.along||(a.e.id||0)-(b.e.id||0)).slice(0,charged?3:1);
+ // Rifle rounds can shoot an ejected Breach core, but cannot inherit Arc's nuke.
+ const core=world.projectiles.find(p=>{
+  if(!p.core||p.life<=0)return false;
+  const px=p.x-r.x,py=p.y-r.y,along=px*dx+py*dy;
+  return along>0&&along<Math.min(max,targets[0]?.along??max)&&Math.abs(-px*dy+py*dx)<.14&&Math.abs(p.z-(oz+along*slope))<.14;
+ });
+ let end=max,hit=false,surface=floor<=wallHit.dist&&floor<=w.range?'floor':wallHit.dist<w.range&&oz+slope*max<=1.45?'wall':'air';
+ if(core){end=(core.x-r.x)*dx+(core.y-r.y)*dy;core.life=0;core.nuke=false;explode(world,core);award(r,120,'+ CORE SHOT');surface='air';}
+ else for(let i=0;i<targets.length;i++){
+  const t=targets[i],head=t.z>.38,damage=(charged?11:w.damage)*(head?1.5:1)*Math.pow(.82,i);
+  damageEnemy(r,t.e,damage,charged?'+ THROUGH THE VEIL':head?'+ HEADSHOT':'+ ELIMINATED',{x:r.x+dx*t.along,y:r.y+dy*t.along,z:t.z});
+  if(charged)t.e.stagger=Math.max(t.e.stagger||0,.22);
+  end=t.along;hit=true;surface='flesh';
+ }
+ const duration=charged?.18:r.weapon===4?.085:.13;
+ world.tracers.push({id:world.nextId++,x:r.x,y:r.y,z:oz,tx:r.x+dx*end,ty:r.y+dy*end,tz:oz+slope*end,
+  surface,normal:surface==='floor'?{x:0,y:0,z:1}:wallHit.side===0?{x:-Math.sign(dx),y:0,z:0}:{x:0,y:-Math.sign(dy),z:0},
+  ownerId:playerId(r),life:duration,duration,weapon:r.weapon,hit,charged,mode,rail:false});
+ if(hit)award(r,charged&&targets.length>1?95:Math.max(8,38-r.repeat*5),charged&&targets.length>1?'+ THREAD THE NEEDLE':mode==='burst'?'+ CONTROLLED BURST':'+ RIFLE HIT');
+ return true;
+}
+
+export function shootRifle(r, secondary=false, predicted=false) {
+ if(r.mode!=='play'||r.health<=0||(r.weapon!==4&&r.weapon!==5))return false;
+ if(r.cooldowns[r.weapon]>0||r.rifleBurst>0)return false;
+ if(r.weapon===5&&secondary){
+  if(!r.rifleCharging){r.rifleCharging=true;r.rifleCharge=0;r.events.push({type:'rifle-charge',weapon:5,x:r.x,y:r.y,z:eye(r),predicted});}
+  return false;
+ }
+ r.rifleCharging=false;r.rifleCharge=0;
+ if(r.weapon===4&&secondary){r.rifleBurst=2;r.rifleBurstTimer=.075;}
+ r.cooldowns[r.weapon]=r.weapon===4&&secondary?.5:weapons[r.weapon].interval;
+ r.fireCooldown=r.cooldowns[r.weapon];
+ return fireRifleRound(r,r.weapon===5?'snap':secondary?'burst':'auto',predicted);
+}
+
+function advanceRifles(r,dt,input){
+ r.rifleHeat=Math.max(0,(r.rifleHeat||0)-dt*.36);
+ if(r.weapon===4&&r.rifleBurst>0){
+  r.rifleBurstTimer-=dt;
+  if(r.rifleBurstTimer<=1e-9){r.rifleBurst--;r.rifleBurstTimer+=.075;fireRifleRound(r,'burst',!!input.predictWeapons);}
+ }else if(r.weapon!==4){r.rifleBurst=0;r.rifleBurstTimer=0;}
+ if(r.weapon===5&&r.rifleCharging&&input.alt){
+  r.rifleCharge=clamp((r.rifleCharge||0)+dt/.55,0,1);
+  if(r.rifleCharge>=1){
+   r.rifleCharging=false;r.rifleCharge=0;r.cooldowns[5]=1.2;r.fireCooldown=1.2;
+   fireRifleRound(r,'charged',!!input.predictWeapons);
+  }
+ }else {r.rifleCharging=false;r.rifleCharge=0;}
+ const focus=r.weapon===5&&input.alt?1:r.weapon===4&&r.rifleBurst>0?.3:0;
+ r.aim+=(focus-r.aim)*(1-Math.exp(-dt*12));
+}
+
 export function shoot(r,secondary=false){if(r.mode!=='play'||r.health<=0)return false;const world=r.world||r;
+ if(r.weapon>=6)return shootMelee(r,secondary);
+ if(r.weapon>=4)return shootRifle(r,secondary);
  if(secondary&&r.weapon===0){if(r.altCooldown||r.coinCharges<=0)return false;r.coinCharges--;r.altCooldown=.3;world.coins.push({id:world.nextId++,x:r.x+Math.cos(r.angle)*.2,y:r.y+Math.sin(r.angle)*.2,z:eye(r)+.03,vx:Math.cos(r.angle)*.9,vy:Math.sin(r.angle)*.9,vz:1.15,life:3});r.events.push({type:'coin',weapon:0,x:r.x,y:r.y,z:eye(r)});return true;}
  if(secondary&&r.weapon===3){
   const rocket=world.projectiles.find(p=>p.kind==='rocket'&&p.ownerId===playerId(r)&&!p.exploded&&p.life>0);
@@ -342,6 +548,8 @@ const w=weapons[r.weapon];r.cooldowns[r.weapon]=w.interval*(secondary&&r.weapon=
 }
 export function tickPlayer(r,dt,input={}){if(r.mode!=='play'||r.health<=0)return;dt=clamp(dt,0,.05);r.time+=dt;
  for(const key of ['shot','damage','heal','punch','hookTime','hookCooldown','parryTime','parryCooldown','dashTime','altCooldown'])r[key]=Math.max(0,r[key]-dt*(key==='shot'?7:1));for(let i=0;i<weapons.length;i++)r.cooldowns[i]=Math.max(0,r.cooldowns[i]-dt);r.fireCooldown=r.cooldowns[r.weapon];
+ advanceRifles(r,dt,input);
+ advanceMelee(r,dt,input);
  r.angle=angleDiff(r.angle+(input.turn||0)*dt*2,0);r.pitch=clamp(r.pitch+(input.lookY||0)*dt,-1.35,1.35);r.energy=clamp(r.energy+dt*22,0,100);if(r.coinCharges<4){r.coinRegen+=dt;if(r.coinRegen>=2){r.coinCharges++;r.coinRegen=0;}}
  const jump=input.jump&&!r.pressed.jump,dash=input.dash&&!r.pressed.dash,wasAir=r.z>.001,wasSliding=r.slide>.55;r.pressed={jump:!!input.jump,dash:!!input.dash};let f=input.forward||0,s=input.strafe||0;if(r.autoRun&&f===0)f=1;const length=Math.max(1,Math.hypot(f,s));f/=length;s/=length;const dx=Math.cos(r.angle)*f-Math.sin(r.angle)*s,dy=Math.sin(r.angle)*f+Math.cos(r.angle)*s;
  if(jump){if(r.z<=.001){r.vz=2.05;r.events.push({type:'jump',x:r.x,y:r.y,z:r.z});}else if(r.wallJumps<3&&!canStand(r.course,r.x,r.y,.2)){r.vz=1.8;r.wallJumps++;r.vx=-Math.cos(r.angle)*1.4;r.vy=-Math.sin(r.angle)*1.4;award(r,20,'+ WALL JUMP');}}
@@ -365,11 +573,11 @@ function enemyWaypoint(course,e,target){
 // leaves a short-lived pool. Arc, splat and pool all run through castRay, so
 // nothing can bite through a wall, and every roll is seeded from the enemy id
 // so host and guest stay bit-identical.
-const SLASH_SWING=.24,SLASH_REACH=.95,SLASH_ARC=.82,GLOB_GRAVITY=2.6,GLOB_LIFE=9,POOL_LIFE=5,POOL_INTERVAL=.5,POOL_DAMAGE=3;
+const SLASH_SWING=.24,SLASH_REACH=.34,SLASH_ARC=.82,GLOB_GRAVITY=2.6,GLOB_LIFE=9,POOL_LIFE=5,POOL_INTERVAL=.5,POOL_DAMAGE=3;
 const isMeleeRole=role=>role==='rush'||role==='hunter'||role==='anchor';
 const meleeReach=role=>role==='anchor'?1.1:SLASH_REACH;
 const meleeArc=role=>role==='anchor'?1:SLASH_ARC;
-const meleeStandoff=role=>role==='rush'?.34:role==='hunter'?.55:role==='anchor'?.95:role==='teleport'?1.8:2.3;
+const meleeStandoff=role=>role==='rush'?.25:role==='hunter'?.28:role==='anchor'?.95:role==='teleport'?1.8:2.3;
 // The swing paints a crescent with the existing tracer pool, so the slash is
 // visible for host and guest without new render state.
 function slashArc(r,e){
@@ -436,6 +644,7 @@ export function tick(r,dt,input={}){if(r.mode!=='play')return;dt=clamp(dt,0,.05)
   }
  }
  for(const e of r.course.enemies){
+ advanceMeleeImpulse(r,e,dt);
  e.flash=Math.max(0,e.flash-dt);e.strike=Math.max(0,(e.strike||0)-dt);e.stagger=Math.max(0,(e.stagger||0)-dt);if(e.dead)continue;const profile=enemyProfile(e);
  const target=r.peer&&r.peer.health>0&&(r.health<=0||Math.hypot(r.peer.x-e.x,r.peer.y-e.y)<Math.hypot(r.x-e.x,r.y-e.y))?r.peer:r;
  const dx=target.x-e.x,dy=target.y-e.y,d=Math.hypot(dx,dy),a=Math.atan2(dy,dx),visible=e.seesTarget===true;
@@ -466,7 +675,7 @@ export function tick(r,dt,input={}){if(r.mode!=='play')return;dt=clamp(dt,0,.05)
   if(canStand(r.course,e.x+mx,e.y,.16))e.x+=mx;if(canStand(r.course,e.x,e.y+my,.16))e.y+=my;
   if(e.wounded&&(e.drip=(e.drip||0)-dt)<=0){e.drip=.55;r.blood.push({id:r.nextId++,x:e.x,y:e.y,size:.1,angle:e.id*.7});r.blood=r.blood.slice(-100);}
  }
- const eligible=visible&&(melee?d<reach+.05&&target.z<(profile.role==='anchor'?.55:.3):d<13);
+ const eligible=visible&&(melee?d<reach&&target.z<(profile.role==='anchor'?.55:.3):d<13);
  if(!eligible){e.attacking=false;e.windup=0;}
  else if(e.attack<=0){
   if(!e.attacking){e.attacking=true;e.windup=e.windupTime??profile.windup??(melee?.28:.48);e.eventsSeen=0;}

@@ -16,15 +16,28 @@ const DEFAULT_PREFS = Object.freeze({
   autoRun: false,
 });
 
-const WEAPON_NAMES = ['OSSUARY', 'BREACH SHOTGUN', 'ARC LANCE', 'RELIQUARY'];
-const WEAPON_HINTS = ['BONEFORGED // COIN RICOCHET', 'CLOSE RANGE // WIDE SPREAD', 'RAIL PUNCH // PIERCE', 'ROCKETS // FUSE CONTROL'];
+const WEAPON_NAMES = ['OSSUARY', 'BREACH SHOTGUN', 'ARC LANCE', 'RELIQUARY', 'CARRION RIFLE', 'MOURNING RIFLE', 'WAKE BAT', 'RIPPER CHAINSAW'];
+const WEAPON_HINTS = [
+  'BONEFORGED // COIN RICOCHET',
+  'CLOSE RANGE // WIDE SPREAD',
+  'RAIL PUNCH // PIERCE',
+  'ROCKETS // FUSE CONTROL',
+  'AUTO RIFLE // HEAT + 3-ROUND BURST',
+  'MARKSMAN // HOLD TO CHARGE // PIERCE 3',
+  'SWING // ALT HEAVY STRIKE',
+  'HOLD FIRE TO REV + CUT // ALT SHOVE',
+];
 
 
 const WEAPON_SIGILS = [
  'M9 24L18 14H44L50 19H83V29H49L43 35H31L24 48H14L19 31H9Z M29 17V31 M36 17V31 M44 20H78 M52 25H86',
  'M8 20H39L48 14H85V21H47V27H85V34H47L39 30H29L23 48H13L17 30H8Z M52 17H82 M52 30H82',
  'M8 22H27L35 14H55L65 22H88 M8 32H27L35 40H55L65 32H88 M21 22V33 M39 17V37 M49 17V37 M58 20L73 27L58 34 M30 34L24 48H14L18 32',
- 'M6 20L18 12H38L46 17H78L89 10V42L78 35H46L38 40H18L6 32Z M21 16V36 M31 16V36 M49 20V32 M58 20V32 M68 20V32 M83 16V36'
+ 'M6 20L18 12H38L46 17H78L89 10V42L78 35H46L38 40H18L6 32Z M21 16V36 M31 16V36 M49 20V32 M58 20V32 M68 20V32 M83 16V36',
+ 'M4 23H18L25 16H64L73 20H91V32H73L64 37H25L18 31H4Z M28 18V35 M39 18V35 M52 18V35 M65 21V32 M76 23V30 M12 27H84',
+ 'M5 20H22L30 12H62L69 17H91V39H69L62 44H30L22 36H5Z M30 17H60V39H30 M68 20V36 M78 20V36 M12 27H84',
+ 'M9 45L14 50L35 29L70 14Q79 8 75 3Q70 0 65 5L28 23Z M24 29L30 35 M18 36L24 42 M45 17L51 23 M59 10L65 17',
+ 'M8 24H39V44H8Z M14 24V12H31V24 M39 27H77Q91 27 91 34Q91 41 77 41H39 M45 24L49 29 M57 24L61 29 M70 24L74 29 M47 40L51 45 M61 40L65 45 M75 40L79 45 M15 30V39 M24 30V39'
 ];
 const weaponSigil=(index)=>`<svg viewBox="0 0 96 56" aria-hidden="true"><path d="${WEAPON_SIGILS[index]}"/></svg>`;
 
@@ -469,7 +482,7 @@ export class UI {
 
       <button class="menu-link" type="button" data-action="settings">SETTINGS</button>
       <button class="menu-link" type="button" data-action="guide" aria-expanded="false">CONTROLS</button>
-      <div class="field-guide" hidden><h2>Controls</h2><div class="guide-controls"><b>WASD</b><span>Move / aim</span><b>SPACE / SHIFT</b><span>Jump / dash</span><b>CTRL / F / E</b><span>Slide / parry / tether</span><b>1 2 3 4</b><span>Switch weapons</span><b>RIGHT CLICK</b><span>Alternate fire</span></div></div>
+  <div class="field-guide" hidden><h2>Controls</h2><div class="guide-controls"><b>WASD</b><span>Move / aim</span><b>SPACE / SHIFT</b><span>Jump / dash</span><b>CTRL / F / E</b><span>Slide / parry / tether</span><b>1 2 3 4 5 6 7 8</b><span>Switch weapons</span><b>RIGHT CLICK</b><span>Alternate fire / hold to charge Mourning</span></div></div>
      </nav></div><div class="cinema-footer" aria-hidden="true"><span>KEEP BREATHING.</span><span>DON'T LOOK AWAY.</span></div>
     </section>${this._settingsMarkup()}`;
     this._applyPrefs();this._syncCoopControls();queueMicrotask(()=>this.root.querySelector('.start-button')?.focus({preventScroll:true}));return this;
@@ -551,7 +564,7 @@ export class UI {
        <div class="hud-cluster"><div class="rank"><span class="rank-caption">STYLE</span><strong data-hud="rank">D</strong><div class="rank-meter"><i data-hud="style-fill"></i></div><span data-hud="style-label">GET CLOSE.</span><div class="combat-feed" aria-live="off"></div></div><button class="hud-pause" type="button" data-action="pause" aria-label="Pause game">II</button></div></div>
       <div class="crosshair" data-hud="crosshair" aria-hidden="true"><span class="hitmarker"></span><i></i><b></b></div>
       <div class="hud-bottom"><div class="hud-bottom-left"><div class="vitals"><div class="vitals-line"><svg class="blood-mark" viewBox="0 0 40 60" aria-hidden="true"><path d="M20 0C18 15 2 30 2 40a18 18 0 0 0 36 0C38 29 23 15 20 0Z"/><path class="blood-cut" d="M7 41L24 23L17 42L31 35L18 56"/></svg><strong data-hud="health">100</strong><span class="vital-caption">BLOOD<br><b>VITALS</b></span></div><div class="meter health-meter"><i class="health-trail" data-hud="health-trail"></i><i class="health-fill" data-hud="health-fill"></i></div><span class="critical-label">FEED OR DIE</span></div><div class="dash-cluster"><div class="dash-pips"><i class="dash-pip" data-dash="0"></i><i class="dash-pip" data-dash="1"></i><i class="dash-pip" data-dash="2"></i></div><span>DASH</span></div></div>
-       <div class="hud-bottom-right"><div class="weapon-card"><div class="weapon-line"><span class="weapon-slot" data-hud="weapon-slot">01</span><strong class="weapon-name" data-hud="weapon">OSSUARY</strong></div><div class="weapon-rack">${WEAPON_NAMES.map((name,i)=>`<button type="button" data-action="equip" data-weapon="${i}" data-weapon-slot="${i}" aria-label="Equip ${name}">${weaponSigil(i)}<span>${i+1}</span></button>`).join('')}</div><span class="weapon-foot"><span data-hud="weapon-resource">COIN x4</span><span data-hud="cooldown-label">READY</span></span><div class="cooldown"><i data-hud="cooldown"></i></div></div></div></div>
+       <div class="hud-bottom-right"><div class="weapon-card"><div class="weapon-line"><span class="weapon-slot" data-hud="weapon-slot">01</span><strong class="weapon-name" data-hud="weapon">OSSUARY</strong></div><span class="weapon-hint" data-hud="weapon-hint">BONEFORGED // COIN RICOCHET</span><div class="weapon-rack">${WEAPON_NAMES.map((name,i)=>`<button type="button" data-action="equip" data-weapon="${i}" data-weapon-slot="${i}" aria-label="Equip ${name}">${weaponSigil(i)}<span>${i+1}</span></button>`).join('')}</div><span class="weapon-foot"><span data-hud="weapon-resource">COIN x4</span><span data-hud="cooldown-label">READY</span></span><div class="rifle-meter" data-rifle-meter-wrap hidden><i data-hud="rifle-meter"></i></div><div class="cooldown"><i data-hud="cooldown"></i></div></div></div></div>
     </div>`;
   }
 
@@ -620,7 +633,11 @@ export class UI {
     const total = progression.total;
     const weapon = clamp(run.weapon, 0, WEAPON_NAMES.length - 1);
     const cooldown = Math.max(0, Number(run.cooldowns?.[weapon] || run.fireCooldown || 0));
-    const maxCooldown = weapons[weapon]?.interval || 1;
+    const maxCooldown = weapon >= 6 && run.meleeDuration > 0 ? run.meleeDuration + .04 : weapon === 4 && run.lastShotMode === 'burst'
+      ? .5
+      : weapon === 5 && run.lastShotMode === 'charged'
+        ? 1.2
+        : weapons[weapon]?.interval || 1;
     const crosshair = this.root.querySelector('[data-hud="crosshair"]');
     const now=performance.now();const hit=now<(this._hitUntil||0);
     crosshair?.classList.toggle('is-hit', hit);crosshair?.classList.toggle('is-kill',hit&&this._hitType==='kill');crosshair?.classList.toggle('is-parry',hit&&this._hitType==='parry');
@@ -643,9 +660,31 @@ export class UI {
     this._setHud('weapon-hint', WEAPON_HINTS[weapon]);
     const coins = clamp(run.coinCharges, 0, 4);
     const altCooldown = Math.max(0, Number(run.altCooldown || 0));
-    this._setHud('weapon-resource', weapon === 0 ? `COIN x${Math.floor(coins)}` : weapon === 1 ? (altCooldown > 0 ? `CORE ${fmt(altCooldown, 1)}s` : 'CORE READY') : weapon === 2 ? 'RAIL PIERCE' : 'BURST READY');
-    this._setHud('cooldown-label', cooldown > 0.01 ? `${fmt(cooldown, 2)}s` : 'READY');
+    const rifleHeat = clamp(run.rifleHeat, 0, 1) * 100;
+    const rifleCharge = clamp(run.rifleCharge, 0, 1) * 100;
+    const rifleBurst = clamp(Math.floor(Number(run.rifleBurst) || 0), 0, 2);
+    const rifleResource = weapon === 6
+      ? (run.meleeActive ? `${run.meleeHeavy ? 'HEAVY' : 'SWING'} / ${run.meleeProgress < .4 ? 'WINDUP' : 'RECOVERING'}` : 'ALT / HEAVY STRIKE')
+      : weapon === 7 ? (run.meleeActive ? 'SHOVE / RECOVERING' : run.sawContact > 0 ? 'CONTACT / CUTTING' : run.sawActive ? `REV ${fmt(run.sawRev * 100)}%` : 'HOLD FIRE / REV + CUT')
+      : weapon === 4
+      ? `HEAT ${fmt(rifleHeat)}% / ${rifleBurst > 0 ? `BURST ${rifleBurst} LEFT` : cooldown > 0.01 ? 'BURST RECOVERING' : 'BURST READY'}`
+      : weapon === 5
+        ? (run.rifleCharging && rifleCharge > 0.01 ? `CHARGING ${fmt(rifleCharge)}%` : cooldown > 0.01 ? 'RECOVERING / PIERCE x3' : 'HOLD ALT / PIERCE x3')
+        : weapon === 0 ? `COIN x${Math.floor(coins)}`
+          : weapon === 1 ? (altCooldown > 0 ? `CORE ${fmt(altCooldown, 1)}s` : 'CORE READY')
+            : weapon === 2 ? 'RAIL PIERCE' : 'BURST READY';
+    this._setHud('weapon-resource', rifleResource);
+    const cooldownLabel = weapon === 7 && !run.meleeActive ? (run.sawActive ? 'RUNNING' : 'IDLE') : weapon === 5 && run.rifleCharging
+      ? 'CHARGING'
+      : cooldown > 0.01 ? `${fmt(cooldown, 2)}s` : 'READY';
+    this._setHud('cooldown-label', cooldownLabel);
     this._setHud('cooldown', '', maxCooldown ? (1 - cooldown / maxCooldown) * 100 : 100);
+    const rifleMeter = this.root.querySelector('[data-rifle-meter-wrap]');
+    rifleMeter?.toggleAttribute('hidden', weapon < 4 || weapon === 6);
+    rifleMeter?.classList.toggle('is-heat', weapon === 4);
+    rifleMeter?.classList.toggle('is-charge', weapon === 5);
+    rifleMeter?.classList.toggle('is-saw', weapon === 7);
+    this._setHud('rifle-meter', '', weapon === 7 ? clamp(run.sawRev,0,1)*100 : weapon === 4 ? rifleHeat : rifleCharge);
     this._setHud('network', network || 'OFFLINE');
     const fpsNode = this.root.querySelector('[data-hud="fps"]');
     if (fpsNode) { fpsNode.hidden = !this.debug; if (this.debug) fpsNode.textContent = fps ? `${Math.round(fps)} FPS` : '-- FPS'; }

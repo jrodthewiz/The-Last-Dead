@@ -16,9 +16,10 @@ const clip = (name, duration, delta) => new THREE.AnimationClip(name, duration, 
 
 const template = new THREE.Group();
 template.name = 'SyntheticAshWitnessTemplate';
+const albedo = new THREE.Texture();
 const mesh = new THREE.Mesh(
   new THREE.BoxGeometry(.46, 1.86, .34),
-  new THREE.MeshBasicMaterial({color: 0x999999}),
+  new THREE.MeshStandardMaterial({color: 0x999999, map:albedo, emissive:0xffffff, emissiveMap:albedo}),
 );
 mesh.position.y = .93;
 template.add(mesh);
@@ -37,6 +38,10 @@ const root = createAfterlifeModel(asset, 0, 7);
 assert(root, 'model root created');
 const state = root.userData.afterlife;
 assert(state?.mixer, 'animation mixer created');
+assert.equal(state.materials[0].map, albedo, 'the shared authored albedo is retained');
+assert.equal(state.materials[0].emissive.getHex(), 0, 'exported full-strength emission is removed');
+assert.equal(state.materials[0].emissiveMap, null, 'skin texture is not an emission map');
+assert.equal(mesh.material.emissive.getHex(), 0xffffff, 'source template remains untouched');
 
 const idle = {attacking:false, attack:0, strike:0, hits:0, flash:0, stagger:0, dead:false};
 animateAfterlifeModel(root, idle, 0, 7);
@@ -48,6 +53,7 @@ assert.ok(state.actions.idle.getEffectiveWeight() > .9, 'idle action owns the in
 const windup = {...idle, attacking:true, windup:.28};
 animateAfterlifeModel(root, windup, 100, 7);
 assert.equal(state.attackActive, true, 'explicit windup starts attack clip');
+assert.equal(state.materials[0].emissiveIntensity, 0, 'windup does not restore full-body emission');
 assert.equal(state.clipBlend?.key, 'attack', 'attack blend is identified');
 assert.ok(state.actions.attack.getEffectiveWeight() < .2, 'attack enters through a blend envelope');
 animateAfterlifeModel(root, windup, 160, 7);

@@ -85,6 +85,10 @@ export function installMeshyViewSleeves(renderer,template) {
   let count=0;
   for(const group of renderer.weaponGroups)group.traverse(arm=>{
     if(!arm.userData.gripSocket||!arm.userData.sculptRuntime?.parts)return;
+    // Melee sleeves are fitted from a fixed shoulder to the animated grip.
+    // Preserve that articulated cloth/wrist assembly instead of replacing it
+    // with the rifle sleeve's baked, extended silhouette.
+    if(arm.userData.dynamicMeleeArm)return;
     const side=arm.userData.side<0?'Left':'Right',source=template.getObjectByName('TLD_ViewSleeve_'+side),limb=arm.userData.sculptRuntime.parts[0];
     if(!source?.isMesh)return;
     for(const child of [...limb.children])if(child.isMesh){child.removeFromParent();child.geometry.dispose();child.material?.dispose();}

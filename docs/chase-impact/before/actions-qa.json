@@ -1,0 +1,1124 @@
+{
+  "source": "current working game",
+  "captureURL": "http://127.0.0.1:5200/",
+  "errors": [],
+  "requests": [],
+  "weapons": [
+    {
+      "weapon": 0,
+      "trace": [
+        {
+          "phase": "idle",
+          "shot": 0,
+          "mechanism": "jawTension",
+          "value": 0,
+          "recoil": 0,
+          "events": [
+            "wave"
+          ],
+          "render": {
+            "calls": 239,
+            "gpuTriangles": 193144,
+            "textures": 68
+          }
+        },
+        {
+          "phase": "action",
+          "shot": 0.6499999999999999,
+          "mechanism": "jawTension",
+          "value": 0.5220457767610652,
+          "recoil": 0.44932896411727397,
+          "events": [
+            "wave",
+            "shot"
+          ],
+          "render": {
+            "calls": 247,
+            "gpuTriangles": 193670,
+            "textures": 68
+          }
+        },
+        {
+          "phase": "rest",
+          "shot": 0,
+          "mechanism": "jawTension",
+          "value": 4.0099404663659834e-15,
+          "recoil": 1.9089086167445022e-18,
+          "events": [
+            "wave",
+            "shot"
+          ],
+          "render": {
+            "calls": 239,
+            "gpuTriangles": 193144,
+            "textures": 68
+          }
+        }
+      ]
+    },
+    {
+      "weapon": 1,
+      "trace": [
+        {
+          "phase": "idle",
+          "shot": 0,
+          "mechanism": "pressurePulse",
+          "value": 0,
+          "recoil": 0,
+          "events": [
+            "wave",
+            "shot"
+          ],
+          "render": {
+            "calls": 241,
+            "gpuTriangles": 199156,
+            "textures": 68
+          }
+        },
+        {
+          "phase": "action",
+          "shot": 0.6499999999999999,
+          "mechanism": "pressurePulse",
+          "value": 0.6065306597126774,
+          "recoil": 0.49658530379146004,
+          "events": [
+            "wave",
+            "shot",
+            "shot"
+          ],
+          "render": {
+            "calls": 249,
+            "gpuTriangles": 199890,
+            "textures": 68
+          }
+        },
+        {
+          "phase": "rest",
+          "shot": 0,
+          "mechanism": "pressurePulse",
+          "value": 8.42346375449983e-12,
+          "recoil": 3.1310283217941426e-16,
+          "events": [
+            "wave",
+            "shot",
+            "shot"
+          ],
+          "render": {
+            "calls": 241,
+            "gpuTriangles": 199156,
+            "textures": 68
+          }
+        }
+      ]
+    },
+    {
+      "weapon": 2,
+      "trace": [
+        {
+          "phase": "idle",
+          "shot": 0,
+          "mechanism": "cagePulse",
+          "value": 0,
+          "recoil": 0,
+          "events": [
+            "wave",
+            "shot",
+            "shot"
+          ],
+          "render": {
+            "calls": 235,
+            "gpuTriangles": 200624,
+            "textures": 68
+          }
+        },
+        {
+          "phase": "action",
+          "shot": 0.6499999999999999,
+          "mechanism": "cagePulse",
+          "value": 0.7046880897186417,
+          "recoil": 0.44932896411711704,
+          "events": [
+            "wave",
+            "shot",
+            "shot",
+            "shot"
+          ],
+          "render": {
+            "calls": 245,
+            "gpuTriangles": 201614,
+            "textures": 68
+          }
+        },
+        {
+          "phase": "rest",
+          "shot": 0,
+          "mechanism": "cagePulse",
+          "value": 1.769471198337334e-8,
+          "recoil": 1.908908616710508e-18,
+          "events": [
+            "wave",
+            "shot",
+            "shot",
+            "shot"
+          ],
+          "render": {
+            "calls": 235,
+            "gpuTriangles": 200624,
+            "textures": 68
+          }
+        }
+      ]
+    },
+    {
+      "weapon": 3,
+      "trace": [
+        {
+          "phase": "idle",
+          "shot": 0,
+          "mechanism": "ritualPulse",
+          "value": 0,
+          "recoil": 0,
+          "events": [
+            "wave",
+            "shot",
+            "shot",
+            "shot"
+          ],
+          "render": {
+            "calls": 241,
+            "gpuTriangles": 200248,
+            "textures": 68
+          }
+        },
+        {
+          "phase": "action",
+          "shot": 0.6499999999999999,
+          "mechanism": "ritualPulse",
+          "value": 0.6703200460355613,
+          "recoil": 0.5220457767609173,
+          "events": [
+            "wave",
+            "shot",
+            "shot",
+            "shot",
+            "rocket"
+          ],
+          "render": {
+            "calls": 249,
+            "gpuTriangles": 200806,
+            "textures": 68
+          }
+        },
+        {
+          "phase": "rest",
+          "shot": 0,
+          "mechanism": "ritualPulse",
+          "value": 1.3816325910713404e-9,
+          "recoil": 4.0099404663080384e-15,
+          "events": [
+            "wave",
+            "shot",
+            "shot",
+            "shot",
+            "rocket"
+          ],
+          "render": {
+            "calls": 241,
+            "gpuTriangles": 200248,
+            "textures": 68
+          }
+        }
+      ]
+    }
+  ],
+  "gait": [
+    {
+      "id": 93001,
+      "x": 19.684180755694655,
+      "y": 23.05955696277306,
+      "dead": false,
+      "attacking": false,
+      "windup": 0,
+      "strike": 0,
+      "attackActive": false,
+      "hitActive": false,
+      "gaitTimeScale": 3.2482230989346332,
+      "weights": {
+        "idle": 0,
+        "shuffle": 1,
+        "attack": 0,
+        "hit": 0,
+        "collapse": 0
+      },
+      "clipTimes": {
+        "idle": 0.2660000000000728,
+        "shuffle": 0.6116066715802752,
+        "attack": 0,
+        "hit": 0,
+        "collapse": 0
+      },
+      "leftFoot": [
+        78.93864238406053,
+        0.1484517384473576,
+        92.00171085300255
+      ],
+      "rightFoot": [
+        78.53095051696121,
+        0.13792825457482671,
+        92.28688206152451
+      ],
+      "head": [
+        78.70337311977264,
+        1.6907390651394139,
+        92.27546025200755
+      ],
+      "rootYaw": -3.301709451842197,
+      "emissive": [
+        {
+          "color": 0,
+          "intensity": 0,
+          "map": false
+        }
+      ]
+    },
+    {
+      "id": 93001,
+      "x": 19.65184624939352,
+      "y": 23.329913428816134,
+      "dead": false,
+      "attacking": false,
+      "windup": 0,
+      "strike": 0,
+      "attackActive": false,
+      "hitActive": false,
+      "gaitTimeScale": 3.25,
+      "weights": {
+        "idle": 0,
+        "shuffle": 1,
+        "attack": 0,
+        "hit": 0,
+        "collapse": 0
+      },
+      "clipTimes": {
+        "idle": 0.5160000000001452,
+        "shuffle": 1.424106671580512,
+        "attack": 0,
+        "hit": 0,
+        "collapse": 0
+      },
+      "leftFoot": [
+        78.78518458591438,
+        0.13269891551156543,
+        93.47824090602592
+      ],
+      "rightFoot": [
+        78.48832915689802,
+        0.15706149714429657,
+        93.039663971152
+      ],
+      "head": [
+        78.6179594249822,
+        1.6893392751954206,
+        93.37199008986588
+      ],
+      "rootYaw": -3.314371141078265,
+      "emissive": [
+        {
+          "color": 0,
+          "intensity": 0,
+          "map": false
+        }
+      ]
+    },
+    {
+      "id": 93001,
+      "x": 19.603880533836545,
+      "y": 23.604759367718458,
+      "dead": false,
+      "attacking": false,
+      "windup": 0,
+      "strike": 0,
+      "attackActive": false,
+      "hitActive": false,
+      "gaitTimeScale": 3.25,
+      "weights": {
+        "idle": 0,
+        "shuffle": 1,
+        "attack": 0,
+        "hit": 0,
+        "collapse": 0
+      },
+      "clipTimes": {
+        "idle": 0.7660000000002176,
+        "shuffle": 0.7366066715807486,
+        "attack": 0,
+        "hit": 0,
+        "collapse": 0
+      },
+      "leftFoot": [
+        78.62187410304031,
+        0.17882978527457172,
+        94.11065508528743
+      ],
+      "rightFoot": [
+        78.19185629555463,
+        0.14365551445953434,
+        94.52560797329531
+      ],
+      "head": [
+        78.3859536296826,
+        1.6872713525331886,
+        94.4811106206204
+      ],
+      "rootYaw": -3.314371141078281,
+      "emissive": [
+        {
+          "color": 0,
+          "intensity": 0,
+          "map": false
+        }
+      ]
+    },
+    {
+      "id": 93001,
+      "x": 19.59428739072515,
+      "y": 23.659728555498923,
+      "dead": false,
+      "attacking": false,
+      "windup": 0,
+      "strike": 0,
+      "attackActive": false,
+      "hitActive": false,
+      "gaitTimeScale": 0.72,
+      "weights": {
+        "idle": 0.7435298506152246,
+        "shuffle": 0.2564701493847754,
+        "attack": 0,
+        "hit": 0,
+        "collapse": 0
+      },
+      "clipTimes": {
+        "idle": 1.01600000000029,
+        "shuffle": 1.169222876678974,
+        "attack": 0,
+        "hit": 0,
+        "collapse": 0
+      },
+      "leftFoot": [
+        78.56583969312811,
+        0.11831916492118738,
+        94.66639698483922
+      ],
+      "rightFoot": [
+        78.23312931533124,
+        0.14030356735619387,
+        94.44816821329756
+      ],
+      "head": [
+        78.37543100629392,
+        1.6951255624621409,
+        94.65464866778997
+      ],
+      "rootYaw": -3.314371141078286,
+      "emissive": [
+        {
+          "color": 0,
+          "intensity": 0,
+          "map": false
+        }
+      ]
+    }
+  ],
+  "attack": [
+    {
+      "phase": "windup",
+      "id": 93001,
+      "x": 19.5,
+      "y": 23.668599999999998,
+      "dead": false,
+      "attacking": true,
+      "windup": 0.12333333333333335,
+      "strike": 0,
+      "attackActive": true,
+      "hitActive": false,
+      "gaitTimeScale": 0.72,
+      "weights": {
+        "idle": 0,
+        "shuffle": 0,
+        "attack": 1,
+        "hit": 0,
+        "collapse": 0
+      },
+      "clipTimes": {
+        "idle": 1.1326666666669905,
+        "shuffle": 1.253222876678999,
+        "attack": 0.11666666666670063,
+        "hit": 0,
+        "collapse": 0
+      },
+      "leftFoot": [
+        78.18272796473202,
+        0.12666149085074158,
+        94.60714948120749
+      ],
+      "rightFoot": [
+        77.81764370026603,
+        0.13472849454024766,
+        94.55790117042619
+      ],
+      "head": [
+        78.00607919575917,
+        1.7013165307235605,
+        94.63582003875739
+      ],
+      "rootYaw": -3.141592653589793,
+      "emissive": [
+        {
+          "color": 0,
+          "intensity": 0,
+          "map": false
+        }
+      ]
+    },
+    {
+      "phase": "commit",
+      "id": 93001,
+      "x": 19.5,
+      "y": 23.668599999999998,
+      "dead": false,
+      "attacking": false,
+      "windup": 0,
+      "strike": 0.15666666666666668,
+      "attackActive": true,
+      "hitActive": false,
+      "gaitTimeScale": 0.72,
+      "weights": {
+        "idle": 0,
+        "shuffle": 0,
+        "attack": 1,
+        "hit": 0,
+        "collapse": 0
+      },
+      "clipTimes": {
+        "idle": 1.3493333333337199,
+        "shuffle": 1.4092228766790453,
+        "attack": 0.33333333333343024,
+        "hit": 0,
+        "collapse": 0
+      },
+      "leftFoot": [
+        78.19928327260948,
+        0.17810578398794324,
+        94.83757319353307
+      ],
+      "rightFoot": [
+        77.83235460571214,
+        0.20968989526827914,
+        94.35485189898814
+      ],
+      "head": [
+        77.96922908179675,
+        1.6836737703068385,
+        94.84443330955396
+      ],
+      "rootYaw": -3.141592653589793,
+      "emissive": [
+        {
+          "color": 0,
+          "intensity": 0,
+          "map": false
+        }
+      ]
+    },
+    {
+      "phase": "recover",
+      "id": 93001,
+      "x": 19.5,
+      "y": 23.668599999999998,
+      "dead": false,
+      "attacking": false,
+      "windup": 0,
+      "strike": 0,
+      "attackActive": false,
+      "hitActive": false,
+      "gaitTimeScale": 0.72,
+      "weights": {
+        "idle": 1,
+        "shuffle": 0,
+        "attack": 0,
+        "hit": 0,
+        "collapse": 0
+      },
+      "clipTimes": {
+        "idle": 1.8660000000005361,
+        "shuffle": 0.2812228766791541,
+        "attack": 0,
+        "hit": 0,
+        "collapse": 0
+      },
+      "leftFoot": [
+        78.19463218407601,
+        0.11535480417796196,
+        94.70036680000217
+      ],
+      "rightFoot": [
+        77.807634196383,
+        0.1229257929971233,
+        94.673239149532
+      ],
+      "head": [
+        77.99756856268998,
+        1.6960750034069392,
+        94.66528648626803
+      ],
+      "rootYaw": -3.141592653589793,
+      "emissive": [
+        {
+          "color": 0,
+          "intensity": 0,
+          "map": false
+        }
+      ]
+    }
+  ],
+  "blood": [
+    {
+      "phase": "hit",
+      "enemy": {
+        "id": 93001,
+        "x": 19.5,
+        "y": 23.255799999999997,
+        "dead": false,
+        "attacking": false,
+        "windup": 0,
+        "strike": 0,
+        "attackActive": false,
+        "hitActive": true,
+        "gaitTimeScale": 0.72,
+        "weights": {
+          "idle": 0,
+          "shuffle": 0.6078431372547879,
+          "attack": 0,
+          "hit": 0.3921568627452121,
+          "collapse": 0
+        },
+        "clipTimes": {
+          "idle": 0.16599992052788418,
+          "shuffle": 0.7972228766793036,
+          "attack": 0,
+          "hit": 0.05000000000001455,
+          "collapse": 0
+        },
+        "leftFoot": [
+          78.16091767334582,
+          0.1525297251333308,
+          92.76461249467121
+        ],
+        "rightFoot": [
+          77.80347727982891,
+          0.1297519214906413,
+          93.08716178892429
+        ],
+        "head": [
+          77.99405037264252,
+          1.6897287359008026,
+          93.07629442124264
+        ],
+        "rootYaw": -3.141592653589793,
+        "emissive": [
+          {
+            "color": 0,
+            "intensity": 0,
+            "map": false
+          }
+        ]
+      },
+      "fx": {
+        "splashes": 1,
+        "drops": 9
+      },
+      "gore": 12,
+      "blood": 1,
+      "tracers": [
+        {
+          "id": 28,
+          "x": 19.5,
+          "y": 24.2,
+          "z": 0.4,
+          "tx": 19.5,
+          "ty": 23.2,
+          "tz": 0.21803047095980155,
+          "surface": "flesh",
+          "normal": {
+            "x": 0,
+            "y": 0,
+            "z": 1
+          },
+          "ownerId": "host",
+          "life": 0.13,
+          "duration": 0.18,
+          "weapon": 0,
+          "hit": true,
+          "rail": false
+        }
+      ],
+      "splashes": [
+        {
+          "position": [
+            78,
+            0.9329919388039865,
+            93.35770685554795
+          ],
+          "age": 0.05000000000001455,
+          "size": 0.5712936503216856,
+          "duration": 0.2856468251608428
+        }
+      ]
+    },
+    {
+      "phase": "kill",
+      "dead": true,
+      "fx": {
+        "splashes": 1,
+        "drops": 16
+      },
+      "gore": 46,
+      "blood": 5
+    }
+  ],
+  "collapse": [
+    {
+      "id": 93001,
+      "x": 19.5,
+      "y": 23.627799999999983,
+      "dead": true,
+      "attacking": false,
+      "windup": 0,
+      "strike": 0,
+      "attackActive": false,
+      "hitActive": false,
+      "gaitTimeScale": 0.72,
+      "weights": {
+        "idle": 0,
+        "shuffle": 0,
+        "attack": 0,
+        "hit": 0,
+        "collapse": 1
+      },
+      "clipTimes": {
+        "idle": 0.999333253861459,
+        "shuffle": 1.3972228766794799,
+        "attack": 0,
+        "hit": 0,
+        "collapse": 0.5000000000001452
+      },
+      "leftFoot": [
+        78.1839372921111,
+        0.1266827806542678,
+        94.48151501167706
+      ],
+      "rightFoot": [
+        77.8243248173747,
+        0.17033542322595635,
+        94.37185475140186
+      ],
+      "head": [
+        77.96453671007794,
+        1.6317427623348657,
+        94.92670945977157
+      ],
+      "rootYaw": -3.141592653589793,
+      "emissive": [
+        {
+          "color": 0,
+          "intensity": 0,
+          "map": false
+        }
+      ]
+    },
+    {
+      "id": 93001,
+      "x": 19.5,
+      "y": 23.627799999999983,
+      "dead": true,
+      "attacking": false,
+      "windup": 0,
+      "strike": 0,
+      "attackActive": false,
+      "hitActive": false,
+      "gaitTimeScale": 0.72,
+      "weights": {
+        "idle": 0,
+        "shuffle": 0,
+        "attack": 0,
+        "hit": 0,
+        "collapse": 1
+      },
+      "clipTimes": {
+        "idle": 0.3493331743891112,
+        "shuffle": 1.1692228766798503,
+        "attack": 0,
+        "hit": 0,
+        "collapse": 1.8333333730697632
+      },
+      "leftFoot": [
+        78.1839964225417,
+        0.14002841257256457,
+        94.7470828024039
+      ],
+      "rightFoot": [
+        77.77266391526412,
+        0.23362753320019358,
+        94.64478662972212
+      ],
+      "head": [
+        77.79397119711419,
+        0.09000000000000004,
+        95.76980440024353
+      ],
+      "rootYaw": -3.141592653589793,
+      "emissive": [
+        {
+          "color": 0,
+          "intensity": 0,
+          "map": false
+        }
+      ]
+    },
+    {
+      "id": 93001,
+      "x": 19.5,
+      "y": 23.627799999999983,
+      "dead": true,
+      "attacking": false,
+      "windup": 0,
+      "strike": 0,
+      "attackActive": false,
+      "hitActive": false,
+      "gaitTimeScale": 0.72,
+      "weights": {
+        "idle": 0,
+        "shuffle": 0,
+        "attack": 0,
+        "hit": 0,
+        "collapse": 1
+      },
+      "clipTimes": {
+        "idle": 0.3826665077224542,
+        "shuffle": 1.1932228766798574,
+        "attack": 0,
+        "hit": 0,
+        "collapse": 1.8333333730697632
+      },
+      "leftFoot": [
+        78.1839964225417,
+        0.14002841257256457,
+        94.7470828024039
+      ],
+      "rightFoot": [
+        77.77266391526412,
+        0.23362753320019358,
+        94.64478662972212
+      ],
+      "head": [
+        77.79397119711419,
+        0.09000000000000004,
+        95.76980440024353
+      ],
+      "rootYaw": -3.141592653589793,
+      "emissive": [
+        {
+          "color": 0,
+          "intensity": 0,
+          "map": false
+        }
+      ]
+    }
+  ],
+  "diagnostics": {
+    "renderer": "three.js",
+    "worldBatch": {
+      "removed": 2264,
+      "batches": 48
+    },
+    "staticWorld": {
+      "frozen": 152,
+      "pruned": 58
+    },
+    "boundedLighting": true,
+    "afterlifeLighting": {
+      "practicalPool": 6,
+      "authoredCues": 18,
+      "lanternShadow": 512
+    },
+    "afterlifeAtmosphere": {
+      "name": "AfterlifeAtmosphere",
+      "seed": 915775324,
+      "courseId": "f3-catacombs",
+      "bounded": true,
+      "coordinateCellMeters": 4,
+      "floorY": 0,
+      "roomCount": 11,
+      "roomIds": [
+        "f3-entry",
+        "f3-hub",
+        "f3-cryptW",
+        "f3-cryptE",
+        "f3-court",
+        "f3-vault",
+        "f3-niche",
+        "f3-ossuaryS",
+        "f3-stores",
+        "f3-tomb",
+        "f3-apse"
+      ],
+      "mistPatches": 21,
+      "coldSources": 10,
+      "specks": 40,
+      "beams": 0,
+      "drawCalls": 2,
+      "reducedMotion": false,
+      "mobileBudget": false,
+      "noSceneFogMutation": true,
+      "noDynamicLights": true,
+      "disposed": false
+    },
+    "afterlifeSurfaces": {
+      "applied": true,
+      "version": 1,
+      "sector": "ossuary",
+      "visited": 2410,
+      "meshes": 2307,
+      "changedMeshes": 1592,
+      "changedMaterials": 45,
+      "clonedMaterials": 45,
+      "skipped": 25,
+      "skippedSubtrees": 25,
+      "preservedCues": 38,
+      "materialSyncScheduled": true,
+      "materialSyncPending": 0,
+      "roles": {
+        "roomFloor": 15,
+        "roomFloorInset": 1,
+        "roomRecess": 2,
+        "roomMetal": 1097,
+        "roomWall": 42,
+        "roomPanel": 2,
+        "roomTrim": 97,
+        "roomSignal": 94,
+        "roomRust": 22,
+        "roomHazard": 94,
+        "roomBone": 126
+      }
+    },
+    "afterlifeMapDesign": {
+      "name": "AfterlifeMapDesign",
+      "version": "afterlife-map-design-v2",
+      "courseId": "f3-catacombs",
+      "profile": "ossuary",
+      "thresholds": 3,
+      "routeMeters": 0,
+      "sightlineBreaks": 1,
+      "upperSilhouettePieces": 1,
+      "composition": {
+        "mode": "story-edge-divider",
+        "divider": {
+          "id": "f3-o-hub-s",
+          "roomId": "f3-hub",
+          "anchor": [
+            87.03,
+            1.12,
+            71.28
+          ],
+          "openingCenter": [
+            78,
+            0,
+            72
+          ],
+          "edgeSide": 1
+        },
+        "silhouette": {
+          "id": "f3-o-hub-n-w",
+          "roomId": "f3-hub",
+          "anchor": [
+            56.4,
+            5.75,
+            56.34
+          ],
+          "edgeSide": -1
+        }
+      },
+      "propsFallback": 0,
+      "draws": 3,
+      "triangles": 36,
+      "propSlots": [
+        {
+          "id": "mourning-cabinet:f3-cryptW",
+          "kind": "mourning-cabinet",
+          "roomId": "f3-cryptW",
+          "position": [
+            9.4,
+            0,
+            52
+          ],
+          "anchor": null,
+          "lightingPool": false,
+          "pillarClearance": false,
+          "clearanceFrom": null
+        },
+        {
+          "id": "wheelchair:f3-entry",
+          "kind": "wheelchair",
+          "roomId": "f3-entry",
+          "position": [
+            72.6,
+            0,
+            87.58
+          ],
+          "anchor": "entry",
+          "lightingPool": true,
+          "pillarClearance": true,
+          "clearanceFrom": "f3-sp-entry-bone-gate"
+        }
+      ],
+      "externalPropsAttached": [
+        "mourning-cabinet:f3-cryptW",
+        "wheelchair:f3-entry"
+      ],
+      "externalPropsMissing": [],
+      "externalPropErrors": [],
+      "collisionChanged": false
+    },
+    "afterlifeEnemies": 1,
+    "ashWitness": {
+      "loaded": true,
+      "error": null,
+      "instances": 1,
+      "clips": [
+        "AshWitness_AttackLunge",
+        "AshWitness_Collapse",
+        "AshWitness_HitRecoil",
+        "AshWitness_Idle",
+        "AshWitness_Shuffle"
+      ]
+    },
+    "transmissionCoverage": 1,
+    "weaponBatch": [
+      {
+        "parents": 4,
+        "groups": 7,
+        "meshesBefore": 92,
+        "meshesAfter": 76,
+        "mergedMeshes": 7,
+        "mergedSources": 23
+      },
+      {
+        "parents": 4,
+        "groups": 6,
+        "meshesBefore": 98,
+        "meshesAfter": 87,
+        "mergedMeshes": 6,
+        "mergedSources": 17
+      },
+      {
+        "parents": 5,
+        "groups": 8,
+        "meshesBefore": 97,
+        "meshesAfter": 82,
+        "mergedMeshes": 8,
+        "mergedSources": 23
+      },
+      {
+        "parents": 4,
+        "groups": 6,
+        "meshesBefore": 102,
+        "meshesAfter": 87,
+        "mergedMeshes": 6,
+        "mergedSources": 21
+      },
+      {
+        "parents": 4,
+        "groups": 5,
+        "meshesBefore": 98,
+        "meshesAfter": 83,
+        "mergedMeshes": 5,
+        "mergedSources": 20
+      },
+      {
+        "parents": 3,
+        "groups": 4,
+        "meshesBefore": 99,
+        "meshesAfter": 87,
+        "mergedMeshes": 4,
+        "mergedSources": 16
+      },
+      {
+        "parents": 3,
+        "groups": 3,
+        "meshesBefore": 76,
+        "meshesAfter": 67,
+        "mergedMeshes": 3,
+        "mergedSources": 12
+      },
+      {
+        "parents": 1,
+        "groups": 1,
+        "meshesBefore": 74,
+        "meshesAfter": 71,
+        "mergedMeshes": 1,
+        "mergedSources": 4
+      }
+    ],
+    "survivor": {
+      "status": "ready",
+      "source": "meshy-v02",
+      "viewSleeves": 11,
+      "error": null
+    },
+    "targetFrameMs": 6.944444444444445,
+    "webgl": true,
+    "error": null,
+    "width": 1536,
+    "height": 864,
+    "dpr": 1,
+    "renderScale": 1,
+    "fov": 92,
+    "meshes": 901,
+    "instancedMeshes": 66,
+    "geometries": 832,
+    "materials": 478,
+    "triangles": 647206,
+    "calls": 204,
+    "gpuTriangles": 214748,
+    "rendererGeometries": 877,
+    "explosions": {
+      "active": 0,
+      "fire": 0,
+      "smoke": 0,
+      "embers": 0,
+      "rings": 0,
+      "maxExplosions": 18,
+      "reducedMotion": false,
+      "gore": true
+    },
+    "impacts": {
+      "marks": 0,
+      "smoke": 0,
+      "capacity": {
+        "marks": 96,
+        "smoke": 96
+      }
+    },
+    "rendererTextures": 69,
+    "enemyContactShadows": 0,
+    "enemies": 0,
+    "gore": 30,
+    "blood": 8,
+    "projectiles": 0,
+    "tracers": 0,
+    "coins": 0,
+    "world": "f3-catacombs",
+    "warden": "ready",
+    "wardenInstances": 0
+  }
+}

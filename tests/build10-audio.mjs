@@ -10,6 +10,8 @@ const processed = [
   'assets/audio/sfx/processed/breach-shot.wav',
   'assets/audio/sfx/processed/arc-lance.wav',
   'assets/audio/sfx/processed/reliquary-launch.wav',
+  'assets/audio/sfx/processed/carrion-auto-rifle.wav',
+  'assets/audio/sfx/processed/mourning-marksman.wav',
   'assets/audio/sfx/processed/impact-metal-flesh.wav',
   'assets/audio/sfx/processed/blood-burst.wav',
 ];
@@ -36,6 +38,12 @@ try {
     const mod = await import('/assets/audio.js');
     const generatedMethods = ['_synth', '_synthAccent', '_synthAmbience']
       .filter(name => typeof mod.AudioSystem.prototype[name] === 'function');
+    const riflePools = [4, 5].map(weapon => ({
+      weapon,
+      shot: Boolean(a._chooseBuffer('shot', weapon)),
+      mechanism: Boolean(a._chooseBuffer('mechanism', weapon)),
+    }));
+    const rifleCharge = Boolean(a._chooseBuffer('rifle-charge', 5));
     const originalGroup = a._group;
     const routedGroups = [];
     let voiceEventPlayed = false;
@@ -53,6 +61,8 @@ try {
       normalizedSamples: a.debugInfo.normalizedSamples,
       loadErrors: a.debugInfo.errors,
       generatedMethods,
+      riflePools,
+      rifleCharge,
       voiceEventPlayed,
       routedGroups,
     };
@@ -84,7 +94,7 @@ try {
   const groupSettings = { sfxVolume: 'sfx', voiceVolume: 'voice', musicVolume: 'music', ambienceVolume: 'ambience', uiVolume: 'ui' };
   const liveApplied = Object.entries(groupSettings).every(([pref, group]) => Math.abs(Number(result.settings.liveGroups[group]) - testVolumes[pref]) < .001);
   const restoredApplied = Object.entries(groupSettings).every(([pref, group]) => Math.abs(Number(result.settings.restored.groups[group]) - testVolumes[pref]) < .001);
-  if (!result.processed.every(item => item.exists && item.bytes > 1000) || !result.browser.loaded || !result.browser.manifestEntries || result.browser.decoded !== result.browser.manifestEntries || result.browser.normalizedPools < 20 || result.browser.normalizedSamples < 60 || result.browser.loadErrors.length || result.browser.generatedMethods.length || !result.browser.voiceEventPlayed || !result.browser.routedGroups.includes('voice') || !settingsPersisted || !liveApplied || !restoredApplied || errors.length) process.exitCode = 1;
+  if (!result.processed.every(item => item.exists && item.bytes > 1000) || !result.browser.loaded || !result.browser.manifestEntries || result.browser.decoded !== result.browser.manifestEntries || result.browser.normalizedPools < 20 || result.browser.normalizedSamples < 60 || result.browser.loadErrors.length || result.browser.generatedMethods.length || result.browser.riflePools.some(pool => !pool.shot || !pool.mechanism) || !result.browser.rifleCharge || !result.browser.voiceEventPlayed || !result.browser.routedGroups.includes('voice') || !settingsPersisted || !liveApplied || !restoredApplied || errors.length) process.exitCode = 1;
 } finally {
   await browser.close();
   preview.server.closeAllConnections();

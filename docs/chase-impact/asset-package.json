@@ -1,0 +1,107 @@
+{
+  "character": "Ash Witness",
+  "source": "C:\\Users\\wolfk\\Desktop\\thelastdead\\.codex-temp\\chase-impact\\ash-witness-v03-raw.glb",
+  "output": "C:\\Users\\wolfk\\Desktop\\thelastdead\\assets\\models\\afterlife-ash-witness-chase-v03.glb",
+  "sourceSha256": "a77b906587bab81fbeeae602cea1dbb6c9b2b3cf68849d8812f60e7a902acc41",
+  "outputSha256": "7ac0f1f1ae0ab26bec8b582a25736077d4744ab363e4e2097794c3f7d1902182",
+  "before": {
+    "bytes": 32864260,
+    "meshes": 1,
+    "skins": 1,
+    "joints": [
+      24
+    ],
+    "materials": 1,
+    "textures": 1,
+    "animations": [
+      {
+        "name": "AshWitness_AttackLunge",
+        "channels": 72
+      },
+      {
+        "name": "AshWitness_Chase",
+        "channels": 72
+      },
+      {
+        "name": "AshWitness_Collapse",
+        "channels": 72
+      },
+      {
+        "name": "AshWitness_HitRecoil",
+        "channels": 72
+      },
+      {
+        "name": "AshWitness_Idle",
+        "channels": 72
+      },
+      {
+        "name": "AshWitness_Shuffle",
+        "channels": 72
+      }
+    ]
+  },
+  "after": {
+    "bytes": 2463768,
+    "meshes": 1,
+    "skins": 1,
+    "joints": [
+      24
+    ],
+    "materials": 1,
+    "textures": 1,
+    "animations": [
+      {
+        "name": "AshWitness_AttackLunge",
+        "channels": 72
+      },
+      {
+        "name": "AshWitness_Chase",
+        "channels": 72
+      },
+      {
+        "name": "AshWitness_Collapse",
+        "channels": 72
+      },
+      {
+        "name": "AshWitness_HitRecoil",
+        "channels": 72
+      },
+      {
+        "name": "AshWitness_Idle",
+        "channels": 72
+      },
+      {
+        "name": "AshWitness_Shuffle",
+        "channels": 72
+      }
+    ],
+    "sourceTriangles": 59910,
+    "simplifiedTriangles": 27512
+  },
+  "recipe": {
+    "textureFormat": "webp",
+    "textureMaxSize": 512,
+    "textureQuality": 74,
+    "simplifier": {
+      "algorithm": "meshoptimizer",
+      "ratio": 0.35,
+      "error": 0.001,
+      "lockBorder": true
+    },
+    "transforms": [
+      "simplifyPrimitive",
+      "prune",
+      "dedup",
+      "resample",
+      "textureCompress",
+      "sparse"
+    ]
+  },
+  "withinRuntimeBudget": true,
+  "runtimeBudgetBytes": 5242880,
+  "notes": [
+    "The model is a visual enemy asset; collision remains procedural in the game.",
+    "The Blender-authored Dread v02 clips are preserved as named GLB animations.",
+    "Material and geometry reduction is intentionally conservative enough to keep the face and clothing readable in cold low light."
+  ]
+}

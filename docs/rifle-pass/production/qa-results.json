@@ -1,0 +1,1810 @@
+{
+  "errors": [],
+  "frames": [
+    {
+      "name": "ossuary-reference",
+      "weapon": 0,
+      "sequence": 0,
+      "shot": 0,
+      "mode": "",
+      "charge": 0,
+      "heat": 0,
+      "calls": 193,
+      "triangles": 186252,
+      "textures": 68,
+      "fov": 92,
+      "pixelLevels": 20,
+      "mechanisms": [
+        {
+          "name": "barrel",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "cylinder",
+          "position": [
+            -0.14,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            1.047056375474934
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "ribs",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            -0.01001097541568253
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "jaw",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            -0.009328158810351081,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "trigger",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "carrion-idle",
+      "weapon": 4,
+      "sequence": 0,
+      "shot": 0,
+      "mode": "",
+      "charge": 0,
+      "heat": 0,
+      "calls": 197,
+      "triangles": 188500,
+      "textures": 68,
+      "fov": 92,
+      "pixelLevels": 96,
+      "mechanisms": [
+        {
+          "name": "recoil-carriage",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "bolt-carrier",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "bolt-handle",
+          "position": [
+            0.135,
+            0.2,
+            0.12
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "barrel-shroud",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "heat-vents",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "magazine-follower",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "trigger",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "carrion-auto",
+      "weapon": 4,
+      "sequence": 4,
+      "shot": 0.8833333333333333,
+      "mode": "auto",
+      "charge": 0,
+      "heat": 0.22799999999999987,
+      "calls": 202,
+      "triangles": 188732,
+      "textures": 68,
+      "fov": 92,
+      "pixelLevels": 58,
+      "mechanisms": [
+        {
+          "name": "recoil-carriage",
+          "position": [
+            0,
+            0,
+            0.03236207686143294
+          ],
+          "rotation": [
+            -0.011949074533452163,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "bolt-carrier",
+          "position": [
+            0,
+            0,
+            0.06499641590618722
+          ],
+          "rotation": [
+            0.028259311263559662,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "bolt-handle",
+          "position": [
+            0.135,
+            0.2,
+            0.12
+          ],
+          "rotation": [
+            -0.16955586758135796,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "barrel-shroud",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "heat-vents",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1.0297359827510426,
+            1.019823988500695,
+            1
+          ]
+        },
+        {
+          "name": "magazine-follower",
+          "position": [
+            0,
+            0.008477793379067898,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "trigger",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            -0.07226151871579241,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "carrion-return",
+      "weapon": 4,
+      "sequence": 4,
+      "shot": 0,
+      "mode": "auto",
+      "charge": 0,
+      "heat": 0.005999999999999703,
+      "calls": 201,
+      "triangles": 189148,
+      "textures": 68,
+      "fov": 92,
+      "pixelLevels": 190,
+      "mechanisms": [
+        {
+          "name": "recoil-carriage",
+          "position": [
+            0,
+            0,
+            1.4812891193779744e-8
+          ],
+          "rotation": [
+            -5.469375210010982e-9,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "bolt-carrier",
+          "position": [
+            0,
+            0,
+            4.227760840022457e-7
+          ],
+          "rotation": [
+            1.8381568869662858e-7,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "bolt-handle",
+          "position": [
+            0.135,
+            0.2,
+            0.12
+          ],
+          "rotation": [
+            -0.0000011028941321797713,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "barrel-shroud",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "heat-vents",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1.0174176678787623,
+            1.0116117785858416,
+            1
+          ]
+        },
+        {
+          "name": "magazine-follower",
+          "position": [
+            0,
+            5.5144706608988566e-8,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "trigger",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            -0.0000017718904403920591,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "carrion-burst",
+      "weapon": 4,
+      "sequence": 7,
+      "shot": 1,
+      "mode": "burst",
+      "charge": 0,
+      "heat": 0.14699999999999966,
+      "calls": 206,
+      "triangles": 189430,
+      "textures": 68,
+      "fov": 89.53623533032194,
+      "pixelLevels": 184,
+      "mechanisms": [
+        {
+          "name": "recoil-carriage",
+          "position": [
+            0,
+            0,
+            0.032720024815621467
+          ],
+          "rotation": [
+            -0.012081239931921771,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "bolt-carrier",
+          "position": [
+            0,
+            0,
+            0.06558402392608674
+          ],
+          "rotation": [
+            0.028514793011342063,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "bolt-handle",
+          "position": [
+            0.135,
+            0.2,
+            0.12
+          ],
+          "rotation": [
+            -0.17108875806805235,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "barrel-shroud",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "heat-vents",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1.0333026361415012,
+            1.0222017574276674,
+            1
+          ]
+        },
+        {
+          "name": "magazine-follower",
+          "position": [
+            0,
+            0.008554437903402618,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "trigger",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            -0.07284192941973136,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mourning-idle",
+      "weapon": 5,
+      "sequence": 7,
+      "shot": 0,
+      "mode": "burst",
+      "charge": 0,
+      "heat": 0.014999999999999562,
+      "calls": 205,
+      "triangles": 188178,
+      "textures": 68,
+      "fov": 91.98188671199708,
+      "pixelLevels": 29,
+      "mechanisms": [
+        {
+          "name": "recoil-carriage",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "bolt-carrier",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "charging-lever",
+          "position": [
+            0.15,
+            0.19,
+            0.08
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "barrel-sleeve",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "open-optic",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "charge-indicator",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0.0023026010059342366
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "charge-bar",
+          "position": [
+            0.145,
+            0.292,
+            -0.28
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            0.25
+          ]
+        },
+        {
+          "name": "trigger",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mourning-snap",
+      "weapon": 5,
+      "sequence": 8,
+      "shot": 0.8833333333333333,
+      "mode": "snap",
+      "charge": 0,
+      "heat": 0.008999999999999564,
+      "calls": 209,
+      "triangles": 188288,
+      "textures": 68,
+      "fov": 91.99102317898078,
+      "pixelLevels": 71,
+      "mechanisms": [
+        {
+          "name": "recoil-carriage",
+          "position": [
+            0,
+            0,
+            0.031186587473442003
+          ],
+          "rotation": [
+            -0.010811350324126561,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "bolt-carrier",
+          "position": [
+            0,
+            0,
+            0.0779948206629998
+          ],
+          "rotation": [
+            0.04456846895028559,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "charging-lever",
+          "position": [
+            0.15,
+            0.19,
+            0.1022842344751428
+          ],
+          "rotation": [
+            -0.27855293093928496,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "barrel-sleeve",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1.0017117844258314,
+            1.0014264870215261,
+            1
+          ]
+        },
+        {
+          "name": "open-optic",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "charge-indicator",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0.006328652542840291
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "charge-bar",
+          "position": [
+            0.145,
+            0.292,
+            -0.28
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            0.25
+          ]
+        },
+        {
+          "name": "trigger",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            -0.03921934759682917,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mourning-charge",
+      "weapon": 5,
+      "sequence": 8,
+      "shot": 0,
+      "mode": "snap",
+      "charge": 0.2727272727272726,
+      "heat": 0,
+      "calls": 200,
+      "triangles": 187432,
+      "textures": 68,
+      "fov": 83.83248626957234,
+      "pixelLevels": 33,
+      "mechanisms": [
+        {
+          "name": "recoil-carriage",
+          "position": [
+            0,
+            0,
+            1.9571682767473566e-9
+          ],
+          "rotation": [
+            -6.784850026057503e-10,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "bolt-carrier",
+          "position": [
+            0,
+            0,
+            0.0000012317029226240359
+          ],
+          "rotation": [
+            7.03830241499449e-7,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "charging-lever",
+          "position": [
+            0.15,
+            0.19,
+            0.08000035191512075
+          ],
+          "rotation": [
+            -0.000004398939009371556,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "barrel-sleeve",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1.0013316725468058,
+            1.0011097271223381,
+            1
+          ]
+        },
+        {
+          "name": "open-optic",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "charge-indicator",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            -0.004912025421982603
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "charge-bar",
+          "position": [
+            0.145,
+            0.292,
+            -0.2891447188879054
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            0.3747007121078005
+          ]
+        },
+        {
+          "name": "trigger",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            -8.147130971831164e-10,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mourning-charged-shot",
+      "weapon": 5,
+      "sequence": 9,
+      "shot": 0.9416666666666667,
+      "mode": "charged",
+      "charge": 0,
+      "heat": 0,
+      "calls": 205,
+      "triangles": 187544,
+      "textures": 68,
+      "fov": 78.07995895240217,
+      "pixelLevels": 72,
+      "mechanisms": [
+        {
+          "name": "recoil-carriage",
+          "position": [
+            0,
+            0,
+            0.05271964274522857
+          ],
+          "rotation": [
+            -0.018276142818345904,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "bolt-carrier",
+          "position": [
+            0,
+            0,
+            0.11067991896121383
+          ],
+          "rotation": [
+            0.06324566797783647,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "charging-lever",
+          "position": [
+            0.15,
+            0.19,
+            0.11162283398891823
+          ],
+          "rotation": [
+            -0.39528542486147794,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "barrel-sleeve",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1.0014605565391723,
+            1.0012171304493103,
+            1
+          ]
+        },
+        {
+          "name": "open-optic",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "charge-indicator",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            -0.003568852007229389
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "charge-bar",
+          "position": [
+            0.145,
+            0.292,
+            -0.31579632698857063
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            0.7381317316623262
+          ]
+        },
+        {
+          "name": "trigger",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            -0.06866023331732281,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mourning-return",
+      "weapon": 5,
+      "sequence": 9,
+      "shot": 0,
+      "mode": "charged",
+      "charge": 0,
+      "heat": 0,
+      "calls": 200,
+      "triangles": 187432,
+      "textures": 68,
+      "fov": 91.99999261092132,
+      "pixelLevels": 33,
+      "mechanisms": [
+        {
+          "name": "recoil-carriage",
+          "position": [
+            0,
+            0,
+            1.3698056354573323e-11
+          ],
+          "rotation": [
+            -4.748659536252085e-12,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "bolt-carrier",
+          "position": [
+            0,
+            0,
+            4.5067122106898604e-8
+          ],
+          "rotation": [
+            2.575264120394206e-8,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "charging-lever",
+          "position": [
+            0.15,
+            0.19,
+            0.08000001287632061
+          ],
+          "rotation": [
+            -1.6095400752463786e-7,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "barrel-sleeve",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1.0010738777502313,
+            1.0008948981251926,
+            1
+          ]
+        },
+        {
+          "name": "open-optic",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "charge-indicator",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            -0.0001639655128893583
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "charge-bar",
+          "position": [
+            0.145,
+            0.292,
+            -0.28000000076840054
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            0.2500000104781891
+          ]
+        },
+        {
+          "name": "trigger",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            -4.096102956624551e-12,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rifles-mobile",
+      "weapon": 5,
+      "sequence": 9,
+      "shot": 0,
+      "mode": "charged",
+      "charge": 0,
+      "heat": 0,
+      "calls": 155,
+      "triangles": 179228,
+      "textures": 68,
+      "fov": 91.99999878955852,
+      "pixelLevels": 33,
+      "mechanisms": [
+        {
+          "name": "recoil-carriage",
+          "position": [
+            0,
+            0,
+            1.1933374374880933e-12
+          ],
+          "rotation": [
+            -4.1369031166253896e-13,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "bolt-carrier",
+          "position": [
+            0,
+            0,
+            8.856511763130156e-9
+          ],
+          "rotation": [
+            5.060863864645803e-9,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "charging-lever",
+          "position": [
+            0.15,
+            0.19,
+            0.08000000253043194
+          ],
+          "rotation": [
+            -3.163039915403627e-8,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "barrel-sleeve",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1.000899472868497,
+            1.0007495607237475,
+            1
+          ]
+        },
+        {
+          "name": "open-optic",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "charge-indicator",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            -0.005774054193895417
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "charge-bar",
+          "position": [
+            0.145,
+            0.292,
+            -0.28000000010906145
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            0.2500000014872011
+          ]
+        },
+        {
+          "name": "trigger",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            -3.032602362603506e-13,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "carrion-mobile",
+      "weapon": 4,
+      "sequence": 9,
+      "shot": 0,
+      "mode": "charged",
+      "charge": 0,
+      "heat": 0,
+      "calls": 151,
+      "triangles": 180160,
+      "textures": 68,
+      "fov": 91.99999994622866,
+      "pixelLevels": 33,
+      "mechanisms": [
+        {
+          "name": "recoil-carriage",
+          "position": [
+            0,
+            0,
+            2.9909943734893543e-42
+          ],
+          "rotation": [
+            -1.1043671532883769e-42,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "bolt-carrier",
+          "position": [
+            0,
+            0,
+            1.1418731324996933e-34
+          ],
+          "rotation": [
+            4.964665793476927e-35,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "bolt-handle",
+          "position": [
+            0.135,
+            0.2,
+            0.12
+          ],
+          "rotation": [
+            -2.9787994760861562e-34,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "barrel-shroud",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "heat-vents",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1.0001200451031937,
+            1.0000800300687958,
+            1
+          ]
+        },
+        {
+          "name": "magazine-follower",
+          "position": [
+            0,
+            1.489399738043078e-35,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "trigger",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            -5.534904698026587e-31,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "originalSlots": "4/4 switched and fired",
+    "automatic": "held input produced >=4 shots",
+    "burst": "tap completed exactly three rounds",
+    "chargeCancellation": true,
+    "chargedShot": true,
+    "mobileFit": true
+  },
+  "audio": {
+    "loaded": true,
+    "decoded": 110,
+    "manifestEntries": 110,
+    "normalizedPools": 23,
+    "normalizedSamples": 65,
+    "errors": [],
+    "rifles": [
+      {
+        "weapon": 4,
+        "shot": 0.22,
+        "mechanism": true
+      },
+      {
+        "weapon": 5,
+        "shot": 0.48,
+        "mechanism": true
+      }
+    ],
+    "charge": true
+  }
+}
