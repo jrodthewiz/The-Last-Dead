@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>The Last Dead | Scare playground</title>
+  <style>
+    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#090b0d;color:#e4dfd6;font:14px/1.45 system-ui,sans-serif}canvas{display:block;width:100%;height:100%}
+    aside{position:fixed;top:18px;left:18px;width:270px;padding:17px 18px;background:#0c0e11e8;border:1px solid #55524c;box-shadow:0 10px 50px #0009;border-radius:4px}
+    h1{font-size:17px;letter-spacing:.11em;text-transform:uppercase;margin:0 0 5px}p{color:#b0aaa2;font-size:12px;margin:5px 0 13px}label{display:block;margin:12px 0 5px;font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:#c9beb2}
+    select,input,button{width:100%;accent-color:#ad6b62}input[type=checkbox]{width:auto;margin-right:7px}select,button{padding:9px;background:#1b1e21;border:1px solid #66605a;color:#eee7df;border-radius:2px}button{cursor:pointer;margin-top:12px}button:hover,button:focus-visible{border-color:#d6b79a;background:#333031}output{display:block;min-height:2.8em;font-size:12px;color:#d8b6a9;margin-top:10px}small{display:block;color:#888;font-size:11px;margin-top:12px}
+    .caption{position:fixed;right:20px;bottom:17px;color:#d3c8b9a8;text-align:right;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+    body.capture aside,body.capture .caption{display:none}@media(max-width:620px){aside{width:min(260px,calc(100vw - 24px));top:12px;left:12px;padding:12px}.caption{display:none}}
+  </style>
+</head>
+<body>
+  <canvas id="world"></canvas>
+  <aside>
+    <h1>Scare laboratory</h1>
+    <p>Three isolated encounters. Trigger each beat, then judge the silhouette, timing, sound, and view from the player’s camera.</p>
+    <label for="scene">Encounter</label>
+    <select id="scene"><option value="drop">Ceiling drop</option><option value="piano">Piano vigil</option><option value="window">Window screamer</option></select>
+    <div id="causeGroup"><label for="cause">Ceiling-drop cue</label><select id="cause"><option value="door">Door opened</option><option value="level">Level advanced</option></select></div>
+    <button id="trigger">Trigger encounter</button>
+    <label for="distance">Player distance</label><input id="distance" type="range" min="-1" max="4.5" value="1.2" step=".1">
+    <label><input id="sound" type="checkbox" checked>Sound enabled</label>
+    <button id="reset">Reset beat</button>
+    <output id="status">Loading scene…</output>
+    <small>Drag to look around · wheel to move · 1–3 scenes · Space to trigger · R to reset. Sound unlocks on a click.</small>
+  </aside>
+  <div class="caption">The Last Dead / isolated encounter review</div>
+  <script type="module" src="./playground/horror-scares/playground.js"></script>
+</body>
+</html>

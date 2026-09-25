@@ -134,15 +134,48 @@ export function makeDungeonCourse(index = 0) {
     waveSpawns: Array.from({ length: waveCount }, () => []),
     roomClearWaveByOpening,
     keys: [],
+    loot: [],
+    evidence: [],
+    evidenceTotal: DUNGEON_LAYERS.reduce((sum, floor) => sum + (floor.evidence || []).length, 0),
+    startingWeapons: [...new Set([0, ...DUNGEON_LAYERS.slice(0, floorIndex)
+      .flatMap(previous => (previous.loot || []).map(item => item.weaponIndex))])],
   };
 
   const keyPositions = compiled.keys.map(key => ({
     key,
     position: nearestFloorPoint(compiled.reach, course.w, course.h, key.at[0], key.at[1]),
   }));
+  const lootReserved = new Set([
+    ...compiled.coverBlocks.map(block => `${block.x},${block.y}`),
+    ...keyPositions.map(({ position }) => `${position.cellX},${position.cellZ}`),
+  ]);
+  for (const item of layer.loot || []) {
+    const targetRoom = compiled.rooms.find(room => room.id === item.roomId);
+    if (!targetRoom) throw new Error(`${layer.id}/${item.id}: missing loot room ${item.roomId}`);
+    const position = nearestFloorPoint(compiled.reach, course.w, course.h,
+      item.at[0], item.at[1], lootReserved, { bounds: targetRoom.bounds });
+    if (roomAt(compiled.rooms, position.x, position.y)?.id !== item.roomId) {
+      throw new Error(`${layer.id}/${item.id}: loot escaped ${item.roomId}`);
+    }
+    course.loot.push({ ...item, x: position.x, y: position.y });
+  }
+  for (const item of layer.evidence || []) {
+    const targetRoom = compiled.rooms.find(room => room.id === item.roomId);
+    if (!targetRoom) throw new Error(`${layer.id}/${item.id}: missing evidence room ${item.roomId}`);
+    const position = nearestFloorPoint(compiled.reach, course.w, course.h,
+      item.at[0], item.at[1], lootReserved, { bounds: targetRoom.bounds });
+    if (roomAt(compiled.rooms, position.x, position.y)?.id !== item.roomId) {
+      throw new Error(`${layer.id}/${item.id}: evidence escaped ${item.roomId}`);
+    }
+    course.evidence.push({ ...item, x: position.x, y: position.y });
+  }
   // Keep pickup cells visually readable during combat. A wave spawn should
   // never cover the key that the player is meant to collect after the fight.
-  const keyCells = new Set(keyPositions.map(({ position }) => `${position.cellX},${position.cellZ}`));
+  const keyCells = new Set([
+    ...keyPositions.map(({ position }) => `${position.cellX},${position.cellZ}`),
+    ...course.loot.map(item => `${Math.floor(item.x)},${Math.floor(item.y)}`),
+    ...course.evidence.map(item => `${Math.floor(item.x)},${Math.floor(item.y)}`),
+  ]);
   const reservedByWave = Array.from({ length: waveCount }, () => new Set(keyCells));
   const entryRoom = roomAt(compiled.rooms, course.playerSpawn.x, course.playerSpawn.y);
   const reachByWave = Array.from({ length: waveCount }, (_, waveIndex) => (

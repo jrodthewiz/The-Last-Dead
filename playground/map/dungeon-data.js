@@ -44,13 +44,14 @@ const prop = (id, kind, at, count = 4, spread = 2, extra = {}) => ({ id, kind, a
 const trail = (id, kind, points, count = 10, extra = {}) => ({ id, kind, points, count, ...extra });
 const scare = (id, kind, at, note, extra = {}) => ({ id, kind, at, note, ...extra });
 const piece = (id, type, extra = {}) => ({ id, type, ...extra });
+const loot = (id, weaponIndex, at, roomId, rarity, story) => ({ id, weaponIndex, at, roomId, rarity, story });
+const evidence = (id, title, at, roomId, kind, text) => ({ id, title, at, roomId, kind, text });
 
 export const DUNGEON_LAYERS = Object.freeze([
   // ---------------------------------------------------------------------------
   // FLOOR 01 — INTAKE FOUNDRY
-  // Entry bay -> foundry hall with west/east work rooms -> pulse court ->
-  // furnace key vault -> gated exit spine. Two western routes loop into the
-  // ward so the level can be re-entered from either side of the hall.
+  // Arrive through the lower receiving sluice, climb through the graft ward,
+  // then enter the foundry hall. The former intake is a side loading bay.
   {
     id: 'f1-intake-foundry',
     index: 0,
@@ -61,13 +62,16 @@ export const DUNGEON_LAYERS = Object.freeze([
     theme: 'bloodworks',
     color: '#ff735e',
     width: 34,
-    height: 24,
-    entry: { x: 17.5, z: 21.5, angle: -Math.PI / 2 },
+    height: 27,
+    entry: { x: 6.5, z: 24.5, angle: -2.18 },
     exit: { x: 17.5, z: 2.5 },
     rooms: [
-      room('f1-entry', 'Intake Gate', 'entry', [13, 20, 8, 3], {
-        note: 'Wide spawn bay with the sealed pressure door on the west wall.',
+      room('f1-entry', 'Receiving Dock', 'entry', [2, 23, 9, 3], {
+        note: 'A low receiving bay feeds the western sluice.',
         encounter: { tier: 1, budget: 5, maxAlive: 4, composition: { stalker: 2, caster: 1 }, tactic: 'Read the intake threshold before pushing north.' },
+      }),
+      room('f1-loading', 'Old Intake', 'side', [13, 20, 8, 3], {
+        note: 'A disused loading bay branches off the foundry hall.',
       }),
       room('f1-hall', 'Foundry Hall', 'hub', [8, 12, 18, 4], {
         coverPatterns: ['colonnade'],
@@ -108,6 +112,7 @@ export const DUNGEON_LAYERS = Object.freeze([
       }),
     ],
     corridors: [
+      corr('f1-c-receiving', [[4, 22], [4, 22]], 2.6, 'service'),
       corr('f1-c-intake', [[17, 19], [17, 16]], 2.6, 'hall'),
       corr('f1-c-hall-west', [[8, 14], [7, 14]], 2.4, 'service'),
       corr('f1-c-hall-east', [[25, 13], [26, 13]], 2.4, 'service'),
@@ -117,15 +122,14 @@ export const DUNGEON_LAYERS = Object.freeze([
       corr('f1-c-court-crane', [[23, 5], [22, 5]], 2.6, 'hall'),
       corr('f1-c-pump-crane', [[29, 9], [29, 8]], 2.4, 'service'),
       corr('f1-c-vault-run', [[3, 10], [3, 8]], 2.2, 'service'),
-      corr('f1-c-sluice', [[12, 21], [7, 21]], 2.2, 'service'),
       corr('f1-c-sluice-ward', [[4, 17], [4, 17]], 2.2, 'service'),
       corr('f1-c-nook-vent', [[31, 17], [31, 17]], 1.6, 'vent'),
     ],
     openings: [
-      open('f1-o-entry-n', 'f1-entry', 'n', 17, 4),
+      open('f1-o-entry-n', 'f1-entry', 'n', 4, 3),
+      open('f1-o-sluice-s', 'f1-sluice', 's', 4, 3),
+      open('f1-o-loading-n', 'f1-loading', 'n', 17, 4),
       open('f1-o-hall-s', 'f1-hall', 's', 17, 4),
-      open('f1-o-entry-w', 'f1-entry', 'w', 21, 2),
-      open('f1-o-sluice-e', 'f1-sluice', 'e', 21, 2),
       open('f1-o-sluice-n', 'f1-sluice', 'n', 4, 2),
       open('f1-o-ward-s', 'f1-ward', 's', 4, 2),
       open('f1-o-ward-e', 'f1-ward', 'e', 14, 3),
@@ -150,10 +154,18 @@ export const DUNGEON_LAYERS = Object.freeze([
       open('f1-o-exit-s', 'f1-exit', 's', 17, 3, 'gate', { key: 'f1-foundry-key', lockedBy: 'key' }),
     ],
     keys: [
-      { id: 'f1-foundry-key', name: 'Foundry Key', at: [6, 4], roomId: 'f1-vault', opens: ['f1-o-exit-s'], note: 'Opens the exit spine gate.' },
+      { id: 'f1-foundry-key', name: 'Foundry Key', at: [6, 4], roomId: 'f1-vault', opens: ['f1-o-exit-s'], note: 'Intake records mark every recovered body as transferred, never deceased.' },
+    ],
+    loot: [
+      loot('f1-breach-sluice', 1, [6.5, 19.5], 'f1-sluice', 'uncommon', 'A security shotgun left beside a pressure valve. Its owner never reached the ward.'),
+      loot('f1-wake-loading', 6, [17, 21], 'f1-loading', 'rare', 'The old crew used this bat to crack slag from the intake machinery.'),
+    ],
+    evidence: [
+      evidence('f1-shift-card', 'The Empty Truck', [20, 22], 'f1-loading', 'punchcard', 'Foreman Inez counted eighteen breathing evacuees onto Truck Six. The truck left empty; the transfer ledger lists twenty-four cadavers.'),
+      evidence('f1-bell-circuit', 'Maintenance Circuit', [31, 19], 'f1-nook', 'schematic', 'The bell line ran through the intake years before the choir was built. Someone kept the circuit powered after the foundry shut down.'),
     ],
     landmarks: [
-      { id: 'f1-intake-gate', type: 'gate-organ', anchor: [17, 21], size: [4.6, 2.4, 1.4], material: 'iron-blood', animated: 'breath', playerFacing: true, roomId: 'f1-entry' },
+      { id: 'f1-intake-gate', type: 'gate-organ', anchor: [6, 26], size: [4.6, 2.4, 1.4], material: 'iron-blood', animated: 'breath', playerFacing: true, roomId: 'f1-entry' },
       { id: 'f1-pulse-engine', type: 'organ-pump', anchor: [17, 7], size: [3.4, 4.6, 3.4], material: 'flesh-steel', animated: 'pulse', hero: true, roomId: 'f1-court' },
       { id: 'f1-furnace-heart', type: 'boiler-stack', anchor: [5, 5], size: [3.2, 3.5, 2.4], material: 'iron-amber', animated: 'steam', hero: true, roomId: 'f1-vault' },
       { id: 'f1-graft-conduit', type: 'flesh-conduit', anchor: [4, 13], size: [2.2, 4.1, 1.8], material: 'flesh-rust', animated: 'drip', roomId: 'f1-ward' },
@@ -169,7 +181,8 @@ export const DUNGEON_LAYERS = Object.freeze([
       { id: 'f1-crane-winches', type: 'winch-bank', anchor: [27, 6], span: [2.6, 1.8], motion: 'counterweight', cables: 4 },
     ],
     lights: [
-      light([17, 20], '#ff3d36', 3.2, 'entry'),
+      light([6, 24], '#ff3d36', 3.2, 'entry'),
+      light([17, 21], '#8d3a31', 1.4, 'loading'),
       light([17, 13], '#cc2c37', 2.4, 'hall'),
       light([4, 13], '#cc2c37', 1.8, 'ward'),
       light([29, 12], '#cc2c37', 1.8, 'pump'),
@@ -181,7 +194,7 @@ export const DUNGEON_LAYERS = Object.freeze([
       light([31, 19], '#43c98a', 1.4, 'secret'),
     ],
     spots: [
-      [0, 16, 21, 'stalker'], [0, 18, 21, 'stalker'],
+      [0, 3, 24, 'stalker'], [0, 10, 24, 'stalker'],
       [1, 11, 13, 'skitter'], [1, 23, 13, 'bloodhound'], [1, 17, 14, 'caster'],
       [2, 4, 12, 'skitter'], [2, 29, 11, 'brute'], [2, 27, 4, 'bloodhound'],
       [3, 15, 6, 'brute'], [3, 19, 8, 'hexer'], [3, 17, 6, 'bloodhound'],
@@ -190,8 +203,9 @@ export const DUNGEON_LAYERS = Object.freeze([
     dread: 'The foundry is still warm. Something in the pipes is keeping time with your pulse.',
     props: [
       prop('f1-gore-hall', 'gore', [17, 13], 7, 4),
-      trail('f1-trail-entry', 'blood', [[17, 19], [17, 16]], 14),
-      prop('f1-candles-entry', 'candle', [17, 21], 4, 3),
+      trail('f1-trail-entry', 'blood', [[6, 23], [4, 20], [4, 17], [8, 14]], 14),
+      prop('f1-candles-entry', 'candle', [6, 24], 4, 3),
+      prop('f1-crates-loading', 'crate', [17, 21], 5, 3),
       prop('f1-corpses-ward', 'corpse', [4, 14], 3, 2),
       prop('f1-bones-vault', 'bones', [6, 5], 6, 3),
       prop('f1-crates-pump', 'crate', [29, 13], 5, 3),
@@ -216,7 +230,7 @@ export const DUNGEON_LAYERS = Object.freeze([
     signature: 'Working foundry: live pipe pressure, oil drums stacked in the pump bank, blood running into the floor grates.',
     wallpaper: 'blood-streaked panels, gore congealed in the panel seams, bone stacks in the cold rooms',
     scares: [
-      scare('f1-scream-entry', 'scream', [17, 21], 'First step into the foundry: a scream over the PA, then silence.', { roomId: 'f1-entry' }),
+      scare('f1-scream-entry', 'scream', [6, 24], 'First step into the foundry: a scream over the PA, then silence.', { roomId: 'f1-entry' }),
       scare('f1-lights-hall', 'lights-out', [17, 13], 'Hall lights cut when the court doors seal; red maintenance only.', { roomId: 'f1-hall' }),
       scare('f1-swarm-pump', 'swarm', [29, 12], 'Pump bank coughs a skitter swarm out of the pipe mouths.', { roomId: 'f1-pump' }),
       scare('f1-collapse-sluice', 'collapse', [4, 19], 'The sluice ladder gives way behind you and seals the west route.', { roomId: 'f1-sluice' }),
@@ -224,7 +238,7 @@ export const DUNGEON_LAYERS = Object.freeze([
       scare('f1-hunt-vault', 'hunt', [5, 5], 'Taking the key wakes one brute that walks straight at the vault door.', { roomId: 'f1-vault' }),
     ],
     setpieces: [
-      piece('f1-sp-intake-tunnel', 'tunnel', { points: [[17, 19], [17, 16]], width: 2.2, height: 5.2, cue: 'red' }),
+      piece('f1-sp-intake-tunnel', 'tunnel', { points: [[4, 23], [4, 20], [4, 17]], width: 2.2, height: 5.2, cue: 'red' }),
       piece('f1-sp-ward-bulkhead', 'bulkhead', { anchor: [4, 13], width: 2.4, height: 4.4, cue: 'red' }),
       piece('f1-sp-sluice-collapse', 'collapse', { anchor: [4, 17], size: [1.7, 1.5, 1.4], cue: 'amber' }),
       piece('f1-sp-vault-pressure', 'pressure-door', { anchor: [3, 9], width: 1.8, height: 5, cue: 'red' }),
@@ -237,9 +251,9 @@ export const DUNGEON_LAYERS = Object.freeze([
 
   // ---------------------------------------------------------------------------
   // FLOOR 02 — GRAFT GALLERIES
-  // Four wards hang off a central crossing with a western and an eastern loop.
-  // The surgery theater is the sealed arena; the scrub room holds the key to
-  // the descent shaft.
+  // Arrival is through the western recovery ward, then across the gallery to
+  // the sealed theater. The east scrub room holds the descent key, making the
+  // route travel across the facility instead of following its central axis.
   {
     id: 'f2-graft-galleries',
     index: 1,
@@ -251,10 +265,10 @@ export const DUNGEON_LAYERS = Object.freeze([
     color: '#ff9d6b',
     width: 36,
     height: 24,
-    entry: { x: 18.5, z: 21.5, angle: -Math.PI / 2 },
+    entry: { x: 6.5, z: 21.5, angle: -Math.PI / 2 },
     exit: { x: 18.5, z: 2.5 },
     rooms: [
-      room('f2-entry', 'Sterile Intake', 'entry', [14, 20, 8, 3], {
+      room('f2-entry', 'Sterile Intake', 'entry', [2, 20, 9, 3], {
         encounter: { tier: 2, budget: 6, maxAlive: 4, composition: { stalker: 2, caster: 1 }, tactic: 'Decontaminate the landing before the crossing.' },
       }),
       room('f2-hub', 'Gallery Crossing', 'hub', [14, 13, 8, 4], {
@@ -296,7 +310,6 @@ export const DUNGEON_LAYERS = Object.freeze([
       }),
     ],
     corridors: [
-      corr('f2-c-intake', [[18, 19], [18, 17]], 2.6, 'hall'),
       corr('f2-c-west-spur', [[13, 17], [10, 17]], 2.4, 'hall'),
       corr('f2-c-east-spur', [[22, 17], [25, 17]], 2.4, 'hall'),
       corr('f2-c-west-riser', [[7, 15], [7, 13]], 2.2, 'service'),
@@ -310,8 +323,8 @@ export const DUNGEON_LAYERS = Object.freeze([
       corr('f2-c-vent', [[15, 4], [12, 4]], 1.6, 'vent'),
     ],
     openings: [
-      open('f2-o-entry-n', 'f2-entry', 'n', 18, 4),
-      open('f2-o-hub-s', 'f2-hub', 's', 18, 4),
+      open('f2-o-entry-n', 'f2-entry', 'n', 7, 4),
+      open('f2-o-wardA-s', 'f2-wardA', 's', 7, 4),
       open('f2-o-hub-w', 'f2-hub', 'w', 17, 3),
       open('f2-o-wardA-e', 'f2-wardA', 'e', 17, 3),
       open('f2-o-hub-e', 'f2-hub', 'e', 17, 3),
@@ -335,10 +348,18 @@ export const DUNGEON_LAYERS = Object.freeze([
       open('f2-o-drawer-e', 'f2-drawer', 'e', 4, 1),
     ],
     keys: [
-      { id: 'f2-surgical-key', name: 'Surgical Key', at: [27, 5], roomId: 'f2-scrub', opens: ['f2-o-theater-n'], note: 'Opens the descent shaft gate.' },
+      { id: 'f2-surgical-key', name: 'Surgical Key', at: [27, 5], roomId: 'f2-scrub', opens: ['f2-o-theater-n'], note: 'The surgery manifest names the same patients again after their recorded deaths.' },
+    ],
+    loot: [
+      loot('f2-carrion-ward', 4, [27, 19], 'f2-wardC', 'rare', 'A responder dropped their automatic rifle between the beds.'),
+      loot('f2-mourning-scrub', 5, [27, 5], 'f2-scrub', 'epic', 'The last surgeon kept a precision rifle under the scrub room counter.'),
+    ],
+    evidence: [
+      evidence('f2-night-chart', 'Night Chart', [27, 11], 'f2-wardD', 'chart', 'Nurse Sera signed the same six patients out of Ward D three nights running. Each returned before dawn with a new pulse and no memory.'),
+      evidence('f2-drawer-label', 'Drawer Twelve', [11, 4], 'f2-drawer', 'tag', 'The morgue drawer is empty. Its label bears Sera’s name and tomorrow’s date.'),
     ],
     landmarks: [
-      { id: 'f2-gallery-gate', type: 'gate-organ', anchor: [18, 21], size: [4.2, 2.2, 1.3], material: 'iron-blood', animated: 'breath', playerFacing: true, roomId: 'f2-entry' },
+      { id: 'f2-gallery-gate', type: 'gate-organ', anchor: [7, 21], size: [4.2, 2.2, 1.3], material: 'iron-blood', animated: 'breath', playerFacing: true, roomId: 'f2-entry' },
       { id: 'f2-theater-table', type: 'organ-pump', anchor: [17, 7], size: [3.6, 4.2, 3], material: 'flesh-steel', animated: 'pulse', hero: true, roomId: 'f2-theater' },
       { id: 'f2-scrub-sink', type: 'bone-throne', anchor: [27, 4], size: [2.6, 3, 2], material: 'bone-iron', animated: 'drip', roomId: 'f2-scrub' },
       { id: 'f2-ward-beds-w', type: 'rib-stack', anchor: [4, 17], size: [2, 3.6, 1.8], material: 'flesh-rust', animated: 'settle', roomId: 'f2-wardA' },
@@ -352,19 +373,19 @@ export const DUNGEON_LAYERS = Object.freeze([
       { id: 'f2-east-bank', type: 'pump-bank', anchor: [32, 11], span: [1.6, 3], motion: 'throb', pipes: 3 },
     ],
     lights: [
-      light([18, 20], '#ff3d36', 3, 'entry'),
-      light([17, 15], '#cc2c37', 2.4, 'hub'),
-      light([6, 17], '#cc2c37', 1.6, 'ward-a'),
-      light([6, 10], '#cc2c37', 1.6, 'ward-b'),
-      light([28, 17], '#cc2c37', 1.6, 'ward-c'),
-      light([28, 10], '#cc2c37', 1.6, 'ward-d'),
-      light([17, 7], '#ff6b40', 3.8, 'theater'),
-      light([27, 4], '#ffad55', 2.8, 'scrub'),
+      light([7, 20], '#b8dfcf', 3, 'entry'),
+      light([17, 15], '#9fbfb3', 2.4, 'hub'),
+      light([6, 17], '#a5cabc', 1.6, 'ward-a'),
+      light([6, 10], '#91b7ac', 1.6, 'ward-b'),
+      light([28, 17], '#a5cabc', 1.6, 'ward-c'),
+      light([28, 10], '#91b7ac', 1.6, 'ward-d'),
+      light([17, 7], '#e3775e', 3.8, 'theater'),
+      light([27, 4], '#d7d6a6', 2.8, 'scrub'),
       light([18, 2], '#ffad55', 3, 'exit'),
       light([11, 4], '#43c98a', 1.4, 'secret'),
     ],
     spots: [
-      [0, 16, 21, 'stalker'], [0, 20, 21, 'caster'],
+      [0, 3, 21, 'stalker'], [0, 10, 21, 'caster'],
       [1, 16, 15, 'skitter'], [1, 19, 14, 'bloodhound'], [1, 17, 13, 'hexer'],
       [2, 6, 17, 'skitter'], [2, 6, 10, 'bloodhound'], [2, 28, 17, 'skitter'],
       [3, 28, 10, 'brute'], [3, 15, 6, 'brute'], [3, 19, 8, 'hexer'], [3, 21, 9, 'bloodhound'],
@@ -407,7 +428,7 @@ export const DUNGEON_LAYERS = Object.freeze([
       scare('f2-collapse-exit', 'collapse', [18, 5], 'The shaft gantry drops behind you once the key turns.', { roomId: 'f2-exit' }),
     ],
     setpieces: [
-      piece('f2-sp-intake-tunnel', 'tunnel', { points: [[18, 19], [18, 17]], width: 2.2, height: 5, cue: 'red' }),
+      piece('f2-sp-intake-tunnel', 'tunnel', { points: [[7, 19], [7, 17]], width: 2.2, height: 5, cue: 'red' }),
       piece('f2-sp-theater-door', 'pressure-door', { anchor: [17, 12], width: 2.4, height: 5, cue: 'red' }),
       piece('f2-sp-scrub-bulkhead', 'bulkhead', { anchor: [24, 7], width: 2.2, height: 4.4, cue: 'amber' }),
       piece('f2-sp-loop-collapse', 'collapse', { anchor: [33, 12], size: [1.6, 1.4, 1.4], cue: 'amber' }),
@@ -420,9 +441,9 @@ export const DUNGEON_LAYERS = Object.freeze([
 
   // ---------------------------------------------------------------------------
   // FLOOR 03 — THE CATACOMBS
-  // A three-lane lattice: two long cross corridors plus stems down to the
-  // south lattice, with the reliquary court sealed in the middle and a hidden
-  // tomb behind the colonnade.
+  // A three-lane lattice entered from the charnel stores in the southeast.
+  // The player crosses the lower burial lane to reach the colonnade, then
+  // turns west for the vault key before returning to the central court.
   {
     id: 'f3-catacombs',
     index: 2,
@@ -433,11 +454,11 @@ export const DUNGEON_LAYERS = Object.freeze([
     theme: 'ossuary',
     color: '#c98cff',
     width: 38,
-    height: 26,
-    entry: { x: 19.5, z: 23.5, angle: -Math.PI / 2 },
+    height: 29,
+    entry: { x: 33.5, z: 27.5, angle: -Math.PI / 2 },
     exit: { x: 19.5, z: 2.5 },
     rooms: [
-      room('f3-entry', 'Bone Gate', 'entry', [16, 22, 7, 3], {
+      room('f3-entry', 'Bone Gate', 'entry', [29, 26, 8, 3], {
         encounter: { tier: 2, budget: 7, maxAlive: 5, composition: { bloodhound: 2, skitter: 1 }, tactic: 'Read the rib gate before entering the lattice.' },
       }),
       room('f3-hub', 'Rib Colonnade', 'hub', [15, 14, 10, 4], {
@@ -483,6 +504,7 @@ export const DUNGEON_LAYERS = Object.freeze([
       }),
     ],
     corridors: [
+      corr('f3-c-entry', [[33, 25], [33, 24]], 2.4, 'service'),
       corr('f3-c-south', [[19, 21], [19, 18]], 2.6, 'hall'),
       corr('f3-c-lat-south', [[30, 20], [19, 20], [8, 20]], 2.4, 'loop'),
       corr('f3-c-west-stem', [[4, 16], [4, 20], [8, 20]], 2.2, 'loop'),
@@ -496,7 +518,8 @@ export const DUNGEON_LAYERS = Object.freeze([
       corr('f3-c-tomb-vent', [[25, 17], [25, 17]], 1.6, 'vent'),
     ],
     openings: [
-      open('f3-o-entry-n', 'f3-entry', 'n', 19, 4),
+      open('f3-o-entry-n', 'f3-entry', 'n', 33, 3),
+      open('f3-o-stores-s', 'f3-stores', 's', 33, 3),
       open('f3-o-hub-s', 'f3-hub', 's', 19, 4),
       open('f3-o-hub-n-w', 'f3-hub', 'n', 16, 3),
       open('f3-o-hub-n-c', 'f3-hub', 'n', 19, 4),
@@ -518,10 +541,18 @@ export const DUNGEON_LAYERS = Object.freeze([
       open('f3-o-tomb-n', 'f3-tomb', 'n', 26, 1),
     ],
     keys: [
-      { id: 'f3-reliquary-key', name: 'Reliquary Key', at: [5, 4], roomId: 'f3-vault', opens: ['f3-o-court-n'], note: 'Opens the apse gate above the court.' },
+      { id: 'f3-reliquary-key', name: 'Reliquary Key', at: [5, 4], roomId: 'f3-vault', opens: ['f3-o-court-n'], note: 'Burial tags carry bell frequencies instead of names. Something below is calling the bodies back.' },
+    ],
+    loot: [
+      loot('f3-arc-crypt', 2, [5, 12], 'f3-cryptW', 'epic', 'A failed excavation team wired the lance to an exposed burial rail.'),
+      loot('f3-reliquary-niche', 3, [33, 4], 'f3-niche', 'legendary', 'The apse keepers hid their rift launcher opposite the key vault.'),
+    ],
+    evidence: [
+      evidence('f3-waterproof-note', 'Sera’s Route', [4, 22], 'f3-ossuaryS', 'note', 'I followed the tagged bodies underground. They turn their heads toward the bell before it rings.'),
+      evidence('f3-keeper-warning', 'Keeper’s Warning', [26, 19], 'f3-tomb', 'tag', 'Three bells hold the breach. The fourth calls it upward. The choir has been playing only three.'),
     ],
     landmarks: [
-      { id: 'f3-bone-threshold', type: 'rib-gate', anchor: [19, 23], size: [4.8, 2.6, 1.3], material: 'bone-iron', animated: 'rattle', playerFacing: true, roomId: 'f3-entry' },
+      { id: 'f3-bone-threshold', type: 'rib-gate', anchor: [33, 27], size: [4.8, 2.6, 1.3], material: 'bone-iron', animated: 'rattle', playerFacing: true, roomId: 'f3-entry' },
       { id: 'f3-bone-reliquary', type: 'bone-throne', anchor: [19, 8], size: [3.8, 4.2, 3.2], material: 'bone-violet', animated: 'resonate', hero: true, roomId: 'f3-court' },
       { id: 'f3-colonnade-w', type: 'rib-stack', anchor: [17, 16], size: [2, 4.4, 2], material: 'bone-violet', animated: 'settle', roomId: 'f3-hub' },
       { id: 'f3-colonnade-e', type: 'rib-stack', anchor: [22, 16], size: [2, 4.4, 2], material: 'bone-violet', animated: 'settle', roomId: 'f3-hub' },
@@ -537,7 +568,7 @@ export const DUNGEON_LAYERS = Object.freeze([
       { id: 'f3-apse-chandelier', type: 'bone-chandelier', anchor: [19, 2.4], span: [2.8, 2.8], motion: 'sway', payload: 'skulls' },
     ],
     lights: [
-      light([19, 22], '#6d4dff', 3, 'entry'),
+      light([33, 26], '#6d4dff', 3, 'entry'),
       light([19, 15], '#7e5dff', 2.4, 'hub'),
       light([5, 12], '#7e5dff', 1.8, 'crypt-west'),
       light([33, 12], '#7e5dff', 1.8, 'crypt-east'),
@@ -550,7 +581,7 @@ export const DUNGEON_LAYERS = Object.freeze([
       light([26, 19], '#43c98a', 1.4, 'secret'),
     ],
     spots: [
-      [0, 17, 23, 'bloodhound'], [0, 21, 23, 'skitter'],
+      [0, 30, 27, 'bloodhound'], [0, 36, 27, 'skitter'],
       [1, 16, 16, 'brute'], [1, 22, 15, 'caster'], [1, 19, 14, 'bloodhound'],
       [2, 4, 12, 'skitter'], [2, 33, 12, 'skitter'], [2, 5, 22, 'caster'],
       [3, 33, 22, 'bloodhound'], [3, 32, 4, 'brute'], [3, 7, 4, 'caster'],
@@ -595,7 +626,7 @@ export const DUNGEON_LAYERS = Object.freeze([
       scare('f3-hunt-court', 'hunt', [19, 8], 'The reliquary key wakes the warden that has been kneeling in the court.', { roomId: 'f3-court' }),
     ],
     setpieces: [
-      piece('f3-sp-entry-bone-gate', 'tunnel', { points: [[19, 22], [19, 20]], width: 2.3, height: 5.2, cue: 'amber' }),
+      piece('f3-sp-entry-bone-gate', 'tunnel', { points: [[33, 26], [33, 24]], width: 2.3, height: 5.2, cue: 'amber' }),
       piece('f3-sp-lattice-tunnel', 'tunnel', { points: [[8, 20], [30, 20]], width: 2.3, height: 5.2, cue: 'amber' }),
       piece('f3-sp-mid-tunnel', 'tunnel', { points: [[9, 12], [29, 12]], width: 2.3, height: 5.2, cue: 'amber' }),
       piece('f3-sp-court-bulkhead', 'bulkhead', { anchor: [19, 11], width: 2.6, height: 4.6, cue: 'red' }),
@@ -610,8 +641,8 @@ export const DUNGEON_LAYERS = Object.freeze([
 
   // ---------------------------------------------------------------------------
   // FLOOR 04 — RESONANCE
-  // A cathedral plan: long nave spine, two side aisles that loop around the
-  // court, a bell tower holding the key and a hidden reliquary niche.
+  // Enter through an east service cloister, then cross the nave to the bell
+  // tower key. Both transepts reconnect the aisles around the choir court.
   {
     id: 'f4-resonance',
     index: 3,
@@ -622,12 +653,15 @@ export const DUNGEON_LAYERS = Object.freeze([
     theme: 'choir',
     color: '#ffb15e',
     width: 34,
-    height: 24,
-    entry: { x: 17.5, z: 21.5, angle: -Math.PI / 2 },
+    height: 27,
+    entry: { x: 28.5, z: 24.5, angle: -1.98 },
     exit: { x: 17.5, z: 1.5 },
     rooms: [
-      room('f4-entry', 'Throat Gate', 'entry', [13, 20, 8, 3], {
-        encounter: { tier: 3, budget: 10, maxAlive: 6, composition: { bloodhound: 2, bellwraithEcho: 1, skitter: 2 }, tactic: 'Hold the throat and read both aisles.' },
+      room('f4-entry', 'Bell Service Door', 'entry', [24, 23, 9, 3], {
+        encounter: { tier: 3, budget: 10, maxAlive: 6, composition: { bloodhound: 2, bellwraithEcho: 1, skitter: 2 }, tactic: 'Fight through the service door into the east aisle.' },
+      }),
+      room('f4-vestry', 'Abandoned Vestry', 'side', [13, 20, 8, 3], {
+        note: 'The old central entrance is now a quiet side room off the nave.',
       }),
       room('f4-nave', 'Bell Nave', 'hub', [13, 13, 8, 6], {
         coverPatterns: ['colonnade'],
@@ -668,9 +702,10 @@ export const DUNGEON_LAYERS = Object.freeze([
       }),
     ],
     corridors: [
+      corr('f4-c-entry', [[27, 22], [27, 20]], 2.6, 'service'),
       corr('f4-c-nave', [[17, 19], [17, 19]], 2.6, 'hall'),
-      corr('f4-c-aisle-w-s', [[12, 21], [12, 19], [9, 19]], 2.2, 'loop'),
-      corr('f4-c-aisle-e-s', [[22, 21], [22, 19], [24, 19]], 2.2, 'loop'),
+      corr('f4-c-transept-w', [[9, 16], [13, 16]], 2.4, 'hall'),
+      corr('f4-c-transept-e', [[21, 16], [25, 16]], 2.4, 'hall'),
       corr('f4-c-aisle-w-n', [[9, 11], [11, 11]], 2.2, 'loop'),
       corr('f4-c-aisle-e-n', [[22, 9], [24, 9]], 2.2, 'loop'),
       corr('f4-c-court-chancel', [[17, 5], [17, 5]], 2.6, 'hall'),
@@ -678,17 +713,19 @@ export const DUNGEON_LAYERS = Object.freeze([
       corr('f4-c-niche', [[28, 15], [28, 15]], 1.6, 'vent'),
     ],
     openings: [
-      open('f4-o-entry-n', 'f4-entry', 'n', 17, 4),
+      open('f4-o-entry-n', 'f4-entry', 'n', 27, 4),
+      open('f4-o-aisleE-s', 'f4-aisleE', 's', 27, 4),
+      open('f4-o-vestry-n', 'f4-vestry', 'n', 17, 4),
       open('f4-o-nave-s', 'f4-nave', 's', 17, 4),
-      open('f4-o-entry-w', 'f4-entry', 'w', 21, 3),
-      open('f4-o-aisleW-s', 'f4-aisleW', 's', 19, 3),
-      open('f4-o-entry-e', 'f4-entry', 'e', 21, 3),
-      open('f4-o-aisleE-s', 'f4-aisleE', 's', 19, 3),
+      open('f4-o-aisleW-e', 'f4-aisleW', 'e', 16, 3),
+      open('f4-o-nave-w', 'f4-nave', 'w', 16, 3),
+      open('f4-o-aisleE-w', 'f4-aisleE', 'w', 16, 3),
+      open('f4-o-nave-e', 'f4-nave', 'e', 16, 3),
       open('f4-o-nave-n', 'f4-nave', 'n', 17, 4),
       open('f4-o-court-s', 'f4-court', 's', 17, 4, 'door', { lockedBy: 'room-clear' }),
-      open('f4-o-court-w', 'f4-court', 'w', 11, 3),
+      open('f4-o-court-w', 'f4-court', 'w', 11, 3, 'door', { lockedBy: 'room-clear' }),
       open('f4-o-aisleW-n', 'f4-aisleW', 'n', 11, 3),
-      open('f4-o-court-e', 'f4-court', 'e', 9, 3),
+      open('f4-o-court-e', 'f4-court', 'e', 9, 3, 'door', { lockedBy: 'room-clear' }),
       open('f4-o-aisleE-n', 'f4-aisleE', 'n', 9, 3),
       open('f4-o-court-n', 'f4-court', 'n', 17, 4),
       open('f4-o-chancel-s', 'f4-chancel', 's', 17, 4),
@@ -702,10 +739,17 @@ export const DUNGEON_LAYERS = Object.freeze([
       open('f4-o-niche-w', 'f4-niche', 'w', 15, 1),
     ],
     keys: [
-      { id: 'f4-bell-key', name: 'Bell Key', at: [4, 5], roomId: 'f4-tower', opens: ['f4-o-chancel-n'], note: 'Opens the descent gate in the chancel.' },
+      { id: 'f4-bell-key', name: 'Bell Key', at: [4, 5], roomId: 'f4-tower', opens: ['f4-o-chancel-n'], note: 'The choir score is a containment sequence. The bells have been keeping the breach asleep.' },
+    ],
+    loot: [
+      loot('f4-ripper-organ', 7, [28, 5], 'f4-organ', 'legendary', 'The organist lashed a cutting engine to the pipework to silence the choir.'),
+    ],
+    evidence: [
+      evidence('f4-choir-roster', 'The Missing Singers', [15, 21], 'f4-vestry', 'score', 'Every voice on the surviving choir roster was buried in the Catacombs before the first rehearsal.'),
+      evidence('f4-sera-instruction', 'Sera’s Last Instruction', [30, 15], 'f4-niche', 'note', 'Do not stop the bells while the engine below is turning. Seal its throat first; then let the choir rest.'),
     ],
     landmarks: [
-      { id: 'f4-throat-gate', type: 'mouth-gate', anchor: [17, 21], size: [4.7, 2.4, 1.5], material: 'flesh-brass', animated: 'breathe', playerFacing: true, roomId: 'f4-entry' },
+      { id: 'f4-throat-gate', type: 'mouth-gate', anchor: [28, 26], size: [4.7, 2.4, 1.5], material: 'flesh-brass', animated: 'breathe', playerFacing: true, roomId: 'f4-entry' },
       { id: 'f4-mouth-altar', type: 'mouth-altar', anchor: [17, 8], size: [4.2, 4.3, 3.5], material: 'flesh-gold', animated: 'sing', hero: true, roomId: 'f4-court' },
       { id: 'f4-nave-bells', type: 'bell-array', anchor: [17, 15], size: [3.6, 3.6, 2.2], material: 'brass-flesh', animated: 'ring', roomId: 'f4-nave' },
       { id: 'f4-tower-ring', type: 'bell-array', anchor: [5, 5], size: [3.4, 3.6, 2.4], material: 'bone-brass', animated: 'ring', roomId: 'f4-tower' },
@@ -720,7 +764,8 @@ export const DUNGEON_LAYERS = Object.freeze([
       { id: 'f4-nave-chandelier', type: 'bell-chandelier', anchor: [17, 14], span: [3, 3], motion: 'sway', payload: 'bells' },
     ],
     lights: [
-      light([17, 20], '#e35b2b', 3, 'entry'),
+      light([28, 24], '#e35b2b', 3, 'entry'),
+      light([17, 21], '#8b442e', 1.4, 'vestry'),
       light([17, 15], '#d2452b', 2.4, 'nave'),
       light([6, 15], '#d2452b', 1.8, 'aisle-west'),
       light([27, 15], '#d2452b', 1.8, 'aisle-east'),
@@ -732,7 +777,7 @@ export const DUNGEON_LAYERS = Object.freeze([
       light([30, 15], '#43c98a', 1.4, 'secret'),
     ],
     spots: [
-      [0, 14, 21, 'bloodhound'], [0, 20, 21, 'skitter'],
+      [0, 25, 24, 'bloodhound'], [0, 32, 24, 'skitter'],
       [1, 15, 15, 'bellwraithEcho'], [1, 19, 17, 'hexer'], [1, 17, 14, 'caster'],
       [2, 6, 12, 'skitter'], [2, 27, 12, 'skitter'], [2, 6, 18, 'hexer'],
       [3, 27, 18, 'mireSinger'], [3, 7, 5, 'bellwraith'], [3, 28, 5, 'brute'],
@@ -750,7 +795,8 @@ export const DUNGEON_LAYERS = Object.freeze([
       prop('f4-sigil-court', 'sigil', [17, 8], 1, 1),
       prop('f4-fog-aisleW', 'fog', [6, 12], 3, 5),
       prop('f4-fog-aisleE', 'fog', [27, 12], 3, 5),
-      trail('f4-trail-nave', 'blood', [[17, 19], [17, 13]], 14),
+      trail('f4-trail-nave', 'blood', [[28, 23], [27, 19], [22, 16], [17, 15]], 14),
+      prop('f4-webs-vestry', 'webs', [17, 21], 4, 2),
       prop('f4-corpses-chancel', 'corpse', [17, 4], 3, 3),
       prop('f4-skulls-tower', 'skull', [5, 6], 5, 3),
       prop('f4-skulls-chancel', 'skull', [15, 4], 5, 3),
@@ -775,8 +821,8 @@ export const DUNGEON_LAYERS = Object.freeze([
       scare('f4-collapse-exit', 'collapse', [17, 2], 'The descent mouth folds shut behind you.', { roomId: 'f4-exit' }),
     ],
     setpieces: [
-      piece('f4-sp-aisleW-tunnel', 'tunnel', { points: [[12, 21], [9, 19], [6, 12]], width: 2.1, height: 5, cue: 'amber' }),
-      piece('f4-sp-aisleE-tunnel', 'tunnel', { points: [[22, 21], [24, 19], [27, 12]], width: 2.1, height: 5, cue: 'amber' }),
+      piece('f4-sp-aisleW-tunnel', 'tunnel', { points: [[13, 16], [9, 16], [6, 12]], width: 2.1, height: 5, cue: 'amber' }),
+      piece('f4-sp-aisleE-tunnel', 'tunnel', { points: [[27, 23], [27, 19], [22, 16]], width: 2.1, height: 5, cue: 'amber' }),
       piece('f4-sp-court-door', 'pressure-door', { anchor: [17, 12], width: 2.6, height: 5.2, cue: 'red' }),
       piece('f4-sp-cross-gallery', 'tunnel', { points: [[9, 11], [17, 11], [24, 9]], width: 2.2, height: 5, cue: 'amber' }),
       piece('f4-sp-chancel-bulkhead', 'bulkhead', { anchor: [17, 5], width: 2.6, height: 4.6, cue: 'red' }),
@@ -863,7 +909,10 @@ export const DUNGEON_LAYERS = Object.freeze([
       open('f5-o-organ-w', 'f5-organ', 'w', 10, 3),
     ],
     keys: [
-      { id: 'f5-warden-key', name: 'Warden Key', at: [4, 11], roomId: 'f5-vault', opens: ['f5-o-hall3-n'], note: 'Opens the last chamber.' },
+      { id: 'f5-warden-key', name: 'Warden Key', at: [4, 11], roomId: 'f5-vault', opens: ['f5-o-hall3-n'], note: 'The warden locked itself below to keep the breach from reaching the surface.' },
+    ],
+    evidence: [
+      evidence('f5-warden-seal', 'Inside the Gate', [2.5, 5.5], 'f5-cache', 'seal', 'The warden sealed the last gate from inside. Scratched beneath the lock: “If the bells fall silent, it is because someone made it out.”'),
     ],
     landmarks: [
       { id: 'f5-entry-mouth', type: 'mouth-gate', anchor: [14, 20], size: [4.2, 2.2, 1.4], material: 'flesh-brass', animated: 'breathe', playerFacing: true, roomId: 'f5-entry' },
@@ -953,5 +1002,6 @@ export const DUNGEON_SUMMARY = Object.freeze({
   corridors: DUNGEON_LAYERS.reduce((sum, layer) => sum + layer.corridors.length, 0),
   openings: DUNGEON_LAYERS.reduce((sum, layer) => sum + layer.openings.length, 0),
   keys: DUNGEON_LAYERS.reduce((sum, layer) => sum + layer.keys.length, 0),
+  evidence: DUNGEON_LAYERS.reduce((sum, layer) => sum + (layer.evidence || []).length, 0),
   secrets: DUNGEON_LAYERS.reduce((sum, layer) => sum + layer.rooms.filter(room => room.kind === 'secret').length, 0),
 });

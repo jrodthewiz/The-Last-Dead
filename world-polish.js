@@ -7,6 +7,11 @@ import {mergeGeometries} from './vendor/utils/BufferGeometryUtils.js';
 // ---------------------------------------------------------------------------
 export function buildCathedralKit(root, m, course) {
  const kit=new THREE.Group();kit.name='CathedralArchitecture';root.add(kit);
+ if (course?.dungeon) {
+  const life=buildWorldLifeKit(root,m,course);
+  if(life)kit.add(life);
+  return kit;
+ }
  const add=(g,material,x,y,z)=>{const mesh=new THREE.Mesh(g,material);mesh.position.set(x,y,z);mesh.receiveShadow=true;kit.add(mesh);return mesh;};
  const stone=new THREE.MeshStandardMaterial({color:0x242b2b,roughness:.91,metalness:.12});
  const brass=new THREE.MeshStandardMaterial({color:0x76604a,roughness:.63,metalness:.72});

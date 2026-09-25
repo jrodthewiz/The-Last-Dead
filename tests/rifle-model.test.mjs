@@ -18,10 +18,11 @@ for (const variant of ['carrion', 'mourning']) {
     const meta = root.userData.rifle;
     assert.ok(root instanceof THREE.Group);
     assert.equal(meta.variant, variant);
-    for (const name of ['muzzle', 'projectileOrigin', 'grip', 'supportGrip']) {
+    for (const name of ['muzzle', 'projectileOrigin', 'grip', 'supportGrip', 'ejectionSocket']) {
       assert.ok(root.userData[name]?.isObject3D, `${name} socket is present`);
       assert.ok(meta.sockets[name]?.isObject3D, `${name} metadata socket is present`);
     }
+    assert.ok(meta.diagnostics.sockets.includes('ejectionSocket'), 'diagnostics expose the shell ejection socket');
     assert.ok(root.userData.resourcesReady instanceof Promise);
     assert.ok(root.userData.diagnostics.mechanisms.length >= 5);
     assert.ok(triangles(root) <= 12000, `${variant} stays below the 12k first-person target`);
@@ -47,6 +48,29 @@ test('Carrion cycles its bolt on a live shot and ignores a hidden global sequenc
   assert.ok(bolt.position.z > 0, 'a live shot moves the reciprocating bolt rearward');
   for (let i = 0; i < 80; i++) animateRifle(root, 0, i * .016, .016, { shotSequence: 8 });
   assert.ok(Math.abs(bolt.position.z) < .01, 'the bolt returns to battery');
+});
+
+test('rifle recoil state drives a visible carriage yaw and settles after the shot', () => {
+  const root = createRifle({ variant: 'carrion' });
+  const meta = root.userData.rifle;
+  const carriage = meta.mechanisms.recoilCarriage;
+  animateRifle(root, 1, 0, .016, { shotSequence: 1, kick: .8, kickYaw: .12 });
+  assert.ok(carriage.position.z > 0, 'authoritative kick pulls the carriage rearward');
+  assert.ok(Math.abs(carriage.rotation.y) > .001, 'authoritative yaw adds a readable hand recoil');
+  for (let i = 0; i < 120; i++) animateRifle(root, 0, i * .016, .016, { shotSequence: 1, kick: 0, kickYaw: 0 });
+  assert.ok(Math.abs(carriage.position.z) < .01, 'carriage returns to battery');
+  assert.ok(Math.abs(carriage.rotation.y) < .01, 'recoil yaw returns to neutral');
+});
+
+test('Carrion burst mode gives the bolt a sharper cycle than automatic fire', () => {
+  const automatic = createRifle({ variant: 'carrion' });
+  const burst = createRifle({ variant: 'carrion' });
+  animateRifle(automatic, 1, 0, .016, { shotSequence: 1, mode: 'auto' });
+  animateRifle(burst, 1, 0, .016, { shotSequence: 1, mode: 'burst' });
+  assert.ok(
+    burst.userData.rifle.mechanisms.boltCarrier.position.z > automatic.userData.rifle.mechanisms.boltCarrier.position.z,
+    'burst mode should visibly overtravel the automatic bolt cycle',
+  );
 });
 
 test('Mourning charge indicator follows charge and the exposed lever cycles', () => {

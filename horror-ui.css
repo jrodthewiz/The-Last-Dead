@@ -105,9 +105,24 @@
 #ui .weapon-slot{font:13px 'Courier New',monospace;color:#e65349}
 #ui .weapon-name{font:30px Impact,sans-serif;letter-spacing:.035em;color:var(--bone)}
 #ui .weapon-hint{display:block;min-width:0;overflow:hidden;color:#b79b85;font:700 7px/1.2 Arial,sans-serif;letter-spacing:.08em;text-align:right;text-overflow:ellipsis;white-space:nowrap}
+#ui .arsenal-count{display:block;margin-top:3px;color:#dac191;font:700 9px Arial,sans-serif;letter-spacing:.17em;text-align:right}
 #ui .weapon-rack{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px;margin:8px 0 9px;pointer-events:auto}
 #ui .weapon-rack button{position:relative;width:100%;height:41px;border:0;border-bottom:2px solid #76604a60;background:#08050536;box-shadow:none;padding:2px;color:#9d8972;opacity:.7}
 #ui .weapon-rack button.is-equipped{color:var(--bone);opacity:1;border-bottom-color:#ec5549;background:linear-gradient(0deg,#6d202044,transparent)}
+#ui .weapon-rack button.is-locked{color:#514943;opacity:.34;filter:grayscale(1);cursor:default;border-bottom-color:#5a4b4340}
+#ui .weapon-rack button.is-locked svg{visibility:hidden}
+#ui .weapon-rack button.is-locked:after{content:'?';position:absolute;inset:4px 0 auto;text-align:center;font:700 20px Impact,sans-serif;color:#a68d73}
+#ui .loot-discovery{position:absolute;right:30px;top:23%;z-index:4;max-width:min(340px,36vw);padding:16px 18px 15px;border:1px solid var(--loot-color,#93d9c5);border-left:4px solid var(--loot-color,#93d9c5);background:linear-gradient(112deg,#0a1011ed,#190e12e8);box-shadow:0 0 35px color-mix(in srgb,var(--loot-color,#93d9c5) 28%,transparent);color:#eee4d7;text-align:left;pointer-events:none;animation:loot-arrive .3s ease-out}
+#ui .loot-discovery[data-rarity=uncommon]{--loot-color:#85d8ad}
+#ui .loot-discovery[data-rarity=rare]{--loot-color:#74b9ff}
+#ui .loot-discovery[data-rarity=epic]{--loot-color:#bd8dff}
+#ui .loot-discovery[data-rarity=legendary]{--loot-color:#ffd075}
+#ui .loot-discovery[data-rarity=record]{--loot-color:#e3bd83}
+#ui .loot-tier{display:block;color:var(--loot-color);font:700 10px Arial,sans-serif;letter-spacing:.2em}
+#ui .loot-discovery strong{display:block;margin:4px 0 6px;font:29px Impact,sans-serif;letter-spacing:.04em}
+#ui .loot-discovery p{margin:0;color:#d2bfae;font:12px/1.4 Arial,sans-serif}
+@keyframes loot-arrive{from{opacity:0;transform:translateX(24px) scale(.96)}to{opacity:1;transform:translateX(0) scale(1)}}
+@media(max-width:700px){#ui .loot-discovery{right:12px;top:17%;max-width:min(280px,72vw);padding:10px 12px}#ui .loot-discovery strong{font-size:21px}#ui .loot-discovery p{font-size:10px}}
 #ui .weapon-rack button:nth-child(5){color:#d86d51}
 #ui .weapon-rack button:nth-child(6){color:#7dc9c7}
 #ui .weapon-rack button:nth-child(7){color:#b8a384}
@@ -197,3 +212,62 @@
  #ui .room-route{height:2px;gap:2px;margin-top:6px}
 }
 @media(max-width:350px){#ui .objective[data-progression="room"]{width:calc(100vw - 140px);max-width:none}#ui .room-name{font-size:18px}#ui .room-index{font-size:7px}}
+
+/* A small persistent run readout keeps combat feedback useful without
+   competing with the route rail. */
+#ui .run-clock{top:0;white-space:nowrap}
+#ui .hud-kills{padding-left:12px;border-left:1px solid #6e3a344d;color:#e05a50;font:700 8px/1 Arial,sans-serif;letter-spacing:.16em;text-shadow:0 1px 6px #000}
+
+/* Restrained body-camera treatment: a transparent scanline and edge falloff
+   give the play view a recorded feel while leaving the sightline untouched. */
+body.playing #ui[data-screen="play"]::before{
+ opacity:.065;
+ background-image:repeating-linear-gradient(to bottom,rgba(238,227,203,.09) 0 1px,transparent 1px 5px),linear-gradient(90deg,rgba(83,164,164,.045),transparent 22%,transparent 78%,rgba(214,77,61,.045));
+ background-size:100% 5px,100% 100%;
+ animation:bodycam-roll 11s steps(12,end) infinite;
+}
+body.playing #ui[data-screen="play"]::after{
+ background:radial-gradient(ellipse at center,transparent 53%,rgba(0,0,0,.42) 100%),linear-gradient(90deg,rgba(79,126,133,.035),transparent 18%,transparent 82%,rgba(179,53,47,.035));
+}
+@keyframes bodycam-roll{0%,100%{opacity:.06;transform:translate3d(0,0,0)}50%{opacity:.085;transform:translate3d(0,1px,0)}}
+body.playing #ui[data-screen="play"][data-reduced-motion="true"]::before{animation:none}
+@media(prefers-reduced-motion:reduce){body.playing #ui[data-screen="play"]::before{animation:none}}
+
+@media(max-width:700px){
+ #ui .run-clock{display:flex;top:0;left:50%;transform:translateX(-50%)}
+ #ui .run-clock [data-hud="run-clock"],#ui .run-clock [data-hud="network"],#ui .run-clock [data-hud="fps"]{display:none}
+ #ui .hud-kills{padding-left:0;border-left:0;font-size:7px;letter-spacing:.14em}
+ body.playing #ui[data-screen="play"]::before{opacity:.045;background-size:100% 6px,100% 100%;animation:none}
+ body.playing #ui[data-screen="play"]::after{background:radial-gradient(ellipse at center,transparent 52%,rgba(0,0,0,.34) 100%)}
+}
+@media(pointer:coarse){body.playing #ui[data-screen="play"]::before{animation:none}}
+
+/* A compact extraction readout leaves the corpse and the player's hands clear. */
+#ui .style-pending{display:block;margin-top:4px;color:#dca984;font:700 8px/1.1 Arial,sans-serif;letter-spacing:.1em}
+#ui .style-pending[hidden],#ui .extraction-prompt[hidden],#ui .touch-extract[hidden]{display:none!important}
+#ui .extraction-prompt{position:absolute;z-index:2;left:50%;bottom:calc(105px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(260px,70vw);padding:10px 13px 12px;border-left:2px solid #a83b39;background:linear-gradient(90deg,rgba(20,5,8,.89),rgba(20,5,8,.55));box-shadow:0 7px 24px #0008;pointer-events:none;text-align:left}
+#ui .extraction-kicker{display:block;color:#c78675;font:700 8px/1 Arial,sans-serif;letter-spacing:.22em}
+#ui .extraction-prompt strong{display:block;margin-top:6px;color:#f1dfcf;font:20px/1 Impact,sans-serif;letter-spacing:.07em}
+#ui .extraction-meter{display:block;margin-top:8px;height:4px;background:#885b493d;overflow:hidden}
+#ui .extraction-meter i{display:block;width:0;height:100%;background:linear-gradient(90deg,#76202b,#d04b47);box-shadow:0 0 9px #9b2121}
+#ui .extraction-prompt[data-phase="incise"]{border-left-color:#d57865}
+#ui .extraction-prompt[data-phase="rip"]{border-left-color:#ecb394}
+#ui .touch-extract{position:absolute;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:5;width:68px;min-height:53px;border:1px solid #d78976;border-radius:8px;background:#2a0a0dde;color:#f7ded0;font:800 9px/1.25 Arial,sans-serif;letter-spacing:.1em;pointer-events:auto;touch-action:none;box-shadow:0 3px 14px #000a}
+#ui .touch-extract:active,#ui .touch-extract.is-held{background:#721823;color:white;border-color:#f0b698}
+@media(max-width:700px){#ui .extraction-prompt{bottom:calc(215px + env(safe-area-inset-bottom,0px));width:min(220px,60vw);padding:8px 10px}#ui .extraction-prompt strong{font-size:17px}#ui .style-pending{font-size:7px}}
+@media(pointer:coarse) and (orientation:landscape) and (max-height:520px){#ui .extraction-prompt{bottom:106px;width:205px}}
+
+/* The archive gives optional rooms a lasting narrative reward. */
+#ui .pause-layout{position:relative;z-index:2;display:flex;align-items:flex-start;gap:6vw;width:100%;max-width:1420px}
+#ui .pause-layout .pause-card{flex:1 1 600px;min-width:0}
+#ui .pause-screen.is-story .pause-copy{display:block;max-width:440px;margin:0 0 26px;color:#c5b5a2;font:13px/1.5 Arial,sans-serif}
+#ui .records-archive{flex:0 0 min(420px,35vw);min-width:0;max-height:78vh;margin-top:12px;padding:20px 21px 18px;border-left:2px solid #b78f65;background:linear-gradient(145deg,#1b1715f2,#090909ed);box-shadow:0 18px 55px #0009;text-align:left}
+#ui .records-archive[hidden]{display:none}
+#ui .records-archive h3{margin:10px 0 17px;color:#f0e1c9;font:clamp(30px,3vw,45px)/.9 Impact,sans-serif;letter-spacing:.025em}
+#ui .records-archive h3 em{font-style:normal;color:#c99469}
+#ui .records-list{max-height:calc(78vh - 118px);overflow:auto;scrollbar-color:#896c50 #1d1715}
+#ui .record-entry{padding:14px 0 16px;border-top:1px solid #9c806148}
+#ui .record-entry span{display:block;color:#b69675;font:700 9px/1.3 Arial,sans-serif;letter-spacing:.13em;text-transform:uppercase}
+#ui .record-entry strong{display:block;margin:7px 0 4px;color:#f2e2cc;font:23px/1 Impact,sans-serif;letter-spacing:.035em;text-transform:uppercase}
+#ui .record-entry p,#ui .records-empty{margin:0;color:#cbbba7;font:12px/1.5 Arial,sans-serif}
+@media(max-width:800px){#ui .pause-screen{overflow:auto;align-items:flex-start}#ui .pause-layout{flex-direction:column;gap:22px}#ui .pause-layout .pause-card{flex:0 0 auto;width:100%}#ui .pause-card h2{margin:18px 0;font-size:clamp(56px,13vw,88px)}#ui .records-archive{flex:0 0 auto;width:100%;max-height:none;margin:0}#ui .records-list{max-height:40vh}#ui .pause-screen.is-story .pause-copy{margin-bottom:15px}}

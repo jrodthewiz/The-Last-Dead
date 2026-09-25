@@ -256,8 +256,35 @@ function rotateBone(state, name, x = 0, y = 0, z = 0) {
   if (z) {tempAxis.set(0, 0, 1);tempQuat.setFromAxisAngle(tempAxis, z);bone.quaternion.multiply(tempQuat);}
 }
 
-function restoreBasePose(state) {
-  for (const item of state.actorState.basePose || []) {
+// AnimationMixer keeps an internal accumulated value for every bound track and
+// can skip writing a property when that value has not changed.  Restoring the
+// bind pose immediately before a mixer update therefore creates a one-frame
+// snap whenever a clip is paused or its current keyframe remains unchanged.
+// Keep the last pose produced by the mixer as the reset target.  Additive
+// posture work is applied after this snapshot and is discarded on the next
+// frame before the mixer evaluates again.
+function ensureAnimationPose(state) {
+  const basePose = state.actorState.basePose || [];
+  const pose = state.actorState.animationPose ||= basePose.map(item => ({
+    bone: item.bone,
+    position: item.position.clone(),
+    rotation: item.rotation.clone(),
+    scale: item.scale.clone(),
+  }));
+  return pose;
+}
+
+function captureAnimationPose(state) {
+  for (const item of ensureAnimationPose(state)) {
+    item.position.copy(item.bone.position);
+    item.rotation.copy(item.bone.quaternion);
+    item.scale.copy(item.bone.scale);
+  }
+}
+
+function restoreAnimationPose(state) {
+  const pose = ensureAnimationPose(state);
+  for (const item of pose) {
     item.bone.position.copy(item.position);
     item.bone.quaternion.copy(item.rotation);
     item.bone.scale.copy(item.scale);
@@ -418,6 +445,10 @@ export function createAfterlifeEnemy(template, clips = [], kind = 0, variant = '
   root.userData.kind = kind;
   root.userData.variant = profile.key;
   setBaseActionWeights(state);
+  // Apply the initial idle sample before the first frame so a paused mixer
+  // starts from the same pose that its property cache expects.
+  state.actorState.mixer?.update(0);
+  captureAnimationPose(state);
   applyAppearance(state, profile);
   root.updateMatrixWorld(true);
   updateFloor(state);
@@ -449,6 +480,7 @@ export function resetAfterlifeEnemy(root, variant = '', seed = 0) {
     state.actorState.mixer.stopAllAction();
     setBaseActionWeights(state);
     state.actorState.mixer.setTime?.(0);
+    captureAnimationPose(state);
   }
   applyAppearance(state, profile);
   state.telegraph.visible = false;
@@ -473,7 +505,7 @@ export function animateAfterlifeEnemy(root, enemy = {}, now = 0, seed = 0) {
     state.deadAt ??= t;
     const deadProgress = clamp((t - state.deadAt) / .58, 0, 1);
     state.telegraph.visible = false;
-    restoreBasePose(state);
+    restoreAnimationPose(state);
     const fall = deadProgress * deadProgress * (3 - 2 * deadProgress);
     state.pivot.rotation.z = state.kind === 0 ? -fall * .82 : fall * .58;
     state.pivot.rotation.x = state.kind === 0 ? fall * .30 : fall * .18;
@@ -489,7 +521,7 @@ export function animateAfterlifeEnemy(root, enemy = {}, now = 0, seed = 0) {
   state.pivot.rotation.set(0, 0, 0);
   state.pivot.scale.set(1, 1, 1);
   state.actor.scale.setScalar(1 + hurt * .012);
-  restoreBasePose(state);
+  restoreAnimationPose(state);
 
   let moving = 0;
   if (state.lastPosition) {
@@ -501,6 +533,10 @@ export function animateAfterlifeEnemy(root, enemy = {}, now = 0, seed = 0) {
     state.lastPosition = root.position.clone();
   }
   updateAction(state, moving, dt);
+  // Snapshot the mixer result before posture and hit offsets are layered on.
+  // The next frame restores this pose, keeping animation stable when the
+  // mixer legitimately skips an unchanged property write.
+  captureAnimationPose(state);
 
   const warning = isAfterlifeWarning(state.kind, enemy);
   const defaultWindup = state.kind === 0 ? .28 : .48;

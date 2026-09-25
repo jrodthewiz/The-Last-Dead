@@ -14,6 +14,12 @@ export const AUDIO_ASSET_MANIFEST = Object.freeze({
   "distant-scream": [
     "./audio/sourced/horror/distant-scream-rough.ogg"
   ],
+  "ceiling-scream": [
+    "./audio/playground/ceiling-human-scream.ogg"
+  ],
+  "window-scream": [
+    "./audio/playground/window-human-scream.ogg"
+  ],
   "music-menu": [
     "./audio/music/insistent-menu.ogg"
   ],

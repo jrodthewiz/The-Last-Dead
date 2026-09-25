@@ -8,6 +8,7 @@ export const CELL = 4;
 const DEFAULTS = Object.freeze({
   maxMistPatches: 42,
   maxSpecks: 52,
+  maxEmberMotes: 48,
   maxBeams: 4,
   mistDensity: 0.13,
   // The source rooms are dark and reflective. Keep the wisps below a bright
@@ -336,6 +337,68 @@ function makeSpeckMaterial(options) {
   });
 }
 
+function makePracticalGlowMaterial(course, options) {
+  const style = course?.artDirection?.lightFixture;
+  const color = style === 'surgical-bowl' ? 0x91c8c2
+    : style === 'buried-ember' ? 0xee4b35
+    : style === 'bone-censer' ? 0xd8aa72 : 0xffb864;
+  return new THREE.ShaderMaterial({
+    name: 'AfterlifePracticalGlowMaterial',
+    uniforms: {
+      uTime: { value: 0 },
+      uMotion: { value: options.reducedMotion ? 0 : 1 },
+      uColor: { value: new THREE.Color(color) },
+    },
+    vertexShader: `
+      uniform float uTime;
+      uniform float uMotion;
+      attribute float aPhase;
+      attribute float aSize;
+      attribute float aMote;
+      varying float vMote;
+      varying float vAlpha;
+      void main() {
+        float time = uTime * uMotion;
+        vec3 world = (modelMatrix * vec4(position, 1.0)).xyz;
+        float life = fract(time * (.12 + aPhase * .007) + aPhase);
+        if (aMote > .5) {
+          world.x += sin(aPhase * 13.1 + life * 5.2) * .22;
+          world.y += life * .95;
+          world.z += cos(aPhase * 9.7 + life * 4.1) * .22;
+        }
+        float cameraDistance = distance(cameraPosition, world);
+        float distanceFade = (1.0 - smoothstep(22.0, 56.0, cameraDistance))
+          * smoothstep(1.2, 3.0, cameraDistance);
+        vMote = aMote;
+        vAlpha = distanceFade * (aMote > .5
+          ? (1.0 - smoothstep(.45, 1.0, life)) * uMotion
+          : .77 + .08 * sin(time * 2.3 + aPhase * 13.0));
+        vec4 viewPosition = viewMatrix * vec4(world, 1.0);
+        gl_PointSize = clamp(aSize * (18.0 / max(1.0, -viewPosition.z)), 1.0, aMote > .5 ? 4.2 : 52.0);
+        gl_Position = projectionMatrix * viewPosition;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uColor;
+      varying float vMote;
+      varying float vAlpha;
+      void main() {
+        float radius = length(gl_PointCoord * 2.0 - 1.0);
+        float soft = 1.0 - smoothstep(vMote > .5 ? .12 : .06, 1.0, radius);
+        float core = 1.0 - smoothstep(.02, .32, radius);
+        float alpha = soft * vAlpha * (vMote > .5 ? .49 : .29);
+        if (alpha < .005) discard;
+        gl_FragColor = vec4(mix(uColor, vec3(1.0, .88, .68), core * (vMote > .5 ? .65 : .12)), alpha);
+      }
+    `,
+    transparent: true,
+    depthTest: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    toneMapped: false,
+  });
+}
+
 function makeBeamMaterial(options) {
   const material = new THREE.MeshBasicMaterial({
     name: 'AfterlifeColdBeamMaterial',
@@ -421,6 +484,38 @@ function makeSpecks(sources, rooms, rng, options) {
   return specks;
 }
 
+function makePracticalGlowPoints(course, sources, rng, options) {
+  if (!sources.length) return [];
+  const style = course?.artDirection?.lightFixture;
+  const fixtureY = {
+    'caged-amber': 4.06, 'surgical-bowl': 3.78,
+    'bone-censer': 3.88, 'bell-censer': 3.78,
+    'buried-ember': .32,
+  }[style];
+  if (!Number.isFinite(fixtureY)) return [];
+  const points = [];
+  const limit = Math.max(0, Math.floor(options.maxEmberMotes));
+  const perSource = Math.min(5, Math.ceil(limit / sources.length));
+  let moteCount = 0;
+  for (const source of sources) {
+    // The hanging entry cue has no matching fixture: its light comes from a
+    // nearby tunnel rib. A halo there would read as a floating orange orb.
+    if (source.role === 'entry' && style !== 'buried-ember') continue;
+    points.push({ x: source.x, y: fixtureY, z: source.z,
+      phase: source.phase, size: style === 'buried-ember' ? 33 : 29, mote: 0 });
+    for (let i = 0; i < perSource && moteCount < limit; i += 1) {
+      const angle = rng() * Math.PI * 2;
+      const radius = .12 + rng() * .28;
+      points.push({ x: source.x + Math.cos(angle) * radius,
+        y: fixtureY + rng() * .46,
+        z: source.z + Math.sin(angle) * radius,
+        phase: rng(), size: 1.5 + rng() * 1.3, mote: 1 });
+      moteCount += 1;
+    }
+  }
+  return points;
+}
+
 /**
  * Bounded, reusable afterlife atmosphere contract:
  *
@@ -440,6 +535,7 @@ export class AfterlifeAtmosphere {
     if (this.options.mobile || this.options.quality === 'low') {
       this.options.maxMistPatches = Math.min(this.options.maxMistPatches, 20);
       this.options.maxSpecks = Math.min(this.options.maxSpecks, 24);
+      this.options.maxEmberMotes = Math.min(this.options.maxEmberMotes, 18);
       this.options.maxBeams = Math.min(this.options.maxBeams, 2);
     }
     this.root = new THREE.Group();
@@ -458,10 +554,12 @@ export class AfterlifeAtmosphere {
     const patches = chooseMistPatches(course, rooms, rng, this.options);
     const sources = readColdSources(course, rooms, rng, this.options);
     const specks = makeSpecks(sources, rooms, rng, { ...this.options, course });
+    const practicalPoints = makePracticalGlowPoints(course, sources, rng, this.options);
     this._rooms = rooms;
     this._patches = patches;
     this._sources = sources;
     this._specks = specks;
+    this._practicalPoints = practicalPoints;
     this._mistMaterial = makeMistMaterial(this.options);
     this._beamMaterial = makeBeamMaterial(this.options);
     this._mistGeometry = new THREE.PlaneGeometry(2, 2, 1, 1);
@@ -522,6 +620,35 @@ export class AfterlifeAtmosphere {
       this._specksObject = null;
     }
 
+    if (practicalPoints.length) {
+      const positions = new Float32Array(practicalPoints.length * 3);
+      const phases = new Float32Array(practicalPoints.length);
+      const sizes = new Float32Array(practicalPoints.length);
+      const motes = new Float32Array(practicalPoints.length);
+      practicalPoints.forEach((point, index) => {
+        positions.set([point.x, point.y, point.z], index * 3);
+        phases[index] = point.phase;
+        sizes[index] = point.size;
+        motes[index] = point.mote;
+      });
+      this._practicalGeometry = new THREE.BufferGeometry();
+      this._practicalGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      this._practicalGeometry.setAttribute('aPhase', new THREE.Float32BufferAttribute(phases, 1));
+      this._practicalGeometry.setAttribute('aSize', new THREE.Float32BufferAttribute(sizes, 1));
+      this._practicalGeometry.setAttribute('aMote', new THREE.Float32BufferAttribute(motes, 1));
+      this._practicalGeometry.computeBoundingSphere();
+      this._practicalMaterial = makePracticalGlowMaterial(course, this.options);
+      this._practicalObject = new THREE.Points(this._practicalGeometry, this._practicalMaterial);
+      this._practicalObject.name = 'AfterlifePracticalGlow';
+      this._practicalObject.frustumCulled = false;
+      this._practicalObject.renderOrder = 5;
+      this.root.add(this._practicalObject);
+    } else {
+      this._practicalGeometry = null;
+      this._practicalMaterial = null;
+      this._practicalObject = null;
+    }
+
     this._beams = [];
     this._beamObject = null;
     if (this.options.enableBeams !== false && sources.length && this.options.maxBeams > 0) {
@@ -563,8 +690,9 @@ export class AfterlifeAtmosphere {
       mistPatches: patches.length,
       coldSources: sources.length,
       specks: specks.length,
+      practicalGlowPoints: practicalPoints.length,
       beams: this._beams.length,
-      drawCalls: 1 + (specks.length ? 1 : 0) + (this._beams.length ? 1 : 0),
+      drawCalls: 1 + (specks.length ? 1 : 0) + (practicalPoints.length ? 1 : 0) + (this._beams.length ? 1 : 0),
       reducedMotion: !!this.options.reducedMotion,
       mobileBudget: !!(this.options.mobile || this.options.quality === 'low'),
       noSceneFogMutation: true,
@@ -577,18 +705,23 @@ export class AfterlifeAtmosphere {
     this.root.clear();
     this._mistGeometry?.dispose?.();
     this._speckGeometry?.dispose?.();
+    this._practicalGeometry?.dispose?.();
     this._beamGeometry?.dispose?.();
     this._mistMaterial?.dispose?.();
     this._speckMaterial?.dispose?.();
+    this._practicalMaterial?.dispose?.();
     this._beamMaterial?.dispose?.();
     this._mistGeometry = null;
     this._speckGeometry = null;
+    this._practicalGeometry = null;
     this._beamGeometry = null;
     this._mistMaterial = null;
     this._speckMaterial = null;
+    this._practicalMaterial = null;
     this._beamMaterial = null;
     this._mist = null;
     this._specksObject = null;
+    this._practicalObject = null;
     this._beams = [];
     this._beamObject = null;
   }
@@ -612,6 +745,10 @@ export class AfterlifeAtmosphere {
       this._speckMaterial.uniforms.uTime.value = reducedMotion ? 0 : time;
       this._speckMaterial.uniforms.uMotion.value = reducedMotion ? 0 : 1;
       this._speckMaterial.uniforms.uOpacity.value = reducedMotion ? .30 : .38;
+    }
+    if (this._practicalMaterial) {
+      this._practicalMaterial.uniforms.uTime.value = reducedMotion ? 0 : time;
+      this._practicalMaterial.uniforms.uMotion.value = reducedMotion ? 0 : 1;
     }
     if (this._beamMaterial) {
       const base = this._beamMaterial.userData.baseOpacity ?? DEFAULTS.beamOpacity;

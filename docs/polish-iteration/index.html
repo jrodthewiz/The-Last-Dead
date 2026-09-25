@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Last Dead — Light and HUD pass</title>
+  <style>
+    :root{color-scheme:dark;font-family:Arial,sans-serif;background:#080707;color:#e9e0ce}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0,#21100e,#080707 48%)}
+    main{max-width:1500px;margin:auto;padding:clamp(24px,4vw,60px)}
+    h1,h2{font-family:Impact,'Arial Narrow',sans-serif;text-transform:uppercase;letter-spacing:.04em}
+    h1{font-size:clamp(48px,7vw,96px);line-height:.9;margin:14px 0 25px}h2{font-size:32px;margin:58px 0 18px}
+    .eyebrow,.label{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#d15b4a;font-weight:700}
+    p{max-width:800px;color:#baa99a;line-height:1.55}a{color:#f1c58b}
+    .pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    figure{margin:0;background:#120d0c;border:1px solid #4c302c;padding:7px}
+    figcaption{padding:10px 5px 5px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#cbb9a4}
+    img{display:block;width:100%;height:auto}figure a{display:block;overflow:hidden}
+    .single{max-width:900px}.facts{display:flex;flex-wrap:wrap;gap:10px;margin:28px 0}
+    .fact{border:1px solid #4c302c;padding:12px 15px;color:#cbb9a4;font-size:12px}.fact b{color:#f1c58b}
+    @media(max-width:850px){.pair{grid-template-columns:1fr}}
+  </style>
+</head>
+<body><main>
+  <div class="eyebrow">The Last Dead / visual iteration</div>
+  <h1>Practical light<br>and bodycam polish</h1>
+  <p>Authored lamps now carry a small shader-driven halo and drifting motes. The live HUD adds a kill tally, trims repetitive copy, and uses a restrained scanline and edge treatment during play. The full-size images open on click.</p>
+  <div class="facts"><div class="fact"><b>+1</b> atmosphere draw call</div><div class="fact"><b>0</b> added dynamic lights</div><div class="fact"><b>0</b> added image textures</div><div class="fact">Reduced motion disables mote animation</div></div>
+  <h2>Intake gate</h2>
+  <div class="pair">
+    <figure><a href="before/floor-1-entry.png"><img src="before/floor-1-entry.png" alt="Intake gate before polish"></a><figcaption>Before</figcaption></figure>
+    <figure><a href="final-map/floor-1-entry.png"><img src="final-map/floor-1-entry.png" alt="Intake gate after polish"></a><figcaption>After</figcaption></figure>
+  </div>
+  <h2>Last descent</h2>
+  <div class="pair">
+    <figure><a href="before/floor-5-entry.png"><img src="before/floor-5-entry.png" alt="Last descent before polish"></a><figcaption>Before</figcaption></figure>
+    <figure><a href="final-map/floor-5-entry.png"><img src="final-map/floor-5-entry.png" alt="Last descent after polish"></a><figcaption>After</figcaption></figure>
+  </div>
+  <h2>Fixture close-ups</h2>
+  <p>The hanging hall lamp and the buried ember are the intended locations for the new glow. The entry cue without a modeled lamp is excluded.</p>
+  <div class="pair">
+    <figure><a href="final/floor-1-fixture.png"><img src="final/floor-1-fixture.png" alt="Foundry hall hanging lamp with halo and motes"></a><figcaption>Foundry hall / hanging lamp</figcaption></figure>
+    <figure><a href="final/floor-5-fixture.png"><img src="final/floor-5-fixture.png" alt="Last descent floor ember"></a><figcaption>Last descent / buried ember</figcaption></figure>
+  </div>
+  <p><a href="/">Play the current game</a></p>
+</main></body></html>

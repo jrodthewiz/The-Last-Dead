@@ -291,6 +291,16 @@ const SECTOR_RECIPES = {
   choir: [['fallenBell', 3], ['choirStall', 7]],
 };
 
+// Story floors use smaller, purpose-led prop counts. The architectural kit
+// carries the room identity; these silhouettes make the former use legible.
+const STORY_RECIPES = {
+  'f1-intake-foundry': [['specimenVat', 3], ['gurney', 2], ['crateStack', 3]],
+  'f2-graft-galleries': [['gurney', 6], ['specimenVat', 2]],
+  'f3-catacombs': [['coffinStack', 4], ['skullMound', 3], ['candleAltar', 2]],
+  'f4-resonance': [['choirStall', 6], ['fallenBell', 1]],
+  'f5-last-descent': [['choirStall', 2], ['fallenBell', 1]],
+};
+
 export function setDressingMaterials(materials, sector) {
   const accent = sector === 'ossuary' ? 0x9b7bff : sector === 'choir' ? 0xffa24a : 0xff3b2e;
   const std = (name, color, roughness, metalness, extra = {}) => {
@@ -344,9 +354,10 @@ export function buildSetDressingProp(kind, mats, seed = 1) {
 export function buildSetDressing(root, materials, course = {}) {
   const group = new THREE.Group();
   group.name = 'SetDressing';
-  if (course.dungeon) return group;
   const sector = String(course.sectorId || course.id || 'bloodworks').toLowerCase();
-  const recipe = SECTOR_RECIPES[sector] || SECTOR_RECIPES.bloodworks;
+  const recipe = course.dungeon
+    ? STORY_RECIPES[course.id] || []
+    : SECTOR_RECIPES[sector] || SECTOR_RECIPES.bloodworks;
   const mats = setDressingMaterials(materials, sector);
   const field = buildLifeField(course);
   const rng = lifeRng(seedFor('setdressing:' + sector));

@@ -29,7 +29,7 @@ export class BloodDeposits {
   slot.position.copy(position).addScaledVector(normal,.014+(this.cursor%3)*.0007);
   slot.rotation.setFromUnitVectors(this.forward,normal);
   this.roll.setFromAxisAngle(this.forward,seed*2.399);slot.rotation.multiply(this.roll);
-  slot.size=size;slot.variant=variant;slot.age=0;slot.duration=22+(Math.abs(seed)%7);
+  slot.size=size*(.88+(Math.abs(Math.sin(seed*4.17))* .24));slot.variant=((variant??3)+Math.floor(Math.abs(Math.sin(seed*7.13))*2))%4;slot.age=0;slot.duration=22+(Math.abs(seed)%7);
  }
  update(dt,gore=true){
   let count=0;
@@ -37,7 +37,7 @@ export class BloodDeposits {
    slot.age+=dt;
    if(slot.age>=slot.duration||!gore)continue;
    this.object.position.copy(slot.position);this.object.quaternion.copy(slot.rotation);
-   this.object.scale.setScalar(slot.size*(1+.08*(1-Math.exp(-slot.age*3))));this.object.updateMatrix();
+   const spread=1+.14*(1-Math.exp(-slot.age*10));this.object.scale.set(slot.size*spread,slot.size*(.88+.18*(1-Math.exp(-slot.age*7))),1);this.object.updateMatrix();
    this.mesh.setMatrixAt(count,this.object.matrix);
    this.mesh.geometry.attributes.bloodState.setXY(count,slot.variant,Math.min(1,slot.age/16));
    this.mesh.geometry.attributes.depositFade.setX(count,Math.min(1,(slot.duration-slot.age)/3));

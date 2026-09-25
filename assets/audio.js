@@ -33,6 +33,12 @@ const MIX_PROFILES = Object.freeze({
   explosion: { group: 'sfx', volume: .40, maxVoices: 5, highpass: 42, lowpass: 6800, cooldown: .05, refDistance: 1.8, maxDistance: 38 },
   hit: { group: 'sfx', volume: .25, maxVoices: 8, highpass: 80, lowpass: 6200, cooldown: .025 },
   blood: { group: 'sfx', volume: .21, maxVoices: 7, highpass: 70, lowpass: 3600, cooldown: .025 },
+  'extract-start': { group: 'sfx', volume: .12, maxVoices: 2, highpass: 480, lowpass: 6200, cooldown: .08 },
+  'extract-draw': { group: 'sfx', volume: .24, maxVoices: 2, highpass: 45, lowpass: 2200, cooldown: .1 },
+  'extract-incise': { group: 'sfx', volume: .25, maxVoices: 2, highpass: 90, lowpass: 3900, cooldown: .1 },
+  'extract-rip': { group: 'sfx', volume: .32, maxVoices: 3, highpass: 48, lowpass: 3600, cooldown: .1 },
+  'extract-complete': { group: 'sfx', volume: .17, maxVoices: 2, highpass: 42, lowpass: 2600, cooldown: .08 },
+  'extract-cancel': { group: 'sfx', volume: .08, maxVoices: 1, highpass: 550, lowpass: 5800, cooldown: .08 },
   bulletcrackle: { group: 'sfx', volume: .22, maxVoices: 6, highpass: 900, lowpass: 9000, cooldown: .04 },
   footstep: { group: 'sfx', volume: .14, maxVoices: 3, highpass: 90, lowpass: 3000, cooldown: .06 },
   jump: { group: 'sfx', volume: .18, maxVoices: 2, highpass: 80, lowpass: 5600, cooldown: .08 },
@@ -45,6 +51,8 @@ const MIX_PROFILES = Object.freeze({
   enemydeath: { group: 'voice', volume: .30, maxVoices: 4, highpass: 65, lowpass: 4300, cooldown: .04, refDistance: 2.4, maxDistance: 36 },
   moan: { group: 'voice', volume: .18, maxVoices: 2, highpass: 90, lowpass: 3600, cooldown: .5, refDistance: 3, maxDistance: 42 },
   'distant-scream': { group: 'voice', volume: .10, maxVoices: 1, highpass: 80, lowpass: 2900, cooldown: 12, refDistance: 3, maxDistance: 45, rolloffFactor: 1.25 },
+  'ceiling-scream': { group: 'voice', volume: .32, maxVoices: 1, highpass: 75, lowpass: 4200, cooldown: 12, refDistance: 3, maxDistance: 25, rolloffFactor: 1.4 },
+  'window-scream': { group: 'voice', volume: .29, maxVoices: 1, highpass: 85, lowpass: 4400, cooldown: 12, refDistance: 2.5, maxDistance: 22, rolloffFactor: 1.6 },
   'horror-sting': { group: 'sfx', volume: .13, maxVoices: 1, highpass: 90, lowpass: 6800, cooldown: 16 },
   'horror-reveal': { group: 'sfx', volume: .11, maxVoices: 1, highpass: 80, lowpass: 4800, cooldown: 20 },
   parry: { group: 'sfx', volume: .24, maxVoices: 3, highpass: 160, lowpass: 9000, cooldown: .08 },
@@ -166,6 +174,7 @@ export class AudioSystem {
     this._limiter = null;
     this._groups = new Map();
     this._buffers = new Map();
+    this._soundEnvelopes = new Map();
     this._bufferGains = new WeakMap();
     this._normalizedPools = 0;
     this._normalizedSamples = 0;
@@ -210,6 +219,33 @@ export class AudioSystem {
   get loadErrors() { return this._loadErrors.slice(); }
   get scene() { return this._musicScene; }
   get musicActive() { return Boolean(this._musicSource); }
+  // RMS frames are derived from the decoded sound, keeping the face motion
+  // synchronized with the exact scream sample the listener hears.
+  soundLevelAt(type, seconds) {
+    if (!Number.isFinite(seconds) || seconds < 0) return 0;
+    let envelope = this._soundEnvelopes.get(type);
+    if (!envelope) {
+      const entry = [...this._buffers.entries()].find(([key]) => key.startsWith(type + ':'));
+      if (!entry) return 0;
+      const buffer = entry[1], samples = buffer.getChannelData(0);
+      const step = Math.max(1, Math.round(buffer.sampleRate * .025));
+      const levels = new Float32Array(Math.ceil(samples.length / step));
+      let peak = 0;
+      for (let i = 0; i < levels.length; i++) {
+        let energy = 0;
+        const start = i * step, end = Math.min(samples.length, start + step);
+        for (let j = start; j < end; j++) energy += samples[j] * samples[j];
+        const level = Math.sqrt(energy / Math.max(1, end - start));
+        levels[i] = level; peak = Math.max(peak, level);
+      }
+      envelope = { levels, peak: Math.max(.001, peak), duration: buffer.duration };
+      this._soundEnvelopes.set(type, envelope);
+    }
+    if (seconds >= envelope.duration) return 0;
+    const at = seconds / .025, index = Math.floor(at), fraction = at - index;
+    const level = (envelope.levels[index] || 0) * (1 - fraction) + (envelope.levels[index + 1] || 0) * fraction;
+    return clamp(Math.pow(level / envelope.peak, .75), 0, 1);
+  }
   get debugInfo() {
     return Object.freeze({ loaded: this._loaded, decoded: this._buffers.size, manifestEntries: this._assetCount, normalizedPools: this._normalizedPools, normalizedSamples: this._normalizedSamples, errors: this.loadErrors });
   }
@@ -410,9 +446,32 @@ export class AudioSystem {
     });
     if (name === 'hover') { profile.volume = .065; profile.cooldown = .07; }
     const mix = { ...profile, group: GROUP_BY_TYPE[name] || profile.group, ...details };
-    if (name === 'shot' && index === 4 && details.mode === 'burst') {
-      mix.volume = Math.min(Number(mix.volume) || .36, .34);
-      mix.highpass = 105;
+    const extractionSound = {
+      'extract-start': ['mechanism', 5, 1.08],
+      'extract-draw': ['blood', 0, .68],
+      'extract-incise': ['melee-hit', 0, .82],
+      'extract-rip': ['blood', 0, .87],
+      'extract-complete': ['heartbeat', 0, .91],
+      'extract-cancel': ['mechanism', 5, .88],
+    }[name];
+    if (extractionSound) {
+      const seed = Number(details.seed) || 0;
+      mix.rate = clamp(extractionSound[2] + Math.sin(seed * .000031 + name.length * 1.41) * .055, .55, 1.2);
+      mix.volume = clamp(Number(profile.volume) + Math.sin(seed * .000017 + name.length) * .025, .05, .4);
+      // The body seed chooses repeatable sample variants and timing without
+      // manufacturing or loading new audio during a live extraction.
+      mix.variant = name === 'extract-incise' ? 3 : Math.abs(seed) % 2;
+    }
+    if (name === 'shot' && index === 4) {
+      const heat = clamp(Number(details.heat) || 0, 0, 1);
+      const sequence = Number(details.sequence) || 0;
+      // A quiet mechanical report on each round carries the automatic rhythm;
+      // a small deterministic pitch shift keeps consecutive rounds distinct.
+      mix.rate = clamp(1 + Math.sin(sequence * 2.399) * .025 - heat * .028, .94, 1.04);
+      mix.volume = details.mode === 'burst' ? .35 : .41;
+      mix.highpass = details.mode === 'burst' ? 105 : 88;
+      mix.mechanismVolume = details.mode === 'burst' ? .095 : .085;
+      mix.mechanismDelay = .042;
     }
     if (name === 'shot' && index === 5 && details.mode === 'charged') {
       mix.volume = Math.min(1, (Number(mix.volume) || .54) * 1.08);
@@ -428,15 +487,23 @@ export class AudioSystem {
     }
     // The engine keeps wall collisions under one event name; route the
     // chainsaw's metal bite to its dedicated wall pool instead of a bat clang.
-    const buffer = name === 'melee-wall' && index === 7
+    const buffer = extractionSound
+      ? this._chooseBuffer(extractionSound[0], extractionSound[1], mix.variant)
+      : name === 'melee-wall' && index === 7
       ? this._chooseBuffer('chainsaw-wall', 0, details.variant)
       : this._chooseBuffer(name, index, details.variant);
     if (buffer) {
       this._playBuffer(buffer, name, index, mix);
+      if (name === 'extract-rip') {
+        const tear = this._chooseBuffer('melee-hit', 0, 3);
+        if (tear) this._playBuffer(tear, name, index, {...mix,volume:.12,highpass:120,lowpass:3100,rate:mix.rate*.8,delay:.11});
+      }
       // Keep the tactile layer coupled to the real shot event. It is a tiny
       // sampled tail with the same spatial details, so it adds weapon identity
       // without a second gameplay event or a per-frame synthesizer.
-      if (name === 'shot' || name === 'rocket') this._playMechanism(index, details);
+      if (name === 'shot' || name === 'rocket') this._playMechanism(index, name === 'shot' && index === 4
+        ? { ...details, mechanismVolume: mix.mechanismVolume, mechanismDelay: mix.mechanismDelay }
+        : details);
       return true;
     }
     return false;
@@ -527,6 +594,7 @@ export class AudioSystem {
     }
     this._groups.clear();
     this._voices.clear();
+    this._soundEnvelopes.clear();
     if (this._limiter) { try { this._limiter.disconnect(); } catch {} }
     if (this._ctx) this._ctx.close().catch(() => {});
     this._ctx = null;

@@ -1,0 +1,23 @@
+{
+  "errors": [],
+  "requests": [],
+  "pose": {
+    "source": "survivor-v02-afterlife",
+    "bones": 24,
+    "maxDelta": 0
+  },
+  "burst": {
+    "shots": 6,
+    "damage": 8.699999999999932,
+    "fleshTraces": 1,
+    "casings": 6,
+    "impacts": {
+      "splashes": 3,
+      "wounds": 5,
+      "drops": 53,
+      "deposits": 0
+    },
+    "gore": 72,
+    "blood": 6
+  }
+}

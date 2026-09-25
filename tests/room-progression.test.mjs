@@ -14,7 +14,7 @@ import {
   updateRoomProgression,
 } from '../room-progression.js';
 
-test('campaign rooms are deterministic disjoint bands with paired gated connectors', () => {
+test('campaign rooms have distinct shells and reachable paired gated connectors', () => {
   assert.equal(CAMPAIGN_ROOMS.length, 12);
   for (const sectorId of ['bloodworks', 'ossuary', 'choir']) {
     const sequence = getRoomSequence(sectorId);
@@ -23,8 +23,9 @@ test('campaign rooms are deterministic disjoint bands with paired gated connecto
       const room = sequence[index];
       assert.equal(room.index, index);
       assert.ok(room.bounds.minZ < room.bounds.maxZ);
-      assert.equal(room.bounds.minX, 0);
-      assert.equal(room.bounds.maxX, 12);
+      assert.ok(room.bounds.minX >= 0);
+      assert.ok(room.bounds.maxX <= 12);
+      assert.ok(room.bounds.maxX - room.bounds.minX >= 6);
       assert.ok(room.spawnPoints.length >= 2);
       const doors = room.portals.filter(portal => portal.kind === 'door' || portal.kind === 'lift');
       assert.equal(doors.length, 2);
@@ -33,6 +34,8 @@ test('campaign rooms are deterministic disjoint bands with paired gated connecto
       else assert.equal(room.encounter.waves.length, 1);
       if (index) assert.ok(room.bounds.maxZ < sequence[index - 1].bounds.minZ);
     }
+    assert.ok(new Set(sequence.map(room => `${room.bounds.minX}:${room.bounds.maxX}`)).size >= 3,
+      `${sectorId} should change width and offset as the player advances`);
   }
 });
 
@@ -44,21 +47,21 @@ test('locked room barriers block the center and both door spans until clear', ()
   assert.equal(progression.version, ROOM_PROGRESSION_VERSION);
   assert.equal(barrier.open, false);
   assert.equal(canTraverseRoomGates(course, progression, 6, 9.2, 6, 8.8), false);
-  assert.equal(canTraverseRoomGates(course, progression, 2, 9.2, 2, 8.8), false);
+  assert.equal(canTraverseRoomGates(course, progression, 3, 9.2, 3, 8.8), false);
   assert.equal(canTraverseRoomGates(course, progression, .5, 9.2, .5, 8.8), false);
   assert.equal(canTraverseRoomGates(course, progression, 3.5, 9.2, 3.5, 8.8), false);
   assert.equal(canTraverseRoomGates(course, progression, 11.5, 9.2, 11.5, 8.8), false);
-  assert.equal(canStand(course, 2, 9.02, .1), false);
-  assert.ok(castRay(course, 2, 9.2, -Math.PI / 2, 1).dist < .2);
+  assert.equal(canStand(course, 3, 9.02, .1), false);
+  assert.ok(castRay(course, 3, 9.2, -Math.PI / 2, 1).dist < .2);
   completeRoom(progression, 0);
   syncRoomGateCells(course, progression);
   assert.equal(progression.barriers['bloodworks-barrier-0'].open, true);
   assert.equal(canTraverseRoomGates(course, progression, 6, 9.2, 6, 8.8), false);
-  assert.equal(canTraverseRoomGates(course, progression, 2, 9.2, 2, 8.8), true);
-  assert.equal(canStand(course, 2, 9.02, .1), true);
-  assert.ok(castRay(course, 2, 9.2, -Math.PI / 2, 1).dist > .8);
+  assert.equal(canTraverseRoomGates(course, progression, 3, 9.2, 3, 8.8), true);
+  assert.equal(canStand(course, 3, 9.02, .1), true);
+  assert.ok(castRay(course, 3, 9.2, -Math.PI / 2, 1).dist > .8);
   assert.equal(canStand(course, .5, 9.02, .1), false);
-  assert.equal(canStand(course, 3.5, 9.02, .1), false);
+  assert.equal(canStand(course, 5.5, 9.02, .1), false);
   assert.ok(castRay(course, 6, 9.2, -Math.PI / 2, 1).dist < .2);
   assert.equal(roomAt(getRoomSequence('bloodworks'), 6, 10.5).id, first.id);
 });

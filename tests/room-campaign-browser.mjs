@@ -31,7 +31,11 @@ page.on('console', message => {
   }
 });
 page.on('pageerror', error => pageErrors.push(String(error?.stack || error)));
-page.on('requestfailed', request => requestFailures.push({ url: request.url(), error: request.failure()?.errorText || 'request failed' }));
+page.on('requestfailed', request => {
+  const error = request.failure()?.errorText || 'request failed';
+  // Rapid sector rebuilds cancel an in-flight optional model request.
+  if (error !== 'net::ERR_ABORTED') requestFailures.push({ url: request.url(), error });
+});
 
 const capture = async label => {
   await page.waitForTimeout(240);

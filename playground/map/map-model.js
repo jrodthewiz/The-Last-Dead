@@ -795,6 +795,9 @@ export function buildDungeonScene(index = 0) {
       anchor: { x: opening.anchor.x, y: opening.anchor.y },
     })),
     keys: (layer.keys || []).map(key => ({ ...key, kind: 'key', at: [...key.at] })),
+    loot: (course.loot || []).map(item => ({ ...item, kind: 'loot', at: [item.x, item.y],
+      name: ['OSSUARY', 'BREACH SHOTGUN', 'ARC LANCE', 'RELIQUARY', 'CARRION', 'MOURNING', 'WAKE BAT', 'RIPPER'][item.weaponIndex] })),
+    evidence: (course.evidence || []).map(item => ({ ...item, recordKind: item.kind, kind: 'evidence', at: [item.x, item.y] })),
     secrets: (layer.rooms || []).filter(room => room.kind === 'secret').map(room => ({
       id: room.id,
       kind: 'secret',

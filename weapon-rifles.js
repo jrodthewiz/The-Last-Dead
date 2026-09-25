@@ -226,7 +226,7 @@ function collectDiagnostics(root, variant, materials, sockets, mechanisms) {
     geometries: geometries.size,
     materials: Object.keys(materials).length,
     textures: sharedMaps ? Object.keys(sharedMaps).length : 0,
-    sockets: ['muzzle', 'projectileOrigin', 'grip', 'supportGrip'].filter(name => Boolean(sockets[name])),
+    sockets: ['muzzle', 'projectileOrigin', 'grip', 'supportGrip', 'ejectionSocket'].filter(name => Boolean(sockets[name])),
     mechanisms: Object.keys(mechanisms),
     budget: { targetTriangles: 12000, staticBatchSafe: true },
   };
@@ -246,7 +246,7 @@ function finish(root, variant, parts, materials, sockets, mechanisms) {
   });
   applySharedMaps(materials);
   installViewmodelBounce(materials);
-  for (const name of ['muzzle', 'projectileOrigin', 'grip', 'supportGrip']) {
+  for (const name of ['muzzle', 'projectileOrigin', 'grip', 'supportGrip', 'ejectionSocket']) {
     root.userData[name] = sockets[name];
   }
   root.userData.resourcesReady = sharedTextureReady;
@@ -263,8 +263,10 @@ function finish(root, variant, parts, materials, sockets, mechanisms) {
     autoHeat: 0,
     heat: 0,
     charge: 0,
+    recoilYaw: 0,
     lastShotSequence: 0,
     lastShotValue: 0,
+    lastMode: '',
     firePulse: 0,
   };
   root.userData.rifle = meta;
@@ -294,6 +296,9 @@ function buildCarrion() {
   add(receiver, profile([[-.18, -.11], [-.15, .1], [-.07, .14], [.1, .13], [.16, .08], [.16, -.11], [.1, -.14], [-.1, -.14]], .028, .006), materials.edge, [0, .03, .282], [0, 0, 0], [1, 1, 1], 'receiver-stamped-face');
   add(receiver, profile([[-.11, -.055], [.11, -.055], [.13, .025], [.08, .09], [-.07, .1], [-.13, .03]], .014, .003), materials.black, [0, .035, .302], [0, 0, 0], [1, 1, 1], 'receiver-recess');
   add(receiver, profile([[-.14, -.06], [.14, -.06], [.13, .04], [-.12, .04]], .024, .004), materials.panel, [0, .17, .04], [0, 0, 0], [1, 1, 1], 'dust-cover');
+  // A dark, recessed port gives the automatic rifle a clear functional read
+  // and gives the shell emitter a visible place to leave the receiver.
+  add(receiver, new THREE.BoxGeometry(.028, .11, .16), materials.black, [.258, .13, .07], [0, 0, 0], [1, 1, 1], 'ejection-port');
   for (const side of [-1, 1]) {
     add(receiver, profile([[-.055, -.11], [.055, -.11], [.072, .1], [-.072, .1]], .028, .006), materials.panel, [side * .247, .02, .02], [0, side * Math.PI / 2, 0], [1, 1, 1], `receiver-side-plate-${side}`);
     add(receiver, new THREE.CylinderGeometry(.026, .026, .032, 12), materials.brass, [side * .265, .04, -.12], [0, 0, Math.PI / 2], [1, 1, 1], `receiver-rivet-${side}`);
@@ -356,6 +361,10 @@ function buildCarrion() {
     grip: socket(root, 'grip', [0, -.27, .22]),
     supportGrip: socket(root, 'supportGrip', [-.12, -.27, -.46]),
     heat: socket(barrel, 'heat', [0, .08, -.58]),
+    // The shell port lives on the camera-side receiver, just behind the
+    // bolt.  Keep this as a dedicated socket so the renderer can place a
+    // casing at the authored port while the carriage is cycling.
+    ejectionSocket: socket(receiver, 'ejectionSocket', [.255, .115, .08]),
     inspect: socket(root, 'inspect', [0, .1, .22]),
   };
   const mechanisms = { recoilCarriage, boltCarrier, boltHandle, vents, magazineFollower, trigger };
@@ -373,6 +382,7 @@ function buildMourning() {
   add(chassis, profile([[-.22, -.16], [-.2, .12], [-.1, .2], [.12, .19], [.2, .11], [.21, -.15], [.11, -.21], [-.14, -.2]], .56, .028), materials.steel, [0, .02, .02], [0, 0, 0], [1, 1, 1], 'long-receiver');
   add(chassis, profile([[-.17, -.1], [-.15, .11], [-.07, .15], [.09, .14], [.15, .08], [.15, -.1], [.07, -.14], [-.1, -.13]], .028, .006), materials.edge, [0, .035, .31], [0, 0, 0], [1, 1, 1], 'receiver-face');
   add(chassis, profile([[-.11, -.06], [.11, -.06], [.11, .06], [.06, .1], [-.07, .1], [-.12, .05]], .014, .003), materials.black, [0, .04, .33], [0, 0, 0], [1, 1, 1], 'receiver-inset');
+  add(chassis, new THREE.BoxGeometry(.028, .1, .17), materials.black, [.248, .13, .08], [0, 0, 0], [1, 1, 1], 'ejection-port');
   for (const side of [-1, 1]) {
     add(chassis, profile([[-.06, -.12], [.06, -.12], [.075, .1], [-.075, .1]], .035, .006), materials.panel, [side * .235, .02, .02], [0, side * Math.PI / 2, 0], [1, 1, 1], `receiver-cheek-${side}`);
     add(chassis, new THREE.CylinderGeometry(.027, .027, .04, 12), materials.brass, [side * .255, .03, -.14], [0, 0, Math.PI / 2], [1, 1, 1], `receiver-bolt-${side}`);
@@ -447,6 +457,7 @@ function buildMourning() {
     grip: socket(root, 'grip', [0, -.27, .24]),
     supportGrip: socket(root, 'supportGrip', [-.13, -.27, -.65]),
     heat: socket(barrel, 'heat', [0, .09, -.72]),
+    ejectionSocket: socket(chassis, 'ejectionSocket', [.245, .12, .09]),
     inspect: socket(root, 'inspect', [0, .12, .34]),
   };
   const mechanisms = { recoilCarriage, boltCarrier, chargingLever, barrel, optic, chargeIndicator, chargeBar, trigger };
@@ -477,6 +488,9 @@ export function animateRifle(root, shot = 0, time = 0, dt = .016, state = {}) {
   const sequence = Number.isFinite(Number(state.shotSequence)) ? Number(state.shotSequence) : meta.lastShotSequence;
   const explicitHeat = clamp(Number(state.heat) || 0, 0, 1);
   const explicitCharge = clamp(Number(state.charge) || 0, 0, 1);
+  const explicitKick = clamp(Number(state.kick) || 0, 0, 1.25);
+  const explicitKickYaw = clamp(Number(state.kickYaw) || 0, -.2, .2);
+  const requestedMode = typeof state.mode === 'string' ? state.mode : '';
   // The renderer updates hidden viewmodels too.  A global shot sequence is
   // useful for automatic fire, but it must only be consumed while this rifle
   // is actually firing or a hidden rifle would cycle when another slot fires.
@@ -493,12 +507,18 @@ export function animateRifle(root, shot = 0, time = 0, dt = .016, state = {}) {
     meta.cycle = 1;
     meta.firePulse = 1;
     meta.autoHeat = Math.min(1, meta.autoHeat + (meta.variant === 'carrion' ? .22 : .34));
+    meta.lastMode = requestedMode || meta.lastMode || 'shot';
   }
+  // Engine recoil is authoritative when supplied, while the sequence edge
+  // above keeps this factory pleasant to use in isolated model previews.
+  if (explicitKick > meta.recoil) meta.recoil = explicitKick;
+  if (Math.abs(explicitKickYaw) > Math.abs(meta.recoilYaw || 0)) meta.recoilYaw = explicitKickYaw;
   meta.lastShotValue = shotValue;
   meta.recoil = damp(meta.recoil, 0, meta.variant === 'carrion' ? 22 : 15, delta);
   meta.cycle = damp(meta.cycle, 0, meta.variant === 'carrion' ? 18 : 10, delta);
   meta.firePulse = damp(meta.firePulse, 0, 16, delta);
   meta.autoHeat = damp(meta.autoHeat, 0, meta.variant === 'carrion' ? 1.45 : 1.05, delta);
+  meta.recoilYaw = damp(meta.recoilYaw || 0, 0, 13, delta);
   meta.heat = damp(meta.heat, Math.max(explicitHeat, meta.autoHeat), 10, delta);
   meta.charge = damp(meta.charge, explicitCharge, 12, delta);
 
@@ -506,16 +526,20 @@ export function animateRifle(root, shot = 0, time = 0, dt = .016, state = {}) {
   const heat = meta.heat;
   const pulse = meta.firePulse;
   const recoil = meta.recoil;
+  const recoilYaw = meta.recoilYaw || 0;
+  const modeCycle = meta.lastMode === 'burst' ? 1.16 : meta.lastMode === 'charged' ? 1.1 : 1;
   const parts = meta.parts;
   const materials = meta.materials;
   if (meta.variant === 'carrion') {
     const carriage = meta.mechanisms.recoilCarriage;
     carriage.position.z = recoil * .065;
     carriage.rotation.x = -recoil * .024;
-    meta.mechanisms.boltCarrier.position.z = cycle * .115;
-    meta.mechanisms.boltCarrier.rotation.x = cycle * .05;
-    meta.mechanisms.boltHandle.rotation.x = -cycle * .3;
+    carriage.rotation.y = recoilYaw * .4;
+    meta.mechanisms.boltCarrier.position.z = cycle * .115 * modeCycle;
+    meta.mechanisms.boltCarrier.rotation.x = cycle * .05 * modeCycle;
+    meta.mechanisms.boltHandle.rotation.x = -cycle * .3 * modeCycle;
     meta.mechanisms.magazineFollower.position.y = cycle * .015;
+    meta.mechanisms.vents.rotation.z = Math.sin(time * 22) * heat * .035;
     meta.mechanisms.vents.scale.set(1 + heat * .06, 1 + heat * .04, 1);
     parts['trigger'].rotation.x = -pulse * .12;
     materials.heat.emissiveIntensity = .1 + heat * 1.55 + pulse * 2.4;
@@ -524,6 +548,7 @@ export function animateRifle(root, shot = 0, time = 0, dt = .016, state = {}) {
     const carriage = meta.mechanisms.recoilCarriage;
     carriage.position.z = recoil * .075;
     carriage.rotation.x = -recoil * .026;
+    carriage.rotation.y = recoilYaw * .25;
     meta.mechanisms.boltCarrier.position.z = cycle * .14;
     meta.mechanisms.boltCarrier.rotation.x = cycle * .08;
     meta.mechanisms.chargingLever.rotation.x = -cycle * .5;

@@ -5,13 +5,24 @@ export function afterlifeTheme(theme = {}) {
   const surgical = theme.id === 'f2-graft-galleries';
   const bone = theme.family === 'ossuary';
   const ember = theme.family === 'choir';
+  const surfaces = {
+    'f1-intake-foundry': { wall: 0x796c62, panel: 0x453d38, trim: 0x755247, floor: 0x4b443c, alt: 0x3e3933, fog: 0x15100d },
+    'f2-graft-galleries': { wall: 0x7b8a82, panel: 0x43534d, trim: 0x6b5552, floor: 0x4b5751, alt: 0x3e4c47, fog: 0x0d1716 },
+    'f3-catacombs': { wall: 0x777179, panel: 0x46414b, trim: 0x716768, floor: 0x4b4850, alt: 0x3e3b44, fog: 0x111018 },
+    'f4-resonance': { wall: 0x817160, panel: 0x504039, trim: 0x80634e, floor: 0x4e4239, alt: 0x40362f, fog: 0x17100c },
+    'f5-last-descent': { wall: 0x65595b, panel: 0x403338, trim: 0x6d4846, floor: 0x3e3639, alt: 0x352e32, fog: 0x130c10 },
+  }[theme.id];
   return {
     ...theme,
-    background: 0x030506, fog: 0x0a1013, fogNear: 12, fogFar: ember ? 62 : 72,
-    exposure: 1.06, key: surgical ? 0xabc5bc : 0xb0bdc4, rim: 0x6b3d39,
-    wallSurface: bone ? 0x777670 : surgical ? 0x6c7974 : 0x656560,
-    panelSurface: 0x343a3a, trimSurface: ember ? 0x65513f : 0x525450,
-    floorSurface: 0x494e4e, floorAltSurface: 0x404546,
+    background: 0x030506, fog: surfaces?.fog ?? 0x0a1013, fogNear: 12, fogFar: ember ? 62 : 72,
+    exposure: surfaces && theme.id !== 'f5-last-descent' ? 1.13 : 1.06,
+    key: !surfaces ? 0xb0bdc4 : theme.id === 'f1-intake-foundry' ? 0xcab8a4 : surgical ? 0xabc5bc : bone ? 0xb7b2bc : ember ? 0xc4ab90 : 0xb0bdc4,
+    rim: surfaces && ember ? 0x805542 : 0x6b3d39,
+    wallSurface: surfaces?.wall ?? (bone ? 0x777670 : surgical ? 0x6c7974 : 0x656560),
+    panelSurface: surfaces?.panel ?? 0x343a3a,
+    trimSurface: surfaces?.trim ?? (ember ? 0x65513f : 0x525450),
+    floorSurface: surfaces?.floor ?? 0x494e4e,
+    floorAltSurface: surfaces?.alt ?? 0x404546,
   };
 }
 
@@ -42,7 +53,7 @@ export class AfterlifeLighting {
     this.candidates = [];
   }
 
-  rebuild(world) {
+  rebuild(world, story = false) {
     this.candidates.length = 0;
     this.nextPracticalSelection = 0;
     world.updateMatrixWorld(true);
@@ -56,7 +67,10 @@ export class AfterlifeLighting {
       this.candidates.push({
         source: node, position, score: 0,
         // A few dim red rooms interrupt an otherwise cold, desaturated crypt.
-        color: new THREE.Color(isEmber || lowMounted || (isZone && index % 4 === 3) ? 0xb64132 : 0xa4b8bf),
+        color: isEmber || lowMounted || (!story && isZone && index % 4 === 3)
+          ? new THREE.Color(0xb64132)
+          : story && isZone ? node.color.clone().lerp(new THREE.Color(0xa4b8bf), .28)
+            : new THREE.Color(0xa4b8bf),
         intensity: lowMounted ? Math.min(5, Math.max(1, node.userData.baseIntensity * 3)) : isZone ? Math.min(46, Math.max(18, node.userData.baseIntensity * 12)) : Math.min(16, Math.max(3, node.userData.baseIntensity * 9)),
         distance: lowMounted ? 10 : isZone ? 21 : Math.min(15, node.distance || 12),
       });

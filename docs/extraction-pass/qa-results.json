@@ -1,0 +1,220 @@
+{
+  "errors": [],
+  "frames": [
+    {
+      "name": "ready",
+      "phase": "idle",
+      "progress": 0,
+      "style": 0,
+      "styleTotal": 0,
+      "pending": 84,
+      "extracted": false,
+      "fx": {
+        "active": false,
+        "phase": "",
+        "progress": 0,
+        "targetId": null,
+        "seed": 0,
+        "droplets": 0,
+        "pooledDroplets": 0,
+        "worldVisible": false,
+        "toolVisible": false
+      },
+      "gunVisible": true,
+      "prompt": "CORPSE EXTRACTIONHOLD G / EXTRACT",
+      "audio": {
+        "loaded": true,
+        "decoded": 135,
+        "manifestEntries": 135,
+        "normalizedPools": 29,
+        "normalizedSamples": 79,
+        "errors": []
+      },
+      "drawCalls": 316,
+      "triangles": 199869
+    },
+    {
+      "name": "blood-draw",
+      "phase": "draw",
+      "progress": 0.10119465125322934,
+      "style": 0,
+      "styleTotal": 0,
+      "pending": 84,
+      "extracted": false,
+      "fx": {
+        "active": true,
+        "phase": "draw",
+        "progress": 0.101,
+        "targetId": 981,
+        "seed": 2439769777,
+        "droplets": 0,
+        "pooledDroplets": 0,
+        "worldVisible": true,
+        "toolVisible": true
+      },
+      "gunVisible": false,
+      "prompt": "CORPSE EXTRACTIONDRAWING BLOOD",
+      "audio": {
+        "loaded": true,
+        "decoded": 135,
+        "manifestEntries": 135,
+        "normalizedPools": 29,
+        "normalizedSamples": 79,
+        "errors": []
+      },
+      "drawCalls": 476,
+      "triangles": 354476
+    },
+    {
+      "name": "incision",
+      "phase": "incise",
+      "progress": 0.4178359793681734,
+      "style": 0,
+      "styleTotal": 0,
+      "pending": 84,
+      "extracted": false,
+      "fx": {
+        "active": true,
+        "phase": "incise",
+        "progress": 0.418,
+        "targetId": 981,
+        "seed": 2439769777,
+        "droplets": 4,
+        "pooledDroplets": 4,
+        "worldVisible": true,
+        "toolVisible": true
+      },
+      "gunVisible": false,
+      "prompt": "CORPSE EXTRACTIONOPENING THE CHEST",
+      "audio": {
+        "loaded": true,
+        "decoded": 135,
+        "manifestEntries": 135,
+        "normalizedPools": 29,
+        "normalizedSamples": 79,
+        "errors": []
+      },
+      "drawCalls": 244,
+      "triangles": 175664
+    },
+    {
+      "name": "heart-rip",
+      "phase": "rip",
+      "progress": 0.783442461315321,
+      "style": 0,
+      "styleTotal": 0,
+      "pending": 84,
+      "extracted": false,
+      "fx": {
+        "active": true,
+        "phase": "rip",
+        "progress": 0.783,
+        "targetId": 981,
+        "seed": 2439769777,
+        "droplets": 14,
+        "pooledDroplets": 14,
+        "worldVisible": true,
+        "toolVisible": true
+      },
+      "gunVisible": false,
+      "prompt": "CORPSE EXTRACTIONPULLING THE HEART",
+      "audio": {
+        "loaded": true,
+        "decoded": 135,
+        "manifestEntries": 135,
+        "normalizedPools": 29,
+        "normalizedSamples": 79,
+        "errors": []
+      },
+      "drawCalls": 265,
+      "triangles": 219885
+    },
+    {
+      "name": "extracted",
+      "phase": "idle",
+      "progress": 0,
+      "style": 186.41666666666669,
+      "styleTotal": 187,
+      "pending": 0,
+      "extracted": true,
+      "fx": {
+        "active": true,
+        "phase": "complete",
+        "progress": 1,
+        "targetId": 981,
+        "seed": 2439769777,
+        "droplets": 21,
+        "pooledDroplets": 21,
+        "worldVisible": true,
+        "toolVisible": true
+      },
+      "gunVisible": false,
+      "prompt": "CORPSE EXTRACTIONHOLD G / EXTRACT",
+      "audio": {
+        "loaded": true,
+        "decoded": 135,
+        "manifestEntries": 135,
+        "normalizedPools": 29,
+        "normalizedSamples": 79,
+        "errors": []
+      },
+      "drawCalls": 263,
+      "triangles": 220689
+    }
+  ],
+  "checks": {
+    "desktopSequence": true,
+    "scoreGated": true,
+    "audioLoaded": true,
+    "stageAudio": true
+  },
+  "fixture": {
+    "x": 6,
+    "y": 10.5,
+    "angle": 0,
+    "clear": 1.4,
+    "enemy": {
+      "id": 981,
+      "x": 6.72,
+      "y": 10.5,
+      "z": 0,
+      "hp": 0,
+      "maxHp": 5,
+      "kind": 0,
+      "variant": "stalker",
+      "dead": true,
+      "meleeZ": 0,
+      "flash": 0,
+      "attack": 99,
+      "phase": 0
+    },
+    "cell": [
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "audioEvents": [
+    {
+      "type": "extract-start",
+      "played": true
+    },
+    {
+      "type": "extract-draw",
+      "played": true
+    },
+    {
+      "type": "extract-incise",
+      "played": true
+    },
+    {
+      "type": "extract-rip",
+      "played": true
+    },
+    {
+      "type": "extract-complete",
+      "played": true
+    }
+  ]
+}

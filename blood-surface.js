@@ -25,14 +25,15 @@ export function bloodAtlasReady() { bloodAtlas(); return ready; }
 export function disposeBloodAtlas() { atlas?.dispose(); atlas = null; ready = Promise.resolve(); }
 
 /** One lit, non-emissive material for four irregular residue silhouettes. */
-export function createBloodSurfaceMaterial({instanced = false, variant = 0, dry = 0, opacity = 1} = {}) {
+export function createBloodSurfaceMaterial({instanced = false, variant = 0, dry = 0, opacity = 1, impact = false} = {}) {
   const material = new THREE.MeshPhysicalMaterial({
-    name: 'BloodResiduePBR', color: 0xb4a7a1, map: bloodAtlas(),
-    roughness: .46, metalness: 0, envMapIntensity: .12, specularIntensity: .18,
+    name: impact ? 'BloodImpactPBR' : 'BloodResiduePBR', color: impact ? 0xe3c7bd : 0xb4a7a1, map: bloodAtlas(),
+    roughness: impact ? .31 : .46, metalness: 0, envMapIntensity: impact ? .2 : .12, specularIntensity: impact ? .27 : .18,
     transparent: true, opacity, alphaTest: .015, depthWrite: false,
     side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1,
   });
   material.userData.bloodSurface = true;
+  material.userData.bloodImpact = impact;
   material.onBeforeCompile = shader => {
     shader.vertexShader = (instanced
       ? 'attribute vec2 bloodState; varying vec2 vBloodState;\n'
@@ -48,7 +49,7 @@ export function createBloodSurfaceMaterial({instanced = false, variant = 0, dry 
         vec4 sampledDiffuseColor = texture2D(map, bloodUv);
         // Compress baked color variation. Illumination and wet sheen belong
         // to scene lights, never a white painted highlight or emissive pass.
-        sampledDiffuseColor.rgb = min(sampledDiffuseColor.rgb, vec3(.31, .085, .062));
+        sampledDiffuseColor.rgb = min(sampledDiffuseColor.rgb * ${impact ? '1.28' : '1.04'}, vec3(${impact ? '.46, .14, .105' : '.34, .095, .07'}));
         diffuseColor *= sampledDiffuseColor;
         diffuseColor.rgb *= mix(vec3(1.), vec3(.43, .34, .28), clamp(vBloodState.y, 0., 1.));
       #endif
@@ -61,7 +62,7 @@ export function createBloodSurfaceMaterial({instanced = false, variant = 0, dry 
       #endif
     `);
   };
-  material.customProgramCacheKey = () => `blood-residue-v2-${instanced ? 'instances' : `${variant}-${dry}`}`;
+  material.customProgramCacheKey = () => `blood-residue-v3-${impact ? 'impact' : 'residue'}-${instanced ? 'instances' : `${variant}-${dry}`}`;
   return material;
 }
 

@@ -480,11 +480,33 @@ function carveRoomRoutes(map) {
   return {...map,blocks,walls};
 }
 
+// Structural turns within the combat bands.  Each run has an open end, so it
+// breaks a long firing lane without turning a flank into a dead end.
+const SECTOR_BAFFLES = [
+  [[4, 7, 1], [4, 8, 1], [7, 4, 1]],
+  [[7, 7, 1], [7, 8, 1], [4, 4, 1]],
+  [[4, 6, 1], [4, 7, 1], [7, 4, 1]],
+];
+
+function roomShellBlocks(rooms) {
+  const blocks = [];
+  for (const room of rooms) {
+    for (let y = Math.floor(room.bounds.minZ); y < Math.ceil(room.bounds.maxZ); y += 1) {
+      for (let x = 0; x < 12; x += 1) {
+        if (x < room.bounds.minX || x >= room.bounds.maxX) blocks.push([x, y]);
+      }
+    }
+  }
+  return blocks;
+}
+
 export function createCampaignCourse(index = 0) {
   const sectorIndex = Math.max(0, Math.min(CAMPAIGN_SECTORS.length - 1, Math.floor(index)))
   const sector = getSector(sectorIndex)
   const map = carveRoomRoutes(CAMPAIGN_MAPS[sectorIndex])
   const layout = CAMPAIGN_LAYOUTS[sectorIndex]
+  const rooms = getRoomSequence(sector.id)
+  const walls = [...map.walls, ...SECTOR_BAFFLES[sectorIndex]]
   return {
     name: sector.name,
     color: sector.color,
@@ -497,9 +519,9 @@ export function createCampaignCourse(index = 0) {
     campaign: true,
     w: 12,
     h: 12,
-    cells: createCells(12, 12, map.blocks, map.walls),
+    cells: createCells(12, 12, [...map.blocks, ...roomShellBlocks(rooms)], walls),
     blocks: map.blocks.map(block => [...block]),
-    walls: map.walls.map(wall => [...wall]),
+    walls: walls.map(wall => [...wall]),
     layout,
     world: layout,
     zones: layout.zones,
@@ -514,7 +536,7 @@ export function createCampaignCourse(index = 0) {
     exit: { ...sector.exit },
     turns: [],
     enemies: [],
-    rooms: getRoomSequence(sector.id),
+    rooms,
     roomProgressionVersion: ROOM_PROGRESSION_VERSION,
   }
 }

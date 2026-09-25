@@ -19,10 +19,15 @@ export const RUNTIME_FILES = [
   'room-kit.js',
   'room-progression.js',
   'renderer.js',
+  'horror-scares-game.js',
   'menu-cinematic.js',
   'world-horror.js',
   'world-authored.js',
   'world-setdressing.js',
+  'dungeon-place-kit.js',
+  'dungeon-cover-kit.js',
+  'dungeon-weapon-loot.js',
+  'dungeon-evidence.js',
   'dungeon-art-direction.js',
   'dungeon-architecture.js',
   'world-polish.js',
@@ -48,6 +53,8 @@ export const RUNTIME_FILES = [
   'weapon-materials.js',
   'weapon-occult-redesign.js',
   'weapon-rifles.js',
+  'weapon-casings.js',
+  'extraction-vfx.js',
   'weapon-melee.js',
   'melee-reaction.js',
   'weapon-detail-pass.js',
@@ -65,7 +72,7 @@ export const RUNTIME_FILES = [
   'style.css',
 ];
 export const RUNTIME_DIRECTORIES = ['vendor', 'assets', 'public', 'playground'];
-export const REQUIRED_RUNTIME_FILES = ['index.html', 'map-playground.html', 'main.js', 'peer.js', 'engine.js', 'renderer.js', 'ui.js', 'audio.js', 'styles.css', 'campaign.js', 'explosion-vfx.js', 'weapon-reliquary.js', 'npc-bellwraith.js', 'world-polish.js', 'world-authored.js', 'world-setdressing.js', 'dungeon-art-direction.js', 'dungeon-architecture.js', 'horror-ui.css', 'weapon-breach.js', 'weapon-arc.js', 'impact-vfx.js', 'weapon-materials.js', 'weapon-detail-pass.js'];
+export const REQUIRED_RUNTIME_FILES = ['index.html', 'map-playground.html', 'main.js', 'peer.js', 'engine.js', 'renderer.js', 'ui.js', 'audio.js', 'styles.css', 'campaign.js', 'explosion-vfx.js', 'weapon-reliquary.js', 'npc-bellwraith.js', 'world-polish.js', 'world-authored.js', 'world-setdressing.js', 'dungeon-place-kit.js', 'dungeon-cover-kit.js', 'dungeon-weapon-loot.js', 'dungeon-evidence.js', 'dungeon-art-direction.js', 'dungeon-architecture.js', 'horror-ui.css', 'weapon-breach.js', 'weapon-arc.js', 'impact-vfx.js', 'weapon-materials.js', 'weapon-detail-pass.js'];
 
 function isInside(root, candidate) {
   const relative = path.relative(root, candidate);

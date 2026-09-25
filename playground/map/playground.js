@@ -82,7 +82,7 @@ const UI = '"Barlow Condensed", "Arial Narrow", "Segoe UI", system-ui, sans-seri
 function storyDetailLabel(kind, item, scale) {
   if (!state.labels) return false;
   if (state.focus) {
-    if (kind === 'room' || kind === 'key' || kind === 'secret') return true;
+    if (kind === 'room' || kind === 'key' || kind === 'secret' || kind === 'loot' || kind === 'evidence') return true;
     const focusId = String(item?.id || item?.role || item?.type || '').toLowerCase();
     if (kind === 'machinery') return /lift|hoist/.test(focusId);
     return /hero|altar|entry|exit|cache|vault|organ|door|bulkhead|scare/.test(focusId);
@@ -732,6 +732,34 @@ function drawOpenings(panel, origin) {
 function drawPicks(panel, origin) {
   const scale = cam.scale;
   ctx.save();
+  for (const item of panel.evidence || []) {
+    const screen = cellToScreen(origin, item.at[0], item.at[1]);
+    const size = Math.max(7, scale * .33);
+    ctx.fillStyle = '#191611';ctx.strokeStyle = '#e3bd83';ctx.lineWidth = 2;
+    ctx.fillRect(screen.x-size*.72, screen.y-size, size*1.44, size*2);
+    ctx.strokeRect(screen.x-size*.72, screen.y-size, size*1.44, size*2);
+    ctx.strokeStyle = '#c8a16f';ctx.lineWidth = 1;
+    for (let row = 0; row < 3; row++) {
+      const y=screen.y-size*.42+row*size*.38;
+      ctx.beginPath();ctx.moveTo(screen.x-size*.45,y);ctx.lineTo(screen.x+size*(row===2?.2:.45),y);ctx.stroke();
+    }
+    if (storyDetailLabel('evidence', item, scale) && scale > 7) pill(screen.x+size+4,screen.y-9,item.title,'#e3bd83','left',10.5);
+    pushHit({ sceneId: panel.id, kind: 'evidence', id: item.id, label: item.title,
+      anchor: { x: item.at[0], y: item.at[1] }, r: Math.max(10,size), item });
+  }
+  for (const item of panel.loot || []) {
+    const screen = cellToScreen(origin, item.at[0], item.at[1]);
+    const size = Math.max(8, scale * .38);
+    const color = { uncommon: '#85d8ad', rare: '#74b9ff', epic: '#bd8dff', legendary: '#ffd075' }[item.rarity] || '#74b9ff';
+    ctx.fillStyle = '#090d13e8'; ctx.strokeStyle = color; ctx.lineWidth = 2;
+    ctx.beginPath();ctx.moveTo(screen.x,screen.y-size);ctx.lineTo(screen.x+size,screen.y);
+    ctx.lineTo(screen.x,screen.y+size);ctx.lineTo(screen.x-size,screen.y);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.fillStyle = color;ctx.font = `700 ${Math.max(9,size*.9)}px ${MONO}`;
+    ctx.textAlign = 'center';ctx.textBaseline = 'middle';ctx.fillText('W',screen.x,screen.y+.5);
+    if (storyDetailLabel('loot', item, scale) && scale > 7) pill(screen.x+size+4,screen.y-9,`${item.name} · ${item.rarity}`,color,'left',10.5);
+    pushHit({ sceneId: panel.id, kind: 'loot', id: item.id, label: item.name,
+      anchor: { x: item.at[0], y: item.at[1] }, r: Math.max(10,size), item });
+  }
   for (const key of panel.keys || []) {
     const screen = cellToScreen(origin, key.at[0] + 0.5, key.at[1] + 0.5);
     const size = Math.max(7, scale * 0.34);
@@ -2297,6 +2325,13 @@ function renderInspector() {
       rows.push(['Room', item.roomId]);
       rows.push(['Opens', item.opens.join(', ')]);
       rows.push(['Note', item.note || '-']);
+      break;
+    case 'evidence':
+      kindLabel = 'story evidence';
+      title = item.title;
+      rows.push(['Room', item.roomId]);
+      rows.push(['Form', item.recordKind]);
+      rows.push(['Record', item.text]);
       break;
     case 'secret':
       kindLabel = 'secret';

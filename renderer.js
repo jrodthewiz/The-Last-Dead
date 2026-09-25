@@ -2,6 +2,9 @@ import {updateSurvivors,prepareSurvivors,disposeSurvivors} from './assets/surviv
 import {installViewmodelDepthBoundary} from './assets/survivor/viewmodel-depth.js';
 import * as THREE from './vendor/three.module.js';
 import {buildHorrorDetails} from './world-horror.js';
+import {buildDungeonCover} from './dungeon-cover-kit.js';
+import {buildDungeonWeaponLoot,updateDungeonWeaponLoot} from './dungeon-weapon-loot.js';
+import {buildDungeonEvidence,updateDungeonEvidence} from './dungeon-evidence.js';
 import {buildCathedralKit,batchStaticWorld} from './world-polish.js';
 import {finalizeStaticWorld} from './world-static.js';
 import {roomMaterialsReady} from './room-materials.js';
@@ -15,6 +18,7 @@ import {buildAfterlifeMapDesign} from './world-afterlife-design.js';
 import {createAfterlifeWheelchair, createAfterlifeMourningCabinet} from './afterlife-props.js';
 import {createAfterlifeEnemy,animateAfterlifeEnemy} from './npc-afterlife.js';
 import {loadAfterlifeModel,createAfterlifeModel,animateAfterlifeModel} from './npc-afterlife-model.js';
+import {HorrorScares} from './horror-scares-game.js';
 import {GLTFLoader} from './vendor/loaders/GLTFLoader.js';
 import {createReliquary,animateReliquary} from './weapon-reliquary.js';
 import {createBellwraith,animateBellwraith,warmBellwraithVariants} from './npc-bellwraith.js';
@@ -23,10 +27,12 @@ import {createOssuary,animateOssuary} from './weapon-ossuary.js';
 import {createBreach,animateBreach} from './weapon-breach.js';
 import {createArc,animateArc} from './weapon-arc.js';
 import {createRifle,animateRifle} from './weapon-rifles.js';
+import {RifleCasings} from './weapon-casings.js';
 import {createMeleeWeapon,animateMeleeWeapon} from './weapon-melee.js';
 import {alignViewmodelArmToGrip} from './assets/survivor/viewmodel-arms.js';
 import {createSurvivorViewArm} from './assets/survivor/player-survivor.js';
 import {CombatVFX} from './combat-vfx.js';
+import {ExtractionVFX} from './extraction-vfx.js';
 import {MenuCinematic} from './menu-cinematic.js';
 import {ProjectileWakes} from './secondary-vfx.js';
 import {createBloodResiduePool,bloodAtlasReady,disposeBloodAtlas} from './blood-surface.js';
@@ -189,6 +195,7 @@ export class Renderer {
     this._exit = null;
     this._dungeonPickups = [];
     this._dungeonRevision = 0;
+    this._horrorScareQueue = [];
     this._diag = {};
 
     this._materialManager = new THREE.LoadingManager();
@@ -228,6 +235,13 @@ export class Renderer {
     this._setupLighting();
     this.afterlifeLighting = new AfterlifeLighting(this.scene);
     this._buildCombatPools();
+    this.extractionVFX = new ExtractionVFX({
+      scene: this.scene,
+      camera: this.camera,
+      combatRoot: this.combatRoot,
+      materials: this.materials,
+      cell: CELL,
+    });
     this._buildWeaponRig();
     this._survivorReady=prepareSurvivors(this).then(()=>{
       this._afterlifeClips = Object.values(this._survivors?.peer?.userData.actions || {}).map(action=>action.getClip());
@@ -539,10 +553,16 @@ export class Renderer {
       flashPixels[i]=255;flashPixels[i+1]=245;flashPixels[i+2]=225;flashPixels[i+3]=Math.round(alpha*255);
     }
     const flashTexture=new THREE.DataTexture(flashPixels,flashSize,flashSize);flashTexture.colorSpace=THREE.SRGBColorSpace;flashTexture.needsUpdate=true;
-    const flash = new THREE.Mesh(new THREE.PlaneGeometry(.42,.42),new THREE.MeshBasicMaterial({map:flashTexture,color:0xffba78,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,toneMapped:false}));
+    const flash = new THREE.Mesh(new THREE.PlaneGeometry(.42,.42),new THREE.MeshBasicMaterial({map:flashTexture,color:0xffba78,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthTest:false,depthWrite:false,side:THREE.DoubleSide,toneMapped:false}));
     flash.name='MuzzlePressureFlare';
     flash.layers.set(1);
     this.muzzleFlash.add(flash);
+    const pressure = new THREE.Mesh(new THREE.RingGeometry(.13,.22,20),new THREE.MeshBasicMaterial({color:0xffd9a5,transparent:true,opacity:.28,blending:THREE.AdditiveBlending,depthTest:false,depthWrite:false,side:THREE.DoubleSide,toneMapped:false}));
+    pressure.name='MuzzlePressureRing';
+    pressure.layers.set(1);
+    pressure.position.z=.004;
+    pressure.visible=false;
+    this.muzzleFlash.add(pressure);
     const flashLight = new THREE.PointLight(0xffb85c, 0, 3, 2);
     flashLight.name = 'MuzzleLight';
     flashLight.layers.set(1);
@@ -551,6 +571,7 @@ export class Renderer {
     // Hiding its parent changes shader defines for every lit material on firing.
     flash.visible = false;
     this.weaponRig.add(this.muzzleFlash);
+    this.rifleCasings=new RifleCasings(this.weaponRig);
     this._weaponBatch=this.weaponGroups.map(group=>{const {root,...stats}=batchStaticWeaponMeshes(group,{preserve:['WeaponRig','MuzzleFlash']});return stats;});
     installViewmodelDepthBoundary(this.weaponRig);
   }
@@ -777,6 +798,17 @@ export class Renderer {
     return group;
   }
   _buildWorld(course) {
+    const previousScares=this.horrorScares?.course===course?{
+      windowTriggered:this.horrorScares.window?.triggered,
+      windowStarted:this.horrorScares.window?.started,
+      windowPlayed:this.horrorScares.window?.played,
+      windowArmedAt:this.horrorScares.windowArmedAt,
+      lastDrop:this.horrorScares.lastDrop,
+      dropStarted:this.horrorScares.drop?.started,
+      dropVisible:this.horrorScares.drop?.group.visible,
+      dropPosition:this.horrorScares.drop?.group.position.clone(),
+      dropRotation:this.horrorScares.drop?.group.rotation.y,
+    }:null;
     this.afterlifeAtmosphere?.dispose();
     if (this.worldRoot) {
       const retired=this.worldRoot;
@@ -811,7 +843,7 @@ export class Renderer {
     this._buildWalls(course);
     if (!course?.dungeon) this._buildIntakeRecoveryCavity(course);
     this._buildCover(course);
-    this._buildIndustrialShell(width, depth);
+    if (!course?.dungeon) this._buildIndustrialShell(width, depth);
     this._buildExit(course?.exit || { x: 6, y: 1 });
     this.horror=buildHorrorDetails(this.worldRoot,this.materials,course);
     buildCathedralKit(this.worldRoot,this.materials,course);
@@ -822,7 +854,9 @@ export class Renderer {
       },
     });
     this._dungeonPickups=this._buildDungeonPickups(course);
-    const dynamicShadowRoots=[this.horror.organ,this.horror.core,...this._dungeonPickups.map(item=>item.root),...(this.horror.authored?.moving||[])];
+    this._storyWeaponLoot=buildDungeonWeaponLoot(this.worldRoot,course);
+    this._storyEvidence=buildDungeonEvidence(this.worldRoot,course);
+    const dynamicShadowRoots=[this.horror.organ,this.horror.core,...this._dungeonPickups.map(item=>item.root),...this._storyWeaponLoot.map(item=>item.root),...this._storyEvidence.map(item=>item.root),...(this.horror.authored?.moving||[])];
     for (const root of dynamicShadowRoots) disableShadowCasting(root);
     disableShadowCasting(this._exit?.gate);
     const animatedWorld=[this._exit?.root,...dynamicShadowRoots];
@@ -847,7 +881,7 @@ export class Renderer {
     }
     this._afterlifeSurfaceDiagnostics = applyAfterlifeSurfaces(this.worldRoot, {
       sector: course?.sectorId || course?.id,
-      excludeRoots: [this._exit?.root, ...this._dungeonPickups.map(item => item.root)],
+      excludeRoots: [this._exit?.root, ...this._dungeonPickups.map(item => item.root), ...this._storyWeaponLoot.map(item => item.root), ...this._storyEvidence.map(item => item.root)],
       materialRoles: new Map([
         [this.materials.wall, 'roomWall'], [this.materials.wallPanel, 'roomPanel'],
         [this.materials.wallDeep, 'roomRecess'], [this.materials.floor, 'roomFloor'],
@@ -862,11 +896,25 @@ export class Renderer {
       // is needed for these synchronous world clones after a start/restart.
       sourceReady: this._materialsReady,
     });
-    this.afterlifeLighting.rebuild(this.worldRoot);
+    this.afterlifeLighting.rebuild(this.worldRoot, Boolean(course?.dungeon));
     const roomChunks=this.horror.roomChunks||this.horror.authored?.roomChunks||[];
     this._roomBatches=roomChunks.map(room=>batchStaticWorld(room,animatedWorld));
     this._worldBatch=batchStaticWorld(this.worldRoot,[...animatedWorld,...roomChunks]);
     this._worldStatic=finalizeStaticWorld(this.worldRoot,animatedWorld);
+    this.horrorScares=new HorrorScares(this.worldRoot,course,this._ashWitnessAsset);
+    if(previousScares){
+      this.horrorScares.lastDrop=previousScares.lastDrop;
+      this.horrorScares.windowArmedAt=previousScares.windowArmedAt;
+      if(this.horrorScares.window&&previousScares.windowTriggered){
+        Object.assign(this.horrorScares.window,{triggered:true,started:previousScares.windowStarted,played:previousScares.windowPlayed});
+      }
+      if(this.horrorScares.drop&&previousScares.dropVisible){
+        Object.assign(this.horrorScares.drop,{started:previousScares.dropStarted});
+        this.horrorScares.drop.group.visible=true;
+        this.horrorScares.drop.group.position.copy(previousScares.dropPosition);
+        this.horrorScares.drop.group.rotation.y=previousScares.dropRotation;
+      }
+    }
     this.afterlifeAtmosphere = new AfterlifeAtmosphere(this.worldRoot, course, {
       mobile: this.width < 800,
       reducedMotion: this.settings.reducedMotion,
@@ -1178,6 +1226,10 @@ export class Renderer {
   }
 
   _buildCover(course) {
+    if (course?.dungeon) {
+      buildDungeonCover(this.worldRoot, this.materials, course);
+      return;
+    }
     for (const [cx, cy] of course?.blocks || []) {
       const x = cx * CELL + CELL / 2;
       const z = cy * CELL + CELL / 2;
@@ -1718,6 +1770,10 @@ export class Renderer {
     this.weaponFX.explosions?.setCamera(this.camera);
     this.weaponFX.explosions?.setSettings({ reducedMotion: this.settings.reducedMotion, gore: this.settings.gore });
     this.weaponFX.update(run,this._frameDt||.016,this.settings.gore,muzzlePoints,{camera:this.camera,reducedMotion:this.settings.reducedMotion});
+    this.extractionVFX?.update(run, now, this._frameDt || .016, {
+      gore: this.settings.gore,
+      reducedMotion: this.settings.reducedMotion,
+    });
     let ci = 0, gi = 0;
     for (const c of run.coins || []) {
       if (ci >= MAX_COINS) break;
@@ -1760,18 +1816,26 @@ export class Renderer {
 
   _updateCamera(run, now) {
     const dt = this._frameDt || 0.016;
+    const extracting = (run.extraction?.targetId != null && ['draw', 'incise', 'rip'].includes(run.extraction.phase)) ||
+      (run.extraction?.completedAt > 0 && run.time - run.extraction.completedAt < .8);
+    this._extractionLean = damp(this._extractionLean || 0, extracting ? (this.settings.reducedMotion ? .45 : 1) : 0, 9, dt);
     const eye = (0.4 + (run.z || 0) - (run.slide || 0) * 0.18) * CELL;
     const target = this._cameraTarget ||= new THREE.Vector3();
     target.set(worldX(run.x),eye,worldZ(run.y));
+    target.x += Math.cos(run.angle || 0) * CELL * .16 * this._extractionLean;
+    target.z += Math.sin(run.angle || 0) * CELL * .16 * this._extractionLean;
+    target.y -= CELL * .08 * this._extractionLean;
     this.cameraRig.position.copy(target);
     const yaw=-(run.angle||0)-Math.PI/2;
     this.cameraRig.rotation.y=yaw;
-    this.camera.rotation.x=run.pitch||0;
-    const shake=this.settings.reducedMotion?0:((run.damage||0)*.012+(run.punch||0)*.008+(run.meleeContact||0)*.035);
+    this.camera.rotation.x=(run.pitch||0)-this._extractionLean*.12;
+    const rifle=run.weapon===4||run.weapon===5;
+    const rifleKick=rifle?clamp(run.rifleKick||0,0,1.25):0;
+    const shake=this.settings.reducedMotion?0:((run.damage||0)*.012+(run.punch||0)*.008+(run.meleeContact||0)*.035+rifleKick*.002);
     this.camera.rotation.z=Math.cos(now*.035)*shake;
     const dash = clamp((run.dashTime || 0) / 0.18, 0, 1);
     const aim = clamp(run.aim || 0, 0, 1);
-    const targetFov = 92 + dash * 12 - aim * 14 + clamp((run.speed || 0) - 1.3, 0, 2) * 2;
+    const targetFov = 92 + dash * 12 - aim * 14 - this._extractionLean * 17 + clamp((run.speed || 0) - 1.3, 0, 2) * 2 + (this.settings.reducedMotion?0:rifleKick*.65);
     this.camera.fov = damp(this.camera.fov, targetFov, 12, dt);
     this.camera.updateProjectionMatrix();
 
@@ -1780,27 +1844,43 @@ export class Renderer {
     const punch = clamp(run.punch || 0, 0, 1);
     this.weaponRig.position.x = damp(this.weaponRig.position.x, 0.02 - aim * .10 + Math.sin((run.distance || 0) * 7) * sway * (1 - aim), 15, dt);
     this.weaponRig.position.y = damp(this.weaponRig.position.y, -0.012 + Math.cos((run.distance || 0) * 7) * sway * 0.6, 15, dt);
-    this.weaponRig.position.z = damp(this.weaponRig.position.z, shot * [0.06,0.11,0.035,0.075,0.052,0.105,.012,.008][run.weapon||0] - punch * 0.045, 24, dt);
-    this.weaponRig.rotation.x = damp(this.weaponRig.rotation.x, shot * [0.085,0.12,0.045,0.07,0.052,0.105,0,.006][run.weapon||0] + punch * 0.1, 22, dt);
-    this.weaponRig.rotation.y = damp(this.weaponRig.rotation.y, aim * -0.02, 16, dt);
+    this.weaponRig.position.z = damp(this.weaponRig.position.z, shot * [0.06,0.11,0.035,0.075,0.052,0.105,.012,.008][run.weapon||0] + rifleKick*.055 - punch * 0.045, 24, dt);
+    this.weaponRig.rotation.x = damp(this.weaponRig.rotation.x, shot * [0.085,0.12,0.045,0.07,0.052,0.105,0,.006][run.weapon||0] + rifleKick*.065 + punch * 0.1, 22, dt);
+    this.weaponRig.rotation.y = damp(this.weaponRig.rotation.y, aim * -0.02 + (rifle?clamp(run.rifleKickYaw||0,-.2,.2)*.4:0), 16, dt);
     this.weaponRig.rotation.z = damp(this.weaponRig.rotation.z, Math.sin((run.distance || 0) * 4.1) * sway * 0.7, 14, dt);
     const weapon = clamp(run.weapon || 0, 0, this.weaponGroups.length - 1);
     // A broader steel surface needs enough diffuse fill to retain its finish
     // in unlit rooms. This existing light is restricted to the viewmodel layer.
     this.viewmodelFill.intensity = weapon >= 4 ? 1.05 : .42;
-    this.weaponGroups.forEach((group, index) => { group.visible = index === weapon; });
+    this.weaponGroups.forEach((group, index) => { group.visible = !extracting && index === weapon; });
     this.weaponGroups.forEach((group,i)=>{group.position.x=[.3,.31,.29,.31,.34,.34,.32,.32][i]*Math.min(1,this.camera.aspect/.9);});
     animateOssuary(this.weaponGroups[0],weapon===0?shot:0,now*.001,dt);
     animateBreach(this.weaponGroups[1].userData.model,now*.001,weapon===1?shot:0,dt);
     animateArc(this.weaponGroups[2].userData.model,now*.001,weapon===2?shot:0,dt);
     this.weaponGroups[weapon]?.userData.animate?.(now * 0.001, shot);
     if (weapon === 3) animateReliquary(this.weaponGroups[3], shot, now * 0.001, dt);
-    const rifleFrame=this._rifleFrame ||= {heat:0,charge:0,shotSequence:0};
+    const rifleFrame=this._rifleFrame ||= {heat:0,charge:0,shotSequence:0,kick:0,kickYaw:0};
     rifleFrame.shotSequence=run.shotSequence||0;
     for(let i=4;i<6;i++){
       rifleFrame.heat=i===4?(run.rifleHeat||0):0;rifleFrame.charge=i===5?(run.rifleCharge||0):0;
+      rifleFrame.kick=weapon===i?rifleKick:0;rifleFrame.kickYaw=weapon===i?(run.rifleKickYaw||0):0;
+      rifleFrame.mode=weapon===i?(run.lastShotMode||''):'';
       animateRifle(this.weaponGroups[i],weapon===i?shot:0,now*.001,dt,rifleFrame);
     }
+    const sequence=run.shotSequence||0;
+    if(this._casingRun!==run||sequence<(this._lastCasingSequence||0)){
+      this._casingRun=run;this._lastCasingSequence=sequence;this.rifleCasings.reset();
+    }
+    if(rifle&&sequence>this._lastCasingSequence){
+      const port=this.weaponGroups[weapon]?.userData?.ejectionSocket;
+      if(port){
+        const point=this._casingPoint ||= new THREE.Vector3();
+        port.getWorldPosition(point);this.weaponRig.worldToLocal(point);
+        for(let n=Math.max(this._lastCasingSequence+1,sequence-2);n<=sequence;n++)this.rifleCasings.spawn(point,n,weapon);
+      }
+    }
+    this._lastCasingSequence=sequence;
+    this.rifleCasings.update(dt);
     const meleeFrame=this._meleeFrame ||= {};
     for(let i=6;i<8;i++){
       meleeFrame.active=weapon===i&&!!run.meleeActive;meleeFrame.progress=meleeFrame.active?(run.meleeProgress||0):0;
@@ -1818,18 +1898,23 @@ export class Renderer {
       this.muzzleFlash.position.copy(muzzleWorld);
       const socketRotation=this._socketRotation ||= new THREE.Quaternion();
       const rigRotation=this._rigRotation ||= new THREE.Quaternion();
-      muzzle.getWorldQuaternion(socketRotation);this.weaponRig.getWorldQuaternion(rigRotation);
-      this.muzzleFlash.quaternion.copy(rigRotation.invert().multiply(socketRotation));
+      if(rifle)this.muzzleFlash.quaternion.identity();
+      else{
+        muzzle.getWorldQuaternion(socketRotation);this.weaponRig.getWorldQuaternion(rigRotation);
+        this.muzzleFlash.quaternion.copy(rigRotation.invert().multiply(socketRotation));
+      }
     }
-    const flashThreshold=weapon>=4?.7:.32;
+    const flashThreshold=weapon>=4?(this.settings.reducedMotion?.72:.5):.32;
     this.muzzleFlash.children[0].visible = weapon < 6 && shot > flashThreshold;
-    this.muzzleFlash.scale.setScalar(([.75,1.1,.45,.85,.44,.68,0,0][weapon])*(.55+shot*.55));
+    this.muzzleFlash.children[1].visible=rifle&&shot>flashThreshold;
+    this.muzzleFlash.children[1].material.opacity=(this.settings.reducedMotion?.14:.28)*shot;
+    this.muzzleFlash.scale.setScalar(([.75,1.1,.45,.85,.64,.84,0,0][weapon])*(.55+shot*.55));
     this.muzzleFlash.children[0].rotation.z=now*.023;
     const flashColor=[0xff3154,0xffb44b,0x64eaff,0xff683f,0xffc58d,0xd8e6d1][weapon] || 0xff683f;
     this.muzzleFlash.children[0].material.color.set(flashColor);
     this.muzzleFlash.children[0].material.emissive?.set(flashColor);
     const light = this.muzzleFlash.children.find(child => child.isPointLight);
-    if (light) {light.color.set(flashColor);light.intensity = weapon < 6 && shot > flashThreshold ? 8 * shot : 0;}
+    if (light) {light.color.set(flashColor);light.intensity = weapon < 6 && shot > flashThreshold ? (rifle?5.5:8) * shot : 0;}
   }
 
   resize() {
@@ -1926,12 +2011,18 @@ export class Renderer {
     }
     for(const actor of this._bellWarmups||[]){actor.visible=true;this.camera.getWorldPosition(actor.position).addScaledVector(this.camera.getWorldDirection(new THREE.Vector3()),4);}
     for(const actor of this._afterlifeWarmups||[]){actor.visible=true;this.camera.getWorldPosition(actor.position).addScaledVector(this.camera.getWorldDirection(new THREE.Vector3()),4);}
+    // Compile the casing material before the first automatic round. The
+    // temporary instance sits below the floor and is removed before display.
+    this.rifleCasings.mesh.setMatrixAt(0,new THREE.Matrix4().makeTranslation(0,-100,0));
+    this.rifleCasings.mesh.count=1;
+    this.rifleCasings.mesh.instanceMatrix.needsUpdate=true;
     try {
       for (let weapon = 0; weapon < this.weaponGroups.length; weapon++) {
         this.weaponGroups.forEach((group, i) => { group.visible = i === weapon; });
         renderer.render(this.scene, this.camera);
       }
     } finally {
+      this.rifleCasings.mesh.count=0;
       for (const [object, visible, culled] of hiddenResources) {
         object.visible = visible;
         object.frustumCulled = culled;
@@ -1958,6 +2049,11 @@ export class Renderer {
     this.canvas.dataset.menuScene = this.menuCinematic.actors.length ? 'ready' : 'loading';
   }
 
+  queueHorrorScare(type,run,nowMs=(typeof performance !== 'undefined'?performance.now():0)) {
+    this._horrorScareQueue.push({type,run:{x:run.x,y:run.y,angle:run.angle},nowMs});
+    if(this._horrorScareQueue.length>3)this._horrorScareQueue.shift();
+  }
+
   render(run, nowMs = (typeof performance !== 'undefined' ? performance.now() : 0)) {
     if (this.menuCinematic) { this.menuCinematic.active = false; this.menuCinematic.lastNow = null; }
     if (!run?.course) return;
@@ -1965,6 +2061,12 @@ export class Renderer {
     this._lastNow = nowMs;
     const key = run.course.index ?? `${run.course.w}:${run.course.h}`;
     if (this._worldKey !== key || this._course !== run.course || this._dungeonRevision !== (run.course.dungeonRevision ?? 0)) this._buildWorld(run.course);
+    if(this.horrorScares&&!this.horrorScares.asset&&this._ashWitnessAsset){
+      this.horrorScares.root.removeFromParent();
+      this.horrorScares=new HorrorScares(this.worldRoot,run.course,this._ashWitnessAsset);
+    }
+    if(this.horrorScares?.asset)for(const event of this._horrorScareQueue.splice(0))this.horrorScares.queue(event.type,event.run,event.nowMs);
+    this.horrorScares?.update(run,nowMs,this.horrorAudio,this.settings.reducedMotion||this._systemReducedMotion);
     if(this.horror){this.horror.setRoomProgression?.(run.roomProgression);this.horror.authored?.animate(this.settings.reducedMotion?0:nowMs*.001);if(this.horror.organ){const pulse=1+Math.sin(nowMs*.002)*.025;this.horror.organ.scale.set(1.5*pulse,2.1,1.15*pulse);}}
     this._updateCamera(run, nowMs);
     this.afterlifeLighting.update(this.camera, this.renderer, nowMs, this.settings.reducedMotion);
@@ -1973,6 +2075,8 @@ export class Renderer {
     this._updatePeer(run, nowMs);
     this._updateExit(run, nowMs);
     this._updateDungeonPickups(run, nowMs);
+    updateDungeonWeaponLoot(this._storyWeaponLoot,run.dungeonProgression?.lootCollected,nowMs,this.settings.reducedMotion||this._systemReducedMotion);
+    updateDungeonEvidence(this._storyEvidence,run.storyRecords,nowMs,this.settings.reducedMotion||this._systemReducedMotion,this.camera);
     this._updateCombat(run, nowMs);
     updateSurvivors(this, run, nowMs);
     if (this.renderer && this._warmupCourse !== run.course) {
@@ -2037,6 +2141,7 @@ export class Renderer {
       rendererGeometries: info?.memory?.geometries || 0,
       explosions: this.weaponFX?.explosions?.diagnostics?.() || null,
       impacts: this.weaponFX?.impacts?.diagnostics?.() || null,
+      extraction: this.extractionVFX?.diagnostics?.() || null,
       rendererTextures: info?.memory?.textures || 0,
       enemyContactShadows: this.enemyContactShadows?.count || 0,
       enemies: (run.course?.enemies || []).filter(e => !e.dead).length,
@@ -2065,6 +2170,7 @@ export class Renderer {
     disposeSurvivors(this);
     if (this.worldRoot) disposeObject(this.worldRoot);
     if (this.combatRoot) disposeObject(this.combatRoot);
+    this.extractionVFX?.dispose();
     if (this.weaponRig) disposeObject(this.weaponRig);
     this.materials && Object.values(this.materials).forEach(m => m.dispose?.());
     this.materials.afterlifeWood.map?.dispose();

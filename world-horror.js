@@ -5,6 +5,7 @@ import { buildRoomKit } from './room-kit.js';
 import { buildLifeField, wallSpots, scatterSpots, lifeRng, seedFor } from './world-polish.js';
 import { dungeonArtDirection } from './dungeon-art-direction.js';
 import { buildSetDressing } from './world-setdressing.js';
+import { buildDungeonPlaceKit } from './dungeon-place-kit.js';
 
 // Each sector owns a colour script, a dread line and its own furniture relic, so
 // the three descents differ in silhouette, not just in tint.
@@ -559,6 +560,7 @@ export function buildHorrorDetails(root, materials, course = {}) {
  // descent read as its own level rather than a recoloured arena.
  const detailKit=buildSectorDetailKit(root,materials,course,sectorTheme);
  root.add(detailKit);
+ const placeKit=buildDungeonPlaceKit(root,materials,course);
  const setDressing=buildSetDressing(root,materials,course);
- return{organ,core,sector:sectorTheme.id,theme:sectorTheme,authored,rooms:rooms.rooms,roomChunks:rooms.roomChunks,roomPlan:rooms.plan,route:rooms.route,setRoomProgression:rooms.setProgression,detailKit,furniture:detailKit.userData.furniture,relics:detailKit.userData.relics,stains:detailKit.userData.stains,setDressing};
+ return{organ,core,sector:sectorTheme.id,theme:sectorTheme,authored,rooms:rooms.rooms,roomChunks:rooms.roomChunks,roomPlan:rooms.plan,route:rooms.route,setRoomProgression:rooms.setProgression,detailKit,placeKit,furniture:detailKit.userData.furniture,relics:detailKit.userData.relics,stains:detailKit.userData.stains,setDressing};
 }

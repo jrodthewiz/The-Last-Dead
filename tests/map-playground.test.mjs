@@ -6,10 +6,12 @@ import assert from 'node:assert/strict';
 import { DUNGEON_LAYERS } from '../playground/map/dungeon-data.js';
 import { compileLayer, validateProgression, layerDiagnostics } from '../playground/map/dungeon-compiler.js';
 import { makeDungeonCourse } from '../playground/map/dungeon-course.js';
-import { angleDiff, canStand, newRun, shoot, tick } from '../engine.js';
+import { angleDiff, canStand, makeCampaignCourse, newRun, shoot, switchWeapon, nextOwnedWeapon, tick } from '../engine.js';
 import { reachableCells } from '../campaign.js';
 import { setDungeonOpeningOpen } from '../playground/map/dungeon-course.js';
 import { roomProgression } from '../ui.js';
+import { shortestPath } from '../playground/map/grid.js';
+import { planDungeonPlaceKit } from '../dungeon-place-kit.js';
 import {
   buildCampaignScene,
   buildDungeonOverview,
@@ -151,6 +153,139 @@ test('story floors stay long, looped, keyed and dressed', () => {
   }
 });
 
+test('side district arrivals create distinct journeys through each main hall', () => {
+  for (const [index, minimum] of [[0, 24], [1, 18], [2, 35], [3, 18]]) {
+    const course = makeDungeonCourse(index);
+    const hub = course.rooms.find(room => room.kind === 'hub');
+    const path = shortestPath(course.cells, course.w, course.h,
+      { x: course.playerSpawn.x, y: course.playerSpawn.y },
+      { x: hub.center.x, y: hub.center.y });
+    assert.ok(path?.length >= minimum, `${course.name} must approach the hub through its side district`);
+  }
+});
+
+test('Resonance side aisles cannot bypass the sealed choir court', () => {
+  const course = makeDungeonCourse(3);
+  const courtDoors = course.openings.filter(opening => opening.roomId === 'f4-court'
+    && ['s', 'w', 'e'].includes(opening.side));
+  assert.equal(courtDoors.length, 3);
+  assert.ok(courtDoors.every(opening => opening.kind === 'door' && opening.lockedBy === 'room-clear'));
+  const court = course.rooms.find(room => room.id === 'f4-court');
+  const insideCourt = cells => [...cells].some(key => {
+    const [x, z] = key.split(',').map(Number);
+    return x >= court.bounds.minX && x < court.bounds.maxX
+      && z >= court.bounds.minZ && z < court.bounds.maxZ;
+  });
+  assert.equal(insideCourt(reachableCells(course.cells, course.w, course.h, course.playerSpawn)), false);
+  for (const opening of courtDoors) setDungeonOpeningOpen(course, opening.id, true);
+  assert.equal(insideCourt(reachableCells(course.cells, course.w, course.h, course.playerSpawn)), true);
+});
+
+test('Story weapon finds unlock a persistent arsenal while arena weapons remain available', () => {
+  const run = newRun(makeDungeonCourse(0));
+  run.mode = 'play';
+  run.waveDelay = 999;
+  assert.deepEqual(run.ownedWeapons, [0]);
+  assert.equal(switchWeapon(run, 1), false, 'unfound shotgun cannot be selected');
+  assert.equal(nextOwnedWeapon(run, 1), 0, 'cycling skips locked weapons');
+  const shotgun = run.course.loot.find(item => item.weaponIndex === 1);
+  walkToDungeonPoint(run, shotgun, 'receiving dock to shotgun');
+  assert.ok(run.dungeonProgression.lootCollected.includes(shotgun.id));
+  assert.ok(run.ownedWeapons.includes(1));
+  assert.equal(run.weapon, 1, 'finding a weapon equips it');
+  assert.equal(nextOwnedWeapon(run, 1), 0, 'cycling wraps across only owned slots');
+
+  for (const item of run.course.loot.filter(item => item.id !== shotgun.id)) {
+    run.x = item.x; run.y = item.y;
+    tick(run, 1 / 60, {});
+  }
+  const ownedBeforeDescent = [...run.ownedWeapons];
+  clearDungeonWavesThroughEngine(run);
+  walkToDungeonPoint(run, run.course.keys[0], 'foundry loot-to-key');
+  walkToDungeonPoint(run, run.course.exit, 'foundry loot-to-lift', { allowFloorTransition: true });
+  assert.equal(run.course.dungeonIndex, 1);
+  assert.deepEqual(run.ownedWeapons, ownedBeforeDescent, 'found weapons survive floor transitions');
+  assert.deepEqual(run.dungeonProgression.lootCollected, [], 'only floor pickup state resets');
+
+  for (let index = 0; index < DUNGEON_LAYERS.length; index++) {
+    const course = makeDungeonCourse(index);
+    const pickupRun = newRun(course);
+    pickupRun.mode = 'play';
+    pickupRun.waveDelay = 999;
+    const reserved = new Set(course.blocks.map(([x, z]) => `${x},${z}`));
+    for (const item of course.loot) {
+      assert.ok(canStand(course, item.x, item.y, .1), `${item.id} is collectable`);
+      assert.equal(reserved.has(`${Math.floor(item.x)},${Math.floor(item.y)}`), false, `${item.id} clears cover and other pickups`);
+      reserved.add(`${Math.floor(item.x)},${Math.floor(item.y)}`);
+      assert.ok(course.rooms.some(room => room.id === item.roomId && item.x >= room.bounds.minX && item.x < room.bounds.maxX && item.y >= room.bounds.minZ && item.y < room.bounds.maxZ));
+      pickupRun.x = item.x; pickupRun.y = item.y;
+      tick(pickupRun, 1 / 60, {});
+      assert.ok(pickupRun.ownedWeapons.includes(item.weaponIndex), `${item.id} unlocks its actual weapon`);
+      assert.ok(pickupRun.dungeonProgression.lootCollected.includes(item.id), `${item.id} is recorded on its floor`);
+      assert.equal(pickupRun.weapon, item.weaponIndex, `${item.id} equips the find`);
+    }
+  }
+  const arena = newRun(makeCampaignCourse(0));
+  assert.equal(arena.ownedWeapons.length, 8, 'arena keeps its full loadout');
+  assert.equal(switchWeapon(arena, 7), true);
+});
+
+test('optional records live in distinct reachable rooms and survive the descent', () => {
+  let total = 0;
+  for (let index = 0; index < DUNGEON_LAYERS.length; index++) {
+    const course = makeDungeonCourse(index);
+    const run = newRun(course);
+    run.mode = 'play';run.waveDelay = 999;
+    const reserved = new Set([...course.blocks.map(([x, z]) => `${x},${z}`),
+      ...course.keys.map(item => `${Math.floor(item.x)},${Math.floor(item.y)}`),
+      ...course.loot.map(item => `${Math.floor(item.x)},${Math.floor(item.y)}`)]);
+    assert.ok(course.evidence.length >= 1, `${course.name} has a discoverable story record`);
+    for (const item of course.evidence) {
+      total++;
+      const cell = `${Math.floor(item.x)},${Math.floor(item.y)}`;
+      assert.ok(canStand(course, item.x, item.y, .1), `${item.id} can be reached`);
+      assert.equal(reserved.has(cell), false, `${item.id} has its own pickup cell`);
+      reserved.add(cell);
+      assert.ok(course.rooms.some(room => room.id === item.roomId
+        && item.x >= room.bounds.minX && item.x < room.bounds.maxX
+        && item.y >= room.bounds.minZ && item.y < room.bounds.maxZ));
+      run.x = item.x;run.y = item.y;
+      tick(run, 1 / 60, {});
+      assert.ok(run.storyRecords.some(record => record.id === item.id && record.text === item.text));
+      assert.ok(run.events.some(event => event.type === 'dungeon-evidence' && event.evidenceId === item.id));
+      const count = run.storyRecords.length;
+      tick(run, 1 / 60, {});
+      assert.equal(run.storyRecords.length, count, `${item.id} is archived once`);
+    }
+    assert.equal(buildDungeonScene(index).evidence.length, course.evidence.length, 'map playground marks every record');
+  }
+  const run = newRun(makeDungeonCourse(0));run.mode = 'play';run.waveDelay = 999;
+  const record = run.course.evidence[0];run.x = record.x;run.y = record.y;tick(run, 1 / 60, {});
+  clearDungeonWavesThroughEngine(run);
+  const key = run.course.keys[0];run.x = key.x;run.y = key.y;tick(run, 1 / 60, {});
+  assert.ok(run.storyRecords.some(item => item.id === key.id && item.kind === 'key'), 'key clues stay in the archive');
+  run.x = run.course.exit.x;run.y = run.course.exit.y;tick(run, 1 / 60, {});
+  assert.equal(run.course.dungeonIndex, 1);
+  assert.ok(run.storyRecords.some(item => item.id === record.id), 'optional discovery survives the lift');
+  assert.equal(run.course.evidenceTotal, total);
+});
+
+test('Story architecture follows real walkable cells and leaves encounter courts open above', () => {
+  for (let index = 0; index < DUNGEON_LAYERS.length; index++) {
+    const course = makeDungeonCourse(index);
+    const plan = planDungeonPlaceKit(course);
+    const cover = new Set(course.blocks.map(([x, z]) => `${x},${z}`));
+    assert.ok(plan.ceilings.length >= 100, `${course.name} needs a roof over its passages`);
+    assert.ok(plan.ceilings.every(cell => course.dungeonCompiled.reach.has(`${cell.x},${cell.z}`)
+      && !cover.has(`${cell.x},${cell.z}`)), `${course.name} ceiling must follow reachable floor, clear of cover`);
+    assert.ok(plan.ceilings.every(cell => !course.rooms.some(room => room.kind === 'arena'
+      && cell.x >= room.bounds.minX && cell.x < room.bounds.maxX
+      && cell.z >= room.bounds.minZ && cell.z < room.bounds.maxZ)),
+    `${course.name} encounter courts need a scale change`);
+    if (index < 4) assert.ok(plan.walls.length >= 20, `${course.name} needs functional wall architecture`);
+  }
+});
+
 test('playground scenes expose the dungeon for the browser renderer', () => {
   for (let index = 0; index < DUNGEON_LAYERS.length; index += 1) {
     const scene = buildDungeonScene(index);
@@ -160,6 +295,7 @@ test('playground scenes expose the dungeon for the browser renderer', () => {
     assert.ok(scene.corridors.length >= 6);
     assert.ok(scene.openings.length >= 12);
     assert.ok(scene.props.length >= 30, `${scene.id} should ship gore/dressing marks`);
+    assert.equal(scene.loot.length, makeDungeonCourse(index).loot.length, `${scene.id} playground should show live weapon finds`);
     assert.ok(scene.scares.length >= 5);
     assert.ok(scene.setpieces.length >= 4);
     assert.ok(scene.path.designed.length >= 10, `${scene.id} needs a drawable route trace`);

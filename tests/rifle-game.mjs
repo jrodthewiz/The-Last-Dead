@@ -34,6 +34,8 @@ try{
    const model=d.renderer.weaponGroups[r.weapon],mechanisms=[];
    model.traverse(n=>{if(n.userData.weaponMechanism)mechanisms.push({name:n.name,position:n.position.toArray(),rotation:n.rotation.toArray().slice(0,3),scale:n.scale.toArray()});});
    return{weapon:r.weapon,sequence:r.shotSequence,shot:r.shot,mode:r.lastShotMode,charge:r.rifleCharge,heat:r.rifleHeat,
+    flash:d.renderer.muzzleFlash.children[0].visible,pressure:d.renderer.muzzleFlash.children[1].visible,
+    casings:d.renderer.rifleCasings.mesh.count,kick:r.rifleKick||0,
     calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,textures:renderer.info.memory.textures,
     fov:d.renderer.camera.fov,pixelLevels:new Set(pixels.filter((_,i)=>i%4!==3)).size,mechanisms};
   });
@@ -53,11 +55,15 @@ try{
  let before=await state();await page.mouse.down();
  await page.waitForFunction(n=>window.__DEAD_ARRIVAL__.run.shotSequence>=n+4,before.sequence);
  await capture('carrion-auto');await page.mouse.up();
+ assert.ok(report.frames.at(-1).casings>0&&report.frames.at(-1).kick>0,'automatic round ejects casings and kicks the weapon');
+ await page.evaluate(()=>{window.__DEAD_ARRIVAL__.run.shot=.95;});await capture('carrion-flash');
+ assert.ok(report.frames.at(-1).flash&&report.frames.at(-1).pressure,'automatic round shows muzzle and pressure flashes');
  assert.equal((await state()).mode,'auto');report.checks.automatic='held input produced >=4 shots';
  await page.waitForTimeout(600);await capture('carrion-return');
  before=await state();await page.mouse.down({button:'right'});await page.waitForTimeout(35);await page.mouse.up({button:'right'});
  await page.waitForFunction(n=>window.__DEAD_ARRIVAL__.run.shotSequence===n+3,before.sequence);
  await capture('carrion-burst');report.checks.burst='tap completed exactly three rounds';
+ assert.ok(report.frames.at(-1).casings>0,'burst ejects casings');
  await page.keyboard.press('6');await page.waitForTimeout(350);await capture('mourning-idle');
  before=await state();await page.mouse.down();await page.waitForFunction(n=>window.__DEAD_ARRIVAL__.run.shotSequence>n,before.sequence);
  await capture('mourning-snap');await page.mouse.up();await page.waitForTimeout(900);

@@ -52,20 +52,22 @@ export function newRun(course, options = {}){
  const waveCount=campaign?(sector.waves?.length||CAMPAIGN_WAVE_COUNT):Math.max(1,Number(course?.waveCount)||3);
  return{
   course,x:spawn.x,y:spawn.y,z:0,angle:spawn.angle??-Math.PI/2,pitch:0,vx:0,vy:0,vz:0,speed:0,distance:0,time:0,mode:'ready',
-  health:100,energy:100,weapon:0,cooldowns:Array.from({length:weapons.length},()=>0),fireCooldown:0,shot:0,damage:0,heal:0,aim:0,slide:0,dashTime:0,punch:0,hookTime:0,hookCooldown:0,hookTarget:-1,parryTime:0,parryCooldown:0,slam:false,wallJumps:0,
-  style:0,styleTotal:0,styleLabel:'GET CLOSE. GET LOUD.',rank:'D',kills:0,combo:0,bestCombo:0,lastWeapon:-1,repeat:0,
+  health:100,energy:100,weapon:0,ownedWeapons:course?.dungeon?[...(course.startingWeapons||[0])]:weapons.map((_,index)=>index),storyRecords:[],cooldowns:Array.from({length:weapons.length},()=>0),fireCooldown:0,shot:0,damage:0,heal:0,aim:0,slide:0,dashTime:0,punch:0,hookTime:0,hookCooldown:0,hookTarget:-1,parryTime:0,parryCooldown:0,slam:false,wallJumps:0,
+  style:0,styleTotal:0,stylePending:0,styleLabel:'GET CLOSE. GET LOUD.',rank:'D',kills:0,combo:0,bestCombo:0,lastWeapon:-1,repeat:0,
   campaign,sectorIndex,sectorCount:campaign?CAMPAIGN_SECTOR_COUNT:(course?.dungeon?course.dungeonCount:1),sectorId:course?.sectorId||sector.id,sectorName:course?.name||sector.name,wave:0,waveCount,waveDelay:campaign?(sector.waves[0]?.intermission??1.2):course?.dungeon?DUNGEON_START_DELAY:1.2,
   director:campaign?{state:'intermission',budget:0,spent:0,remainingBudget:0,aliveCap:0,active:0,pending:0,queue:[],elapsed:0,seed:sectorIndex*1000+1}:null,
   roomProgression:campaign?createRoomProgression(course,sectorIndex,options):null,
-  dungeonProgression:course?.dungeon?{floorIndex:course.dungeonIndex,floorCount:course.dungeonCount,startIndex:course.dungeonIndex,floorsCleared:0,keysCollected:[],activeRoomId:null,combatDoorsReleased:false,exitReady:false,phase:'combat'}:null,
+  dungeonProgression:course?.dungeon?{floorIndex:course.dungeonIndex,floorCount:course.dungeonCount,startIndex:course.dungeonIndex,floorsCleared:0,keysCollected:[],lootCollected:[],activeRoomId:null,combatDoorsReleased:false,exitReady:false,phase:'combat'}:null,
   spawnTelegraphs:[],explosions:[],projectiles:[],coins:[],coinCharges:4,coinRegen:0,altCooldown:0,respawnTime:0,
-  rifleHeat:0,rifleBurst:0,rifleBurstTimer:0,rifleCharge:0,rifleCharging:false,shotSequence:0,lastShotMode:'',
+  rifleHeat:0,rifleBurst:0,rifleBurstTimer:0,rifleCharge:0,rifleCharging:false,rifleKick:0,rifleKickYaw:0,shotSequence:0,lastShotMode:'',
   meleeActive:false,meleeProgress:1,meleeDuration:0,meleeHeavy:false,meleeResolved:false,meleeSequence:0,meleeContact:0,meleeHitStop:0,sawRev:0,sawActive:false,sawContact:0,sawTick:0,
   gore:[],blood:[],limbs:[],pools:[],tracers:[],events:[],pressed:{},nextId:1,autoRun:false,playerId:'host',campaignComplete:false,
+  extraction:makeExtractionState(),extractCandidateId:null,extractions:0,extractionPoints:0,
  };
 }
 export function look(r,dx,dy){if(r.mode!=='play')return;r.angle=angleDiff(r.angle+dx*.002,0);r.pitch=clamp(r.pitch-dy*.002,-1.35,1.35);}
-export function switchWeapon(r,i){if(!Number.isInteger(i)||!weapons[i]||r.weapon===i)return;r.weapon=i;r.shot=0;r.rifleBurst=0;r.rifleBurstTimer=0;r.rifleCharge=0;r.rifleCharging=false;r.aim=0;cancelMelee(r);}
+export function switchWeapon(r,i){if(!Number.isInteger(i)||!weapons[i]||r.weapon===i||r.course?.dungeon&&!r.ownedWeapons?.includes(i))return false;r.weapon=i;r.shot=0;r.rifleBurst=0;r.rifleBurstTimer=0;r.rifleCharge=0;r.rifleCharging=false;r.rifleKick=0;r.rifleKickYaw=0;r.aim=0;cancelMelee(r);return true;}
+export function nextOwnedWeapon(r,step=1){const owned=r.course?.dungeon?r.ownedWeapons:weapons.map((_,index)=>index);if(!owned?.length)return 0;for(let offset=1;offset<=weapons.length;offset++){const index=(r.weapon+Math.sign(step||1)*offset+weapons.length*2)%weapons.length;if(owned.includes(index))return index;}return r.weapon;}
 export function eye(r){return EYE+r.z-r.slide*.18;}
 function enemyProfile(e){
  const fallback=e.kind===3?'bellwraith':e.kind===2?'brute':e.kind===1?'caster':'stalker';
@@ -82,8 +84,168 @@ function enemyHitHeight(e,minimum=.52){
 function playerId(r){return r.playerId||((r.world&&r.world!==r)?'peer':'host');}
 function aliveEnemies(r){return r.course.enemies.filter(e=>!e.dead);}
 function pushEvent(r,type,extra={}){r.events.push({type,...extra});}
-function award(r,amount,label){r.style=Math.min(1800,r.style+amount);r.styleTotal+=amount;r.styleLabel=label;r.combo++;r.bestCombo=Math.max(r.combo,r.bestCombo);}
+const STYLE_PENDING_CAP=420;
+// Combat actions build an unbanked claim. The visible style meter and lifetime
+// score only move when the player completes a corpse extraction.
+function award(r,amount,label){
+ const gain=clamp(Number(amount)||0,0,STYLE_PENDING_CAP);
+ if(gain<=0)return;
+ r.stylePending=clamp((r.stylePending||0)+gain,0,STYLE_PENDING_CAP);
+ r.styleLabel=label;r.combo++;r.bestCombo=Math.max(r.combo,r.bestCombo);
+}
+function bankStyle(r,amount,label,totalAmount=amount){
+ const gain=clamp(Number(amount)||0,0,1800);
+ if(gain<=0)return;
+ r.style=Math.min(1800,(r.style||0)+gain);r.styleTotal=(r.styleTotal||0)+clamp(Number(totalAmount)||0,0,1800);r.styleLabel=label;
+ r.combo++;r.bestCombo=Math.max(r.bestCombo,r.combo);
+}
 function hurt(r,n){if(r.dashTime>0)return;r.health=Math.max(0,r.health-n);r.damage=1;r.style*=.65;r.combo=0;r.events.push({type:'damage',x:r.x,y:r.y,z:eye(r)});}
+
+// Corpse extraction is a committed, held interaction. The renderer consumes
+// the phase/variation fields and events; the simulation owns the gate so a
+// visual effect can never award points by itself.
+const EXTRACTION_RANGE=.95;
+const EXTRACTION_FACING=.72;
+const EXTRACTION_TURN_LIMIT=.55;
+const EXTRACTION_DURATIONS=Object.freeze({draw:.78,incise:.74,rip:.86});
+const EXTRACTION_TOTAL=EXTRACTION_DURATIONS.draw+EXTRACTION_DURATIONS.incise+EXTRACTION_DURATIONS.rip;
+const EXTRACTION_PHASES=Object.freeze(['draw','incise','rip']);
+const extractionHash=(seed,salt=0)=>{
+ let x=((seed>>>0)^((salt+1)*0x9e3779b9))>>>0;
+ x^=x>>>16;x=Math.imul(x,0x7feb352d)>>>0;x^=x>>>15;x=Math.imul(x,0x846ca68b)>>>0;x^=x>>>16;
+ return x>>>0;
+};
+const extractionRoll=(seed,salt=0)=>extractionHash(seed,salt)/4294967296;
+function extractionSeed(e){
+ if(Number.isSafeInteger(e.extractionSeed)&&e.extractionSeed>0)return e.extractionSeed;
+ const id=Number.isSafeInteger(e.id)?e.id:0;
+ let variant=0;for(const c of String(e.variant||e.kind||'stalker'))variant=(variant*33+c.charCodeAt(0))>>>0;
+ return extractionHash((id^variant)>>>0,13)||1;
+}
+function extractionVariation(seed){
+ return Object.freeze({
+  drawRate:.92+extractionRoll(seed,1)*.16,
+  drawSway:-.045+extractionRoll(seed,2)*.09,
+  incisionAngle:-.34+extractionRoll(seed,3)*.68,
+  incisionDepth:.72+extractionRoll(seed,4)*.46,
+  ripArc:-.42+extractionRoll(seed,5)*.84,
+  heartPulse:.82+extractionRoll(seed,6)*.36,
+  sprayCount:3+Math.floor(extractionRoll(seed,7)*4),
+  rewardRoll:extractionRoll(seed,8),
+ });
+}
+function makeExtractionState(){
+ return {targetId:null,phase:'idle',progress:0,seed:0,variation:null,elapsed:0,stageProgress:0,anchorX:0,anchorY:0,anchorAngle:0,
+  lastTargetId:null,lastSeed:0,lastPhase:'idle',completedAt:0,cancelReason:'',sequence:0,predicted:false};
+}
+function extractionTarget(r){
+ const enemies=r.course?.enemies||[];
+ let best=null,bestDistance=Infinity;
+ for(const e of enemies){
+  if(!e||!e.dead||e.extracted)continue;
+  const d=Math.hypot(e.x-r.x,e.y-r.y);
+  if(d>EXTRACTION_RANGE||d>=bestDistance)continue;
+  const a=Math.atan2(e.y-r.y,e.x-r.x);
+  if(Math.abs(angleDiff(a,r.angle))>EXTRACTION_FACING)continue;
+  // A corpse still tumbling from a heavy hit must settle before it can be
+  // harvested. This keeps the interaction grounded and readable.
+  if((e.meleeZ||0)>.28)continue;
+  if(castRay(r.course,r.x,r.y,a,d+.12).dist<=d-.1)continue;
+  best=e;bestDistance=d;
+ }
+ return best;
+}
+function extractionEvent(r,type,e,extra={}){
+ const ex=r.extraction||makeExtractionState();
+ const payload={type,enemyId:e?.id??ex.targetId,targetId:e?.id??ex.targetId,x:e?.x??r.x,y:e?.y??r.y,z:.32,phase:ex.phase,progress:ex.progress,
+  seed:ex.seed,variation:ex.variation,gore:r.settings?.gore!==false,sequence:ex.sequence,...extra};
+ r.events.push(payload);
+}
+function cancelExtraction(r,reason='cancelled'){
+ const ex=r.extraction;if(!ex||ex.phase==='idle')return false;
+ const e=(r.course?.enemies||[]).find(item=>item.id===ex.targetId);
+ const phase=ex.phase,progress=ex.progress;
+ extractionEvent(r,'extract-cancel',e,{reason,phase,progress});
+ ex.lastTargetId=ex.targetId;ex.lastSeed=ex.seed;ex.lastPhase=phase;ex.cancelReason=reason;
+ ex.targetId=null;ex.phase='idle';ex.progress=0;ex.elapsed=0;ex.stageProgress=0;ex.predicted=false;ex.seed=0;ex.variation=null;ex.anchorX=0;ex.anchorY=0;ex.anchorAngle=0;
+ return true;
+}
+function beginExtraction(r,e,predicted=false){
+ const ex=r.extraction||(r.extraction=makeExtractionState());
+ const seed=extractionSeed(e),variation=e.extractionVariation||extractionVariation(seed);
+ if(!predicted){e.extractionSeed=seed;e.extractionVariation=variation;}
+ ex.targetId=e.id;ex.phase='draw';ex.progress=0;ex.stageProgress=0;ex.seed=seed;ex.variation=variation;ex.elapsed=0;
+ ex.anchorX=r.x;ex.anchorY=r.y;ex.anchorAngle=r.angle;ex.lastPhase='draw';ex.cancelReason='';ex.sequence=(ex.sequence||0)+1;
+ extractionEvent(r,'extract-start',e,{stage:'draw'});
+ extractionEvent(r,'extract-draw',e,{stage:'draw',stageProgress:0});
+ return true;
+}
+function completeExtraction(r,e){
+ const ex=r.extraction;
+ if(!e||e.extracted||!ex||ex.targetId!==e.id)return false;
+ // Reward values stay bounded and are seeded by the body so co-op peers and
+ // repeated visual runs agree without using Math.random(). Pending combat
+ // claims are banked in a bounded chunk, then the heart adds its own bonus.
+ const pending=clamp(r.stylePending||0,0,STYLE_PENDING_CAP);
+ const banked=clamp(pending,0,180);
+ const bonus=clamp(72+(ex.variation.sprayCount-3)*8+Math.round(ex.variation.rewardRoll*12),72,108);
+ const points=clamp(banked+bonus,72,288);
+ e.extracted=true;e.extractedAt=r.time;e.extractionPoints=points;e.extractionVariation=ex.variation;
+ if(r.settings?.gore!==false){
+  const world=r.world||r;
+  burst(r,e,12+ex.variation.sprayCount,{x:e.x,y:e.y,z:.19,energy:.55});
+  for(let i=0;i<3;i++)world.blood.push({id:world.nextId++,x:e.x+(extractionRoll(ex.seed,i+21)-.5)*.18,
+   y:e.y+(extractionRoll(ex.seed,i+25)-.5)*.18,size:.18+extractionRoll(ex.seed,i+29)*.11,angle:extractionRoll(ex.seed,i+33)*Math.PI*2});
+  world.blood=world.blood.slice(-100);
+ }
+ r.stylePending=Math.max(0,pending-banked);
+ bankStyle(r,points,'+ HEART EXTRACTED',points);
+ r.extractions=(r.extractions||0)+1;r.extractionPoints=(r.extractionPoints||0)+points;
+ ex.lastTargetId=e.id;ex.lastSeed=ex.seed;ex.lastPhase='rip';ex.completedAt=r.time;ex.cancelReason='';
+ extractionEvent(r,'extract-complete',e,{stage:'complete',points,banked,bonus,heart:true});
+ ex.targetId=null;ex.phase='idle';ex.progress=0;ex.elapsed=0;ex.stageProgress=0;ex.predicted=false;ex.seed=0;ex.variation=null;ex.anchorX=0;ex.anchorY=0;ex.anchorAngle=0;
+ return true;
+}
+
+// Exported so host code can explicitly advance a remote player when needed;
+// tickPlayer also calls it, keeping solo, host and guest simulation identical.
+export function advanceExtraction(r,dt,input={}){
+ const ex=r.extraction||(r.extraction=makeExtractionState());
+ const target=extractionTarget(r);
+ r.extractCandidateId=target?.id??null;
+ if(r.mode!=='play'||r.health<=0){if(ex.phase!=='idle')cancelExtraction(r,'inactive');return;}
+ const held=!!input.harvest;
+ const moving=Math.abs(Number(input.forward)||0)>.01||Math.abs(Number(input.strafe)||0)>.01||!!input.jump||!!input.dash||!!input.slide;
+ const turning=ex.phase!=='idle'&&Math.abs(angleDiff(r.angle,ex.anchorAngle))>EXTRACTION_TURN_LIMIT;
+ const firing=!!input.fire||!!input.alt;
+ if(ex.phase==='idle'){
+  if(held&&target&&!moving&&!firing&&Math.abs(r.speed||0)<.18)beginExtraction(r,target,!!input.predictWeapons);
+  return;
+ }
+ const active=(r.course?.enemies||[]).find(e=>e.id===ex.targetId);
+ if(!held){cancelExtraction(r,'released');return;}
+ if(!active||active.extracted){cancelExtraction(r,'body-unavailable');return;}
+ if(r.damage>0){cancelExtraction(r,'damage');return;}
+ if(moving||firing||turning||Math.abs(r.x-ex.anchorX)>.025||Math.abs(r.y-ex.anchorY)>.025){cancelExtraction(r,moving?'movement':firing?'weapon':'out-of-position');return;}
+ const eligible=extractionTarget(r);
+ if(!eligible||eligible.id!==active.id){cancelExtraction(r,'out-of-range');return;}
+ const phase=ex.phase,index=EXTRACTION_PHASES.indexOf(phase);
+ ex.elapsed+=dt*ex.variation.drawRate;
+ let before=0;for(let i=0;i<index;i++)before+=EXTRACTION_DURATIONS[EXTRACTION_PHASES[i]];
+ ex.progress=clamp(ex.elapsed/EXTRACTION_TOTAL,0,1);
+ const localProgress=clamp((ex.elapsed-before)/EXTRACTION_DURATIONS[phase],0,1);
+ ex.stageProgress=localProgress;
+ if(ex.elapsed>=before+EXTRACTION_DURATIONS[phase]){
+  if(index<EXTRACTION_PHASES.length-1){
+   ex.phase=EXTRACTION_PHASES[index+1];ex.lastPhase=ex.phase;ex.stageProgress=0;
+   extractionEvent(r,`extract-${ex.phase}`,active,{stage:ex.phase,stageProgress:0});
+  }else if(input.predictWeapons){
+   // Guest prediction may animate the final rip, but only the host is allowed
+   // to mark the corpse, bank points, or emit the completion event.
+   ex.progress=.999;ex.stageProgress=1;ex.predicted=true;
+  }else completeExtraction(r,active);
+ }
+}
 function burst(player,e,count=18,hit=null){
  const r=player.world||player,seed=e.id+(e.hits||0)*13,energy=hit?.energy||1;
  for(let i=0;i<count;i++){
@@ -310,11 +472,28 @@ function updateDungeonProgression(r){
   const collector=[r,...(r.peer?[r.peer]:[])].find(player=>player.health>0&&Math.hypot(player.x-key.x,player.y-key.y)<.62);
   if(!collector)continue;
   progression.keysCollected.push(key.id);
+  r.storyRecords.push({id:key.id,title:key.name,text:key.note,kind:'key',floorIndex:course.dungeonIndex,floorName:course.name});
   for(const opening of course.openings){
    if(opening.keyId!==key.id&&!(key.opens||[]).includes(opening.id))continue;
    setDungeonOpeningOpen(course,opening.id,true);
   }
-  r.events.push({type:'dungeon-key',keyId:key.id,keyName:key.name,floorIndex:course.dungeonIndex,x:key.x,y:key.y});
+  r.events.push({type:'dungeon-key',keyId:key.id,keyName:key.name,story:key.note,floorIndex:course.dungeonIndex,x:key.x,y:key.y});
+ }
+ for(const item of course.loot||[]){
+  if(progression.lootCollected.includes(item.id))continue;
+  const collector=[r,...(r.peer?[r.peer]:[])].find(player=>player.health>0&&Math.hypot(player.x-item.x,player.y-item.y)<.65);
+  if(!collector)continue;
+  progression.lootCollected.push(item.id);
+  const newWeapon=!r.ownedWeapons.includes(item.weaponIndex);
+  if(newWeapon){r.ownedWeapons.push(item.weaponIndex);switchWeapon(r,item.weaponIndex);}
+  r.events.push({type:'dungeon-weapon',lootId:item.id,weaponIndex:item.weaponIndex,weaponName:weapons[item.weaponIndex].name,rarity:item.rarity,story:item.story,newWeapon,floorIndex:course.dungeonIndex,x:item.x,y:item.y});
+ }
+ for(const item of course.evidence||[]){
+  if(r.storyRecords.some(record=>record.id===item.id))continue;
+  const collector=[r,...(r.peer?[r.peer]:[])].find(player=>player.health>0&&Math.hypot(player.x-item.x,player.y-item.y)<.76);
+  if(!collector)continue;
+  r.storyRecords.push({id:item.id,title:item.title,text:item.text,kind:item.kind,floorIndex:course.dungeonIndex,floorName:course.name});
+  r.events.push({type:'dungeon-evidence',evidenceId:item.id,title:item.title,story:item.text,kind:item.kind,floorIndex:course.dungeonIndex,x:item.x,y:item.y});
  }
  for(const opening of course.openings){
   if(!opening.secret||opening.kind!=='vent'||course.openingState[opening.id])continue;
@@ -329,7 +508,7 @@ function updateDungeonProgression(r){
 function advanceDungeonFloor(r){
  const previous=r.course,progress=r.dungeonProgression||{},floorIndex=previous.dungeonIndex+1,course=makeDungeonCourse(floorIndex);
  r.course=course;r.sectorIndex=floorIndex;r.sectorCount=course.dungeonCount;r.sectorId=course.sectorId;r.sectorName=course.name;
- r.dungeonProgression={floorIndex,floorCount:course.dungeonCount,startIndex:progress.startIndex??previous.dungeonIndex,floorsCleared:(progress.floorsCleared||0)+1,keysCollected:[],activeRoomId:null,combatDoorsReleased:false,exitReady:false,phase:'combat'};
+ r.dungeonProgression={floorIndex,floorCount:course.dungeonCount,startIndex:progress.startIndex??previous.dungeonIndex,floorsCleared:(progress.floorsCleared||0)+1,keysCollected:[],lootCollected:[],activeRoomId:null,combatDoorsReleased:false,exitReady:false,phase:'combat'};
  r.wave=0;r.waveCount=course.waveCount;r.waveDelay=DUNGEON_START_DELAY;r.director=null;r.campaignComplete=false;
  r.x=course.playerSpawn.x;r.y=course.playerSpawn.y;r.z=0;r.vx=0;r.vy=0;r.vz=0;r.angle=course.playerSpawn.angle??-Math.PI/2;r.pitch=0;
  r.spawnTelegraphs=[];r.projectiles=[];r.coins=[];r.explosions=[];r.pools=[];r.tracers=[];r.gore=[];r.blood=[];r.limbs=[];
@@ -457,7 +636,15 @@ function fireRifleRound(r, mode, predicted = false) {
  r.shot=1;r.shotSequence=(r.shotSequence||0)+1;r.lastShotMode=mode;
  r.repeat=r.lastWeapon===r.weapon?r.repeat+1:0;r.lastWeapon=r.weapon;
  if(r.weapon===4)r.rifleHeat=clamp((r.rifleHeat||0)+(mode==='burst'?.065:.09),0,1);
- r.events.push({type:'shot',weapon:r.weapon,mode,x:r.x,y:r.y,z:eye(r),predicted});
+ // Keep recoil as simulation state so the renderer can give each rifle a
+ // readable kick without guessing from the generic `shot` decay.  Carrion
+ // climbs more as its barrel heats; Mourning has one deliberate, heavier
+ // snap for both its quick shot and charged shot.
+ const kick=r.weapon===4?(mode==='burst'?.76:.52+(r.rifleHeat||0)*.18):(charged?1.16:.86);
+ r.rifleKick=Math.max(r.rifleKick||0,kick);
+ const yawPattern=Math.sin(r.shotSequence*2.399963+(.31* (r.weapon===5?1:0))) * (r.weapon===4?.045:.018);
+ r.rifleKickYaw=clamp((r.rifleKickYaw||0)+yawPattern,-.16,.16);
+ r.events.push({type:'shot',weapon:r.weapon,mode,x:r.x,y:r.y,z:eye(r),predicted,sequence:r.shotSequence,shotSequence:r.shotSequence,heat:r.rifleHeat||0,kick:r.rifleKick,kickYaw:r.rifleKickYaw});
  if(predicted)return true;
  const spread=r.weapon===4?(mode==='burst'?.0015:.001+w.cone*(r.rifleHeat||0)):(charged?0:w.cone);
  const a=r.angle+Math.sin(r.shotSequence*2.399963)*spread;
@@ -507,6 +694,8 @@ export function shootRifle(r, secondary=false, predicted=false) {
 
 function advanceRifles(r,dt,input){
  r.rifleHeat=Math.max(0,(r.rifleHeat||0)-dt*.36);
+ r.rifleKick=Math.max(0,(r.rifleKick||0)-dt*6.8);
+ r.rifleKickYaw*=Math.exp(-dt*11);
  if(r.weapon===4&&r.rifleBurst>0){
   r.rifleBurstTimer-=dt;
   if(r.rifleBurstTimer<=1e-9){r.rifleBurst--;r.rifleBurstTimer+=.075;fireRifleRound(r,'burst',!!input.predictWeapons);}
@@ -551,7 +740,7 @@ export function tickPlayer(r,dt,input={}){if(r.mode!=='play'||r.health<=0)return
  advanceRifles(r,dt,input);
  advanceMelee(r,dt,input);
  r.angle=angleDiff(r.angle+(input.turn||0)*dt*2,0);r.pitch=clamp(r.pitch+(input.lookY||0)*dt,-1.35,1.35);r.energy=clamp(r.energy+dt*22,0,100);if(r.coinCharges<4){r.coinRegen+=dt;if(r.coinRegen>=2){r.coinCharges++;r.coinRegen=0;}}
- const jump=input.jump&&!r.pressed.jump,dash=input.dash&&!r.pressed.dash,wasAir=r.z>.001,wasSliding=r.slide>.55;r.pressed={jump:!!input.jump,dash:!!input.dash};let f=input.forward||0,s=input.strafe||0;if(r.autoRun&&f===0)f=1;const length=Math.max(1,Math.hypot(f,s));f/=length;s/=length;const dx=Math.cos(r.angle)*f-Math.sin(r.angle)*s,dy=Math.sin(r.angle)*f+Math.cos(r.angle)*s;
+ const jump=input.jump&&!r.pressed.jump,dash=input.dash&&!r.pressed.dash,wasAir=r.z>.001,wasSliding=r.slide>.55;r.pressed={jump:!!input.jump,dash:!!input.dash};let f=input.forward||0,s=input.strafe||0;if(r.autoRun&&f===0&&!input.harvest)f=1;const length=Math.max(1,Math.hypot(f,s));f/=length;s/=length;const dx=Math.cos(r.angle)*f-Math.sin(r.angle)*s,dy=Math.sin(r.angle)*f+Math.cos(r.angle)*s;
  if(jump){if(r.z<=.001){r.vz=2.05;r.events.push({type:'jump',x:r.x,y:r.y,z:r.z});}else if(r.wallJumps<3&&!canStand(r.course,r.x,r.y,.2)){r.vz=1.8;r.wallJumps++;r.vx=-Math.cos(r.angle)*1.4;r.vy=-Math.sin(r.angle)*1.4;award(r,20,'+ WALL JUMP');}}
  if(dash&&r.energy>=33){r.energy-=33;r.dashTime=.18;const len=Math.hypot(dx,dy);r.vx=(len?dx:Math.cos(r.angle))*6;r.vy=(len?dy:Math.sin(r.angle))*6;r.vz=Math.max(0,r.vz);r.events.push({type:'dash',x:r.x,y:r.y,z:r.z});}
  if(input.slide&&r.z>.12){r.slam=true;r.vz=-5;}
@@ -560,6 +749,9 @@ export function tickPlayer(r,dt,input={}){if(r.mode!=='play'||r.health<=0)return
  if(r.hookTime>0){const target=r.course.enemies.find(e=>e.id===r.hookTarget&&!e.dead);if(target){const dx=target.x-r.x,dy=target.y-r.y,d=Math.hypot(dx,dy);if(d>.5){if(target.kind===2){r.vx=dx/d*4.2;r.vy=dy/d*4.2;r.vz=Math.max(r.vz,.35);}else{const ex=target.x-dx/d*dt*5,ey=target.y-dy/d*dt*5;if(canStand(r.course,ex,ey,.16)){target.x=ex;target.y=ey;}}}else r.hookTime=0;}else r.hookTime=0;}
  const ox=r.x,oy=r.y;move(r,r.vx*dt,r.vy*dt);r.speed=Math.hypot(r.x-ox,r.y-oy)/Math.max(dt,.0001);r.distance+=r.speed*dt;
  if(r.dashTime<=0)r.vz-=5.5*dt;r.z=Math.max(0,r.z+r.vz*dt);if(r.z===0){r.vz=0;r.wallJumps=0;if(r.slam){r.slam=false;for(const e of r.course.enemies)if(!e.dead&&Math.hypot(e.x-r.x,e.y-r.y)<1.15&&castRay(r.course,r.x,r.y,Math.atan2(e.y-r.y,e.x-r.x)).dist>Math.hypot(e.x-r.x,e.y-r.y)-.1)damageEnemy(r,e,5,'+ GROUND SLAM');r.events.push({type:'slam',x:r.x,y:r.y,z:0});}else if(wasAir)r.events.push({type:'land',x:r.x,y:r.y,z:0});}
+ // Keep extraction after movement so any actual displacement in this tick
+ // cancels the committed action before it can advance or award.
+ advanceExtraction(r,dt,input);
 }
 // Recompute a short grid route only when cover blocks line of sight.
 function enemyWaypoint(course,e,target){

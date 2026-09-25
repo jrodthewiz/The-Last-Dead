@@ -35,6 +35,32 @@ test('rifles extend the arsenal with independent cooldowns and deterministic aut
   assert.deepEqual(simulate(),simulate());
 });
 
+test('rifle rounds publish distinct feedback metadata and heat raises automatic kick',()=>{
+  const run=arena(4);targets(run,1);
+  assert.equal(shoot(run),true);
+  const first=run.events.filter(event=>event.type==='shot').at(-1);
+  assert.equal(first.type,'shot');
+  assert.equal(first.mode,'auto');
+  assert.equal(first.sequence,1);
+  assert.equal(first.shotSequence,1);
+  assert.ok(first.heat>0&&first.heat<=1);
+  assert.ok(first.kick>.5&&first.kick<.8);
+  const firstKick=first.kick;
+  advance(run,.1);
+  assert.ok(run.rifleKick<firstKick,'rifle kick decays between rounds');
+  advance(run,.02);
+  assert.equal(shoot(run),true);
+  const hot=run.events.filter(event=>event.type==='shot').at(-1);
+  assert.equal(hot.mode,'auto');
+  assert.ok(hot.heat>first.heat,'automatic heat accumulates');
+  assert.ok(hot.kick>firstKick,'automatic kick rises with barrel heat');
+  switchWeapon(run,5);
+  assert.equal(shoot(run),true);
+  const snap=run.events.filter(event=>event.type==='shot').at(-1);
+  assert.equal(snap.mode,'snap');
+  assert.ok(snap.kick>hot.kick,'Mourning snap has a heavier deliberate kick');
+});
+
 test('burst completes three distinct rounds after trigger release and keeps recovery',()=>{
   const run=arena();targets(run,1);
   assert.equal(shoot(run,true),true);

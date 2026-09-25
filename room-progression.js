@@ -16,6 +16,30 @@ const ROOM_TEMPLATES = [
   { key: 'objective', role: 'objective', bounds: { minX: 0, minZ: 1.05, maxX: 12, maxZ: 2.95 }, entry: { x: 2.1, y: 2.7 }, exit: { x: 6, y: 1.2 }, spawnPoints: [[5.5, 2], [8.5, 2]], threshold: 1, spans: [[5, 7], [8, 10]] },
 ];
 
+// The encounter beats share a northbound sequence, but their playable shells
+// should not all occupy the same twelve-cell square.  Keep the entry broad for
+// spawning, then offset and contract the later spaces around paired routes.
+const SECTOR_ROOM_SHAPES = {
+  bloodworks: [
+    { minX: 0, maxX: 12, spans: [[2, 4], [8, 10]] },
+    { minX: 0, maxX: 11, spans: [[1, 3], [9, 11]] },
+    { minX: 1, maxX: 11, spans: [[4, 6], [7, 9]] },
+    { minX: 3, maxX: 10, spans: [[4, 6], [7, 9]] },
+  ],
+  ossuary: [
+    { minX: 0, maxX: 12, spans: [[2, 4], [8, 10]] },
+    { minX: 1, maxX: 12, spans: [[1, 3], [9, 11]] },
+    { minX: 1, maxX: 11, spans: [[4, 6], [8, 10]] },
+    { minX: 3, maxX: 11, spans: [[4, 6], [8, 10]] },
+  ],
+  choir: [
+    { minX: 0, maxX: 12, spans: [[1, 3], [9, 11]] },
+    { minX: 0, maxX: 12, spans: [[2, 4], [8, 10]] },
+    { minX: 1, maxX: 11, spans: [[4, 6], [7, 9]] },
+    { minX: 3, maxX: 10, spans: [[4, 6], [7, 9]] },
+  ],
+};
+
 const SECTOR_SPECS = {
   bloodworks: {
     act: 'act-i', theme: 'bloodworks',
@@ -55,9 +79,11 @@ const SECTOR_SPECS = {
 function buildRooms(sectorId, spec) {
   const ids = ROOM_TEMPLATES.map(template => sectorId + '-' + spec.act + '-' + template.key);
   return ROOM_TEMPLATES.map((template, index) => {
+    const shape = SECTOR_ROOM_SHAPES[sectorId][index];
+    const bounds = { ...template.bounds, minX: shape.minX, maxX: shape.maxX };
     const id = ids[index], nextId = index < ids.length - 1 ? ids[index + 1] : 'sector-exit';
     const barrierId = sectorId + '-barrier-' + index;
-    const portals = template.spans.map((span, doorIndex) => ({
+    const portals = shape.spans.map((span, doorIndex) => ({
       id: id + '-portal-' + doorIndex,
       kind: index === ids.length - 1 ? 'lift' : 'door',
       axis: 'horizontal',
@@ -78,10 +104,12 @@ function buildRooms(sectorId, spec) {
       name: spec.names[index],
       role: template.role,
       theme: spec.theme,
-      bounds: template.bounds,
+      bounds,
       entry: template.entry,
       exit: template.exit,
-      spawnPoints: template.spawnPoints.map(([x, y]) => ({ x, y })),
+      spawnPoints: template.spawnPoints.map(([x, y]) => ({
+        x: Math.max(bounds.minX + .5, Math.min(bounds.maxX - .5, x)), y,
+      })),
       landmarks: spec.landmarks[index],
       portals,
       encounter: spec.encounters[index],
