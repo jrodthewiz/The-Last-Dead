@@ -1,0 +1,61 @@
+{
+  "results": [
+    {
+      "index": 0,
+      "name": "Ossuary",
+      "calls": 290,
+      "triangles": 213780,
+      "geometries": 1007
+    },
+    {
+      "index": 1,
+      "name": "BreachShotgun",
+      "calls": 290,
+      "triangles": 213780,
+      "geometries": 1007
+    },
+    {
+      "index": 2,
+      "name": "ArcLance",
+      "calls": 291,
+      "triangles": 219576,
+      "geometries": 1007
+    },
+    {
+      "index": 3,
+      "name": "ReliquaryBazooka",
+      "calls": 288,
+      "triangles": 248774,
+      "geometries": 1008
+    },
+    {
+      "index": 4,
+      "name": "Carrion",
+      "calls": 298,
+      "triangles": 338164,
+      "geometries": 1014
+    },
+    {
+      "index": 5,
+      "name": "Mourning",
+      "calls": 299,
+      "triangles": 360506,
+      "geometries": 1015
+    },
+    {
+      "index": 6,
+      "name": "WakeBatViewmodel",
+      "calls": 305,
+      "triangles": 359822,
+      "geometries": 1015
+    },
+    {
+      "index": 7,
+      "name": "RipperChainsawViewmodel",
+      "calls": 301,
+      "triangles": 351101,
+      "geometries": 1015
+    }
+  ],
+  "errors": []
+}

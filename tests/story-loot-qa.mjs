@@ -17,7 +17,7 @@ page.on('pageerror', error => report.errors.push(error.message));
 page.on('console', message => { if (message.type() === 'error') report.errors.push(message.text()); });
 page.on('response', response => { if (response.status() >= 400) report.httpErrors.push({ status: response.status(), url: response.url() }); });
 try {
-  await page.goto(`${base}?debug=1&dungeon=1`, { waitUntil: 'networkidle' });
+  await page.goto(`${base}?debug=1`, { waitUntil: 'networkidle' });
   await page.waitForFunction(() => !!window.__DEAD_ARRIVAL__, null, { timeout: 120000 });
   await page.evaluate(() => window.__DEAD_ARRIVAL__.begin(false));
   await page.waitForFunction(() => window.__DEAD_ARRIVAL__?.screen === 'play', null, { timeout: 120000 });
@@ -53,6 +53,14 @@ try {
     }, floor);
     assert.equal(result.visible, true, `${result.id} should render before pickup`);
     await page.screenshot({ path: `${output}/${result.id}-world.png` });
+    await page.evaluate(({ item, view }) => {
+      const app = window.__DEAD_ARRIVAL__;
+      app.run.x = item.x + (view.x - item.x) * .55;
+      app.run.y = item.y + (view.y - item.y) * .55;
+      app.renderer._firstCameraFrame = true;
+      app.renderer.render(app.run, performance.now() + 24);
+    }, result);
+    await page.screenshot({ path: `${output}/${result.id}-near.png` });
     const collected = await page.evaluate(async ({ item, id }) => {
       const app = window.__DEAD_ARRIVAL__;
       const { tick } = await import('./engine.js');

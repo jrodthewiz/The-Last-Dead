@@ -1,0 +1,44 @@
+{
+  "$schema": "https://jerboa.dev/schemas/fx-composition/editable/v1/document.schema.json",
+  "formatVersion": 1,
+  "dimensions": {
+    "width": 1920,
+    "height": 1080
+  },
+  "duration": 3,
+  "composition": {
+    "id": "main",
+    "layers": [
+      {
+        "type": "Image",
+        "id": 1,
+        "name": "Actual game setup frame",
+        "activeRange": {
+          "start": 0,
+          "duration": 3000
+        },
+        "transform": {
+          "anchorPoint": [
+            0,
+            0
+          ],
+          "position": [
+            0,
+            0
+          ],
+          "scale": [
+            100,
+            100
+          ],
+          "rotation": 0,
+          "opacity": 100
+        },
+        "source": {
+          "assetId": "setup-frame",
+          "fit": "contain"
+        }
+      }
+    ],
+    "name": "Main"
+  }
+}

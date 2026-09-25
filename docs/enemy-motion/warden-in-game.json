@@ -1,0 +1,200 @@
+{
+  "url": "http://127.0.0.1:62655/",
+  "errors": [],
+  "httpErrors": [],
+  "states": [
+    {
+      "name": "walk",
+      "variant": "warden",
+      "asset": true,
+      "clipNames": [
+        "TLD_Idle",
+        "TLD_Walk",
+        "TLD_Windup",
+        "TLD_Strike",
+        "TLD_Hit",
+        "TLD_Collapse"
+      ],
+      "weights": {
+        "idle": 0,
+        "walk": 1,
+        "windup": 0,
+        "strike": 0,
+        "hit": 0,
+        "collapse": 0
+      },
+      "visible": true,
+      "drawCalls": 378
+    },
+    {
+      "name": "windup",
+      "variant": "warden",
+      "asset": true,
+      "clipNames": [
+        "TLD_Idle",
+        "TLD_Walk",
+        "TLD_Windup",
+        "TLD_Strike",
+        "TLD_Hit",
+        "TLD_Collapse"
+      ],
+      "weights": {
+        "idle": 0,
+        "walk": 0,
+        "windup": 1,
+        "strike": 0,
+        "hit": 0,
+        "collapse": 0
+      },
+      "visible": true,
+      "drawCalls": 380
+    },
+    {
+      "name": "strike",
+      "variant": "warden",
+      "asset": true,
+      "clipNames": [
+        "TLD_Idle",
+        "TLD_Walk",
+        "TLD_Windup",
+        "TLD_Strike",
+        "TLD_Hit",
+        "TLD_Collapse"
+      ],
+      "weights": {
+        "idle": 0,
+        "walk": 0,
+        "windup": 0,
+        "strike": 1,
+        "hit": 0,
+        "collapse": 0
+      },
+      "visible": true,
+      "drawCalls": 379
+    },
+    {
+      "name": "hit",
+      "variant": "warden",
+      "asset": true,
+      "clipNames": [
+        "TLD_Idle",
+        "TLD_Walk",
+        "TLD_Windup",
+        "TLD_Strike",
+        "TLD_Hit",
+        "TLD_Collapse"
+      ],
+      "weights": {
+        "idle": 0,
+        "walk": 0,
+        "windup": 0,
+        "strike": 0,
+        "hit": 1,
+        "collapse": 0
+      },
+      "visible": true,
+      "drawCalls": 379
+    },
+    {
+      "name": "collapse",
+      "variant": "warden",
+      "asset": true,
+      "clipNames": [
+        "TLD_Idle",
+        "TLD_Walk",
+        "TLD_Windup",
+        "TLD_Strike",
+        "TLD_Hit",
+        "TLD_Collapse"
+      ],
+      "weights": {
+        "idle": 0,
+        "walk": 0,
+        "windup": 0,
+        "strike": 0,
+        "hit": 0,
+        "collapse": 1
+      },
+      "visible": true,
+      "drawCalls": 378
+    }
+  ],
+  "variants": [
+    {
+      "name": "idle",
+      "variant": "warden",
+      "asset": true,
+      "clipNames": [
+        "TLD_Idle",
+        "TLD_Walk",
+        "TLD_Windup",
+        "TLD_Strike",
+        "TLD_Hit",
+        "TLD_Collapse"
+      ],
+      "weights": {
+        "idle": 1,
+        "walk": 0,
+        "windup": 0,
+        "strike": 0,
+        "hit": 0,
+        "collapse": 0
+      },
+      "visible": true,
+      "drawCalls": 378
+    },
+    {
+      "name": "idle",
+      "variant": "wardenBulwark",
+      "asset": true,
+      "clipNames": [
+        "TLD_Idle",
+        "TLD_Walk",
+        "TLD_Windup",
+        "TLD_Strike",
+        "TLD_Hit",
+        "TLD_Collapse"
+      ],
+      "weights": {
+        "idle": 1,
+        "walk": 0,
+        "windup": 0,
+        "strike": 0,
+        "hit": 0,
+        "collapse": 0
+      },
+      "visible": true,
+      "drawCalls": 378
+    },
+    {
+      "name": "idle",
+      "variant": "wardenColossus",
+      "asset": true,
+      "clipNames": [
+        "TLD_Idle",
+        "TLD_Walk",
+        "TLD_Windup",
+        "TLD_Strike",
+        "TLD_Hit",
+        "TLD_Collapse"
+      ],
+      "weights": {
+        "idle": 1,
+        "walk": 0,
+        "windup": 0,
+        "strike": 0,
+        "hit": 0,
+        "collapse": 0
+      },
+      "visible": true,
+      "drawCalls": 378
+    }
+  ],
+  "sourceEnemy": {
+    "id": 3,
+    "kind": 0,
+    "variant": "stalker",
+    "wave": 1
+  },
+  "ok": true
+}

@@ -357,6 +357,12 @@ export class Renderer {
         }
       });
       texture.colorSpace = THREE.SRGBColorSpace;
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+      texture.userData.sharedAsset = true;
+      // Cover and set-dressing materials clone these surfaces during world
+      // construction, before the image callback has necessarily fired.
+      this.materials.wall.map = texture;
+      this.materials.wallPanel.map = texture;
       const floorMap = new THREE.TextureLoader(this._materialManager).load('./assets/textures/afterlife-institutional-floor-v1.webp');
       floorMap.colorSpace = THREE.SRGBColorSpace;
       floorMap.wrapS = floorMap.wrapT = THREE.RepeatWrapping;
@@ -542,6 +548,18 @@ export class Renderer {
     viewFill.layers.set(1);
     this.viewmodelFill = viewFill;
     this.weaponRig.add(viewFill);
+    // The viewmodel layer needs an actual key light for machined edges to
+    // catch highlights. World lights do not illuminate layer 1.
+    const viewKey = new THREE.DirectionalLight(0xffdfb9, 1.15);
+    viewKey.name = 'ViewmodelWarmKey';
+    viewKey.position.set(-1.4, 2.1, 1.8);
+    viewKey.layers.set(1);
+    this.weaponRig.add(viewKey);
+    const viewRim = new THREE.DirectionalLight(0x8fbccc, .5);
+    viewRim.name = 'ViewmodelCoolRim';
+    viewRim.position.set(1.3, .9, -.8);
+    viewRim.layers.set(1);
+    this.weaponRig.add(viewRim);
     this.muzzleFlash = new THREE.Group();
     this.muzzleFlash.name = 'MuzzleFlash';
     this.muzzleFlash.layers.set(1);
@@ -665,24 +683,24 @@ export class Renderer {
   }
 
   _makePulseRevolver() {
-    const group=createOssuary();group.position.set(.3,-.31,-.78);group.rotation.set(.035,.045,-.025);this._addViewmodelArms(group,group,0);return group;
+    const group=createOssuary();group.position.set(.35,-.33,-.88);group.rotation.set(.035,.18,-.04);this._addViewmodelArms(group,group,0);return group;
   }
 
   _makeBreachShotgun() {
     const group=new THREE.Group(),model=createBreach();group.name='BreachShotgun';
-    group.position.set(.31,-.32,-.88);group.rotation.set(.035,.045,-.025);
+    group.position.set(.34,-.34,-.94);group.rotation.set(.035,.21,-.04);
     group.add(model);this._addViewmodelArms(group,model,1,[-.035,-.26,-.43]);group.userData.model=model;group.userData.muzzle=model.userData.muzzle;return group;
   }
 
   _makeArcLance() {
     const group=new THREE.Group(),model=createArc();group.name='ArcLance';
-    group.position.set(.29,-.31,-.94);group.rotation.set(.035,.045,-.025);
+    group.position.set(.33,-.33,-1.0);group.rotation.set(.035,.22,-.04);
     group.add(model);this._addViewmodelArms(group,model,2,[-.035,-.34,-.54]);group.userData.model=model;group.userData.muzzle=model.userData.muzzle;return group;
   }
   _makeReliquaryAsset() {
     const group = createReliquary({ variant: 'bone-rocket' });
-    group.position.set(0.31, -0.32, -0.9);
-    group.rotation.set(.035,.045,-.025);
+    group.position.set(0.35, -0.34, -0.98);
+    group.rotation.set(.035,.2,-.04);
     group.name = 'ReliquaryBazooka';
     this._addViewmodelArms(group,group,3,[-.095,-.33,-.56]);
     return group;
@@ -1226,41 +1244,7 @@ export class Renderer {
   }
 
   _buildCover(course) {
-    if (course?.dungeon) {
-      buildDungeonCover(this.worldRoot, this.materials, course);
-      return;
-    }
-    for (const [cx, cy] of course?.blocks || []) {
-      const x = cx * CELL + CELL / 2;
-      const z = cy * CELL + CELL / 2;
-      const root = new THREE.Group();
-      root.name = `CoverBlock_${cx}_${cy}`;
-      root.position.set(x, 0, z);
-      const core = shadow(new THREE.Mesh(new THREE.BoxGeometry(3.44, 3.25, 3.44), this.materials.wall), true, true);
-      core.position.y = 1.63;
-      root.add(core);
-      const cap = shadow(new THREE.Mesh(new THREE.CylinderGeometry(2.45, 2.7, 0.3, 8), this.materials.metalDark), true, true);
-      cap.position.y = 3.29;
-      cap.rotation.y = Math.PI / 8;
-      root.add(cap);
-      const capInset = new THREE.Mesh(new THREE.CylinderGeometry(1.95, 2.15, 0.1, 8), this.materials.floorTrim);
-      capInset.position.y = 3.47;
-      root.add(capInset);
-      for (const side of [-1, 1]) {
-        const plate = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.8, 2.42), side > 0 ? this.materials.enemyViolet : this.materials.enemyRed), false, true);
-        plate.position.set(side * 1.75, 1.65, 0);
-        root.add(plate);
-        const brace = new THREE.Mesh(new THREE.BoxGeometry(0.16, 2.85, 0.16), this.materials.metal);
-        brace.position.set(side * 1.82, 1.65, 1.22);
-        root.add(brace);
-      }
-      for (const side of [-1, 1]) {
-        const hazard = new THREE.Mesh(new THREE.BoxGeometry(2.44, 0.16, 0.09), this.materials.hazard);
-        hazard.position.set(0, 2.58, side * 1.75);
-        root.add(hazard);
-      }
-      this.worldRoot.add(root);
-    }
+    buildDungeonCover(this.worldRoot, this.materials, course);
   }
 
   _buildIndustrialShell(width, depth) {
@@ -2075,7 +2059,7 @@ export class Renderer {
     this._updatePeer(run, nowMs);
     this._updateExit(run, nowMs);
     this._updateDungeonPickups(run, nowMs);
-    updateDungeonWeaponLoot(this._storyWeaponLoot,run.dungeonProgression?.lootCollected,nowMs,this.settings.reducedMotion||this._systemReducedMotion);
+    updateDungeonWeaponLoot(this._storyWeaponLoot,run.dungeonProgression?.lootCollected,nowMs,this.settings.reducedMotion||this._systemReducedMotion,{x:run.x*4,z:run.y*4});
     updateDungeonEvidence(this._storyEvidence,run.storyRecords,nowMs,this.settings.reducedMotion||this._systemReducedMotion,this.camera);
     this._updateCombat(run, nowMs);
     updateSurvivors(this, run, nowMs);

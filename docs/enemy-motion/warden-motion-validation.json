@@ -1,0 +1,65 @@
+{
+  "ok": true,
+  "source": "C:\\Users\\wolfk\\Desktop\\thelastdead\\art/meshy-menu-warden/TLD_Bloodworks_Warden_Animation_Source_v02.blend",
+  "fps": 24,
+  "joints": 24,
+  "clips": [
+    {
+      "name": "TLD_Idle",
+      "frames": [
+        1.0,
+        60.0
+      ]
+    },
+    {
+      "name": "TLD_Walk",
+      "frames": [
+        1.0,
+        33.0
+      ]
+    },
+    {
+      "name": "TLD_Windup",
+      "frames": [
+        1.0,
+        20.0
+      ]
+    },
+    {
+      "name": "TLD_Strike",
+      "frames": [
+        1.0,
+        19.0
+      ]
+    },
+    {
+      "name": "TLD_Hit",
+      "frames": [
+        1.0,
+        18.0
+      ]
+    },
+    {
+      "name": "TLD_Collapse",
+      "frames": [
+        1.0,
+        44.0
+      ]
+    }
+  ],
+  "meters": {
+    "walkLeftFootRange": 0.843,
+    "walkRightFootRange": 0.8408,
+    "windupLeftHandRange": 0.855,
+    "strikeLeftHandRange": 0.8831,
+    "hitHeadRange": 0.1724,
+    "collapseHeadDrop": 0.4796
+  },
+  "checks": {
+    "bothFeetTransfer": true,
+    "windupHandMoves": true,
+    "strikeHandMoves": true,
+    "hitRecoilReads": true,
+    "collapseLowersHead": true
+  }
+}

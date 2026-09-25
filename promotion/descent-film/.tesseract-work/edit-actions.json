@@ -1,0 +1,2884 @@
+[
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 105,
+      "propertyType": "volume"
+    },
+    "keyframes": [
+      {
+        "id": "105-volume-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0.63
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "105-volume-1",
+        "layerTime": 4550,
+        "value": {
+          "type": "float",
+          "value": 0.63
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "105-volume-2",
+        "layerTime": 5349,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxRectLayer",
+    "compositionId": "main",
+    "layerId": 200,
+    "name": "Cinema top",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 0,
+      "duration": 67000
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        0,
+        0
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "rect": {
+      "size": [
+        1920,
+        105
+      ],
+      "fillColor": [
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  },
+  {
+    "type": "createFxRectLayer",
+    "compositionId": "main",
+    "layerId": 201,
+    "name": "Cinema bottom",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 0,
+      "duration": 67000
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        0,
+        975
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "rect": {
+      "size": [
+        1920,
+        105
+      ],
+      "fillColor": [
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  },
+  {
+    "type": "createFxRectLayer",
+    "compositionId": "main",
+    "layerId": 202,
+    "name": "Floor title shadow",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        88,
+        789
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "rect": {
+      "size": [
+        800,
+        158
+      ],
+      "fillColor": [
+        0,
+        0,
+        0,
+        0.62
+      ]
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 202,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "202-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "202-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "202-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "202-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxRectLayer",
+    "compositionId": "main",
+    "layerId": 203,
+    "name": "Descent marker",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        116,
+        820
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "rect": {
+      "size": [
+        3,
+        91
+      ],
+      "fillColor": [
+        0.68,
+        0.16,
+        0.13,
+        1
+      ]
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 203,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "203-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "203-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "203-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "203-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxTextLayer",
+    "compositionId": "main",
+    "layerId": 204,
+    "name": "FLOOR 01",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        143,
+        815
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "sourceText": {
+      "text": "FLOOR 01",
+      "fontFamily": "Arial",
+      "fontStyle": "Regular",
+      "fontSize": 19,
+      "fillColor": [
+        0.75,
+        0.56,
+        0.49,
+        1
+      ],
+      "strokeWidth": 0,
+      "justification": "left",
+      "boxText": true,
+      "boxPosition": [
+        0,
+        0
+      ],
+      "boxSize": [
+        650,
+        35
+      ],
+      "tracking": 180,
+      "verticalAlign": "top"
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 204,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "204-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "204-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "204-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "204-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxTextLayer",
+    "compositionId": "main",
+    "layerId": 205,
+    "name": "Intake Foundry",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        140,
+        850
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "sourceText": {
+      "text": "Intake Foundry",
+      "fontFamily": "Georgia",
+      "fontStyle": "Regular",
+      "fontSize": 49,
+      "fillColor": [
+        0.87,
+        0.845,
+        0.79,
+        1
+      ],
+      "strokeWidth": 0,
+      "justification": "left",
+      "boxText": true,
+      "boxPosition": [
+        0,
+        0
+      ],
+      "boxSize": [
+        1080,
+        90
+      ],
+      "tracking": 0,
+      "verticalAlign": "top"
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 205,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "205-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "205-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "205-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "205-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxRectLayer",
+    "compositionId": "main",
+    "layerId": 206,
+    "name": "Floor title shadow",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 12650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        88,
+        789
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "rect": {
+      "size": [
+        800,
+        158
+      ],
+      "fillColor": [
+        0,
+        0,
+        0,
+        0.62
+      ]
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 206,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "206-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "206-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "206-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "206-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxRectLayer",
+    "compositionId": "main",
+    "layerId": 207,
+    "name": "Descent marker",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 12650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        116,
+        820
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "rect": {
+      "size": [
+        3,
+        91
+      ],
+      "fillColor": [
+        0.68,
+        0.16,
+        0.13,
+        1
+      ]
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 207,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "207-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "207-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "207-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "207-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxTextLayer",
+    "compositionId": "main",
+    "layerId": 208,
+    "name": "FLOOR 02",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 12650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        143,
+        815
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "sourceText": {
+      "text": "FLOOR 02",
+      "fontFamily": "Arial",
+      "fontStyle": "Regular",
+      "fontSize": 19,
+      "fillColor": [
+        0.75,
+        0.56,
+        0.49,
+        1
+      ],
+      "strokeWidth": 0,
+      "justification": "left",
+      "boxText": true,
+      "boxPosition": [
+        0,
+        0
+      ],
+      "boxSize": [
+        650,
+        35
+      ],
+      "tracking": 180,
+      "verticalAlign": "top"
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 208,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "208-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "208-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "208-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "208-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxTextLayer",
+    "compositionId": "main",
+    "layerId": 209,
+    "name": "Graft Galleries",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 12650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        140,
+        850
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "sourceText": {
+      "text": "Graft Galleries",
+      "fontFamily": "Georgia",
+      "fontStyle": "Regular",
+      "fontSize": 49,
+      "fillColor": [
+        0.87,
+        0.845,
+        0.79,
+        1
+      ],
+      "strokeWidth": 0,
+      "justification": "left",
+      "boxText": true,
+      "boxPosition": [
+        0,
+        0
+      ],
+      "boxSize": [
+        1080,
+        90
+      ],
+      "tracking": 0,
+      "verticalAlign": "top"
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 209,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "209-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "209-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "209-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "209-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxRectLayer",
+    "compositionId": "main",
+    "layerId": 210,
+    "name": "Floor title shadow",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 24650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        88,
+        789
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "rect": {
+      "size": [
+        800,
+        158
+      ],
+      "fillColor": [
+        0,
+        0,
+        0,
+        0.62
+      ]
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 210,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "210-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "210-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "210-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "210-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxRectLayer",
+    "compositionId": "main",
+    "layerId": 211,
+    "name": "Descent marker",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 24650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        116,
+        820
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "rect": {
+      "size": [
+        3,
+        91
+      ],
+      "fillColor": [
+        0.68,
+        0.16,
+        0.13,
+        1
+      ]
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 211,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "211-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "211-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "211-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "211-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxTextLayer",
+    "compositionId": "main",
+    "layerId": 212,
+    "name": "FLOOR 03",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 24650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        143,
+        815
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "sourceText": {
+      "text": "FLOOR 03",
+      "fontFamily": "Arial",
+      "fontStyle": "Regular",
+      "fontSize": 19,
+      "fillColor": [
+        0.75,
+        0.56,
+        0.49,
+        1
+      ],
+      "strokeWidth": 0,
+      "justification": "left",
+      "boxText": true,
+      "boxPosition": [
+        0,
+        0
+      ],
+      "boxSize": [
+        650,
+        35
+      ],
+      "tracking": 180,
+      "verticalAlign": "top"
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 212,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "212-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "212-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "212-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "212-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxTextLayer",
+    "compositionId": "main",
+    "layerId": 213,
+    "name": "The Catacombs",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 24650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        140,
+        850
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "sourceText": {
+      "text": "The Catacombs",
+      "fontFamily": "Georgia",
+      "fontStyle": "Regular",
+      "fontSize": 49,
+      "fillColor": [
+        0.87,
+        0.845,
+        0.79,
+        1
+      ],
+      "strokeWidth": 0,
+      "justification": "left",
+      "boxText": true,
+      "boxPosition": [
+        0,
+        0
+      ],
+      "boxSize": [
+        1080,
+        90
+      ],
+      "tracking": 0,
+      "verticalAlign": "top"
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 213,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "213-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "213-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "213-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "213-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxRectLayer",
+    "compositionId": "main",
+    "layerId": 214,
+    "name": "Floor title shadow",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 36650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        88,
+        789
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "rect": {
+      "size": [
+        800,
+        158
+      ],
+      "fillColor": [
+        0,
+        0,
+        0,
+        0.62
+      ]
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 214,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "214-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "214-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "214-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "214-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxRectLayer",
+    "compositionId": "main",
+    "layerId": 215,
+    "name": "Descent marker",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 36650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        116,
+        820
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "rect": {
+      "size": [
+        3,
+        91
+      ],
+      "fillColor": [
+        0.68,
+        0.16,
+        0.13,
+        1
+      ]
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 215,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "215-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "215-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "215-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "215-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxTextLayer",
+    "compositionId": "main",
+    "layerId": 216,
+    "name": "FLOOR 04",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 36650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        143,
+        815
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "sourceText": {
+      "text": "FLOOR 04",
+      "fontFamily": "Arial",
+      "fontStyle": "Regular",
+      "fontSize": 19,
+      "fillColor": [
+        0.75,
+        0.56,
+        0.49,
+        1
+      ],
+      "strokeWidth": 0,
+      "justification": "left",
+      "boxText": true,
+      "boxPosition": [
+        0,
+        0
+      ],
+      "boxSize": [
+        650,
+        35
+      ],
+      "tracking": 180,
+      "verticalAlign": "top"
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 216,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "216-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "216-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "216-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "216-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxTextLayer",
+    "compositionId": "main",
+    "layerId": 217,
+    "name": "Resonance",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 36650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        140,
+        850
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "sourceText": {
+      "text": "Resonance",
+      "fontFamily": "Georgia",
+      "fontStyle": "Regular",
+      "fontSize": 49,
+      "fillColor": [
+        0.87,
+        0.845,
+        0.79,
+        1
+      ],
+      "strokeWidth": 0,
+      "justification": "left",
+      "boxText": true,
+      "boxPosition": [
+        0,
+        0
+      ],
+      "boxSize": [
+        1080,
+        90
+      ],
+      "tracking": 0,
+      "verticalAlign": "top"
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 217,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "217-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "217-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "217-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "217-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxRectLayer",
+    "compositionId": "main",
+    "layerId": 218,
+    "name": "Floor title shadow",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 48650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        88,
+        789
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "rect": {
+      "size": [
+        800,
+        158
+      ],
+      "fillColor": [
+        0,
+        0,
+        0,
+        0.62
+      ]
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 218,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "218-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "218-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "218-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "218-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxRectLayer",
+    "compositionId": "main",
+    "layerId": 219,
+    "name": "Descent marker",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 48650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        116,
+        820
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "rect": {
+      "size": [
+        3,
+        91
+      ],
+      "fillColor": [
+        0.68,
+        0.16,
+        0.13,
+        1
+      ]
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 219,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "219-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "219-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "219-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "219-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxTextLayer",
+    "compositionId": "main",
+    "layerId": 220,
+    "name": "FLOOR 05",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 48650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        143,
+        815
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "sourceText": {
+      "text": "FLOOR 05",
+      "fontFamily": "Arial",
+      "fontStyle": "Regular",
+      "fontSize": 19,
+      "fillColor": [
+        0.75,
+        0.56,
+        0.49,
+        1
+      ],
+      "strokeWidth": 0,
+      "justification": "left",
+      "boxText": true,
+      "boxPosition": [
+        0,
+        0
+      ],
+      "boxSize": [
+        650,
+        35
+      ],
+      "tracking": 180,
+      "verticalAlign": "top"
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 220,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "220-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "220-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "220-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "220-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxTextLayer",
+    "compositionId": "main",
+    "layerId": 221,
+    "name": "The Last Descent",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 48650,
+      "duration": 4800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        140,
+        850
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "sourceText": {
+      "text": "The Last Descent",
+      "fontFamily": "Georgia",
+      "fontStyle": "Regular",
+      "fontSize": 49,
+      "fillColor": [
+        0.87,
+        0.845,
+        0.79,
+        1
+      ],
+      "strokeWidth": 0,
+      "justification": "left",
+      "boxText": true,
+      "boxPosition": [
+        0,
+        0
+      ],
+      "boxSize": [
+        1080,
+        90
+      ],
+      "tracking": 0,
+      "verticalAlign": "top"
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 221,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "221-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "221-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "221-opacity-2",
+        "layerTime": 4150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "221-opacity-3",
+        "layerTime": 4799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxTextLayer",
+    "compositionId": "main",
+    "layerId": 222,
+    "name": "FIVE FLOORS. ONE WAY DOWN.",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 800,
+      "duration": 4500
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        1070,
+        145
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "sourceText": {
+      "text": "FIVE FLOORS. ONE WAY DOWN.",
+      "fontFamily": "Arial",
+      "fontStyle": "Regular",
+      "fontSize": 23,
+      "fillColor": [
+        0.87,
+        0.845,
+        0.79,
+        1
+      ],
+      "strokeWidth": 0,
+      "justification": "right",
+      "boxText": true,
+      "boxPosition": [
+        0,
+        0
+      ],
+      "boxSize": [
+        740,
+        55
+      ],
+      "tracking": 120,
+      "verticalAlign": "top"
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 222,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "222-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "222-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "222-opacity-2",
+        "layerTime": 3850,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "222-opacity-3",
+        "layerTime": 4499,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 3,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "3-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "3-opacity-1",
+        "layerTime": 3250,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "3-opacity-2",
+        "layerTime": 3499,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 6,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "6-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "6-opacity-1",
+        "layerTime": 3250,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "6-opacity-2",
+        "layerTime": 3499,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 9,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "9-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "9-opacity-1",
+        "layerTime": 3250,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "9-opacity-2",
+        "layerTime": 3499,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 12,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "12-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "12-opacity-1",
+        "layerTime": 3250,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "12-opacity-2",
+        "layerTime": 3499,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 15,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "15-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "15-opacity-1",
+        "layerTime": 5250,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "15-opacity-2",
+        "layerTime": 5499,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxRectLayer",
+    "compositionId": "main",
+    "layerId": 223,
+    "name": "End card",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 62000,
+      "duration": 5000
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        0,
+        0
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "rect": {
+      "size": [
+        1920,
+        1080
+      ],
+      "fillColor": [
+        0.009,
+        0.012,
+        0.013,
+        1
+      ]
+    }
+  },
+  {
+    "type": "createFxTextLayer",
+    "compositionId": "main",
+    "layerId": 224,
+    "name": "THE",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 62250,
+      "duration": 4400
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        160,
+        326
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "sourceText": {
+      "text": "THE",
+      "fontFamily": "Georgia",
+      "fontStyle": "Regular",
+      "fontSize": 40,
+      "fillColor": [
+        0.87,
+        0.845,
+        0.79,
+        1
+      ],
+      "strokeWidth": 0,
+      "justification": "center",
+      "boxText": true,
+      "boxPosition": [
+        0,
+        0
+      ],
+      "boxSize": [
+        1600,
+        85
+      ],
+      "tracking": 240,
+      "verticalAlign": "top"
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 224,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "224-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "224-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "224-opacity-2",
+        "layerTime": 3750,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "224-opacity-3",
+        "layerTime": 4399,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxTextLayer",
+    "compositionId": "main",
+    "layerId": 225,
+    "name": "LAST DEAD",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 62250,
+      "duration": 4400
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        160,
+        425
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "sourceText": {
+      "text": "LAST DEAD",
+      "fontFamily": "Georgia",
+      "fontStyle": "Regular",
+      "fontSize": 146,
+      "fillColor": [
+        0.87,
+        0.845,
+        0.79,
+        1
+      ],
+      "strokeWidth": 0,
+      "justification": "center",
+      "boxText": true,
+      "boxPosition": [
+        0,
+        0
+      ],
+      "boxSize": [
+        1600,
+        190
+      ],
+      "tracking": 30,
+      "verticalAlign": "top"
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 225,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "225-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "225-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "225-opacity-2",
+        "layerTime": 3750,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "225-opacity-3",
+        "layerTime": 4399,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxRectLayer",
+    "compositionId": "main",
+    "layerId": 226,
+    "name": "Final red line",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 62650,
+      "duration": 3850
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        873,
+        638
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "rect": {
+      "size": [
+        174,
+        2
+      ],
+      "fillColor": [
+        0.68,
+        0.16,
+        0.13,
+        1
+      ]
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 226,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "226-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "226-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "226-opacity-2",
+        "layerTime": 3200,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "226-opacity-3",
+        "layerTime": 3849,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  },
+  {
+    "type": "createFxTextLayer",
+    "compositionId": "main",
+    "layerId": 227,
+    "name": "THE ONLY WAY OUT IS DOWN.",
+    "insertIndex": 0,
+    "activeRange": {
+      "start": 62700,
+      "duration": 3800
+    },
+    "transform": {
+      "anchorPoint": [
+        0,
+        0
+      ],
+      "position": [
+        160,
+        687
+      ],
+      "scale": [
+        100,
+        100
+      ],
+      "rotation": 0,
+      "opacity": 100
+    },
+    "sourceText": {
+      "text": "THE ONLY WAY OUT IS DOWN.",
+      "fontFamily": "Arial",
+      "fontStyle": "Regular",
+      "fontSize": 24,
+      "fillColor": [
+        0.87,
+        0.845,
+        0.79,
+        1
+      ],
+      "strokeWidth": 0,
+      "justification": "center",
+      "boxText": true,
+      "boxPosition": [
+        0,
+        0
+      ],
+      "boxSize": [
+        1600,
+        60
+      ],
+      "tracking": 160,
+      "verticalAlign": "top"
+    }
+  },
+  {
+    "type": "setFxPropertyKeyframes",
+    "compositionId": "main",
+    "property": {
+      "layerId": 227,
+      "propertyType": "opacity"
+    },
+    "keyframes": [
+      {
+        "id": "227-opacity-0",
+        "layerTime": 0,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "227-opacity-1",
+        "layerTime": 400,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "227-opacity-2",
+        "layerTime": 3150,
+        "value": {
+          "type": "float",
+          "value": 100
+        },
+        "easing": {
+          "type": "linear"
+        }
+      },
+      {
+        "id": "227-opacity-3",
+        "layerTime": 3799,
+        "value": {
+          "type": "float",
+          "value": 0
+        },
+        "easing": {
+          "type": "linear"
+        }
+      }
+    ]
+  }
+]

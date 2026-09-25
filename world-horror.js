@@ -49,7 +49,12 @@ const place = (geometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, sx = 1, sy
 const cyl = (rt, rb, h, seg, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => place(new THREE.CylinderGeometry(rt, rb, h, seg), x, y, z, rx, ry, rz);
 const box = (w, h, d, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => place(new THREE.BoxGeometry(w, h, d), x, y, z, rx, ry, rz);
 const sphere = (r, ws, hs, x = 0, y = 0, z = 0) => place(new THREE.SphereGeometry(r, ws, hs), x, y, z);
-const capsule = (r, len, cap, seg, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => place(new THREE.CapsuleGeometry(r, len, cap, seg), x, y, z, rx, ry, rz);
+const capsule = (r, len, cap, seg, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
+  const h = len * .5;
+  const profile = [[0,-h-r],[r*.63,-h-r*.73],[r,-h-r*.17],
+    [r*.71,-h*.4],[r*.58,0],[r*.84,h*.48],[r*.93,h+r*.2],[r*.47,h+r*.74],[0,h+r]];
+  return place(new THREE.LatheGeometry(profile.map(([a,b]) => new THREE.Vector2(a,b)), Math.max(8,seg)), x, y, z, rx, ry, rz);
+};
 const torus = (r, tube, rad, tub, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, arc = Math.PI * 2) => place(new THREE.TorusGeometry(r, tube, rad, tub, arc), x, y, z, rx, ry, rz);
 const ico = (r, detail, x = 0, y = 0, z = 0) => place(new THREE.IcosahedronGeometry(r, detail), x, y, z);
 const cone = (r, h, seg, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => place(new THREE.ConeGeometry(r, h, seg), x, y, z, rx, ry, rz);
@@ -64,13 +69,29 @@ function mergePieces(parts) {
     merged.computeBoundingSphere();
     return merged;
   }
-  return new THREE.BoxGeometry(.4, .4, .4);
+  throw new Error('Horror prop geometry merge failed');
 }
 
 function skullParts(x = 0, y = 0, z = 0, scale = 1) {
+  const radius = .19 * scale;
+  const cranium = new THREE.SphereGeometry(radius, 16, 12);
+  cranium.scale(1, 1.06, .9);
+  const vertices = cranium.attributes.position;
+  for (let i = 0; i < vertices.count; i++) {
+    const vx = vertices.getX(i), vy = vertices.getY(i), vz = vertices.getZ(i);
+    if (vz < radius * .3) continue;
+    const left = Math.hypot(vx + radius * .4, vy - radius * .07);
+    const right = Math.hypot(vx - radius * .4, vy - radius * .07);
+    const eye = Math.max(0, 1 - Math.min(left, right) / (radius * .48));
+    vertices.setZ(i, vz - eye * radius * .23);
+  }
+  cranium.computeVertexNormals();
   return [
-    ico(.19 * scale, 1, x, y, z),
-    box(.2 * scale, .09 * scale, .16 * scale, x, y - .15 * scale, z + .03 * scale),
+    place(cranium, x, y, z),
+    place(new THREE.SphereGeometry(.13 * scale, 12, 8), x, y - .145 * scale, z + .04 * scale, 0, 0, 0, 1, .46, .72),
+    place(new THREE.ConeGeometry(.045 * scale, .12 * scale, 8), x, y - .04 * scale, z + .175 * scale, Math.PI, 0, 0),
+    sphere(.055 * scale, 8, 6, x - .12 * scale, y - .1 * scale, z + .08 * scale),
+    sphere(.055 * scale, 8, 6, x + .12 * scale, y - .1 * scale, z + .08 * scale),
   ];
 }
 
@@ -142,7 +163,11 @@ function horrorGeometry() {
     rackParts.push(cyl(.03, .03, .5, 5, x, 3.1, .02));
     rackParts.push(torus(.15, .028, 5, 10, x, 2.78, .02, 0, 0, 0, Math.PI * 1.5));
     if (i !== 1) {
-      rackParts.push(box(.5, .32, .42, x, 2.45, .02));
+      const torso = new THREE.LatheGeometry([
+        [0,-.33],[.17,-.28],[.28,-.15],[.31,.02],[.25,.2],[.12,.31],[0,.34],
+      ].map(([radius,height]) => new THREE.Vector2(radius,height)), 11);
+      torso.scale(1, 1, .8);
+      rackParts.push(place(torso, x, 2.45, .02));
       rackParts.push(capsule(.09, .42, 3, 6, x - .14, 2.1, .04, 0, 0, .1));
       rackParts.push(capsule(.09, .42, 3, 6, x + .14, 2.1, 0, 0, 0, -.1));
       rackParts.push(...skullParts(x, 2.72, .04, 1.02));

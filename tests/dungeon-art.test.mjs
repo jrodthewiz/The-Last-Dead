@@ -52,6 +52,13 @@ test('each Story floor builds distinct named landmark models without changing it
     // hanging fixture would leave an unsupported bowl above the spawn view.
     const fixtureCount = course.lights.filter(item => item.role !== 'entry' || direction.lightFixture === 'buried-ember').length;
     assert.equal(fixtures.length, fixtureCount, `${course.id}: practical lights use their floor-specific fixtures where mounted`);
+    if (course.id === 'f2-graft-galleries') {
+      const specimen = world.getObjectByName('GraftCoveredSpecimen');
+      assert.ok(specimen, 'the theatre table carries the covered specimen');
+      assert.equal(specimen.geometry.type, 'BufferGeometry', 'the body cover is a sculpted continuous shell');
+      assert.ok(specimen.geometry.attributes.uv && specimen.geometry.attributes.normal, 'the shell supports a textured finish');
+      assert.equal(specimen.children.filter(child => child.name.startsWith('GraftSpecimenWrap_')).length, 2);
+    }
     if (course.id === 'f5-last-descent') {
       const laneLights = world.children.filter(child => child.isLight && child.userData.storyLightPurpose);
       assert.equal(laneLights.length, 8, 'The Last Descent adds six edge fills and two threshold practicals');

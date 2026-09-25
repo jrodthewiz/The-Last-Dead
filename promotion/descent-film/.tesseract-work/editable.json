@@ -1,0 +1,4215 @@
+{
+  "$schema": "https://jerboa.dev/schemas/fx-composition/editable/v1/document.schema.json",
+  "formatVersion": 1,
+  "dimensions": {
+    "width": 1920,
+    "height": 1080
+  },
+  "duration": 67.0,
+  "composition": {
+    "dynamics": {
+      "entries": [
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "105-volume-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.63
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "105-volume-1",
+                "layerTime": 4550,
+                "value": {
+                  "type": "float",
+                  "value": 0.63
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "105-volume-2",
+                "layerTime": 5349,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 105,
+            "propertyType": "volume"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "202-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "202-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "202-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "202-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 202,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "203-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "203-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "203-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "203-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 203,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "204-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "204-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "204-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "204-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 204,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "205-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "205-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "205-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "205-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 205,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "206-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "206-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "206-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "206-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 206,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "207-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "207-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "207-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "207-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 207,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "208-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "208-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "208-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "208-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 208,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "209-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "209-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "209-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "209-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 209,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "210-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "210-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "210-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "210-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 210,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "211-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "211-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "211-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "211-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 211,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "212-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "212-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "212-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "212-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 212,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "213-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "213-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "213-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "213-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 213,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "214-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "214-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "214-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "214-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 214,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "215-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "215-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "215-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "215-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 215,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "216-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "216-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "216-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "216-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 216,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "217-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "217-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "217-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "217-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 217,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "218-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "218-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "218-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "218-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 218,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "219-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "219-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "219-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "219-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 219,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "220-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "220-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "220-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "220-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 220,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "221-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "221-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "221-opacity-2",
+                "layerTime": 4150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "221-opacity-3",
+                "layerTime": 4799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 221,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "222-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "222-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "222-opacity-2",
+                "layerTime": 3850,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "222-opacity-3",
+                "layerTime": 4499,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 222,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "3-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "3-opacity-1",
+                "layerTime": 3250,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "3-opacity-2",
+                "layerTime": 3499,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 3,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "6-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "6-opacity-1",
+                "layerTime": 3250,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "6-opacity-2",
+                "layerTime": 3499,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 6,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "9-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "9-opacity-1",
+                "layerTime": 3250,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "9-opacity-2",
+                "layerTime": 3499,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 9,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "12-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "12-opacity-1",
+                "layerTime": 3250,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "12-opacity-2",
+                "layerTime": 3499,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 12,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "15-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "15-opacity-1",
+                "layerTime": 5250,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "15-opacity-2",
+                "layerTime": 5499,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 15,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "224-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "224-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "224-opacity-2",
+                "layerTime": 3750,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "224-opacity-3",
+                "layerTime": 4399,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 224,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "225-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "225-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "225-opacity-2",
+                "layerTime": 3750,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "225-opacity-3",
+                "layerTime": 4399,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 225,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "226-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "226-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "226-opacity-2",
+                "layerTime": 3200,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "226-opacity-3",
+                "layerTime": 3849,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 226,
+            "propertyType": "opacity"
+          }
+        },
+        {
+          "animator": {
+            "enabled": true,
+            "keyframes": [
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "227-opacity-0",
+                "layerTime": 0,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "227-opacity-1",
+                "layerTime": 400,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "227-opacity-2",
+                "layerTime": 3150,
+                "value": {
+                  "type": "float",
+                  "value": 100.0
+                }
+              },
+              {
+                "easing": {
+                  "type": "linear"
+                },
+                "id": "227-opacity-3",
+                "layerTime": 3799,
+                "value": {
+                  "type": "float",
+                  "value": 0.0
+                }
+              }
+            ],
+            "type": "keyframes"
+          },
+          "target": {
+            "kind": "layer",
+            "layerId": 227,
+            "propertyType": "opacity"
+          }
+        }
+      ]
+    },
+    "id": "main",
+    "layers": [
+      {
+        "activeRange": {
+          "duration": 3800,
+          "start": 62700
+        },
+        "blendMode": "normal",
+        "id": 227,
+        "name": "THE ONLY WAY OUT IS DOWN.",
+        "sourceText": {
+          "allCaps": false,
+          "applyFill": true,
+          "applyStroke": false,
+          "baselineShift": 0.0,
+          "boxPosition": [
+            0.0,
+            0.0
+          ],
+          "boxSize": [
+            1600.0,
+            60.0
+          ],
+          "boxText": true,
+          "fillColor": [
+            0.87,
+            0.845,
+            0.79,
+            1.0
+          ],
+          "fontFamily": "Arial",
+          "fontSize": 24.0,
+          "fontStyle": "Regular",
+          "justification": "center",
+          "strokeOverFill": false,
+          "strokeWidth": 0.0,
+          "text": "THE ONLY WAY OUT IS DOWN.",
+          "tracking": 160.0,
+          "verticalAlign": "top"
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            160.0,
+            687.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Text"
+      },
+      {
+        "activeRange": {
+          "duration": 3850,
+          "start": 62650
+        },
+        "blendMode": "normal",
+        "id": 226,
+        "name": "Final red line",
+        "rect": {
+          "fillColor": [
+            0.68,
+            0.16,
+            0.13,
+            1.0
+          ],
+          "fillEnabled": true,
+          "position": [
+            0.0,
+            0.0
+          ],
+          "roundness": 0.0,
+          "size": [
+            174.0,
+            2.0
+          ],
+          "strokeEnabled": false,
+          "strokeWidth": 0.0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            873.0,
+            638.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Rect"
+      },
+      {
+        "activeRange": {
+          "duration": 4400,
+          "start": 62250
+        },
+        "blendMode": "normal",
+        "id": 225,
+        "name": "LAST DEAD",
+        "sourceText": {
+          "allCaps": false,
+          "applyFill": true,
+          "applyStroke": false,
+          "baselineShift": 0.0,
+          "boxPosition": [
+            0.0,
+            0.0
+          ],
+          "boxSize": [
+            1600.0,
+            190.0
+          ],
+          "boxText": true,
+          "fillColor": [
+            0.87,
+            0.845,
+            0.79,
+            1.0
+          ],
+          "fontFamily": "Georgia",
+          "fontSize": 146.0,
+          "fontStyle": "Regular",
+          "justification": "center",
+          "strokeOverFill": false,
+          "strokeWidth": 0.0,
+          "text": "LAST DEAD",
+          "tracking": 30.0,
+          "verticalAlign": "top"
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            160.0,
+            425.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Text"
+      },
+      {
+        "activeRange": {
+          "duration": 4400,
+          "start": 62250
+        },
+        "blendMode": "normal",
+        "id": 224,
+        "name": "THE",
+        "sourceText": {
+          "allCaps": false,
+          "applyFill": true,
+          "applyStroke": false,
+          "baselineShift": 0.0,
+          "boxPosition": [
+            0.0,
+            0.0
+          ],
+          "boxSize": [
+            1600.0,
+            85.0
+          ],
+          "boxText": true,
+          "fillColor": [
+            0.87,
+            0.845,
+            0.79,
+            1.0
+          ],
+          "fontFamily": "Georgia",
+          "fontSize": 40.0,
+          "fontStyle": "Regular",
+          "justification": "center",
+          "strokeOverFill": false,
+          "strokeWidth": 0.0,
+          "text": "THE",
+          "tracking": 240.0,
+          "verticalAlign": "top"
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            160.0,
+            326.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Text"
+      },
+      {
+        "activeRange": {
+          "duration": 5000,
+          "start": 62000
+        },
+        "blendMode": "normal",
+        "id": 223,
+        "name": "End card",
+        "rect": {
+          "fillColor": [
+            0.009,
+            0.012,
+            0.013,
+            1.0
+          ],
+          "fillEnabled": true,
+          "position": [
+            0.0,
+            0.0
+          ],
+          "roundness": 0.0,
+          "size": [
+            1920.0,
+            1080.0
+          ],
+          "strokeEnabled": false,
+          "strokeWidth": 0.0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            0.0,
+            0.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Rect"
+      },
+      {
+        "activeRange": {
+          "duration": 4500,
+          "start": 800
+        },
+        "blendMode": "normal",
+        "id": 222,
+        "name": "FIVE FLOORS. ONE WAY DOWN.",
+        "sourceText": {
+          "allCaps": false,
+          "applyFill": true,
+          "applyStroke": false,
+          "baselineShift": 0.0,
+          "boxPosition": [
+            0.0,
+            0.0
+          ],
+          "boxSize": [
+            740.0,
+            55.0
+          ],
+          "boxText": true,
+          "fillColor": [
+            0.87,
+            0.845,
+            0.79,
+            1.0
+          ],
+          "fontFamily": "Arial",
+          "fontSize": 23.0,
+          "fontStyle": "Regular",
+          "justification": "right",
+          "strokeOverFill": false,
+          "strokeWidth": 0.0,
+          "text": "FIVE FLOORS. ONE WAY DOWN.",
+          "tracking": 120.0,
+          "verticalAlign": "top"
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            1070.0,
+            145.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Text"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 48650
+        },
+        "blendMode": "normal",
+        "id": 221,
+        "name": "The Last Descent",
+        "sourceText": {
+          "allCaps": false,
+          "applyFill": true,
+          "applyStroke": false,
+          "baselineShift": 0.0,
+          "boxPosition": [
+            0.0,
+            0.0
+          ],
+          "boxSize": [
+            1080.0,
+            90.0
+          ],
+          "boxText": true,
+          "fillColor": [
+            0.87,
+            0.845,
+            0.79,
+            1.0
+          ],
+          "fontFamily": "Georgia",
+          "fontSize": 49.0,
+          "fontStyle": "Regular",
+          "justification": "left",
+          "strokeOverFill": false,
+          "strokeWidth": 0.0,
+          "text": "The Last Descent",
+          "tracking": 0.0,
+          "verticalAlign": "top"
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            140.0,
+            850.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Text"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 48650
+        },
+        "blendMode": "normal",
+        "id": 220,
+        "name": "FLOOR 05",
+        "sourceText": {
+          "allCaps": false,
+          "applyFill": true,
+          "applyStroke": false,
+          "baselineShift": 0.0,
+          "boxPosition": [
+            0.0,
+            0.0
+          ],
+          "boxSize": [
+            650.0,
+            35.0
+          ],
+          "boxText": true,
+          "fillColor": [
+            0.75,
+            0.56,
+            0.49,
+            1.0
+          ],
+          "fontFamily": "Arial",
+          "fontSize": 19.0,
+          "fontStyle": "Regular",
+          "justification": "left",
+          "strokeOverFill": false,
+          "strokeWidth": 0.0,
+          "text": "FLOOR 05",
+          "tracking": 180.0,
+          "verticalAlign": "top"
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            143.0,
+            815.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Text"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 48650
+        },
+        "blendMode": "normal",
+        "id": 219,
+        "name": "Descent marker",
+        "rect": {
+          "fillColor": [
+            0.68,
+            0.16,
+            0.13,
+            1.0
+          ],
+          "fillEnabled": true,
+          "position": [
+            0.0,
+            0.0
+          ],
+          "roundness": 0.0,
+          "size": [
+            3.0,
+            91.0
+          ],
+          "strokeEnabled": false,
+          "strokeWidth": 0.0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            116.0,
+            820.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Rect"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 48650
+        },
+        "blendMode": "normal",
+        "id": 218,
+        "name": "Floor title shadow",
+        "rect": {
+          "fillColor": [
+            0.0,
+            0.0,
+            0.0,
+            0.62
+          ],
+          "fillEnabled": true,
+          "position": [
+            0.0,
+            0.0
+          ],
+          "roundness": 0.0,
+          "size": [
+            800.0,
+            158.0
+          ],
+          "strokeEnabled": false,
+          "strokeWidth": 0.0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            88.0,
+            789.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Rect"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 36650
+        },
+        "blendMode": "normal",
+        "id": 217,
+        "name": "Resonance",
+        "sourceText": {
+          "allCaps": false,
+          "applyFill": true,
+          "applyStroke": false,
+          "baselineShift": 0.0,
+          "boxPosition": [
+            0.0,
+            0.0
+          ],
+          "boxSize": [
+            1080.0,
+            90.0
+          ],
+          "boxText": true,
+          "fillColor": [
+            0.87,
+            0.845,
+            0.79,
+            1.0
+          ],
+          "fontFamily": "Georgia",
+          "fontSize": 49.0,
+          "fontStyle": "Regular",
+          "justification": "left",
+          "strokeOverFill": false,
+          "strokeWidth": 0.0,
+          "text": "Resonance",
+          "tracking": 0.0,
+          "verticalAlign": "top"
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            140.0,
+            850.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Text"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 36650
+        },
+        "blendMode": "normal",
+        "id": 216,
+        "name": "FLOOR 04",
+        "sourceText": {
+          "allCaps": false,
+          "applyFill": true,
+          "applyStroke": false,
+          "baselineShift": 0.0,
+          "boxPosition": [
+            0.0,
+            0.0
+          ],
+          "boxSize": [
+            650.0,
+            35.0
+          ],
+          "boxText": true,
+          "fillColor": [
+            0.75,
+            0.56,
+            0.49,
+            1.0
+          ],
+          "fontFamily": "Arial",
+          "fontSize": 19.0,
+          "fontStyle": "Regular",
+          "justification": "left",
+          "strokeOverFill": false,
+          "strokeWidth": 0.0,
+          "text": "FLOOR 04",
+          "tracking": 180.0,
+          "verticalAlign": "top"
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            143.0,
+            815.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Text"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 36650
+        },
+        "blendMode": "normal",
+        "id": 215,
+        "name": "Descent marker",
+        "rect": {
+          "fillColor": [
+            0.68,
+            0.16,
+            0.13,
+            1.0
+          ],
+          "fillEnabled": true,
+          "position": [
+            0.0,
+            0.0
+          ],
+          "roundness": 0.0,
+          "size": [
+            3.0,
+            91.0
+          ],
+          "strokeEnabled": false,
+          "strokeWidth": 0.0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            116.0,
+            820.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Rect"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 36650
+        },
+        "blendMode": "normal",
+        "id": 214,
+        "name": "Floor title shadow",
+        "rect": {
+          "fillColor": [
+            0.0,
+            0.0,
+            0.0,
+            0.62
+          ],
+          "fillEnabled": true,
+          "position": [
+            0.0,
+            0.0
+          ],
+          "roundness": 0.0,
+          "size": [
+            800.0,
+            158.0
+          ],
+          "strokeEnabled": false,
+          "strokeWidth": 0.0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            88.0,
+            789.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Rect"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 24650
+        },
+        "blendMode": "normal",
+        "id": 213,
+        "name": "The Catacombs",
+        "sourceText": {
+          "allCaps": false,
+          "applyFill": true,
+          "applyStroke": false,
+          "baselineShift": 0.0,
+          "boxPosition": [
+            0.0,
+            0.0
+          ],
+          "boxSize": [
+            1080.0,
+            90.0
+          ],
+          "boxText": true,
+          "fillColor": [
+            0.87,
+            0.845,
+            0.79,
+            1.0
+          ],
+          "fontFamily": "Georgia",
+          "fontSize": 49.0,
+          "fontStyle": "Regular",
+          "justification": "left",
+          "strokeOverFill": false,
+          "strokeWidth": 0.0,
+          "text": "The Catacombs",
+          "tracking": 0.0,
+          "verticalAlign": "top"
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            140.0,
+            850.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Text"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 24650
+        },
+        "blendMode": "normal",
+        "id": 212,
+        "name": "FLOOR 03",
+        "sourceText": {
+          "allCaps": false,
+          "applyFill": true,
+          "applyStroke": false,
+          "baselineShift": 0.0,
+          "boxPosition": [
+            0.0,
+            0.0
+          ],
+          "boxSize": [
+            650.0,
+            35.0
+          ],
+          "boxText": true,
+          "fillColor": [
+            0.75,
+            0.56,
+            0.49,
+            1.0
+          ],
+          "fontFamily": "Arial",
+          "fontSize": 19.0,
+          "fontStyle": "Regular",
+          "justification": "left",
+          "strokeOverFill": false,
+          "strokeWidth": 0.0,
+          "text": "FLOOR 03",
+          "tracking": 180.0,
+          "verticalAlign": "top"
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            143.0,
+            815.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Text"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 24650
+        },
+        "blendMode": "normal",
+        "id": 211,
+        "name": "Descent marker",
+        "rect": {
+          "fillColor": [
+            0.68,
+            0.16,
+            0.13,
+            1.0
+          ],
+          "fillEnabled": true,
+          "position": [
+            0.0,
+            0.0
+          ],
+          "roundness": 0.0,
+          "size": [
+            3.0,
+            91.0
+          ],
+          "strokeEnabled": false,
+          "strokeWidth": 0.0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            116.0,
+            820.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Rect"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 24650
+        },
+        "blendMode": "normal",
+        "id": 210,
+        "name": "Floor title shadow",
+        "rect": {
+          "fillColor": [
+            0.0,
+            0.0,
+            0.0,
+            0.62
+          ],
+          "fillEnabled": true,
+          "position": [
+            0.0,
+            0.0
+          ],
+          "roundness": 0.0,
+          "size": [
+            800.0,
+            158.0
+          ],
+          "strokeEnabled": false,
+          "strokeWidth": 0.0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            88.0,
+            789.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Rect"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 12650
+        },
+        "blendMode": "normal",
+        "id": 209,
+        "name": "Graft Galleries",
+        "sourceText": {
+          "allCaps": false,
+          "applyFill": true,
+          "applyStroke": false,
+          "baselineShift": 0.0,
+          "boxPosition": [
+            0.0,
+            0.0
+          ],
+          "boxSize": [
+            1080.0,
+            90.0
+          ],
+          "boxText": true,
+          "fillColor": [
+            0.87,
+            0.845,
+            0.79,
+            1.0
+          ],
+          "fontFamily": "Georgia",
+          "fontSize": 49.0,
+          "fontStyle": "Regular",
+          "justification": "left",
+          "strokeOverFill": false,
+          "strokeWidth": 0.0,
+          "text": "Graft Galleries",
+          "tracking": 0.0,
+          "verticalAlign": "top"
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            140.0,
+            850.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Text"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 12650
+        },
+        "blendMode": "normal",
+        "id": 208,
+        "name": "FLOOR 02",
+        "sourceText": {
+          "allCaps": false,
+          "applyFill": true,
+          "applyStroke": false,
+          "baselineShift": 0.0,
+          "boxPosition": [
+            0.0,
+            0.0
+          ],
+          "boxSize": [
+            650.0,
+            35.0
+          ],
+          "boxText": true,
+          "fillColor": [
+            0.75,
+            0.56,
+            0.49,
+            1.0
+          ],
+          "fontFamily": "Arial",
+          "fontSize": 19.0,
+          "fontStyle": "Regular",
+          "justification": "left",
+          "strokeOverFill": false,
+          "strokeWidth": 0.0,
+          "text": "FLOOR 02",
+          "tracking": 180.0,
+          "verticalAlign": "top"
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            143.0,
+            815.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Text"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 12650
+        },
+        "blendMode": "normal",
+        "id": 207,
+        "name": "Descent marker",
+        "rect": {
+          "fillColor": [
+            0.68,
+            0.16,
+            0.13,
+            1.0
+          ],
+          "fillEnabled": true,
+          "position": [
+            0.0,
+            0.0
+          ],
+          "roundness": 0.0,
+          "size": [
+            3.0,
+            91.0
+          ],
+          "strokeEnabled": false,
+          "strokeWidth": 0.0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            116.0,
+            820.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Rect"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 12650
+        },
+        "blendMode": "normal",
+        "id": 206,
+        "name": "Floor title shadow",
+        "rect": {
+          "fillColor": [
+            0.0,
+            0.0,
+            0.0,
+            0.62
+          ],
+          "fillEnabled": true,
+          "position": [
+            0.0,
+            0.0
+          ],
+          "roundness": 0.0,
+          "size": [
+            800.0,
+            158.0
+          ],
+          "strokeEnabled": false,
+          "strokeWidth": 0.0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            88.0,
+            789.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Rect"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 650
+        },
+        "blendMode": "normal",
+        "id": 205,
+        "name": "Intake Foundry",
+        "sourceText": {
+          "allCaps": false,
+          "applyFill": true,
+          "applyStroke": false,
+          "baselineShift": 0.0,
+          "boxPosition": [
+            0.0,
+            0.0
+          ],
+          "boxSize": [
+            1080.0,
+            90.0
+          ],
+          "boxText": true,
+          "fillColor": [
+            0.87,
+            0.845,
+            0.79,
+            1.0
+          ],
+          "fontFamily": "Georgia",
+          "fontSize": 49.0,
+          "fontStyle": "Regular",
+          "justification": "left",
+          "strokeOverFill": false,
+          "strokeWidth": 0.0,
+          "text": "Intake Foundry",
+          "tracking": 0.0,
+          "verticalAlign": "top"
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            140.0,
+            850.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Text"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 650
+        },
+        "blendMode": "normal",
+        "id": 204,
+        "name": "FLOOR 01",
+        "sourceText": {
+          "allCaps": false,
+          "applyFill": true,
+          "applyStroke": false,
+          "baselineShift": 0.0,
+          "boxPosition": [
+            0.0,
+            0.0
+          ],
+          "boxSize": [
+            650.0,
+            35.0
+          ],
+          "boxText": true,
+          "fillColor": [
+            0.75,
+            0.56,
+            0.49,
+            1.0
+          ],
+          "fontFamily": "Arial",
+          "fontSize": 19.0,
+          "fontStyle": "Regular",
+          "justification": "left",
+          "strokeOverFill": false,
+          "strokeWidth": 0.0,
+          "text": "FLOOR 01",
+          "tracking": 180.0,
+          "verticalAlign": "top"
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            143.0,
+            815.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Text"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 650
+        },
+        "blendMode": "normal",
+        "id": 203,
+        "name": "Descent marker",
+        "rect": {
+          "fillColor": [
+            0.68,
+            0.16,
+            0.13,
+            1.0
+          ],
+          "fillEnabled": true,
+          "position": [
+            0.0,
+            0.0
+          ],
+          "roundness": 0.0,
+          "size": [
+            3.0,
+            91.0
+          ],
+          "strokeEnabled": false,
+          "strokeWidth": 0.0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            116.0,
+            820.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Rect"
+      },
+      {
+        "activeRange": {
+          "duration": 4800,
+          "start": 650
+        },
+        "blendMode": "normal",
+        "id": 202,
+        "name": "Floor title shadow",
+        "rect": {
+          "fillColor": [
+            0.0,
+            0.0,
+            0.0,
+            0.62
+          ],
+          "fillEnabled": true,
+          "position": [
+            0.0,
+            0.0
+          ],
+          "roundness": 0.0,
+          "size": [
+            800.0,
+            158.0
+          ],
+          "strokeEnabled": false,
+          "strokeWidth": 0.0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            88.0,
+            789.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Rect"
+      },
+      {
+        "activeRange": {
+          "duration": 67000,
+          "start": 0
+        },
+        "blendMode": "normal",
+        "id": 201,
+        "name": "Cinema bottom",
+        "rect": {
+          "fillColor": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "fillEnabled": true,
+          "position": [
+            0.0,
+            0.0
+          ],
+          "roundness": 0.0,
+          "size": [
+            1920.0,
+            105.0
+          ],
+          "strokeEnabled": false,
+          "strokeWidth": 0.0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            0.0,
+            975.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Rect"
+      },
+      {
+        "activeRange": {
+          "duration": 67000,
+          "start": 0
+        },
+        "blendMode": "normal",
+        "id": 200,
+        "name": "Cinema top",
+        "rect": {
+          "fillColor": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "fillEnabled": true,
+          "position": [
+            0.0,
+            0.0
+          ],
+          "roundness": 0.0,
+          "size": [
+            1920.0,
+            105.0
+          ],
+          "strokeEnabled": false,
+          "strokeWidth": 0.0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            0.0,
+            0.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Rect"
+      },
+      {
+        "activeRange": {
+          "duration": 4500,
+          "start": 0
+        },
+        "blendMode": "normal",
+        "id": 1,
+        "name": "Floor 1 / Receiving Dock",
+        "source": {
+          "assetId": "shot-0",
+          "fit": "contain"
+        },
+        "sourceIntrinsicDuration": 4500,
+        "sourceRange": {
+          "duration": 4500,
+          "start": 0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            0.0,
+            0.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Video",
+        "volume": 0.0
+      },
+      {
+        "activeRange": {
+          "duration": 4000,
+          "start": 4500
+        },
+        "blendMode": "normal",
+        "id": 2,
+        "name": "Floor 1 / Pulse Court",
+        "source": {
+          "assetId": "shot-1",
+          "fit": "contain"
+        },
+        "sourceIntrinsicDuration": 4000,
+        "sourceRange": {
+          "duration": 4000,
+          "start": 0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            0.0,
+            0.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Video",
+        "volume": 0.0
+      },
+      {
+        "activeRange": {
+          "duration": 3500,
+          "start": 8500
+        },
+        "blendMode": "normal",
+        "id": 3,
+        "name": "Floor 1 / Receiving Watcher",
+        "source": {
+          "assetId": "shot-2",
+          "fit": "contain"
+        },
+        "sourceIntrinsicDuration": 3500,
+        "sourceRange": {
+          "duration": 3500,
+          "start": 0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            0.0,
+            0.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Video",
+        "volume": 0.0
+      },
+      {
+        "activeRange": {
+          "duration": 4500,
+          "start": 12000
+        },
+        "blendMode": "normal",
+        "id": 4,
+        "name": "Floor 2 / Sterile Intake",
+        "source": {
+          "assetId": "shot-3",
+          "fit": "contain"
+        },
+        "sourceIntrinsicDuration": 4500,
+        "sourceRange": {
+          "duration": 4500,
+          "start": 0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            0.0,
+            0.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Video",
+        "volume": 0.0
+      },
+      {
+        "activeRange": {
+          "duration": 4000,
+          "start": 16500
+        },
+        "blendMode": "normal",
+        "id": 5,
+        "name": "Floor 2 / Surgery Theater",
+        "source": {
+          "assetId": "shot-4",
+          "fit": "contain"
+        },
+        "sourceIntrinsicDuration": 4000,
+        "sourceRange": {
+          "duration": 4000,
+          "start": 0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            0.0,
+            0.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Video",
+        "volume": 0.0
+      },
+      {
+        "activeRange": {
+          "duration": 3500,
+          "start": 20500
+        },
+        "blendMode": "normal",
+        "id": 6,
+        "name": "Floor 2 / Sterile Watcher",
+        "source": {
+          "assetId": "shot-5",
+          "fit": "contain"
+        },
+        "sourceIntrinsicDuration": 3500,
+        "sourceRange": {
+          "duration": 3500,
+          "start": 0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            0.0,
+            0.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Video",
+        "volume": 0.0
+      },
+      {
+        "activeRange": {
+          "duration": 4500,
+          "start": 24000
+        },
+        "blendMode": "normal",
+        "id": 7,
+        "name": "Floor 3 / Bone Gate",
+        "source": {
+          "assetId": "shot-6",
+          "fit": "contain"
+        },
+        "sourceIntrinsicDuration": 4500,
+        "sourceRange": {
+          "duration": 4500,
+          "start": 0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            0.0,
+            0.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Video",
+        "volume": 0.0
+      },
+      {
+        "activeRange": {
+          "duration": 4000,
+          "start": 28500
+        },
+        "blendMode": "normal",
+        "id": 8,
+        "name": "Floor 3 / Reliquary Court",
+        "source": {
+          "assetId": "shot-7",
+          "fit": "contain"
+        },
+        "sourceIntrinsicDuration": 4000,
+        "sourceRange": {
+          "duration": 4000,
+          "start": 0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            0.0,
+            0.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Video",
+        "volume": 0.0
+      },
+      {
+        "activeRange": {
+          "duration": 3500,
+          "start": 32500
+        },
+        "blendMode": "normal",
+        "id": 9,
+        "name": "Floor 3 / Reliquary Warden",
+        "source": {
+          "assetId": "shot-8",
+          "fit": "contain"
+        },
+        "sourceIntrinsicDuration": 3500,
+        "sourceRange": {
+          "duration": 3500,
+          "start": 0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            0.0,
+            0.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Video",
+        "volume": 0.0
+      },
+      {
+        "activeRange": {
+          "duration": 4500,
+          "start": 36000
+        },
+        "blendMode": "normal",
+        "id": 10,
+        "name": "Floor 4 / Bell Nave",
+        "source": {
+          "assetId": "shot-9",
+          "fit": "contain"
+        },
+        "sourceIntrinsicDuration": 4500,
+        "sourceRange": {
+          "duration": 4500,
+          "start": 0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            0.0,
+            0.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Video",
+        "volume": 0.0
+      },
+      {
+        "activeRange": {
+          "duration": 4000,
+          "start": 40500
+        },
+        "blendMode": "normal",
+        "id": 11,
+        "name": "Floor 4 / Resonance Court",
+        "source": {
+          "assetId": "shot-10",
+          "fit": "contain"
+        },
+        "sourceIntrinsicDuration": 4000,
+        "sourceRange": {
+          "duration": 4000,
+          "start": 0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            0.0,
+            0.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Video",
+        "volume": 0.0
+      },
+      {
+        "activeRange": {
+          "duration": 3500,
+          "start": 44500
+        },
+        "blendMode": "normal",
+        "id": 12,
+        "name": "Floor 4 / Organ Loft Watcher",
+        "source": {
+          "assetId": "shot-11",
+          "fit": "contain"
+        },
+        "sourceIntrinsicDuration": 3500,
+        "sourceRange": {
+          "duration": 3500,
+          "start": 0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            0.0,
+            0.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Video",
+        "volume": 0.0
+      },
+      {
+        "activeRange": {
+          "duration": 4500,
+          "start": 48000
+        },
+        "blendMode": "normal",
+        "id": 13,
+        "name": "Floor 5 / Descent Mouth",
+        "source": {
+          "assetId": "shot-12",
+          "fit": "contain"
+        },
+        "sourceIntrinsicDuration": 4500,
+        "sourceRange": {
+          "duration": 4500,
+          "start": 0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            0.0,
+            0.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Video",
+        "volume": 0.0
+      },
+      {
+        "activeRange": {
+          "duration": 4000,
+          "start": 52500
+        },
+        "blendMode": "normal",
+        "id": 14,
+        "name": "Floor 5 / First Throat",
+        "source": {
+          "assetId": "shot-13",
+          "fit": "contain"
+        },
+        "sourceIntrinsicDuration": 4000,
+        "sourceRange": {
+          "duration": 4000,
+          "start": 0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            0.0,
+            0.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Video",
+        "volume": 0.0
+      },
+      {
+        "activeRange": {
+          "duration": 5500,
+          "start": 56500
+        },
+        "blendMode": "normal",
+        "id": 15,
+        "name": "Floor 5 / The Last Watcher",
+        "source": {
+          "assetId": "shot-14",
+          "fit": "contain"
+        },
+        "sourceIntrinsicDuration": 5500,
+        "sourceRange": {
+          "duration": 5500,
+          "start": 0
+        },
+        "transform": {
+          "anchorPoint": [
+            0.0,
+            0.0
+          ],
+          "opacity": 100.0,
+          "orientation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            0.0,
+            0.0
+          ],
+          "rotation": 0.0,
+          "rotationX": 0.0,
+          "rotationY": 0.0,
+          "scale": [
+            100.0,
+            100.0
+          ],
+          "skew": 0.0,
+          "skewAxis": 0.0
+        },
+        "type": "Video",
+        "volume": 0.0
+      },
+      {
+        "activeRange": {
+          "duration": 67000,
+          "start": 0
+        },
+        "captionsEnabled": false,
+        "id": 100,
+        "name": "score",
+        "source": {
+          "assetId": "score"
+        },
+        "sourceIntrinsicDuration": 67000,
+        "sourceRange": {
+          "duration": 67000,
+          "start": 0
+        },
+        "type": "Audio",
+        "volume": 1.0,
+        "windowMs": 50
+      },
+      {
+        "activeRange": {
+          "duration": 67000,
+          "start": 0
+        },
+        "captionsEnabled": false,
+        "id": 101,
+        "name": "air",
+        "source": {
+          "assetId": "air"
+        },
+        "sourceIntrinsicDuration": 67000,
+        "sourceRange": {
+          "duration": 67000,
+          "start": 0
+        },
+        "type": "Audio",
+        "volume": 0.48,
+        "windowMs": 50
+      },
+      {
+        "activeRange": {
+          "duration": 7000,
+          "start": 0
+        },
+        "captionsEnabled": false,
+        "id": 102,
+        "name": "industrial",
+        "source": {
+          "assetId": "industrial"
+        },
+        "sourceIntrinsicDuration": 7000,
+        "sourceRange": {
+          "duration": 7000,
+          "start": 0
+        },
+        "type": "Audio",
+        "volume": 0.65,
+        "windowMs": 50
+      },
+      {
+        "activeRange": {
+          "duration": 7548,
+          "start": 11650
+        },
+        "captionsEnabled": false,
+        "id": 103,
+        "name": "Descent sting",
+        "source": {
+          "assetId": "sting"
+        },
+        "sourceIntrinsicDuration": 7548,
+        "sourceRange": {
+          "duration": 7548,
+          "start": 0
+        },
+        "type": "Audio",
+        "volume": 0.63,
+        "windowMs": 50
+      },
+      {
+        "activeRange": {
+          "duration": 7548,
+          "start": 35650
+        },
+        "captionsEnabled": false,
+        "id": 104,
+        "name": "Descent sting",
+        "source": {
+          "assetId": "sting"
+        },
+        "sourceIntrinsicDuration": 7548,
+        "sourceRange": {
+          "duration": 7548,
+          "start": 0
+        },
+        "type": "Audio",
+        "volume": 0.63,
+        "windowMs": 50
+      },
+      {
+        "activeRange": {
+          "duration": 5350,
+          "start": 61650
+        },
+        "captionsEnabled": false,
+        "id": 105,
+        "name": "Descent sting",
+        "source": {
+          "assetId": "sting"
+        },
+        "sourceIntrinsicDuration": 7548,
+        "sourceRange": {
+          "duration": 5350,
+          "start": 0
+        },
+        "type": "Audio",
+        "volume": 0.63,
+        "windowMs": 50
+      },
+      {
+        "activeRange": {
+          "duration": 11821,
+          "start": 27300
+        },
+        "captionsEnabled": false,
+        "id": 106,
+        "name": "scream",
+        "source": {
+          "assetId": "scream"
+        },
+        "sourceIntrinsicDuration": 11821,
+        "sourceRange": {
+          "duration": 11821,
+          "start": 0
+        },
+        "type": "Audio",
+        "volume": 0.45,
+        "windowMs": 50
+      }
+    ],
+    "name": "Five floors / One way down"
+  }
+}

@@ -165,6 +165,23 @@ function materialsFor(source, course) {
     porcelain: make('Porcelain', 0xb9c0b4, .42, .14, { clearcoat: .52, clearcoatRoughness: .32 }),
     void: make('Recess', 0x08090c, .98, 0),
   };
+  if (course.id === 'f2-graft-galleries') {
+    if (typeof document !== 'undefined') {
+      const shroudMap = new THREE.TextureLoader().load('./assets/textures/worn-oxblood-leather-v1.png');
+      shroudMap.name = 'GraftShroud_OxbloodLeather';
+      shroudMap.colorSpace = THREE.SRGBColorSpace;
+      shroudMap.wrapS = shroudMap.wrapT = THREE.RepeatWrapping;
+      shroudMap.anisotropy = 4;
+      shroudMap.userData.sharedAsset = true;
+      palette.membrane.map = shroudMap;
+    }
+    palette.membrane.color.setHex(0x9d7774);
+    palette.membrane.roughness = .86;
+    palette.membrane.clearcoat = .06;
+    palette.membrane.opacity = 1;
+    palette.membrane.transparent = false;
+    palette.membrane.needsUpdate = true;
+  }
   if (course.id === 'f5-last-descent') {
     for (const [name, seed, repeat, normalStrength, normalScale] of [
       ['mawBasalt', 1.4, 1.45, .14, .34],
@@ -279,6 +296,37 @@ function buildPressureCrucible(item, ctx) {
   return root;
 }
 
+function graftShroudGeometry(length) {
+  // One continuous, uneven sheet over a body: narrow head and feet, lifted
+  // shoulders and knees, with longitudinal folds. It replaces the exposed
+  // pill silhouette that used to float on the ceramic pad.
+  const profile = [
+    [-.52, .015, .025], [-.44, .13, .13], [-.31, .23, .2],
+    [-.12, .29, .26], [.08, .25, .22], [.27, .2, .17],
+    [.43, .12, .12], [.52, .015, .025],
+  ];
+  const position = [], uv = [], index = [], sides = 12;
+  for (let ring = 0; ring < profile.length; ring++) {
+    const [along, rise, width] = profile[ring];
+    for (let side = 0; side <= sides; side++) {
+      const angle = side / sides * Math.PI * 2;
+      const fold = Math.sin(angle * 3 + ring * .65) * .018;
+      position.push(along * length, Math.cos(angle) * (rise + fold), Math.sin(angle) * (width + fold * .55));
+      uv.push(ring / (profile.length - 1), side / sides);
+    }
+  }
+  for (let ring = 0; ring < profile.length - 1; ring++) for (let side = 0; side < sides; side++) {
+    const a = ring * (sides + 1) + side, b = a + sides + 1;
+    index.push(a, a + 1, b, a + 1, b + 1, b);
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(position, 3));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  geometry.setIndex(index);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
 function buildTheatreTable(item, ctx) {
   const { root, p, moving, anchors } = ctx;
   const { width, height, depth } = dimensions(item, 1.5, 1.15, 1.2);
@@ -293,9 +341,13 @@ function buildTheatreTable(item, ctx) {
     cuff.rotation.x = Math.PI / 2;
   }
   beam(root, p.dark, 0, .3, 0, tableLength * .7, .12, tableDepth * .72, 'GraftDrainPan', false);
-  const specimen = part(root, new THREE.CapsuleGeometry(.3, tableLength * .36, 5, 12), p.membrane, 0, 1.32, 0, 'GraftCoveredSpecimen', false);
-  specimen.rotation.z = Math.PI / 2;
-  specimen.scale.set(1, 1, .66);
+  const specimen = part(root, graftShroudGeometry(tableLength * .48), p.membrane, 0, 1.37, 0, 'GraftCoveredSpecimen', false);
+  for (const x of [-tableLength * .13, tableLength * .15]) {
+    const restraint = part(specimen, new THREE.TorusGeometry(.235, .022, 6, 16), p.edge, x, 0, 0, `GraftSpecimenWrap_${x < 0 ? 'Shoulder' : 'Knee'}`, false);
+    restraint.rotation.y = Math.PI / 2;
+    restraint.scale.set(1, .9, 1);
+    part(specimen, new THREE.BoxGeometry(.16, .04, .085), p.bronze, x, .245, 0, `GraftSpecimenClasp_${x < 0 ? 'Shoulder' : 'Knee'}`, false);
+  }
   specimen.userData.noBatch = true;
   moving.push(specimen);
   if (item.hero) anchors.hero = root;

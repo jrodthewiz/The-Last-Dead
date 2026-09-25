@@ -1,0 +1,99 @@
+{
+  "ok": true,
+  "url": "http://127.0.0.1:5200/",
+  "loaded": {
+    "clips": [
+      "TLD_Collapse",
+      "TLD_Hit",
+      "TLD_Idle",
+      "TLD_Strike",
+      "TLD_Walk",
+      "TLD_Windup"
+    ],
+    "joints": 24,
+    "sourceHeight": 1.9189807021799903
+  },
+  "records": [
+    {
+      "name": "idle",
+      "png": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\enemy-motion\\warden-runtime-idle.png",
+      "state": {
+        "visible": true,
+        "weights": {
+          "idle": 1,
+          "walk": 0,
+          "windup": 0,
+          "strike": 0,
+          "hit": 0,
+          "collapse": 0
+        },
+        "renderCalls": 2
+      }
+    },
+    {
+      "name": "windup",
+      "png": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\enemy-motion\\warden-runtime-windup.png",
+      "state": {
+        "visible": true,
+        "weights": {
+          "idle": 0,
+          "walk": 0,
+          "windup": 1,
+          "strike": 0,
+          "hit": 0,
+          "collapse": 0
+        },
+        "renderCalls": 3
+      }
+    },
+    {
+      "name": "strike",
+      "png": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\enemy-motion\\warden-runtime-strike.png",
+      "state": {
+        "visible": true,
+        "weights": {
+          "idle": 0,
+          "walk": 0,
+          "windup": 0,
+          "strike": 1,
+          "hit": 0,
+          "collapse": 0
+        },
+        "renderCalls": 2
+      }
+    },
+    {
+      "name": "hit",
+      "png": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\enemy-motion\\warden-runtime-hit.png",
+      "state": {
+        "visible": true,
+        "weights": {
+          "idle": 0,
+          "walk": 0,
+          "windup": 0,
+          "strike": 0,
+          "hit": 1,
+          "collapse": 0
+        },
+        "renderCalls": 2
+      }
+    },
+    {
+      "name": "collapse",
+      "png": "C:\\Users\\wolfk\\Desktop\\thelastdead\\docs\\enemy-motion\\warden-runtime-collapse.png",
+      "state": {
+        "visible": true,
+        "weights": {
+          "idle": 0,
+          "walk": 0,
+          "windup": 0,
+          "strike": 0,
+          "hit": 0,
+          "collapse": 1
+        },
+        "renderCalls": 2
+      }
+    }
+  ],
+  "errors": []
+}

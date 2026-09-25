@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Last Dead · Story Cover Review</title>
+<style>
+  html,body { margin:0; width:100%; height:100%; overflow:hidden; background:#121314; color:#d9d3c4; font:13px system-ui,sans-serif; }
+  canvas { display:block; width:100%; height:100%; }
+  header { position:fixed; top:20px; left:24px; letter-spacing:.18em; text-transform:uppercase; font-weight:700; }
+  aside { position:fixed; bottom:25px; left:0; width:100%; display:flex; justify-content:space-around; text-align:center; letter-spacing:.1em; text-transform:uppercase; pointer-events:none; }
+  aside span { width:19%; }
+</style>
+<header>Story cover · material and silhouette review</header>
+<aside><span>01 / Foundry hopper</span><span>02 / Mortuary drawers</span><span>03 / Crypt coffins</span><span>04 / Choir stall</span><span>05 / Basalt and bone</span></aside>
+<script type="module">
+import * as THREE from '../vendor/three.module.js';
+import { buildDungeonCover } from '../dungeon-cover-kit.js';
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.45;
+renderer.shadowMap.enabled = true;
+document.body.append(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x17191b);
+scene.add(new THREE.HemisphereLight(0xd8e0e3, 0x463638, 2));
+const key = new THREE.DirectionalLight(0xffe8d1, 2.6);
+key.position.set(-7, 13, 12); key.castShadow = true; key.shadow.mapSize.set(2048,2048); scene.add(key);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(34,13), new THREE.MeshStandardMaterial({color:0x303638,roughness:.97}));
+floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; floor.position.y = -.04; scene.add(floor);
+const loader = new THREE.TextureLoader();
+function mapped(file) {
+  const map = loader.load('../assets/textures/'+file, () => renderer.render(scene,camera));
+  map.colorSpace = THREE.SRGBColorSpace; map.wrapS = map.wrapT = THREE.RepeatWrapping; map.anisotropy = 8;
+  return new THREE.MeshStandardMaterial({map,color:0xffffff,roughness:.8});
+}
+const steel = mapped('dread-worn-steel-v1.webp');
+const wood = mapped('afterlife-cabinet-wood-v1.webp');
+const stone = mapped('afterlife-plaster-v1.png');
+const plain = color => new THREE.MeshStandardMaterial({color,roughness:.82});
+const materials = {wornSteel:steel,steel,metalDark:steel,wall:stone,floor:stone,bone:plain(0xc0b19a),afterlifeWood:wood,black:plain(0x17171a),flesh:plain(0x603638)};
+const ids = ['f1-intake-foundry','f2-graft-galleries','f3-catacombs','f4-resonance','f5-last-descent'];
+ids.forEach((id,index) => {
+  const group = buildDungeonCover(scene, materials, {dungeon:true,id,blocks:[[0,0]]});
+  group.position.set((index-2)*6-2,0,-2);
+});
+const camera = new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.1,100);
+camera.position.set(0,10.5,29); camera.lookAt(0,1.1,0);
+const render = () => renderer.render(scene,camera);
+window.addEventListener('resize', () => {camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);render();});
+render();
+</script>
+</html>

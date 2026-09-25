@@ -1,0 +1,615 @@
+{
+  "shots": [
+    {
+      "floor": 0,
+      "name": "Receiving Dock",
+      "from": [
+        7.5,
+        24.6,
+        1.65
+      ],
+      "to": [
+        6.7,
+        24.4,
+        1.8
+      ],
+      "look": [
+        3.8,
+        23.7,
+        1.9
+      ],
+      "duration": 4.5
+    },
+    {
+      "floor": 0,
+      "name": "Pulse Court",
+      "from": [
+        19.8,
+        9.6,
+        3
+      ],
+      "to": [
+        19,
+        9.5,
+        3.1
+      ],
+      "look": [
+        17,
+        7,
+        2.4
+      ],
+      "duration": 4
+    },
+    {
+      "floor": 0,
+      "name": "Receiving Watcher",
+      "from": [
+        4.7,
+        24.3,
+        1.65
+      ],
+      "to": [
+        4.2,
+        24.1,
+        1.7
+      ],
+      "look": [
+        3.5,
+        23.5,
+        1.75
+      ],
+      "duration": 3.5,
+      "fov": 42
+    },
+    {
+      "floor": 1,
+      "name": "Sterile Intake",
+      "from": [
+        8.8,
+        21.8,
+        1.65
+      ],
+      "to": [
+        8.2,
+        21.7,
+        1.75
+      ],
+      "look": [
+        5.5,
+        21,
+        1.6
+      ],
+      "duration": 4.5
+    },
+    {
+      "floor": 1,
+      "name": "Surgery Theater",
+      "from": [
+        20.9,
+        9.1,
+        3
+      ],
+      "to": [
+        20.4,
+        9,
+        3
+      ],
+      "look": [
+        17,
+        7,
+        2.4
+      ],
+      "duration": 4
+    },
+    {
+      "floor": 1,
+      "name": "Sterile Watcher",
+      "from": [
+        4.8,
+        21.8,
+        1.65
+      ],
+      "to": [
+        4.5,
+        21.6,
+        1.75
+      ],
+      "look": [
+        3.5,
+        20.5,
+        1.7
+      ],
+      "duration": 3.5,
+      "fov": 42
+    },
+    {
+      "floor": 2,
+      "name": "Bone Gate",
+      "from": [
+        35,
+        28,
+        1.7
+      ],
+      "to": [
+        34.5,
+        27.8,
+        1.85
+      ],
+      "look": [
+        32.5,
+        26.5,
+        2.3
+      ],
+      "duration": 4.5
+    },
+    {
+      "floor": 2,
+      "name": "Reliquary Court",
+      "from": [
+        21.900000000000002,
+        10.3,
+        2.6
+      ],
+      "to": [
+        21.400000000000002,
+        10.2,
+        2.8
+      ],
+      "look": [
+        19,
+        8,
+        2.5
+      ],
+      "duration": 4
+    },
+    {
+      "floor": 2,
+      "name": "Reliquary Warden",
+      "from": [
+        21.900000000000002,
+        9.7,
+        1.8
+      ],
+      "to": [
+        21.3,
+        9.4,
+        1.9
+      ],
+      "look": [
+        20.5,
+        8.5,
+        2.1
+      ],
+      "duration": 3.5,
+      "fov": 42
+    },
+    {
+      "floor": 3,
+      "name": "Bell Nave",
+      "from": [
+        14.7,
+        18.6,
+        2.3
+      ],
+      "to": [
+        14.6,
+        18.2,
+        2.5
+      ],
+      "look": [
+        17,
+        15,
+        3
+      ],
+      "duration": 4.5
+    },
+    {
+      "floor": 3,
+      "name": "Resonance Court",
+      "from": [
+        19,
+        11.2,
+        1.8
+      ],
+      "to": [
+        18.2,
+        10.8,
+        2.15
+      ],
+      "look": [
+        17,
+        8,
+        3
+      ],
+      "duration": 4
+    },
+    {
+      "floor": 3,
+      "name": "Organ Loft Watcher",
+      "from": [
+        30.2,
+        6.8,
+        1.7
+      ],
+      "to": [
+        29.7,
+        6.5,
+        1.85
+      ],
+      "look": [
+        28.5,
+        5.5,
+        1.9
+      ],
+      "duration": 3.5,
+      "fov": 42
+    },
+    {
+      "floor": 4,
+      "name": "Descent Mouth",
+      "from": [
+        16.6,
+        21,
+        1.7
+      ],
+      "to": [
+        16.1,
+        20.7,
+        1.9
+      ],
+      "look": [
+        14,
+        19.7,
+        2.5
+      ],
+      "duration": 4.5
+    },
+    {
+      "floor": 4,
+      "name": "First Throat",
+      "from": [
+        11.5,
+        17.2,
+        2.2
+      ],
+      "to": [
+        12,
+        17.3,
+        2.4
+      ],
+      "look": [
+        14.5,
+        16,
+        2.5
+      ],
+      "duration": 4
+    },
+    {
+      "floor": 4,
+      "name": "The Last Watcher",
+      "from": [
+        17.7,
+        5.800000000000001,
+        1.7
+      ],
+      "to": [
+        16.6,
+        5.5,
+        1.8
+      ],
+      "look": [
+        15.5,
+        5.5,
+        2.05
+      ],
+      "duration": 5.5,
+      "fov": 36
+    }
+  ],
+  "errors": [],
+  "floors": [
+    {
+      "floor": 1,
+      "name": "Graft Galleries",
+      "diagnostics": {
+        "renderer": "three.js",
+        "worldBatch": {
+          "removed": 437,
+          "batches": 37
+        },
+        "staticWorld": {
+          "frozen": 188,
+          "pruned": 15
+        },
+        "boundedLighting": true,
+        "afterlifeLighting": {
+          "practicalPool": 6,
+          "authoredCues": 16,
+          "lanternShadow": 512
+        },
+        "afterlifeAtmosphere": {
+          "name": "AfterlifeAtmosphere",
+          "seed": 2050613817,
+          "courseId": "f2-graft-galleries",
+          "bounded": true,
+          "coordinateCellMeters": 4,
+          "floorY": 0,
+          "roomCount": 10,
+          "roomIds": [
+            "f2-entry",
+            "f2-hub",
+            "f2-wardA",
+            "f2-wardB",
+            "f2-wardC",
+            "f2-wardD",
+            "f2-theater",
+            "f2-scrub",
+            "f2-drawer",
+            "f2-exit"
+          ],
+          "mistPatches": 13,
+          "coldSources": 10,
+          "specks": 38,
+          "practicalGlowPoints": 54,
+          "beams": 0,
+          "drawCalls": 3,
+          "reducedMotion": false,
+          "mobileBudget": false,
+          "noSceneFogMutation": true,
+          "noDynamicLights": true,
+          "disposed": false
+        },
+        "afterlifeSurfaces": {
+          "applied": true,
+          "version": 1,
+          "sector": "bloodworks",
+          "visited": 574,
+          "meshes": 497,
+          "changedMeshes": 328,
+          "changedMaterials": 41,
+          "clonedMaterials": 41,
+          "skipped": 36,
+          "skippedSubtrees": 36,
+          "preservedCues": 13,
+          "materialSyncScheduled": true,
+          "materialSyncPending": 0,
+          "roles": {
+            "roomFloor": 7,
+            "roomFloorInset": 1,
+            "roomRecess": 12,
+            "roomMetal": 127,
+            "roomWall": 3,
+            "roomPanel": 4,
+            "roomTrim": 20,
+            "roomSignal": 58,
+            "roomRust": 18,
+            "roomBone": 59,
+            "roomHazard": 19
+          }
+        },
+        "afterlifeMapDesign": {
+          "name": "AfterlifeMapDesign",
+          "version": "afterlife-map-design-v2",
+          "courseId": "f2-graft-galleries",
+          "profile": "gallery",
+          "thresholds": 4,
+          "routeMeters": 0,
+          "sightlineBreaks": 1,
+          "upperSilhouettePieces": 1,
+          "composition": {
+            "mode": "story-edge-divider",
+            "divider": {
+              "id": "f2-o-hub-w",
+              "roomId": "f2-hub",
+              "anchor": [
+                56.72,
+                1.12,
+                60.97
+              ],
+              "openingCenter": [
+                56,
+                0,
+                68
+              ],
+              "edgeSide": -1
+            },
+            "silhouette": {
+              "id": "f2-o-wardA-e",
+              "roomId": "f2-wardA",
+              "anchor": [
+                39.66,
+                5.6,
+                75.6
+              ],
+              "edgeSide": 1
+            }
+          },
+          "propsFallback": 0,
+          "draws": 3,
+          "triangles": 36,
+          "propSlots": [
+            {
+              "id": "mourning-cabinet:f2-wardA",
+              "kind": "mourning-cabinet",
+              "roomId": "f2-wardA",
+              "position": [
+                17.4,
+                0,
+                72
+              ],
+              "anchor": null,
+              "lightingPool": false,
+              "pillarClearance": false,
+              "clearanceFrom": null
+            },
+            {
+              "id": "wheelchair:f2-entry",
+              "kind": "wheelchair",
+              "roomId": "f2-entry",
+              "position": [
+                25.95,
+                0,
+                79.58
+              ],
+              "anchor": "entry",
+              "lightingPool": true,
+              "pillarClearance": false,
+              "clearanceFrom": "f2-sp-intake-tunnel"
+            }
+          ],
+          "externalPropsAttached": [
+            "mourning-cabinet:f2-wardA",
+            "wheelchair:f2-entry"
+          ],
+          "externalPropsMissing": [],
+          "externalPropErrors": [],
+          "collisionChanged": false
+        },
+        "afterlifeEnemies": 10,
+        "ashWitness": {
+          "loaded": true,
+          "error": null,
+          "instances": 7,
+          "clips": [
+            "AshWitness_AttackLunge",
+            "AshWitness_Chase",
+            "AshWitness_Collapse",
+            "AshWitness_HitRecoil",
+            "AshWitness_Idle",
+            "AshWitness_Shuffle"
+          ]
+        },
+        "transmissionCoverage": 1,
+        "weaponBatch": [
+          {
+            "parents": 4,
+            "groups": 7,
+            "meshesBefore": 92,
+            "meshesAfter": 76,
+            "mergedMeshes": 7,
+            "mergedSources": 23
+          },
+          {
+            "parents": 4,
+            "groups": 6,
+            "meshesBefore": 98,
+            "meshesAfter": 87,
+            "mergedMeshes": 6,
+            "mergedSources": 17
+          },
+          {
+            "parents": 5,
+            "groups": 8,
+            "meshesBefore": 97,
+            "meshesAfter": 82,
+            "mergedMeshes": 8,
+            "mergedSources": 23
+          },
+          {
+            "parents": 4,
+            "groups": 6,
+            "meshesBefore": 102,
+            "meshesAfter": 87,
+            "mergedMeshes": 6,
+            "mergedSources": 21
+          },
+          {
+            "parents": 4,
+            "groups": 6,
+            "meshesBefore": 99,
+            "meshesAfter": 83,
+            "mergedMeshes": 6,
+            "mergedSources": 22
+          },
+          {
+            "parents": 3,
+            "groups": 5,
+            "meshesBefore": 100,
+            "meshesAfter": 87,
+            "mergedMeshes": 5,
+            "mergedSources": 18
+          },
+          {
+            "parents": 3,
+            "groups": 3,
+            "meshesBefore": 76,
+            "meshesAfter": 67,
+            "mergedMeshes": 3,
+            "mergedSources": 12
+          },
+          {
+            "parents": 1,
+            "groups": 1,
+            "meshesBefore": 74,
+            "meshesAfter": 71,
+            "mergedMeshes": 1,
+            "mergedSources": 4
+          }
+        ],
+        "survivor": {
+          "status": "ready",
+          "source": "meshy-v02",
+          "viewSleeves": 11,
+          "error": null
+        },
+        "targetFrameMs": 6.944444444444445,
+        "webgl": true,
+        "error": null,
+        "width": 1920,
+        "height": 1080,
+        "dpr": 1,
+        "renderScale": 1,
+        "fov": 61,
+        "meshes": 987,
+        "instancedMeshes": 73,
+        "geometries": 925,
+        "materials": 528,
+        "triangles": 900986,
+        "calls": 198,
+        "gpuTriangles": 662427,
+        "rendererGeometries": 196,
+        "explosions": {
+          "active": 0,
+          "fire": 0,
+          "smoke": 0,
+          "embers": 0,
+          "rings": 0,
+          "maxExplosions": 18,
+          "reducedMotion": false,
+          "gore": true
+        },
+        "impacts": {
+          "marks": 0,
+          "smoke": 0,
+          "capacity": {
+            "marks": 96,
+            "smoke": 96
+          }
+        },
+        "extraction": {
+          "active": false,
+          "phase": "",
+          "progress": 0,
+          "targetId": null,
+          "seed": 0,
+          "droplets": 0,
+          "pooledDroplets": 0,
+          "worldVisible": false,
+          "toolVisible": false
+        },
+        "rendererTextures": 49,
+        "enemyContactShadows": 12,
+        "enemies": 12,
+        "gore": 0,
+        "blood": 0,
+        "projectiles": 0,
+        "tracers": 0,
+        "coins": 0,
+        "world": "f2-graft-galleries",
+        "warden": "ready",
+        "wardenInstances": 2,
+        "menu": null
+      }
+    }
+  ]
+}

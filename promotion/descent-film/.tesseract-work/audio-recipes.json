@@ -1,0 +1,381 @@
+[
+  {
+    "source": "assets/audio/music/abandoned-passages.ogg",
+    "output": "C:\\Users\\wolfk\\Desktop\\thelastdead\\promotion\\descent-film\\Sources\\Score.wav",
+    "command": [
+      "-n",
+      "-i",
+      "assets/audio/music/abandoned-passages.ogg",
+      "-i",
+      "assets/audio/music/abandoned-passages.ogg",
+      "-i",
+      "assets/audio/music/abandoned-passages.ogg",
+      "-filter_complex_threads",
+      "2",
+      "-filter_complex",
+      "[0:a][1:a]acrossfade=d=2:c1=tri:c2=tri[ab];[ab][2:a]acrossfade=d=2:c1=tri:c2=tri,atrim=duration=67,loudnorm=I=-22:TP=-3:LRA=12,afade=t=in:d=1.2,afade=t=out:st=61:d=6",
+      "-ar",
+      "48000",
+      "C:\\Users\\wolfk\\Desktop\\thelastdead\\promotion\\descent-film\\Sources\\Score.wav"
+    ],
+    "metadata": {
+      "streams": [
+        {
+          "index": 0,
+          "codec_name": "pcm_s16le",
+          "codec_long_name": "PCM signed 16-bit little-endian",
+          "codec_type": "audio",
+          "codec_tag_string": "[1][0][0][0]",
+          "codec_tag": "0x0001",
+          "sample_fmt": "s16",
+          "sample_rate": "48000",
+          "channels": 2,
+          "bits_per_sample": 16,
+          "initial_padding": 0,
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0",
+          "time_base": "1/48000",
+          "duration_ts": 3216000,
+          "duration": "67.000000",
+          "bit_rate": "1536000",
+          "disposition": {
+            "default": 0,
+            "dub": 0,
+            "original": 0,
+            "comment": 0,
+            "lyrics": 0,
+            "karaoke": 0,
+            "forced": 0,
+            "hearing_impaired": 0,
+            "visual_impaired": 0,
+            "clean_effects": 0,
+            "attached_pic": 0,
+            "timed_thumbnails": 0,
+            "non_diegetic": 0,
+            "captions": 0,
+            "descriptions": 0,
+            "metadata": 0,
+            "dependent": 0,
+            "still_image": 0,
+            "multilayer": 0
+          }
+        }
+      ],
+      "format": {
+        "filename": "C:\\Users\\wolfk\\Desktop\\thelastdead\\promotion\\descent-film\\Sources\\Score.wav",
+        "nb_streams": 1,
+        "nb_programs": 0,
+        "nb_stream_groups": 0,
+        "format_name": "wav",
+        "format_long_name": "WAV / WAVE (Waveform Audio)",
+        "duration": "67.000000",
+        "size": "12864078",
+        "bit_rate": "1536009",
+        "probe_score": 99,
+        "tags": {
+          "encoder": "Lavf63.1.102"
+        }
+      }
+    }
+  },
+  {
+    "source": "assets/audio/sourced/horror/dark-cavern-loop.ogg",
+    "output": "C:\\Users\\wolfk\\Desktop\\thelastdead\\promotion\\descent-film\\Sources\\Air.wav",
+    "command": [
+      "-n",
+      "-i",
+      "assets/audio/sourced/horror/dark-cavern-loop.ogg",
+      "-t",
+      "67",
+      "-af",
+      "loudnorm=I=-26:TP=-3:LRA=12,afade=t=in:d=1.2,afade=t=out:st=61:d=6",
+      "-ar",
+      "48000",
+      "C:\\Users\\wolfk\\Desktop\\thelastdead\\promotion\\descent-film\\Sources\\Air.wav"
+    ],
+    "metadata": {
+      "streams": [
+        {
+          "index": 0,
+          "codec_name": "pcm_s16le",
+          "codec_long_name": "PCM signed 16-bit little-endian",
+          "codec_type": "audio",
+          "codec_tag_string": "[1][0][0][0]",
+          "codec_tag": "0x0001",
+          "sample_fmt": "s16",
+          "sample_rate": "48000",
+          "channels": 1,
+          "bits_per_sample": 16,
+          "initial_padding": 0,
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0",
+          "time_base": "1/48000",
+          "duration_ts": 3216000,
+          "duration": "67.000000",
+          "bit_rate": "768000",
+          "disposition": {
+            "default": 0,
+            "dub": 0,
+            "original": 0,
+            "comment": 0,
+            "lyrics": 0,
+            "karaoke": 0,
+            "forced": 0,
+            "hearing_impaired": 0,
+            "visual_impaired": 0,
+            "clean_effects": 0,
+            "attached_pic": 0,
+            "timed_thumbnails": 0,
+            "non_diegetic": 0,
+            "captions": 0,
+            "descriptions": 0,
+            "metadata": 0,
+            "dependent": 0,
+            "still_image": 0,
+            "multilayer": 0
+          }
+        }
+      ],
+      "format": {
+        "filename": "C:\\Users\\wolfk\\Desktop\\thelastdead\\promotion\\descent-film\\Sources\\Air.wav",
+        "nb_streams": 1,
+        "nb_programs": 0,
+        "nb_stream_groups": 0,
+        "format_name": "wav",
+        "format_long_name": "WAV / WAVE (Waveform Audio)",
+        "duration": "67.000000",
+        "size": "6432078",
+        "bit_rate": "768009",
+        "probe_score": 99,
+        "tags": {
+          "encoder": "Lavf63.1.102"
+        }
+      }
+    }
+  },
+  {
+    "source": "assets/audio/sourced/horror/industrial-reveal.ogg",
+    "output": "C:\\Users\\wolfk\\Desktop\\thelastdead\\promotion\\descent-film\\Sources\\Industrial.wav",
+    "command": [
+      "-n",
+      "-i",
+      "assets/audio/sourced/horror/industrial-reveal.ogg",
+      "-t",
+      "67",
+      "-af",
+      "loudnorm=I=-20:TP=-3:LRA=12,afade=t=in:d=0.025,afade=t=out:st=6.55:d=0.45",
+      "-ar",
+      "48000",
+      "C:\\Users\\wolfk\\Desktop\\thelastdead\\promotion\\descent-film\\Sources\\Industrial.wav"
+    ],
+    "metadata": {
+      "streams": [
+        {
+          "index": 0,
+          "codec_name": "pcm_s16le",
+          "codec_long_name": "PCM signed 16-bit little-endian",
+          "codec_type": "audio",
+          "codec_tag_string": "[1][0][0][0]",
+          "codec_tag": "0x0001",
+          "sample_fmt": "s16",
+          "sample_rate": "48000",
+          "channels": 1,
+          "bits_per_sample": 16,
+          "initial_padding": 0,
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0",
+          "time_base": "1/48000",
+          "duration_ts": 336000,
+          "duration": "7.000000",
+          "bit_rate": "768000",
+          "disposition": {
+            "default": 0,
+            "dub": 0,
+            "original": 0,
+            "comment": 0,
+            "lyrics": 0,
+            "karaoke": 0,
+            "forced": 0,
+            "hearing_impaired": 0,
+            "visual_impaired": 0,
+            "clean_effects": 0,
+            "attached_pic": 0,
+            "timed_thumbnails": 0,
+            "non_diegetic": 0,
+            "captions": 0,
+            "descriptions": 0,
+            "metadata": 0,
+            "dependent": 0,
+            "still_image": 0,
+            "multilayer": 0
+          }
+        }
+      ],
+      "format": {
+        "filename": "C:\\Users\\wolfk\\Desktop\\thelastdead\\promotion\\descent-film\\Sources\\Industrial.wav",
+        "nb_streams": 1,
+        "nb_programs": 0,
+        "nb_stream_groups": 0,
+        "format_name": "wav",
+        "format_long_name": "WAV / WAVE (Waveform Audio)",
+        "duration": "7.000000",
+        "size": "672078",
+        "bit_rate": "768089",
+        "probe_score": 99,
+        "tags": {
+          "encoder": "Lavf63.1.102"
+        }
+      }
+    }
+  },
+  {
+    "source": "assets/audio/sourced/horror/string-sting.ogg",
+    "output": "C:\\Users\\wolfk\\Desktop\\thelastdead\\promotion\\descent-film\\Sources\\Sting.wav",
+    "command": [
+      "-n",
+      "-i",
+      "assets/audio/sourced/horror/string-sting.ogg",
+      "-t",
+      "67",
+      "-af",
+      "loudnorm=I=-20:TP=-3:LRA=12,afade=t=in:d=0.025,afade=t=out:st=7.097938:d=0.45",
+      "-ar",
+      "48000",
+      "C:\\Users\\wolfk\\Desktop\\thelastdead\\promotion\\descent-film\\Sources\\Sting.wav"
+    ],
+    "metadata": {
+      "streams": [
+        {
+          "index": 0,
+          "codec_name": "pcm_s16le",
+          "codec_long_name": "PCM signed 16-bit little-endian",
+          "codec_type": "audio",
+          "codec_tag_string": "[1][0][0][0]",
+          "codec_tag": "0x0001",
+          "sample_fmt": "s16",
+          "sample_rate": "48000",
+          "channels": 1,
+          "bits_per_sample": 16,
+          "initial_padding": 0,
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0",
+          "time_base": "1/48000",
+          "duration_ts": 362301,
+          "duration": "7.547937",
+          "bit_rate": "768000",
+          "disposition": {
+            "default": 0,
+            "dub": 0,
+            "original": 0,
+            "comment": 0,
+            "lyrics": 0,
+            "karaoke": 0,
+            "forced": 0,
+            "hearing_impaired": 0,
+            "visual_impaired": 0,
+            "clean_effects": 0,
+            "attached_pic": 0,
+            "timed_thumbnails": 0,
+            "non_diegetic": 0,
+            "captions": 0,
+            "descriptions": 0,
+            "metadata": 0,
+            "dependent": 0,
+            "still_image": 0,
+            "multilayer": 0
+          }
+        }
+      ],
+      "format": {
+        "filename": "C:\\Users\\wolfk\\Desktop\\thelastdead\\promotion\\descent-film\\Sources\\Sting.wav",
+        "nb_streams": 1,
+        "nb_programs": 0,
+        "nb_stream_groups": 0,
+        "format_name": "wav",
+        "format_long_name": "WAV / WAVE (Waveform Audio)",
+        "duration": "7.547938",
+        "size": "724680",
+        "bit_rate": "768082",
+        "probe_score": 99,
+        "tags": {
+          "encoder": "Lavf63.1.102"
+        }
+      }
+    }
+  },
+  {
+    "source": "assets/audio/sourced/horror/distant-scream-rough.ogg",
+    "output": "C:\\Users\\wolfk\\Desktop\\thelastdead\\promotion\\descent-film\\Sources\\Distant scream.wav",
+    "command": [
+      "-n",
+      "-i",
+      "assets/audio/sourced/horror/distant-scream-rough.ogg",
+      "-t",
+      "67",
+      "-af",
+      "loudnorm=I=-20:TP=-3:LRA=12,afade=t=in:d=0.025,afade=t=out:st=11.370635:d=0.45",
+      "-ar",
+      "48000",
+      "C:\\Users\\wolfk\\Desktop\\thelastdead\\promotion\\descent-film\\Sources\\Distant scream.wav"
+    ],
+    "metadata": {
+      "streams": [
+        {
+          "index": 0,
+          "codec_name": "pcm_s16le",
+          "codec_long_name": "PCM signed 16-bit little-endian",
+          "codec_type": "audio",
+          "codec_tag_string": "[1][0][0][0]",
+          "codec_tag": "0x0001",
+          "sample_fmt": "s16",
+          "sample_rate": "48000",
+          "channels": 1,
+          "bits_per_sample": 16,
+          "initial_padding": 0,
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0",
+          "time_base": "1/48000",
+          "duration_ts": 567391,
+          "duration": "11.820646",
+          "bit_rate": "768000",
+          "disposition": {
+            "default": 0,
+            "dub": 0,
+            "original": 0,
+            "comment": 0,
+            "lyrics": 0,
+            "karaoke": 0,
+            "forced": 0,
+            "hearing_impaired": 0,
+            "visual_impaired": 0,
+            "clean_effects": 0,
+            "attached_pic": 0,
+            "timed_thumbnails": 0,
+            "non_diegetic": 0,
+            "captions": 0,
+            "descriptions": 0,
+            "metadata": 0,
+            "dependent": 0,
+            "still_image": 0,
+            "multilayer": 0
+          }
+        }
+      ],
+      "format": {
+        "filename": "C:\\Users\\wolfk\\Desktop\\thelastdead\\promotion\\descent-film\\Sources\\Distant scream.wav",
+        "nb_streams": 1,
+        "nb_programs": 0,
+        "nb_stream_groups": 0,
+        "format_name": "wav",
+        "format_long_name": "WAV / WAVE (Waveform Audio)",
+        "duration": "11.820646",
+        "size": "1134860",
+        "bit_rate": "768052",
+        "probe_score": 99,
+        "tags": {
+          "encoder": "Lavf63.1.102"
+        }
+      }
+    }
+  }
+]

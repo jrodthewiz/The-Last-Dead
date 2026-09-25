@@ -158,6 +158,7 @@ function sharedTextureMaps() {
       texture.repeat.set(1.55, 1.15);
       texture.minFilter = THREE.LinearMipmapLinearFilter;
       texture.magFilter = THREE.LinearFilter;
+      texture.anisotropy = 4;
       if (colorSpace) texture.colorSpace = THREE.SRGBColorSpace;
       texture.userData.sharedAsset = true;
       texture.needsUpdate = true;

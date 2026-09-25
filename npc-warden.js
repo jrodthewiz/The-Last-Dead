@@ -10,10 +10,12 @@ export function createWarden(template,clips=[],kind=0,variant='',seed=0){
  const findClip=pattern=>clips.find(clip=>pattern.test(clip.name||''))||null;
  const walkClip=findClip(/^TLD_Walk$/i)||findClip(/walk/i);
  const idleClip=findClip(/^TLD_Idle$/i)||findClip(/idle/i)||findClip(/clip0/i)||(walkClip?null:clips[0]||null);
+ const combatClips={windup:findClip(/^TLD_Windup$/i),strike:findClip(/^TLD_Strike$/i),hit:findClip(/^TLD_Hit$/i),collapse:findClip(/^TLD_Collapse$/i)};
  const mixer=clips.length?new THREE.AnimationMixer(model):null,actions={};
  if(mixer){
   if(idleClip){actions.idle=mixer.clipAction(idleClip);actions.idle.setEffectiveWeight(1);actions.idle.play();}
   if(walkClip&&walkClip!==idleClip){actions.walk=mixer.clipAction(walkClip);actions.walk.setEffectiveWeight(idleClip?0:1);actions.walk.play();}
+  for(const [name,clip] of Object.entries(combatClips))if(clip){const action=mixer.clipAction(clip);action.setLoop(THREE.LoopOnce,1);action.clampWhenFinished=true;action.setEffectiveWeight(0);action.play();action.paused=true;actions[name]=action;}
   mixer.update(0);
  }
  // Clones start in the same animation pose. Reuse its bounds for normalization
@@ -44,10 +46,10 @@ export function createWarden(template,clips=[],kind=0,variant='',seed=0){
 
 export function resetWarden(root,variant='',seed=0){
  const w=root?.userData?.warden;if(!w)return root;
- root.visible=true;w.deadAt=null;w.last=0;w.motion=0;w.lastPosition?.set(0,0,0);
+ root.visible=true;w.deadAt=null;w.hitStartedAt=null;w.lastFlash=0;w.last=0;w.motion=0;w.lastPosition=null;
  w.pivot.position.set(0,0,0);w.pivot.rotation.set(0,0,0);
  for(const item of w.bones.values()){item.bone.position.copy(item.position);item.bone.quaternion.copy(item.base);}
- if(w.mixer){w.mixer.stopAllAction();for(const[name,action]of Object.entries(w.actions||{})){action.reset();action.setEffectiveWeight(name==='idle'||!w.idleAction?1:0);action.play();}w.mixer.setTime?.(0);w.wasWalking=false;}
+ if(w.mixer){w.mixer.stopAllAction();for(const[name,action]of Object.entries(w.actions||{})){action.reset();action.setEffectiveWeight(name==='idle'||!w.idleAction?1:0);action.play();action.paused=!['idle','walk'].includes(name);}w.mixer.setTime?.(0);w.wasWalking=false;}
  const appearance=resolveWardenVariant(w.kind,variant||w.variant,seed);
  w.variant=appearance.key;w.appearance=appearance;w.modelScale=appearance.modelScale??1;root.scale.setScalar(w.modelScale);applyWardenVariant(w.materials,appearance);w.ring.material.color.setHex(appearance.signal);w.ring.visible=false;
  return root;
@@ -55,12 +57,43 @@ export function resetWarden(root,variant='',seed=0){
 
 const q=new THREE.Quaternion(),axis=new THREE.Vector3();
 function pose(bones,names,x=0,y=0,z=0){const item=names.map(n=>bones.get(n)).find(Boolean);if(!item)return;item.bone.quaternion.copy(item.base);for(const[a,v]of[[[1,0,0],x],[[0,1,0],y],[[0,0,1],z]]){axis.set(...a);q.setFromAxisAngle(axis,v);item.bone.quaternion.multiply(q);}}
+function animateAuthoredWarden(root,w,enemy,now){
+ const t=now*.001,dt=w.last?Math.min(.05,Math.max(0,(now-w.last)/1000)):.016;w.last=now;
+ const moved=w.lastPosition?Math.hypot(root.position.x-w.lastPosition.x,root.position.z-w.lastPosition.z)/Math.max(.001,dt):0;
+ w.lastPosition??=new THREE.Vector3();w.lastPosition.copy(root.position);
+ w.motion+=(Math.min(3,moved)-w.motion)*Math.min(1,dt*12);
+ const flash=Math.max(0,enemy.flash||0);
+ if(flash>.001&&!(w.lastFlash>.001))w.hitStartedAt=t;
+ w.lastFlash=flash;
+ const hitElapsed=w.hitStartedAt==null?Infinity:t-w.hitStartedAt;
+ const hitAction=w.actions.hit,hitDuration=hitAction?.getClip().duration||0;
+ const hitWeight=hitElapsed<hitDuration?Math.min(1,Math.max(0,(hitDuration-hitElapsed)/.10)):0;
+ const windup=!!enemy.attacking&&!!w.actions.windup;
+ const strike=!windup&&(enemy.strike||0)>0&&!!w.actions.strike;
+ const dead=!!enemy.dead&&!!w.actions.collapse;
+ if(dead)w.deadAt??=t;else w.deadAt=null;
+ const combatWeight=dead?1:hitWeight?hitWeight:windup||strike?1:0;
+ const walkWeight=Math.max(0,Math.min(1,(w.motion-.12)/.72));
+ w.actions.idle?.setEffectiveWeight((1-walkWeight)*(1-combatWeight));
+ w.actions.walk?.setEffectiveWeight(walkWeight*(1-combatWeight));
+ if(w.actions.walk)w.actions.walk.setEffectiveTimeScale(Math.max(.55,Math.min(1.6,w.motion/1.35)));
+ const windupAction=w.actions.windup,strikeAction=w.actions.strike,collapseAction=w.actions.collapse;
+ if(windupAction){windupAction.time=windup?windupAction.getClip().duration*Math.max(0,Math.min(1,1-(enemy.windup||0)/(enemy.windupTime||.65))):0;windupAction.setEffectiveWeight(windup&&!dead&&!hitWeight?1:0);}
+ if(strikeAction){const phase=Math.max(0,Math.min(1,1-(enemy.strike||0)/.24));strikeAction.time=strike?strikeAction.getClip().duration*(.34+phase*.66):0;strikeAction.setEffectiveWeight(strike&&!dead&&!hitWeight?1:0);}
+ if(hitAction){hitAction.time=Math.min(hitDuration,Math.max(0,hitElapsed));hitAction.setEffectiveWeight(dead?0:hitWeight);}
+ if(collapseAction){collapseAction.time=dead?Math.min(collapseAction.getClip().duration,t-w.deadAt):0;collapseAction.setEffectiveWeight(dead?1:0);}
+ w.mixer.update(dt);
+ if(dead){const elapsed=t-w.deadAt;w.pivot.rotation.x=Math.min(1,elapsed/1.8)*.08;w.pivot.position.y=-Math.max(0,Math.min(1,(elapsed-.4)/1.4))*.12;root.visible=elapsed<2.3;}
+ else{root.visible=true;w.pivot.rotation.x=0;w.pivot.position.y=w.kind===1?.08+Math.sin(t*2)*.025:0;}
+ for(const m of w.materials){if(!m.emissive)continue;m.emissive.copy(m.userData.baseEmissive);m.emissive.r+=flash*.65;m.emissive.g+=flash*.14;m.emissive.b+=flash*.1;m.emissiveIntensity=flash>0?Math.max(1,m.userData.baseEmissiveIntensity||0):(m.userData.baseEmissiveIntensity??0);}
+}
 export function animateWarden(root,enemy,now,seed){
  const w=root.userData.warden,t=now*.001,walk=Math.sin(t*7+seed),warning=!!enemy.attacking,attack=warning?1-Math.min(1,(enemy.windup||0)/[.28,.48,.65][w.kind]):Math.min(1,(enemy.strike||0)/.22),hit=Math.min(1,(enemy.flash||0)/.16);
  const requested=enemy.variant||w.variant;
  const appearance=resolveWardenVariant(w.kind,requested,seed);
  if(appearance.key!==w.variant){w.variant=appearance.key;w.appearance=appearance;w.modelScale=appearance.modelScale??1;root.scale.setScalar(w.modelScale);applyWardenVariant(w.materials,appearance);w.ring.material.color.setHex(appearance.signal);}
  w.ring.visible=warning&&!enemy.dead;w.ring.scale.setScalar(1+attack*.35);
+ if(w.actions.windup){animateAuthoredWarden(root,w,enemy,now);return;}
  if(enemy.dead){w.deadAt??=t;const fall=Math.min(1,(t-w.deadAt)*2.8);w.pivot.rotation.x=fall*1.45;w.pivot.position.y=-fall*.35;root.visible=fall<1;return;}
  w.deadAt=null;root.visible=true;w.pivot.rotation.x=.06+hit*.2;w.pivot.position.y=w.kind===1?.08+Math.sin(t*2+seed)*.035:Math.abs(walk)*.015;
  if(w.mixer){const dt=w.last?Math.min(.05,(now-w.last)/1000):.016;w.last=now;const moved=w.lastPosition?Math.hypot(root.position.x-w.lastPosition.x,root.position.z-w.lastPosition.z)/Math.max(.001,dt):0;w.lastPosition??=new THREE.Vector3();w.lastPosition.copy(root.position);w.motion+=(Math.min(3,moved)-w.motion)*Math.min(1,dt*12);const walkWeight=warning?0:Math.max(0,Math.min(1,(w.motion-.12)/.72));if(w.idleAction)w.idleAction.setEffectiveWeight(w.walkAction?1-walkWeight:1);if(w.walkAction){const walking=!!(walkWeight>.08);if(walking&&!w.wasWalking){w.walkAction.reset().play();}w.wasWalking=walking;w.walkAction.setEffectiveWeight(w.idleAction?walkWeight:1);w.walkAction.setEffectiveTimeScale(Math.max(.55,Math.min(1.6,w.motion/1.35)));}w.mixer.update(dt);const hip=w.bones.get('hips');if(hip){hip.bone.position.x=hip.position.x;hip.bone.position.z=hip.position.z;}for(const n of['leftarm','rightarm']){const b=w.bones.get(n);if(b)b.bone.quaternion.multiply(q.setFromAxisAngle(axis.set(1,0,0),-attack*.8));}}else{

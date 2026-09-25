@@ -23,7 +23,12 @@ const place = (g, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, s
 const box = (w, h, d, ...t) => place(new THREE.BoxGeometry(w, h, d), ...t);
 const cyl = (rt, rb, h, seg, ...t) => place(new THREE.CylinderGeometry(rt, rb, h, seg), ...t);
 const sphere = (r, ws, hs, ...t) => place(new THREE.SphereGeometry(r, ws, hs), ...t);
-const capsule = (r, len, ...t) => place(new THREE.CapsuleGeometry(r, len, 3, 8), ...t);
+const capsule = (r, len, ...t) => {
+  const h = len * .5;
+  const profile = [[0,-h-r],[r*.65,-h-r*.72],[r,-h-r*.15],
+    [r*.7,-h*.4],[r*.58,0],[r*.86,h*.5],[r*.9,h+r*.2],[r*.48,h+r*.75],[0,h+r]];
+  return place(new THREE.LatheGeometry(profile.map(([a,b]) => new THREE.Vector2(a,b)), 9), ...t);
+};
 const torus = (r, tube, ...t) => place(new THREE.TorusGeometry(r, tube, 6, 16), ...t);
 const cone = (r, h, seg, ...t) => place(new THREE.ConeGeometry(r, h, seg), ...t);
 const ico = (r, ...t) => place(new THREE.IcosahedronGeometry(r, 1), ...t);
@@ -308,13 +313,27 @@ export function setDressingMaterials(materials, sector) {
     m.name = 'SetDressing_' + name;
     return m;
   };
+  // The large wood, steel and stone silhouettes share the renderer's loaded
+  // albedo sources. Cloning preserves the asynchronously populated texture
+  // object, while each prop role can still set its own PBR response and tint.
+  const surfaced = (source, name, color, roughness, metalness) => {
+    if (!source?.map) return std(name, color, roughness, metalness);
+    const material = source.clone();
+    material.name = 'SetDressing_' + name;
+    material.color.setHex(color);
+    material.roughness = roughness;
+    material.metalness = metalness;
+    material.emissive?.setHex(0x000000);
+    material.needsUpdate = true;
+    return material;
+  };
   return {
-    metal: materials.metalDark || std('metal', 0x3a3f44, .6, .7),
+    metal: surfaced(materials.wornSteel, 'metal', 0x777672, .7, .58),
     dark: materials.black || std('dark', 0x0b0b0c, .9, .1),
     hazard: materials.hazard || std('hazard', 0xc99a2e, .7, .2),
-    wood: std('wood', sector === 'choir' ? 0x6a4630 : 0x75603f, .86, 0),
-    steel: materials.steel || std('steel', 0x6d757c, .55, .6),
-    stone: std('stone', sector === 'ossuary' ? 0x3b3842 : 0x3a3431, .95, 0),
+    wood: surfaced(materials.afterlifeWood, 'wood', sector === 'choir' ? 0xa18a70 : 0xb6a589, .88, .02),
+    steel: surfaced(materials.wornSteel, 'steel', 0xa4a4a0, .59, .58),
+    stone: surfaced(materials.wall, 'stone', sector === 'ossuary' ? 0x6b6568 : 0x615750, .96, 0),
     bone: std('bone', sector === 'ossuary' ? 0x998d78 : 0xb7a98c, .88, 0),
     cloth: std('cloth', sector === 'choir' ? 0x5a2a24 : 0x9a9180, .92, 0, { side: THREE.DoubleSide }),
     flesh: std('flesh', 0x6a2a26, .5, 0, { emissive: 0x1a0404 }),

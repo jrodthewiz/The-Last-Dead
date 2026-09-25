@@ -101,7 +101,15 @@ const place = (geometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, sx = 1, sy
 const cyl = (rt, rb, h, seg, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => place(new THREE.CylinderGeometry(rt, rb, h, seg), x, y, z, rx, ry, rz);
 const box = (w, h, d, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => place(new THREE.BoxGeometry(w, h, d), x, y, z, rx, ry, rz);
 const sphere = (r, ws, hs, x = 0, y = 0, z = 0) => place(new THREE.SphereGeometry(r, ws, hs), x, y, z);
-const capsule = (r, len, cap, seg, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => place(new THREE.CapsuleGeometry(r, len, cap, seg), x, y, z, rx, ry, rz);
+// Tapered, knuckled anatomy reads as remains at ground level; uniform pill
+// geometry made every bone and limb look like the same smooth placeholder.
+const capsule = (r, len, cap, seg, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {
+  const half = len * .5;
+  const profile = [[0, -half-r], [r*.62, -half-r*.78], [r, -half-r*.22],
+    [r*.72, -half*.42], [r*.58, 0], [r*.82, half*.42],
+    [r*.94, half+r*.18], [r*.48, half+r*.72], [0, half+r]];
+  return place(new THREE.LatheGeometry(profile.map(([a,b]) => new THREE.Vector2(a,b)), Math.max(8, seg)), x, y, z, rx, ry, rz);
+};
 const torus = (r, tube, rad, tub, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, arc = Math.PI * 2) => place(new THREE.TorusGeometry(r, tube, rad, tub, arc), x, y, z, rx, ry, rz);
 const ico = (r, detail, x = 0, y = 0, z = 0) => place(new THREE.IcosahedronGeometry(r, detail), x, y, z);
 const cone = (r, h, seg, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => place(new THREE.ConeGeometry(r, h, seg), x, y, z, rx, ry, rz);
@@ -116,7 +124,7 @@ function mergeParts(parts) {
     merged.computeBoundingSphere();
     return merged;
   }
-  return new THREE.BoxGeometry(.4, .4, .4);
+  throw new Error('Life prop geometry merge failed');
 }
 
 // Irregular rim plus congealed lumps, so a pool reads as matter on the floor
@@ -144,11 +152,49 @@ function splatGeometry(lumps = 3) {
 }
 
 function skullParts(x = 0, y = 0, z = 0, scale = 1) {
+  const radius = .19 * scale;
+  const cranium = new THREE.SphereGeometry(radius, 16, 12);
+  cranium.scale(1, 1.06, .9);
+  const vertices = cranium.attributes.position;
+  for (let i = 0; i < vertices.count; i++) {
+    const vx = vertices.getX(i), vy = vertices.getY(i), vz = vertices.getZ(i);
+    if (vz < radius * .3) continue;
+    const left = Math.hypot(vx + radius * .4, vy - radius * .07);
+    const right = Math.hypot(vx - radius * .4, vy - radius * .07);
+    const eye = Math.max(0, 1 - Math.min(left, right) / (radius * .48));
+    vertices.setZ(i, vz - eye * radius * .23);
+  }
+  cranium.computeVertexNormals();
   return [
-    ico(.19 * scale, 1, x, y, z),
-    box(.2 * scale, .09 * scale, .16 * scale, x, y - .15 * scale, z + .03 * scale),
-    box(.1 * scale, .07 * scale, .08 * scale, x, y - .05 * scale, z + .17 * scale),
+    place(cranium, x, y, z),
+    place(new THREE.SphereGeometry(.13 * scale, 12, 8), x, y - .145 * scale, z + .04 * scale, 0, 0, 0, 1, .46, .72),
+    place(new THREE.ConeGeometry(.045 * scale, .12 * scale, 8), x, y - .04 * scale, z + .175 * scale, Math.PI, 0, 0),
+    sphere(.055 * scale, 8, 6, x - .12 * scale, y - .1 * scale, z + .08 * scale),
+    sphere(.055 * scale, 8, 6, x + .12 * scale, y - .1 * scale, z + .08 * scale),
   ];
+}
+
+function shroudedBody() {
+  const rings = [[-.57,.08,.07],[-.43,.25,.18],[-.23,.36,.25],[.08,.34,.23],[.34,.25,.17],[.57,.07,.06]];
+  const positions = [], uvs = [], indices = [], sides = 10;
+  for (let ring = 0; ring < rings.length; ring++) {
+    const [z, width, height] = rings[ring];
+    for (let side = 0; side <= sides; side++) {
+      const angle = side / sides * Math.PI * 2;
+      positions.push(Math.sin(angle) * width, .26 + Math.cos(angle) * height, z);
+      uvs.push(side / sides, ring / (rings.length - 1));
+    }
+  }
+  for (let ring = 0; ring < rings.length - 1; ring++) for (let side = 0; side < sides; side++) {
+    const a = ring * (sides + 1) + side, b = a + sides + 1;
+    indices.push(a, b, a + 1, a + 1, b, b + 1);
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
 }
 
 let LIFE_GEOMETRY = null;
@@ -165,7 +211,7 @@ function lifeGeometry() {
   G.barrel = mergeParts(barrelParts);
   G.splat = splatGeometry(3);
   G.bodyPile = mergeParts([
-    box(.72, .3, 1.15, 0, .17, 0),
+    shroudedBody(),
     capsule(.11, .46, 4, 7, -.4, .16, .28, 0, 0, 1.35),
     capsule(.11, .5, 4, 7, .42, .14, -.22, 0, 0, -1.15),
     capsule(.09, .38, 3, 6, .1, .12, .58, Math.PI / 2.2, 0, 0),
@@ -240,7 +286,7 @@ function lifeGeometry() {
   G.cage = mergeParts(cageParts());
   G.cageBody = mergeParts([
     ...cageParts(),
-    box(.52, .3, .74, 0, 2.0, 0),
+    place(shroudedBody(), 0, 2.02, 0, Math.PI / 2, 0, 0),
     capsule(.09, .34, 3, 6, -.24, 1.92, .1, 0, 0, .5),
     capsule(.09, .34, 3, 6, .24, 1.92, -.1, 0, 0, -.5),
     ...skullParts(0, 2.32, 0, 1),
@@ -248,7 +294,7 @@ function lifeGeometry() {
   G.hangingCorpse = mergeParts([
     cyl(.03, .03, 2.9, 6, 0, 4.2, 0),
     torus(.18, .03, 5, 10, 0, 2.68, 0, 0, 0, 0, Math.PI * 1.5),
-    box(.6, .34, .5, 0, 2.2, 0),
+    place(shroudedBody(), 0, 2.21, 0, -Math.PI / 2, 0, 0),
     capsule(.1, .5, 3, 6, -.16, 1.86, .02, 0, 0, .12),
     capsule(.1, .5, 3, 6, .16, 1.86, -.02, 0, 0, -.12),
     ...skullParts(0, 2.52, .04, 1.05),

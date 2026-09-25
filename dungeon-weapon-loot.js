@@ -6,9 +6,8 @@ import { createRifle } from './weapon-rifles.js';
 import { createMeleeWeapon } from './weapon-melee.js';
 import { batchStaticWorld } from './world-polish.js';
 
-// The floor pickup uses the same authored form as the equipped weapon. The
-// cradle and restrained beacon identify a find through a dark room without
-// turning the weapon itself into an unrecognizable glowing primitive.
+// The floor pickup uses the equipped weapon's authored form, displayed on a
+// compact salvage rack. Small rarity lamps mark it without hiding the model.
 const COLORS = Object.freeze({ uncommon: 0x81d9ac, rare: 0x72baff, epic: 0xbd8dff, legendary: 0xffcf74 });
 const FACTORIES = Object.freeze({
   1: () => createBreach(),
@@ -20,9 +19,10 @@ const FACTORIES = Object.freeze({
   7: () => createMeleeWeapon({ variant: 'chainsaw' }),
 });
 
-const metal = () => new THREE.MeshStandardMaterial({ color: 0x242b30, metalness: .75, roughness: .36 });
+const metal = () => new THREE.MeshStandardMaterial({ color: 0x444749, metalness: .66, roughness: .48 });
+const recess = () => new THREE.MeshStandardMaterial({ color: 0x0d1113, metalness: .36, roughness: .82 });
 const signal = color => new THREE.MeshStandardMaterial({
-  color, metalness: .3, roughness: .28, emissive: color, emissiveIntensity: .85,
+  color, metalness: .22, roughness: .38, emissive: color, emissiveIntensity: .8,
 });
 
 export function buildDungeonWeaponLoot(worldRoot, course) {
@@ -36,36 +36,36 @@ export function buildDungeonWeaponLoot(worldRoot, course) {
     root.name = `StoryWeaponFind_${loot.id}`;
     root.userData.noBatch = true;
     root.position.set(loot.x * 4, 0, loot.y * 4);
-    const dark = metal(), bright = signal(color);
-
-    const foot = new THREE.Mesh(new THREE.CylinderGeometry(.9, 1.02, .13, 12), dark);
-    foot.position.y = .11;
-    const inset = new THREE.Mesh(new THREE.TorusGeometry(.73, .052, 6, 24), bright);
-    inset.rotation.x = Math.PI / 2;
-    inset.position.y = .205;
-    root.add(foot, inset);
+    const dark = metal(), inner = recess(), bright = signal(color);
+    const foot = new THREE.Mesh(new THREE.CylinderGeometry(.88, 1.02, .18, 8), dark);
+    foot.name = 'SalvageRackBase';
+    foot.position.y = .13;
+    const bed = new THREE.Mesh(new THREE.CylinderGeometry(.76, .82, .045, 8), inner);
+    bed.position.y = .245;
+    root.add(foot, bed);
+    // The broken perimeter reads as a manufactured base rather than a neon ring.
+    const markerGeometry = new THREE.BoxGeometry(.25, .024, .035);
     for (const side of [-1, 1]) {
-      const arm = new THREE.Mesh(new THREE.BoxGeometry(.12, .43, .16), dark);
-      arm.position.set(side * .65, .39, 0);
-      const tip = new THREE.Mesh(new THREE.BoxGeometry(.18, .055, .22), bright);
-      tip.position.set(side * .65, .64, 0);
-      root.add(arm, tip);
+      for (const end of [-1, 1]) {
+        const marker = new THREE.Mesh(markerGeometry, bright);
+        marker.position.set(side * .55, .28, end * .55);
+        marker.rotation.y = side * end * Math.PI / 4;
+        root.add(marker);
+      }
+    }
+    for (const side of [-1, 1]) {
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(.13, .52, .22), dark);
+      arm.position.set(side * .63, .53, 0);
+      arm.rotation.z = -side * .12;
+      const saddle = new THREE.Mesh(new THREE.BoxGeometry(.23, .065, .38), inner);
+      saddle.position.set(side * .67, .81, 0);
+      const edge = new THREE.Mesh(new THREE.BoxGeometry(.2, .018, .035), bright);
+      edge.position.set(side * .67, .85, .17);
+      root.add(arm, saddle, edge);
     }
 
-    const beam = new THREE.Mesh(
-      new THREE.CylinderGeometry(.42, .8, 3.6, 14, 1, true),
-      new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .18,
-        blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
-    );
-    beam.position.y = 2.05;
-    root.add(beam);
-    const crown = new THREE.Mesh(new THREE.TorusGeometry(.47, .04, 6, 24), bright);
-    crown.rotation.x = Math.PI / 2;
-    crown.position.y = 3.77;
-    root.add(crown);
-
     const carrier = new THREE.Group();
-    carrier.position.y = 1.57;
+    carrier.position.y = 1.46;
     const model = factory();
     if (loot.weaponIndex === 6) model.rotation.z = Math.PI / 2;
     // These display forms have no moving mechanisms. Bake their detailed
@@ -75,7 +75,7 @@ export function buildDungeonWeaponLoot(worldRoot, course) {
     const bounds = new THREE.Box3().setFromObject(model);
     const size = bounds.getSize(new THREE.Vector3());
     const center = bounds.getCenter(new THREE.Vector3());
-    const scale = 2.35 / Math.max(size.x, size.y, size.z, .1);
+    const scale = 3.5 / Math.max(size.x, size.y, size.z, .1);
     const normalized = new THREE.Group();
     normalized.scale.setScalar(scale);
     model.position.sub(center);
@@ -83,38 +83,29 @@ export function buildDungeonWeaponLoot(worldRoot, course) {
     carrier.add(normalized);
     root.add(carrier);
 
-    const halo = new THREE.Mesh(new THREE.TorusGeometry(1.2, .028, 5, 32), bright);
-    halo.rotation.x = Math.PI / 2;
-    halo.position.y = 1.5;
-    root.add(halo);
-    const glints = new THREE.Group();
-    const glintShape = new THREE.OctahedronGeometry(.075, 0);
-    for (let index = 0; index < 4; index++) {
-      const shard = new THREE.Mesh(glintShape, bright);
-      const angle = index * Math.PI / 2;
-      shard.position.set(Math.cos(angle) * 1.05, 1.45 + (index % 2) * .48, Math.sin(angle) * 1.05);
-      glints.add(shard);
-    }
-    root.add(glints);
-    const light = new THREE.PointLight(color, .95, 8, 2);
-    light.position.y = 1.7;
+    const light = new THREE.PointLight(0xffead2, 2.15, 5, 2);
+    light.position.set(-.45, 2.25, .65);
     root.add(light);
     worldRoot.add(root);
-    items.push({ ...loot, root, carrier, halo, beam, glints, light });
+    items.push({ ...loot, root, carrier, light });
   }
   return items;
 }
 
-export function updateDungeonWeaponLoot(items, collected, timeMs, reducedMotion = false) {
+export function updateDungeonWeaponLoot(items, collected, timeMs, reducedMotion = false, viewer = null) {
   const found = new Set(collected || []);
   for (const item of items || []) {
     item.root.visible = !found.has(item.id);
     if (!item.root.visible) continue;
     const phase = timeMs * .001 + item.weaponIndex * .8;
-    item.carrier.position.y = reducedMotion ? 1.57 : 1.57 + Math.sin(phase * 1.7) * .13;
-    item.carrier.rotation.y = reducedMotion ? .42 : phase * .42;
-    item.halo.rotation.z = reducedMotion ? 0 : phase * .25;
-    item.glints.rotation.y = reducedMotion ? 0 : -phase * .36;
-    item.light.intensity = reducedMotion ? .8 : .8 + Math.sin(phase * 2.3) * .18;
+    item.carrier.position.y = reducedMotion ? 1.46 : 1.46 + Math.sin(phase * 1.45) * .055;
+    const dx = viewer ? viewer.x - item.root.position.x : 1;
+    const dz = viewer ? viewer.z - item.root.position.z : 0;
+    // Show the long side of the weapon from any approach; full spinning turns
+    // rifles and launchers into an unreadable end-on silhouette.
+    const facing = Math.atan2(dx, dz) + Math.PI / 2;
+    item.carrier.rotation.y = facing + .24 + (reducedMotion ? 0 : Math.sin(phase * .72) * .07);
+    item.carrier.rotation.z = -.08;
+    item.light.intensity = reducedMotion ? 2.05 : 2.05 + Math.sin(phase * 1.8) * .12;
   }
 }
