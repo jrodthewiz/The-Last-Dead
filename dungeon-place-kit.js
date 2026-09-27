@@ -6,6 +6,28 @@ import * as THREE from './vendor/three.module.js';
 const CELL = 4;
 const BOX = new THREE.BoxGeometry(1, 1, 1);
 const PIPE = new THREE.CylinderGeometry(.5, .5, 1, 8);
+function burialArchGeometry() {
+  const outer = new THREE.Shape();
+  outer.moveTo(-.5, -.5);
+  outer.lineTo(-.5, .12);
+  outer.quadraticCurveTo(-.48, .37, 0, .5);
+  outer.quadraticCurveTo(.48, .37, .5, .12);
+  outer.lineTo(.5, -.5);
+  outer.closePath();
+  const opening = new THREE.Path();
+  opening.moveTo(-.34, -.43);
+  opening.lineTo(.34, -.43);
+  opening.lineTo(.34, .08);
+  opening.quadraticCurveTo(.31, .27, 0, .35);
+  opening.quadraticCurveTo(-.31, .27, -.34, .08);
+  opening.closePath();
+  outer.holes.push(opening);
+  const geometry = new THREE.ExtrudeGeometry(outer, { depth: 1, bevelEnabled: false, curveSegments: 10 });
+  geometry.translate(0, 0, -.5);
+  geometry.userData.sharedAsset = true;
+  return geometry;
+}
+const ARCH = burialArchGeometry();
 BOX.userData.sharedAsset = true;
 PIPE.userData.sharedAsset = true;
 
@@ -39,7 +61,7 @@ export function planDungeonPlaceKit(course) {
     const style = roomStyle(course.id, room);
     if (!style) continue;
     const { minX, minZ, maxX, maxZ } = room.bounds;
-    const candidates = (course.walls || []).filter(wall => belongsToRoom(room, wall.cx, wall.cy));
+    const candidates = (course.permanentWalls || course.walls || []).filter(wall => belongsToRoom(room, wall.cx, wall.cy));
     // A few intact panels per room read as built infrastructure. Avoid door
     // jambs, corner cuts and an uninterrupted wall of repeated details.
     const chosen = candidates.filter(wall => ((wall.cx * 7 + wall.cy * 11 + wall.direction * 3) % 5) < 2)
@@ -74,18 +96,28 @@ function palette(materials, art) {
     'f4-resonance': 0x2e261f,
     'f5-last-descent': 0x221c20,
   };
-  const ceiling = new THREE.MeshStandardMaterial({
-    color: roofColors[art?.id] || 0x282729, roughness: 1, metalness: 0,
-  });
+  const clone = (source, name, color, roughness, metalness) => {
+    const material = source?.clone?.() || make(name, color);
+    material.name = `DungeonPlace_${name}_${art?.id || 'story'}`;
+    material.color.setHex(color);
+    material.roughness = roughness;
+    material.metalness = metalness;
+    material.userData = { ...material.userData, placeKitOwned: true };
+    material.needsUpdate = true;
+    return material;
+  };
+  const steel = materials.wornSteel || materials.steel || materials.metalDark;
+  const stone = materials.wall || materials.floor;
+  const ceiling = clone(stone, 'ceiling', roofColors[art?.id] || 0x282729, 1, 0);
   ceiling.name = `DungeonPlace_ceiling_${art?.id || 'story'}`;
   return {
-    frame: materials.metalDark || make('frame', 0x35363a),
-    trim: materials.floorTrim || materials.rust || make('trim', 0x826c5f),
+    frame: clone(steel, 'frame', 0x595453, .82, .42),
+    trim: clone(steel, 'trim', 0x947b69, .72, .48),
     recess: materials.wallDeep || materials.black || make('recess', 0x15191c),
-    pale: make('pale', art?.wallSurface || 0xa2a69e),
+    pale: clone(stone, 'pale', art?.wallSurface || 0xa2a69e, .88, .08),
     signal: make('signal', art?.accent2 || 0xcf8050, art?.accent2 || 0xcf8050),
-    glass: make('observation-glass', 0x354b48),
-    bone: make('burial-stone', art?.panelSurface || 0x8c8378),
+    glass: clone(materials.glass, 'observation-glass', 0x354b48, .2, .12),
+    bone: clone(stone, 'burial-stone', art?.panelSurface || 0x8c8378, .96, .03),
     ceiling,
   };
 }
@@ -121,13 +153,13 @@ export function buildDungeonPlaceKit(root, materials, course) {
   if (!course?.dungeon) return group;
   const plan = planDungeonPlaceKit(course);
   const layers = Object.fromEntries(['frame', 'trim', 'recess', 'pale', 'signal', 'glass', 'bone', 'ceiling']
-    .map(key => [key, { box: [], pipe: [] }]));
+    .map(key => [key, { box: [], pipe: [], arch: [] }]));
   const put = (layer, shape, x, y, z, sx, sy, sz, ry = 0) =>
     layers[layer][shape].push({ x, y, z, sx, sy, sz, ry });
-  const wallBox = (wall, layer, x, y, depth, width, height, thickness) => {
+  const wallBox = (wall, layer, x, y, depth, width, height, thickness, shape = 'box') => {
     const yaw = [0, -Math.PI / 2, Math.PI, Math.PI / 2][wall.direction];
     const cx = wall.x * CELL, cz = wall.z * CELL;
-    put(layer, 'box', cx + Math.sin(yaw) * depth + Math.cos(yaw) * x,
+    put(layer, shape, cx + Math.sin(yaw) * depth + Math.cos(yaw) * x,
       y, cz + Math.cos(yaw) * depth - Math.sin(yaw) * x,
       width, height, thickness, yaw);
   };
@@ -152,11 +184,18 @@ export function buildDungeonPlaceKit(root, materials, course) {
       wallBox(wall, 'pale', 0, 2.6, .18, 3.05, 3.5, .12);
       wallBox(wall, 'recess', 0, 3.22, .27, 2.65, 1.5, .12);
       wallBox(wall, 'glass', 0, 3.22, .35, 2.3, 1.15, .07);
+      for (const x of [-1.19, 0, 1.19]) wallBox(wall, 'trim', x, 3.22, .43, .075, 1.39, .1);
+      for (const y of [2.58, 3.86]) wallBox(wall, 'trim', 0, y, .43, 2.46, .075, .1);
       wallBox(wall, 'trim', 0, 2.61, .43, 2.8, .12, .12);
+      wallBox(wall, 'frame', 0, 1.64, .32, 1.12, .22, .09);
+      wallBox(wall, 'pale', 0, 1.64, .39, .91, .12, .025);
+      for (const x of [-1.34, 1.34]) for (const y of [1.3, 4.18]) {
+        wallBox(wall, 'frame', x, y, .34, .09, .09, .08);
+      }
       wallBox(wall, 'signal', 0, 4.48, .34, 1.0, .09, .1);
     } else if (wall.style === 'crypt') {
-      wallBox(wall, 'bone', 0, 2.85, .15, 3.0, 4.65, .16);
-      wallBox(wall, 'recess', 0, 2.75, .28, 2.35, 3.7, .12);
+      wallBox(wall, 'recess', 0, 2.75, .18, 2.35, 3.7, .12);
+      wallBox(wall, 'bone', 0, 2.85, .34, 3.2, 4.65, .24, 'arch');
       for (const y of [1.65, 2.8, 3.95]) {
         wallBox(wall, 'bone', 0, y, .39, 2.45, .13, .32);
         wallBox(wall, 'trim', 0, y - .33, .4, 1.58, .12, .2);
@@ -192,12 +231,13 @@ export function buildDungeonPlaceKit(root, materials, course) {
   }
   const mats = palette(materials, course.artDirection);
   for (const [key, shapes] of Object.entries(layers)) {
-    if (!shapes.box.length && !shapes.pipe.length) {
+    if (!shapes.box.length && !shapes.pipe.length && !shapes.arch.length) {
       if (!Object.values(materials).includes(mats[key])) mats[key].dispose();
       continue;
     }
     addInstanced(group, `${key}_box`, BOX, mats[key], shapes.box);
     addInstanced(group, `${key}_pipe`, PIPE, mats[key], shapes.pipe);
+    addInstanced(group, `${key}_arch`, ARCH, mats[key], shapes.arch);
   }
   group.userData.plan = plan;
   group.userData.wallPanels = plan.walls.length;

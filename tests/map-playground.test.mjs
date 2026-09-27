@@ -89,26 +89,68 @@ function walkToDungeonPoint(run, target, label, { allowFloorTransition = false }
   return { transitioned: false, frameCount };
 }
 
-function clearDungeonWavesThroughEngine(run) {
-  const course = run.course;
-  for (let waveIndex = 0; waveIndex < course.waveCount; waveIndex += 1) {
-    const priorCount = course.enemies.length;
-    run.waveDelay = 0;
-    tick(run, 1 / 60, {});
-    assert.equal(run.wave, waveIndex + 1, `${course.name}: live progression should start wave ${waveIndex + 1}`);
-    const spawned = course.enemies.slice(priorCount);
-    assert.equal(spawned.length, course.waveSpawns[waveIndex].length, `${course.name}: every scheduled enemy should appear in its engine wave`);
-    for (const spawn of course.waveSpawns[waveIndex]) {
-      assert.ok(spawned.some(enemy => enemy.variant === spawn.variant && enemy.x === spawn.x && enemy.y === spawn.y), `${course.name}/${spawn.id}: the authored enemy should spawn at its resolved cell`);
+function roomWalkablePoint(course, roomId, avoid = null, from = null) {
+  const room = course.rooms.find(item => item.id === roomId);
+  assert.ok(room, `${course.name}: authored encounter room ${roomId} must exist`);
+  const points = [];
+  for (let y = room.bounds.minZ + .5; y < room.bounds.maxZ; y += 1) {
+    for (let x = room.bounds.minX + .5; x < room.bounds.maxX; x += 1) {
+      const row = room.footprint?.[Math.floor(y) - room.bounds.minZ];
+      const footprintCell = row?.[Math.floor(x) - room.bounds.minX];
+      if (room.footprint && footprintCell !== '1' && footprintCell !== 1 && footprintCell !== true) continue;
+      if (canStand(course, x, y, .12)) points.push({ x, y });
     }
-
-    // Keep this route QA deterministic: validate each live wave, then clear it
-    // so the engine's normal progression logic can release the next gates.
-    for (const enemy of spawned) enemy.dead = true;
-    run.waveDelay = 2;
-    tick(run, 1 / 60, {});
   }
-  assert.ok(course.openings.filter(opening => opening.lockedBy === 'room-clear').every(opening => course.openingState[opening.id]), `${course.name}: cleared engine waves should open all scheduled encounter gates`);
+  assert.ok(points.length > 0, `${course.name}/${roomId}: encounter room needs a walkable test point`);
+  const reachable = from ? reachableCells(course.cells, course.w, course.h, from) : null;
+  const routed = reachable ? points.filter(point => reachable.has(`${Math.floor(point.x)},${Math.floor(point.y)}`)) : points;
+  assert.ok(routed.length > 0, `${course.name}/${roomId}: encounter room has no point reachable through currently open gates`);
+  if (avoid) routed.sort((a, b) => Math.hypot(b.x - avoid.x, b.y - avoid.y) - Math.hypot(a.x - avoid.x, a.y - avoid.y));
+  return routed[0];
+}
+
+function clearDungeonEncountersThroughEngine(run, { afterClear = () => {} } = {}) {
+  const course = run.course;
+  const progression = run.dungeonProgression;
+  assert.ok(progression?.encounterPlan?.length, `${course.name}: authored encounter plan should not be empty`);
+  let guard = 0;
+  while (progression.nextEncounterIndex < progression.encounterPlan.length) {
+    const node = progression.encounterPlan[progression.nextEncounterIndex];
+    const point = roomWalkablePoint(course, node.roomId, { x: run.x, y: run.y }, run);
+    const route = routeThroughWalkableCells(course, run, point);
+    assert.ok(route.length > 1 || Math.hypot(run.x - point.x, run.y - point.y) < .2,
+      `${course.name}/${node.id}: the next encounter room must be reachable through currently open gates`);
+    run.x = point.x;
+    run.y = point.y;
+    tick(run, 1 / 60, {});
+    // F4 intentionally revisits its east aisle. Move to the far side of the
+    // same authored room so a second entry has a real travel signal.
+    if (!progression.currentEncounter) {
+      const reentry = roomWalkablePoint(course, node.roomId, { x: run.x, y: run.y }, run);
+      run.x = reentry.x;
+      run.y = reentry.y;
+      tick(run, 1 / 60, {});
+    }
+    const encounter = progression.currentEncounter;
+    assert.ok(encounter, `${course.name}/${node.id}: entering the authored room should start its encounter`);
+    const encounterId = encounter.id;
+    let frames = 0;
+    while (progression.currentEncounter?.id === encounterId && frames < 720) {
+      tick(run, 1 / 60, {});
+      for (const enemy of course.enemies) {
+        if (!enemy.dead && enemy.encounterId === encounterId) enemy.dead = true;
+      }
+      frames += 1;
+    }
+    assert.ok(frames < 720, `${course.name}/${node.id}: encounter should finish after its authored queue is cleared`);
+    const spawned = course.enemies.filter(enemy => enemy.encounterId === encounterId);
+    assert.equal(spawned.length, node.spawns.length, `${course.name}/${node.id}: every authored spawn should enter the room queue`);
+    assert.equal(node.status, 'cleared', `${course.name}/${node.id}: clearing the queue should mark its room clear`);
+    afterClear(node, run);
+    guard += 1;
+    assert.ok(guard <= progression.encounterPlan.length, `${course.name}: encounter route should not cycle`);
+  }
+  assert.ok(course.openings.filter(opening => opening.lockedBy === 'room-clear').every(opening => course.openingState[opening.id]), `${course.name}: cleared encounter rooms should open all scheduled room-clear gates`);
 }
 
 test('every story floor compiles into a sealed-until-opened, reachable level', () => {
@@ -200,7 +242,7 @@ test('Story weapon finds unlock a persistent arsenal while arena weapons remain 
     tick(run, 1 / 60, {});
   }
   const ownedBeforeDescent = [...run.ownedWeapons];
-  clearDungeonWavesThroughEngine(run);
+  clearDungeonEncountersThroughEngine(run);
   walkToDungeonPoint(run, run.course.keys[0], 'foundry loot-to-key');
   walkToDungeonPoint(run, run.course.exit, 'foundry loot-to-lift', { allowFloorTransition: true });
   assert.equal(run.course.dungeonIndex, 1);
@@ -261,7 +303,7 @@ test('optional records live in distinct reachable rooms and survive the descent'
   }
   const run = newRun(makeDungeonCourse(0));run.mode = 'play';run.waveDelay = 999;
   const record = run.course.evidence[0];run.x = record.x;run.y = record.y;tick(run, 1 / 60, {});
-  clearDungeonWavesThroughEngine(run);
+  clearDungeonEncountersThroughEngine(run);
   const key = run.course.keys[0];run.x = key.x;run.y = key.y;tick(run, 1 / 60, {});
   assert.ok(run.storyRecords.some(item => item.id === key.id && item.kind === 'key'), 'key clues stay in the archive');
   run.x = run.course.exit.x;run.y = run.course.exit.y;tick(run, 1 / 60, {});
@@ -364,11 +406,12 @@ test('Story spawns stay clear of keys and the playground shows their live positi
 
   const course = makeDungeonCourse(4);
   const run = newRun(course);
-  run.wave = 3;
-  run.waveDelay = 1.25;
   const progression = roomProgression(run);
-  assert.equal(progression.objective, 'WAVE 04 / 05 IN 2s');
-  assert.match(progression.subtitle, /NEXT THREAT ZONE: WARDEN VAULT \/ ORGAN CHAMBER/);
+  assert.equal(progression.state, 'exploration');
+  assert.equal(progression.objective, 'Enter Descent Mouth');
+  assert.equal(progression.wave, 0, 'a fresh floor has no timed wave countdown');
+  assert.equal(progression.pending, 0, 'a fresh floor has no queued threats before entry');
+  assert.match(progression.subtitle, /Next room: Descent Mouth/);
 });
 
 test('all five Story floors support a live-input route from entry through key pickup to the lift', () => {
@@ -378,7 +421,7 @@ test('all five Story floors support a live-input route from entry through key pi
     const course = run.course;
     assert.equal(course.dungeonIndex, index, `route should enter Story floor ${index + 1}`);
     const start = { x: run.x, y: run.y };
-    clearDungeonWavesThroughEngine(run);
+    clearDungeonEncountersThroughEngine(run);
     const key = course.keys[0];
     const keyGate = course.openings.find(opening => opening.keyId === key.id || key.opens?.includes(opening.id));
     assert.ok(keyGate, `${course.name} has a gate linked to its key`);
@@ -417,7 +460,7 @@ test('the opening wave gives players time to orient and survives a short no-inpu
   }
 });
 
-test('F5 opening supports aimed fire and strafing through the first two wave gates', () => {
+test('F5 entry starts on player movement and supports aimed fire through its first gate', () => {
   const run = newRun(makeDungeonCourse(4));
   run.mode = 'play';
   let shots = 0;
@@ -432,8 +475,9 @@ test('F5 opening supports aimed fire and strafing through the first two wave gat
   assert.ok(shots > 50, 'the opening route should exercise the live fire loop');
   assert.equal(run.mode, 'play', 'an active opening route should remain playable for the check window');
   assert.ok(run.health > 0, 'aimed strafing should survive the first pressure beats');
-  assert.ok(run.kills >= 5, `aimed fire should clear waves one and two (got ${run.kills} kills)`);
-  assert.ok(run.wave >= 3, `the route should advance beyond the second wave (got wave ${run.wave})`);
+  assert.ok(run.kills >= 2, `aimed fire should clear the entry encounter (got ${run.kills} kills)`);
+  assert.equal(run.wave, 1, `player movement should start the authored entry encounter (got wave ${run.wave})`);
+  assert.deepEqual(run.dungeonProgression.completedEncounterIds, ['dungeon-encounter-0-0'], 'clearing the entry encounter should advance the room plan');
   assert.equal(run.course.openingState['f5-o-hall1-n'], true, 'clearing the first throat should open its north gate');
 });
 
@@ -441,49 +485,64 @@ test('Story encounter gates release on their own wave, keys open the lift, and e
   const course = makeDungeonCourse(0);
   const run = newRun(course);
   run.mode = 'play';
-  run.wave = 1;
-  run.waveDelay = 2;
   const key = course.keys[0];
   const keyGate = course.openings.find(opening => opening.keyId === key.id);
+  const pumpGate = course.openings.find(opening => opening.id === 'f1-o-pump-w');
+  const courtGate = course.openings.find(opening => opening.id === 'f1-o-court-w');
   assert.ok(keyGate);
+  assert.ok(pumpGate);
+  assert.ok(courtGate);
   assert.equal(course.openingState[keyGate.id], false);
-
-  tick(run, 1 / 120, {});
-  assert.ok(course.openings.filter(opening => opening.lockedBy === 'room-clear').every(opening => !course.openingState[opening.id]), 'the entry wave must not release gates for later encounters');
-  assert.equal(course.openingState[keyGate.id], false, 'the key gate stays sealed during the entry encounter');
-
-  run.wave = 3;
-  tick(run, 1 / 120, {});
-  assert.ok(course.openings.filter(opening => opening.lockedBy === 'room-clear').every(opening => course.openingState[opening.id]), 'the court opens before its authored fourth-wave encounter');
+  assert.equal(course.openingState[pumpGate.id], false);
+  assert.equal(course.openingState[courtGate.id], false);
+  let sawEntryClear = false;
+  let sawFirstGate = false;
+  let sawCourtGate = false;
+  clearDungeonEncountersThroughEngine(run, {
+    afterClear(node) {
+      if (node.waveIndex === 0) {
+        sawEntryClear = true;
+        assert.equal(course.openingState[pumpGate.id], false, 'the entry clear does not open a later room gate');
+        assert.equal(course.openingState[courtGate.id], false, 'the entry clear does not open the court');
+      }
+      if (node.waveIndex === 1 && !sawFirstGate) {
+        sawFirstGate = true;
+        assert.equal(course.openingState[pumpGate.id], true, 'the first authored room-clear gate opens after its wave');
+        assert.equal(course.openingState[courtGate.id], false, 'the court stays sealed until its authored wave');
+      }
+      if (node.waveIndex === 2 && !sawCourtGate) {
+        sawCourtGate = true;
+        assert.equal(course.openingState[courtGate.id], true, 'the court opens after its authored wave is cleared');
+      }
+    },
+  });
+  assert.ok(sawEntryClear && sawFirstGate && sawCourtGate, 'the test should observe each authored gate milestone');
   assert.equal(course.openingState[keyGate.id], false, 'the key gate remains separate from encounter gates');
 
   run.x = key.x;
   run.y = key.y;
-  tick(run, 1 / 120, {});
+  tick(run, 1 / 60, {});
   assert.ok(run.dungeonProgression.keysCollected.includes(key.id));
   assert.equal(course.openingState[keyGate.id], true, 'collecting the authored key opens its linked lift gate');
 
-  run.wave = run.waveCount;
-  run.course.enemies.length = 0;
   run.x = course.exit.x;
   run.y = course.exit.y;
-  tick(run, 1 / 120, {});
+  tick(run, 1 / 60, {});
   assert.equal(run.course.dungeonIndex, 1, 'the cleared floor transitions into the next Story map');
   assert.equal(run.dungeonProgression.floorsCleared, 1);
   assert.ok(canStand(run.course, run.x, run.y, .1), 'the next floor transition lands inside its entry bay');
 
   for (let floorIndex = 1; floorIndex < DUNGEON_LAYERS.length; floorIndex += 1) {
     const floor = run.course;
+    clearDungeonEncountersThroughEngine(run);
     const nextKey = floor.keys[0];
     run.x = nextKey.x;
     run.y = nextKey.y;
-    tick(run, 1 / 120, {});
+    tick(run, 1 / 60, {});
     assert.ok(run.dungeonProgression.keysCollected.includes(nextKey.id), `${floor.name} key should unlock its lift`);
-    run.wave = run.waveCount;
-    floor.enemies.length = 0;
     run.x = floor.exit.x;
     run.y = floor.exit.y;
-    tick(run, 1 / 120, {});
+    tick(run, 1 / 60, {});
     if (floorIndex < DUNGEON_LAYERS.length - 1) {
       assert.equal(run.course.dungeonIndex, floorIndex + 1, `${floor.name} exit should descend to the next floor`);
       assert.ok(canStand(run.course, run.x, run.y, .1), 'each descent transition should land in the next entry bay');

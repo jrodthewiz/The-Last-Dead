@@ -201,6 +201,30 @@ export function makeDungeonCourse(index = 0) {
     course.keys.push({ ...key, x: position.x, y: position.y });
   }
   rebuildCells(course);
+  // Reserve the wall instances once, including every closable doorway. Use
+  // fully open passages for permanent dressing so props never float in a
+  // doorway after it opens.
+  const wallCells = cloneCells(compiled.sealedCells);
+  const dressingCells = cloneCells(compiled.sealedCells);
+  for (const opening of course.openings) {
+    openOpening(dressingCells, course.w, course.h, opening);
+    if (OPENING_KINDS[opening.kind]?.alwaysOpen) openOpening(wallCells, course.w, course.h, opening);
+  }
+  course.permanentWalls = renderedWalls({ ...course, cells: dressingCells }, compiled);
+  const slots = new Map();
+  const reserve = walls => walls.forEach(wall => slots.set(`${wall.horizontal ? 'h' : 'v'}:${wall.x}:${wall.z}`, wall));
+  reserve(course.walls);
+  reserve(course.permanentWalls);
+  reserve(renderedWalls({ ...course, cells: wallCells }, compiled));
+  // Opening a one-cell vent can expose its side walls, too. Reserve those
+  // faces without retaining every buried wall inside solid map cells.
+  for (const opening of course.openings) {
+    const cells = cloneCells(wallCells);
+    openOpening(cells, course.w, course.h, opening);
+    reserve(renderedWalls({ ...course, cells }, compiled));
+  }
+  course.wallSlots = [...slots.values()];
+  course.dressingCells = dressingCells;
   return course;
 }
 

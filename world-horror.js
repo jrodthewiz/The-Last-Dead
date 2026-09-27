@@ -342,7 +342,7 @@ function wallRelicSpots(course, width) {
   const doorSpans = [[4, 12], [36, 44]];
   const blocked = x => x < 2.4 || x > width - 2.4 || doorSpans.some(([a, b]) => x > a - 1.6 && x < b + 1.6);
   const horizontalWalls = course.dungeon
-    ? new Set((course.walls || []).filter(segment => segment.horizontal)
+    ? new Set((course.permanentWalls || course.walls || []).filter(segment => segment.horizontal)
       .map(segment => `${Math.round(segment.z)},${segment.cx}`))
     : null;
   const seen = new Set();

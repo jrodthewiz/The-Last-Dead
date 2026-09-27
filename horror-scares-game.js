@@ -1,5 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import {createAfterlifeModel} from './npc-afterlife-model.js';
+import {createScreamMouth,setScreamMouthOpen} from './scream-mouth.js';
 
 const CELL=4;
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
@@ -7,10 +8,9 @@ const dark=new THREE.MeshStandardMaterial({color:0x171516,roughness:.94});
 const iron=new THREE.MeshStandardMaterial({color:0x292b2b,metalness:.7,roughness:.48});
 const wood=new THREE.MeshStandardMaterial({color:0x281813,roughness:.72});
 const ivory=new THREE.MeshStandardMaterial({color:0xaca394,roughness:.72});
-const blood=new THREE.MeshStandardMaterial({color:0x390d13,roughness:.55});
 const voidMat=new THREE.MeshBasicMaterial({color:0x050607});
 const flameMat=new THREE.MeshBasicMaterial({color:0xb85431});
-for(const material of [dark,iron,wood,ivory,blood,voidMat,flameMat])material.userData.sharedLibrary=true;
+for(const material of [dark,iron,wood,ivory,voidMat,flameMat])material.userData.sharedLibrary=true;
 
 function box(parent,name,size,position,material){
  const mesh=new THREE.Mesh(new THREE.BoxGeometry(...size),material);
@@ -35,26 +35,43 @@ function witness(asset,name){
  const state=root.userData.afterlife;
  return {root,state,bones:Object.fromEntries(['Head','Spine01','LeftArm','RightArm','LeftUpLeg','RightUpLeg'].map(name=>[name,state.model.getObjectByName(name)]))};
 }
-function pianoVigil(parent,asset,room){
+function pianoVigil(parent,asset,room,materials={}){
  if(!room)return null;
  const group=new THREE.Group();group.name='PianoVigil';parent.add(group);
+ const woodFinish=materials.afterlifeWood?.clone?.()||wood.clone();
+ woodFinish.color.setHex(0x9e806c);woodFinish.roughness=.86;woodFinish.metalness=0;
+ woodFinish.name='PianoVigil_WornWood';
+ const woodShade=woodFinish.clone();woodShade.color.setHex(0x654537);woodShade.name='PianoVigil_DarkWood';
  // Keep the central combat lane clear. The console sits against the room's north wall.
  const x=(room.bounds.minX+room.bounds.maxX)*.5*CELL+5;
  const z=(room.bounds.minZ+.77)*CELL;
  group.position.set(x,0,z);
- box(group,'upright piano case',[2.9,1.1,1.12],[0,.8,0],wood);
- box(group,'piano crown',[3.05,1.23,.18],[0,2.09,-.54],wood);
+ box(group,'upright piano case',[2.9,1.1,1.12],[0,.8,0],woodFinish);
+ box(group,'piano crown',[3.05,1.23,.18],[0,2.09,-.54],woodShade);
+ box(group,'piano crown inset',[2.68,.91,.035],[0,2.11,-.428],woodFinish);
+ for(const side of [-1,1]){
+  box(group,'piano crown pilaster',[.13,1.24,.13],[side*1.47,2.09,-.405],woodFinish);
+  box(group,'piano case pilaster',[.14,1.12,.14],[side*1.37,.8,.49],woodShade);
+ }
+ box(group,'piano cornice',[3.2,.11,.33],[0,2.73,-.49],woodFinish);
+ box(group,'piano lower moulding',[3.04,.09,.2],[0,1.46,-.43],woodFinish);
+ for(const y of [1.76,2.43])box(group,'piano inset rail',[2.58,.055,.06],[0,y,-.39],woodShade);
+ box(group,'piano maker plaque',[.59,.12,.03],[0,2.08,-.39],iron);
  box(group,'keyboard',[2.48,.065,.43],[0,1.34,.49],ivory);
  for(let i=0;i<18;i++)box(group,'key division',[.012,.012,.43],[-1.15+i*.135,1.38,.49],iron);
  for(let i=0;i<13;i++)box(group,'black key',[.077,.055,.23],[-1.08+i*.18,1.41,.4],iron);
  for(const side of [-1,1]){
-  box(group,'piano foot',[.17,.23,.81],[side*1.12,.12,0],wood);
+  box(group,'piano foot',[.17,.23,.81],[side*1.12,.12,0],woodShade);
   box(group,'vigil altar',[.72,1.04,.72],[side*2.48,.52,-.15],dark);
   cylinder(group,'votive candle',.047,.23,[side*2.48,1.15,-.15],ivory);
   const flame=new THREE.Mesh(new THREE.ConeGeometry(.045,.13,7),flameMat);
   flame.position.set(side*2.48,1.33,-.15);group.add(flame);
  }
  for(let i=-4;i<=4;i++)cylinder(group,'organ pipe',.066,1.2+(4-Math.abs(i))*.23,[i*.35,3.8-(4-Math.abs(i))*.115,-.8],iron);
+ for(const x of [-.76,0,.76]){
+  const pedal=box(group,'piano pedal',[.13,.035,.37],[x,.2,.64],iron);
+  pedal.rotation.x=-.18;
+ }
  for(let i=0;i<4;i++)cable(group,'piano suspension',[ -.55+i*.36,4.8,-.12],[-.5+i*.34,2.6,-.12],.013);
  const body=witness(asset,'SuspendedPianoBody');
  if(body){body.root.position.set(.75,2.78,.13);body.root.rotation.z=1.42;group.add(body.root);}
@@ -74,13 +91,8 @@ function makeWindow(parent,asset,room){
  const actor=witness(asset,'ReachingScreamer');
  if(!actor)return {group,actor:null};
  actor.root.position.set(0,-1.6,-.13);group.add(actor.root);
- const mouth=new THREE.Group();mouth.name='ScreamDrivenMouth';actor.root.add(mouth);
- const cavity=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),voidMat);
- cavity.scale.set(.04,.009,.01);mouth.add(cavity);
- const lip=new THREE.Mesh(new THREE.TorusGeometry(.037,.003,5,16),blood);
- lip.scale.y=.3;mouth.add(lip);
- mouth.visible=false;
- return {group,actor,mouth,cavity,lip,triggered:false,started:0};
+ const mouthRig=createScreamMouth(actor.root);
+ return {group,actor,...mouthRig,triggered:false,started:0};
 }
 function reachForBar(actor,armName,handName,targetLocal){
  const upper=actor.state.model.getObjectByName(armName);
@@ -109,12 +121,12 @@ function makeDrop(parent,asset){
 }
 
 export class HorrorScares {
- constructor(worldRoot,course,asset){
+ constructor(worldRoot,course,asset,materials={}){
   this.course=course;this.asset=asset;this.root=new THREE.Group();this.root.name='HorrorScares';worldRoot.add(this.root);
   this.drop=asset?makeDrop(this.root,asset):null;
   const entry=course?.rooms?.find(room=>room.id?.endsWith('-entry'));
   this.window=asset&&course?.dungeon?makeWindow(this.root,asset,entry):null;
-  this.piano=asset&&course?.dungeon&&course.dungeonIndex===1?pianoVigil(this.root,asset,entry):null;
+  this.piano=asset&&course?.dungeon&&course.dungeonIndex===1?pianoVigil(this.root,asset,entry,materials):null;
   this.pending=[];this.lastDrop=-Infinity;
  }
  queue(type,run,nowMs){
@@ -153,7 +165,7 @@ export class HorrorScares {
   const window=this.window;
   if(window?.actor){
    const distance=Math.hypot(run.x*CELL-window.group.position.x,run.y*CELL-window.group.position.z);
-   if(!window.triggered&&distance<10&&nowMs-(this.windowArmedAt??(this.windowArmedAt=nowMs))>900){
+   if(!window.triggered&&distance<10&&audio?.assetsLoaded&&nowMs-(this.windowArmedAt??(this.windowArmedAt=nowMs))>900){
     window.triggered=true;window.started=nowMs;
     window.played=!!audio?.play('window-scream',0,{id:`window-${this.course.dungeonIndex}`,position:{x:window.group.position.x,y:2.5,z:window.group.position.z}});
    }
@@ -171,8 +183,7 @@ export class HorrorScares {
     }
     const level=window.played&&audio?.soundLevelAt('window-scream',t)||0;
     window.mouth.visible=level>.045;
-    window.cavity.scale.y=.008+level*.045;
-    window.lip.scale.y=.3+level*1.1;
+    setScreamMouthOpen(window,level);
     reachForBar(window.actor,'LeftArm','LeftHand',[-.75,1.8,-.76]);
     reachForBar(window.actor,'RightArm','RightHand',[.75,1.8,-.76]);
    }

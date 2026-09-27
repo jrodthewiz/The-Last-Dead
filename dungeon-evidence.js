@@ -89,19 +89,24 @@ export function buildDungeonEvidence(worldRoot, course) {
     halo.rotation.x = Math.PI / 2;
     halo.position.y = 2.02;
     const light = new THREE.PointLight(AMBER, .45, 4.5, 2);
-    light.position.y = 1.55;
-    root.add(carrier, halo, light);
-    worldRoot.add(root);
+    light.position.copy(root.position); light.position.y = 1.55;
+    root.add(carrier, halo);
+    // Collection must not change the visible light count (shader defines).
+    worldRoot.add(root, light);
     items.push({ ...record, root, carrier, halo, light });
   }
   return items;
 }
 
 export function updateDungeonEvidence(items, collectedRecords, timeMs, reducedMotion = false, camera = null) {
-  const found = new Set((collectedRecords || []).map(record => record.id));
+  // Story records are a small live array. Avoid creating a Set and mapped
+  // array on every render frame; this path runs while the player is walking
+  // through every floor, including after all records have been collected.
+  const found = collectedRecords || [];
   for (const item of items || []) {
-    item.root.visible = !found.has(item.id);
-    if (!item.root.visible) continue;
+    const visible = !found.some(record => record.id === item.id);
+    if (item.root.visible !== visible) item.root.visible = visible;
+    if (!visible) { if (item.light.intensity !== 0) item.light.intensity = 0; continue; }
     const phase = timeMs * .001 + item.x;
     item.carrier.position.y = reducedMotion ? 1.25 : 1.25 + Math.sin(phase * 1.3) * .08;
     const dx=(camera?.position.x ?? item.root.position.x) - item.root.position.x;

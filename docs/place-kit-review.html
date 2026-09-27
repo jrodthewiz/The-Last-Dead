@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Last Dead · Wall Detail Review</title>
+<style>
+  html,body { margin:0; width:100%; height:100%; overflow:hidden; background:#131519; color:#e5ded0; font:13px system-ui,sans-serif; }
+  canvas { display:block; width:100%; height:100%; }
+  header { position:fixed; top:20px; left:24px; letter-spacing:.15em; text-transform:uppercase; font-weight:700; }
+  aside { position:fixed; bottom:22px; left:0; width:100%; display:flex; justify-content:space-around; letter-spacing:.1em; text-transform:uppercase; }
+</style>
+<header>Story room details · material and arch review</header>
+<aside><span>Graft observation wall</span><span>Catacomb burial niche</span></aside>
+<script type="module">
+import * as THREE from '../vendor/three.module.js';
+import { makeDungeonCourse } from '../playground/map/dungeon-course.js';
+import { buildDungeonPlaceKit } from '../dungeon-place-kit.js';
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.45;
+document.body.append(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x171a1c);
+scene.add(new THREE.HemisphereLight(0xd0dcdf,0x302729,2));
+const key = new THREE.DirectionalLight(0xffdec0,2.5); key.position.set(-6,9,8); scene.add(key);
+const loader = new THREE.TextureLoader();
+const surface = (name,color,metalness=0) => {
+  const map=loader.load('../assets/textures/'+name,()=>renderer.render(scene,camera));
+  map.colorSpace=THREE.SRGBColorSpace; map.wrapS=map.wrapT=THREE.RepeatWrapping; map.anisotropy=8;
+  return new THREE.MeshStandardMaterial({map,color,roughness:.86,metalness});
+};
+const wall=surface('afterlife-plaster-v1.png',0xaeb3ae);
+const wornSteel=surface('dread-worn-steel-v1.webp',0xb8b3aa,.45);
+const dark=new THREE.MeshStandardMaterial({color:0x121718,roughness:.94});
+const materials={wall,wornSteel,steel:wornSteel,metalDark:wornSteel,wallDeep:dark,black:dark,glass:new THREE.MeshPhysicalMaterial({color:0x526e6b,roughness:.18,metalness:.1,transparent:true,opacity:.9})};
+const source=new THREE.Group();
+const surgical=buildDungeonPlaceKit(source,materials,makeDungeonCourse(1));
+const crypt=buildDungeonPlaceKit(source,materials,makeDungeonCourse(2));
+const use=(kit,role,geometry,x,y,z,sx,sy,sz) => {
+  const entry=kit.getObjectByName('DungeonPlace_'+role);
+  const mesh=new THREE.Mesh(geometry||entry.geometry,entry.material);
+  mesh.position.set(x,y,z); mesh.scale.set(sx,sy,sz); scene.add(mesh); return mesh;
+};
+for(const center of [-2.55,2.55]) {
+  const back=new THREE.Mesh(new THREE.BoxGeometry(3.8,5.6,.2),dark);
+  back.position.set(center,2.8,-.12); scene.add(back);
+}
+use(surgical,'pale_box',null,-2.55,2.6,.06,3.05,3.5,.12);
+use(surgical,'recess_box',null,-2.55,3.22,.17,2.65,1.5,.12);
+use(surgical,'glass_box',null,-2.55,3.22,.25,2.3,1.15,.07);
+use(surgical,'trim_box',null,-2.55,2.61,.32,2.8,.12,.12);
+for(const x of [-1.19,0,1.19]) use(surgical,'trim_box',null,-2.55+x,3.22,.32,.075,1.39,.1);
+for(const y of [2.58,3.86]) use(surgical,'trim_box',null,-2.55,y,.32,2.46,.075,.1);
+use(surgical,'frame_box',null,-2.55,1.64,.21,1.12,.22,.09);
+use(surgical,'pale_box',null,-2.55,1.64,.28,.91,.12,.025);
+use(crypt,'recess_box',null,2.55,2.75,.07,2.35,3.7,.12);
+use(crypt,'bone_arch',null,2.55,2.85,.23,3.2,4.65,.24);
+for(const y of [1.65,2.8,3.95]) use(crypt,'bone_box',null,2.55,y,.3,2.45,.13,.32);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(16,12),new THREE.MeshStandardMaterial({color:0x383b3b,roughness:1}));
+ground.rotation.x=-Math.PI/2;ground.position.y=-.01;scene.add(ground);
+const camera=new THREE.PerspectiveCamera(47,innerWidth/innerHeight,.1,100);
+camera.position.set(0,4.1,12.8);camera.lookAt(0,2.55,0);
+const render=()=>renderer.render(scene,camera);
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);render();});
+render();
+</script>
+</html>

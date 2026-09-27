@@ -1,6 +1,32 @@
 # Audio sources and runtime
 
-Updated September 23, 2026. The active event map is `assets/audio-manifest.js`; the runtime loads only bundled files from `assets/audio/`. Audio events use sampled assets; the game has no oscillator or noise fallback. A brief oscillator LFO controls the gain of a sampled hidden-threat voice to add a subtle rough pulse; it does not produce an audible standalone tone.
+Updated September 26, 2026. The active event map is `assets/audio-manifest.js`; the runtime loads only bundled files from `assets/audio/`. Audio events use sampled assets; the game has no oscillator or noise fallback. A brief oscillator LFO controls the gain of a sampled hidden-threat voice to add a subtle rough pulse; it does not produce an audible standalone tone.
+
+## Remaining electronic cue pass
+
+The menu and settings event pools now use the physical impacts, ratchets and typewriter key from [Mechanical Sounds](https://opengameart.org/content/mechanical-sounds) by BMacZero (CC0). The untouched WAV files are preserved in ignored `.art-source/audio-incoming/physical-ui-retune/`; the bundled mono Ogg edits are in `assets/audio/sourced/physical-ui/`. UI click uses two squeaky mechanical clicks, hover uses the short typewriter key, confirm a clank, cancel and pause light clunks, fail a rattle, and toggle two mechanical latches. The former Kenney interface sounds remain on disk but are no longer mapped to those events.
+
+The first foundry wave's `horror-reveal` now uses a real [old elevator door](https://opengameart.org/content/old-elevator-door) recording by sinny (CC0) as `sourced/horror/foundry-door-reveal.ogg`, replacing the modulated balloon sci-fi sting. Its untouched MP3 was already preserved in ignored `.art-source/audio-incoming/industrial-retune/`. The `blood` pool now uses only the existing CC0 splat recording, so the Kenney sci-fi slime sample can no longer be selected. Music remains an authored score; these changes concern effects.
+
+The afterlife layer had three other active synthetic stems. `sourced/horror/ward-wind-loop.ogg` now replaces its generated corridor air with a section of [Mild Wind Background Noise](https://opengameart.org/content/mild-wind-background-noise) by Bashar3A (CC0). `sourced/horror/wood-creak.ogg` replaces its generated room creak with [Tree Creaking](https://opengameart.org/content/tree-creaking), a CC0 field recording by Department64 shared by AntumDeluge. The generated `enemy-onset.ogg` variant is removed from the attack pool; the twelve already sourced zombie voice variants remain. The untouched wind WAV and tree Ogg are preserved in the ignored source archive.
+
+## Industrial cue retune
+
+The active manifest replaces the arcade-like sci-fi laser, force-field, thruster, door and interface-select cues used by Arc Lance, Reliquary, explosion, spawn, dash, hook, slide, weapon pickup, death and win events. The original source downloads are preserved under ignored `.art-source/audio-incoming/industrial-retune/`; the runtime uses the edited mono Ogg files in `assets/audio/sourced/industrial/`.
+
+| Source and license | Runtime files | Active events |
+| --- | --- | --- |
+| [Electricity Sound Effects](https://opengameart.org/content/electricity-sound-effects-0), BMacZero, CC0; recordings of a small Tesla generator | `arc-spark.ogg`, `arc-crackle.ogg` | Arc Lance shots |
+| [Air Woosh Move](https://opengameart.org/content/air-woosh-move), Almitory, CC0 | `air-dash.ogg`; layered with a metal thud in `rocket-launch.ogg` | Dash, hook, Reliquary launch and rocket |
+| [Metal Impact Sounds](https://opengameart.org/content/metal-impact-sounds), BMacZero, CC0 | `spawn-metal-01.ogg`, `spawn-metal-02.ogg`, `weapon-pickup.ogg`, `victory-bell.ogg`; a thud is also layered in `rocket-launch.ogg` | Spawn, equip, win and rocket |
+| [Scrapes](https://opengameart.org/content/scrapes), AntumDeluge, CC0; object dragged over cinder block | `slide-scrape-01.ogg`, `slide-scrape-02.ogg` | Slide |
+| Existing [Various Sound Effects](https://opengameart.org/content/various-sound-effects-0) CC0 explosion recording | `dull-blast.ogg` | Explosion and death |
+
+All new edits are filtered and faded to fit the game's one-shot mix. `rocket-launch.ogg` combines two credited CC0 recordings. Earlier passes and retained source libraries are documented below; the active event map above supersedes their old event assignments.
+
+## Screamer voice retune
+
+The ceiling and barred-window pop-out scares now use [Female Scream 1](https://opengameart.org/content/female-scream-1), a CC0 voice actor recording by Nocturnal_Vanguard/AuraVoice. The untouched `female_scream_1.ogg` is in ignored `.art-source/audio-incoming/screamer-retune/`. Runtime clips `sourced/horror/window-screamer-human.ogg` and `ceiling-screamer-human.ogg` trim the source's 0.44 s silent lead-in and tail, then apply a gentle bandpass and fade. The window take is 20% longer at the same pitch and about 4 dB louder; the ceiling take is lowered 10% in pitch and speed. The old bit-crushed scream files remain as inactive review artifacts.
 
 ## September 23 weapon and horror expansion
 
@@ -12,13 +38,13 @@ The new runtime clips below are locally edited from source recordings released u
 | [Gun reload sounds](https://opengameart.org/content/gun-reload-sounds), SpringySpringo, CC0 (`shotguncock.wav`, `assaultriflereload1.wav`, `gunreload1.wav`) | `sourced/weapons/breach-pump.ogg` (0.47 s), `carrion-action.ogg` (0.42 s), `mourning-action.ogg` (0.38 s) | Cropped/filtered action transients at low gain. Web Audio starts them 130, 55, and 95 ms after the matching shot, so the blast remains the attack cue and the action follows as a tactile detail. |
 | [Dark Cavern Ambient](https://opengameart.org/content/dark-cavern-ambient), Paul Wortmann, CC0 (`dark_cavern_ambient_002.ogg`, the continuous-loop version) | `sourced/horror/dark-cavern-loop.ogg` (120 s, 24 kHz) | Band-limited, downmixed loop for the Ossuary and Cathedral room-tone presets. Five floor presets now use three separate source beds; campaign sectors use the first three. |
 | [String and piano horror stings](https://opengameart.org/content/string-and-piano-horror-stings), congusbongus, CC0 (`abyss.ogg`) | `sourced/horror/string-sting.ogg` (7.55 s) | Filtered and reduced 3.7 dB. Plays on real sector/floor transitions and the authored floor-three apse scare, with a short music/ambience duck; it does not replace weapon or enemy cues. |
-| [Long Sci-fi Sting](https://opengameart.org/content/long-sci-fi-sting), Fupi, CC0 (`longscifisting.ogg`) | `sourced/horror/industrial-reveal.ogg` (7 s) | First seven seconds, filtered/faded and reduced 5.2 dB. Plays quietly on the first foundry wave, under the actual enemy arrival. The source describes it as a modulated balloon recording, not an infrasonic effect. |
+| [Long Sci-fi Sting](https://opengameart.org/content/long-sci-fi-sting), Fupi, CC0 (`longscifisting.ogg`) | `sourced/horror/industrial-reveal.ogg` (7 s) | Historical first foundry wave cue, now inactive. The source describes it as a modulated balloon recording. |
 
 The source sample files in [Ambient horror](https://opengameart.org/content/ambient-horror) and [Dark Ambiences](https://opengameart.org/content/dark-ambiences) were also reviewed and preserved in the ignored source archive. Their embedded screams/short one-shot shapes were not used as repeating ambience beds. The mix uses a continuous source for the long room-tone loop instead.
 
 The four new report takes were gain-matched at render time before the runtime's bounded variant normalization: Carrion alternates measure -32 to -35 dB mean versus -36 dB for its existing report; Mourning alternates measure about -28 dB mean versus -29 dB for its existing report. The three action clips sit between -31 and -36 dB mean and are played again at low mixer gain. This avoids the peak-restoring behavior of the source-limiter stage from making the field recordings dominate the established mix. The cavern loop is reduced to about 0.048 RMS, near the existing dungeon bed's 0.042 RMS, and its loop-edge sample jump is below 0.001.
 
-## Sampled audio refresh
+## Earlier sampled audio refresh
 
 This pass replaces the in-repo synthetic combat and creature clips with licensed sample-library material and removes the runtime synthesis paths.
 
@@ -46,7 +72,7 @@ The hidden-threat cue reuses the already bundled CC0 zombie moan pool. The new d
 | Source | Use | License |
 | --- | --- | --- |
 | [Kenney Impact Sounds](https://kenney.nl/assets/impact-sounds) | Hits, movement, parries, and metallic events | CC0; license file ships with the pack |
-| [Kenney Interface Sounds](https://kenney.nl/assets/interface-sounds) | Menu clicks, hover, confirmation, and settings | CC0; license file ships with the pack |
+| [Kenney Interface Sounds](https://kenney.nl/assets/interface-sounds) | Retained inactive interface assets and some historical source stems | CC0; license file ships with the pack |
 | [Kenney Sci-fi Sounds](https://kenney.nl/assets/sci-fi-sounds) | Weapons, explosions, spawn, and effects | CC0; license file ships with the pack |
 | [Basic Sound Effects](https://opengameart.org/content/basic-sound-effects), n4 | Existing explosions, coin and button effects | CC0 |
 | [Loopable Dungeon Ambience](https://opengameart.org/content/loopable-dungeon-ambience), JaggedStone | Existing dungeon room tone | CC0 |
@@ -64,12 +90,12 @@ Original imported filenames are recorded in `assets/audio/baseline/provenance.js
 | --- | --- | --- |
 | Six weapon fires | `shot` with weapon indices 0-5 | Separate pools; the launch pool is reused for rocket launch. Carrion and Mourning now have two additional takes each. |
 | Explosions | `explosion` | Three short bundled effects |
-| Hit / blood | `hit`, `blood` | Separate dry impact and wet splat pools |
+| Hit / blood | `hit`, `blood` | Separate dry impact and wet splat; blood now selects only the CC0 splat recording |
 | Movement / combat | `footstep`, `jump`, `land`, `dash`, `slide`, `hook`, `parry`, `punch`, `damage` | Existing bundled CC0/Kenney effects |
 | Creatures | `enemyattack`, `moan`, `enemydeath`, `enemyjump`, `enemyland` | Attacks and moans use 24 fresh variants |
-| Horror pacing | `horror-approach`, `distant-scream`, `horror-sting`, `horror-reveal` | A local hidden-threat cue uses an existing CC0 moan; a filtered scream can occur during the post-combat exit beat. A string sting marks transitions; a modulated recording marks the first foundry wave. Only music and ambience duck briefly; weapon and enemy cues remain at their established levels. |
+| Horror pacing | `horror-approach`, `distant-scream`, `horror-sting`, `horror-reveal` | A local hidden-threat cue uses an existing CC0 moan; a filtered scream can occur during the post-combat exit beat. A string sting marks transitions; a recorded metal door marks the first foundry wave. Only music and ambience duck briefly; weapon and enemy cues remain at their established levels. |
 | Arena feedback | `spawn`, `wave`, `win`, `death`, `heartbeat`, `coin` | Existing bundled sample pools |
-| Interface | `ui`, `hover`, `confirm`, `cancel`, `pause`, `fail`, `toggle`, `equip` | Kenney interface pack |
+| Interface | `ui`, `hover`, `confirm`, `cancel`, `pause`, `fail`, `toggle`, `equip` | CC0 mechanical recordings and metal weapon pickup |
 | Music / ambience | `music-menu`, `music-play`, `ambience` | Bundled loops; no network requests |
 
 `AudioSystem.unlock()` is called from the existing user gesture. After decode, the runtime measures active RMS for each one-shot variant pool and trims or boosts variants toward their pool median, bounded to +/-6 dB. This keeps alternate shots, footsteps, creature clips, and interface cues consistent without flattening the separate music and ambience beds. A master compressor limits peaks after the group mix. The runtime keeps separate `sfx`, `ui`, `ambience`, `voice`, and `music` groups, applies event-specific filters and optional spatial panning, and manages pause/resume and music crossfades. `play('shot', weapon)` selects the matching weapon pool. Missing files do not block startup; their load errors are available for review.

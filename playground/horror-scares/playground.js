@@ -1,6 +1,7 @@
 import * as THREE from '../../vendor/three.module.js';
 import {GLTFLoader} from '../../vendor/loaders/GLTFLoader.js';
 import {clone} from '../../vendor/utils/SkeletonUtils.js';
+import {createScreamMouth,setScreamMouthOpen} from '../../scream-mouth.js';
 
 const canvas=document.querySelector('#world');
 const sceneSelect=document.querySelector('#scene');
@@ -87,11 +88,8 @@ const hang=witness(groups.drop,'hanging Ash Witness');hang.root.position.set(0,4
 const noose=new THREE.Mesh(new THREE.TorusGeometry(.074,.012,6,20),rust);noose.position.set(0,1.58,-.115);hang.root.add(noose);
 const vigil=witness(groups.piano,'piano body');vigil.root.position.set(.92,2.72,-4.05);vigil.root.rotation.set(0,0,1.47);
 const screamer=witness(groups.window,'window Ash Witness');screamer.root.position.set(0,-1.6,-5.18);screamer.root.rotation.y=Math.PI;
-// A small cavity insert tests scream-driven aperture on the current static face.
-// Promotion needs an authored jaw joint or facial morph on this asset.
-const mouth=new THREE.Group();mouth.name='audio reactive mouth';screamer.root.add(mouth);
-const cavity=new THREE.Mesh(new THREE.SphereGeometry(1,16,10),mat(0x090304,.92));cavity.scale.set(.037,.009,.008);mouth.add(cavity);
-const lip=new THREE.Mesh(new THREE.TorusGeometry(.035,.003,6,22),blood);lip.scale.y=.32;mouth.add(lip);
+const mouthRig=createScreamMouth(screamer.root);
+const {mouth,cavity}=mouthRig;
 
 // Piano: a single recognizable, grounded landmark with a still body above it.
 const piano=groups.piano;
@@ -112,7 +110,7 @@ for(const x of [-2.5,2.5]){
 
 const audio={context:null,buffers:{},active:null,analyser:null,data:null,master:null};
 async function unlockAudio(){
- if(!audio.context){audio.context=new AudioContext();audio.master=audio.context.createGain();audio.master.gain.value=document.querySelector('#sound').checked?1:0;audio.master.connect(audio.context.destination);for(const [name,url] of Object.entries({drop:'../../assets/audio/playground/ceiling-human-scream.ogg',window:'../../assets/audio/playground/window-human-scream.ogg'})){
+ if(!audio.context){audio.context=new AudioContext();audio.master=audio.context.createGain();audio.master.gain.value=document.querySelector('#sound').checked?1:0;audio.master.connect(audio.context.destination);for(const [name,url] of Object.entries({drop:'../../assets/audio/sourced/horror/ceiling-screamer-human.ogg',window:'../../assets/audio/sourced/horror/window-screamer-human.ogg'})){
    const response=await fetch(url);if(!response.ok)throw Error(`${name} scream ${response.status}`);audio.buffers[name]=await audio.context.decodeAudioData(await response.arrayBuffer());
  }}
  await audio.context.resume();
@@ -179,7 +177,7 @@ function render(){requestAnimationFrame(render);const now=performance.now(),dt=M
   screamer.root.position.y=t<0?-1.6:-1.6+2.45*(1-Math.pow(1-THREE.MathUtils.clamp(t/.42,0,1),3));
   if(t>=0){screamer.root.rotation.z=Math.sin(t*13)*.025;reachForBar(screamer,'LeftArm','LeftHand',[-.42,1.46,-.62]);reachForBar(screamer,'RightArm','RightHand',[.42,1.46,-.62]);}
   let energy=0;if(audio.analyser&&audio.data){audio.analyser.getByteFrequencyData(audio.data);for(let i=2;i<Math.min(65,audio.data.length);i++)energy+=audio.data[i];energy/=63*255;}
-  const open=THREE.MathUtils.clamp(energy*5.5,0,1);mouth.visible=!!audio.active&&open>.06;cavity.scale.y=.009+open*.038;lip.scale.y=.32+open*.95;document.body.dataset.mouth=open.toFixed(3);
+  const open=THREE.MathUtils.clamp(energy*5.5,0,1);mouth.visible=!!audio.active&&open>.06;setScreamMouthOpen(mouthRig,open);document.body.dataset.mouth=open.toFixed(3);
  }
  renderer.render(scene,camera);
  if(frame%60===0){document.body.dataset.calls=String(renderer.info.render.calls);document.body.dataset.triangles=String(renderer.info.render.triangles);document.body.dataset.audio=audio.active?'playing':'idle';}

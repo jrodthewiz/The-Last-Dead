@@ -514,7 +514,7 @@ function anchorCircles(course) {
 function buildLifeField(course) {
   const w = Math.max(1, Math.floor(course.w || 12)), h = Math.max(1, Math.floor(course.h || 12));
   const width = w * CELL, depth = h * CELL;
-  const cells = course.renderCells || course.cells || null;
+  const cells = course.dressingCells || course.renderCells || course.cells || null;
   const wallSegments = [];
   const seen = new Set();
   const addSegment = (ax, az, bx, bz) => {

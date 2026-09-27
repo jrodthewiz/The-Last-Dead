@@ -1,4 +1,5 @@
 import {syncRoomGateCells} from './room-progression.js';
+import {DevFlight} from './dev-flight.js';
 import {makeCourse,makeCampaignCourse,newRun,tick,tickPlayer,shoot,shootRifle,shootMelee,cancelMelee,parry,grapple,look,switchWeapon,nextOwnedWeapon,addPeer,clamp,weapons,castRay,angleDiff} from './engine.js';
 import {Renderer} from './renderer.js';
 import {UI} from './ui.js';
@@ -15,6 +16,8 @@ addEventListener('pointermove',event=>{if(screen==='menu'&&event.pointerType!=='
 addEventListener('blur',()=>renderer.menuCinematic?.setPointer(0,0));
 document.addEventListener('pointerleave',()=>renderer.menuCinematic?.setPointer(0,0));
 const routeParams=new URLSearchParams(location.search);
+const devEnabled=routeParams.has('dev')||['localhost','127.0.0.1','[::1]'].includes(location.hostname);
+const inspector=new DevFlight();let inspectOnStart=false,inspectorPanel=null;
 const requestedDungeonIndex=routeParams.has('dungeon')?clamp(Number(routeParams.get('dungeon'))||0,0,DUNGEON_LAYERS.length-1):routeParams.has('debug')||routeParams.has('campaign')?null:0;
 // ?debug&sector=N starts a campaign descent directly for visual QA.
 const requestedSector=new URLSearchParams(location.search).has('debug')?clamp(Math.floor(Number(new URLSearchParams(location.search).get('sector'))||0),0,2):0;
@@ -29,18 +32,20 @@ const playerData=p=>Object.fromEntries(playerFields.map(k=>[k,p[k]]));
 function snapshot(){return{seq:++snapshotSeq,host:playerData(run),guest:run.peer?playerData(run.peer):null,wave:run.wave,waveDelay:run.waveDelay,enemies:run.course.enemies,projectiles:run.projectiles,coins:run.coins,gore:run.gore.slice(-110),blood:run.blood,tracers:run.tracers,campaign:run.campaign,sectorIndex:run.sectorIndex,sectorCount:run.sectorCount,sectorId:run.sectorId,sectorName:run.sectorName,waveCount:run.waveCount,director:run.director?Object.fromEntries(['state','budget','spent','remainingBudget','aliveCap','active','pending','elapsed'].map(k=>[k,run.director[k]])):null,roomProgression:run.roomProgression||null,spawnTelegraphs:run.spawnTelegraphs||[],explosions:run.explosions||[],audioEvents:netEvents.slice(-20)};}
 function releaseFormFocus(){const active=document.activeElement;if(active&&typeof active.blur==='function')active.blur();}
 function resetInput(){releaseFormFocus();keys.clear();touches.clear();pulses.clear();fire=false;alt=false;cancelMelee(run);}
-function pointerLock(){if(screen==='play')audio.unlock().then(()=>{if(screen==='play'){audio.resume();audio.play('ambience');}});if(matchMedia('(pointer:coarse)').matches||document.pointerLockElement===canvas)return;try{canvas.requestPointerLock()?.catch(()=>ui.toast('Click the arena to capture your mouse. Arrow keys also aim.'));}catch{}}
+function pointerLock(){if(screen==='play'&&!inspector.active)audio.unlock().then(()=>{if(screen==='play'&&!inspector.active){audio.resume();audio.play('ambience');}});if(matchMedia('(pointer:coarse)').matches||document.pointerLockElement===canvas)return;try{canvas.requestPointerLock()?.catch(()=>ui.toast('Click the arena to capture your mouse. Arrow keys also aim.'));}catch{}}
 function configure(value){settings={...settings,...value};run.autoRun=!!settings.autoRun;renderer.setSettings?.(settings);audio.setVolume(settings.volume);audio.setMuted(settings.volume===0);audio.setGroupVolume('sfx',settings.sfxVolume??1);audio.setGroupVolume('voice',settings.voiceVolume??1);audio.setGroupVolume('music',settings.musicVolume??1);audio.setGroupVolume('ambience',settings.ambienceVolume??1);audio.setGroupVolume('ui',settings.uiVolume??1);}
 function begin(coop=false){
+ if(renderer._beginPending||screen==='loading')return;
+ if(inspector.active){inspector.leave();renderer.freeCamera=null;document.body.classList.remove('inspecting');}
  if(renderer.renderer&&!renderer._weaponsPrepared){
-  if(!renderer._warmupPromise)renderer.render(run,performance.now());
-  if(!renderer._beginPending){
-   renderer._beginPending=true;ui.toast('Preparing the descent...');
-   renderer._warmupPromise.then(()=>{renderer._beginPending=false;begin(coop);},error=>{renderer._beginPending=false;ui.toast('Could not prepare the arena. Please reload.');console.error(error);});
-  }
+  renderer._beginPending=true;
+  ui.loading(renderer._preparationStage||'Preparing the descent');
+  // Paint the loading state before any synchronous preparation work starts.
+  const preparation=renderer._warmupPromise||new Promise((resolve,reject)=>requestAnimationFrame(()=>setTimeout(()=>{try{renderer.render(run,performance.now());resolve(renderer._warmupPromise);}catch(error){reject(error);}},0)));
+  preparation.then(()=>{renderer._beginPending=false;begin(coop);},error=>{renderer._beginPending=false;ui.loading('Could not load the descent. Reload to try again.',true);console.error(error);});
   return;
  }
-if(!coop&&session?.connected){session.close();session=null;network='SOLO';}const course=!coop&&requestedDungeonIndex!==null?makeDungeonCourse(requestedDungeonIndex):makeCampaignCourse(coop?0:requestedSector);run=newRun(course,{requireEntry:!course.dungeon});run.mode='play';run.autoRun=!!settings.autoRun;if(coop)addPeer(run);screen='play';acc=0;netEvents=[];resetInput();remoteInput={};remotePress={fire:false,alt:false};remoteParry=0;remoteHook=0;parrySequence=0;hookSequence=0;remoteSeen=performance.now();ui.play?.();ui.hide?.();document.body.classList.add('playing');audio.setAmbiencePreset?.(course.dungeon?course.dungeonIndex:run.sectorIndex);audio.setScene?.('play');audio.unlock().then(()=>{if(screen!=='play')return;audio.resume();audio.play('ambience');});pointerLock();if(coop)session.send({t:'start',s:snapshot()});ui.toast(course.dungeon?`FLOOR ${String(course.dungeonIndex+1).padStart(2,'0')} // ${course.name.toUpperCase()}`:`DESCENT ${String(run.sectorIndex+1).padStart(2,'0')} // ${run.sectorName.toUpperCase()}`);}
+if(!coop&&session?.connected){session.close();session=null;network='SOLO';}const course=!coop&&screen==='menu'&&run.course?run.course:!coop&&requestedDungeonIndex!==null?makeDungeonCourse(requestedDungeonIndex):makeCampaignCourse(coop?0:requestedSector);run=newRun(course,{requireEntry:!course.dungeon});run.mode='play';run.autoRun=!!settings.autoRun;if(coop)addPeer(run);screen='play';acc=0;netEvents=[];resetInput();remoteInput={};remotePress={fire:false,alt:false};remoteParry=0;remoteHook=0;parrySequence=0;hookSequence=0;remoteSeen=performance.now();ui.play?.();ui.hide?.();document.body.classList.add('playing');audio.setAmbiencePreset?.(course.dungeon?course.dungeonIndex:run.sectorIndex);audio.setScene?.('play');audio.unlock().then(()=>{if(screen!=='play')return;audio.resume();audio.play('ambience');});pointerLock();if(coop)session.send({t:'start',s:snapshot()});ui.toast(course.dungeon?`FLOOR ${String(course.dungeonIndex+1).padStart(2,'0')} // ${course.name.toUpperCase()}`:`DESCENT ${String(run.sectorIndex+1).padStart(2,'0')} // ${run.sectorName.toUpperCase()}`);if(course.dungeon&&renderer._course!==course)prepareDescentFloor();}
 function pause(){if(screen!=='play')return;screen='pause';resetInput();document.exitPointerLock?.();if(!session?.connected)run.mode='pause';audio.setScene?.('pause');audio.pause();ui.pause();if(session?.connected)ui.toast('Co-op stays live while your menu is open.');}
 function resume(){if(screen!=='pause')return;screen='play';run.mode='play';ui.play?.();ui.hide?.();document.body.classList.add('playing');audio.setScene?.('play');audio.unlock().then(()=>{if(screen!=='play')return;audio.resume();audio.play('ambience');});pointerLock();}
 function cancelSignal(){signalAbort?.abort();signalAbort=null;signal?.abort?.();signal=null;signalRoom='';}
@@ -59,6 +64,42 @@ function applySnapshot(s,start=false){if(!saneSnapshot(s)||s.seq<=lastSnapshot)r
 function receive(msg){if(!msg||typeof msg.t!=='string')return;if(session?.role==='host'){if(msg.t==='input'){const n=msg.i;if(!n||!Number.isFinite(n.angle)||!Number.isFinite(n.pitch))return;const weapon=clamp(Math.floor(Number(n.weapon)||0),0,weapons.length-1);if(weapon!==remoteInput.weapon){remotePress.fire=false;remotePress.alt=false;}if(n.fire&&!remoteInput.fire)remotePress.fire=true;if(n.alt&&!remoteInput.alt)remotePress.alt=true;remoteInput={forward:clamp(Number(n.forward)||0,-1,1),strafe:clamp(Number(n.strafe)||0,-1,1),jump:!!n.jump,dash:!!n.dash,slide:!!n.slide,fire:!!n.fire,alt:!!n.alt,angle:clamp(n.angle,-Math.PI,Math.PI),pitch:clamp(n.pitch,-1.35,1.35),weapon,parry:Number.isSafeInteger(n.parry)?n.parry:0,hook:Number.isSafeInteger(n.hook)?n.hook:0,harvest:!!n.harvest};remoteSeen=performance.now();}if(msg.t==='restart-request')ui.toast('Partner requests restart. Esc → Restart arena.');}else if(msg.t==='start'){lastSnapshot=-1;lastNetEvent=-1;applySnapshot(msg.s,true);}else if(msg.t==='snapshot')applySnapshot(msg.s);}
 function intent(){if(screen!=='play')return{};const held=[...touches.values()].map(v=>v.action),has=a=>held.includes(a),harvest=keys.has('KeyG')||has('harvest');return{forward:(Number(keys.has('KeyW')||has('forward'))-Number(keys.has('KeyS')||has('back')))||(settings.autoRun&&!harvest?1:0),strafe:Number(keys.has('KeyD')||has('right'))-Number(keys.has('KeyA')||has('left')),jump:keys.has('Space')||has('jump')||pulses.has('jump'),dash:keys.has('ShiftLeft')||keys.has('ShiftRight')||has('dash')||pulses.has('dash'),slide:keys.has('ControlLeft')||keys.has('ControlRight')||has('slide'),turn:Number(keys.has('ArrowRight'))-Number(keys.has('ArrowLeft')),lookY:Number(keys.has('ArrowUp'))-Number(keys.has('ArrowDown')),fire:fire||has('fire')||pulses.has('fire'),alt:alt||has('alt')||pulses.has('alt'),angle:run.angle,pitch:run.pitch,weapon:run.weapon,parry:parrySequence,hook:hookSequence,harvest};}
 function punch(){if(screen!=='play')return;parrySequence++;if(session?.role==='guest'&&session.connected){run.punch=.3;audio.play('parry');}else parry(run);}
+function requestInspector(){
+ if(!devEnabled||renderer._beginPending)return;
+ if(session?.connected){ui.toast('Map inspection is available in solo play.');return;}
+ if(screen==='menu'){inspectOnStart=true;begin(false);return;}
+ if(screen==='pause')resume();
+ if(screen!=='play')return;
+ resetInput();acc=0;
+ if(inspector.active){inspector.leave();audio.resume();}
+ else{inspector.enter(run);audio.pause();}
+ renderer.freeCamera=inspector.active?inspector.pose:null;
+ document.body.classList.toggle('inspecting',inspector.active);
+ pointerLock();
+}
+function updateInspector(dt){
+ if(inspectOnStart&&screen==='play'){inspectOnStart=false;requestInspector();}
+ if(inspector.active&&screen==='menu'){inspector.leave();renderer.freeCamera=null;document.body.classList.remove('inspecting');}
+ if(inspector.active&&screen==='play'){inspector.update(dt,keys);renderer.freeCamera=inspector.pose;}
+ if(!inspectorPanel&&inspector.active){
+  inspectorPanel=document.createElement('section');inspectorPanel.className='dev-inspector';inspectorPanel.setAttribute('aria-label','Map inspector');
+  inspectorPanel.innerHTML='<strong>DEV / MAP INSPECTOR</strong><output></output><p>WASD fly · Mouse / arrows look · Space / E up · Ctrl / Q down<br>Shift boost · Wheel speed · R reset · Esc pause · F2 return</p><button type="button" data-dev-inspect>RETURN TO PLAYER</button>';
+  document.body.append(inspectorPanel);
+ }
+ if(inspectorPanel){inspectorPanel.hidden=!inspector.active||screen!=='play';if(inspector.active){const p=inspector.pose;inspectorPanel.querySelector('output').textContent=`X ${p.x.toFixed(1)} · Y ${p.y.toFixed(1)} · Z ${p.z.toFixed(1)} m / ${inspector.speed.toFixed(0)} m/s · SIMULATION FROZEN`;}}
+}
+document.addEventListener('click',event=>{if(event.target.closest('[data-dev-inspect]'))requestInspector();});
+// Capture developer inputs before the game's weapon/ability shortcuts.
+addEventListener('keydown',event=>{
+ if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;
+ if(event.code==='F2'&&devEnabled){event.preventDefault();event.stopImmediatePropagation();if(!event.repeat)requestInspector();return;}
+ if(!inspector.active||screen!=='play'||event.code==='Escape')return;
+ if(event.code==='Tab'||event.code==='Enter'&&document.activeElement?.tagName==='BUTTON')return;
+ event.preventDefault();event.stopImmediatePropagation();keys.add(event.code);
+ if(event.code==='KeyR'&&!event.repeat)inspector.reset();
+},true);
+addEventListener('mousemove',event=>{if(inspector.active&&screen==='play'&&document.pointerLockElement===canvas){event.stopImmediatePropagation();inspector.look(event.movementX*settings.sensitivity,event.movementY*settings.sensitivity);}},true);
+canvas.addEventListener('wheel',event=>{if(inspector.active&&screen==='play'){event.preventDefault();event.stopImmediatePropagation();inspector.changeSpeed(event.deltaY<0?1:-1);}},{capture:true,passive:false});
 addEventListener('keydown',e=>{if(e.code==='Escape'){e.preventDefault();if(ui.escape?.())return;screen==='play'?pause():screen==='pause'?resume():null;return;}if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;if(screen!=='play')return;if(['Space','ControlLeft','ControlRight','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.code))e.preventDefault();keys.add(e.code);if(e.repeat)return;if(e.code==='Space')pulses.add('jump');if(e.code==='ShiftLeft'||e.code==='ShiftRight')pulses.add('dash');if(/^Digit[1-8]$/.test(e.code))switchWeapon(run,Number(e.code.at(-1))-1);if(e.code==='KeyF')punch();if(e.code==='KeyE'){hookSequence++;if(session?.role!=='guest'||!session.connected)grapple(run);}if(e.code==='KeyR')restart();});
 addEventListener('keyup',e=>keys.delete(e.code));
 canvas.addEventListener('pointerdown',e=>{if(screen!=='play')return;if(e.pointerType==='touch'){touches.set(e.pointerId,{action:'look',x:e.clientX,y:e.clientY});canvas.setPointerCapture(e.pointerId);}else if(document.pointerLockElement===canvas){if(e.button===0){fire=true;pulses.add('fire');}if(e.button===2){alt=true;pulses.add('alt');}}else pointerLock();});
@@ -123,6 +164,28 @@ function updateHorrorAudio(){
  }else horrorQuietSince=null;
  updateDungeonScareAudio();
 }
+let floorPreparation = null;
+function prepareDescentFloor(){
+ if(floorPreparation||!run.course?.dungeon||session?.connected)return;
+ const course=run.course;
+ const token={course};floorPreparation=token;
+ screen='loading';run.mode='pause';acc=0;resetInput();audio.pause();
+ ui.loading(`Descending to floor ${course.dungeonIndex+1}: ${course.name}`);
+ // Paint the transition before constructing the next floor or uploading it.
+ requestAnimationFrame(()=>setTimeout(async()=>{
+  try{
+   if(floorPreparation!==token||run.course!==course)return;
+   renderer.render(run,performance.now());
+   await renderer._warmupPromise;
+   if(floorPreparation!==token||run.course!==course)return;
+   floorPreparation=null;screen='play';run.mode='play';acc=0;last=performance.now();
+   ui.play();ui.hud(run,{network,fps});audio.setScene?.('play');audio.resume();audio.play('ambience');
+   ui.toast(`FLOOR ${String(course.dungeonIndex+1).padStart(2,'0')} // ${course.name.toUpperCase()}`);
+  }catch(error){
+   ui.loading('Could not load the next floor. Reload to try again.',true);console.error(error);
+  }
+ },0));
+}
 function processEvents(){
  if(run.distance<lastStep)lastStep=0;
  if(run.time<lastHeartbeat)lastHeartbeat=0;
@@ -138,18 +201,28 @@ function processEvents(){
   }
   if(e.type==='sector-transition'&&audio.play('horror-sting'))audio.duckAtmosphere(.65,.18,.7,.9);
   if(e.type==='wave'&&e.wave===1&&(run.course?.dungeon?run.course.dungeonIndex===0:run.sectorIndex===0))audio.play('horror-reveal');
-  if(e.type==='wave')ui.toast('WAVE '+e.wave+' / '+(run.waveCount||3)+' — INCOMING');
+  const eventRoomId=e.roomId||e.encounterRoomId||e.nextRoomId;
+  const eventRoom=run.course?.rooms?.find(room=>room.id===eventRoomId);
+  const eventRoomName=String(e.roomName||eventRoom?.name||'NEXT ROOM').toUpperCase();
+  if(e.type==='dungeon-room-enter')ui.toast('ROOM '+String((e.roomIndex??run.dungeonProgression?.roomIndex??0)+1).padStart(2,'0')+' // '+eventRoomName);
+  if(e.type==='dungeon-encounter-start')ui.toast('ENCOUNTER // '+eventRoomName+' // THREATS INCOMING');
+  if(e.type==='dungeon-room-clear')ui.toast('ROOM CLEAR // '+eventRoomName);
+  if(e.type==='dungeon-doors-open')ui.toast('PATH OPEN // '+String(e.count||1)+' DOOR'+(e.count===1?'':'S'));
+  if(e.type==='room-transition')ui.toast('ROOM '+String((e.roomIndex??run.roomProgression?.currentIndex??0)+1).padStart(2,'0')+' // '+eventRoomName);
+  if(e.type==='room-clear')ui.toast('ROOM CLEAR // '+eventRoomName);
   if(e.type==='dungeon-weapon'){ui.lootDiscovery?.(e);audio.play('equip');}
   if(e.type==='dungeon-key')ui.lootDiscovery?.({weaponName:e.keyName,story:e.story,rarity:'rare',kicker:'KEY / RECORD RECOVERED'});
   if(e.type==='dungeon-evidence'){ui.lootDiscovery?.({weaponName:e.title,story:e.story,rarity:'record',kicker:'EVIDENCE / ARCHIVED'});audio.play('equip');}
-  if(e.type==='sector-transition')ui.toast('DESCENT '+(e.sectorIndex+1)+' // '+e.sectorName.toUpperCase());
+  if(e.type==='sector-transition'){if(e.dungeon)prepareDescentFloor();else ui.toast('DESCENT '+(e.sectorIndex+1)+' // '+e.sectorName.toUpperCase());}
   if(session?.role==='host'&&['enemy-attack','explosion','spawn','wave','sector-transition','melee-hit','melee-wall','chainsaw-hit','extract-start','extract-draw','extract-incise','extract-rip','extract-complete','extract-cancel'].includes(e.type)){netEvents.push({...e,seq:++netEventSeq});netEvents=netEvents.slice(-20);}
  }
  run.events.length=0;if(run.peer?.events)run.peer.events.length=0;
 }
-function frame(t){const dt=Math.min(.1,last?(t-last)/1000:0);last=t;frames++;fpsClock+=dt;if(fpsClock>.75){fps=frames/fpsClock;frames=0;fpsClock=0;}const live=screen==='play'||(session?.connected&&screen==='pause');if(live&&run.mode==='play'){acc=Math.min(acc+dt,.1);const i=intent();i.predictWeapons=!!(session?.connected&&session.role==='guest');let stepped=false;while(acc>=1/120){stepped=true;if(session?.connected&&session.role==='guest'){if(run.weapon>=4){if(i.fire||i.alt)(run.weapon>=6?shootMelee:shootRifle)(run,i.alt,true);tickPlayer(run,1/120,i);}else{tickPlayer(run,1/120,i);if((i.fire||i.alt)&&run.cooldowns[run.weapon]<=0){run.shot=1;run.cooldowns[run.weapon]=weapons[run.weapon].interval;audio.play('shot',run.weapon);}}}else{if(i.fire||i.alt)shoot(run,i.alt);if(run.peer){const fresh=performance.now()-remoteSeen<350;let ri=fresh?remoteInput:{};if(fresh&&(remotePress.fire||remotePress.alt))ri={...ri,fire:ri.fire||(remotePress.fire&&ri.weapon!==7),alt:ri.alt||remotePress.alt};remotePress.fire=false;remotePress.alt=false;if(Number.isFinite(ri.angle)){run.peer.angle=ri.angle;run.peer.pitch=ri.pitch;switchWeapon(run.peer,ri.weapon);}tickPlayer(run.peer,1/120,ri);if(ri.fire||ri.alt)shoot(run.peer,ri.alt);if(ri.parry>remoteParry){remoteParry=ri.parry;parry(run.peer);}if(ri.hook>remoteHook){remoteHook=ri.hook;grapple(run.peer);}}tick(run,1/120,i);}acc-=1/120;}if(stepped&&(!session?.connected||session.role==='host'))pulses.clear();netClock+=dt;if(session?.connected&&netClock>=.05){netClock=0;if(session.role==='host')session.send({t:'snapshot',s:snapshot()});else{session.send({t:'input',i:{...i,angle:run.angle,pitch:run.pitch,weapon:run.weapon}});pulses.clear();}}processEvents();}
+function frame(t){const dt=Math.min(.1,last?(t-last)/1000:0);last=t;frames++;fpsClock+=dt;if(fpsClock>.75){fps=frames/fpsClock;frames=0;fpsClock=0;}updateInspector(dt);const live=!inspector.active&&(screen==='play'||(session?.connected&&screen==='pause'));if(live&&run.mode==='play'){acc=Math.min(acc+dt,.1);const i=intent();i.predictWeapons=!!(session?.connected&&session.role==='guest');let stepped=false;while(acc>=1/120){stepped=true;if(session?.connected&&session.role==='guest'){if(run.weapon>=4){if(i.fire||i.alt)(run.weapon>=6?shootMelee:shootRifle)(run,i.alt,true);tickPlayer(run,1/120,i);}else{tickPlayer(run,1/120,i);if((i.fire||i.alt)&&run.cooldowns[run.weapon]<=0){run.shot=1;run.cooldowns[run.weapon]=weapons[run.weapon].interval;audio.play('shot',run.weapon);}}}else{if(i.fire||i.alt)shoot(run,i.alt);if(run.peer){const fresh=performance.now()-remoteSeen<350;let ri=fresh?remoteInput:{};if(fresh&&(remotePress.fire||remotePress.alt))ri={...ri,fire:ri.fire||(remotePress.fire&&ri.weapon!==7),alt:ri.alt||remotePress.alt};remotePress.fire=false;remotePress.alt=false;if(Number.isFinite(ri.angle)){run.peer.angle=ri.angle;run.peer.pitch=ri.pitch;switchWeapon(run.peer,ri.weapon);}tickPlayer(run.peer,1/120,ri);if(ri.fire||ri.alt)shoot(run.peer,ri.alt);if(ri.parry>remoteParry){remoteParry=ri.parry;parry(run.peer);}if(ri.hook>remoteHook){remoteHook=ri.hook;grapple(run.peer);}}tick(run,1/120,i);}acc-=1/120;}if(stepped&&(!session?.connected||session.role==='host'))pulses.clear();netClock+=dt;if(session?.connected&&netClock>=.05){netClock=0;if(session.role==='host')session.send({t:'snapshot',s:snapshot()});else{session.send({t:'input',i:{...i,angle:run.angle,pitch:run.pitch,weapon:run.weapon}});pulses.clear();}}processEvents();}
+ if(screen==='loading'){requestAnimationFrame(frame);return;}
  if(['win','dead'].includes(run.mode)&&!['win','dead'].includes(screen)){screen=run.mode;resetInput();document.exitPointerLock?.();audio.pause();audio.setScene?.(run.mode);ui.finish(run,run.mode==='win');if(session?.role==='host'&&session.connected)session.send({t:'snapshot',s:snapshot()});}
- audio.updateMelee?.({weapon:run.weapon,active:run.sawActive,rev:run.sawRev,contact:run.sawContact>0,playing:screen==='play'&&run.mode==='play'&&run.health>0});
+ audio.updateMelee?.({weapon:run.weapon,active:run.sawActive,rev:run.sawRev,contact:run.sawContact>0,playing:!inspector.active&&screen==='play'&&run.mode==='play'&&run.health>0});
  if(screen==='menu')renderer.renderMenu(run,t);else renderer.render(run,t);hudClock+=dt;if(hudClock>=1/30){hudClock=0;ui.hud(run,{network:session?.connected?'P2P / '+Math.round(session.rtt||0)+' MS':network,fps});}requestAnimationFrame(frame);}
-configure(ui.prefs||settings);audio.setScene?.('menu');ui.menu();requestAnimationFrame(frame);
-if(new URLSearchParams(location.search).has('debug'))window.__DEAD_ARRIVAL__={get run(){return run;},get screen(){return screen;},get session(){return session;},get fps(){return fps;},renderer,audio,begin,pause,resume,snapshot,receive,ui};
+ui.devEnabled=devEnabled;configure(ui.prefs||settings);audio.setScene?.('menu');ui.menu();requestAnimationFrame(frame);
+renderer.onPreparationProgress=stage=>{if(renderer._beginPending||floorPreparation)ui.loading(stage);};
+if(routeParams.has('debug')||devEnabled)window.__DEAD_ARRIVAL__={get run(){return run;},get screen(){return screen;},get session(){return session;},get fps(){return fps;},renderer,audio,begin,pause,resume,snapshot,receive,ui,inspector,requestInspector};

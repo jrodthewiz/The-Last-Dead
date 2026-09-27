@@ -135,7 +135,10 @@ export const DUNGEON_LAYERS = Object.freeze([
       open('f1-o-ward-e', 'f1-ward', 'e', 14, 3),
       open('f1-o-hall-w', 'f1-hall', 'w', 14, 3),
       open('f1-o-hall-e', 'f1-hall', 'e', 13, 3),
-      open('f1-o-pump-w', 'f1-pump', 'w', 13, 3),
+      // The pump bank is the first east-side branch. Hold its threshold until
+      // the pump/crane wave is ready so the hall reads as a deliberate arrival
+      // beat instead of exposing the whole foundry at spawn.
+      open('f1-o-pump-w', 'f1-pump', 'w', 13, 3, 'door', { lockedBy: 'room-clear' }),
       open('f1-o-ward-n', 'f1-ward', 'n', 3, 2),
       open('f1-o-vault-s', 'f1-vault', 's', 3, 2),
       open('f1-o-vault-e', 'f1-vault', 'e', 5, 2),
@@ -332,11 +335,13 @@ export const DUNGEON_LAYERS = Object.freeze([
       open('f2-o-wardA-n', 'f2-wardA', 'n', 7, 2),
       open('f2-o-wardB-s', 'f2-wardB', 's', 7, 2),
       open('f2-o-wardC-n', 'f2-wardC', 'n', 29, 2),
-      open('f2-o-wardD-s', 'f2-wardD', 's', 29, 2),
+      // Ward D is a later east-loop beat. Both approaches share one release
+      // schedule so the ward cannot be entered around its south threshold.
+      open('f2-o-wardD-s', 'f2-wardD', 's', 29, 2, 'door', { lockedBy: 'room-clear' }),
       open('f2-o-wardA-w', 'f2-wardA', 'w', 17, 2),
       open('f2-o-wardB-w', 'f2-wardB', 'w', 10, 2),
       open('f2-o-wardC-e', 'f2-wardC', 'e', 17, 2),
-      open('f2-o-wardD-e', 'f2-wardD', 'e', 10, 2),
+      open('f2-o-wardD-e', 'f2-wardD', 'e', 10, 2, 'door', { lockedBy: 'room-clear' }),
       open('f2-o-hub-n', 'f2-hub', 'n', 17, 4, 'door', { lockedBy: 'room-clear' }),
       open('f2-o-theater-s', 'f2-theater', 's', 17, 4, 'door', { lockedBy: 'room-clear' }),
       open('f2-o-theater-e', 'f2-theater', 'e', 7, 3),
@@ -533,7 +538,9 @@ export const DUNGEON_LAYERS = Object.freeze([
       open('f3-o-cryptE-w', 'f3-cryptE', 'w', 12, 3),
       open('f3-o-cryptW-s', 'f3-cryptW', 's', 4, 3),
       open('f3-o-cryptE-s', 'f3-cryptE', 's', 33, 3),
-      open('f3-o-ossuary-e', 'f3-ossuaryS', 'e', 21, 3),
+      // Keep the southern ossuary branch behind the wave that first inhabits
+      // it; its side rooms remain optional once the threshold releases.
+      open('f3-o-ossuary-e', 'f3-ossuaryS', 'e', 21, 3, 'door', { lockedBy: 'room-clear' }),
       open('f3-o-stores-w', 'f3-stores', 'w', 21, 3),
       open('f3-o-vault-e', 'f3-vault', 'e', 4, 3),
       open('f3-o-niche-w', 'f3-niche', 'w', 4, 3),
@@ -717,7 +724,10 @@ export const DUNGEON_LAYERS = Object.freeze([
       open('f4-o-aisleE-s', 'f4-aisleE', 's', 27, 4),
       open('f4-o-vestry-n', 'f4-vestry', 'n', 17, 4),
       open('f4-o-nave-s', 'f4-nave', 's', 17, 4),
-      open('f4-o-aisleW-e', 'f4-aisleW', 'e', 16, 3),
+      // The west aisle is the next readable destination after the nave. Its
+      // authored wave releases this threshold while the east aisle remains a
+      // flank route into the nave.
+      open('f4-o-aisleW-e', 'f4-aisleW', 'e', 16, 3, 'door', { lockedBy: 'room-clear' }),
       open('f4-o-nave-w', 'f4-nave', 'w', 16, 3),
       open('f4-o-aisleE-w', 'f4-aisleE', 'w', 16, 3),
       open('f4-o-nave-e', 'f4-nave', 'e', 16, 3),
@@ -736,7 +746,9 @@ export const DUNGEON_LAYERS = Object.freeze([
       open('f4-o-organ-s', 'f4-organ', 's', 28, 3),
       open('f4-o-aisleE-h', 'f4-aisleE', 'n', 26, 3),
       open('f4-o-aisleE-vent', 'f4-aisleE', 'e', 15, 1, 'vent', { secret: true }),
-      open('f4-o-niche-w', 'f4-niche', 'w', 15, 1),
+      // This mirrors the aisle-side vent. Keeping it a secret vent prevents an
+      // always-open arch at the same threshold from leaking the niche at spawn.
+      open('f4-o-niche-w', 'f4-niche', 'w', 15, 1, 'vent', { secret: true }),
     ],
     keys: [
       { id: 'f4-bell-key', name: 'Bell Key', at: [4, 5], roomId: 'f4-tower', opens: ['f4-o-chancel-n'], note: 'The choir score is a containment sequence. The bells have been keeping the breach asleep.' },

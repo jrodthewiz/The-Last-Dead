@@ -7,7 +7,7 @@ import { createMeleeWeapon } from './weapon-melee.js';
 import { batchStaticWorld } from './world-polish.js';
 
 // The floor pickup uses the equipped weapon's authored form, displayed on a
-// compact salvage rack. Small rarity lamps mark it without hiding the model.
+// salvage rack with a visible rarity marker above it and a ring at its feet.
 const COLORS = Object.freeze({ uncommon: 0x81d9ac, rare: 0x72baff, epic: 0xbd8dff, legendary: 0xffcf74 });
 const FACTORIES = Object.freeze({
   1: () => createBreach(),
@@ -37,6 +37,15 @@ export function buildDungeonWeaponLoot(worldRoot, course) {
     root.userData.noBatch = true;
     root.position.set(loot.x * 4, 0, loot.y * 4);
     const dark = metal(), inner = recess(), bright = signal(color);
+    const beaconMaterial = new THREE.MeshBasicMaterial({ color, toneMapped: false });
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(1.14, .055, 8, 40), beaconMaterial);
+    halo.name = 'WeaponPickupHalo';
+    halo.rotation.x = Math.PI / 2;
+    halo.position.y = .075;
+    const beacon = new THREE.Mesh(new THREE.OctahedronGeometry(.27, 0), beaconMaterial);
+    beacon.name = 'WeaponPickupBeacon';
+    beacon.position.y = 3.65;
+    root.add(halo, beacon);
     const foot = new THREE.Mesh(new THREE.CylinderGeometry(.88, 1.02, .18, 8), dark);
     foot.name = 'SalvageRackBase';
     foot.position.y = .13;
@@ -83,20 +92,30 @@ export function buildDungeonWeaponLoot(worldRoot, course) {
     carrier.add(normalized);
     root.add(carrier);
 
-    const light = new THREE.PointLight(0xffead2, 2.15, 5, 2);
-    light.position.set(-.45, 2.25, .65);
-    root.add(light);
-    worldRoot.add(root);
-    items.push({ ...loot, root, carrier, light });
+    const light = new THREE.PointLight(color, 2.55, 6, 2);
+    light.position.copy(root.position).add(new THREE.Vector3(-.45, 2.25, .65));
+    // Keep the light outside the display's visibility subtree. Removing a
+    // visible light changes Three.js shader defines for every lit material;
+    // collecting loot must only change its intensity, not the light count.
+    worldRoot.add(root, light);
+    items.push({ ...loot, root, carrier, light, halo, beacon });
   }
   return items;
 }
 
 export function updateDungeonWeaponLoot(items, collected, timeMs, reducedMotion = false, viewer = null) {
-  const found = new Set(collected || []);
+  // `collected` is the live progression array. Building a Set here used to
+  // allocate on every render frame, even after all floor loot was collected.
+  // The floor has only a handful of entries, so the allocation-free linear
+  // membership check is cheaper and keeps pickup frames out of GC pauses.
+  const found = collected || [];
   for (const item of items || []) {
-    item.root.visible = !found.has(item.id);
-    if (!item.root.visible) continue;
+    const visible = !found.includes(item.id);
+    if (item.root.visible !== visible) item.root.visible = visible;
+    if (!visible) {
+      if (item.light.intensity !== 0) item.light.intensity = 0;
+      continue;
+    }
     const phase = timeMs * .001 + item.weaponIndex * .8;
     item.carrier.position.y = reducedMotion ? 1.46 : 1.46 + Math.sin(phase * 1.45) * .055;
     const dx = viewer ? viewer.x - item.root.position.x : 1;
@@ -106,6 +125,9 @@ export function updateDungeonWeaponLoot(items, collected, timeMs, reducedMotion 
     const facing = Math.atan2(dx, dz) + Math.PI / 2;
     item.carrier.rotation.y = facing + .24 + (reducedMotion ? 0 : Math.sin(phase * .72) * .07);
     item.carrier.rotation.z = -.08;
+    item.beacon.position.y = reducedMotion ? 3.65 : 3.65 + Math.sin(phase * 1.8) * .12;
+    item.beacon.rotation.y = reducedMotion ? Math.PI / 4 : phase * .8;
+    item.halo.scale.setScalar(reducedMotion ? 1 : 1 + Math.sin(phase * 2) * .045);
     item.light.intensity = reducedMotion ? 2.05 : 2.05 + Math.sin(phase * 1.8) * .12;
   }
 }

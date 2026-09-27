@@ -106,47 +106,97 @@ export function roomProgression(run = {}) {
   if (run.course?.dungeon) {
     const course = run.course;
     const state = run.dungeonProgression || {};
-    const waveCount = Math.max(1, Math.round(Number(run.waveCount || course.waveCount) || 1));
-    const wave = clamp(run.wave || 0, 0, waveCount);
-    const remaining = enemyCount(run);
-    const total = enemyTotal(run);
-    const pending = remaining ? 0 : wave < waveCount ? 1 : 0;
+    const encounter = state.encounter || {};
+    const rooms = Array.isArray(course.rooms) ? course.rooms : [];
+    const roomId = value => typeof value === 'string' ? value : value?.id;
+    const roomFor = id => id ? rooms.find(room => room.id === id) || null : null;
+    const sequence = (Array.isArray(state.roomSequence) ? state.roomSequence : rooms)
+      .map(roomId).filter(Boolean);
+    const roomCount = Math.max(1, Math.round(Number(state.roomCount) || sequence.length || rooms.length || 1));
+    const activeRoomId = roomId(state.activeRoomId);
+    const encounterRoomId = roomId(state.encounterRoomId)
+      || roomId(state.currentEncounterRoomId)
+      || roomId(encounter.roomId)
+      || activeRoomId;
+    const activeRoom = roomFor(activeRoomId);
+    const encounterRoom = roomFor(encounterRoomId) || activeRoom;
+    const indexFromId = sequence.indexOf(encounterRoomId);
+    const suppliedRoomIndex = Number(state.roomIndex);
+    const roomIndex = Math.max(0, Math.min(roomCount - 1, Math.round(Number.isFinite(suppliedRoomIndex) ? suppliedRoomIndex : (indexFromId >= 0 ? indexFromId : 0))));
+    const nextRoomId = roomId(state.nextRoomId) || sequence[roomIndex + 1] || null;
+    const nextRoom = roomFor(nextRoomId);
+    const waveCount = Math.max(1, Math.round(Number(encounter.waveCount ?? run.waveCount ?? course.waveCount) || 1));
+    const wave = clamp(encounter.wave ?? run.wave ?? 0, 0, waveCount);
+    const fallbackActive = Array.isArray(run.course?.enemies)
+      ? run.course.enemies.filter(enemy => !enemy.dead && (!encounterRoomId || enemy.roomId === encounterRoomId)).length
+      : enemyCount(run);
+    const active = Math.max(0, Math.round(Number(encounter.active ?? fallbackActive) || 0));
+    const pending = Math.max(0, Math.round(Number(encounter.pending ?? run.director?.pending ?? 0) || 0));
+    const remaining = Math.max(0, Math.round(Number(encounter.remaining ?? (active + pending)) || 0));
+    const fallbackTotal = Math.max(remaining, active + pending, enemyTotal(run));
+    const total = Math.max(0, Math.round(Number(encounter.total ?? fallbackTotal) || 0));
+    const completedValue = state.roomsCompleted;
+    const completedCount = Array.isArray(completedValue)
+      ? completedValue.length
+      : Math.max(0, Math.round(Number(completedValue) || 0));
+    const phaseBeforeEncounter = String(state.phase || encounter.state || '').toLowerCase();
+    const encounterProgress = total > 0
+      ? clamp((total - remaining) / total, 0, 1)
+      : ['key', 'exit'].includes(phaseBeforeEncounter) || (phaseBeforeEncounter === 'exploration' && completedCount > 0) ? 1 : 0;
+    const suppliedProgress = Number(state.progress);
+    const progress = clamp(Number.isFinite(suppliedProgress)
+      ? (suppliedProgress > 1 ? suppliedProgress / 100 : suppliedProgress)
+      : (completedCount + encounterProgress) / roomCount, 0, 1);
     const keys = course.keys || [];
     const collected = state.keysCollected || [];
     const missingKey = keys.find(key => !collected.includes(key.id));
-    const exitReady = state.exitReady === true;
-    const room = (course.rooms || []).find(item => run.x >= item.bounds.minX && run.x < item.bounds.maxX && run.y >= item.bounds.minZ && run.y < item.bounds.maxZ);
-    const phase = exitReady ? 'exit' : remaining ? 'combat' : wave < waveCount ? 'intermission' : 'key';
-    const nextWaveIndex = Math.max(0, Math.min(waveCount - 1, wave));
-    const nextWaveRooms = [...new Set((course.waveSpawns?.[nextWaveIndex] || [])
-      .map(spawn => course.rooms?.find(item => item.id === spawn.roomId)?.name)
-      .filter(Boolean))];
-    const staging = nextWaveRooms.length
-      ? `${nextWaveRooms.slice(0, 2).join(' / ').toUpperCase()}${nextWaveRooms.length > 2 ? ` +${nextWaveRooms.length - 2}` : ''}`
-      : 'NEXT THRESHOLD';
-    const intermission = phase === 'intermission';
-    const countdown = Math.ceil(Math.max(0, Number(run.waveDelay) || 0));
-    const progress = exitReady ? 1 : Math.max(0, Math.min(.99, (Math.max(0, wave - 1) + (total ? (total - remaining) / Math.max(1, total) : 0)) / waveCount));
+    const rawPhase = phaseBeforeEncounter;
+    const phase = rawPhase === 'spawning' ? 'telegraph' : rawPhase === 'intermission' ? 'exploration' : rawPhase || (remaining || pending ? 'combat' : 'exploration');
+    const exitReady = state.exitReady === true || phase === 'exit';
+    const objective = String(state.objective || (exitReady
+      ? 'Reach the descent lift'
+      : phase === 'exploration'
+        ? (nextRoom ? `Reach ${nextRoom.name}` : 'Explore the room')
+        : phase === 'key'
+          ? (missingKey ? `Find ${missingKey.name}` : 'Find the floor key')
+          : `Clear ${encounterRoom?.name || activeRoom?.name || 'the room'}`));
+    const subtitle = phase === 'combat' || phase === 'telegraph'
+      ? (encounterRoom?.encounter?.tactic || 'Hold the room and read the next approach.')
+      : phase === 'exploration'
+        ? (nextRoom ? `Next room: ${nextRoom.name}` : 'The path is open.')
+        : exitReady ? `Floor ${course.dungeonIndex + 1} complete` : missingKey ? `${missingKey.name} required for the lift` : 'Explore the floor';
+    const explorationThreat = completedCount > 0 ? 'ROOM CLEAR' : 'NO ACTIVE THREATS';
+    const threat = phase === 'telegraph'
+      ? (pending ? `${pending} INCOMING` : 'THREATS STAGING')
+      : phase === 'combat'
+        ? (active ? `${active} ACTIVE${pending ? ` / ${pending} INCOMING` : ''}` : pending ? `${pending} INCOMING` : 'NO ACTIVE THREATS')
+        : phase === 'exploration' ? explorationThreat : phase === 'key' ? 'KEY REQUIRED' : 'EXIT SIGNAL LIVE';
     return {
       dungeon: true,
       sectorIndex: course.dungeonIndex,
       sectorCount: course.dungeonCount,
       sectorName: course.name,
-      roomIndex: Math.min(waveCount - 1, Math.max(0, wave - 1)),
-      roomCount: waveCount,
-      roomName: room?.name || (wave < waveCount ? `Descent wave ${wave + 1}` : 'Exit spine'),
+      roomIndex,
+      roomCount,
+      roomName: activeRoom?.name || encounterRoom?.name || nextRoom?.name || `Threshold ${roomIndex + 1}`,
+      activeRoomId,
+      encounterRoomId,
+      nextRoomId,
+      roomSequence: sequence,
       wave,
       waveCount,
+      active,
       remaining,
       total,
       pending,
       state: phase,
       exitReady,
       progress,
+      encounterProgress,
       sync: true,
-      objective: exitReady ? 'REACH THE DESCENT LIFT' : remaining ? `CLEAR WAVE ${wave} / ${waveCount}` : intermission ? `WAVE ${String(wave + 1).padStart(2, '0')} / ${String(waveCount).padStart(2, '0')} IN ${countdown}s` : missingKey ? `FIND ${missingKey.name.toUpperCase()}` : 'REACH THE DESCENT LIFT',
-      subtitle: intermission ? `NEXT THREAT ZONE: ${staging}` : exitReady ? `FLOOR ${String(course.dungeonIndex + 1).padStart(2, '0')} COMPLETE` : missingKey ? `${missingKey.name.toUpperCase()} REQUIRED FOR THE LIFT` : `KEY SECURED · FLOOR ${course.dungeonIndex + 1} / ${course.dungeonCount}`,
-      threat: remaining ? `${remaining} REMAIN` : pending ? 'NEXT WAVE INCOMING' : exitReady ? 'EXIT SIGNAL LIVE' : missingKey && wave >= waveCount ? 'KEY REQUIRED' : 'NO ACTIVE THREATS',
+      objective,
+      subtitle,
+      threat,
     };
   }
   // `roomProgression` is the live contract owned by room-progression.js. The
@@ -210,6 +260,7 @@ export function roomProgression(run = {}) {
     roomName,
     wave,
     waveCount,
+    active: Math.max(0, Math.round(Number(read('active', 'threatActive') ?? run.director?.active ?? remaining) || 0)),
     remaining,
     total,
     pending,
@@ -305,6 +356,7 @@ export class UI {
       case 'equip': this.callbacks.onWeapon(Number(target.dataset.weapon)); break;
       case 'guide': {const guide=this.root.querySelector('.field-guide');if(guide){guide.hidden=!guide.hidden;target.setAttribute('aria-expanded',String(!guide.hidden));}break;}
       case 'start': this.callbacks.onStart(); break;
+      case 'reload': window.location.reload(); break;
       case 'resume': this.callbacks.onResume(); break;
       case 'records': {
         const archive=this.root.querySelector('.records-archive');
@@ -474,6 +526,7 @@ export class UI {
   }
 
   menu() {
+    this.clearLoading();
     this.screen='menu';this.root.dataset.screen='menu';this.root.dataset.settingsOpen='false';this.run=null;this._roomCode='';this._connectionBusy=false;
     this.root.innerHTML=`<section class="screen menu-screen" aria-label="The Last Dead main menu">
      <div class="cinema-frame" aria-hidden="true"><span>THE BLOODWORKS</span><span>NO ONE LEAVES ALONE</span></div>
@@ -490,6 +543,7 @@ export class UI {
             </div>
           </div>
 
+      ${this.devEnabled?'<button class="menu-link" type="button" data-dev-inspect>MAP INSPECTOR <small>F2</small></button>':''}
       <button class="menu-link" type="button" data-action="settings">SETTINGS</button>
       <button class="menu-link" type="button" data-action="guide" aria-expanded="false">CONTROLS</button>
   <div class="field-guide" hidden><h2>Controls</h2><div class="guide-controls"><b>WASD</b><span>Move / aim</span><b>SPACE / SHIFT</b><span>Jump / dash</span><b>CTRL / F / E</b><span>Slide / parry / tether</span><b>HOLD G</b><span>Drain a corpse, then remove its heart to bank points</span><b>1 2 3 4 5 6 7 8</b><span>Switch weapons</span><b>RIGHT CLICK</b><span>Alternate fire / hold to charge Mourning</span></div></div>
@@ -517,6 +571,7 @@ export class UI {
 
   /** Remove modal UI and return input focus to the arena. */
   play() {
+    this.clearLoading();
     this.screen = 'play';this.root.dataset.screen='play';
     this._clearToasts();
     this.root.querySelector('.screen')?.remove();
@@ -532,6 +587,41 @@ export class UI {
   hide() {
     this.root.querySelector('.screen')?.remove();
     this._setSettingsOpen(false);
+    return this;
+  }
+
+  loading(stage = 'Preparing the descent', failed = false) {
+    let overlay = this.root.querySelector('.descent-loading');
+    if (!overlay) {
+      this._loadingInert = [...this.root.children].map(node => [node, node.inert]);
+      for (const [node] of this._loadingInert) node.inert = true;
+      overlay = document.createElement('section');
+      overlay.className = 'descent-loading';
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.setAttribute('aria-labelledby', 'descent-loading-title');
+      overlay.tabIndex = -1;
+      overlay.innerHTML = `<div class="descent-loading-copy"><span class="loading-kicker">THE LAST DEAD</span><h2 id="descent-loading-title">LOADING<br><em>THE DESCENT</em></h2><div class="loading-track" aria-hidden="true"><span></span></div><p class="loading-stage" role="status" aria-live="polite"></p><p class="loading-note">Keep breathing. You'll enter when it's ready.</p><button class="primary-button" data-action="reload" hidden>RELOAD AND RETRY</button></div>`;
+      this.root.append(overlay);
+      overlay.focus({ preventScroll: true });
+    }
+    const status = overlay.querySelector('.loading-stage');
+    if (status.textContent !== stage) status.textContent = stage;
+    overlay.classList.toggle('is-failed', failed);
+    overlay.querySelector('.loading-track').hidden = failed;
+    overlay.querySelector('.loading-note').hidden = failed;
+    overlay.querySelector('[data-action="reload"]').hidden = !failed;
+    if (failed) {
+      overlay.querySelector('h2').textContent = 'THE DESCENT MUST WAIT';
+      overlay.querySelector('button').focus({ preventScroll: true });
+    }
+    return this;
+  }
+
+  clearLoading() {
+    this.root.querySelector('.descent-loading')?.remove();
+    for (const [node, inert] of this._loadingInert || []) node.inert = inert;
+    this._loadingInert = null;
     return this;
   }
 
@@ -599,7 +689,7 @@ export class UI {
   _updateRoomRoute(progression) {
     const route = this.root.querySelector('[data-hud="room-route"]');
     if (!route) return;
-    const stageLabel = progression.dungeon ? 'Wave' : 'Room';
+    const stageLabel = 'Room';
     const count = Math.max(1, Math.min(12, Math.round(progression.roomCount) || 1));
     if (this._roomRouteCount !== count || route.children.length !== count) {
       route.replaceChildren(...Array.from({ length: count }, (_, index) => {
@@ -621,7 +711,9 @@ export class UI {
       return;
     }
     const current = Math.max(0, Math.min(count - 1, Math.round(progression.roomIndex) || 0));
-    const fraction = Math.max(0, Math.min(1, progression.progress));
+    const fraction = Math.max(0, Math.min(1, Number.isFinite(Number(progression.encounterProgress))
+      ? Number(progression.encounterProgress)
+      : progression.progress * count - current));
     route.querySelectorAll('[data-room-step]').forEach((step, index) => {
       const complete = index < current;
       step.classList.toggle('is-complete', complete);
@@ -736,18 +828,27 @@ export class UI {
     const fallbackObjective = exitReady
       ? (progression.sectorIndex < progression.sectorCount - 1 ? 'DESCEND THROUGH EXIT' : 'REACH THE FINAL EXIT')
       : intermission
-        ? `NEXT WAVE IN ${Math.ceil(Number(run.waveDelay) || 0)}s`
-        : `WAVE ${String(Math.max(1, currentWave)).padStart(2, '0')} / ${waveCount}`;
-    const fallbackSubtitle = exitReady ? 'EXIT SIGNAL LIVE' : intermission ? 'BREACH WINDOW OPEN' : 'HUNT THEM DOWN';
-    const fallbackThreat = remaining ? `${remaining} REMAIN${pending ? ` / ${pending} INCOMING` : ''}` : pending ? `${pending} INCOMING` : 'NO ACTIVE THREATS';
+        ? 'EXPLORE THE NEXT ROOM'
+        : `CLEAR ROOM ${String(Math.max(1, currentWave)).padStart(2, '0')}`;
+    const fallbackSubtitle = exitReady ? 'EXIT SIGNAL LIVE' : intermission ? 'PATH OPEN' : 'HUNT THEM DOWN';
+    const fallbackThreat = progression.active
+      ? `${progression.active} ACTIVE${pending ? ` / ${pending} INCOMING` : ''}`
+      : pending ? `${pending} INCOMING` : 'NO ACTIVE THREATS';
     this._setHud('sector', `${sectorRoman} / ${sectorTitle}`);
-    this._setHud('room-index', progression.sync ? run.course?.dungeon ? `WAVE ${String(Math.max(1, currentWave)).padStart(2, '0')} / ${String(progression.waveCount).padStart(2, '0')}` : `ROOM ${String(Math.round(progression.roomIndex) + 1).padStart(2, '0')} / ${String(progression.roomCount).padStart(2, '0')}` : 'ROOM -- / --');
+    this._setHud('room-index', progression.sync ? `ROOM ${String(Math.round(progression.roomIndex) + 1).padStart(2, '0')} / ${String(progression.roomCount).padStart(2, '0')}` : 'ROOM -- / --');
     this._setHud('room-name', progression.roomName);
     this._setHud('objective', progression.objective || fallbackObjective);
     this._setHud('objective-sub', compactHudCopy(progression.subtitle || fallbackSubtitle));
     this._setHud('room-threat', progression.threat || fallbackThreat);
-    this._setHud('room-progress-label', `${Math.round(progression.progress * 100)}% CLEAR`);
-    this._setHud('objective-progress', '', exitReady ? 100 : (Math.max(0, currentWave - 1) + (total ? Math.max(0, total - remaining) / Math.max(1, total + pending) : 0)) / waveCount * 100);
+    const encounterState = String(progression.state || '').toLowerCase();
+    const encounterPercent = Math.round(clamp((progression.encounterProgress ?? progression.progress) * 100, 0, 100));
+    const floorPercent = Math.round(clamp(progression.progress * 100, 0, 100));
+    const progressLabel = progression.dungeon
+      ? (encounterState === 'combat' || encounterState === 'telegraph' ? `${encounterPercent}% ENCOUNTER` : encounterState === 'exploration' ? (progression.progress > 0 ? 'ROOM CLEAR' : 'EXPLORE') : `${floorPercent}% FLOOR`)
+      : `${floorPercent}% CLEAR`;
+    this._setHud('room-progress-label', progressLabel);
+    this._setHud('objective-progress', '', floorPercent);
+    hud.dataset.progressionPhase = encounterState;
     this._updateRoomRoute(progression);
     this.root.querySelectorAll('[data-dash]').forEach((pip, index) => pip.classList.toggle('is-ready', energy >= (index + 1) * 33));
     return this;

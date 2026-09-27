@@ -2,23 +2,23 @@
 export const AUDIO_ASSET_MANIFEST = Object.freeze({
   "ambience": [
     "./audio/ambience/ossuary-dungeon.ogg",
-    "./audio/afterlife/air-corridor-loop.ogg",
+    "./audio/sourced/horror/ward-wind-loop.ogg",
     "./audio/sourced/horror/dark-cavern-loop.ogg"
   ],
   "horror-sting": [
     "./audio/sourced/horror/string-sting.ogg"
   ],
   "horror-reveal": [
-    "./audio/sourced/horror/industrial-reveal.ogg"
+    "./audio/sourced/horror/foundry-door-reveal.ogg"
   ],
   "distant-scream": [
     "./audio/sourced/horror/distant-scream-rough.ogg"
   ],
   "ceiling-scream": [
-    "./audio/playground/ceiling-human-scream.ogg"
+    "./audio/sourced/horror/ceiling-screamer-human.ogg"
   ],
   "window-scream": [
-    "./audio/playground/window-human-scream.ogg"
+    "./audio/sourced/horror/window-screamer-human.ogg"
   ],
   "music-menu": [
     "./audio/music/insistent-menu.ogg"
@@ -37,13 +37,11 @@ export const AUDIO_ASSET_MANIFEST = Object.freeze({
       "./audio/sourced/weapons/breach-02.ogg"
     ],
     [
-      "./audio/sfx/processed/arc-lance.wav",
-      "./audio/baseline/scifi-laserLarge_000.ogg",
-      "./audio/baseline/scifi-laserLarge_001.ogg"
+      "./audio/sourced/industrial/arc-spark.ogg",
+      "./audio/sourced/industrial/arc-crackle.ogg"
     ],
     [
-      "./audio/sfx/processed/reliquary-launch.wav",
-      "./audio/sourced/weapons/reliquary-02.ogg"
+      "./audio/sourced/industrial/rocket-launch.ogg"
     ],
     [
       "./audio/sfx/processed/carrion-auto-rifle.wav",
@@ -131,17 +129,13 @@ export const AUDIO_ASSET_MANIFEST = Object.freeze({
     "./audio/baseline/impact-impactPunch_medium_002.ogg"
   ],
   "blood": [
-    "./audio/sfx/processed/blood-burst.wav",
     "./audio/sfx/cc0-splat-hit.wav"
   ],
   "explosion": [
-    "./audio/baseline/scifi-explosionCrunch_000.ogg",
-    "./audio/baseline/scifi-explosionCrunch_001.ogg",
-    "./audio/baseline/scifi-explosionCrunch_002.ogg"
+    "./audio/sourced/industrial/dull-blast.ogg"
   ],
   "rocket": [
-    "./audio/sfx/processed/reliquary-launch.wav",
-    "./audio/sourced/weapons/reliquary-02.ogg"
+    "./audio/sourced/industrial/rocket-launch.ogg"
   ],
   "bulletcrackle": [
     "./audio/sfx/cc0-bullet-crackle.wav"
@@ -163,14 +157,14 @@ export const AUDIO_ASSET_MANIFEST = Object.freeze({
     "./audio/baseline/impact-impactSoft_heavy_002.ogg"
   ],
   "dash": [
-    "./audio/baseline/scifi-doorOpen_000.ogg"
+    "./audio/sourced/industrial/air-dash.ogg"
   ],
   "slide": [
-    "./audio/baseline/interface-scratch_001.ogg",
-    "./audio/baseline/interface-scratch_002.ogg"
+    "./audio/sourced/industrial/slide-scrape-01.ogg",
+    "./audio/sourced/industrial/slide-scrape-02.ogg"
   ],
   "hook": [
-    "./audio/baseline/scifi-doorOpen_001.ogg"
+    "./audio/sourced/industrial/air-dash.ogg"
   ],
   "parry": [
     "./audio/baseline/impact-impactMetal_medium_000.ogg",
@@ -199,8 +193,7 @@ export const AUDIO_ASSET_MANIFEST = Object.freeze({
     "./audio/sourced/enemies/zombie-attack-09.ogg",
     "./audio/sourced/enemies/zombie-attack-10.ogg",
     "./audio/sourced/enemies/zombie-attack-11.ogg",
-    "./audio/sourced/enemies/zombie-attack-12.ogg",
-    "./audio/afterlife/enemy-onset.ogg"
+    "./audio/sourced/enemies/zombie-attack-12.ogg"
   ],
   "moan": [
     "./audio/sourced/enemies/zombie-moan-01.ogg",
@@ -215,7 +208,7 @@ export const AUDIO_ASSET_MANIFEST = Object.freeze({
     "./audio/sourced/enemies/zombie-moan-10.ogg",
     "./audio/sourced/enemies/zombie-moan-11.ogg",
     "./audio/sourced/enemies/zombie-moan-12.ogg",
-    "./audio/afterlife/room-creak.ogg"
+    "./audio/sourced/horror/wood-creak.ogg"
   ],
   "enemydeath": [
     "./audio/enemy/enemy-death-01.wav",
@@ -230,17 +223,17 @@ export const AUDIO_ASSET_MANIFEST = Object.freeze({
     "./audio/baseline/impact-impactSoft_heavy_002.ogg"
   ],
   "spawn": [
-    "./audio/baseline/scifi-forceField_000.ogg",
-    "./audio/baseline/scifi-forceField_001.ogg"
+    "./audio/sourced/industrial/spawn-metal-01.ogg",
+    "./audio/sourced/industrial/spawn-metal-02.ogg"
   ],
   "wave": [
     "./audio/baseline/impact-impactBell_heavy_000.ogg"
   ],
   "win": [
-    "./audio/baseline/interface-confirmation_004.ogg"
+    "./audio/sourced/industrial/victory-bell.ogg"
   ],
   "death": [
-    "./audio/baseline/scifi-lowFrequency_explosion_000.ogg"
+    "./audio/sourced/industrial/dull-blast.ogg"
   ],
   "heartbeat": [
     "./audio/baseline/impact-impactSoft_medium_000.ogg"
@@ -250,29 +243,29 @@ export const AUDIO_ASSET_MANIFEST = Object.freeze({
     "./audio/baseline/impact-impactMetal_light_001.ogg"
   ],
   "ui": [
-    "./audio/baseline/interface-click_001.ogg",
-    "./audio/baseline/interface-click_002.ogg"
+    "./audio/sourced/physical-ui/squeakyclick1.ogg",
+    "./audio/sourced/physical-ui/squeakyclick2.ogg"
   ],
   "hover": [
-    "./audio/baseline/interface-tick_001.ogg"
+    "./audio/sourced/physical-ui/typewriter.ogg"
   ],
   "confirm": [
-    "./audio/baseline/interface-confirmation_001.ogg"
+    "./audio/sourced/physical-ui/clank1.ogg"
   ],
   "cancel": [
-    "./audio/baseline/interface-back_001.ogg"
+    "./audio/sourced/physical-ui/lightclunk1.ogg"
   ],
   "pause": [
-    "./audio/baseline/interface-close_001.ogg"
+    "./audio/sourced/physical-ui/lightclunk2.ogg"
   ],
   "fail": [
-    "./audio/baseline/interface-error_001.ogg"
+    "./audio/sourced/physical-ui/rattle1.ogg"
   ],
   "toggle": [
-    "./audio/baseline/interface-switch_001.ogg",
-    "./audio/baseline/interface-switch_002.ogg"
+    "./audio/sourced/physical-ui/mechanical1.ogg",
+    "./audio/sourced/physical-ui/mechanical2.ogg"
   ],
   "equip": [
-    "./audio/baseline/interface-select_002.ogg"
+    "./audio/sourced/industrial/weapon-pickup.ogg"
   ]
 });
