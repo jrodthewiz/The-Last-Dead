@@ -264,12 +264,12 @@ function createBat() {
   }
 
   const handle = part('bat-handle', root, parts);
-  tube(handle, [[0, -.03, .31], [0, -.055, .17], [0, -.06, .01]], [.076, .082, .072], materials.wood, 9, 'wooden-handle');
-  for (let i = 0; i < 5; i++) {
-    const z = .015 + i * .057;
-    add(handle, new THREE.TorusGeometry(.078 - i * .001, .009, 6, 16), materials.rubber, [0, -.06, z], [Math.PI / 2, 0, 0], [1, 1, 1], `grip-wrap-${i}`);
+  tube(handle, [[0, -.055, .40], [0, -.055, .20], [0, -.06, .01]], [.037, .040, .035], materials.wood, 16, 'wooden-handle');
+  for (let i = 0; i < 7; i++) {
+    const z = .015 + i * .060;
+    add(handle, new THREE.TorusGeometry(.040 - i * .0003, .0045, 6, 20), materials.rubber, [0, -.055, z], [0, 0, 0], [1, 1, 1], `grip-wrap-${i}`);
   }
-  add(handle, new THREE.CylinderGeometry(.085, .085, .055, 12), materials.edge, [0, -.06, -.035], [Math.PI / 2, 0, 0], [1, 1, 1], 'pommel-ring');
+  add(handle, new THREE.CylinderGeometry(.045, .045, .040, 16), materials.edge, [0, -.06, -.035], [Math.PI / 2, 0, 0], [1, 1, 1], 'pommel-ring');
 
   const damage = part('bat-wear', root, parts);
   for (const [i, p] of [
@@ -293,8 +293,8 @@ function createBat() {
   impactPulse.visible = false;
 
   const sockets = {
-    grip: socket(root, 'grip', [0, -.1, .24]),
-    supportGrip: socket(root, 'supportGrip', [0, -.08, .055]),
+    grip: socket(root, 'grip', [0, -.055, .31]),
+    supportGrip: socket(root, 'supportGrip', [0, -.055, .055]),
     impactTip: socket(root, 'impactTip', [0, .015, -.91]),
     projectileOrigin: socket(root, 'projectileOrigin', [0, .015, -.91]),
     inspect: socket(root, 'inspect', [0, .1, -.25]),
@@ -416,8 +416,8 @@ function createChainsaw() {
   add(motor, new THREE.BoxGeometry(.035, .075, .027), materials.glow, [.18, -.06, .333], [0, 0, .12], [1, 1, 1], 'rev-indicator');
 
   const rearGrip = part('chainsaw-rear-grip', root, parts);
-  add(rearGrip, new THREE.CylinderGeometry(.085, .1, .38, 12), materials.rubber, [0, -.18, .23], [0, 0, 0], [1, 1, 1], 'rear-handle');
-  for (let i = 0; i < 4; i++) add(rearGrip, new THREE.TorusGeometry(.088, .009, 6, 14), materials.edge, [0, -.18 - i * .07, .23], [Math.PI / 2, 0, 0], [1, 1, 1], `rear-grip-rib-${i}`);
+  add(rearGrip, new THREE.CylinderGeometry(.044, .049, .28, 18), materials.rubber, [0, -.18, .23], [0, 0, 0], [1, 1, 1], 'rear-handle');
+  for (let i = 0; i < 4; i++) add(rearGrip, new THREE.TorusGeometry(.046, .004, 6, 18), materials.edge, [0, -.11 - i * .05, .23], [Math.PI / 2, 0, 0], [1, 1, 1], `rear-grip-rib-${i}`);
   const triggerGuard = part('chainsaw-trigger-guard', root, parts);
   tube(triggerGuard, [[0, -.03, .24], [0, -.2, .24], [0, -.27, .17]], [.016, .021, .014], materials.edge, 8, 'trigger-guard');
   add(triggerGuard, new THREE.CapsuleGeometry(.019, .075, 5, 8), materials.brass, [0, -.15, .19], [Math.PI / 2, 0, 0], [1, 1, 1], 'throttle-trigger');

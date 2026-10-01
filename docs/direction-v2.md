@@ -1,0 +1,17 @@
+# The Last Dead — direction prompt v2
+
+Upgrade the existing playable horror FPS into a fast, oppressive dungeon descent. Preserve its body-camera identity, grounded worn firearms and captured creature animation. Take inspiration from Left 4 Dead's forward momentum, readable horde pressure and short relief beats, while retaining The Last Dead's own setting and mechanics.
+
+The player loop is: recognize the next destination, push through a living space, fight an escalating pack, grab a useful recovery or weapon reward, and move deeper. Every required room must earn its place through an encounter, route transition, landmark, reward or narrative reveal. Side rooms must offer a clear risk/reward. Avoid mandatory empty-room tours, arbitrary visit ordering and repeated long waits.
+
+Build navigation into the world. Give rooms distinct functions and recognizable silhouettes, numbered destination signs, warm-lit onward thresholds, cool ambient depth and restrained environmental motion. Show one concise current goal and a direction toward the next reachable waypoint. Route guidance must respect walls and locked doors. Use existing materials and authored assets with purposeful variation; use generated images for visible surface improvements rather than adding clutter.
+
+Make encounters feel caused by the place. Enemies enter from connected spaces beyond sight, with distance, collision and path checks. Never solve a stalled spawn by popping a creature into the player's view. Escalate pack composition with progress, maintain frequent combat, and use short recovery windows. Keep simulation authoritative, bounded and compatible with co-op. Threat roles and attack anticipation must stay legible in crowds.
+
+Reuse the captured skeleton and motion library. Vary gait phase, posture and presentation within believable limits; retain foot placement, stable hand reach and damage/contact timing. Share geometry/textures, pool actors where safe, and instance repeated scenery and effects. Profile real crowds before replacing independent skeletal animation with a more complex GPU animation system.
+
+Replace remaining obvious primitive effects with authored, pooled visual systems: fine fluid droplets and irregular residue, brief directed hit spray, mechanical alternate-fire projectiles, restrained trails and clear ricochet feedback. Effects must communicate cause and direction without hiding enemies, routes or sights. Reduced-motion and gore settings remain effective.
+
+Treat sound as gameplay information. Give weapons and impacts weight, preserve transient headroom, make nearby threats readable, place ambience beneath action, and duck competing beds during important events. Measure source and rendered mix levels. Verify unlock, spatial falloff, voice limits, pause/resume and mute; do not simply raise the master gain.
+
+Validate the result in the built game: room-to-room progression, key detours, useful side rooms, fair horde arrivals, actual primary/alternate fire, hit reactions, defeat/retry, audio behavior, desktop and portrait views, and a sustained combat run. Record screenshots, console/network errors, renderer budgets and limitations. Deliver the implemented iteration and reusable direction together; do not present a written plan as the finished game pass.

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { roomProgression } from '../ui.js';
+import { roomProgression, dungeonNavigationView } from '../ui.js';
 
 const course = {
   dungeon: true,
@@ -49,6 +49,21 @@ test('dungeon HUD uses encounter fields and keeps staggered pending counts', () 
   assert.equal(view.objective, 'Clear Bone Landing');
   assert.equal(view.threat, '3 INCOMING');
   assert.ok(!view.objective.includes('WAVE'));
+});
+
+test('local guidance holds an active room and gives reachable turn distances',()=>{
+ const run={course,x:0,y:0,angle:0,dungeonProgression:{activeRoomId:'landing',currentEncounterRoomId:'landing',encounter:{active:4,pending:6},navigation:{kind:'combat',roomId:'landing',waypoint:{x:8,y:8}}}};
+ assert.equal(dungeonNavigationView(run).label,'Hold this room · 4 threats');
+ run.dungeonProgression.currentEncounterRoomId=null;
+ run.dungeonProgression.navigation={kind:'room',roomId:'court',waypoint:{x:0,y:2},distance:40};
+ assert.equal(dungeonNavigationView(run).label,'Turn right · 8 m','distance is to the next reachable turn, not the remote goal');
+ run.dungeonProgression.navigation.blocked=true;
+ assert.match(dungeonNavigationView(run).label,/Route sealed/);
+});
+
+test('authored main route controls the HUD count without counting optional rooms',()=>{
+ const view=roomProgression({course:{...course,encounterRoute:['landing','court']},dungeonProgression:{roomSequence:['landing','supply','court'],roomCount:3,roomIndex:0,nextRoomId:'court',navigation:{roomId:'court'},roomsCompleted:['landing']}});
+ assert.equal(view.roomCount,2);assert.equal(view.roomIndex,1);assert.deepEqual(view.completedRoomIds,['landing']);
 });
 
 test('dungeon HUD names the next room while the cleared room is explorable', () => {

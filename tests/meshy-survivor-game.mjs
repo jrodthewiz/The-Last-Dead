@@ -15,7 +15,7 @@ try {
  console.log('PAGE_LOADED');
  await page.waitForFunction(()=>window.__DEAD_ARRIVAL__?.renderer._weaponsPrepared).catch(async error=>{console.log(await page.evaluate(()=>{const r=window.__DEAD_ARRIVAL__?.renderer;return {ready:r?._weaponsPrepared,status:r?._survivors?.status,error:r?._survivors?.error,warden:r?._wardenStatus,begin:r?._beginPending};}));throw error;});
  const loaded=await page.evaluate(()=>{const s=window.__DEAD_ARRIVAL__.renderer._survivors;return {status:s.status,error:s.error,viewSleeves:s.viewSleeves,local:s.local.userData.source,headHidden:!s.local.userData.head.visible,armsHidden:!s.local.userData.arms.visible};});
- assert.equal(loaded.status,'ready');assert.equal(loaded.local,'meshy-v02');assert.equal(loaded.viewSleeves,7);assert.ok(loaded.headHidden&&loaded.armsHidden);
+ assert.equal(loaded.status,'ready');assert.equal(loaded.local,'meshy-v02');assert.equal(loaded.viewSleeves,15);assert.ok(loaded.headHidden&&loaded.armsHidden);
  console.log('ASSET_READY '+JSON.stringify(loaded));
  await page.locator('[data-action="start"]').click({force:true,noWaitAfter:true});await page.waitForFunction(()=>window.__DEAD_ARRIVAL__.screen==='play');console.log('PLAY_STARTED');
  await page.locator('#world').click();await page.waitForFunction(()=>document.pointerLockElement);
@@ -38,7 +38,7 @@ try {
   await page.mouse.up();assert.ok(fired.shot>.3,'Weapon fires from real pointer input');console.log('FIRED '+fired.name);
   await page.evaluate(()=>{window.__DEAD_ARRIVAL__.run.mode='pause';});
   await page.screenshot({path:file(`weapon-${weapon}.png`)});
-  const fits=await page.evaluate(()=>{const d=window.__DEAD_ARRIVAL__,g=d.renderer.weaponGroups[d.run.weapon],found=[];g.traverse(o=>{if(o.userData.gripSocket){const p=o.userData.gripSocket;found.push({source:o.userData.viewmodelSource,sleeve:!!o.getObjectByName(o.userData.side<0?'MeshySleeve_Left':'MeshySleeve_Right'),world:p.getWorldPosition(p.position.clone()).toArray()});}});return found;});
+  const fits=await page.evaluate(()=>{const d=window.__DEAD_ARRIVAL__,g=d.renderer.weaponGroups[d.run.weapon],found=[];g.traverse(o=>{if(o.userData.gripSocket){const p=o.userData.gripSocket;found.push({source:o.userData.viewmodelSource,sleeve:!!o.getObjectByName(o.userData.side<0?'AuthoredForearm_Left':'AuthoredForearm_Right'),world:p.getWorldPosition(p.position.clone()).toArray()});}});return found;});
   assert.ok(fits.every(f=>f.sleeve&&f.world.every(Number.isFinite)));fired.grips=fits;weapons.push(fired);
   await page.evaluate(()=>{window.__DEAD_ARRIVAL__.run.pitch=-1.3;});await page.waitForTimeout(80);
   await page.screenshot({path:file(`look-down-${weapon}.png`)});
@@ -57,7 +57,6 @@ try {
   for(let i=0;i<120;i++)animateMeshySurvivor(s,run,0);
   return {before,after:s.userData.bones.LeftUpLeg.quaternion.toArray(),position:s.position.toArray(),samples:s.userData.soleSamples.length};
  });assert.deepEqual(stability.before,stability.after);assert.ok(stability.samples>0);
- await page.setViewportSize({width:390,height:844});await page.evaluate(()=>{window.__DEAD_ARRIVAL__.run.slide=0;});await page.waitForTimeout(120);await page.screenshot({path:file('mobile.png')});
  assert.deepEqual(errors,[]);assert.deepEqual(httpErrors,[]);
  const result={loaded,movement:{start,moved},jump,slide,aim,weapons,stability,errors,httpErrors};
  await writeFile(new URL('results.json',output),JSON.stringify(result,null,2));console.log(JSON.stringify(result));

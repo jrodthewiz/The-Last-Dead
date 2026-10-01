@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import {startServer} from '../server.mjs';
 
 const require=createRequire(import.meta.url),{chromium}=require(process.env.PLAYWRIGHT_PATH||'playwright');
-const output='docs/chase-impact/final',frames='.codex-temp/chase-impact/frames';
+const output=process.env.CHASE_QA_OUTPUT||'docs/chase-impact/final',frames=process.env.CHASE_QA_FRAMES||'.codex-temp/chase-impact/frames';
 await mkdir(output,{recursive:true});await mkdir(frames,{recursive:true});
 const server=await startServer({root:fileURLToPath(new URL('../dist/',import.meta.url)),port:0,spaFallback:false});
 const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe'});
@@ -19,10 +19,10 @@ try{
  await page.locator('[data-action="start"]').click();
  await page.evaluate(async()=>{
   const d=window.__DEAD_ARRIVAL__,engine=await import('./engine.js'),THREE=await import('./vendor/three.module.js'),{makeDungeonCourse}=await import('./playground/map/dungeon-course.js');
-  Object.assign(d.run,engine.newRun(makeDungeonCourse(2)),{mode:'play',x:19.5,y:24.2,angle:-Math.PI/2,pitch:-.07});
+  Object.assign(d.run,engine.newRun(makeDungeonCourse(2)),{mode:'play',angle:-Math.PI/2,pitch:-.07});
   for(let i=0;i<315;i++)engine.tick(d.run,1/60);
   d.run.mode='ready';d.renderer._firstCameraFrame=true;
-  window.__chaseQA={d,engine,THREE,now:performance.now(),sample:{...d.run.course.enemies.find(e=>e.kind===0)}};
+  window.__chaseQA={d,engine,THREE,now:performance.now(),origin:{...d.run.course.playerSpawn}};
  });
  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  await page.evaluate(()=>window.__DEAD_ARRIVAL__.renderer._warmupPromise);
@@ -30,8 +30,10 @@ try{
   const q=window.__chaseQA;q.render=q.d.renderer.render.bind(q.d.renderer);q.d.renderer.render=()=>{};
   q.step=(count=1,simulate=true)=>{for(let i=0;i<count;i++){q.now+=1000/60;if(simulate){q.d.run.mode='play';q.engine.tick(q.d.run,1/60);q.d.run.mode='ready';}q.render(q.d.run,q.now);}};
   q.reset=(variant='stalker',distance=2.5)=>{
-   q.d.run.course.enemies=[{...q.sample,id:53001,x:19.5,y:24.2-distance,hp:100,maxHp:100,kind:0,variant,attack:0,attacking:false,strike:0,windup:0,hits:0,flash:0,stagger:0,dead:false}];
-   Object.assign(q.d.run,{x:19.5,y:24.2,angle:-Math.PI/2,pitch:-.07,weapon:0,health:1000,shot:0,tracers:[],gore:[],blood:[],limbs:[],events:[]});
+   const {x,y}=q.origin;
+   if(q.engine.castRay(q.d.run.course,x,y,-Math.PI/2,4).dist<3)throw new Error('Chase fixture needs a clear three-cell approach');
+   q.d.run.course.enemies=[{id:53001,x,y:y-distance,hp:100,maxHp:100,kind:0,variant,attack:0,attacking:false,strike:0,windup:0,hits:0,flash:0,stagger:0,dead:false}];
+   Object.assign(q.d.run,{x,y,angle:-Math.PI/2,pitch:-.07,weapon:0,health:1000,shot:0,tracers:[],gore:[],blood:[],limbs:[],events:[]});
    q.d.run.waveCount=q.d.run.wave;q.d.renderer._firstCameraFrame=true;q.d.renderer.weaponFX.impacts.clear();q.step(1,false);
   };
   q.sampleState=()=>{

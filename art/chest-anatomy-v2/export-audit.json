@@ -1,0 +1,196 @@
+{
+  "status": "PASS",
+  "triangles": 21508,
+  "drawGroups": 2,
+  "attributes": [
+    {
+      "component": "ChestWound",
+      "semantic": "POSITION",
+      "count": 4075,
+      "finite": true
+    },
+    {
+      "component": "ChestWound",
+      "semantic": "NORMAL",
+      "count": 4075,
+      "finite": true,
+      "lengthRange": [
+        0.9999545216560364,
+        0.9999988675117493
+      ]
+    },
+    {
+      "component": "ChestWound",
+      "semantic": "TANGENT",
+      "count": 4075,
+      "finite": true,
+      "lengthRange": [
+        0.9999998211860657,
+        1.0000001192092896
+      ]
+    },
+    {
+      "component": "ChestWound",
+      "semantic": "TEXCOORD_0",
+      "count": 4075,
+      "finite": true
+    },
+    {
+      "component": "ChestWound",
+      "semantic": "COLOR_0",
+      "count": 4075,
+      "finite": true
+    },
+    {
+      "component": "Heart",
+      "semantic": "POSITION",
+      "count": 10311,
+      "finite": true
+    },
+    {
+      "component": "Heart",
+      "semantic": "NORMAL",
+      "count": 10311,
+      "finite": true,
+      "lengthRange": [
+        0.999949038028717,
+        1.0
+      ]
+    },
+    {
+      "component": "Heart",
+      "semantic": "TANGENT",
+      "count": 10311,
+      "finite": true,
+      "lengthRange": [
+        0.9999998211860657,
+        1.0000001192092896
+      ]
+    },
+    {
+      "component": "Heart",
+      "semantic": "TEXCOORD_0",
+      "count": 10311,
+      "finite": true
+    },
+    {
+      "component": "Heart",
+      "semantic": "COLOR_0",
+      "count": 10311,
+      "finite": true
+    }
+  ],
+  "morphs": [
+    {
+      "component": "ChestWound",
+      "name": "TissueTension",
+      "count": 4075,
+      "attributes": [
+        "NORMAL",
+        "POSITION",
+        "TANGENT"
+      ],
+      "maxDisplacementMeters": 0.004523832350969315,
+      "affectedExportedVertices": 3497,
+      "finite": true
+    },
+    {
+      "component": "Heart",
+      "name": "GripCompress",
+      "count": 10311,
+      "attributes": [
+        "NORMAL",
+        "POSITION",
+        "TANGENT"
+      ],
+      "maxDisplacementMeters": 0.0076798633672297,
+      "affectedExportedVertices": 10311,
+      "finite": true
+    },
+    {
+      "component": "Heart",
+      "name": "VesselLagLeft",
+      "count": 10311,
+      "attributes": [
+        "NORMAL",
+        "POSITION",
+        "TANGENT"
+      ],
+      "maxDisplacementMeters": 0.006910861469805241,
+      "affectedExportedVertices": 2257,
+      "finite": true
+    },
+    {
+      "component": "Heart",
+      "name": "VesselLagRight",
+      "count": 10311,
+      "attributes": [
+        "NORMAL",
+        "POSITION",
+        "TANGENT"
+      ],
+      "maxDisplacementMeters": 0.006910861469805241,
+      "affectedExportedVertices": 2257,
+      "finite": true
+    }
+  ],
+  "embeddedMaps": [
+    {
+      "name": "chest-normal",
+      "width": 1024,
+      "height": 512,
+      "bytes": 524932,
+      "embedded": true
+    },
+    {
+      "name": "chest-albedo",
+      "width": 1024,
+      "height": 512,
+      "bytes": 520414,
+      "embedded": true
+    },
+    {
+      "name": "chest-roughness",
+      "width": 1024,
+      "height": 512,
+      "bytes": 371978,
+      "embedded": true
+    }
+  ],
+  "acceptedV1Preserved": true,
+  "acceptedV1Sha256": "896c71c578f6a6ff78b09b152ab9918e8e472d9ac5cda73fa7a3ea542f0685b5",
+  "bytes": 3618192,
+  "sha256": "e59235781f3aaf82cbc439a19fe112a3f7c3dbdcf581952f3aa151b31db90197",
+  "pngPayloadsDecoded": [
+    {
+      "name": "chest-normal",
+      "width": 1024,
+      "height": 512,
+      "bits": 8,
+      "colorType": 6,
+      "pngCrcPass": true,
+      "decodedScanlineBytes": 2097664,
+      "payloadSha256": "528fda1cf0beeba58e48041679b112c0a0de4dc5a29616eafdb097319e419fe2"
+    },
+    {
+      "name": "chest-albedo",
+      "width": 1024,
+      "height": 512,
+      "bits": 8,
+      "colorType": 6,
+      "pngCrcPass": true,
+      "decodedScanlineBytes": 2097664,
+      "payloadSha256": "a761c391e9c4e3d1e6c4c88cf35a3e575c0d3e4c39c9b1fe1cd7268532e74c58"
+    },
+    {
+      "name": "chest-roughness",
+      "width": 1024,
+      "height": 512,
+      "bits": 8,
+      "colorType": 2,
+      "pngCrcPass": true,
+      "decodedScanlineBytes": 1573376,
+      "payloadSha256": "a8477b6a20d444ba4c43c67bd5d05972ab2649894ad2ea20c6b42fedb1499f0c"
+    }
+  ]
+}

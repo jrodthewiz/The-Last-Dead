@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Combat motion review · The Last Dead</title>
+  <link rel="icon" href="data:,">
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#101214;color:#eee;font:13px system-ui}#world{position:fixed;inset:0;width:100%;height:100%;display:block}
+    header{position:fixed;top:12px;left:12px;right:12px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:12px;background:#101214e8;border:1px solid #ffffff28;border-radius:8px}
+    strong{margin-right:8px;font-size:13px;letter-spacing:.08em}label{display:flex;align-items:center;gap:6px}button,select{background:#282b2d;color:#eee;border:1px solid #68645c;border-radius:4px;padding:8px;cursor:pointer}button:hover{background:#49433a}a{color:#d8bf98}output{position:fixed;bottom:12px;left:12px;right:12px;padding:9px;background:#101214dc;font:12px monospace;white-space:pre-wrap;pointer-events:none}#reticle{position:fixed;left:50%;top:50%;width:5px;height:5px;border:1px solid #eee;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none}
+    @media(max-width:600px){header{gap:7px;padding:8px}strong{width:100%}button,select{padding:6px}output{font-size:10px}}
+  </style>
+</head>
+<body>
+  <canvas id="world" aria-label="First-person combat preview"></canvas><div id="reticle"></div>
+  <header>
+    <strong>COMBAT MOTION REVIEW</strong>
+    <label>Weapon <select id="weapon"></select></label>
+    <label>Motion <select id="motion"><option value="idle">Idle</option><option value="fire">Repeated fire</option><option value="look">Look left / right</option><option value="walk">Walk / stop</option><option value="land">Jump / land</option><option value="aim">Aim</option></select></label>
+    <button id="fire">Fire once</button><button id="equip">Draw again</button><button id="pause">Pause</button><button id="reset">Reset</button>
+    <label>Speed <select id="speed"><option value="1">1×</option><option value=".25">¼×</option><option value=".1">¹⁄₁₀×</option></select></label>
+    <label><input id="bodycam" type="checkbox" checked>Bodycam</label>
+    <label><input id="reduced" type="checkbox">Reduced motion</label>
+    <a href="./?debug=1" target="_blank" rel="noopener">Play game ↗</a>
+  </header>
+  <output id="stats">Preparing game assets…</output>
+  <script type="module" src="./combat-review.js"></script>
+</body>
+</html>

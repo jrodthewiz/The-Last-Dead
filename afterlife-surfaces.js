@@ -9,6 +9,22 @@ import {
 // language while leaving actors, weapons, lights, geometry, and collision
 // ownership to their existing systems.
 const VERSION = 1;
+// Keep distinct mineral/paint families through the final material pass. These
+// are albedo colours, not emissive washes; illumination still supplies depth.
+const FLOOR_PALETTES = {
+  'f1-intake-foundry': [0x625a4c, 0x343d39, 0x544c3c, 0x463b30, 0x897454],
+  'f2-graft-galleries': [0x61776c, 0x314c45, 0x465c54, 0x343e39, 0x8b8970],
+  'f3-catacombs': [0x65616b, 0x383441, 0x504b56, 0x3e3944, 0x87775d],
+  'f4-resonance': [0x70604b, 0x49382d, 0x61503b, 0x46372f, 0x938064],
+  'f5-last-descent': [0x493c44, 0x2e2830, 0x493a40, 0x322831, 0x79634f],
+};
+
+export function dungeonSurfaceProfile(id) {
+  const colors = FLOOR_PALETTES[id];
+  if (!colors) return null;
+  const roles = ['roomWall', 'roomPanel', 'roomTrim', 'roomFloor', 'roomBone'];
+  return Object.fromEntries(roles.map((role, i) => [role, { ...AFTERLIFE_SURFACE_PROFILE[role], color: colors[i] }]));
+}
 const ACTOR_FLAGS = Object.freeze([
   'actor', 'enemy', 'player', 'survivor', 'warden', 'bellwraith', 'weapon',
   'viewmodel', 'viewmodelArm', 'viewmodelAnchor', 'combat', 'projectile',
@@ -35,6 +51,9 @@ function roleFromMaterial(material) {
 // `WallSignals...` mesh is not mistaken for a neutral plaster wall.
 function roleFromName(mesh, material) {
   const name = `${mesh?.name || ''} ${material?.name || ''}`.toLowerCase();
+  // Tunnel ribs are the same steel assembly as their jambs; the word "rib"
+  // must not accidentally turn only the crown into pale bone.
+  if (/tunnelrib_|tunnelframe_/.test(name)) return 'roomTrim';
   if (/(?:signal|beacon|indicator|lamp|glow|core)/.test(name)) return 'roomSignal';
   if (/(?:hazard|warning|stripe)/.test(name)) return 'roomHazard';
   if (/(?:floor|ground|deck|tile|seam|grate|threshold)/.test(name)) return 'roomFloor';
@@ -236,8 +255,8 @@ function scheduleMaterialSync(root, pending, diagnostics, options) {
  *   });
  *
  * `sector` is retained in diagnostics for callers that want to log the active
- * art direction; materials are keyed by their authored role so all sectors
- * receive the same neutral afterlife treatment. `materialRoles` is an
+ * art direction; dungeon identities keep their authored mineral/paint family
+ * while generic maps use the shared neutral profile. `materialRoles` is an
  * optional identity map for unnamed meshes. `materialSources` enables a
  * bounded browser-side refresh when a known source material receives a
  * TextureLoader map after this pass has cloned it.
@@ -248,6 +267,7 @@ export function applyAfterlifeSurfaces(root, options = {}) {
   }
   const previous = root.userData?.afterlifeSurfaceDiagnostics;
   if (root.userData?.afterlifeSurfacesApplied && previous) return { ...previous, reused: true };
+  options = { ...options, surfaceProfile: options.surfaceProfile || dungeonSurfaceProfile(root.userData.dungeonArtIdentity) };
 
   const exclude = new Set((options.excludeRoots || []).filter(Boolean));
   const materialCache = new Map();
@@ -288,7 +308,9 @@ export function applyAfterlifeSurfaces(root, options = {}) {
       sourceMaterials.forEach((source, index) => {
         const role = resolveRole(node, source, options);
         if (!role) return;
-        const preserve = cue;
+        // A gate owns a signal, not a white architectural halo. Its metal and
+        // stone supports still obey the floor albedo palette.
+        const preserve = cue && (!root.userData.dungeonArtIdentity || role === 'roomSignal' || role === 'roomAccent' || role === 'roomHazard');
         const key = cacheKey(source, role, preserve);
         let replacement = materialCache.get(key);
         if (!replacement) {

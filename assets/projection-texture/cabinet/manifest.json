@@ -1,0 +1,19 @@
+{
+  "kind": "cabinet",
+  "resolution": 512,
+  "triangles": 352,
+  "sourceVertices": 660,
+  "bakedVertices": 764,
+  "uvOccupiedTexels": 107444,
+  "projectedTexels": 42856,
+  "projectedCoverage": 0.398868247645285,
+  "uvInteriorOverlapTexels": 0,
+  "runtimeTextureBytesWithMipmaps": 1398101,
+  "runtimeMaps": [
+    "albedo"
+  ],
+  "materialValues": "source roughness/metalness preserved as constant-per-face vertex data",
+  "unprojectedPolicy": "source material color; no invented hidden geometry",
+  "sourceSheet": ".art-source/projection-texture/cabinet/painted-projections-v2.png",
+  "runtime": "C:\\Users\\wolfk\\Desktop\\thelastdead\\assets\\projection-texture\\cabinet"
+}

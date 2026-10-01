@@ -1,0 +1,492 @@
+{
+  "formatVersion": 1,
+  "id": "chest-anatomy-v2",
+  "status": "AUTHORING_EXPORT_AND_NEUTRAL_COMPARISON_PASSED_RUNTIME_REVIEW_PENDING",
+  "runtime": {
+    "file": "assets/models/chest-anatomy-v2.glb",
+    "root": "ChestAnatomyKit",
+    "units": "meters",
+    "outwardAxis": [
+      0,
+      0,
+      1
+    ],
+    "openingPlane": "local glTF XY",
+    "components": [
+      "ChestWound",
+      "Heart"
+    ],
+    "heartGripLocalMeters": [
+      0,
+      0,
+      0
+    ],
+    "woundOuterPlaneLocalZ": 0,
+    "attachmentNote": "Compensate inherited 0.01 character socket scale; kit mesh object scales are 1. Heart and ChestWound are independent named meshes."
+  },
+  "files": {
+    "script": "scripts/build-chest-anatomy.py",
+    "candidate": "art/chest-anatomy-v2/chest-anatomy-v2.glb",
+    "master": ".art-source/chest-anatomy-v2/Chest_Anatomy_v2.blend",
+    "closeups": [
+      "art/chest-anatomy-v2/heart-neutral-front.png",
+      "art/chest-anatomy-v2/heart-neutral-back.png",
+      "art/chest-anatomy-v2/heart-neutral-side.png",
+      "art/chest-anatomy-v2/chest-neutral-front.png",
+      "art/chest-anatomy-v2/chest-neutral-back.png",
+      "art/chest-anatomy-v2/heart-grip-compressed.png",
+      "art/chest-anatomy-v2/heart-vessel-lag-left.png",
+      "art/chest-anatomy-v2/chest-tension.png"
+    ],
+    "exportAudit": "art/chest-anatomy-v2/export-audit.json",
+    "runtimeImportAudit": "art/chest-anatomy-v2/runtime-import-audit.json",
+    "neutralReview": "art/chest-anatomy-v2/neutral-review.json",
+    "runtimeImportVerifier": "art/chest-anatomy-v2/verify-runtime-import.mjs"
+  },
+  "budget": {
+    "bytes": 3618192,
+    "sha256": "e59235781f3aaf82cbc439a19fe112a3f7c3dbdcf581952f3aa151b31db90197",
+    "triangles": 21508,
+    "drawGroupsAllParts": 2,
+    "materialCount": 1,
+    "imageCount": 3,
+    "textureCount": 3,
+    "textureDimensions": [
+      1024,
+      512
+    ],
+    "atlasTilePixels": 256,
+    "atlasPaddingPixels": 16,
+    "allImagesEmbedded": true,
+    "metalness": 0,
+    "normalScale": 0.48,
+    "roughnessByIdentity": {
+      "ventricle": 0.61,
+      "artery": 0.58,
+      "vein": 0.6,
+      "fat": 0.64,
+      "cavity": 0.89,
+      "muscle": 0.6,
+      "fascia": 0.65,
+      "cloth": 0.86
+    },
+    "morphTargetCount": 4,
+    "morphNormalsAndTangents": true
+  },
+  "parts": [
+    {
+      "name": "ChestWound",
+      "vertices": 2748,
+      "triangles": 5396,
+      "drawGroups": 1,
+      "boundsGltfMeters": {
+        "low": [
+          -0.08500000834465027,
+          -0.0949999988079071,
+          -0.06499999761581421
+        ],
+        "high": [
+          0.08500000834465027,
+          0.0949999988079071,
+          0.014999998733401299
+        ]
+      },
+      "sizeMeters": [
+        0.17000001668930054,
+        0.1899999976158142,
+        0.07999999634921551
+      ],
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "inconsistentWindingEdges": 0,
+      "degenerateTriangles": 0,
+      "zeroAreaUvTriangles": 0,
+      "positionFinite": true,
+      "normalFinite": true,
+      "normalLengthRange": [
+        0.9999545280727689,
+        0.9999989010387581
+      ],
+      "morphs": [
+        {
+          "name": "TissueTension",
+          "weights": {
+            "TissueTension": 1
+          },
+          "maxDisplacementMeters": 0.0045238323522562175,
+          "affectedVertices": 2266,
+          "minTriangleAreaMeters2": 2.2951532751334814e-09,
+          "reversedTriangles": 0,
+          "finite": true
+        }
+      ]
+    },
+    {
+      "name": "Heart",
+      "vertices": 8102,
+      "triangles": 16112,
+      "drawGroups": 1,
+      "boundsGltfMeters": {
+        "low": [
+          -0.04999999701976776,
+          -0.06499999761581421,
+          -0.04000000283122063
+        ],
+        "high": [
+          0.04999999701976776,
+          0.06499999761581421,
+          0.04000000283122063
+        ]
+      },
+      "sizeMeters": [
+        0.09999999403953552,
+        0.12999999523162842,
+        0.08000000566244125
+      ],
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "inconsistentWindingEdges": 0,
+      "degenerateTriangles": 0,
+      "zeroAreaUvTriangles": 0,
+      "positionFinite": true,
+      "normalFinite": true,
+      "normalLengthRange": [
+        0.9999490367300896,
+        1.0000000004656897
+      ],
+      "morphs": [
+        {
+          "name": "GripCompress",
+          "weights": {
+            "GripCompress": 1
+          },
+          "maxDisplacementMeters": 0.007679863211362797,
+          "affectedVertices": 8102,
+          "minTriangleAreaMeters2": 1.592506116241643e-08,
+          "reversedTriangles": 0,
+          "finite": true
+        },
+        {
+          "name": "VesselLagLeft",
+          "weights": {
+            "VesselLagLeft": 1
+          },
+          "maxDisplacementMeters": 0.006910861521140567,
+          "affectedVertices": 1829,
+          "minTriangleAreaMeters2": 1.809489046943785e-08,
+          "reversedTriangles": 0,
+          "finite": true
+        },
+        {
+          "name": "VesselLagRight",
+          "weights": {
+            "VesselLagRight": 1
+          },
+          "maxDisplacementMeters": 0.006910861521140567,
+          "affectedVertices": 1829,
+          "minTriangleAreaMeters2": 1.809489046943785e-08,
+          "reversedTriangles": 0,
+          "finite": true
+        },
+        {
+          "name": "GripCompress+VesselLagLeft",
+          "weights": {
+            "GripCompress": 1,
+            "VesselLagLeft": 1
+          },
+          "maxDisplacementMeters": 0.007679863211362797,
+          "affectedVertices": 8102,
+          "minTriangleAreaMeters2": 1.592506116241643e-08,
+          "reversedTriangles": 0,
+          "finite": true
+        },
+        {
+          "name": "GripCompress+VesselLagRight",
+          "weights": {
+            "GripCompress": 1,
+            "VesselLagRight": 1
+          },
+          "maxDisplacementMeters": 0.007679863211362797,
+          "affectedVertices": 8102,
+          "minTriangleAreaMeters2": 1.592506116241643e-08,
+          "reversedTriangles": 0,
+          "finite": true
+        }
+      ]
+    }
+  ],
+  "sourcing": {
+    "geometry": "Original authored continuous ventricular surface, layered wound shell and detail meshes; no copied organ model or new paid generation.",
+    "albedo": "Hybrid: existing generated tissue swatches in art/gore-proof/tissue-atlas-v1-1024.png de-lit through robust luminance detail, recolored to dark tissue identities and coupled authored fields. Spherical seam values are blended; no new generated bitmap or provider job.",
+    "normalAndRoughness": "Locally authored field maps, padded shared atlas; not calibrated or scanned PBR.",
+    "newApiJobs": 0,
+    "newCreditSpend": 0,
+    "externalGenerationDecision": "Existing generated hybrid tissue atlas is the explicit source choice for continuity with the reviewed BrutalAnatomy kit. Original offline geometry provides controllable local masking, named heart grip and exact dimensions without replacing the character.",
+    "credentialsUsedThisPass": false,
+    "referenceAtlas": "art/gore-proof/tissue-atlas-v1-1024.png",
+    "referenceAtlasSha256": "5cf8c6d056fecb206b9c3e31fa7bd225712ad2b25a3717f27a6bdd45e4b3cb79",
+    "preservedReferenceAtlas": ".art-source/chest-anatomy-v2/tissue-atlas-v1-1024-reference.png"
+  },
+  "anatomicalForms": [
+    "One asymmetric continuous ventricular mass with an offset inferior apex",
+    "Unequal embedded atria and thinner corrugated auricles",
+    "Severed aortic, pulmonary and venous roots; anterior arterial lumens face the exterior instead of hiding behind rounded caps",
+    "Surface-following tapered coronary vessels and branching veins",
+    "Small embedded epicardial fat islands",
+    "Irregular dark thoracic cavity with nonuniform tissue lips, sparse folded torn fabric tongues and a buried rib remnant"
+  ],
+  "morphs": {
+    "Heart": {
+      "GripCompress": 0,
+      "VesselLagLeft": 1,
+      "VesselLagRight": 2
+    },
+    "ChestWound": {
+      "TissueTension": 0
+    },
+    "defaultWeights": 0,
+    "range": [
+      0,
+      1
+    ],
+    "normals": true,
+    "tangents": true,
+    "drivePlan": "Reset all influences to zero on instance/reset. GripCompress follows actual grip/contact phase; relax by damping to zero on release. Drive only one VesselLag direction at a time from clamped palm-frame acceleration, damp to zero after release. TissueTension follows chest contact/extraction and returns to zero; do not apply whole-object scale as compression.",
+    "actualImportedAttributes": [
+      "position",
+      "normal"
+    ],
+    "tangentRuntimeLimit": "Bundled GLTFLoader ignores morph TANGENT deltas; GLB preserves them for interchange. Runtime uses base tangent attributes plus morphed normals unless the v2 material uses derivative tangent reconstruction.",
+    "actualRuntimeMaximumDisplacementMeters": {
+      "ChestWound": {
+        "TissueTension": 0.004523832308281826
+      },
+      "Heart": {
+        "GripCompress": 0.007679863118737981,
+        "VesselLagLeft": 0.006910861567874367,
+        "VesselLagRight": 0.006910861567874367
+      }
+    }
+  },
+  "research": [
+    {
+      "url": "https://docs.blender.org/manual/en/2.93/addons/import_export/scene_gltf2.html",
+      "supports": "glTF shape keys, normals and tangents export"
+    },
+    {
+      "url": "https://docs.blender.org/api/2.93/bpy.ops.export_scene.html",
+      "supports": "export_morph, export_morph_normal, export_morph_tangent and export_apply flags"
+    },
+    {
+      "url": "https://docs.blender.org/manual/en/3.1/animation/shape_keys/introduction.html",
+      "supports": "Relative shape key offsets and 0..1 blend"
+    }
+  ],
+  "referenceLedger": [
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/SKILL.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/implementation-blueprint.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/model-recipes.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/render-recipes.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/visual-scorecard.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/checklists/procedural-model-quality.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/checklists/material-lighting-quality.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/checklists/performance-safe-visual-detail.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/checklists/aaa-game-quality-gate.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/checklists/aaa-visual-scorecard.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-3d-generator/SKILL.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-3d-generator/references/threejs-integration.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-3d-generator/references/image-generator-workflows.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-image-generator/SKILL.md",
+      "read": true
+    }
+  ],
+  "verification": {
+    "command": "\"C:/Program Files/Blender Foundation/Blender 2.93/blender.exe\" --background --factory-startup --python scripts/build-chest-anatomy.py",
+    "checks": [
+      "<30000 triangles",
+      "Two named mesh primitives",
+      "Shared PBR atlas embedded in GLB",
+      "Finite position and normal components",
+      "Closed individually authored surfaces and consistent winding",
+      "No degenerate triangles or collapsed UV triangles",
+      "Neutral front/back/side plus authored compression/flex CPU renders exported",
+      "Relative morph targets contain finite position/normal/tangent deltas",
+      "Standalone and intended combined morph extremes have no reversed or degenerate triangles",
+      "Default GLB morph weights are all zero",
+      "Actual bundled GLTFLoader loads both component names and all morph dictionaries",
+      "Imported morph reset is exact and cloned influence arrays are independent",
+      "All three embedded PNG payloads pass CRC and decode to 1024x512 scanlines",
+      "Runtime and candidate GLB bytes identical",
+      "All eight final neutral/morph proofs visually inspected",
+      "Accepted v1 GLB SHA unchanged"
+    ],
+    "notCertified": [
+      "Runtime cut masking and socket fit",
+      "Player hand penetration/grip posing",
+      "Physical ragdoll collisions or soft tissue dynamics",
+      "Professional photorealism"
+    ],
+    "exportAuditStatus": "PASS",
+    "runtimeImportAuditStatus": "PASS",
+    "mobileScope": "Excluded by explicit user instruction: PC and controller only."
+  },
+  "limits": [
+    "Fictional schematic anatomy, particularly atrial/auricular details, still needs a deeper sculpt or scan pass for professional anatomical fidelity.",
+    "Fabric and muscle lips remain smooth authored surfaces; the integration is more irregular but is not a photogrammetric cloth/tissue tear.",
+    "Broad soft studio reflections and some mild spherical UV/source-pattern transitions remain visible at close range.",
+    "Detail components are individually closed and overlap; they are not one boolean-unioned medical anatomy reconstruction.",
+    "Authored compression/lag does not conserve measured tissue volume or solve collision-aware softbody squeezing.",
+    "Existing character shader cut mask must fit the irregular local wound silhouette; attachment/socket and moving-hand review belongs to runtime integration.",
+    "Bundled Three.js GLTFLoader imports POSITION/NORMAL morphs and ignores TANGENT morph deltas. GLB retains all three for interchange."
+  ],
+  "qualityVerdict": "Visible bounded improvement over v1 in wound irregularity, dark tissue identity, readable torn vessel roots and available local deformation. Accepted for parent runtime integration review with explicit remaining art and physical-simulation limits. Professional photorealism and whole-game AAA quality are not certified.",
+  "comparisonV1": {
+    "oldTriangles": 23280,
+    "newTriangles": 21508,
+    "oldBytes": 2675712,
+    "newBytes": 3618192,
+    "oldMaterials": 1,
+    "newMaterials": 1,
+    "oldDrawGroups": 2,
+    "newDrawGroups": 2,
+    "dimensionsCompatible": true,
+    "acceptedV1Sha256": "896c71c578f6a6ff78b09b152ab9918e8e472d9ac5cda73fa7a3ea542f0685b5"
+  },
+  "authoringMaster": {
+    "file": ".art-source/chest-anatomy-v2/Chest_Anatomy_v2.blend",
+    "bytes": 4306016,
+    "runtimePbrMapsPacked": true,
+    "scriptSnapshot": ".art-source/chest-anatomy-v2/build-chest-anatomy-v2.py",
+    "rebuildFromRepositoryCommand": "\"C:/Program Files/Blender Foundation/Blender 2.93/blender.exe\" --background --factory-startup --python scripts/build-chest-anatomy.py"
+  },
+  "visualReview": {
+    "status": "PASS_BOUNDED_AUTHORING_IMPROVEMENT_RUNTIME_PENDING",
+    "reviewer": "/root/heart_art",
+    "assetSha256": "e59235781f3aaf82cbc439a19fe112a3f7c3dbdcf581952f3aa151b31db90197",
+    "inspectedViews": [
+      {
+        "file": "art/chest-anatomy-v2/heart-neutral-front.png",
+        "sha256": "7e6f62e72ae5906a3eab9764edf67e8176d8c4deee43cab9bef1f4d441e2a730",
+        "inspected": true
+      },
+      {
+        "file": "art/chest-anatomy-v2/heart-neutral-back.png",
+        "sha256": "5158072202df937fa5e7580406647e2ff7ab555e45c14ddf241575175e9835ad",
+        "inspected": true
+      },
+      {
+        "file": "art/chest-anatomy-v2/heart-neutral-side.png",
+        "sha256": "02cafb9776d9938da1b9c1d21c2f4591cd41a3ce3d7fb954af9da5aa8efbd156",
+        "inspected": true
+      },
+      {
+        "file": "art/chest-anatomy-v2/chest-neutral-front.png",
+        "sha256": "2f1a32d4ca5e4d11d36cac2843f1d9879ba90abf597080c9284994f7dc23ae66",
+        "inspected": true
+      },
+      {
+        "file": "art/chest-anatomy-v2/chest-neutral-back.png",
+        "sha256": "0c52b4730d89295fd4b62d9d572560e56ed4731f0b840fd5cee1d1fc533d7b3f",
+        "inspected": true
+      },
+      {
+        "file": "art/chest-anatomy-v2/heart-grip-compressed.png",
+        "sha256": "94bd8372b45dcc02bdf982bd00dc44525804e462a70467de4b744914243e5b77",
+        "inspected": true
+      },
+      {
+        "file": "art/chest-anatomy-v2/heart-vessel-lag-left.png",
+        "sha256": "c646a9845b678ba19dee481a0dc2e9065d0ab679aa106c00ccc729b9b9265bec",
+        "inspected": true
+      },
+      {
+        "file": "art/chest-anatomy-v2/chest-tension.png",
+        "sha256": "26f7bbbb21aafc15d584bfe1b260b7198013bb411b79253a917f0fb370f27129",
+        "inspected": true
+      }
+    ],
+    "comparisonSource": {
+      "manifest": "assets/models/chest-anatomy-v1-manifest.json",
+      "glbSha256": "896c71c578f6a6ff78b09b152ab9918e8e472d9ac5cda73fa7a3ea542f0685b5",
+      "neutralViewsPreviouslyInspected": 5
+    },
+    "lighting": "Same neutral key/fill/rim, Filmic, exposure -0.25, 800x800 CPU Cycles 40 samples; no bloom or bodycam post. Morph proofs use the same camera as neutral views.",
+    "observations": [
+      {
+        "area": "Wound silhouette",
+        "result": "Improved",
+        "observed": "The uninterrupted oval red ring is replaced by unequal tear widths, contour notches, interrupted narrow fabric-edge sections, four sparse folded fabric tongues and fine closed fray strands. The cavity remains a closed recessed shell; it does not open the original character by itself."
+      },
+      {
+        "area": "Heart silhouette",
+        "result": "Improved",
+        "observed": "The muscular apex is less needle-like, atrial lumps are smaller/embedded, auricles are thinner/corrugated and two anterior severed arterial lumens face the exterior. Coronary detail remains seated rather than floating."
+      },
+      {
+        "area": "Surface response",
+        "result": "Improved with limits",
+        "observed": "Robust luminance detail reuses the original generated atlas while suppressing its bright baked color cast. Darker red-brown tissue and sparse mottled wet patches replace uniformly saturated red. Broad studio reflections and soft schematic surface forms remain visible, so this is not a scanned or professional photorealistic organ."
+      },
+      {
+        "area": "Compression proof",
+        "result": "Pass bounded authored deformation",
+        "observed": "The full GripCompress proof changes the existing organ silhouette asymmetrically rather than scaling the entire mesh. No obviously broken surface or separated coronary branch appears. This is an authored morph, not collision-aware softness or verified finger-pressure contact."
+      },
+      {
+        "area": "Vessel/tissue flex proof",
+        "result": "Pass bounded authored deformation",
+        "observed": "The vessel-lag proof visibly bends the attached distal roots while the neutral bulk stays in place; tissue tension raises/changes the wound lip without exploding its surface. Runtime timing and hand alignment remain unreviewed in this asset task."
+      }
+    ],
+    "remainingLimits": [
+      "Fictional schematic anatomy, particularly atrial/auricular details, still needs a deeper sculpt or scan pass for professional anatomical fidelity.",
+      "Fabric and muscle lips remain smooth authored surfaces; the integration is more irregular but is not a photogrammetric cloth/tissue tear.",
+      "Broad soft studio reflections and some mild spherical UV/source-pattern transitions remain visible at close range.",
+      "Detail components are individually closed and overlap; they are not one boolean-unioned medical anatomy reconstruction.",
+      "Authored compression/lag does not conserve measured tissue volume or solve collision-aware softbody squeezing.",
+      "Existing character shader cut mask must fit the irregular local wound silhouette; attachment/socket and moving-hand review belongs to runtime integration.",
+      "Bundled Three.js GLTFLoader imports POSITION/NORMAL morphs and ignores TANGENT morph deltas. GLB retains all three for interchange."
+    ],
+    "qualityVerdict": "Visible bounded improvement over v1 in wound irregularity, dark tissue identity, readable torn vessel roots and available local deformation. Accepted for parent runtime integration review with explicit remaining art and physical-simulation limits. Professional photorealism and whole-game AAA quality are not certified."
+  }
+}

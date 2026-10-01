@@ -271,3 +271,136 @@ body.playing #ui[data-screen="play"][data-reduced-motion="true"]::before{animati
 #ui .record-entry strong{display:block;margin:7px 0 4px;color:#f2e2cc;font:23px/1 Impact,sans-serif;letter-spacing:.035em;text-transform:uppercase}
 #ui .record-entry p,#ui .records-empty{margin:0;color:#cbbba7;font:12px/1.5 Arial,sans-serif}
 @media(max-width:800px){#ui .pause-screen{overflow:auto;align-items:flex-start}#ui .pause-layout{flex-direction:column;gap:22px}#ui .pause-layout .pause-card{flex:0 0 auto;width:100%}#ui .pause-card h2{margin:18px 0;font-size:clamp(56px,13vw,88px)}#ui .records-archive{flex:0 0 auto;width:100%;max-height:none;margin:0}#ui .records-list{max-height:40vh}#ui .pause-screen.is-story .pause-copy{margin-bottom:15px}}
+
+/* Body-camera burn-in text: only while a run is live and the lens is enabled.
+   Kept on the bottom centre line, clear of the corner HUD clusters. */
+#bodycam-hud{position:fixed;left:0;right:0;bottom:2.2%;z-index:4;pointer-events:none;display:none;justify-content:center;gap:2.2em;font:700 clamp(9px,1vw,13px)/1 "Courier New",monospace;letter-spacing:.14em;color:#e8efe6;text-shadow:0 0 4px #000,1px 0 0 #ff2a2a66,-1px 0 0 #2affff55;opacity:.78}
+body.playing[data-bodycam="on"]:has(#ui[data-screen="play"]) #bodycam-hud{display:flex}
+#bodycam-hud .bc-rec{display:flex;align-items:center;gap:.6em}
+#bodycam-hud .bc-rec i{width:.8em;height:.8em;border-radius:50%;background:#e02020;box-shadow:0 0 8px #e02020;animation:bc-blink 1.6s steps(1,end) infinite}
+@keyframes bc-blink{0%,55%{opacity:1}56%,100%{opacity:0}}
+body[data-bodycam="on"].playing #ui[data-screen="play"]::after{background:none}
+body:has(#ui[data-reduced-motion="true"]) #bodycam-hud .bc-rec i{animation:none}
+@media(prefers-reduced-motion:reduce){#bodycam-hud .bc-rec i{animation:none}}
+@media(max-width:600px){#bodycam-hud{gap:.8em;bottom:max(8px,env(safe-area-inset-bottom));letter-spacing:.04em}#bodycam-hud .bc-cam,#bodycam-hud .bc-bat{display:none}}
+/* A reachable next-turn bearing, kept with the objective rather than over enemies. */
+.route-guidance{display:flex;align-items:center;gap:9px;max-width:360px;margin-top:7px;color:#efd2a3;font:600 10px/1.3 system-ui;letter-spacing:.055em;text-transform:uppercase;text-shadow:0 1px 4px #000}
+.route-guidance[hidden]{display:none}.route-guidance i{display:inline-block;font:normal 21px/1 system-ui;width:20px;text-align:center;flex:none}.route-guidance span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:600px){.route-guidance{max-width:230px;font-size:8px;gap:5px;margin-top:4px}.route-guidance i{font-size:17px;width:17px}}
+/* The centered kill counter otherwise collides with floor/room text in portrait. */
+@media(max-width:600px){#ui .run-clock{display:none}}
+
+/* Bite feedback clears the face and the corner vitals; portrait uses the upper gap. */
+#ui .bite-prompt{position:absolute;z-index:6;left:28px;bottom:clamp(190px,28vh,250px);width:min(330px,calc(100vw - 32px));padding:13px 17px 14px;border:1px solid #a34238a8;border-left:3px solid #e46b55;background:linear-gradient(105deg,#1b0709e8,#280b0bbf 72%,#1b0709ad);box-shadow:0 9px 36px #000c,0 0 18px #7b161939;pointer-events:none;text-align:left;color:#f4dfd0}
+#ui .bite-prompt[hidden],#ui .wound-status[hidden]{display:none!important}
+#ui .bite-kicker{display:block;color:#e6987c;font:800 9px/1.1 Arial,sans-serif;letter-spacing:.23em;text-transform:uppercase}
+#ui .bite-prompt strong{display:block;margin:5px 0 4px;font:clamp(24px,3vw,34px)/.95 Impact,'Arial Narrow',sans-serif;letter-spacing:.045em;text-transform:uppercase;text-shadow:0 2px 12px #000}
+#ui .bite-instruction{display:block;color:#f6c7b1;font:800 10px/1.4 Arial,sans-serif;letter-spacing:.08em}
+#ui .bite-meter{display:block;height:5px;margin-top:11px;background:#13080b;box-shadow:inset 0 0 0 1px #b8786542}
+#ui .bite-meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8a2728,#f0b07e);box-shadow:0 0 11px #e06243bb;transition:width .08s linear}
+#ui .bite-prompt[data-phase="windup"]{border-left-color:#f0be7b}
+#ui .bite-prompt[data-phase="windup"] .bite-meter{display:none}
+#ui .bite-prompt[data-phase="terminal"]{border-left-color:#7c2025;background:#210608ec}
+#ui .wound-status{display:block;max-width:170px;margin-top:7px;color:#f2a38e;font:800 8px/1.25 Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;text-shadow:0 1px 6px #000}
+@media(max-width:700px){#ui .bite-prompt{left:50%;top:clamp(140px,18vh,170px);bottom:auto;transform:translateX(-50%);width:min(245px,calc(100vw - 24px));padding:9px 11px 10px}#ui .bite-prompt strong{font-size:23px}#ui .bite-instruction{font-size:8px}#ui .wound-status{max-width:120px;font-size:7px}}
+@media(pointer:coarse) and (orientation:landscape) and (max-height:520px){#ui .bite-prompt{left:50%;top:92px;bottom:auto;transform:translateX(-50%);width:230px;padding:8px 10px}#ui .bite-prompt strong{font-size:21px}}
+
+/* Combat HUD: restrained camera typography, worn ivory, and blood-red urgency.
+   The route and resources stay at the edges; contact prompts leave the hands clear. */
+#ui .hud [hidden]{display:none!important}
+#ui .hud{color:#e9e2d6;text-shadow:0 1px 3px #000,0 0 7px #000}
+#ui .blood-veil{background:radial-gradient(ellipse at center,transparent 48%,#600f1924 73%,#840f25ba 100%);mix-blend-mode:normal;filter:none}
+#ui .blood-veil svg{display:none}
+#ui .hud-top{inset:24px 28px auto;height:115px}
+#ui .objective[data-progression="room"]{width:310px;max-width:310px;padding:9px 12px 10px 0;background:linear-gradient(90deg,#080a0a85,transparent)}
+#ui .objective-context{gap:7px;height:13px}
+#ui .objective-context [data-hud="sector"]{font:700 9px/1.2 'Courier New',monospace;letter-spacing:.08em;color:#c4bfb3}
+#ui .room-index{font-size:9px;letter-spacing:.04em;color:#c4bfb3}
+#ui .room-name{margin:6px 0 8px;font:22px/1.05 Impact,'Arial Narrow',sans-serif;letter-spacing:.055em}
+#ui .objective-line{gap:8px;flex-wrap:wrap;justify-content:flex-start}
+#ui .objective-line [data-hud="objective"]{font:700 10px/1.35 Arial,sans-serif;letter-spacing:.075em;color:#e0d9cb}
+#ui .room-threat{max-width:100%;font:700 9px/1.35 'Courier New',monospace;letter-spacing:.04em;color:#e5a395;text-align:left}
+#ui [data-hud="objective-sub"]{margin-top:5px;font:10px/1.4 Arial,sans-serif;letter-spacing:.02em;color:#dfbd9e}
+#ui .objective-progressline{display:none}
+#ui .room-route{height:2px;gap:4px;margin-top:9px;max-width:205px}
+#ui .route-guidance{margin-top:7px;gap:7px;max-width:100%;padding:0;background:none;border:0;color:#e4d3ad;font:700 11px/1.4 Arial,sans-serif;letter-spacing:.02em}
+#ui .objective [data-hud="route-guidance"]{display:flex}
+#ui .route-guidance i{font-size:17px}
+#ui .run-clock{top:9px;gap:9px;font:12px/1.2 'Courier New',monospace;letter-spacing:.04em;color:#d0c8ba}
+#ui .run-clock small{font:9px/1.2 'Courier New',monospace;letter-spacing:.03em}
+#ui .hud-kills{display:none}
+#ui .rank{right:54px;width:156px;padding-top:8px}
+#ui .rank-caption{font:9px/1 'Courier New',monospace;letter-spacing:.13em;color:#bcb3a6}
+#ui [data-hud="rank"]{margin-top:4px;font:italic 42px/1 Impact,sans-serif;letter-spacing:.01em;color:#e8d9ba;text-shadow:0 2px 5px #000}
+#ui .rank-meter{height:2px;max-width:66px;margin:5px 0 0 auto}
+#ui [data-hud="style-label"]{display:none}
+#ui .style-pending{margin-top:6px;font:700 10px/1.2 'Courier New',monospace;letter-spacing:.03em;color:#ddbaa0}
+#ui .hud[data-style-active="false"] .rank-caption,#ui .hud[data-style-active="false"] [data-hud="rank"],#ui .hud[data-style-active="false"] .rank-meter{display:none}
+#ui .combat-feed{gap:3px;margin-top:8px;font:700 11px/1.3 'Courier New',monospace;color:#ddd5c5}
+#ui .combat-feed>span:nth-child(n+3){display:none}
+#ui .hud-pause{background:#080a0a55;color:#bcb5a8}
+#ui .hud-bottom{inset:auto 28px 26px;gap:32px}
+#ui .hud-bottom-left{width:190px;gap:10px}
+#ui .vitals{display:block;background:linear-gradient(90deg,#080a0a85,transparent)}
+#ui .vitals-line{gap:9px}
+#ui .blood-mark{width:17px;height:26px;fill:#b94440}
+#ui [data-hud="health"]{min-width:3ch;font:56px/1 Impact,'Arial Narrow',sans-serif;letter-spacing:.01em;color:#e9e2d6;font-variant-numeric:tabular-nums}
+#ui .vital-caption{font:9px/1 'Courier New',monospace;letter-spacing:.12em;color:#bcb3a6}
+#ui .health-meter{height:4px;margin-top:7px;transform:none;background:#d8cfc12b}
+#ui .health-fill{background:#b94440}
+#ui .dash-cluster i{width:29px;height:3px;transform:none}
+#ui .dash-cluster>span{font:9px/1 'Courier New',monospace;letter-spacing:.08em;margin-left:3px}
+#ui .critical-label{margin-top:7px;font:700 10px/1.2 'Courier New',monospace;letter-spacing:.1em}
+#ui .wound-status{max-width:190px;font:700 9px/1.4 Arial,sans-serif;letter-spacing:.04em}
+#ui .hud-bottom-right{width:264px}
+#ui .weapon-card{display:block;background:linear-gradient(270deg,#080a0a85,transparent)}
+#ui .weapon-line{gap:9px;min-height:26px}
+#ui .weapon-slot{font:11px/1 'Courier New',monospace;color:#cd655d}
+#ui .weapon-name{font:22px/1.15 Impact,'Arial Narrow',sans-serif;letter-spacing:.04em}
+#ui .weapon-hint,#ui .arsenal-count{display:none}
+#ui .weapon-rack{gap:3px;margin:8px 0 8px}
+#ui .weapon-rack button{min-width:0;height:32px;padding:2px;border-bottom-width:1px;background:#080a0a55;opacity:.62}
+#ui .weapon-rack button:hover:not(:disabled),#ui .weapon-rack button:focus-visible{color:#f2eadb;opacity:1;outline:1px solid #dfb598;outline-offset:2px}
+#ui .weapon-rack button.is-equipped{color:#efe4d2;border-bottom-color:#df6a5d;opacity:1}
+#ui .weapon-rack button.is-locked:after{content:'—';inset:9px 0 auto;font:12px/1 'Courier New',monospace;color:#bcb3a6}
+#ui .weapon-rack svg{height:23px}
+#ui .weapon-rack button>span{font:8px/1 'Courier New',monospace}
+#ui .weapon-foot{gap:10px;min-height:13px;font:10px/1.3 'Courier New',monospace;letter-spacing:.02em;color:#d2c7b5}
+#ui .cooldown{height:2px;margin-top:6px}
+#ui .rifle-meter{height:3px;transform:none}
+#ui .bite-prompt{left:28px;top:auto;bottom:196px;transform:none;width:238px;padding:11px 12px 12px;border-left-width:2px;background:linear-gradient(90deg,#16090bea,#16090b70);box-shadow:none}
+#ui .bite-kicker{font:700 9px/1.2 'Courier New',monospace;letter-spacing:.1em;color:#d59788}
+#ui .bite-prompt strong{margin-top:6px;font:22px/1.15 Impact,'Arial Narrow',sans-serif;letter-spacing:.04em}
+#ui .bite-instruction{margin-top:7px;font:700 10px/1.4 'Courier New',monospace;letter-spacing:.01em;color:#f0d8c4}
+#ui .bite-meter{height:3px;margin-top:9px}
+#ui .extraction-prompt{bottom:94px;width:228px;padding:10px 12px;border-left-width:2px;box-shadow:none;background:linear-gradient(90deg,#16090bea,#16090b70)}
+#ui .extraction-kicker{display:none}
+#ui .extraction-prompt strong{margin-top:0;font:20px/1.15 Impact,'Arial Narrow',sans-serif;letter-spacing:.04em}
+#ui .extraction-meter{height:3px;margin-top:8px}
+#bodycam-hud{font-size:10px;letter-spacing:.08em;gap:1.5em;opacity:.65}
+#bodycam-hud .bc-cam,#bodycam-hud .bc-bat{display:none}
+@media(min-width:701px) and (max-height:650px){
+ #ui .hud-top{inset:16px 22px auto}
+ #ui .hud-bottom{inset:auto 22px 20px}
+ #ui .bite-prompt{left:22px;bottom:190px}
+ #ui .extraction-prompt{bottom:88px}
+}
+
+/* Leave a dedicated status row above the two rows of touch actions. */
+@media(max-width:700px) and (min-height:520px){
+ #ui .hud-bottom{inset:auto calc(16px + env(safe-area-inset-right,0px)) calc(152px + env(safe-area-inset-bottom,0px)) calc(16px + env(safe-area-inset-left,0px));gap:12px}
+ #ui .hud-bottom-left{width:auto;flex:1 1 42%;min-width:0;gap:7px}
+ #ui .hud-bottom-right{width:auto;flex:1 1 52%;min-width:0}
+ #ui [data-hud="health"]{font-size:40px}
+ #ui .dash-cluster{position:static}
+ #ui .weapon-name{font-size:18px}
+ #ui .weapon-foot{flex-wrap:wrap;font-size:9px;gap:4px 8px}
+ #ui .bite-prompt{left:16px;bottom:260px;width:min(238px,calc(100vw - 32px))}
+ #ui .extraction-prompt{bottom:254px}
+}
+@media(pointer:coarse) and (orientation:landscape) and (max-height:520px){
+ #ui .hud-bottom{inset:auto 20px calc(124px + env(safe-area-inset-bottom,0px))}
+ #ui .dash-cluster{position:static}
+ #ui [data-hud="health"]{font-size:36px}
+ #ui .weapon-rack{display:none}
+}

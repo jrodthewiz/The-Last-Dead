@@ -116,8 +116,8 @@ function basePalette(variant) {
     };
   }
   return {
-    steel: 0xa0acad, edge: 0xc8c0aa, panel: 0x687679, black: 0x111619,
-    wood: 0x4b3028, brass: 0xa87543, accent: 0x3c2a2b, glow: 0x97363b,
+    steel: 0x788184, edge: 0x717977, panel: 0x303a3c, black: 0x171c1d,
+    wood: 0x655044, brass: 0x73634a, accent: 0x3c2a2b, glow: 0x97363b,
     heat: 0xd3633d,
   };
 }
@@ -181,12 +181,14 @@ function applySharedMaps(materials) {
   // Keep the worn map on broad steel and wood surfaces.  The edge plates and
   // brass are intentionally un-mapped so their value separation survives the
   // game's deep falloff instead of becoming another dark slab.
-  for (const key of ['steel', 'panel']) {
+  for (const key of ['steel']) {
     materials[key].map = maps.steel;
     materials[key].needsUpdate = true;
   }
   materials.wood.map = maps.wood;
   materials.wood.needsUpdate = true;
+  // Parkerized stamped panels need an independent albedo. Multiplying both
+  // metal roles by the same dark photograph erased the receiver seams.
 }
 
 function installViewmodelBounce(materials) {
@@ -220,7 +222,7 @@ function collectDiagnostics(root, variant, materials, sockets, mechanisms) {
     triangles += Math.round((node.geometry.index?.count || node.geometry.attributes.position?.count || 0) / 3) * (node.count || 1);
   });
   return {
-    asset: `rifle-${variant}-v1`,
+    asset: `rifle-${variant}-${variant === 'carrion' ? 'v2' : 'v1'}`,
     variant,
     meshes,
     triangles,
@@ -290,51 +292,60 @@ function buildCarrion() {
   const materials = commonMaterials('carrion');
 
   const receiver = part('receiver', root, parts);
-  // Camera-side width is trimmed slightly so the compact receiver reads as a
-  // stamped firearm instead of a single broad slab around the hands.
-  receiver.scale.set(.88, .92, 1);
-  add(receiver, profile([[-.24, -.15], [-.22, .12], [-.13, .19], [.12, .19], [.22, .12], [.24, -.14], [.14, -.2], [-.14, -.2]], .5, .026), materials.steel, [0, .02, .02], [0, 0, 0], [1, 1, 1], 'receiver-shell');
-  add(receiver, profile([[-.18, -.11], [-.15, .1], [-.07, .14], [.1, .13], [.16, .08], [.16, -.11], [.1, -.14], [-.1, -.14]], .028, .006), materials.edge, [0, .03, .282], [0, 0, 0], [1, 1, 1], 'receiver-stamped-face');
-  add(receiver, profile([[-.11, -.055], [.11, -.055], [.13, .025], [.08, .09], [-.07, .1], [-.13, .03]], .014, .003), materials.black, [0, .035, .302], [0, 0, 0], [1, 1, 1], 'receiver-recess');
-  add(receiver, profile([[-.14, -.06], [.14, -.06], [.13, .04], [-.12, .04]], .024, .004), materials.panel, [0, .17, .04], [0, 0, 0], [1, 1, 1], 'dust-cover');
+  // A narrow folded receiver carries the eye forward through one connected
+  // silhouette. Broad rear-facing silver plates used to dominate the FPS view.
+  add(receiver, profile([[-.17, -.13], [-.17, .09], [-.11, .15], [.11, .15], [.17, .09], [.17, -.13], [.11, -.17], [-.11, -.17]], .59, .012), materials.steel, [0, .02, -.015], [0, 0, 0], [1, 1, 1], 'receiver-shell');
+  add(receiver, profile([[-.145, -.105], [-.145, .07], [-.09, .115], [.09, .115], [.145, .07], [.145, -.105]], .022, .006), materials.panel, [0, .02, .295], [0, 0, 0], [1, 1, 1], 'receiver-stamped-face');
+  add(receiver, profile([[-.105, -.04], [.105, -.04], [.105, .04], [.065, .072], [-.065, .072], [-.105, .04]], .018, .004), materials.black, [0, .045, .313], [0, 0, 0], [1, 1, 1], 'receiver-recess');
+  add(receiver, profile([[-.143, -.025], [.143, -.025], [.12, .025], [-.12, .025]], .55, .006), materials.panel, [0, .18, -.02], [0, 0, 0], [1, 1, 1], 'dust-cover');
+  for (const side of [-1, 1]) {
+    add(receiver, new THREE.BoxGeometry(.008, .006, .47), materials.edge, [side * .13, .199, -.035], [0, 0, 0], [1, 1, 1], `folded-cover-lip-${side}`);
+  }
   // A dark, recessed port gives the automatic rifle a clear functional read
   // and gives the shell emitter a visible place to leave the receiver.
-  add(receiver, new THREE.BoxGeometry(.028, .11, .16), materials.black, [.258, .13, .07], [0, 0, 0], [1, 1, 1], 'ejection-port');
+  add(receiver, new THREE.BoxGeometry(.012, .067, .205), materials.black, [.18, .087, .035], [0, 0, 0], [1, 1, 1], 'ejection-port');
   for (const side of [-1, 1]) {
-    add(receiver, profile([[-.055, -.11], [.055, -.11], [.072, .1], [-.072, .1]], .028, .006), materials.panel, [side * .247, .02, .02], [0, side * Math.PI / 2, 0], [1, 1, 1], `receiver-side-plate-${side}`);
-    add(receiver, new THREE.CylinderGeometry(.026, .026, .032, 12), materials.brass, [side * .265, .04, -.12], [0, 0, Math.PI / 2], [1, 1, 1], `receiver-rivet-${side}`);
+    add(receiver, profile([[-.22, -.09], [.19, -.09], [.23, -.04], [.23, .03], [-.22, .03]], .008, .003), materials.panel, [side * .182, -.025, -.01], [0, side * Math.PI / 2, 0], [1, 1, 1], `receiver-side-plate-${side}`);
+    add(receiver, new THREE.CylinderGeometry(.017, .017, .012, 10), materials.edge, [side * .193, -.035, -.12], [0, 0, Math.PI / 2], [1, 1, 1], `receiver-rivet-${side}`);
   }
-  addRivets(receiver, materials.brass, [[-.16, .12, .29], [.16, .12, .29], [-.18, -.1, .3], [.18, -.1, .3]], 'receiver-fastener');
+  addRivets(receiver, materials.edge, [[-.113, -.084, .31], [.113, -.084, .31]], 'receiver-fastener');
 
   const recoilCarriage = part('recoil-carriage', root, parts, 'carrion-recoil-carriage');
   const boltCarrier = part('bolt-carrier', recoilCarriage, parts, 'carrion-reciprocating-bolt');
-  add(boltCarrier, profile([[-.12, -.055], [.12, -.055], [.13, .045], [.07, .085], [-.08, .08], [-.13, .035]], .1, .008), materials.edge, [0, .215, .15], [0, 0, 0], [1, 1, 1], 'bolt-body');
-  add(boltCarrier, new THREE.CylinderGeometry(.026, .026, .22, 12), materials.black, [0, .23, .07], [0, 0, Math.PI / 2], [1, 1, 1], 'bolt-guide');
+  add(boltCarrier, profile([[-.07, -.025], [.07, -.025], [.075, .025], [.045, .045], [-.045, .045], [-.075, .025]], .21, .006), materials.edge, [0, .191, .08], [0, 0, 0], [1, 1, 1], 'bolt-body');
+  add(boltCarrier, new THREE.BoxGeometry(.065, .02, .19), materials.black, [0, .224, .085], [0, 0, 0], [1, 1, 1], 'bolt-guide');
   const boltHandle = part('bolt-handle', boltCarrier, parts, 'carrion-bolt-handle');
-  boltHandle.position.set(.135, .2, .12);
-  bolt(boltHandle, [.045, 0, 0], materials.brass, 'bolt-handle-stem', .018, .09);
-  add(boltHandle, new THREE.SphereGeometry(.037, 10, 7), materials.edge, [.09, 0, 0], [0, 0, 0], [1.15, .9, 1], 'bolt-handle-knob');
+  boltHandle.position.set(.13, .105, .08);
+  bolt(boltHandle, [.045, 0, 0], materials.edge, 'bolt-handle-stem', .014, .09);
+  add(boltHandle, new THREE.CylinderGeometry(.026, .026, .056, 10), materials.black, [.093, 0, 0], [0, 0, 0], [1, 1, 1], 'bolt-handle-knob');
 
   const barrel = part('barrel-shroud', recoilCarriage, parts, 'carrion-barrel-shroud');
-  add(barrel, new THREE.CylinderGeometry(.135, .18, .76, 18), materials.steel, [0, .04, -.52], [Math.PI / 2, 0, 0], [1, 1, 1], 'short-barrel');
-  add(barrel, new THREE.CylinderGeometry(.087, .1, .8, 14, 1, true), materials.black, [0, .04, -.53], [Math.PI / 2, 0, 0], [1, 1, 1], 'barrel-bore');
-  for (const [i, z] of [-.27, -.43, -.6, -.76].entries()) ring(barrel, .14 - i * .006, .011, [0, .04, z], materials.edge, `shroud-collar-${i}`);
+  add(barrel, new THREE.CylinderGeometry(.063, .075, .82, 16), materials.steel, [0, .04, -.55], [Math.PI / 2, 0, 0], [1, 1, 1], 'short-barrel');
+  const handguard = part('stamped-handguard', root, parts);
+  add(handguard, profile([[-.14, -.09], [-.14, .045], [-.09, .09], [.09, .09], [.14, .045], [.14, -.09], [.085, -.135], [-.085, -.135]], .44, .012), materials.wood, [0, -.045, -.515], [0, 0, 0], [1, 1, 1], 'handguard-shell');
+  for (const z of [-.294, -.738]) {
+    add(handguard, profile([[-.147, -.091], [-.147, .045], [-.095, .096], [.095, .096], [.147, .045], [.147, -.091], [.089, -.141], [-.089, -.141]], .022, .004), materials.panel, [0, -.045, z], [0, 0, 0], [1, 1, 1], `handguard-retaining-band-${z}`);
+  }
+  add(barrel, new THREE.CylinderGeometry(.023, .023, .57, 10), materials.panel, [0, .132, -.525], [Math.PI / 2, 0, 0], [1, 1, 1], 'gas-tube');
+  ring(barrel, .08, .009, [0, .04, -.805], materials.edge, 'gas-block-collar');
   const vents = part('heat-vents', barrel, parts, 'carrion-heat-vents');
   for (const side of [-1, 1]) for (let i = 0; i < 3; i++) {
     const z = -.4 - i * .13;
-    add(vents, profile([[-.018, -.05], [.018, -.05], [.027, .05], [-.027, .05]], .022, .004), materials.heat, [side * (.13 + i * .008), .08, z], [0, side * .35, 0], [1, 1, 1], `vent-${side}-${i}`);
+    add(vents, new THREE.BoxGeometry(.006, .028, .065), materials.black, [side * .148, -.025, z], [0, 0, 0], [1, 1, 1], `vent-pocket-${side}-${i}`);
+    add(vents, new THREE.BoxGeometry(.007, .005, .05), materials.heat, [side * .152, -.036, z], [0, 0, 0], [1, 1, 1], `vent-${side}-${i}`);
   }
   const muzzle = part('muzzle-brake', barrel, parts);
-  add(muzzle, new THREE.CylinderGeometry(.15, .18, .18, 18), materials.edge, [0, .04, -1.0], [Math.PI / 2, 0, 0], [1, 1, 1], 'muzzle-collar');
-  add(muzzle, new THREE.CylinderGeometry(.09, .1, .04, 16, 1, true), materials.black, [0, .04, -1.1], [Math.PI / 2, 0, 0], [1, 1, 1], 'muzzle-bore');
-  add(muzzle, new THREE.CircleGeometry(.092, 16), materials.black, [0, .04, -1.122], [0, Math.PI, 0], [1, 1, 1], 'muzzle-aperture');
-  ring(muzzle, .16, .014, [0, .04, -1.04], materials.brass, 'muzzle-band');
+  add(muzzle, new THREE.CylinderGeometry(.093, .082, .22, 12), materials.panel, [0, .04, -1.0], [Math.PI / 2, 0, 0], [1, 1, 1], 'muzzle-collar');
+  add(muzzle, new THREE.CylinderGeometry(.049, .049, .04, 16, 1, true), materials.edge, [0, .04, -1.1], [Math.PI / 2, 0, 0], [1, 1, 1], 'muzzle-bore');
+  add(muzzle, new THREE.CircleGeometry(.047, 16), materials.black, [0, .04, -1.122], [0, Math.PI, 0], [1, 1, 1], 'muzzle-aperture');
+  for (const side of [-1, 1]) for (let i = 0; i < 2; i++) add(muzzle, new THREE.BoxGeometry(.006, .04, .024), materials.black, [side * .087, .04, -.974 - i * .06], [0, 0, 0], [1, 1, 1], `brake-port-${side}-${i}`);
+  ring(muzzle, .084, .005, [0, .04, -.91], materials.edge, 'muzzle-band');
 
   const magazine = part('curved-magazine', root, parts);
   // A curved stamped body gives Carrion its compact, forward-driving profile.
   add(magazine, profile([[-.1, .12], [.1, .12], [.12, -.04], [.1, -.17], [.04, -.28], [-.045, -.36], [-.13, -.33], [-.16, -.23], [-.13, -.1]], .2, .022), materials.panel, [0, -.27, .16], [0, 0, 0], [1, 1, 1], 'magazine-shell');
   add(magazine, profile([[-.065, .07], [.065, .07], [.075, -.04], [.05, -.17], [-.025, -.27], [-.09, -.25], [-.105, -.15], [-.08, -.03]], .018, .004), materials.black, [0, -.27, .115], [0, 0, 0], [1, 1, 1], 'magazine-inset');
-  for (let i = 0; i < 4; i++) ring(magazine, .045, .006, [0, -.31 - i * .055, .115], materials.edge, `magazine-rib-${i}`);
+  for (const x of [-.065, .005, .065]) add(magazine, new THREE.BoxGeometry(.012, .2, .012), materials.black, [x, -.375, .272], [0, 0, -.15], [1, 1, 1], `magazine-stamping-${x}`);
   const magazineFollower = part('magazine-follower', magazine, parts, 'carrion-magazine-follower');
   add(magazineFollower, new THREE.BoxGeometry(.11, .018, .025), materials.brass, [0, -.1, .13], [0, 0, 0], [1, 1, 1], 'follower');
 
@@ -342,15 +353,31 @@ function buildCarrion() {
   grip.position.set(0, -.16, .18);
   grip.rotation.x = .16;
   add(grip, profile([[-.105, .08], [.105, .08], [.115, -.08], [.085, -.36], [.02, -.43], [-.085, -.37], [-.115, -.08]], .22, .023), materials.wood, [0, 0, 0], [0, 0, 0], [1, 1, 1], 'wood-grip');
-  for (let i = 0; i < 5; i++) add(grip, new THREE.BoxGeometry(.21, .012, .012), materials.edge, [0, -.04 - i * .064, .115], [0, 0, 0], [1, 1, 1], `grip-band-${i}`);
+  for (let i = 0; i < 5; i++) add(grip, new THREE.BoxGeometry(.18, .008, .006), materials.black, [0, -.04 - i * .064, .119], [0, 0, 0], [1, 1, 1], `grip-band-${i}`);
   const guard = part('trigger-guard', root, parts);
   tube(guard, [[0, -.01, .02], [0, -.2, .02], [0, -.27, .1], [0, -.18, .22]], [.016, .022, .021, .014], materials.edge, 9, 'trigger-guard-rail');
   const trigger = part('trigger', guard, parts, 'carrion-trigger');
   add(trigger, new THREE.CapsuleGeometry(.016, .085, 5, 8), materials.brass, [0, -.13, .04], [Math.PI / 2, 0, 0], [1, 1, 1], 'trigger-blade');
 
   const rearBrace = part('rear-brace', root, parts);
-  for (const side of [-1, 1]) tube(rearBrace, [[side * .15, .15, .24], [side * .2, .13, .35], [side * .14, .08, .48]], [.022, .026, .017], materials.edge, 9, `brace-rail-${side}`);
-  add(rearBrace, profile([[-.12, -.07], [.12, -.07], [.1, .04], [-.1, .04]], .18, .012), materials.panel, [0, .1, .42], [0, 0, 0], [1, 1, 1], 'brace-butt');
+  add(rearBrace, profile([[-.092, -.105], [.092, -.105], [.105, .04], [.07, .085], [-.07, .085], [-.105, .04]], .27, .01), materials.wood, [0, -.01, .424], [0, 0, 0], [1, 1, 1], 'stock-neck');
+  add(rearBrace, profile([[-.11, -.125], [.11, -.125], [.11, .08], [.07, .11], [-.07, .11], [-.11, .08]], .042, .01), materials.black, [0, -.035, .572], [0, 0, 0], [1, 1, 1], 'brace-butt');
+  add(rearBrace, profile([[-.086, -.015], [.086, -.015], [.075, .025], [-.075, .025]], .18, .007), materials.black, [0, .087, .405], [0, 0, 0], [1, 1, 1], 'stock-cheek-pad');
+
+  // Simple iron sights provide a longitudinal read at bodycam distances,
+  // instead of the old bright bolt block masquerading as a sight.
+  const sights = part('iron-sights', root, parts);
+  add(sights, new THREE.BoxGeometry(.13, .024, .085), materials.panel, [0, .222, .239], [0, 0, 0], [1, 1, 1], 'rear-sight-base');
+  const aperture = new THREE.Shape();
+  aperture.moveTo(-.068, 0); aperture.lineTo(-.062, .072); aperture.lineTo(-.039, .098);
+  aperture.lineTo(.039, .098); aperture.lineTo(.062, .072); aperture.lineTo(.068, 0); aperture.closePath();
+  const apertureHole = new THREE.Path();
+  apertureHole.absellipse(0, .057, .026, .028, 0, Math.PI * 2, true);
+  aperture.holes.push(apertureHole);
+  add(sights, new THREE.ExtrudeGeometry(aperture, { depth: .014, bevelEnabled: true, bevelSize: .003, bevelThickness: .002, bevelSegments: 1, curveSegments: 10, steps: 1 }), materials.panel, [0, .229, .252], [0, 0, 0], [1, 1, 1], 'rear-aperture');
+  add(sights, new THREE.BoxGeometry(.105, .065, .055), materials.panel, [0, .145, -.802], [0, 0, 0], [1, 1, 1], 'front-sight-block');
+  for (const side of [-1, 1]) add(sights, new THREE.BoxGeometry(.012, .092, .032), materials.steel, [side * .047, .218, -.802], [0, 0, side * -.14], [1, 1, 1], `front-sight-ear-${side}`);
+  add(sights, new THREE.BoxGeometry(.009, .08, .013), materials.edge, [0, .222, -.802], [0, 0, 0], [1, 1, 1], 'front-sight-post');
 
   const sockets = {
     // Barrel geometry is authored from the receiver toward negative Z; keep
@@ -365,7 +392,7 @@ function buildCarrion() {
     // The shell port lives on the camera-side receiver, just behind the
     // bolt.  Keep this as a dedicated socket so the renderer can place a
     // casing at the authored port while the carriage is cycling.
-    ejectionSocket: socket(receiver, 'ejectionSocket', [.255, .115, .08]),
+    ejectionSocket: socket(receiver, 'ejectionSocket', [.192, .087, .08]),
     inspect: socket(root, 'inspect', [0, .1, .22]),
   };
   const mechanisms = { recoilCarriage, boltCarrier, boltHandle, vents, magazineFollower, trigger };

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Last Dead — free gore audio audition</title>
+<style>
+:root{color-scheme:dark;font:16px/1.5 system-ui;background:#111;color:#ddd}body{max-width:960px;margin:40px auto;padding:0 24px}h1{font-size:26px}p{color:#aaa}article{padding:18px 0;border-top:1px solid #333}h2{font-size:18px;margin:0 0 8px}a{color:#e2b998}audio{width:100%;max-width:450px;display:block;margin:10px 0}small{color:#aaa}#status{color:#e2b998}
+</style>
+<h1>The Last Dead — free gore and vermin sounds</h1>
+<p>Recorded CC0 sources, prepared for demo use. These are derivatives of public HQ MP3 previews. Gameplay wiring and final mix review are pending.</p>
+<p id="status">Loading the asset list…</p>
+<main id="sounds"></main>
+<script type="module">
+const target=document.querySelector('#sounds'),status=document.querySelector('#status');
+try{
+ const response=await fetch('./manifest.json');if(!response.ok)throw new Error('Could not load the asset list');
+ const manifest=await response.json();status.textContent=`${manifest.runtimeFiles} clips · ${manifest.sources.length} CC0 sources · $0`;
+ for(const source of manifest.sources){
+  const article=document.createElement('article'),title=document.createElement('h2'),description=document.createElement('p'),link=document.createElement('a');
+  title.textContent=source.title;description.textContent=source.description;link.textContent=`${source.author} · source and CC0 license`;link.href=source.sourcePage;link.target='_blank';link.rel='noopener';article.append(title,description,link);
+  for(const clip of source.clips){const label=document.createElement('small'),audio=document.createElement('audio');label.textContent=`${clip.file} · ${clip.durationSeconds.toFixed(2)} s · ${clip.peakDbFS.toFixed(1)} dBFS peak`;audio.controls=true;audio.preload='none';audio.src=`./${clip.file}`;audio.addEventListener('play',()=>{document.querySelectorAll('audio').forEach(other=>{if(other!==audio)other.pause();});});article.append(document.createElement('br'),label,audio);}
+  target.append(article);
+ }
+}catch(error){status.textContent=error.message;}
+</script>
+</html>

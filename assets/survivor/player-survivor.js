@@ -90,11 +90,19 @@ function viewGripHand(parent,side,position){
  cuff.rotation.z=side*.05;
  // Each finger follows the front face and rolls around the far side of a
  // vertical grip. The exposed tips can depth-occlude behind the weapon.
- for(let i=0;i<3;i++){
+ for(let i=0;i<4;i++){
   const y=.045-i*.034;
   const path=[[side*.048,y,.025],[side*.025,y-.006,.062],[-side*.020,y-.010,.067],[-side*.055,y-.016,.029],[-side*.061,y-.027,-.020]];
-  curvedGripFinger(grip,`GripFinger${i}`,path.slice(0,4),.011-i*.0005,leather);
-  gripFinger(grip,`GripFingertip${i}`,path[3],path[4],.0085-i*.0003,skin).userData.gripFarSide=true;
+  // Pivot the existing index finger at its knuckle. Its rest shape and the
+  // palm's grip socket stay identical; only the trigger press articulates.
+  let fingerParent=grip;
+  if(i===0&&side>0){
+   fingerParent=new THREE.Group();fingerParent.name='TriggerFinger';fingerParent.position.set(...path[0]);
+   grip.add(fingerParent);grip.userData.triggerFinger=fingerParent;
+   const origin=[...path[0]];for(const p of path)for(let axis=0;axis<3;axis++)p[axis]-=origin[axis];
+  }
+  curvedGripFinger(fingerParent,`GripFinger${i}`,path.slice(0,4),.011-i*.0005,leather);
+  gripFinger(fingerParent,`GripFingertip${i}`,path[3],path[4],.0085-i*.0003,skin).userData.gripFarSide=true;
  }
  curvedGripFinger(grip,'GripThumb',[[side*.051,.038,.035],[side*.075,.053,.028],[side*.072,.057,-.005],[side*.042,.045,-.041]],.012,leather);
  gripFinger(grip,'GripThumbTip',[side*.042,.045,-.041],[side*.014,.036,-.054],.009,skin).userData.gripFarSide=true;
@@ -124,10 +132,10 @@ export function createSurvivorViewArm(side=1){
   const wrap=mesh(limb,new THREE.CylinderGeometry(.051-i*.0012,.052-i*.0012,.014,18),bandage,'BloodyWrap');
   wrap.position.y=len*(.68+i*.032);
  }
- const palm=viewGripHand(limb,side,new THREE.Vector3(0,len,0));palm.scale.set(side<0?3.10:2.85,2.15,2.08);palm.rotation.x=-.12;
+ const palm=viewGripHand(limb,side,new THREE.Vector3(0,len,0));palm.scale.setScalar(1.4);palm.rotation.x=-.12;
  palm.userData.viewmodelHand=true;palm.traverse(node=>{node.userData.viewmodelHand=true;});
  const gripSocket=new THREE.Object3D();gripSocket.name='GripSocket';palm.add(gripSocket);
- root.userData={hand:palm,gripSocket,sockets:{wrist:root,hand:gripSocket},side,alignGripOrientation:true};
+ root.userData={hand:palm,gripSocket,triggerFinger:palm.userData.triggerFinger,sockets:{wrist:root,hand:gripSocket},side,alignGripOrientation:true};
  root.userData.sculptRuntime={parts:[limb,palm],pivots:{wrist:root,hand:palm},sockets:{grip:gripSocket},coordinateSystem:'Y-up, viewmodel forward -Z'};
  root.userData.weaponBatchIgnore=true;
  root.traverse(node=>{if(node.isMesh){node.userData.viewmodelArm=true;node.userData.weaponBatchIgnore=true;node.castShadow=false;node.receiveShadow=false;}});

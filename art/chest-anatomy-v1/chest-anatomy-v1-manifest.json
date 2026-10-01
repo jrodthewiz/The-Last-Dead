@@ -1,0 +1,279 @@
+{
+  "formatVersion": 1,
+  "id": "chest-anatomy-v1",
+  "status": "AUTHORING_AND_NEUTRAL_CLOSEUP_REVIEW_PASSED_RUNTIME_REVIEW_PENDING",
+  "runtime": {
+    "file": "assets/models/chest-anatomy-v1.glb",
+    "root": "ChestAnatomyKit",
+    "units": "meters",
+    "outwardAxis": [
+      0,
+      0,
+      1
+    ],
+    "openingPlane": "local glTF XY",
+    "components": [
+      "ChestWound",
+      "Heart"
+    ],
+    "heartGripLocalMeters": [
+      0,
+      0,
+      0
+    ],
+    "woundOuterPlaneLocalZ": 0,
+    "attachmentNote": "Compensate inherited 0.01 character socket scale; kit mesh object scales are 1. Heart and ChestWound are independent named meshes."
+  },
+  "files": {
+    "script": "scripts/build-chest-anatomy.py",
+    "candidate": "art/chest-anatomy-v1/chest-anatomy-v1.glb",
+    "master": ".art-source/chest-anatomy-v1/Chest_Anatomy_v1.blend",
+    "closeups": [
+      "art/chest-anatomy-v1/heart-neutral-front.png",
+      "art/chest-anatomy-v1/heart-neutral-back.png",
+      "art/chest-anatomy-v1/heart-neutral-side.png",
+      "art/chest-anatomy-v1/chest-neutral-front.png",
+      "art/chest-anatomy-v1/chest-neutral-back.png"
+    ],
+    "exportAudit": "art/chest-anatomy-v1/export-audit.json"
+  },
+  "budget": {
+    "bytes": 2675712,
+    "sha256": "896c71c578f6a6ff78b09b152ab9918e8e472d9ac5cda73fa7a3ea542f0685b5",
+    "triangles": 23280,
+    "drawGroupsAllParts": 2,
+    "materialCount": 1,
+    "imageCount": 3,
+    "textureCount": 3,
+    "textureDimensions": [
+      1024,
+      512
+    ],
+    "atlasTilePixels": 256,
+    "atlasPaddingPixels": 16,
+    "allImagesEmbedded": true,
+    "metalness": 0,
+    "normalScale": 0.35,
+    "roughnessByIdentity": {
+      "ventricle": 0.46,
+      "artery": 0.46,
+      "vein": 0.48,
+      "fat": 0.61,
+      "cavity": 0.84,
+      "muscle": 0.55,
+      "fascia": 0.64,
+      "bone": 0.79
+    }
+  },
+  "parts": [
+    {
+      "name": "ChestWound",
+      "vertices": 3618,
+      "triangles": 7168,
+      "drawGroups": 1,
+      "boundsGltfMeters": {
+        "low": [
+          -0.08500000089406967,
+          -0.0950000062584877,
+          -0.06499999761581421
+        ],
+        "high": [
+          0.08500000089406967,
+          0.0950000062584877,
+          0.014999998733401299
+        ]
+      },
+      "sizeMeters": [
+        0.17000000178813934,
+        0.1900000125169754,
+        0.07999999634921551
+      ],
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "inconsistentWindingEdges": 0,
+      "degenerateTriangles": 0,
+      "zeroAreaUvTriangles": 0,
+      "positionFinite": true,
+      "normalFinite": true,
+      "normalLengthRange": [
+        0.9999499606487428,
+        0.9999997409467716
+      ]
+    },
+    {
+      "name": "Heart",
+      "vertices": 8102,
+      "triangles": 16112,
+      "drawGroups": 1,
+      "boundsGltfMeters": {
+        "low": [
+          -0.05000000074505806,
+          -0.06499999761581421,
+          -0.03999999910593033
+        ],
+        "high": [
+          0.05000000074505806,
+          0.06499999761581421,
+          0.03999999910593033
+        ]
+      },
+      "sizeMeters": [
+        0.10000000149011612,
+        0.12999999523162842,
+        0.07999999821186066
+      ],
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "inconsistentWindingEdges": 0,
+      "degenerateTriangles": 0,
+      "zeroAreaUvTriangles": 0,
+      "positionFinite": true,
+      "normalFinite": true,
+      "normalLengthRange": [
+        0.9999503779020482,
+        0.9999995988745572
+      ]
+    }
+  ],
+  "sourcing": {
+    "geometry": "Original authored continuous ventricular surface, layered wound shell and detail meshes; no copied organ model or new paid generation.",
+    "albedo": "Hybrid: existing generated tissue swatches in art/gore-proof/tissue-atlas-v1-1024.png recolored by tissue identity and coupled authored fields.",
+    "normalAndRoughness": "Locally authored field maps, padded shared atlas; not calibrated or scanned PBR.",
+    "newApiJobs": 0,
+    "newCreditSpend": 0,
+    "externalGenerationDecision": "Existing generated hybrid tissue atlas is the explicit source choice for continuity with the reviewed BrutalAnatomy kit. Original offline geometry provides controllable local masking, named heart grip and exact dimensions without replacing the character.",
+    "credentialsUsedThisPass": false,
+    "referenceAtlas": "art/gore-proof/tissue-atlas-v1-1024.png"
+  },
+  "anatomicalForms": [
+    "One asymmetric continuous ventricular mass with an offset inferior apex",
+    "Unequal atria and embedded folded auricles",
+    "Severed aortic, pulmonary and venous roots",
+    "Surface-following tapered coronary vessels and branching veins",
+    "Small embedded epicardial fat islands",
+    "Closed dark thoracic cavity shell with shredded pectoral bundles, fascia and stained rib fragments"
+  ],
+  "referenceLedger": [
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/SKILL.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/implementation-blueprint.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/model-recipes.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/render-recipes.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/visual-scorecard.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/checklists/procedural-model-quality.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/checklists/material-lighting-quality.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/checklists/performance-safe-visual-detail.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/checklists/aaa-game-quality-gate.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/checklists/aaa-visual-scorecard.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-3d-generator/SKILL.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-3d-generator/references/threejs-integration.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-3d-generator/references/image-generator-workflows.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-image-generator/SKILL.md",
+      "read": true
+    }
+  ],
+  "verification": {
+    "command": "\"C:/Program Files/Blender Foundation/Blender 2.93/blender.exe\" --background --factory-startup --python scripts/build-chest-anatomy.py",
+    "checks": [
+      "<30000 triangles",
+      "Two named mesh primitives",
+      "Shared PBR atlas embedded in GLB",
+      "Finite position and normal components",
+      "Closed individually authored surfaces and consistent winding",
+      "No degenerate triangles or collapsed UV triangles",
+      "Neutral front/back/side CPU renders exported",
+      "Exported POSITION/NORMAL/TANGENT/UV/COLOR attributes finite; normals and tangents unit length",
+      "All three embedded PNG payloads decompress to 1024x512 textures",
+      "Runtime and candidate GLB bytes identical",
+      "All five final neutral views visually inspected"
+    ],
+    "notCertified": [
+      "Independent finger contact and physical soft tissue",
+      "Complete collision behavior across arbitrary cloth folds",
+      "Professional photorealism",
+      "Physical controller hardware and joined co-op visual agreement"
+    ],
+    "exportAuditStatus": "PASS",
+    "mobileScope": "Excluded by explicit user instruction: PC and controller only.",
+    "runtimeReview": {
+      "status": "PASS_BOUNDED_PC_CONTROLLER_INTEGRATION",
+      "artifact": "output/playwright/chest-finisher/verification.json",
+      "views": 16,
+      "checks": 12,
+      "errors": 0,
+      "rootVisualInspection": true,
+      "independentVisualReview": "output/playwright/chest-finisher/independent-review.json",
+      "professionalRealismCertified": false
+    }
+  },
+  "limits": [
+    "Fictional anatomical approximation, not medical reconstruction or scanned anatomy.",
+    "Generated albedo contains baked photographic lighting; authored roughness and normal variation are approximations.",
+    "Individually closed detail components overlap rather than being one watertight boolean-unioned organ.",
+    "Organ is rigid; deformation, squeezing, gripping and ragdoll/drop physics are runtime responsibilities.",
+    "Wound insert requires runtime local chest masking and socket orientation; inserting the mesh alone does not open the preserved character."
+  ],
+  "qualityVerdict": "Accepted for bounded PC/controller chest-extraction presentation after real input and 16-view runtime review. Neutral authoring proofs and export audit pass. Original/stylized fictional anatomy, fused finger bases and angular sleeves remain explicit limits; professional photorealism is not certified.",
+  "visualReview": {
+    "inspectedFrames": [
+      "art/chest-anatomy-v1/heart-neutral-front.png",
+      "art/chest-anatomy-v1/heart-neutral-back.png",
+      "art/chest-anatomy-v1/heart-neutral-side.png",
+      "art/chest-anatomy-v1/chest-neutral-front.png",
+      "art/chest-anatomy-v1/chest-neutral-back.png"
+    ],
+    "lighting": "Neutral key/fill/rim, Filmic, 800x800 CPU Cycles, no bloom",
+    "corrections": [
+      "Seated every coronary path on the actual continuous ventricular surface so branches are partly embedded.",
+      "Replaced round yellow fat beads with shallow irregular connected epicardial strips.",
+      "Added soft vessel wall thickness around recessed dark lumens and reduced jagged star-like cut ends.",
+      "Raised cavity roughness and darkened tissue identity to remove bright radial-fan reflections.",
+      "Removed rectangular color patches and stained/reduced exposed rib roots."
+    ],
+    "remainingLimits": [
+      "Macro atrial and auricular forms remain schematic and need a sculpt/scan pass for professional anatomical fidelity.",
+      "Surface tissue detail is a generated-image hybrid and not a calibrated photographic PBR scan.",
+      "Chest insert is a closed shell; it needs runtime local body masking and cannot create a penetrating wound alone.",
+      "Heart mesh is rigid; IK grip, squeezing, dynamic extraction and collision/drop response are parent runtime responsibilities."
+    ]
+  }
+}

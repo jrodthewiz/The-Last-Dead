@@ -10,15 +10,19 @@ import {
 } from './campaign.js';
 import { createRoomProgression, updateRoomProgression, currentRoom, syncRoomGateCells, canTraverseRoomGates } from './room-progression.js';
 import { makeDungeonCourse, setDungeonOpeningOpen } from './playground/map/dungeon-course.js';
+import { encounterRoster, encounterStages, encounterAliveCap, encounterRelief, roomRecoveryPolicy } from './dungeon-encounter-design.js';
+import { createMind, stepMind, reactToHit, collectNoises, getIngressCandidates, isIngressRouteOpen, pickSpawnPoint, createPacing, updatePacing, noteAmbush, spawnAnimFor, EMERGE_TIME, wakeEnemy, findPath, isHunting, hash01, turnFacing, ingressMoveSpeed } from './enemy-ai.js';
+import {installVerminEnvironment,createVerminState,makeVerminHand,makeVerminCrawl,resetVerminWorld,cancelVermin,interceptVerminInput,tickVermin} from './vermin-system.js';
+import {supportsAnatomy,traceEnemyBody,applyAnatomyDamage,anatomyMotion,beginReanimation,advanceReanimation,isThreat} from './enemy-anatomy.js';
+export {nearestRat,verminTarget,useVermin,attackVermin,tickVermin,validateVerminSnapshot,validateVerminHand,validateVerminCrawl,VERMIN_TIMING,VERMIN_LIMITS} from './vermin-system.js';
+installVerminEnvironment({canStand,castRay,hurt,damageEnemy,releaseBite});
 
 // Arena simulation uses 4 metre cells; renderers never own gameplay state.
 export const METERS=4,EYE=.4;
 const DUNGEON_START_DELAY=3.5;
 const DUNGEON_ENTRY_THRESHOLD=.18;
-const DUNGEON_SPAWN_STAGGER=.62;
+const DUNGEON_SPAWN_STAGGER=.38;
 const DUNGEON_TELEGRAPH_LEAD=.5;
-const DUNGEON_SPAWN_CLEARANCE=2.65;
-const DUNGEON_SPAWN_CONTACT=.9;
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const angleDiff=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));
 export const courses=CAMPAIGN_SECTORS.map((sector,index)=>({name:sector.name,color:sector.color,tag:sector.tag,index}));
@@ -64,7 +68,8 @@ function dungeonRoomSpawnCells(course,room){
  const cells=[];
  if(!room?.bounds)return cells;
  for(let y=room.bounds.minZ+.5;y<room.bounds.maxZ;y+=1)for(let x=room.bounds.minX+.5;x<room.bounds.maxX;x+=1){
-  if(dungeonRoomContains(room,x,y)&&canStand(course,x,y,.16))cells.push({x,y});
+  if(dungeonRoomContains(room,x,y)&&canStand(course,x,y,.16)
+   &&(!course.dungeonCompiled?.reach||course.dungeonCompiled.reach.has(`${Math.floor(x)},${Math.floor(y)}`)))cells.push({x,y});
  }
  return cells;
 }
@@ -107,6 +112,26 @@ function buildDungeonEncounterPlan(course){
    plan.push({id:`dungeon-encounter-${waveIndex}-${plan.length}`,roomId,waveIndex,spawns,status:'pending'});
   }
  }
+ // Key rooms are purposeful combat objectives even when the old wave list
+ // placed every enemy elsewhere. Optional flanks remain useful supply fights.
+ for(const key of course.keys||[]){
+  if(plan.some(node=>node.roomId===key.roomId))continue;
+  plan.push({id:`dungeon-key-${key.id}`,roomId:key.roomId,waveIndex:Math.max(1,(course.waveCount||1)-1),
+   spawns:[{x:key.x,y:key.y,roomId:key.roomId,variant:'stalker'}],status:'pending'});
+ }
+ // Repeated legacy wave markers in one room are one sustained encounter,
+ // not a later return trip to an already-cleared aisle.
+ const merged=new Map();
+ for(const node of plan){const previous=merged.get(node.roomId);if(previous){previous.spawns.push(...node.spawns);previous.waveIndex=Math.min(previous.waveIndex,node.waveIndex);}else merged.set(node.roomId,node);}
+ plan.length=0;plan.push(...merged.values());
+ plan.sort((a,b)=>(course.rooms.find(room=>room.id===a.roomId)?.flow?.sequence??999)
+  -(course.rooms.find(room=>room.id===b.roomId)?.flow?.sequence??999)||a.waveIndex-b.waveIndex);
+ for(let i=0;i<plan.length;i++){
+  const node=plan[i],room=course.rooms.find(room=>room.id===node.roomId);
+  node.optional=!!room?.flow?.optional;
+  node.spawns=encounterRoster(course,room,node.spawns);
+ }
+ for(let i=plan.length-1;i>=0;i--)if(!plan[i].spawns.length)plan.splice(i,1);
  return plan;
 }
 function createDungeonProgression(course){
@@ -114,13 +139,14 @@ function createDungeonProgression(course){
  const first=plan[0];
  return {
   floorIndex:course.dungeonIndex,floorCount:course.dungeonCount,startIndex:course.dungeonIndex,floorsCleared:0,
-  keysCollected:[],lootCollected:[],activeRoomId:null,combatDoorsReleased:false,exitReady:false,phase:'exploration',
+  keysCollected:[],lootCollected:[],suppliesCollected:[],activeRoomId:null,combatDoorsReleased:false,exitReady:false,phase:'exploration',
  encounterPlan:plan,completedEncounterIds:[],roomsCompleted:[],roomSequence:plan.map(node=>node.roomId),roomCount:plan.length,roomIndex:0,
   roomSpawnCells:Object.fromEntries((course.rooms||[]).map(room=>[room.id,dungeonRoomSpawnCells(course,room)])),
   entryRoomId:entryRoom?.id||first?.roomId||null,lastRoomId:null,lastX:course.playerSpawn?.x||0,lastY:course.playerSpawn?.y||0,roomTravel:0,observed:false,
   nextEncounterIndex:0,nextRoomId:first?.roomId||null,currentEncounterRoomId:null,currentEncounter:null,
   encounter:{state:'exploration',roomId:null,wave:0,waveCount:course.waveCount||0,active:0,pending:0,remaining:0,total:0,aliveCap:0,elapsed:0},
   objective:first?`Enter ${dungeonRoomName(course,first.roomId)}`:'Find the descent lift',progress:0,
+  navigation:{goal:first?`Push through ${dungeonRoomName(course,first.roomId)}`:'Reach the descent lift',kind:'entry',roomId:first?.roomId||null,target:null,waypoint:null,path:[],blocked:false,remaining:plan.filter(node=>!node.optional).length},
  };
 }
 export function newRun(course, options = {}){
@@ -142,6 +168,8 @@ export function newRun(course, options = {}){
   meleeActive:false,meleeProgress:1,meleeDuration:0,meleeHeavy:false,meleeResolved:false,meleeSequence:0,meleeContact:0,meleeHitStop:0,sawRev:0,sawActive:false,sawContact:0,sawTick:0,
   gore:[],blood:[],limbs:[],pools:[],tracers:[],events:[],pressed:{},nextId:1,autoRun:false,playerId:'host',campaignComplete:false,
   extraction:makeExtractionState(),extractCandidateId:null,extractions:0,extractionPoints:0,
+  bite:makeBiteState(),playerWounds:makePlayerWounds(),brutal:makeBrutalState(),
+  vermin:createVerminState(course),verminHand:makeVerminHand(),verminCrawl:makeVerminCrawl(),_verminCourse:course,
  };
 }
 export function look(r,dx,dy){if(r.mode!=='play')return;r.angle=angleDiff(r.angle+dx*.002,0);r.pitch=clamp(r.pitch-dy*.002,-1.35,1.35);}
@@ -157,11 +185,12 @@ function enemyHitRadius(e,minimum=.16){
  return Number.isFinite(radius)?Math.max(minimum,radius):minimum;
 }
 function enemyHitHeight(e,minimum=.52){
+ if(e.locomotion==='crawl')return .19;
  const height=Number(ENEMY_PROFILES[e?.variant]?.hitHeight);
  return Number.isFinite(height)?Math.max(minimum,height):minimum;
 }
 function playerId(r){return r.playerId||((r.world&&r.world!==r)?'peer':'host');}
-function aliveEnemies(r){return r.course.enemies.filter(e=>!e.dead);}
+function aliveEnemies(r){return r.course.enemies.filter(isThreat);}
 function pushEvent(r,type,extra={}){r.events.push({type,...extra});}
 const STYLE_PENDING_CAP=420;
 // Combat actions build an unbanked claim. The visible style meter and lifetime
@@ -178,7 +207,111 @@ function bankStyle(r,amount,label,totalAmount=amount){
  r.style=Math.min(1800,(r.style||0)+gain);r.styleTotal=(r.styleTotal||0)+clamp(Number(totalAmount)||0,0,1800);r.styleLabel=label;
  r.combo++;r.bestCombo=Math.max(r.bestCombo,r.combo);
 }
-function hurt(r,n){if(r.dashTime>0)return;r.health=Math.max(0,r.health-n);r.damage=1;r.style*=.65;r.combo=0;r.events.push({type:'damage',x:r.x,y:r.y,z:eye(r)});}
+function hurt(r,n,biteDamage=false){if(r.dashTime>0&&!biteDamage)return;
+ // A grabbed player gets the promised escape window even in a crowd. Later
+ // incidental hits are reduced while the grappler owns the close contact.
+ if(r.bite?.phase==='held'&&!biteDamage){if(r.bite.elapsed<1.25)return;n*=.35;}
+ r.health=Math.max(0,r.health-n);r.damage=1;r.style*=.65;r.combo=0;if(r.health<=0)cancelBrutal(r,'player-down');if(!biteDamage)r.events.push({type:'damage',x:r.x,y:r.y,z:eye(r)});}
+
+export const BITE_TIMING=Object.freeze({windup:.65,firstDamage:1.25,damageInterval:.9,release:.55,grace:8});
+const BITE_LIMBS=['leftArm','rightArm','leftLeg','rightLeg'];
+function makePlayerWounds(){return{leftArm:'intact',rightArm:'intact',leftLeg:'intact',rightLeg:'intact',neck:0,torso:0,eviscerated:false};}
+function makeBiteState(){return{phase:'idle',enemyId:null,elapsed:0,escape:0,damageStage:0,sequence:0,cooldown:0,side:'left',limb:'leftArm',reason:''};}
+function resetBite(r){cancelVermin(r,'reset');r.verminCrawl=makeVerminCrawl(r.verminCrawl?.sequence||0);r.bite=makeBiteState();r.playerWounds=makePlayerWounds();r._biteInput={effort:false};cancelBrutal(r,'reset');r.brutal=makeBrutalState(r.brutal?.sequence||0);}
+const biteActive=r=>r.bite?.phase==='windup'||r.bite?.phase==='held';
+function biteEvent(r,type,e,extra={}){
+ const b=r.bite;
+ const event={type,playerId:playerId(r),enemyId:e?.id??b.enemyId,sequence:b.sequence,phase:b.phase,
+  side:b.side,limb:b.limb,x:r.x,y:r.y,z:eye(r),...extra};
+ // main gathers each player's events exactly once before network relay.
+ r.events.push(event);
+}
+function releaseBite(r,reason,escape=false){
+ if(!biteActive(r))return false;
+ const b=r.bite,e=r.course.enemies.find(e=>e.id===b.enemyId);
+ b.phase='released';b.elapsed=0;b.reason=reason;b.cooldown=BITE_TIMING.grace;
+ if(e){e.bitePhase='released';e.biteProgress=0;e.biteTargetId=null;e.biteCooldown=10;e.attacking=false;e.windup=0;e.strike=0;e.slashHit=true;e.attack=Math.max(e.attack||0,2);
+  if(e.mind){e.mind.token=false;e.mind.justAttacked=false;e.mind.state='recover';e.mind.recover=.9;}
+  if(escape&&!e.dead)e.stagger=Math.max(e.stagger||0,1.1);
+ }
+ biteEvent(r,'bite-release',e,{reason,escaped:escape});return true;
+}
+function beginBite(r,e){
+ const previous=r.bite||makeBiteState(),sequence=previous.sequence+1;
+ const limb=BITE_LIMBS[(e.id+sequence)%BITE_LIMBS.length];
+ r.bite={...makeBiteState(),phase:'windup',enemyId:e.id,sequence,side:limb.startsWith('left')?'left':'right',limb};
+ e.biteTargetId=playerId(r);e.bitePhase='windup';e.biteProgress=0;e.attacking=true;e.windup=BITE_TIMING.windup;
+ e.aimAngle=Math.atan2(r.y-e.y,r.x-e.x);e.strike=0;e.slashHit=true;
+ biteEvent(r,'bite-windup',e,{duration:BITE_TIMING.windup});
+}
+function biteEligible(r,e,profile,distance){
+ return !!e.mind?.token&&['rush','hunter'].includes(profile.role)&&!e.wounds?.arm&&!e.dead
+  &&distance<.4&&r.z<.18&&r.dashTime<=0&&r.parryTime<=0&&r.health>0
+  &&!biteActive(r)&&r.bite?.phase!=='terminal'&&(r.bite?.cooldown||0)<=0&&(e.biteCooldown||0)<=0;
+}
+function addBiteEscape(r,amount,source){
+ const b=r.bite;if(b?.phase!=='held')return false;
+ b.escape=clamp(b.escape+amount,0,1);
+ biteEvent(r,'bite-struggle',null,{escape:b.escape,source});
+ if(b.escape>=1)releaseBite(r,'break-free',true);
+ return true;
+}
+function advancePlayerBite(world,r,dt){
+ const b=r.bite||(r.bite=makeBiteState());b.cooldown=Math.max(0,b.cooldown-dt);
+ if(b.phase==='terminal'||b.phase==='idle')return;
+ b.elapsed+=dt;
+ if(b.phase==='released'){if(b.elapsed>=BITE_TIMING.release){b.phase='idle';b.enemyId=null;b.elapsed=0;}return;}
+ const e=world.course.enemies.find(e=>e.id===b.enemyId);
+ if(!e||e.dead||(e.stagger||0)>0||e.wounds?.arm||r.health<=0){releaseBite(r,!e||e.dead?'attacker-killed':r.health<=0?'player-down':'interrupted',true);return;}
+ const dx=r.x-e.x,dy=r.y-e.y,d=Math.hypot(dx,dy),a=Math.atan2(dy,dx);
+ if(d>(b.phase==='windup'?.52:.85)||r.z>.24||castRay(world.course,e.x,e.y,a,d+.1).dist<=d-.05){releaseBite(r,'evaded',true);return;}
+ if(r.parryTime>0&&b.phase==='windup'){releaseBite(r,'parried',true);return;}
+ if(b.phase==='windup'){
+  e.windup=Math.max(0,BITE_TIMING.windup-b.elapsed);e.biteProgress=clamp(b.elapsed/BITE_TIMING.windup,0,1);
+  // Track the reach early, then lock it so a lateral dodge remains readable.
+  if(b.elapsed<BITE_TIMING.windup*.65)e.aimAngle=a;
+  if(b.elapsed+1e-8<BITE_TIMING.windup)return;
+  if(Math.abs(angleDiff(a,e.aimAngle))>.72){releaseBite(r,'evaded',true);return;}
+  b.phase='held';b.elapsed=0;e.bitePhase='held';e.biteProgress=0;e.attacking=false;
+  r.dashTime=0;r.hookTime=0;r.vx*=.2;r.vy*=.2;cancelExtraction(r,'grabbed');
+  biteEvent(r,'bite-start',e,{escapeWindow:BITE_TIMING.firstDamage});return;
+ }
+ e.bitePhase='held';e.biteProgress=clamp(b.elapsed/BITE_TIMING.firstDamage,0,1);
+ e.facing=a;e.moving=0;
+ const intent=r._biteInput||{};
+ if(intent.effort){
+  b.escape=clamp(b.escape+dt*.85,0,1);
+  b.struggleClock=(b.struggleClock||0)+dt;
+  if(b.struggleClock>=.3){b.struggleClock-=.3;biteEvent(r,'bite-struggle',e,{escape:b.escape,source:'movement'});}
+  if(b.escape>=1){releaseBite(r,'break-free',true);return;}
+ }
+ if(b.elapsed+1e-8<BITE_TIMING.firstDamage+b.damageStage*BITE_TIMING.damageInterval)return;
+ b.damageStage++;const damage=Math.min(30,b.damageStage===1?8:b.damageStage===2?14:22+(b.damageStage-3)*4);
+ hurt(r,damage,true);
+ const wounds=r.playerWounds||(r.playerWounds=makePlayerWounds());wounds.neck=Math.min(3,b.damageStage);
+ biteEvent(r,'bite-damage',e,{damage,stage:b.damageStage,health:r.health});
+ if(b.damageStage===2&&r.health>0){if(wounds[b.limb]==='intact')wounds[b.limb]='injured';wounds.torso=Math.max(1,wounds.torso);biteEvent(r,'player-injury',e,{severity:wounds[b.limb],terminal:false});}
+ // A failed struggle can cost a limb without ending the fight. Keep the
+ // dominant gun hand intact, retain every escape control, and never roll
+ // randomly per frame. This opportunity occurs in one of three grab seeds.
+ if(b.damageStage>=3&&r.health>0&&r.health<=35&&!b.severed&&(e.id+b.sequence)%3===1){
+  const limb=b.limb==='rightArm'?'leftArm':b.limb;
+  if(wounds[limb]!=='severed'){
+   b.severed=true;b.limb=limb;b.side=limb.startsWith('left')?'left':'right';wounds[limb]='severed';
+   biteEvent(r,'player-injury',e,{severity:'severed',terminal:false});
+  }
+ }
+ if(r.health<=0){
+  const fatality=['neck','limb','torso'][(e.id+b.sequence)%3];
+  b.phase='terminal';b.elapsed=0;b.reason=fatality;b.cooldown=BITE_TIMING.grace;
+  if(fatality==='limb')wounds[b.limb]='severed';
+  if(fatality==='torso'){wounds.torso=3;wounds.eviscerated=true;}else wounds.neck=3;
+  e.bitePhase='terminal';e.biteProgress=1;e.biteTargetId=null;e.biteCooldown=10;e.attack=2;
+  if(e.mind){e.mind.token=false;e.mind.state='recover';e.mind.recover=1;}
+  biteEvent(r,'player-injury',e,{severity:fatality==='limb'?'severed':fatality,terminal:true,fatality});
+  biteEvent(r,'bite-terminal',e,{fatality,damage,stage:b.damageStage});
+ }
+}
 
 // Corpse extraction is a committed, held interaction. The renderer consumes
 // the phase/variation fields and events; the simulation owns the gate so a
@@ -221,7 +354,7 @@ function extractionTarget(r){
  const enemies=r.course?.enemies||[];
  let best=null,bestDistance=Infinity;
  for(const e of enemies){
-  if(!e||!e.dead||e.extracted)continue;
+  if(!e||!e.dead||e.reanimate?.phase==='down'||e.extracted||e.heartRemoved)continue;
   const d=Math.hypot(e.x-r.x,e.y-r.y);
   if(d>EXTRACTION_RANGE||d>=bestDistance)continue;
   const a=Math.atan2(e.y-r.y,e.x-r.x);
@@ -292,7 +425,7 @@ export function advanceExtraction(r,dt,input={}){
  const ex=r.extraction||(r.extraction=makeExtractionState());
  const target=extractionTarget(r);
  r.extractCandidateId=target?.id??null;
- if(r.mode!=='play'||r.health<=0){if(ex.phase!=='idle')cancelExtraction(r,'inactive');return;}
+ if(r.mode!=='play'||r.health<=0||brutalActive(r)){if(ex.phase!=='idle')cancelExtraction(r,brutalActive(r)?'counter':'inactive');return;}
  const held=!!input.harvest;
  const moving=Math.abs(Number(input.forward)||0)>.01||Math.abs(Number(input.strafe)||0)>.01||!!input.jump||!!input.dash||!!input.slide;
  const turning=ex.phase!=='idle'&&Math.abs(angleDiff(r.angle,ex.anchorAngle))>EXTRACTION_TURN_LIMIT;
@@ -329,11 +462,11 @@ function burst(player,e,count=18,hit=null){
  const r=player.world||player,seed=e.id+(e.hits||0)*13,energy=hit?.energy||1;
  for(let i=0;i<count;i++){
   const a=i*2.399+seed,spread=(.10+(i%5)*.055)*energy,jet=(i%3===0?-.28:.52)*energy;
-  const directed=Number.isFinite(hit?.vx),chunk=count>20&&i%9===0;
+  const directed=Number.isFinite(hit?.vx),chunk=!hit?.brutal&&count>20&&i%9===0;
   r.gore.push({id:r.nextId++,x:hit?.x??e.x,y:hit?.y??e.y,z:hit?.z??(.15+(i%7)*.045),
    vx:Math.cos(a)*spread+(directed?hit.vx*jet:0),vy:Math.sin(a)*spread+(directed?hit.vy*jet:0),
    vz:.16+(i%4)*.095+(directed?(hit.vz||0)*jet:0),life:1.1+(i%3)*.35,
-   size:chunk?.025:.004+(i%4)*.002,chunk,spin:a});
+     size:chunk?.025:.004+(i%4)*.002,chunk,counter:!!hit?.brutal,spin:a});
  }
  r.gore=r.gore.slice(-220);
  r.blood.push({id:r.nextId++,x:e.x,y:e.y,size:count>20?.22:.075,angle:seed});r.blood=r.blood.slice(-100);
@@ -341,57 +474,40 @@ function burst(player,e,count=18,hit=null){
 // Deterministic gore rolls keep host and guest reads identical without Math.random.
 export const LIMB_KINDS=Object.freeze(['arm','leg','head','eye']);
 const limbRoll=(seed,salt)=>{let x=(seed*2654435761+(salt||0)*40503)>>>0;x^=x>>>13;return (x>>>0)/4294967296;};
-function pushLimb(r,e,kind,hit,power=1){
- const a=(e.id*2.399+kind.length*1.7+LIMB_KINDS.indexOf(kind)*2.1)%6.283;
- const speed=(.9+power*.5);
- r.limbs.push({id:r.nextId++,enemyId:e.id,variant:e.variant||'stalker',kind,
-  x:hit?.x??e.x,y:hit?.y??e.y,z:Math.max(.28,hit?.z??.42),
-  vx:Math.cos(a)*speed+(hit?.vx||0),vy:Math.sin(a)*speed+(hit?.vy||0),vz:1.5+power*.6,
-  life:2.6+kind.length*.1,rest:false,spin:a,angle:a,scale:kind==='head'?1.25:1,seed:limbRoll(e.id,kind.length)});
- r.limbs=r.limbs.slice(-64);
-}
-// Limbs come off on the killing blow, and on heavy hits once the target is
-// already hurt, so a fight visibly degrades the enemy instead of only staining it.
-function dismember(r,e,hit,power=1,kill=false){
- if(!e.wounds)e.wounds={arm:false,leg:false,eye:false};
- const hz=hit?.z??.4;
- const bloodX=hit?.x??e.x,bloodY=hit?.y??e.y;
- if(kill){
-  if(!e.wounds.arm)pushLimb(r,e,'arm',{x:bloodX,y:bloodY,z:Math.max(.32,hz)},power);
-  if(!e.wounds.leg)pushLimb(r,e,'leg',{x:bloodX,y:bloodY,z:.22},power);
-  e.wounds.arm=true;e.wounds.leg=true;
-  if(limbRoll(e.id,e.hits||0)>.45)pushLimb(r,e,'head',{x:bloodX,y:bloodY,z:Math.max(.5,hz+.1)},power+.3);
-  else if(limbRoll(e.id,7)>.3)pushLimb(r,e,'eye',{x:bloodX,y:bloodY,z:Math.max(.45,hz+.12)},power*.6);
-  for(let i=0;i<3;i++)r.blood.push({id:r.nextId++,x:bloodX+(i-1)*.18,y:bloodY+(i%2)*.12,size:.24+i*.05,angle:(e.id+i)*1.3});
- }else{
-  const roll=limbRoll(e.id,(e.hits||0)*3+1);
-  if(!e.wounds.arm&&roll>.62){e.wounds.arm=true;pushLimb(r,e,'arm',{x:bloodX,y:bloodY,z:Math.max(.3,hz)},power*.8);}
-  else if(!e.wounds.leg&&roll<.2){e.wounds.leg=true;pushLimb(r,e,'leg',{x:bloodX,y:bloodY,z:.2},power*.7);}
-  else if(roll>.5&&roll<.56)pushLimb(r,e,'eye',{x:bloodX,y:bloodY,z:Math.max(.45,hz+.1)},power*.5);
- }
- e.wounded=!!(e.wounds.arm||e.wounds.leg);
- if(e.wounded){e.moveSpeed=(e.baseMoveSpeed??e.moveSpeed??.3)*(e.wounds.leg?.82:.92);e.drip=(e.drip||0)+.35;}
- r.blood=r.blood.slice(-100);
-}
 function damageEnemy(r,e,n,label='HIT',hit=null){
- if(e.dead)return;
+ const deadBefore=!!e.dead;
+ if(e.extracted)return;
  e.hp-=n;e.flash=.16;e.hits=(e.hits||0)+1;
+ if(e.hp>0){
+  const graceBefore=e.mind?.graceT||0;
+  reactToHit(e,n,r);
+  // A real new stagger opens a short chest-action reaction window. This
+  // changes neither the AI stun nor F; grace-suppressed hits cannot renew it.
+  if(graceBefore<=0&&e.mind?.graceT>0&&(e.stagger||0)>0)e.chestOpeningUntil=(r.world||r).time+CHEST_OPENING_GRACE;
+ }
  const hx=hit?.x??e.x,hy=hit?.y??e.y,hz=hit?.z??.4;
  const shotX=hx-r.x,shotY=hy-r.y,shotZ=hz-eye(r),shotLength=Math.hypot(shotX,shotY,shotZ)||1;
- burst(r,e,e.hp<=0?34:12,{x:hx,y:hy,z:hz,vx:shotX/shotLength,vy:shotY/shotLength,vz:shotZ/shotLength,energy:clamp(.65+n*.065,.7,1.8)});
- if(r.settings?.gore===false){}
- else if(e.hp<=0)dismember(r,e,{x:hx,y:hy,z:hz},n/6,true);
- else if(n>=5||(e.maxHp&&e.hp<=e.maxHp*.35))dismember(r,e,{x:hx,y:hy,z:hz},n/8,false);
+ burst(r,e,e.hp<=0?34:12,{x:hx,y:hy,z:hz,vx:shotX/shotLength,vy:shotY/shotLength,vz:shotZ/shotLength,energy:clamp(.65+n*.065,.7,1.8),brutal:!!hit?.brutal});
+ // Gore is a presentation preference; injury and its movement penalties are
+ // authoritative even when the renderer hides the cosmetic effects. Authored
+ // counter contacts already applied one exact wound, so skip random anatomy.
+ const cut=applyAnatomyDamage(e,n,hit,(r.world||r).time,hit?.source||'bullet');
+ if(cut)r.events.push({type:'enemy-sever',enemyId:e.id,part:cut.part,x:hx,y:hy,z:hz,weapon:r.weapon,cutId:cut.id});
  const d=Math.hypot(e.x-r.x,e.y-r.y,r.z);
- if(d<1.25&&castRay(r.course,r.x,r.y,Math.atan2(e.y-r.y,e.x-r.x)).dist>d-.15){r.health=Math.min(100,r.health+n*3);r.heal=.5;}
+ if(!deadBefore&&(!hit?.vermin||r.health>0)&&d<1.25&&castRay(r.course,r.x,r.y,Math.atan2(e.y-r.y,e.x-r.x)).dist>d-.15){r.health=Math.min(100,r.health+n*3);r.heal=.5;}
  const eventBase={x:hx,y:hy,z:hz,weapon:r.weapon,enemyId:e.id,enemyKind:e.kind,variant:e.variant||'stalker'};
  if(e.hp<=0){
+  if(deadBefore&&e.reanimate?.phase!=='down')return;
+  if(deadBefore&&(e.brainIntegrity??1)>.001&&!e.neckBroken&&!e.anatomy?.cuts?.some(c=>c.part==='torso'))return;
+  if(!deadBefore&&!hit?.brutal&&beginReanimation(e,(r.world||r).time)){r.events.push({type:'enemy-down',...eventBase});return;}
+  if(e.reanimate)e.reanimate.phase='finished';
   e.dead=true;e.deathTime=0;r.kills++;if(r.world)r.world.kills++;
   award(r,100+(r.z>.1?80:0)+(r.slide>.4?60:0),r.z>.1?'+ AIR KILL':r.slide>.4?'+ SLIDE KILL':label);
   r.events.push({type:'kill',...eventBase});
   if(r.world)r.world.events.push({type:'kill',...eventBase});
  }else r.events.push({type:'hit',...eventBase});
 }
+const AI_ENV={castRay:(...a)=>castRay(...a),canStand:(...a)=>canStand(...a),angleDiff:(...a)=>angleDiff(...a),clamp};
 function safeSpawnPoint(r, preferred=0){
  const points=Array.isArray(r.course.spawnPoints)&&r.course.spawnPoints.length?r.course.spawnPoints:[{x:2,y:2},{x:10,y:2},{x:6,y:3},{x:2,y:6},{x:10,y:6},{x:6,y:1.8},{x:1.5,y:4},{x:10.5,y:4}];
  const activeRoom=r.roomProgression?.requireEntry?currentRoom(r.roomProgression):null;
@@ -416,9 +532,21 @@ function spawnEnemy(r,item,point){
    elite:sectorScale>1.2,wounds:{arm:false,leg:false,eye:false},wounded:false,drip:0,hits:0,slashDir:0,slashReach:0,slashHalf:0,slashHit:true,
   pack:item.pack??(r.wave*4+Math.floor((item.order||0)/2)),slot:(item.order||0)%4,slotSign:((item.order||0)%2)?1:-1};
   e.baseMoveSpeed=e.moveSpeed;
+  e.reanimates=item.reanimates??(e.kind===0&&(e.variant==='bloodhound'?e.id%3!==0:e.id%7===2));e.brainIntegrity=1;
+ {
+  const anim=point.ingressId?'none':item.spawnAnim??(item.resident?'none':spawnAnimFor(e.variant,point.kind,false));
+  const emerge=EMERGE_TIME[anim]||0;
+  const near=[r,...(r.peer?[r.peer]:[])].filter(p=>p&&p.health>0).sort((a,b)=>Math.hypot(a.x-point.x,a.y-point.y)-Math.hypot(b.x-point.x,b.y-point.y))[0]||r;
+  createMind(e,{state:item.mindState||'stalk',home:point,spawnAnim:anim,emerge,firstAttack:.7+emerge*.5,facing:point.facing??Math.atan2(near.y-point.y,near.x-point.x)});
+  e.resident=!!item.resident;e.ambush=!!item.ambush;
+  if(point.ingressId){e.ingressId=point.ingressId;e.ingressOpeningId=point.openingId;e.ingressRoute=point.route.map(p=>({...p}));
+   e.ingressTotal=e.ingressRoute.length;e.ingressProgress=0;e.ingressOrigin={x:point.x,y:point.y};e.ingressPortal=point.portal;
+   e.encounterStage=item.stage??0;}
+ }
  r.course.enemies.push(e);
  if(r.director){r.director.spent+=e.cost;r.director.remainingBudget=Math.max(0,r.director.budget-r.director.spent);}
-  const event={type:'spawn',x:e.x,y:e.y,z:e.z,enemyId:e.id,enemyKind:e.kind,variant:e.variant,roomId:e.roomId,encounterId:e.encounterId,sectorIndex:r.sectorIndex,wave:r.wave,dungeon:!!r.course?.dungeon};
+  const event={type:'spawn',resident:e.resident,ambush:e.ambush,spawnAnim:e.spawnAnim,x:e.x,y:e.y,z:e.z,enemyId:e.id,enemyKind:e.kind,variant:e.variant,roomId:e.roomId,encounterId:e.encounterId,sectorIndex:r.sectorIndex,wave:r.wave,dungeon:!!r.course?.dungeon,
+   ingressId:e.ingressId||null,openingId:e.ingressOpeningId||null,facing:e.facing,stage:e.encounterStage??null};
  r.events.push(event);
  if(r.world)r.world.events.push({...event});
  return e;
@@ -489,7 +617,8 @@ function advanceCampaignSector(r){
   return false;
  }
  const course=createCampaignCourse(next),sector=getSector(next),spawn=course.playerSpawn;
- r.course=course;r.sectorIndex=next;r.sectorId=sector.id;r.sectorName=sector.name;r.sectorCount=CAMPAIGN_SECTOR_COUNT;
+ r.course=course;r.sectorIndex=next;r.sectorId=sector.id;r.sectorName=sector.name;r.sectorCount=CAMPAIGN_SECTOR_COUNT;resetVerminWorld(r);
+ resetBite(r);if(r.peer)resetBite(r.peer);
  r.roomProgression=createRoomProgression(course,next,{requireEntry:r.roomProgression?.requireEntry===true});
  r.wave=0;r.waveCount=sector.waves.length;r.waveDelay=sector.waves[0]?.intermission??1.2;
  r.director={state:'intermission',budget:0,spent:0,remainingBudget:0,aliveCap:0,active:0,pending:0,queue:[],elapsed:0,seed:(next+1)*1000};
@@ -518,43 +647,126 @@ function releaseDungeonEncounterGates(r, throughWaveIndex){
   let encounterWave=course.roomClearWaveByOpening?.[opening.id];
   if(!Number.isInteger(encounterWave))encounterWave=(course.waveSpawns||[]).findIndex(wave=>wave.some(spawn=>spawn.roomId===opening.roomId));
   if(!Number.isInteger(encounterWave)||encounterWave<0||encounterWave>throughWaveIndex)continue;
+  // A northbound milestone depends on fights on its approach side. The old
+  // global wave index could include the key vault *behind* this very gate.
+  // That circular dependency stranded the new route on the Ossuary floor.
+  const approachNodes=progression.encounterPlan.filter(node=>{
+   const room=course.rooms.find(room=>room.id===node.roomId);
+   return !node.optional&&node.waveIndex<=encounterWave&&room?.center.y>=opening.anchor.y;
+  });
+  if(approachNodes.some(node=>node.status!=='cleared'))continue;
   if(setDungeonOpeningOpen(course,opening.id,true)){opened++;progression.openingsOpen=(progression.openingsOpen||0)+1;}
  }
  progression.combatDoorsReleased=roomGates.every(opening=>course.openingState[opening.id]===true);
  if(opened)r.events.push({type:'dungeon-doors-open',count:opened,floorIndex:course.dungeonIndex,wave:throughWaveIndex+1});
 }
+function aliveEnemiesFor(r,ids){return aliveEnemies(r).filter(e=>ids.has(e.encounterId));}
 function dungeonEncounterAlive(r,encounter){
  if(!encounter)return 0;
  const ids=new Set(encounter.nodeIds||[]);
  return aliveEnemies(r).filter(enemy=>ids.has(enemy.encounterId)||enemy.encounterId===encounter.id).length;
 }
 function dungeonEncounterRoomCap(course,nodes){
- const cap=Math.max(...nodes.map(node=>Number(course.rooms?.find(room=>room.id===node.roomId)?.encounter?.maxAlive)||0),0);
- return Math.max(1,cap||nodes.reduce((sum,node)=>sum+node.spawns.length,0));
+ return Math.max(...nodes.map(node=>encounterAliveCap(course,course.rooms?.find(room=>room.id===node.roomId))),1);
 }
-function dungeonSpawnPoint(r,item,roomId,force=false,relaxed=false){
- const course=r.course,players=[r,...(r.peer?[r.peer]:[])].filter(player=>player&&player.health>0);
- const room=course.rooms?.find(candidate=>candidate.id===roomId);
- const candidates=[];
- const add=(point)=>{
-  if(!point||!Number.isFinite(point.x)||!Number.isFinite(point.y))return;
-  if(!candidates.some(candidate=>candidate.x===point.x&&candidate.y===point.y))candidates.push({x:point.x,y:point.y});
+function dungeonSpawnPoint(r,item,roomId,wait=0){
+ const course=r.course,players=livePlayers(r),encounter=r.dungeonProgression.currentEncounter;
+ // Cache geometry-derived staging variants until a doorway changes. The
+ // visibility/distance test remains live for every placement and commitment.
+ if(!encounter.ingressPoints||encounter.ingressRevision!==course.dungeonRevision){
+  encounter.ingressPoints=getIngressCandidates(AI_ENV,course,roomId);encounter.ingressRevision=course.dungeonRevision;
+ }
+ let candidates=encounter.ingressPoints;
+ const preferred=encounter.stageIngress?.[item.stage];
+ // A phase opens with a readable pair from one doorway, then pressure comes
+ // from another available threshold. Keep the first route only while the
+ // first two are warning/spawning; never hold a wave for a blocked lane.
+ const preferredOpening=preferred&&candidates.find(point=>point.ingressId===preferred)?.openingId;
+ if(preferredOpening&&item.stageOrder<2&&wait<3)candidates=candidates.filter(point=>point.openingId===preferredOpening);
+ const uses=encounter.ingressUses;
+ const openingUses=encounter.ingressOpeningUses;
+ const openings=[...new Set(candidates.map(point=>point.openingId))].sort((a,b)=>(openingUses[a]||0)-(openingUses[b]||0));
+ for(const openingId of openings){
+  const ordered=[...new Set(candidates.filter(point=>point.openingId===openingId).map(point=>point.ingressId))].sort((a,b)=>(uses[a]||0)-(uses[b]||0));
+  for(const ingressId of ordered){
+  const point=pickSpawnPoint(AI_ENV,course,players,course.enemies,candidates.filter(p=>p.ingressId===ingressId),
+   {minDist:3.5,relax:0,behind:false,seed:item.order+item.stage*31,reservations:r.spawnTelegraphs,
+    ingressSpeed:ingressMoveSpeed((ENEMY_PROFILES[item.variant]||ENEMY_PROFILES.stalker).speed)});
+  if(point){
+   const stageOpenings=encounter.stageOpenings[item.stage]??=[];
+   if(!stageOpenings.includes(point.openingId)){
+    stageOpenings.push(point.openingId);
+    r.events.push({type:'dungeon-ingress',roomId,encounterId:encounter.id,
+     ingressId,openingId:point.openingId,label:point.ingressLabel,side:point.ingressSide,
+     x:point.portal.x,y:point.portal.y,phaseIndex:item.stage,phase:encounter.stageLabel});
+   }
+   encounter.stageIngress[item.stage]??=ingressId;return point;
+  }
+  }
+ }
+ return null;
+}
+function dungeonNavigation(r,force=false){
+ const p=r.dungeonProgression,course=r.course;if(!p)return;
+ if(!force&&r.time<(p.navigationDue||0)&&p.navigationRevision===course.dungeonRevision)return;
+ p.navigationDue=r.time+.25;p.navigationRevision=course.dungeonRevision;
+ const plan=p.encounterPlan||[],required=plan.filter(node=>!node.optional&&node.status!=='cleared');
+ const options=[];
+ const offer=(target,kind,roomId,goal,priority=0,node=null)=>{
+  if(!target||!canStand(course,target.x,target.y,.16))return;
+  const path=findPath(AI_ENV,course,r,target,course.w*course.h);if(!path)return;
+  let distance=0,last=r;for(const point of path){distance+=Math.hypot(point.x-last.x,point.y-last.y);last=point;}
+  options.push({target:{x:target.x,y:target.y},kind,roomId,goal,path,distance,priority,node});
  };
-  add(item.spawnPoint);
-  add(item);
- for(const point of room?.spawnPoints||[])add(point);
- // Authored points are the first choice, but a player can stand on one while
- // an encounter is telegraphing. Keep a small floor-cell fallback so the
- // warning and spawn can move to another reachable spot in the same room.
- for(const point of r.dungeonProgression?.roomSpawnCells?.[roomId]||[])add(point);
- const valid=candidates.filter(point=>canStand(course,point.x,point.y,.16)&&(!r.course.enemies||r.course.enemies.every(enemy=>enemy.dead||Math.hypot(enemy.x-point.x,enemy.y-point.y)>=.38)));
- const safe=valid.filter(point=>players.every(player=>Math.hypot(player.x-point.x,player.y-point.y)>=DUNGEON_SPAWN_CONTACT));
- if(force)return safe[0]||null;
- const distant=safe
-  .map(point=>({point,distance:Math.min(...players.map(player=>Math.hypot(point.x-player.x,point.y-player.y)))}))
-  .sort((a,b)=>b.distance-a.distance)
-  .find(candidate=>candidate.distance>=DUNGEON_SPAWN_CLEARANCE)?.point;
- return distant|| (relaxed?safe[0]||null:null);
+ const targetForRoom=roomId=>{
+  const room=course.rooms.find(room=>room.id===roomId),points=p.roomSpawnCells[roomId]||[];
+  if(!room||!points.length)return null;
+  let best=null,score=Infinity;
+  for(const point of points){const d=Math.hypot(point.x-room.center.x,point.y-room.center.y);if(d<score){best=point;score=d;}}
+  return best;
+ };
+ if(p.currentEncounter){
+  const encounter=p.currentEncounter;
+  const inside=dungeonRoomAt(course,r.x,r.y)?.id===encounter.roomId;
+  const stage=encounter.stageLabel||'Contact';
+  offer(inside?{x:r.x,y:r.y}:targetForRoom(encounter.roomId),'combat',encounter.roomId,
+   `${inside?'Hold':'Return to'} ${dungeonRoomName(course,encounter.roomId)} - ${stage}`);
+ }else{
+  const route=course.encounterRoute||plan.filter(node=>!node.optional).map(node=>node.roomId);
+  const priority=roomId=>Math.max(0,course.rooms.find(room=>room.id===roomId)?.flow?.sequence??route.indexOf(roomId))*1000;
+  const nextSequence=Math.min(...required.map(node=>course.rooms.find(room=>room.id===node.roomId)?.flow?.sequence??Infinity));
+  for(const item of course.loot||[]){
+   const room=course.rooms.find(room=>room.id===item.roomId);
+   if(!room||(room.flow?.onRoute!==true&&!course.route?.includes(room.id))
+     ||room.flow.sequence>nextSequence||p.lootCollected.includes(item.id)||r.ownedWeapons?.includes(item.weaponIndex))continue;
+   offer(item,'equipment',room.id,`Collect ${item.name||weapons[item.weaponIndex]?.name||'equipment'}`,
+    room.flow.sequence*1000-.5);
+  }
+  for(const key of course.keys||[])if(!p.keysCollected.includes(key.id)){
+   const defended=plan.find(node=>node.roomId===key.roomId&&node.status!=='cleared');
+   offer(key,'key',key.roomId,`Recover ${key.name}`,defended?priority(key.roomId)-1:-1000);
+  }
+  for(const node of required)offer(targetForRoom(node.roomId),'advance',node.roomId,
+   course.rooms.find(room=>room.id===node.roomId)?.flow?.goal||`Push through ${dungeonRoomName(course,node.roomId)}`,priority(node.roomId),node);
+  if(!required.length&&p.keysCollected.length>=(course.keys||[]).length)offer(course.exit,'exit',null,'Reach the descent lift');
+ }
+ options.sort((a,b)=>(a.distance+a.priority)-(b.distance+b.priority));
+ const chosen=options[0];
+ if(chosen){
+  const {node,priority,...navigation}=chosen;
+  navigation.path=navigation.path.slice(0,96);
+  navigation.waypoint=navigation.path.find(point=>Math.hypot(point.x-r.x,point.y-r.y)>.35)||navigation.target;
+  navigation.blocked=false;navigation.remaining=required.length;p.navigation=navigation;p.objective=navigation.goal;
+  if(p.currentEncounter){navigation.phase=p.currentEncounter.stageLabel;navigation.phaseIndex=p.currentEncounter.stageIndex;
+   navigation.phaseCount=p.currentEncounter.stageCount;navigation.pressure=dungeonEncounterAlive(r,p.currentEncounter);
+   navigation.reinforcements=p.currentEncounter.queue.filter(item=>item.status!=='spawned').length;
+   navigation.hold=dungeonRoomAt(course,r.x,r.y)?.id===p.currentEncounter.roomId;
+   if(navigation.hold){navigation.waypoint=null;navigation.path=[];navigation.distance=0;}}
+  if(node)p.nextRoomId=node.roomId;
+ }else{
+  p.navigation={goal:p.currentEncounter?'Keep moving — threats are approaching':'Find the forward passage',kind:'search',roomId:p.activeRoomId,target:null,waypoint:null,path:[],blocked:true,remaining:required.length};
+  p.objective=p.navigation.goal;
+ }
 }
 function dungeonSyncEncounter(r){
  const p=r.dungeonProgression;if(!p)return;
@@ -567,42 +779,65 @@ function dungeonSyncEncounter(r){
  const completed=p.completedEncounterIds?.length||0;
  const fraction=d&&total?clamp((total-pending-active)/total,0,1):0;
  const state=d?(d.state==='spawning'?(active?'combat':'telegraph'):'combat'):(p.exitReady?'exit':p.phase);
- p.encounter={state,roomId:d?.roomId||null,wave:d?d.waveIndex+1:r.wave,waveCount:r.waveCount,active,pending,remaining:active+pending,total,aliveCap:d?.aliveCap||0,elapsed:d?.elapsed||0};
+ p.encounter={state,roomId:d?.roomId||null,wave:d?d.waveIndex+1:r.wave,waveCount:r.waveCount,active,pending,remaining:active+pending,total,aliveCap:d?.aliveCap||0,elapsed:d?.elapsed||0,
+  phase:d?.stageLabel||null,phaseIndex:d?.stageIndex??0,phaseCount:d?.stageCount??0,ingressId:d?.stageIngress?.[d?.stageIndex]||null};
  p.currentEncounterRoomId=d?.roomId||null;
  p.roomIndex=d?.planIndex??Math.max(0,Math.min(plan.length,p.nextEncounterIndex||0));
  p.roomCount=plan.length;
  p.nextRoomId=next?.roomId||null;
  const missingKey=r.course.keys?.find(key=>!p.keysCollected.includes(key.id));
- p.objective=d?`Clear ${dungeonRoomName(r.course,d.roomId)}`:p.exitReady?'Reach the descent lift':next?`Reach ${dungeonRoomName(r.course,next.roomId)}`:missingKey?`Find ${missingKey.name||'the floor key'}`:'Find the descent lift';
- p.progress=plan.length?clamp((completed+fraction)/plan.length,0,1):1;
+ p.objective=p.navigation?.goal||(d?`Clear ${dungeonRoomName(r.course,d.roomId)}`:p.exitReady?'Reach the descent lift':next?`Reach ${dungeonRoomName(r.course,next.roomId)}`:missingKey?`Find ${missingKey.name||'the floor key'}`:'Find the descent lift');
+ const required=plan.filter(node=>!node.optional);
+ p.progress=required.length?clamp((required.filter(node=>node.status==='cleared').length+(!d?.optional?fraction:0))/required.length,0,1):1;
 }
 function beginDungeonEncounter(r,nodes,{force=false}={}){
  const p=r.dungeonProgression;if(!p||p.currentEncounter||!nodes?.length)return false;
  const first=nodes[0],waveIndex=first.waveIndex,queue=[];
- for(const node of nodes){node.status='active';for(let order=0;order<node.spawns.length;order++)queue.push({...node.spawns[order],order,due:force?0:.32+queue.length*DUNGEON_SPAWN_STAGGER,status:'queued',telegraph:null,encounterId:node.id});}
+ for(const node of nodes){node.status='active';for(let order=0;order<node.spawns.length;order++)queue.push({...node.spawns[order],order,due:force?0:.32+queue.length*DUNGEON_SPAWN_STAGGER,status:node.spawns[order].seeded?'spawned':'queued',telegraph:null,encounterId:node.id});}
+ // Seeded residents wake in a cascade, nearest first, instead of all at once.
+ {
+  const ids=new Set(nodes.map(node=>node.id)),sleepers=aliveEnemiesFor(r,ids).sort((a,b)=>Math.hypot(a.x-r.x,a.y-r.y)-Math.hypot(b.x-r.x,b.y-r.y));
+  sleepers.forEach((sleeper,index)=>wakeEnemy(sleeper,r,.5+index*.75));
+ }
  const id=nodes.length===1?first.id:`dungeon-wave-${waveIndex}`;
- const encounter={id,nodeIds:nodes.map(node=>node.id),planIndices:nodes.map(node=>p.encounterPlan.indexOf(node)),planIndex:p.encounterPlan.indexOf(first),roomId:first.roomId,waveIndex,queue,state:force?'combat':'spawning',elapsed:0,aliveCap:dungeonEncounterRoomCap(r.course,nodes)};
+ const encounter={id,nodeIds:nodes.map(node=>node.id),planIndices:nodes.map(node=>p.encounterPlan.indexOf(node)),planIndex:p.encounterPlan.indexOf(first),roomId:first.roomId,waveIndex,queue,optional:nodes.every(node=>node.optional),state:force?'combat':'spawning',elapsed:0,aliveCap:dungeonEncounterRoomCap(r.course,nodes)};
+ const room=r.course.rooms.find(room=>room.id===first.roomId);
+ encounter.stages=encounterStages(r.course,room,queue.length,encounter.optional);
+ encounter.stageCount=encounter.stages.length;
+ encounter.stageIndex=0;encounter.stageStarted=0;encounter.stageLabel=encounter.stages[0].label;
+ encounter.ingressUses={};encounter.ingressOpeningUses={};encounter.stageIngress={};encounter.stageOpenings={};encounter.beat=room?.flow?.beat||room?.name||'Hold the room';
+ let queueIndex=0;
+ encounter.stages.forEach((stage,stageIndex)=>{
+  for(let stageOrder=0;stageOrder<stage.count&&queueIndex<queue.length;stageOrder++,queueIndex++){
+   const item=queue[queueIndex];item.stage=stageIndex;item.stageOrder=stageOrder;item.order=queueIndex;
+   item.warningLead=Math.max(DUNGEON_TELEGRAPH_LEAD,stage.lead||0);item.due=.35+stageOrder*stage.spacing;
+  }
+ });
  p.currentEncounter=encounter;p.currentEncounterRoomId=first.roomId;p.phase=force?'combat':'telegraph';
  if(r.wave<waveIndex+1){r.wave=waveIndex+1;r.events.push({type:'wave',wave:r.wave,waveCount:r.waveCount,sectorIndex:r.sectorIndex,sectorId:r.sectorId,dungeon:true,roomId:first.roomId});}
  r.waveDelay=0;
  r.events.push({type:'dungeon-encounter-start',roomId:first.roomId,roomName:dungeonRoomName(r.course,first.roomId),wave:waveIndex+1,waveCount:r.waveCount,encounterId:id,total:queue.length,aliveCap:encounter.aliveCap,forced:force,floorIndex:r.course.dungeonIndex});
- if(force){
-  for(const item of queue){const point=dungeonSpawnPoint(r,item,item.roomId,true);if(!point)continue;spawnEnemy(r,item,point);item.status='spawned';}
- }
+ r.events.push({type:'dungeon-encounter-phase',roomId:first.roomId,encounterId:id,phase:encounter.stageLabel,phaseIndex:0,phaseCount:encounter.stageCount,beat:encounter.beat,total:encounter.stages[0].count});
+ // Even explicit encounter starts use the normal safe, warned spawn path.
+ // A test/debug caller must not create a second unsafe spawning mechanism.
  dungeonSyncEncounter(r);
+ dungeonNavigation(r,true);
  return true;
 }
 function completeDungeonEncounter(r,encounter){
  const p=r.dungeonProgression;if(!p||p.currentEncounter!==encounter)return;
  const completedNodes=[];
  for(const index of encounter.planIndices||[]){const node=p.encounterPlan[index];if(!node)continue;node.status='cleared';completedNodes.push(node);if(!p.completedEncounterIds.includes(node.id))p.completedEncounterIds.push(node.id);if(node.roomId&&!p.roomsCompleted.includes(node.roomId))p.roomsCompleted.push(node.roomId);}
- p.currentEncounter=null;p.currentEncounterRoomId=null;p.nextEncounterIndex=Math.max(p.nextEncounterIndex||0,...(encounter.planIndices||[]).map(index=>index+1));
- while(p.nextEncounterIndex<p.encounterPlan.length&&p.encounterPlan[p.nextEncounterIndex]?.status==='cleared')p.nextEncounterIndex++;
+ p.currentEncounter=null;p.currentEncounterRoomId=null;p.nextEncounterIndex=p.encounterPlan.findIndex(node=>!node.optional&&node.status==='pending');
+ if(p.nextEncounterIndex<0)p.nextEncounterIndex=p.encounterPlan.length;
  p.nextRoomId=p.encounterPlan[p.nextEncounterIndex]?.roomId||null;p.roomTravel=0;
  p.phase=p.nextRoomId?'exploration':'key';
+ const clearedRoom=r.course.rooms.find(room=>room.id===encounter.roomId),players=livePlayers(r),health=players.length?Math.min(...players.map(player=>player.health)):r.health;
+ p.reliefUntil=r.time+encounterRelief(r.course,clearedRoom,health);
  r.events.push({type:'dungeon-room-clear',roomId:completedNodes[0]?.roomId||null,roomName:dungeonRoomName(r.course,completedNodes[0]?.roomId),wave:encounter.waveIndex+1,encounterId:encounter.id,completedRooms:completedNodes.map(node=>node.roomId),floorIndex:r.course.dungeonIndex});
- releaseDungeonEncounterGates(r,encounter.waveIndex);
+ releaseDungeonEncounterGates(r,r.waveCount);
  dungeonSyncEncounter(r);
+ dungeonNavigation(r,true);
 }
 function updateDungeonEncounter(r,dt){
  const p=r.dungeonProgression;if(!p||!r.course?.dungeon)return;
@@ -627,50 +862,158 @@ function updateDungeonEncounter(r,dt){
 
  if(p.currentEncounter){
   const encounter=p.currentEncounter;encounter.elapsed+=dt;
+  const released=encounter.queue.filter(item=>item.stage<=encounter.stageIndex);
+  const stageDone=released.every(item=>item.status==='spawned');
+  const alive=dungeonEncounterAlive(r,encounter),stageAge=encounter.elapsed-encounter.stageStarted;
+  const stage=encounter.stages[encounter.stageIndex];
+  const ready=stageDone&&stageAge>=stage.minAge
+    &&(alive<=Math.max(2,Math.floor(encounter.aliveCap*.45))||(stageAge>stage.minAge+5&&alive<encounter.aliveCap-1));
+  if(encounter.stageIndex+1<encounter.stageCount&&ready){
+   encounter.nextStageAt??=encounter.elapsed+(stage.rest||0);
+  }
+  if(encounter.stageIndex+1<encounter.stageCount&&ready&&encounter.elapsed>=(encounter.nextStageAt??Infinity)){
+   encounter.stageIndex++;encounter.stageStarted=encounter.elapsed;
+   encounter.nextStageAt=null;
+   const nextStage=encounter.stages[encounter.stageIndex];encounter.stageLabel=nextStage.label;
+   for(const item of encounter.queue)if(item.stage===encounter.stageIndex)item.due=encounter.elapsed+item.warningLead+item.stageOrder*nextStage.spacing;
+   r.events.push({type:'dungeon-encounter-phase',roomId:encounter.roomId,encounterId:encounter.id,
+    phase:encounter.stageLabel,phaseIndex:encounter.stageIndex,phaseCount:encounter.stageCount,beat:encounter.beat,
+    total:encounter.queue.filter(item=>item.stage===encounter.stageIndex).length});
+   dungeonNavigation(r,true);
+  }
   for(const item of encounter.queue){
    if(item.status==='spawned')continue;
+   if(item.stage>encounter.stageIndex)continue;
+   if(!item.telegraph&&encounter.elapsed<(item.nextAttempt||0))continue;
    if(item.telegraph&&!r.spawnTelegraphs.includes(item.telegraph))item.telegraph=null;
-   const telegraphTime=Math.max(0,item.due-DUNGEON_TELEGRAPH_LEAD);
+   const warningLead=item.warningLead||DUNGEON_TELEGRAPH_LEAD;
+   const telegraphTime=Math.max(0,item.due-warningLead);
    if(encounter.elapsed>=telegraphTime&&!item.telegraph){
-    const relaxed=encounter.elapsed>=item.due+1.2;
-    const point=dungeonSpawnPoint(r,item,item.roomId,false,relaxed);
+    item.nextAttempt=encounter.elapsed+.15;
+    if(dungeonEncounterAlive(r,encounter)+r.spawnTelegraphs.filter(t=>t.encounterId===encounter.id).length>=encounter.aliveCap||aliveEnemies(r).length>=12)continue;
+    const point=dungeonSpawnPoint(r,item,item.roomId,Math.max(0,encounter.elapsed-item.due));
     if(point){
-     if(encounter.elapsed>=item.due)item.due=encounter.elapsed+DUNGEON_TELEGRAPH_LEAD;
-     item.spawnPoint=point;item.telegraph={id:r.nextId++,x:point.x,y:point.y,z:0,kind:item.kind,variant:item.variant,roomId:item.roomId,encounterId:encounter.id,life:DUNGEON_TELEGRAPH_LEAD+.15,phase:0,order:item.order};
+     // The initial contact and a canceled/retried lane can already be close
+     // to due. Every fresh warning still grants the complete reaction window.
+     item.due=Math.max(item.due,encounter.elapsed+warningLead);
+     item.spawnPoint=point;item.telegraph={id:r.nextId++,x:point.x,y:point.y,z:0,kind:item.kind,variant:item.variant,roomId:item.roomId,encounterId:encounter.id,life:warningLead+.15,phase:0,order:item.order};
      r.spawnTelegraphs.push(item.telegraph);r.events.push({type:'spawn-telegraph',x:point.x,y:point.y,z:0,enemyKind:item.kind,variant:item.variant,roomId:item.roomId,encounterId:encounter.id,sectorIndex:r.sectorIndex,wave:r.wave,dungeon:true});
     }
    }
    if(encounter.elapsed<item.due)continue;
    const telegraphs=r.spawnTelegraphs.filter(telegraph=>telegraph.encounterId===encounter.id&&telegraph!==item.telegraph).length;
-   if(aliveEnemies(r).length+telegraphs>=encounter.aliveCap)continue;
-   // A telegraph already shown is an explicit warning; commit that warned
-   // point even if the player chose to stand close to it. If the warning was
-   // culled while a cap was full, keep the clearance check until a fresh
-   // warning has been visible for the full lead time.
-   const point=dungeonSpawnPoint(r,item,item.roomId,Boolean(item.telegraph),encounter.elapsed>=item.due+1.2);
-   if(!point)continue;
+   if(dungeonEncounterAlive(r,encounter)>=encounter.aliveCap||aliveEnemies(r).length>=12)continue;
+   if(!item.telegraph)continue;
+   const stillOpen=isIngressRouteOpen(AI_ENV,r.course,item.spawnPoint);
+   const point=stillOpen&&pickSpawnPoint(AI_ENV,r.course,livePlayers(r),r.course.enemies,[item.spawnPoint],
+    {minDist:3.5,relax:0,behind:false,seed:item.order,reservations:r.spawnTelegraphs,ignoreReservation:item.telegraph});
+   if(!point){removeTelegraph(r,item);item.spawnPoint=null;item.due=encounter.elapsed+.2;continue;}
    if(item.telegraph){r.spawnTelegraphs=r.spawnTelegraphs.filter(telegraph=>telegraph!==item.telegraph);item.telegraph=null;}
    spawnEnemy(r,{...item,encounterId:encounter.id},point);item.status='spawned';
+   encounter.ingressUses[point.ingressId]=(encounter.ingressUses[point.ingressId]||0)+1;
+   encounter.ingressOpeningUses[point.openingId]=(encounter.ingressOpeningUses[point.openingId]||0)+1;
    if(encounter.state==='spawning'){encounter.state='combat';p.phase='combat';}
   }
   const pending=encounter.queue.some(item=>item.status!=='spawned');
   if(!pending&&dungeonEncounterAlive(r,encounter)===0)completeDungeonEncounter(r,encounter);
- }else if(p.nextEncounterIndex<plan.length){
-  const node=plan[p.nextEncounterIndex];
-  // An entry can be activated by walking inside it, or any later room can
-  // activate the authored node when its doorway is crossed. We never use a
-  // wall-clock countdown here: waiting in place is a safe exploration state.
-  if(node&&entered&&((currentRoom&&node.roomId===currentRoom)||(!currentRoom&&node.roomId===previousRoom))){
-   beginDungeonEncounter(r,[node]);
-  }
+ }else if(plan.some(node=>node.status==='pending')){
+  // Any uncleared room can respond to entry. The player chooses the flank;
+  // an arbitrary wave-list order no longer sends them back through empty rooms.
+  const roomId=currentRoom||previousRoom;
+  const nodes=plan.filter(node=>node.status==='pending'&&node.roomId===roomId);
+  const opening=roomId===p.entryRoomId&&p.completedEncounterIds.length===0&&r.time>=DUNGEON_START_DELAY;
+  const inRoom=!!currentRoom&&p.completedEncounterIds.length>0;
+  if(nodes.length&&(entered||opening||inRoom)&&r.time>=(p.reliefUntil||0))beginDungeonEncounter(r,nodes);
  }else{
   r.wave=Math.max(r.wave,r.waveCount);
   p.phase='key';
  }
- const active=aliveEnemies(r).length;
- p.exitReady=r.wave>=r.waveCount&&!active&&p.completedEncounterIds.length>=plan.length&&p.keysCollected.length>=r.course.keys.length;
+ updateDungeonDirector(r,dt);
+ const required=plan.filter(node=>!node.optional),active=aliveEnemies(r).filter(e=>isHunting(e)||!e.resident).length;
+ p.exitReady=!p.currentEncounter&&!active&&required.every(node=>node.status==='cleared')&&p.keysCollected.length>=r.course.keys.length;
+ if(required.every(node=>node.status==='cleared'))r.wave=r.waveCount;
  if(p.exitReady)p.phase='exit';
  dungeonSyncEncounter(r);
+ dungeonNavigation(r);
+}
+// A short recovery beat can feed a pack into the next authored encounter's
+// ingress. It is not a repeated behind-player teleport or a random floor rise.
+function livePlayers(r){return [r,...(r.peer?[r.peer]:[])].filter(pl=>pl&&pl.health>0);}
+const AMBUSH_VARIANTS=[['stalker','skitter'],['skitter','bloodhound','stalker'],['bloodhound','skitter','stalker']];
+function tryDungeonAmbush(r){
+ const p=r.dungeonProgression,course=r.course,players=livePlayers(r);
+ if(!players.length||p.ambushQueue?.length)return false;
+ const next=p.encounterPlan.find(node=>!node.optional&&node.status==='pending');
+ if(!next)return false;
+ const candidates=getIngressCandidates(AI_ENV,course,next.roomId);
+ const point=pickSpawnPoint(AI_ENV,course,players,course.enemies,candidates,{minDist:5.5,relax:0,behind:false,seed:p.pacing.ambushes*7+1});
+ if(!point)return false;
+ if(!findPath(AI_ENV,course,point,r))return false;
+ const tiers=AMBUSH_VARIANTS[Math.min(AMBUSH_VARIANTS.length-1,course.dungeonIndex||0)];
+ const count=Math.min(12-aliveEnemies(r).length,2+Math.min(2,Math.floor(p.completedEncounterIds.length/2))),pack=`ambush:${p.pacing.ambushes}`;
+ if(count<=0)return false;
+ const queue=[];
+ for(let i=0;i<count;i++){
+  const variant=tiers[Math.floor(hash01(p.pacing.ambushes,i+3)*tiers.length)],profile=ENEMY_PROFILES[variant];
+  const at=pickSpawnPoint(AI_ENV,course,players,course.enemies,candidates.filter(p=>p.ingressId===point.ingressId),
+   {minDist:5.5,relax:0,behind:false,seed:i,reservations:r.spawnTelegraphs,ingressSpeed:ingressMoveSpeed(profile.speed)});
+  if(!at)continue;
+  const telegraph={id:r.nextId++,x:at.x,y:at.y,z:0,kind:profile.kind,variant,roomId:at.roomId,
+   encounterId:null,ambush:true,life:DUNGEON_TELEGRAPH_LEAD+.3,phase:0,order:i};
+  r.spawnTelegraphs.push(telegraph);
+  r.events.push({type:'spawn-telegraph',x:at.x,y:at.y,z:0,enemyKind:profile.kind,variant,
+   roomId:at.roomId,sectorIndex:r.sectorIndex,wave:r.wave,dungeon:true,ambush:true});
+  queue.push({variant,kind:profile.kind,role:profile.role,cost:profile.cost,ambush:true,order:i,pack,
+   roomId:at.roomId||null,encounterId:null,mindState:'stalk',spawnPoint:at,telegraph,due:r.time+DUNGEON_TELEGRAPH_LEAD});
+ }
+ if(!queue.length)return false;
+ p.ambushQueue=queue;
+ r.events.push({type:'dungeon-ingress',roomId:point.roomId,encounterId:null,ingressId:point.ingressId,
+  openingId:point.openingId,label:point.ingressLabel,side:point.ingressSide,x:point.portal.x,y:point.portal.y,
+  phase:'Patrol approach',phaseIndex:0,ambush:true});
+ noteAmbush(p.pacing);
+ return true;
+}
+function dungeonRecoveryRoom(course,players,progression){
+ return players.some(player=>{
+  const room=dungeonRoomAt(course,player.x,player.y);
+  if(!room)return false;
+  const policy=roomRecoveryPolicy(course,room);
+  return policy.isSafeRoom||(policy.safeAfterClear&&progression.roomsCompleted.includes(room.id));
+ });
+}
+function updateDungeonAmbush(r,recoveryRoom){
+ const p=r.dungeonProgression;if(!p.ambushQueue?.length)return;
+ const pending=[];let spawned=0,first=null;
+ for(const item of p.ambushQueue){
+  if(p.currentEncounter||recoveryRoom||!r.spawnTelegraphs.includes(item.telegraph)){
+   removeTelegraph(r,item);continue;
+  }
+  if(r.time<item.due){pending.push(item);continue;}
+  const at=aliveEnemies(r).length<12&&isIngressRouteOpen(AI_ENV,r.course,item.spawnPoint)
+   &&pickSpawnPoint(AI_ENV,r.course,livePlayers(r),r.course.enemies,[item.spawnPoint],
+    {minDist:5.5,relax:0,behind:false,reservations:r.spawnTelegraphs,ignoreReservation:item.telegraph});
+  removeTelegraph(r,item);
+  if(!at)continue;
+  spawnEnemy(r,item,at);spawned++;first??=at;
+ }
+ p.ambushQueue=pending;
+ if(spawned)r.events.push({type:'ambush',x:first.x,y:first.y,z:0,count:spawned,roomId:first.roomId,floorIndex:r.course.dungeonIndex});
+}
+function updateDungeonDirector(r,dt){
+ const p=r.dungeonProgression;if(!p)return;
+ p.directorClock=(p.directorClock||0)+dt;
+ if(p.directorClock<.25)return;
+ const step=p.directorClock;p.directorClock=0;
+ if(!p.pacing)p.pacing=createPacing();
+ const alive=aliveEnemies(r),players=livePlayers(r);
+ const hunting=alive.filter(e=>isHunting(e)).length;
+ const near=alive.filter(e=>isHunting(e)&&players.some(pl=>Math.hypot(e.x-pl.x,e.y-pl.y)<3.5)).length;
+ const recoveryRoom=dungeonRecoveryRoom(r.course,players,p),health=players.length?Math.min(...players.map(player=>player.health)):r.health;
+ updateDungeonAmbush(r,recoveryRoom);
+ const verdict=updatePacing(p.pacing,{hunting,near,health,encounterActive:!!p.currentEncounter,cleared:p.completedEncounterIds.length,maxAmbushes:Math.min(10,4+(r.course.dungeonIndex||0)),hostile:hunting,recoveryRoom},step);
+ p.pacing.hunting=hunting;
+ if(verdict.ambush&&p.nextEncounterIndex<(p.encounterPlan||[]).length&&(p.throttle=(p.throttle||0)+step)>=.5){p.throttle=0;tryDungeonAmbush(r);}
 }
 export function spawnWave(r){
  if(r.campaign){if(r.director?.state==='intermission'&&!(r.roomProgression?.requireEntry&&Number.isInteger(r.roomProgression.pendingIndex)&&r.roomProgression.pendingIndex>r.roomProgression.currentIndex))beginCampaignWave(r);return;}
@@ -679,7 +1022,7 @@ export function spawnWave(r){
    if(progression.currentEncounter)return false;
    const plan=progression.encounterPlan||[],next=plan[progression.nextEncounterIndex||0];
    if(!next)return false;
-   const nodes=plan.slice(progression.nextEncounterIndex||0).filter(node=>node.status==='pending'&&node.waveIndex===next.waveIndex);
+   const nodes=plan.filter(node=>node.status==='pending'&&node.roomId===next.roomId);
    beginDungeonEncounter(r,nodes,{force:true});
    return true;
   }
@@ -695,6 +1038,15 @@ function updateDungeonProgression(r){
  if(!course?.dungeon||!progression)return;
   const activeRoom=dungeonRoomAt(course,r.x,r.y);
   progression.activeRoomId=activeRoom?.id||null;
+ for(const item of course.supplies||[]){
+  if(progression.suppliesCollected.includes(item.id))continue;
+  const collector=livePlayers(r).find(player=>(player.health<100||player.energy<100)&&Math.hypot(player.x-item.x,player.y-item.y)<.65);
+  if(!collector)continue;
+  const health=Math.min(item.health,Math.max(0,100-collector.health)),energy=Math.min(item.energy,Math.max(0,100-collector.energy));
+  collector.health+=health;collector.energy+=energy;collector.heal=1;
+  progression.suppliesCollected.push(item.id);
+  r.events.push({type:'dungeon-supply',supplyId:item.id,roomId:item.roomId,health,energy,playerId:playerId(collector),x:item.x,y:item.y,floorIndex:course.dungeonIndex});
+ }
  for(const key of course.keys){
   if(progression.keysCollected.includes(key.id))continue;
   const collector=[r,...(r.peer?[r.peer]:[])].find(player=>player.health>0&&Math.hypot(player.x-key.x,player.y-key.y)<.62);
@@ -732,7 +1084,8 @@ function updateDungeonProgression(r){
 }
 function advanceDungeonFloor(r){
  const previous=r.course,progress=r.dungeonProgression||{},floorIndex=previous.dungeonIndex+1,course=makeDungeonCourse(floorIndex);
- r.course=course;r.sectorIndex=floorIndex;r.sectorCount=course.dungeonCount;r.sectorId=course.sectorId;r.sectorName=course.name;
+ r.course=course;r.sectorIndex=floorIndex;r.sectorCount=course.dungeonCount;r.sectorId=course.sectorId;r.sectorName=course.name;resetVerminWorld(r);
+ resetBite(r);
   r.dungeonProgression=createDungeonProgression(course);
   r.dungeonProgression.startIndex=progress.startIndex??previous.dungeonIndex;
   r.dungeonProgression.floorsCleared=(progress.floorsCleared||0)+1;
@@ -742,7 +1095,170 @@ function advanceDungeonFloor(r){
  r.events.push({type:'sector-transition',sectorIndex:floorIndex,sectorName:course.name,dungeon:true,floorIndex,floorCount:course.dungeonCount});
 }
 function move(r,dx,dy){const n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.04));for(let i=0;i<n;i++){const nx=r.x+dx/n,ny=r.y+dy/n;if(canTraverseRoomGates(r.course,r.roomProgression,r.x,r.y,nx,r.y)&&canStand(r.course,nx,r.y,.1))r.x=nx;else r.vx=0;if(canTraverseRoomGates(r.course,r.roomProgression,r.x,r.y,r.x,ny)&&canStand(r.course,r.x,ny,.1))r.y=ny;else r.vy=0;}}
-export function parry(r){if(r.mode!=='play'||r.health<=0||r.parryCooldown>0)return false;r.parryTime=.19;r.parryCooldown=.45;r.punch=.3;r.events.push({type:'punch',x:r.x,y:r.y,z:eye(r)});const e=r.course.enemies.filter(e=>!e.dead).find(e=>Math.hypot(e.x-r.x,e.y-r.y)<.65&&Math.abs(angleDiff(Math.atan2(e.y-r.y,e.x-r.x),r.angle))<.9&&castRay(r.course,r.x,r.y,Math.atan2(e.y-r.y,e.x-r.x)).dist>Math.hypot(e.x-r.x,e.y-r.y)-.1);if(e){const interrupt=e.attacking;damageEnemy(r,e,3,interrupt?'+ INTERRUPT':'+ KNUCKLE');e.stagger=.45;e.attacking=false;e.windup=0;if(interrupt)award(r,80,'+ INTERRUPT');}return true;}
+// Elapsed is total sequence time. Keep the strike time and full duration in
+// state so host and guest visuals can use the same timeline across phases.
+export const BRUTAL_TIMING=Object.freeze({
+ chop:Object.freeze({contactAt:.18,contact:.07,recover:.4,duration:.65,damage:8}),
+ twist:Object.freeze({contactAt:.24,contact:.06,recover:.6,duration:.9,damage:12}),
+ rip:Object.freeze({contactAt:.22,contact:.08,recover:.7,duration:1,damage:12}),
+ pierce:Object.freeze({contactAt:.24,contact:.44,extractionAt:.68,releaseAt:.95,recover:.55,duration:1.5,lethal:true}),
+});
+const BRUTAL_ENERGY=10,CHEST_ENERGY=15,CHEST_OPENING_GRACE=.45,BRUTAL_RANGE=.27,BRUTAL_CONTACT_RANGE=.31,BRUTAL_CONE=.72;
+function makeBrutalState(sequence=0){return{phase:'idle',kind:'chop',enemyId:null,elapsed:0,sequence,contactApplied:false,extractionApplied:false,releaseApplied:false,side:'left',contactAt:0,extractionAt:0,releaseAt:0,duration:0,cancelReason:''};}
+const brutalActive=r=>!!r.brutal&&r.brutal.phase!=='idle';
+const verminBusy=r=>!!r.verminHand&&r.verminHand.phase!=='idle';
+function brutalEvent(r,type,e,extra={}){
+ const b=r.brutal;
+ r.events.push({type,playerId:playerId(r),enemyId:e?.id??b.enemyId,sequence:b.sequence,phase:b.phase,
+  kind:b.kind,side:b.side,elapsed:b.elapsed,contactAt:b.contactAt,extractionAt:b.extractionAt,releaseAt:b.releaseAt,duration:b.duration,x:e?.x??r.x,y:e?.y??r.y,z:.4,...extra});
+}
+function cancelBrutal(r,reason){
+ if(!brutalActive(r))return false;
+ brutalEvent(r,'brutal-cancel',null,{reason,contactApplied:r.brutal.contactApplied});
+ r.brutal={...makeBrutalState(r.brutal.sequence),cancelReason:reason};return true;
+}
+function brutalInReach(r,e,range=BRUTAL_RANGE){
+ if(!e||r.z>.24||(e.meleeZ||e.z||0)>.28)return false;
+ const dx=e.x-r.x,dy=e.y-r.y,d=Math.hypot(dx,dy),a=Math.atan2(dy,dx);
+ return d<range&&Math.abs(angleDiff(a,r.angle))<BRUTAL_CONE
+  &&castRay(r.course,r.x,r.y,a,d+.1).dist>d-.01;
+}
+function brutalEligible(r,e,energyCost=BRUTAL_ENERGY){
+ const profile=e&&enemyProfile(e),world=r.world||r;
+ return !!e&&!e.dead&&e.hp>0&&e.kind===0&&!e.boss&&!e.isBoss&&profile.role!=='anchor'&&profile.role!=='boss'
+  &&r.playerWounds?.leftArm!=='severed'&&r.playerWounds?.rightArm!=='severed'
+  &&!e.brutalWound&&!brutalActive(r)&&(!r.verminHand||r.verminHand.phase==='idle')&&r.energy>=energyCost&&brutalInReach(r,e)
+  &&![world,world.peer].some(p=>p&&p!==r&&brutalActive(p)&&p.brutal.enemyId===e.id);
+}
+function parryTarget(r){
+ return r.course.enemies.filter(e=>{
+  if(e.dead)return false;
+  const dx=e.x-r.x,dy=e.y-r.y,d=Math.hypot(dx,dy),a=Math.atan2(dy,dx);
+  return d<.65&&Math.abs(angleDiff(a,r.angle))<.9&&castRay(r.course,r.x,r.y,a).dist>d-.1;
+ }).sort((a,b)=>Math.hypot(a.x-r.x,a.y-r.y)-Math.hypot(b.x-r.x,b.y-r.y)||a.id-b.id)[0]||null;
+}
+// UI readiness derives from the same pure selector used by the F action.
+// A near-complete struggle always escapes, even when the counter is unavailable.
+export function brutalCandidate(r){
+ if(r.mode!=='play'||r.health<=0||r.parryCooldown>0||brutalActive(r))return null;
+ const held=r.bite?.phase==='held',e=held?r.course.enemies.find(e=>e.id===r.bite.enemyId):parryTarget(r);
+ if(!brutalEligible(r,e)||held&&r.bite.escape<.35)return null;
+ const stagger=r.bite?.phase==='windup'&&r.bite.enemyId===e.id?Math.max(e.stagger||0,1.1):(e.stagger||0);
+ const maxHp=e.maxHp||enemyProfile(e).hp||e.hp;
+ const kind=held?'rip':stagger>=.28&&e.hp<=Math.min(12,maxHp*.4)?'twist':'chop';
+ const aimed=held?null:traceEnemyBody(e,{x:r.x,y:r.y,z:eye(r)},{x:Math.cos(r.angle)*Math.cos(r.pitch),y:Math.sin(r.angle)*Math.cos(r.pitch),z:Math.sin(r.pitch)},.65);
+ if(aimed?.part.endsWith('Leg')||aimed?.part==='head'&&aimed.hit.fraction>.62)return null;
+ // Low limb and crown aim uses the free directed slice even in grab range.
+ // Chest-height aim keeps the committed close counter and its contact.
+ if(!held&&(r.pitch<-.65||r.pitch>.24))return null;
+ if(kind==='chop'&&e.wounds?.arm)return null;
+ return{enemyId:e.id,kind,side:held?r.bite.side:((e.id+(r.brutal?.sequence||0)+1)%2?'left':'right')};
+}
+// The committed chest action has its own input. It only opens on a visibly
+// injured, recently staggered supported actor; it never replaces a free bite escape.
+export function chestCandidate(r){
+ if(r.mode!=='play'||r.health<=0||brutalActive(r)||['windup','held','terminal'].includes(r.bite?.phase))return null;
+ const e=parryTarget(r);
+ if(!brutalEligible(r,e,CHEST_ENERGY))return null;
+ const maxHp=e.maxHp||enemyProfile(e).hp||e.hp;
+ // Host peers reference the world directly. Guest snapshots keep the host in
+ // peer; their own predicted movement clock can lag after a down/revival.
+ const worldTime=r.world?.time??(r.playerId==='peer'&&Number.isFinite(r.peer?.time)?r.peer.time:r.time);
+ const recentStagger=Number.isFinite(e.chestOpeningUntil)&&e.chestOpeningUntil>worldTime;
+ if(((e.stagger||0)<.18&&!recentStagger)||e.hp>maxHp*.65)return null;
+ return{enemyId:e.id,kind:'pierce',side:'right'};
+}
+export function chestFinisher(r){
+ const candidate=chestCandidate(r);
+ return !!candidate&&beginBrutal(r,r.course.enemies.find(e=>e.id===candidate.enemyId),candidate.kind,candidate.side);
+}
+function interruptEnemy(e,duration){
+ e.stagger=Math.max(e.stagger||0,duration);e.attacking=false;e.windup=0;e.strike=0;e.slashHit=true;
+ if(e.mind){e.mind.token=false;e.mind.justAttacked=false;}
+}
+function beginBrutal(r,e,kind,side){
+ const energyCost=kind==='pierce'?CHEST_ENERGY:BRUTAL_ENERGY;
+ if(!brutalEligible(r,e,energyCost)||kind==='chop'&&e.wounds?.arm)return false;
+ const timing=BRUTAL_TIMING[kind],sequence=(r.brutal?.sequence||0)+1,interrupt=!!e.attacking;
+ r.brutal={...makeBrutalState(sequence),phase:'windup',kind,enemyId:e.id,
+  side:side||((e.id+sequence)%2?'left':'right'),contactAt:timing.contactAt,extractionAt:timing.extractionAt||0,releaseAt:timing.releaseAt||0,duration:timing.duration,interrupt};
+ r.energy-=energyCost;cancelExtraction(r,'counter');cancelMelee(r);
+ r.rifleBurst=0;r.rifleBurstTimer=0;r.rifleCharge=0;r.rifleCharging=false;
+ interruptEnemy(e,timing.contactAt+.01);
+ if(interrupt)award(r,80,'+ INTERRUPT');
+ brutalEvent(r,'brutal-start',e,{damage:timing.lethal?e.hp:timing.damage,lethal:!!timing.lethal,energyCost});return true;
+}
+function applyBrutalContact(r,e){
+ const b=r.brutal,timing=BRUTAL_TIMING[b.kind],region=b.kind==='chop'?'arm':b.kind==='twist'?'neck':b.kind==='pierce'?'chest':'torso',damage=timing.lethal?Math.max(1,e.hp):timing.damage;
+ // Reserve the result before damage/death callbacks. A specific contact never
+ // invokes the generic random limb roll or alters unrelated anatomy.
+ b.contactApplied=true;b.phase='contact';
+ e.brutalWound={sequence:b.sequence,type:b.kind,side:b.side,region,playerId:playerId(r),at:r.time};
+ e.wounds||={arm:false,leg:false,eye:false};e.wounds[region]=true;e.wounded=true;
+ if(b.kind==='chop'){
+  e.wounds.armSide=b.side;
+  e.moveSpeed=(e.baseMoveSpeed??e.moveSpeed??enemyProfile(e).speed??.3)*(e.wounds.leg?.82:.92);
+ }else if(b.kind==='twist')e.neckBroken=true;
+ else if(b.kind==='pierce')e.chestPierced=true;
+ else e.eviscerated=true;
+ e.drip=(e.drip||0)+.35;
+ damageEnemy(r,e,damage,b.interrupt?'+ INTERRUPT':b.kind==='chop'?'+ ARM CHOP':b.kind==='twist'?'+ NECK TWIST':b.kind==='pierce'?'+ CHEST PIERCE':'+ GUT RIP',
+  {x:e.x,y:e.y,z:b.kind==='twist'?.5:b.kind==='rip'?.3:.4,brutal:true});
+ brutalEvent(r,'brutal-contact',e,{damage,lethal:!!timing.lethal,killed:e.dead,wound:{...e.brutalWound}});
+}
+// Only the authoritative world tick advances counters. tickPlayer prediction
+// can animate movement without applying damage, wounds or a second contact.
+function advanceBrutal(world,r,dt){
+ if(!brutalActive(r))return;
+ const b=r.brutal,e=world.course.enemies.find(e=>e.id===b.enemyId),timing=BRUTAL_TIMING[b.kind];
+ if(r.mode!=='play'||r.health<=0){cancelBrutal(r,r.health<=0?'player-down':'inactive');return;}
+ if(r.playerWounds?.leftArm==='severed'||r.playerWounds?.rightArm==='severed'){cancelBrutal(r,'arm-unavailable');return;}
+ if(!e||e.dead&&!b.contactApplied){cancelBrutal(r,'target-unavailable');return;}
+ if(!(b.kind==='pierce'&&b.contactApplied)&&!brutalInReach(r,e,BRUTAL_CONTACT_RANGE)){cancelBrutal(r,'out-of-range');return;}
+ if(!b.contactApplied&&e.brutalWound){cancelBrutal(r,'target-wounded');return;}
+ b.elapsed=Math.min(b.duration,b.elapsed+dt);
+ if(!b.contactApplied){
+  if(b.elapsed+1e-8<b.contactAt){interruptEnemy(e,b.contactAt-b.elapsed+.01);return;}
+  applyBrutalContact(r,e);
+ }
+ if(b.kind==='pierce'){
+  if(!b.extractionApplied&&b.elapsed+1e-8>=b.extractionAt){
+   b.extractionApplied=true;b.phase='extract';e.heartRemoved=true;
+   e.brutalWound.heartRemoved=true;
+   brutalEvent(r,'brutal-extract',e,{heartRemoved:true,wound:{...e.brutalWound}});
+  }
+  if(!b.releaseApplied&&b.elapsed+1e-8>=b.releaseAt){
+   b.releaseApplied=true;b.phase='recover';
+   brutalEvent(r,'brutal-release',e,{heartRemoved:e.heartRemoved});brutalEvent(r,'brutal-recover',e);
+  }
+ }else if(b.phase==='contact'&&b.elapsed+1e-8>=b.contactAt+timing.contact){b.phase='recover';brutalEvent(r,'brutal-recover',e);}
+ if(b.elapsed+1e-8>=b.duration){brutalEvent(r,'brutal-complete',e);r.brutal=makeBrutalState(b.sequence);}
+}
+export function parry(r){if(r.mode!=='play'||r.health<=0||r.parryCooldown>0)return false;
+ const candidate=brutalCandidate(r);
+ r.parryTime=.19;r.parryCooldown=.45;r.punch=.3;const punchIndex=r.events.length;r.events.push({type:'punch',x:r.x,y:r.y,z:eye(r)});
+ if(r.bite?.phase==='held'){
+  const e=r.course.enemies.find(e=>e.id===r.bite.enemyId);
+  addBiteEscape(r,.65,'parry');
+  if(candidate&&r.bite.phase==='released'&&beginBrutal(r,e,candidate.kind,candidate.side))r.events.splice(punchIndex,1);
+  return true;
+ }
+ if(r.bite?.phase==='windup')releaseBite(r,'parried',true);
+ // A second F still opens the projectile parry window, but cannot stack a
+ // punch or another counter while the committed sequence is recovering.
+ if(brutalActive(r))return true;
+ const e=parryTarget(r)||r.course.enemies.filter(e=>e.dead&&!e.extracted&&supportsAnatomy(e)).map(e=>({e,hit:traceEnemyBody(e,{x:r.x,y:r.y,z:eye(r)},{x:Math.cos(r.angle)*Math.cos(r.pitch),y:Math.sin(r.angle)*Math.cos(r.pitch),z:Math.sin(r.pitch)},.65)})).filter(t=>t.hit).sort((a,b)=>a.hit.distance-b.hit.distance)[0]?.e;
+ if(e){
+  if(!candidate||candidate.enemyId!==e.id||!beginBrutal(r,e,candidate.kind,candidate.side)){
+   const interrupt=e.attacking,d=Math.hypot(e.x-r.x,e.y-r.y),c=Math.cos(r.pitch);
+   const body=traceEnemyBody(e,{x:r.x,y:r.y,z:eye(r)},{x:Math.cos(r.angle)*c,y:Math.sin(r.angle)*c,z:Math.sin(r.pitch)},.8/c);
+   if(body||!supportsAnatomy(e))damageEnemy(r,e,3,interrupt?'+ INTERRUPT':'+ HAND SLICE',{...(body?.hit||{x:e.x,y:e.y,z:eye(r)+d*Math.tan(r.pitch)}),source:'slice',angle:r.angle,pitch:r.pitch});
+   interruptEnemy(e,.45);
+   if(interrupt)award(r,80,'+ INTERRUPT');
+  }else r.events.splice(punchIndex,1);
+ }
+ return true;
+}
 export function cancelMelee(r){
  r.meleeActive=false;r.meleeProgress=1;r.meleeResolved=false;r.meleeContact=0;r.meleeHitStop=0;
  r.sawActive=false;r.sawRev=0;r.sawContact=0;r.sawTick=0;
@@ -752,11 +1268,12 @@ export function cancelMelee(r){
 // swing may cleave two nearby enemies, but each target takes one hit only.
 function meleeTargets(r,range,cone,limit){
  const height=eye(r),slope=Math.tan(r.pitch);
- return r.course.enemies.filter(e=>!e.dead).map(e=>{
+ return r.course.enemies.filter(e=>!e.extracted&&(!e.dead||supportsAnatomy(e))).map(e=>{
+  if(r.weapon===7){const t=enemyRayTarget(e,r,r.angle,r.pitch,range+.14);return t?{e,d:t.along,a:r.angle,z:t.z,bodyHit:t.bodyHit}:null;}
   const dx=e.x-r.x,dy=e.y-r.y,d=Math.hypot(dx,dy),a=Math.atan2(dy,dx);
   return{e,d,a,z:height+d*slope};
- }).filter(t=>t.d<=range+enemyHitRadius(t.e,.16)&&Math.abs(angleDiff(t.a,r.angle))<=cone
-  &&t.z>=(t.e.meleeZ||0)-.08&&t.z<=enemyHitHeight(t.e,.52)+(t.e.meleeZ||0)+.08
+ }).filter(t=>t&&t.d<=range+enemyHitRadius(t.e,.16)&&Math.abs(angleDiff(t.a,r.angle))<=cone
+  &&(t.bodyHit||t.z>=(t.e.meleeZ||0)-.08&&t.z<=enemyHitHeight(t.e,.52)+(t.e.meleeZ||0)+.08)
   &&castRay(r.course,r.x,r.y,t.a,t.d+.2).dist>t.d-.06)
  .sort((a,b)=>a.d-b.d||a.e.id-b.e.id).slice(0,limit);
 }
@@ -774,7 +1291,7 @@ function impulseMeleeEnemy(e,angle,power,kind){
 
 function meleeImpact(r,target,damage,power,kind,heavy){
  const world=r.world||r,{e,a,z}=target,deadBefore=e.dead;
- const hit={x:e.x,y:e.y,z:clamp(z,(e.meleeZ||0)+.08,enemyHitHeight(e,.52)+(e.meleeZ||0))};
+ const hit={...(target.bodyHit||{x:r.x+Math.cos(r.angle)*target.d,y:r.y+Math.sin(r.angle)*target.d,z:clamp(z,(e.meleeZ||0)+.02,enemyHitHeight(e,.52)+(e.meleeZ||0))}),source:kind==='chainsaw'?'chainsaw':'blunt',angle:r.angle,pitch:r.pitch};
  damageEnemy(r,e,damage,kind==='chainsaw'?'+ CARVED UP':heavy?'+ HOME RUN':'+ LIGHTS OUT',hit);
  impulseMeleeEnemy(e,a,power,kind);
  // A short local contact record feeds the existing bounded splash pool. It
@@ -800,7 +1317,7 @@ function meleeWall(r,range,heavy=false){
 }
 
 export function shootMelee(r,secondary=false,predicted=false){
- if(r.mode!=='play'||r.health<=0||r.weapon<6||r.weapon>7)return false;
+ if(r.mode!=='play'||r.health<=0||brutalActive(r)||verminBusy(r)||r.weapon<6||r.weapon>7)return false;
  if(r.weapon===7&&!secondary)return false; // Held cutting is stepped below.
  if(r.meleeActive||r.cooldowns[r.weapon]>0)return false;
  r.meleeActive=true;r.meleeProgress=0;r.meleeResolved=false;r.meleeHeavy=secondary;
@@ -811,6 +1328,7 @@ export function shootMelee(r,secondary=false,predicted=false){
 }
 
 function advanceMelee(r,dt,input){
+ if(brutalActive(r)||verminBusy(r)){cancelMelee(r);return;}
  r.meleeContact=Math.max(0,(r.meleeContact||0)-dt);r.sawContact=Math.max(0,(r.sawContact||0)-dt);
  const predicted=!!input.predictWeapons;
  if(r.meleeActive&&r.weapon>=6){
@@ -858,6 +1376,15 @@ function advanceMeleeImpulse(r,e,dt){
 
 // Rifles share the authoritative hit rules and pooled tracer path. Prediction
 // only advances the local mechanism/audio state, never enemy health or effects.
+function enemyRayTarget(e,r,a,pitch,max){
+ const dx=Math.cos(a),dy=Math.sin(a),ex=e.x-r.x,ey=e.y-r.y,along=ex*dx+ey*dy,slope=Math.tan(pitch),oz=eye(r);
+ if(supportsAnatomy(e)){
+  const c=Math.cos(pitch),body=traceEnemyBody(e,{x:r.x,y:r.y,z:oz},{x:dx*c,y:dy*c,z:Math.sin(pitch)},max/c);
+  return body?{e,along:body.distance*c,side:0,z:body.hit.z,bodyHit:body.hit}:null;
+ }
+ const z=oz+along*slope,side=Math.abs(-ex*dy+ey*dx);
+ return along>0&&along<max+.01&&side<enemyHitRadius(e,.16)&&z>=0&&z<enemyHitHeight(e,.52)?{e,along,side,z}:null;
+}
 function fireRifleRound(r, mode, predicted = false) {
  const w=weapons[r.weapon],world=r.world||r,charged=mode==='charged';
  r.shot=1;r.shotSequence=(r.shotSequence||0)+1;r.lastShotMode=mode;
@@ -878,10 +1405,7 @@ function fireRifleRound(r, mode, predicted = false) {
  const oz=eye(r),slope=Math.tan(r.pitch),wallHit=castRay(r.course,r.x,r.y,a,w.range);
  const floor=slope<0?Math.max(0,(.01-oz)/slope):Infinity,max=Math.min(w.range,wallHit.dist,floor);
  const dx=Math.cos(a),dy=Math.sin(a);
- const targets=r.course.enemies.filter(e=>!e.dead).map(e=>{
-  const ex=e.x-r.x,ey=e.y-r.y,along=ex*dx+ey*dy;
-  return{e,along,side:Math.abs(-ex*dy+ey*dx),z:oz+along*slope};
- }).filter(t=>t.along>0&&t.along<max+.01&&t.side<enemyHitRadius(t.e,.16)&&t.z>=0&&t.z<enemyHitHeight(t.e,.52))
+ const targets=r.course.enemies.filter(e=>!e.extracted&&(!e.dead||supportsAnatomy(e))).map(e=>enemyRayTarget(e,r,a,r.pitch,max)).filter(Boolean)
  .sort((a,b)=>a.along-b.along||(a.e.id||0)-(b.e.id||0)).slice(0,charged?3:1);
  // Rifle rounds can shoot an ejected Breach core, but cannot inherit Arc's nuke.
  const core=world.projectiles.find(p=>{
@@ -889,11 +1413,12 @@ function fireRifleRound(r, mode, predicted = false) {
   const px=p.x-r.x,py=p.y-r.y,along=px*dx+py*dy;
   return along>0&&along<Math.min(max,targets[0]?.along??max)&&Math.abs(-px*dy+py*dx)<.14&&Math.abs(p.z-(oz+along*slope))<.14;
  });
- let end=max,hit=false,surface=floor<=wallHit.dist&&floor<=w.range?'floor':wallHit.dist<w.range&&oz+slope*max<=1.45?'wall':'air';
+ let end=max,hit=false,scoringHit=false,surface=floor<=wallHit.dist&&floor<=w.range?'floor':wallHit.dist<w.range&&oz+slope*max<=1.45?'wall':'air';
  if(core){end=(core.x-r.x)*dx+(core.y-r.y)*dy;core.life=0;core.nuke=false;explode(world,core);award(r,120,'+ CORE SHOT');surface='air';}
  else for(let i=0;i<targets.length;i++){
-  const t=targets[i],head=t.z>.38,damage=(charged?11:w.damage)*(head?1.5:1)*Math.pow(.82,i);
-  damageEnemy(r,t.e,damage,charged?'+ THROUGH THE VEIL':head?'+ HEADSHOT':'+ ELIMINATED',{x:r.x+dx*t.along,y:r.y+dy*t.along,z:t.z});
+  scoringHit ||= !targets[i].e.dead;
+  const t=targets[i],head=t.bodyHit?t.bodyHit.part==='head':t.z>.38,damage=(charged?11:w.damage)*(head?1.5:1)*Math.pow(.82,i);
+  damageEnemy(r,t.e,damage,charged?'+ THROUGH THE VEIL':head?'+ HEADSHOT':'+ ELIMINATED',{...(t.bodyHit||{x:r.x+dx*t.along,y:r.y+dy*t.along,z:t.z}),angle:a,pitch:r.pitch});
   if(charged)t.e.stagger=Math.max(t.e.stagger||0,.22);
   end=t.along;hit=true;surface='flesh';
  }
@@ -901,12 +1426,12 @@ function fireRifleRound(r, mode, predicted = false) {
  world.tracers.push({id:world.nextId++,x:r.x,y:r.y,z:oz,tx:r.x+dx*end,ty:r.y+dy*end,tz:oz+slope*end,
   surface,normal:surface==='floor'?{x:0,y:0,z:1}:wallHit.side===0?{x:-Math.sign(dx),y:0,z:0}:{x:0,y:-Math.sign(dy),z:0},
   ownerId:playerId(r),life:duration,duration,weapon:r.weapon,hit,charged,mode,rail:false});
- if(hit)award(r,charged&&targets.length>1?95:Math.max(8,38-r.repeat*5),charged&&targets.length>1?'+ THREAD THE NEEDLE':mode==='burst'?'+ CONTROLLED BURST':'+ RIFLE HIT');
+ if(scoringHit)award(r,charged&&targets.length>1?95:Math.max(8,38-r.repeat*5),charged&&targets.length>1?'+ THREAD THE NEEDLE':mode==='burst'?'+ CONTROLLED BURST':'+ RIFLE HIT');
  return true;
 }
 
 export function shootRifle(r, secondary=false, predicted=false) {
- if(r.mode!=='play'||r.health<=0||(r.weapon!==4&&r.weapon!==5))return false;
+ if(r.mode!=='play'||r.health<=0||brutalActive(r)||verminBusy(r)||(r.weapon!==4&&r.weapon!==5))return false;
  if(r.cooldowns[r.weapon]>0||r.rifleBurst>0)return false;
  if(r.weapon===5&&secondary){
   if(!r.rifleCharging){r.rifleCharging=true;r.rifleCharge=0;r.events.push({type:'rifle-charge',weapon:5,x:r.x,y:r.y,z:eye(r),predicted});}
@@ -920,6 +1445,7 @@ export function shootRifle(r, secondary=false, predicted=false) {
 }
 
 function advanceRifles(r,dt,input){
+ if(brutalActive(r)||verminBusy(r)){r.rifleBurst=0;r.rifleBurstTimer=0;r.rifleCharge=0;r.rifleCharging=false;return;}
  r.rifleHeat=Math.max(0,(r.rifleHeat||0)-dt*.36);
  r.rifleKick=Math.max(0,(r.rifleKick||0)-dt*6.8);
  r.rifleKickYaw*=Math.exp(-dt*11);
@@ -938,7 +1464,7 @@ function advanceRifles(r,dt,input){
  r.aim+=(focus-r.aim)*(1-Math.exp(-dt*12));
 }
 
-export function shoot(r,secondary=false){if(r.mode!=='play'||r.health<=0)return false;const world=r.world||r;
+export function shoot(r,secondary=false){if(r.mode!=='play'||r.health<=0||brutalActive(r)||verminBusy(r))return false;const world=r.world||r;
  if(r.weapon>=6)return shootMelee(r,secondary);
  if(r.weapon>=4)return shootRifle(r,secondary);
  if(secondary&&r.weapon===0){if(r.altCooldown||r.coinCharges<=0)return false;r.coinCharges--;r.altCooldown=.3;world.coins.push({id:world.nextId++,x:r.x+Math.cos(r.angle)*.2,y:r.y+Math.sin(r.angle)*.2,z:eye(r)+.03,vx:Math.cos(r.angle)*.9,vy:Math.sin(r.angle)*.9,vz:1.15,life:3});r.events.push({type:'coin',weapon:0,x:r.x,y:r.y,z:eye(r)});return true;}
@@ -955,30 +1481,34 @@ if(r.cooldowns[r.weapon]>0)return false;
 const w=weapons[r.weapon];r.cooldowns[r.weapon]=w.interval*(secondary&&r.weapon===0?2:1);r.fireCooldown=r.cooldowns[r.weapon];r.shot=1;r.events.push({type:'shot',weapon:r.weapon,x:r.x,y:r.y,z:eye(r)});r.repeat=r.lastWeapon===r.weapon?r.repeat+1:0;r.lastWeapon=r.weapon;
  const pellets=r.weapon===1?9:1,pierce=r.weapon===2||(secondary&&r.weapon===0);let hits=0;
  for(let i=0;i<pellets;i++){const offset=pellets>1?(i-4)/4:0,a=r.angle+offset*w.cone,pitch=r.pitch+(pellets>1?Math.sin(i*2.4)*.075:0),wallHit=castRay(r.course,r.x,r.y,a,w.range),wall=wallHit.dist,oz=eye(r),slope=Math.tan(pitch),floor=slope<0?Math.max(0,(.01-oz)/slope):Infinity,max=Math.min(w.range,wall,floor);let end=max;
- const targets=r.course.enemies.filter(e=>!e.dead).map(e=>{const dx=e.x-r.x,dy=e.y-r.y,along=dx*Math.cos(a)+dy*Math.sin(a),side=Math.abs(-dx*Math.sin(a)+dy*Math.cos(a));return{e,along,side,z:oz+along*slope};}).filter(t=>t.along>0&&t.along<max+.01&&t.side<enemyHitRadius(t.e,.16)&&t.z>=0&&t.z<enemyHitHeight(t.e,.52)).sort((a,b)=>a.along-b.along);
+ const targets=r.course.enemies.filter(e=>!e.extracted&&(!e.dead||supportsAnatomy(e))).map(e=>enemyRayTarget(e,r,a,pitch,max)).filter(Boolean).sort((a,b)=>a.along-b.along);
  const coin=r.weapon===0?world.coins.find(c=>{const dx=c.x-r.x,dy=c.y-r.y,d=dx*Math.cos(a)+dy*Math.sin(a);return d>0&&d<max&&Math.abs(-dx*Math.sin(a)+dy*Math.cos(a))<.085&&Math.abs(c.z-(oz+d*slope))<.085;}):null;
  if(coin){coin.life=0;const target=r.course.enemies.filter(e=>!e.dead&&castRay(r.course,coin.x,coin.y,Math.atan2(e.y-coin.y,e.x-coin.x)).dist>Math.hypot(e.x-coin.x,e.y-coin.y)-.1).sort((a,b)=>Math.hypot(a.x-coin.x,a.y-coin.y)-Math.hypot(b.x-coin.x,b.y-coin.y))[0];if(target){damageEnemy(r,target,9,'+ RICOCHET');award(r,180,'+ RICOCHET');world.tracers.push({id:world.nextId++,x:coin.x,y:coin.y,z:coin.z,tx:target.x,ty:target.y,tz:.4,ownerId:playerId(r),life:.22,duration:.22,weapon:0,ricochet:true,rail:true});hits++;}continue;}
- const core=world.projectiles.find(p=>{if(!p.core||p.life<=0)return false;const dx=p.x-r.x,dy=p.y-r.y,d=dx*Math.cos(a)+dy*Math.sin(a);return d>0&&d<max&&Math.abs(-dx*Math.sin(a)+dy*Math.cos(a))<.14&&Math.abs(p.z-(oz+d*slope))<.14;});if(core){core.life=0;core.nuke=r.weapon===2;explode(world,core);award(r,core.nuke?350:120,core.nuke?'+ CORE NUKE':'+ CORE SHOT');hits++;continue;}for(const t of targets.slice(0,pierce?100:1)){const head=t.z>.38;damageEnemy(r,t.e,w.damage*(head?1.5:1)*(secondary&&r.weapon===0?2:1),head?'+ HEADSHOT':'+ ELIMINATED',{x:r.x+Math.cos(a)*t.along,y:r.y+Math.sin(a)*t.along,z:t.z});hits++;if(!pierce)end=t.along;}
+ const core=world.projectiles.find(p=>{if(!p.core||p.life<=0)return false;const dx=p.x-r.x,dy=p.y-r.y,d=dx*Math.cos(a)+dy*Math.sin(a);return d>0&&d<max&&Math.abs(-dx*Math.sin(a)+dy*Math.cos(a))<.14&&Math.abs(p.z-(oz+d*slope))<.14;});if(core){core.life=0;core.nuke=r.weapon===2;explode(world,core);award(r,core.nuke?350:120,core.nuke?'+ CORE NUKE':'+ CORE SHOT');hits++;continue;}for(const t of targets.slice(0,pierce?100:1)){const head=t.bodyHit?t.bodyHit.part==='head':t.z>.38,wasDead=t.e.dead;damageEnemy(r,t.e,w.damage*(head?1.5:1)*(secondary&&r.weapon===0?2:1),head?'+ HEADSHOT':'+ ELIMINATED',{...(t.bodyHit||{x:r.x+Math.cos(a)*t.along,y:r.y+Math.sin(a)*t.along,z:t.z}),angle:a,pitch});if(!wasDead)hits++;if(!pierce)end=t.along;}
  if(pellets===1||i%2===0)(r.world||r).tracers.push({id:(r.world||r).nextId++,x:r.x,y:r.y,z:oz,tx:r.x+Math.cos(a)*end,ty:r.y+Math.sin(a)*end,tz:oz+slope*end,surface:(!pierce&&targets.length)?'flesh':floor<=wall&&floor<=w.range?'floor':wall<w.range&&oz+slope*end<=1.45?'wall':'air',normal:floor<=wall&&floor<=w.range?{x:0,y:0,z:1}:wallHit.side===0?{x:-Math.sign(Math.cos(a)),y:0,z:0}:{x:0,y:-Math.sign(Math.sin(a)),z:0},ownerId:playerId(r),life:.18,duration:.18,weapon:r.weapon,hit:targets.length>0,rail:r.weapon===2});}
  if(hits)award(r,Math.max(8,55-r.repeat*9)*(r.weapon===1?1:1.3),r.repeat<1?'+ FRESH WEAPON':'+ HIT');return true;
 }
 export function tickPlayer(r,dt,input={}){if(r.mode!=='play'||r.health<=0)return;dt=clamp(dt,0,.05);r.time+=dt;
+ const harvestHeld=!!input.harvest,verminConsumes=interceptVerminInput(r,input);
+ if(verminConsumes)input={...input,harvest:false,fire:false,alt:false};
+ if(!input.predictWeapons)r._biteInput={effort:Math.abs(input.forward||0)+Math.abs(input.strafe||0)>.1||!!input.jump||!!input.dash};
+ const heldByBite=r.bite?.phase==='held';
  for(const key of ['shot','damage','heal','punch','hookTime','hookCooldown','parryTime','parryCooldown','dashTime','altCooldown'])r[key]=Math.max(0,r[key]-dt*(key==='shot'?7:1));for(let i=0;i<weapons.length;i++)r.cooldowns[i]=Math.max(0,r.cooldowns[i]-dt);r.fireCooldown=r.cooldowns[r.weapon];
  advanceRifles(r,dt,input);
  advanceMelee(r,dt,input);
  r.angle=angleDiff(r.angle+(input.turn||0)*dt*2,0);r.pitch=clamp(r.pitch+(input.lookY||0)*dt,-1.35,1.35);r.energy=clamp(r.energy+dt*22,0,100);if(r.coinCharges<4){r.coinRegen+=dt;if(r.coinRegen>=2){r.coinCharges++;r.coinRegen=0;}}
- const jump=input.jump&&!r.pressed.jump,dash=input.dash&&!r.pressed.dash,wasAir=r.z>.001,wasSliding=r.slide>.55;r.pressed={jump:!!input.jump,dash:!!input.dash};let f=input.forward||0,s=input.strafe||0;if(r.autoRun&&f===0&&!input.harvest)f=1;const length=Math.max(1,Math.hypot(f,s));f/=length;s/=length;const dx=Math.cos(r.angle)*f-Math.sin(r.angle)*s,dy=Math.sin(r.angle)*f+Math.cos(r.angle)*s;
- if(jump){if(r.z<=.001){r.vz=2.05;r.events.push({type:'jump',x:r.x,y:r.y,z:r.z});}else if(r.wallJumps<3&&!canStand(r.course,r.x,r.y,.2)){r.vz=1.8;r.wallJumps++;r.vx=-Math.cos(r.angle)*1.4;r.vy=-Math.sin(r.angle)*1.4;award(r,20,'+ WALL JUMP');}}
- if(dash&&r.energy>=33){r.energy-=33;r.dashTime=.18;const len=Math.hypot(dx,dy);r.vx=(len?dx:Math.cos(r.angle))*6;r.vy=(len?dy:Math.sin(r.angle))*6;r.vz=Math.max(0,r.vz);r.events.push({type:'dash',x:r.x,y:r.y,z:r.z});}
+ const jump=input.jump&&!r.pressed.jump,dash=input.dash&&!r.pressed.dash,wasAir=r.z>.001,wasSliding=r.slide>.55;r.pressed={jump:!!input.jump,dash:!!input.dash};let f=input.forward||0,s=input.strafe||0;if(r.autoRun&&f===0&&!harvestHeld)f=1;const length=Math.max(1,Math.hypot(f,s));f/=length;s/=length;const dx=Math.cos(r.angle)*f-Math.sin(r.angle)*s,dy=Math.sin(r.angle)*f+Math.cos(r.angle)*s;
+ if(jump&&!heldByBite){if(r.z<=.001){r.vz=2.05;r.events.push({type:'jump',x:r.x,y:r.y,z:r.z});}else if(r.wallJumps<3&&!canStand(r.course,r.x,r.y,.2)){r.vz=1.8;r.wallJumps++;r.vx=-Math.cos(r.angle)*1.4;r.vy=-Math.sin(r.angle)*1.4;award(r,20,'+ WALL JUMP');}}
+ if(dash&&!heldByBite&&r.energy>=33){r.energy-=33;r.dashTime=.18;const len=Math.hypot(dx,dy);r.vx=(len?dx:Math.cos(r.angle))*6;r.vy=(len?dy:Math.sin(r.angle))*6;r.vz=Math.max(0,r.vz);r.events.push({type:'dash',x:r.x,y:r.y,z:r.z});}
  if(input.slide&&r.z>.12){r.slam=true;r.vz=-5;}
  r.slide+=(Number(!!input.slide&&r.z<.05)-r.slide)*(1-Math.exp(-dt*20));if(r.slide>.55&&!wasSliding)r.events.push({type:'slide',x:r.x,y:r.y,z:r.z});
- if(r.dashTime<=0){const speed=r.slide>.5?3.25:2.05,acc=r.z>.05?5:18;if(r.slide>.5){const heading=Math.hypot(r.vx,r.vy)>.1?Math.atan2(r.vy,r.vx):r.angle;r.vx+=(Math.cos(heading)*speed-r.vx)*dt*4;r.vy+=(Math.sin(heading)*speed-r.vy)*dt*4;}else{r.vx+=(dx*speed-r.vx)*(1-Math.exp(-dt*acc));r.vy+=(dy*speed-r.vy)*(1-Math.exp(-dt*acc));}}
+ if(r.dashTime<=0){const legPenalty=Math.min(.3,['leftLeg','rightLeg'].reduce((sum,limb)=>sum+(r.playerWounds?.[limb]==='severed'?.18:r.playerWounds?.[limb]==='injured'?.12:0),0));const speed=(r.slide>.5?3.25:2.05)*(heldByBite?.2:1-legPenalty),acc=r.z>.05?5:18;if(r.slide>.5){const heading=Math.hypot(r.vx,r.vy)>.1?Math.atan2(r.vy,r.vx):r.angle;r.vx+=(Math.cos(heading)*speed-r.vx)*dt*4;r.vy+=(Math.sin(heading)*speed-r.vy)*dt*4;}else{r.vx+=(dx*speed-r.vx)*(1-Math.exp(-dt*acc));r.vy+=(dy*speed-r.vy)*(1-Math.exp(-dt*acc));}}
  if(r.hookTime>0){const target=r.course.enemies.find(e=>e.id===r.hookTarget&&!e.dead);if(target){const dx=target.x-r.x,dy=target.y-r.y,d=Math.hypot(dx,dy);if(d>.5){if(target.kind===2){r.vx=dx/d*4.2;r.vy=dy/d*4.2;r.vz=Math.max(r.vz,.35);}else{const ex=target.x-dx/d*dt*5,ey=target.y-dy/d*dt*5;if(canStand(r.course,ex,ey,.16)){target.x=ex;target.y=ey;}}}else r.hookTime=0;}else r.hookTime=0;}
  const ox=r.x,oy=r.y;move(r,r.vx*dt,r.vy*dt);r.speed=Math.hypot(r.x-ox,r.y-oy)/Math.max(dt,.0001);r.distance+=r.speed*dt;
  if(r.dashTime<=0)r.vz-=5.5*dt;r.z=Math.max(0,r.z+r.vz*dt);if(r.z===0){r.vz=0;r.wallJumps=0;if(r.slam){r.slam=false;for(const e of r.course.enemies)if(!e.dead&&Math.hypot(e.x-r.x,e.y-r.y)<1.15&&castRay(r.course,r.x,r.y,Math.atan2(e.y-r.y,e.x-r.x)).dist>Math.hypot(e.x-r.x,e.y-r.y)-.1)damageEnemy(r,e,5,'+ GROUND SLAM');r.events.push({type:'slam',x:r.x,y:r.y,z:0});}else if(wasAir)r.events.push({type:'land',x:r.x,y:r.y,z:0});}
  // Keep extraction after movement so any actual displacement in this tick
  // cancels the committed action before it can advance or award.
- advanceExtraction(r,dt,input);
+ if(!heldByBite)advanceExtraction(r,dt,input);
 }
 // Recompute a short grid route only when cover blocks line of sight.
 function enemyWaypoint(course,e,target){
@@ -1037,10 +1567,14 @@ function splatGlob(r,p,z){
  }
  r.events.push({type:'blood',x:gx,y:gy,z:gz,enemyId:p.enemyId,variant:p.variant,splat:true,projectileId:p.id});
 }
-export function tick(r,dt,input={}){if(r.mode!=='play')return;dt=clamp(dt,0,.05);tickPlayer(r,dt,input);
+export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive');if(r.peer)cancelBrutal(r.peer,'inactive');return;}dt=clamp(dt,0,.05);tickPlayer(r,dt,input);
+ for(const defender of [r,...(r.peer?[r.peer]:[])])advanceBrutal(r,defender,dt);
+ for(const defender of [r,...(r.peer?[r.peer]:[])])advancePlayerBite(r,defender,dt);
+ tickVermin(r,dt);
  // Hoarding packs: members share a hunt target, clump toward the pack centroid
  // and take separate slots around the player so a wave arrives as a surround
  // instead of a conga line.
+ for(const e of r.course.enemies){if(advanceReanimation(e,r.time))r.events.push({type:'enemy-rise',enemyId:e.id,x:e.x,y:e.y,z:.15});if(e.reanimate?.phase==='rise'&&r.time>=e.reanimate.until)e.reanimate.phase='hunting';}
  const packs=new Map();
  for(const e of r.course.enemies){
   if(e.dead)continue;
@@ -1062,15 +1596,26 @@ export function tick(r,dt,input={}){if(r.mode!=='play')return;dt=clamp(dt,0,.05)
    if(d<pack.leaderD){pack.leaderD=d;pack.leader=e;}
   }
  }
+ const aiAlive=r.course.enemies.filter(en=>!en.dead);
+ const aiCtx={env:AI_ENV,course:r.course,dt,time:r.time,noises:aiAlive.some(en=>en.mind)?collectNoises(r):[],packs,alive:aiAlive,navBudget:4,profile:null,reach:0,tokens:{melee:0,ranged:0,maxMelee:aiAlive.length>=5?3:2,maxRanged:2}};
+ for(const en of aiAlive)if(en.mind?.token){if(isMeleeRole(enemyProfile(en).role))aiCtx.tokens.melee++;else aiCtx.tokens.ranged++;}
  for(const e of r.course.enemies){
  advanceMeleeImpulse(r,e,dt);
- e.flash=Math.max(0,e.flash-dt);e.strike=Math.max(0,(e.strike||0)-dt);e.stagger=Math.max(0,(e.stagger||0)-dt);if(e.dead)continue;const profile=enemyProfile(e);
+ e.flash=Math.max(0,e.flash-dt);e.strike=Math.max(0,(e.strike||0)-dt);e.stagger=Math.max(0,(e.stagger||0)-dt);e.biteCooldown=Math.max(0,(e.biteCooldown||0)-dt);if(e.dead)continue;const profile=enemyProfile(e);
+ if([r,r.peer].some(player=>player&&biteActive(player)&&player.bite.enemyId===e.id))continue;
  const target=r.peer&&r.peer.health>0&&(r.health<=0||Math.hypot(r.peer.x-e.x,r.peer.y-e.y)<Math.hypot(r.x-e.x,r.y-e.y))?r.peer:r;
  const dx=target.x-e.x,dy=target.y-e.y,d=Math.hypot(dx,dy),a=Math.atan2(dy,dx),visible=e.seesTarget===true;
+ if(biteActive(target)&&target.bite.enemyId!==e.id&&isMeleeRole(profile.role)){e.attacking=false;e.windup=0;e.strike=0;e.slashHit=true;}
  e.attack=Math.max(0,e.attack-dt);e.phase+=dt;
- if(e.stagger>0){e.attacking=false;e.windup=0;e.slashHit=true;e.strike=0;continue;}
- const pack=packs.get(e.pack??0),melee=isMeleeRole(profile.role),reach=melee?meleeReach(profile.role):13,half=meleeArc(profile.role);
- if(!e.attacking&&(!visible||d>meleeStandoff(profile.role))){
+ if(e.stagger>0){e.attacking=false;e.windup=0;e.slashHit=true;e.strike=0;if(e.mind){e.state='stagger';e.mind.token=false;if(e.hitDir!==undefined)e.facing=e.facing+angleDiff(e.hitDir+Math.PI,e.facing)*Math.min(1,dt*3);}continue;}
+ if(e.mind&&e.state==='stagger'){e.state=e.mind.state;e.mind.t=0;}
+ const pack=packs.get(e.pack??0),melee=isMeleeRole(profile.role),reach=e.locomotion==='crawl'?.40:melee?meleeReach(profile.role):13,half=meleeArc(profile.role);
+ let mindRes=null;
+ if(e.mind){
+  aiCtx.profile=profile;aiCtx.reach=reach;mindRes=stepMind(aiCtx,e,target);
+  if(e.wounded&&(e.drip=(e.drip||0)-dt)<=0){e.drip=.55;r.blood.push({id:r.nextId++,x:e.x,y:e.y,size:.1,angle:e.id*.7});r.blood=r.blood.slice(-100);}
+ }
+ if(!e.mind&&!e.attacking&&(!visible||d>meleeStandoff(profile.role))){
   e.navTimer=(e.navTimer||0)-dt;let heading=a;
   if(!visible){
    // Aggressive pursuit: a pack that has seen the player keeps hunting the last
@@ -1094,15 +1639,21 @@ export function tick(r,dt,input={}){if(r.mode!=='play')return;dt=clamp(dt,0,.05)
   if(canStand(r.course,e.x+mx,e.y,.16))e.x+=mx;if(canStand(r.course,e.x,e.y+my,.16))e.y+=my;
   if(e.wounded&&(e.drip=(e.drip||0)-dt)<=0){e.drip=.55;r.blood.push({id:r.nextId++,x:e.x,y:e.y,size:.1,angle:e.id*.7});r.blood=r.blood.slice(-100);}
  }
- const eligible=visible&&(melee?d<reach&&target.z<(profile.role==='anchor'?.55:.3):d<13);
+ const eligible=visible&&(melee?d<reach&&target.z<(profile.role==='anchor'?.55:.3):d<13)&&(!e.mind||e.attacking||e.attack>0||mindRes.attackOK);
  if(!eligible){e.attacking=false;e.windup=0;}
  else if(e.attack<=0){
-  if(!e.attacking){e.attacking=true;e.windup=e.windupTime??profile.windup??(melee?.28:.48);e.eventsSeen=0;}
+  if(!e.attacking){
+   if(melee){e.biteAttackCount=(e.biteAttackCount||0)+1;if(biteEligible(target,e,profile,d)&&(e.id+e.biteAttackCount)%3===0){beginBite(target,e);continue;}}
+   e.attacking=true;e.windup=e.windupTime??profile.windup??(melee?.28:.48);e.eventsSeen=0;e.aimAngle=a;}
   e.windup=Math.max(0,e.windup-dt);
+  // Fair telegraph: the swing tracks the player early in the windup, then locks.
+  if(e.windup>(e.windupTime??profile.windup??.4)*.35)e.aimAngle=a;
+  if(e.mind)turnFacing(e,e.aimAngle??a,(e.aiTune?.turn||6)*1.6,dt);
   if(e.windup<=0){
+   if(e.mind){e.mind.justAttacked=true;e.facing=e.aimAngle??a;}
    e.attacking=false;e.strike=melee?SLASH_SWING:.22;e.attack=e.attackCooldown??profile.attack??(melee?.8:1.9);
    const event={type:'enemy-attack',x:e.x,y:e.y,z:.32,enemyId:e.id,enemyKind:e.kind,variant:e.variant||'stalker'};
-   if(melee){e.slashDir=a;e.slashReach=reach;e.slashHalf=half;e.slashHit=false;event.slash=true;event.reach=reach;event.arc=half;slashArc(r,e);}
+   if(melee){e.slashDir=e.mind?(e.aimAngle??a):a;e.slashReach=reach;e.slashHalf=half;e.slashHit=false;event.slash=true;event.reach=reach;event.arc=half;slashArc(r,e);}
    else{event.glob=true;event.projectileId=throwGlob(r,e,target,a,d);}
    r.events.push(event);
   }
@@ -1111,7 +1662,7 @@ export function tick(r,dt,input={}){if(r.mode!=='play')return;dt=clamp(dt,0,.05)
  // blocked by walls and cancelled the moment the enemy staggers or is parried.
  if(e.strike>0&&!e.slashHit&&e.slashDir!==undefined&&e.slashReach>0){
   const hd=Math.hypot(target.x-e.x,target.y-e.y),ha=Math.atan2(target.y-e.y,target.x-e.x);
-  if(hd<=e.slashReach&&Math.abs(angleDiff(ha,e.slashDir))<=e.slashHalf&&castRay(r.course,e.x,e.y,ha).dist>hd-.12){e.slashHit=true;hurt(target,e.contactDamage??profile.contactDamage??12);}
+  if(hd<=e.slashReach&&Math.abs(angleDiff(ha,e.slashDir))<=e.slashHalf&&castRay(r.course,e.x,e.y,ha).dist>hd-.12){e.slashHit=true;hurt(target,(e.contactDamage??profile.contactDamage??12)*anatomyMotion(e).damage);}
  }
  }
  for(const p of r.projectiles){
@@ -1209,18 +1760,18 @@ export function tick(r,dt,input={}){if(r.mode!=='play')return;dt=clamp(dt,0,.05)
   }else if(r.course?.dungeon){
    updateDungeonProgression(r);
    updateDungeonEncounter(r,dt);
-   if(!r.course.enemies.some(e=>!e.dead)&&r.dungeonProgression.exitReady&&(Math.hypot(r.x-r.course.exit.x,r.y-r.course.exit.y)<.6||(r.peer&&Math.hypot(r.peer.x-r.course.exit.x,r.peer.y-r.course.exit.y)<.6))){
+   if(r.dungeonProgression.exitReady&&(Math.hypot(r.x-r.course.exit.x,r.y-r.course.exit.y)<.6||(r.peer&&Math.hypot(r.peer.x-r.course.exit.x,r.peer.y-r.course.exit.y)<.6))){
     if(r.course.dungeonIndex+1<r.course.dungeonCount)advanceDungeonFloor(r);
     else{r.mode='win';r.campaignComplete=true;r.dungeonProgression.floorsCleared=r.course.dungeonCount-r.dungeonProgression.startIndex;r.events.push({type:'win',floorIndex:r.course.dungeonIndex,floorCount:r.course.dungeonCount,x:r.x,y:r.y,z:eye(r)});}
    }
-  }else if(!r.course.enemies.some(e=>!e.dead)){
+  }else if(!r.course.enemies.some(isThreat)){
   if(r.wave<r.waveCount){r.waveDelay-=dt;if(r.waveDelay<=0){spawnWave(r);r.waveDelay=2;}}
   else if(Math.hypot(r.x-r.course.exit.x,r.y-r.course.exit.y)<.6||(r.peer&&Math.hypot(r.peer.x-r.course.exit.x,r.peer.y-r.course.exit.y)<.6)){r.mode='win';r.events.push({type:'win',x:r.x,y:r.y,z:eye(r)});}
- } if(r.peer){r.peer.style=Math.max(0,r.peer.style-dt*35);r.peer.rank=styleRank(r.peer.style);if(r.health<=0&&r.peer.health>0){r.respawnTime=(r.respawnTime||0)+dt;if(r.respawnTime>3){r.x=r.peer.x;r.y=r.peer.y;r.z=0;r.health=65;r.respawnTime=0;}}if(r.peer.health<=0&&r.health>0){r.peer.respawnTime=(r.peer.respawnTime||0)+dt;if(r.peer.respawnTime>3){r.peer.x=r.x;r.peer.y=r.y;r.peer.z=0;r.peer.health=65;r.peer.respawnTime=0;}}}if(r.health<=0&&(!r.peer||r.peer.health<=0)){r.mode='dead';r.events.push({type:'dead'});}
+ } if(r.peer){r.peer.style=Math.max(0,r.peer.style-dt*35);r.peer.rank=styleRank(r.peer.style);if(r.health<=0&&r.peer.health>0){r.respawnTime=(r.respawnTime||0)+dt;if(r.respawnTime>3){r.x=r.peer.x;r.y=r.peer.y;r.z=0;r.health=65;r.respawnTime=0;resetBite(r);r.bite.cooldown=BITE_TIMING.grace;}}if(r.peer.health<=0&&r.health>0){r.peer.respawnTime=(r.peer.respawnTime||0)+dt;if(r.peer.respawnTime>3){r.peer.x=r.x;r.peer.y=r.y;r.peer.z=0;r.peer.health=65;r.peer.respawnTime=0;resetBite(r.peer);r.peer.bite.cooldown=BITE_TIMING.grace;}}}if(r.health<=0&&(!r.peer||r.peer.health<=0)){r.mode='dead';r.events.push({type:'dead'});}
 }
 
 export const styleRank=v=>v>1400?"SSS":v>1100?"SS":v>800?"S":v>550?"A":v>300?"B":v>120?"C":"D";
-export function addPeer(r){const p=newRun(r.course,{requireEntry:r.roomProgression?.requireEntry===true});p.x=(r.course.playerSpawn?.x??6)+.5;p.y=r.course.playerSpawn?.y??10.5;p.mode='play';p.playerId='peer';p.world=r;p.roomProgression=r.roomProgression||p.roomProgression;if(p.roomProgression)syncRoomGateCells(r.course,p.roomProgression);r.peer=p;return p;}
+export function addPeer(r){const p=newRun(r.course,{requireEntry:r.roomProgression?.requireEntry===true});p.x=(r.course.playerSpawn?.x??6)+.5;p.y=r.course.playerSpawn?.y??10.5;p.mode='play';p.playerId='peer';p.world=r;p.vermin=r.vermin;p.roomProgression=r.roomProgression||p.roomProgression;if(p.roomProgression)syncRoomGateCells(r.course,p.roomProgression);r.peer=p;return p;}
 
 function explode(r,p){
  if(p.exploded)return;
@@ -1230,7 +1781,7 @@ function explode(r,p){
  const attacker=owner||r;
  for(const e of r.course.enemies){
   const d=Math.hypot(e.x-p.x,e.y-p.y);
-  if(!e.dead&&d<radius&&castRay(r.course,p.x,p.y,Math.atan2(e.y-p.y,e.x-p.x)).dist>d-.1){
+  if(isThreat(e)&&d<radius&&castRay(r.course,p.x,p.y,Math.atan2(e.y-p.y,e.x-p.x)).dist>d-.1){
    const falloff=Math.max(.12,1-d/radius);
    damageEnemy(attacker,e,Math.max(2,baseDamage*falloff),rocket?'+ RIFT BLAST':p.nuke?'+ CORE NUKE':'+ CORE BLAST',{x:p.x,y:p.y,z:p.z});
    const dx=e.x-p.x,dy=e.y-p.y,len=Math.max(.1,d);

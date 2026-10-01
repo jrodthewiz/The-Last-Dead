@@ -198,8 +198,10 @@ function makeRingPool(name, capacity) {
       varying float vAge;
       varying vec3 vTint;
       varying float vAlpha;
+      varying vec2 vDustPosition;
       void main() {
         vAge = aAge;
+        vDustPosition = position.xz;
         vec3 local = position;
         local.xz *= aScale * mix(1.0, 0.82, uReducedMotion);
         gl_Position = projectionMatrix * modelViewMatrix * vec4(aCenter + local, 1.0);
@@ -211,9 +213,13 @@ function makeRingPool(name, capacity) {
       varying vec3 vTint;
       varying float vAlpha;
       varying float vAge;
+      varying vec2 vDustPosition;
       void main() {
         float fade = pow(max(0.0, 1.0 - vAge), 1.6);
-        gl_FragColor = vec4(vTint, vAlpha * fade);
+        float r=length(vDustPosition),a=atan(vDustPosition.y,vDustPosition.x);
+        float edge=smoothstep(.72,.81,r)*(1.-smoothstep(.90,1.,r));
+        float breakup=.38+.62*smoothstep(-.5,.65,sin(a*17.+vAge*3.)+sin(a*31.-vAge*5.)*.45);
+        gl_FragColor = vec4(mix(vec3(.19,.15,.12),vTint,.22), vAlpha * fade * edge * breakup);
       }
     `,
     transparent: true,
@@ -429,7 +435,7 @@ export class ExplosionVFX {
         setVec3(ring.center, i, event.position.x, 0.048, event.position.z);
         ring.scale.array[i] = event.radius * (0.84 + ringAge * 1.75);
         ring.age.array[i] = ringAge;
-        ring.alpha.array[i] = reduced ? 0.28 * event.force : 0.78 * event.force;
+        ring.alpha.array[i] = reduced ? 0.12 * event.force : 0.32 * event.force;
         setVec3(ring.tint, i, tint.r * 1.35, tint.g * 1.06, tint.b * 0.96);
       }
       const currentFlash = event.flash * (1 - smooth(clamp(event.age / 0.42, 0, 1)));

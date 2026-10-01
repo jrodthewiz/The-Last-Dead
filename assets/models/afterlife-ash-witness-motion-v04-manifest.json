@@ -1,0 +1,75 @@
+{
+  "formatVersion": 1,
+  "id": "afterlife-ash-witness-motion-v04",
+  "runtime": {
+    "file": "afterlife-ash-witness-motion-v04.glb",
+    "heightMeters": 1.86,
+    "visualOnly": true
+  },
+  "provenance": {
+    "sourceMesh": "afterlife-ash-witness-chase-v03.glb",
+    "sourceMeshSha256": "7ac0f1f1ae0ab26bec8b582a25736077d4744ab363e4e2097794c3f7d1902182",
+    "runtimeSha256": "0d4cbb2f89e9295cb2ee95d437c25d17f5cb993e77c2ea74dfca564a5ada6c5c",
+    "runtimeBytes": 2681432,
+    "rigTaskId": "01a0ec1c-9581-709a-89c1-ee91a298163b",
+    "animationTaskId": "01a0ec1d-f490-7469-a54c-ff73f6434d23",
+    "credits": 23,
+    "actions": [
+      112,
+      113,
+      386,
+      214,
+      178,
+      189
+    ],
+    "conversionScript": "scripts/retarget-zombie-motion.mjs",
+    "retarget": "source world rotation * inverse source bind rotation * target bind rotation; target bone lengths and inverse bind matrices retained"
+  },
+  "rig": {
+    "jointCount": 24
+  },
+  "clips": {
+    "shuffle": {
+      "name": "AshWitness_Shuffle",
+      "durationSeconds": 1.6,
+      "loop": true,
+      "strideMeters": 1.35725,
+      "sourceClip": "Monster_Walk"
+    },
+    "chase": {
+      "name": "AshWitness_Chase",
+      "durationSeconds": 0.8,
+      "loop": true,
+      "strideMeters": 2.025948,
+      "sourceClip": "Armature|running|baselayer"
+    },
+    "attack": {
+      "name": "AshWitness_AttackLunge",
+      "durationSeconds": 0.95,
+      "loop": false,
+      "contactSeconds": 0.375,
+      "sourceClip": "Punch_Forward_with_Both_Fists"
+    },
+    "hit": {
+      "name": "AshWitness_HitRecoil",
+      "durationSeconds": 0.68,
+      "loop": false,
+      "sourceClip": "Hit_Reaction"
+    },
+    "collapse": {
+      "name": "AshWitness_Collapse",
+      "durationSeconds": 2.1,
+      "loop": false,
+      "sourceClip": "dying_backwards"
+    }
+  },
+  "idle": {
+    "name": "AshWitness_Idle",
+    "source": "preserved v03"
+  },
+  "notes": [
+    "Exact existing mesh, material, texture and inverse-bind data retained.",
+    "No live service or authoring directory is used by the game.",
+    "Scream and stagger acquired but kept offline; they are not continuously played."
+  ]
+}

@@ -1,0 +1,467 @@
+{
+  "formatVersion": 1,
+  "id": "afterlife-ash-witness-rig-v05",
+  "status": "RUNTIME_ACCEPTED_BOUNDED_ARTICULATION",
+  "integratedInGame": true,
+  "files": {
+    "glb": "art/character-rig-v05/afterlife-ash-witness-rig-v05.glb",
+    "master": ".art-source/character-rig-v05/Ash_Witness_Rig_v05.blend",
+    "script": "scripts/rig-zombie-v05.py",
+    "renders": [
+      "output/playwright/character-rig-v05/jaw-closed-front.png",
+      "output/playwright/character-rig-v05/jaw-closed-side.png",
+      "output/playwright/character-rig-v05/jaw-open-front.png",
+      "output/playwright/character-rig-v05/jaw-open-side.png",
+      "output/playwright/character-rig-v05/oral-interior-close.png",
+      "output/playwright/character-rig-v05/hand-group-grip.png"
+    ],
+    "runtimeGlb": "assets/models/afterlife-ash-witness-rig-v05.glb",
+    "runtimeManifest": "assets/models/afterlife-ash-witness-rig-v05-manifest.json"
+  },
+  "source": {
+    "file": "assets/models/afterlife-ash-witness-motion-v04.glb",
+    "sha256": "0d4cbb2f89e9295cb2ee95d437c25d17f5cb993e77c2ea74dfca564a5ada6c5c",
+    "preservationChecks": {
+      "first24JointOrderExact": true,
+      "originalNodeTrsAndExtrasExact": true,
+      "originalChildOrderPrefixExact": true,
+      "first24InverseBindMatricesExact": true,
+      "originalMaterialExact": true,
+      "originalVertexPositionsExact": true,
+      "originalVertexNormalsExact": true,
+      "originalVertexUvExact": true,
+      "sixAnimationMetadataExact": true,
+      "sixAnimationInputOutputArraysExact": true,
+      "originalPackedWebpBytesExact": true,
+      "originalTextureDefinitionsExact": true
+    }
+  },
+  "candidate": {
+    "bytes": 3689188,
+    "sha256": "26556b4da1694df57995311a796a557622da6d81b6a1ca7f39edd65a79c7426e",
+    "triangles": 31905,
+    "primitiveTriangles": [
+      28088,
+      2217,
+      1600
+    ],
+    "vertices": 43019,
+    "jointCount": 28,
+    "materialCount": 3,
+    "imageCount": 1,
+    "animations": [
+      {
+        "name": "AshWitness_Idle",
+        "channels": 72,
+        "extras": {}
+      },
+      {
+        "name": "AshWitness_Shuffle",
+        "channels": 72,
+        "extras": {
+          "bodycamMotionVersion": 4,
+          "loop": true,
+          "strideMeters": 1.3572499574477312,
+          "authoredFall": false
+        }
+      },
+      {
+        "name": "AshWitness_Chase",
+        "channels": 72,
+        "extras": {
+          "bodycamMotionVersion": 4,
+          "loop": true,
+          "strideMeters": 2.025948385372925,
+          "authoredFall": false
+        }
+      },
+      {
+        "name": "AshWitness_AttackLunge",
+        "channels": 72,
+        "extras": {
+          "bodycamMotionVersion": 4,
+          "contactSeconds": 0.375,
+          "loop": false,
+          "authoredFall": false
+        }
+      },
+      {
+        "name": "AshWitness_HitRecoil",
+        "channels": 72,
+        "extras": {
+          "bodycamMotionVersion": 4,
+          "loop": false,
+          "authoredFall": false
+        }
+      },
+      {
+        "name": "AshWitness_Collapse",
+        "channels": 72,
+        "extras": {
+          "bodycamMotionVersion": 4,
+          "loop": false,
+          "authoredFall": true
+        }
+      }
+    ],
+    "packing": {
+      "binaryBytesBefore": 5825480,
+      "binaryBytesAfter": 3550580,
+      "removedBytes": 2274900,
+      "accessorsBefore": 1185,
+      "accessorsAfter": 814,
+      "bufferViewsBefore": 15,
+      "bufferViewsAfter": 12,
+      "method": "Copy reachable bufferView contents exactly; remap accessor/view indices. No quantization, resampling or image conversion."
+    }
+  },
+  "controls": {
+    "Jaw": {
+      "node": 26,
+      "joint": 24,
+      "parent": "Head",
+      "pivotGltfMeters": [
+        0.01,
+        1.738,
+        0.002
+      ],
+      "globalRestQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "articulation": {
+        "role": "jaw",
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "maxAngleRadians": 0.58,
+        "sign": 1
+      }
+    },
+    "Tongue": {
+      "node": 27,
+      "joint": 25,
+      "parent": "Jaw",
+      "pivotGltfMeters": [
+        0.022,
+        1.691,
+        0.053
+      ],
+      "globalRestQuaternion": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "articulation": {
+        "role": "tongue",
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "maxAngleRadians": 0.16,
+        "sign": -1
+      }
+    },
+    "LeftGrip": {
+      "node": 28,
+      "joint": 26,
+      "parent": "LeftHand",
+      "pivotGltfMeters": [
+        0.724,
+        1.4,
+        0.08
+      ],
+      "globalRestQuaternion": [
+        0,
+        -0.7071067690849304,
+        0,
+        0.7071067690849304
+      ],
+      "articulation": {
+        "role": "grip",
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "maxAngleRadians": 0.7,
+        "sign": -1
+      }
+    },
+    "RightGrip": {
+      "node": 29,
+      "joint": 27,
+      "parent": "RightHand",
+      "pivotGltfMeters": [
+        -0.724,
+        1.405,
+        0.081
+      ],
+      "globalRestQuaternion": [
+        0,
+        -0.7071067690849304,
+        0,
+        0.7071067690849304
+      ],
+      "articulation": {
+        "role": "grip",
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "maxAngleRadians": 0.7,
+        "sign": 1
+      }
+    }
+  },
+  "sockets": [
+    {
+      "name": "Socket_Head",
+      "parent": "Head",
+      "node": 30,
+      "positionGltfMeters": [
+        0,
+        1.735,
+        0
+      ],
+      "nodeLocalUnit": "inherits original0.01 parent scale; socket children need matching world-scale handling"
+    },
+    {
+      "name": "Socket_Neck",
+      "parent": "neck",
+      "node": 31,
+      "positionGltfMeters": [
+        0,
+        1.58,
+        0.025
+      ],
+      "nodeLocalUnit": "inherits original0.01 parent scale; socket children need matching world-scale handling"
+    },
+    {
+      "name": "Socket_Chest",
+      "parent": "Spine",
+      "node": 32,
+      "positionGltfMeters": [
+        0,
+        1.4,
+        0.105
+      ],
+      "nodeLocalUnit": "inherits original0.01 parent scale; socket children need matching world-scale handling"
+    },
+    {
+      "name": "Socket_Abdomen",
+      "parent": "Spine02",
+      "node": 33,
+      "positionGltfMeters": [
+        -0.01,
+        1.045,
+        0.103
+      ],
+      "nodeLocalUnit": "inherits original0.01 parent scale; socket children need matching world-scale handling"
+    },
+    {
+      "name": "Socket_LeftWrist",
+      "parent": "LeftHand",
+      "node": 34,
+      "positionGltfMeters": [
+        0.6432,
+        1.41965,
+        0.08618
+      ],
+      "nodeLocalUnit": "inherits original0.01 parent scale; socket children need matching world-scale handling"
+    },
+    {
+      "name": "Socket_RightWrist",
+      "parent": "RightHand",
+      "node": 35,
+      "positionGltfMeters": [
+        -0.6474,
+        1.42203,
+        0.08611
+      ],
+      "nodeLocalUnit": "inherits original0.01 parent scale; socket children need matching world-scale handling"
+    }
+  ],
+  "weights": {
+    "exteriorWeightedVertices": {
+      "RightGrip": 937,
+      "Jaw": 781,
+      "LeftGrip": 1440
+    },
+    "allWeightedVertices": {
+      "RightGrip": 937,
+      "RightHand": 1826,
+      "RightForeArm": 1606,
+      "RightArm": 2049,
+      "Spine02": 9333,
+      "Spine01": 6033,
+      "RightShoulder": 3327,
+      "RightToeBase": 614,
+      "RightFoot": 2014,
+      "RightLeg": 2113,
+      "RightUpLeg": 4737,
+      "neck": 11775,
+      "Spine": 3969,
+      "Hips": 10104,
+      "LeftShoulder": 3557,
+      "LeftUpLeg": 5637,
+      "Head": 14354,
+      "Jaw": 1897,
+      "LeftArm": 1669,
+      "LeftLeg": 2141,
+      "LeftFoot": 2006,
+      "LeftToeBase": 899,
+      "LeftForeArm": 2128,
+      "LeftHand": 2351,
+      "LeftGrip": 1440,
+      "Tongue": 242
+    },
+    "maxSumError": 2.220446049250313e-16,
+    "unweightedVertices": 0
+  },
+  "mouth": {
+    "actualExteriorCut": true,
+    "overlay": false,
+    "centerGltfMeters": [
+      0.02199999988079071,
+      1.6979999542236328,
+      0.11299999803304672
+    ],
+    "planeRight": [
+      0.9427546858787537,
+      -0.3334870934486389,
+      0
+    ],
+    "planeUp": [
+      0.3334870934486389,
+      0.9427546858787537,
+      0
+    ],
+    "ellipseRadiiMeters": [
+      0.03,
+      0.0048
+    ],
+    "changedScannedFaces": 52,
+    "cutBoundaryVertices": 73,
+    "authoredTeeth": 20,
+    "interior": "continuous weighted lip edge, cheek/palate cavity and closed throat back; upper/lower dental arcs, clipped/cusped enamel shapes, gum ridges and weighted dorsal tongue"
+  },
+  "metadataApi": {
+    "pose": "restQuaternion * Quaternion(axisLocal, normalizedAmount*maxAngleRadians*sign), applied absolutely after mixer",
+    "controls": "node.extras.articulation",
+    "oralMaterials": "material.extras.oralSurface and surfaceRole",
+    "sockets": "node.extras.attachmentSocket; original0.01 scale inheritance retained"
+  },
+  "limits": [
+    "Finger silhouettes remain fused; LeftGrip/RightGrip curl weighted groups, not independent anatomical fingers.",
+    "Original scanned exterior is not remeshed; mouth boundary uses a local convex ellipse and blended chin/cheek weights.",
+    "No facial expressions, full dental occlusion solver, corrective shape keys or tissue SSS.",
+    "Original v04 motion channels and packed WebP remain exact; additional controls require runtime application after the mixer.",
+    "Sockets inherit original0.01 joint scale; attachment code must account for scale.",
+    "Blender proof uses the exact decoded original atlas without emission for form review; final game lighting needs separate QA."
+  ],
+  "qualityVerdict": "Accepted for bounded jaw/tongue/group-grip runtime articulation after original clip/bind preservation, neutral form review, actual bite camera/lighting, release/death/restart, co-op clock isolation and desktop/portrait weapon checks. Combat jaw peak is 0.66; coarse cheeks, simplified oral detail and fused fingers remain visible. Physical tooth/finger contact and professional realism are not certified.",
+  "review": {
+    "frontSideOpenClosedViewed": true,
+    "oralInteriorCloseViewed": true,
+    "weightedHandGripViewed": true,
+    "initialLipSpikeCorrected": true,
+    "runtimeIntegrationVerified": true,
+    "claimsProfessionalPhotorealism": false
+  },
+  "referenceLedger": [
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-3d-generator/SKILL.md",
+      "loaded": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-3d-generator/references/threejs-integration.md",
+      "loaded": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/model-recipes.md",
+      "loaded": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/checklists/procedural-model-quality.md",
+      "loaded": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-procedural-animation/SKILL.md",
+      "loaded": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-procedural-animation/references/procedural-motion-and-docking-systems.md",
+      "loaded": true
+    }
+  ],
+  "externalGeneration": {
+    "newPaidJobs": 0,
+    "reason": "User-authorized source rig revision: exact existing scanned exterior/packed texture reused. New oral geometry authored offline to preserve existing skeleton/clips; no provider generation needed."
+  },
+  "runtimeVerification": {
+    "status": "PASS_FOR_BOUNDED_RUNTIME_ARTICULATION",
+    "sha256": "26556b4da1694df57995311a796a557622da6d81b6a1ca7f39edd65a79c7426e",
+    "cpuChecks": 82,
+    "bench": {
+      "views": 16,
+      "errors": 0,
+      "jawDisplacement": 0.07821235489285493,
+      "gripDisplacement": 0.035374741106408855
+    },
+    "game": {
+      "views": 31,
+      "errors": 0,
+      "seconds": 120,
+      "cycles": 11,
+      "shots": 12,
+      "distance": 0.5476165442938011,
+      "observedFps": 32.620041753653695,
+      "peerArticulation": {
+        "distinct": true,
+        "local": {
+          "jawOpen": 0.18,
+          "tongueLift": 0.063,
+          "lipCurl": 0.072,
+          "leftGrip": 0.92,
+          "rightGrip": 0.92
+        },
+        "peer": {
+          "jawOpen": 0.6571149511645379,
+          "tongueLift": 0.22999023290758824,
+          "lipCurl": 0.26284598046581514,
+          "leftGrip": 0.92,
+          "rightGrip": 0.92
+        },
+        "peerControls": 4
+      }
+    },
+    "installedWebGameClient": {
+      "result": "PASS",
+      "iterations": 2,
+      "captures": [
+        "floor-residue.json",
+        "floor-residue.png",
+        "shot-0.png",
+        "shot-1.png",
+        "state-0.json",
+        "state-1.json"
+      ]
+    },
+    "independentReview": "output/playwright/character-rig-v05/independent-review.json",
+    "runtimeJawPeak": 0.66,
+    "reducedMotionJawPeak": 0.42,
+    "newPaidJobs": 0,
+    "performanceTargetCertified": false,
+    "professionalRealismCertified": false,
+    "evidenceRoot": "output/playwright/character-rig-v05/",
+    "controller": "character-articulation.js"
+  }
+}

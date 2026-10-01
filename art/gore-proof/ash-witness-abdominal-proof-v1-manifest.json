@@ -1,0 +1,786 @@
+{
+  "formatVersion": 1,
+  "id": "ash-witness-abdominal-proof-v1",
+  "status": "OFFLINE_ANATOMICAL_ASSET_PROOF_REQUIRES_VISUAL_REVIEW",
+  "integratedInGame": false,
+  "files": {
+    "glb": "art/gore-proof/ash-witness-abdominal-proof-v1.glb",
+    "atlas": "art/gore-proof/tissue-atlas-v1-1024.png",
+    "master": ".art-source/gore-proof/Ash_Witness_Abdominal_Proof_v1.blend",
+    "authoringScript": "scripts/gore-anatomy-proof.py",
+    "renders": [
+      "output/playwright/gore-proof/abdominal-packed-neutral.png",
+      "output/playwright/gore-proof/abdominal-packed-warm.png",
+      "output/playwright/gore-proof/abdominal-packed-cool.png",
+      "output/playwright/gore-proof/abdominal-floor-spill-reference.png"
+    ]
+  },
+  "bytes": {
+    "glb": 2738404,
+    "atlas": 2030750
+  },
+  "sha256": {
+    "glb": "cf0d2eaa0e14c73f32a749e4900017561dfe391339b1f20d284615f0c1d87952",
+    "source": "0d4cbb2f89e9295cb2ee95d437c25d17f5cb993e77c2ea74dfca564a5ada6c5c"
+  },
+  "sourceFit": {
+    "canonicalSource": "assets/models/afterlife-ash-witness-motion-v04.glb",
+    "readOnlySource": true,
+    "inspection": ".art-source/gore-proof/source-fit-inspection.json",
+    "heightMeters": 1.86,
+    "nativeAxes": "Blender +Z up, -Y anterior; glTF +Y up, +Z anterior",
+    "rootAnchorBlenderMeters": [
+      -0.009999999776482582,
+      -0.10300000011920929,
+      1.0449999570846558
+    ],
+    "rootAnchorGltfMeters": [
+      -0.009999999776482582,
+      1.0449999570846558,
+      0.10300000011920929
+    ],
+    "attachmentBones": [
+      "Hips",
+      "Spine02"
+    ],
+    "fitNote": "Sized against exact latest GLB rest geometry (only unsupported WebP material removed in an offline copy). Wound spans lower abdomen; center sits near anterior rest surface. No original topology, material, inverse-bind matrix, clip, or runtime scale changed. Character's runtime PI yaw must be inherited. True cavity requires local skin culling/wound-mask and anatomical body replacement integration."
+  },
+  "geometry": {
+    "meshCount": 7,
+    "triangles": 14492,
+    "materialCount": 3,
+    "materials": [
+      {
+        "name": "Exposed_Muscle_And_Clot",
+        "roughness": 0.5299999713897705,
+        "metalness": 0
+      },
+      {
+        "name": "Visceral_Serosa",
+        "roughness": 0.4300000071525574,
+        "metalness": 0
+      },
+      {
+        "name": "Fascia_And_Mesentery",
+        "roughness": 0.49000000953674316,
+        "metalness": 0
+      }
+    ],
+    "textureCount": 1,
+    "atlasDimensions": [
+      1024,
+      1024
+    ],
+    "atlasGutterPixels": 20,
+    "boundsBlenderMeters": {
+      "low": [
+        -0.1377032846212387,
+        -0.2936968207359314,
+        0.8004579544067383
+      ],
+      "high": [
+        0.12579259276390076,
+        -0.00299999862909317,
+        1.1816942691802979
+      ]
+    },
+    "boundsGltfMeters": {
+      "low": [
+        -0.1377032846212387,
+        0.8004579544067383,
+        0.00299999862909317
+      ],
+      "high": [
+        0.12579259276390076,
+        1.1816942691802979,
+        0.2936968207359314
+      ]
+    },
+    "floorBoundsBlenderMeters": {
+      "low": [
+        -0.1377032846212387,
+        -0.536946713924408,
+        0.01649796962738037
+      ],
+      "high": [
+        0.18259704113006592,
+        -0.00299999862909317,
+        1.1816942691802979
+      ]
+    },
+    "floorBoundsGltfMeters": {
+      "low": [
+        -0.1377032846212387,
+        0.01649796962738037,
+        0.00299999862909317
+      ],
+      "high": [
+        0.18259704113006592,
+        1.1816942691802979,
+        0.536946713924408
+      ]
+    },
+    "authoredLengths": {
+      "smallBowelPackedMeters": 1.8437508661860522,
+      "smallBowelFloorReferenceMeters": 2.006573735036413,
+      "partialColonMeters": 0.1760947352441422,
+      "radiusMeters": {
+        "smallBowelMin": 0.009715204873055255,
+        "smallBowelMax": 0.01970423460191787,
+        "partialColonMin": 0.021649146416911208,
+        "partialColonMax": 0.028701808815308618
+      }
+    },
+    "meshes": [
+      {
+        "name": "Wound_Layered_Rim_And_Cavity",
+        "vertices": 394,
+        "triangles": 784,
+        "polygonCount": 448,
+        "usedMaterialSlots": [
+          0,
+          2
+        ],
+        "boundaryEdges": 0,
+        "nonmanifoldEdges": 0,
+        "inconsistentWindingEdges": 0,
+        "degenerateTriangles": 0,
+        "normalLengthMin": 0.9999574823579487,
+        "normalLengthMax": 0.9999990267674359,
+        "normalNonfiniteComponents": 0,
+        "signedVolumeMetersCubed": 0.0009071416262303995,
+        "uvLayer": "Tissue_Atlas_20px_Gutter",
+        "uvOutOfGutterRangeLoops": 0,
+        "uvZeroAreaTriangles": 0,
+        "boundsBlenderMeters": {
+          "low": [
+            -0.1377032846212387,
+            -0.12912815809249878,
+            0.8832008838653564
+          ],
+          "high": [
+            0.12579259276390076,
+            -0.00299999862909317,
+            1.1816942691802979
+          ]
+        },
+        "shapeKeys": [],
+        "morphDiagnostics": []
+      },
+      {
+        "name": "Torn_Muscle_Strata",
+        "vertices": 1204,
+        "triangles": 2380,
+        "polygonCount": 1260,
+        "usedMaterialSlots": [
+          0
+        ],
+        "boundaryEdges": 0,
+        "nonmanifoldEdges": 0,
+        "inconsistentWindingEdges": 0,
+        "degenerateTriangles": 0,
+        "normalLengthMin": 0.9999525014206371,
+        "normalLengthMax": 0.9999982647917429,
+        "normalNonfiniteComponents": 0,
+        "signedVolumeMetersCubed": 4.728179732891682e-05,
+        "uvLayer": "Tissue_Atlas_20px_Gutter",
+        "uvOutOfGutterRangeLoops": 0,
+        "uvZeroAreaTriangles": 0,
+        "boundsBlenderMeters": {
+          "low": [
+            -0.1200224906206131,
+            -0.14031358063220978,
+            0.9144755601882935
+          ],
+          "high": [
+            0.09874756634235382,
+            -0.113454669713974,
+            1.1781983375549316
+          ]
+        },
+        "shapeKeys": [],
+        "morphDiagnostics": []
+      },
+      {
+        "name": "Fascia_Fat_Lobules",
+        "vertices": 648,
+        "triangles": 1260,
+        "polygonCount": 720,
+        "usedMaterialSlots": [
+          2
+        ],
+        "boundaryEdges": 0,
+        "nonmanifoldEdges": 0,
+        "inconsistentWindingEdges": 0,
+        "degenerateTriangles": 0,
+        "normalLengthMin": 0.9999484406530862,
+        "normalLengthMax": 0.9999996097512087,
+        "normalNonfiniteComponents": 0,
+        "signedVolumeMetersCubed": 8.441852327900616e-06,
+        "uvLayer": "Tissue_Atlas_20px_Gutter",
+        "uvOutOfGutterRangeLoops": 0,
+        "uvZeroAreaTriangles": 0,
+        "boundsBlenderMeters": {
+          "low": [
+            -0.11104736477136612,
+            -0.12830974161624908,
+            0.9235508441925049
+          ],
+          "high": [
+            0.027671368792653084,
+            -0.10191165655851364,
+            1.0892002582550049
+          ]
+        },
+        "shapeKeys": [],
+        "morphDiagnostics": []
+      },
+      {
+        "name": "Small_Bowel_Attached_Bundle",
+        "vertices": 3002,
+        "triangles": 6000,
+        "polygonCount": 3020,
+        "usedMaterialSlots": [
+          0,
+          1
+        ],
+        "boundaryEdges": 0,
+        "nonmanifoldEdges": 0,
+        "inconsistentWindingEdges": 0,
+        "degenerateTriangles": 0,
+        "normalLengthMin": 0.9999517302486184,
+        "normalLengthMax": 0.9999990044156721,
+        "normalNonfiniteComponents": 0,
+        "signedVolumeMetersCubed": 0.0010860268293215087,
+        "uvLayer": "Tissue_Atlas_20px_Gutter",
+        "uvOutOfGutterRangeLoops": 0,
+        "uvZeroAreaTriangles": 0,
+        "boundsBlenderMeters": {
+          "low": [
+            -0.1171393170952797,
+            -0.2936968207359314,
+            0.8004579544067383
+          ],
+          "high": [
+            0.11940547078847885,
+            -0.054756999015808105,
+            1.119807481765747
+          ]
+        },
+        "shapeKeys": [
+          "Basis",
+          "Floor_Spill_Reference"
+        ],
+        "morphDiagnostics": [
+          {
+            "name": "Floor_Spill_Reference",
+            "nonfiniteCoordinates": 0,
+            "degenerateEndpointTriangles": 0,
+            "minimumEndpointTriangleAreaMetersSquared": 7.929499040899074e-06,
+            "signedEndpointVolumeMetersCubed": 0.001186042373149088
+          }
+        ]
+      },
+      {
+        "name": "Partial_Colon_Haustra",
+        "vertices": 704,
+        "triangles": 1404,
+        "polygonCount": 720,
+        "usedMaterialSlots": [
+          1
+        ],
+        "boundaryEdges": 0,
+        "nonmanifoldEdges": 0,
+        "inconsistentWindingEdges": 0,
+        "degenerateTriangles": 0,
+        "normalLengthMin": 0.9999540549392748,
+        "normalLengthMax": 0.9999990443461665,
+        "normalNonfiniteComponents": 0,
+        "signedVolumeMetersCubed": 0.00024129948656172897,
+        "uvLayer": "Tissue_Atlas_20px_Gutter",
+        "uvOutOfGutterRangeLoops": 0,
+        "uvZeroAreaTriangles": 0,
+        "boundsBlenderMeters": {
+          "low": [
+            0.022748058661818504,
+            -0.11212383955717087,
+            0.9814822673797607
+          ],
+          "high": [
+            0.11851022392511368,
+            -0.048009227961301804,
+            1.1577142477035522
+          ]
+        },
+        "shapeKeys": [],
+        "morphDiagnostics": []
+      },
+      {
+        "name": "Mesentery_Attachment_Fan",
+        "vertices": 798,
+        "triangles": 1584,
+        "polygonCount": 792,
+        "usedMaterialSlots": [
+          2
+        ],
+        "boundaryEdges": 0,
+        "nonmanifoldEdges": 0,
+        "inconsistentWindingEdges": 0,
+        "degenerateTriangles": 0,
+        "normalLengthMin": 0.9999549900296653,
+        "normalLengthMax": 0.9999968316355818,
+        "normalNonfiniteComponents": 0,
+        "signedVolumeMetersCubed": 3.8460180171858506e-05,
+        "uvLayer": "Tissue_Atlas_20px_Gutter",
+        "uvOutOfGutterRangeLoops": 0,
+        "uvZeroAreaTriangles": 0,
+        "boundsBlenderMeters": {
+          "low": [
+            -0.10588337481021881,
+            -0.2044755071401596,
+            0.939697265625
+          ],
+          "high": [
+            0.09879433363676071,
+            -0.055000003427267075,
+            1.1026350259780884
+          ]
+        },
+        "shapeKeys": [
+          "Basis",
+          "Floor_Spill_Reference"
+        ],
+        "morphDiagnostics": [
+          {
+            "name": "Floor_Spill_Reference",
+            "nonfiniteCoordinates": 0,
+            "degenerateEndpointTriangles": 0,
+            "minimumEndpointTriangleAreaMetersSquared": 5.503002379979673e-07,
+            "signedEndpointVolumeMetersCubed": 3.910989752906036e-05
+          }
+        ]
+      },
+      {
+        "name": "Mesenteric_Vessel_Relief",
+        "vertices": 558,
+        "triangles": 1080,
+        "polygonCount": 594,
+        "usedMaterialSlots": [
+          0
+        ],
+        "boundaryEdges": 0,
+        "nonmanifoldEdges": 0,
+        "inconsistentWindingEdges": 0,
+        "degenerateTriangles": 0,
+        "normalLengthMin": 0.9999563088409209,
+        "normalLengthMax": 0.9999986083702745,
+        "normalNonfiniteComponents": 0,
+        "signedVolumeMetersCubed": 3.94368705633995e-06,
+        "uvLayer": "Tissue_Atlas_20px_Gutter",
+        "uvOutOfGutterRangeLoops": 0,
+        "uvZeroAreaTriangles": 0,
+        "boundsBlenderMeters": {
+          "low": [
+            -0.09421586245298386,
+            -0.2062501162290573,
+            0.940079391002655
+          ],
+          "high": [
+            0.09193155169487,
+            -0.059062350541353226,
+            1.0989713668823242
+          ]
+        },
+        "shapeKeys": [
+          "Basis",
+          "Floor_Spill_Reference"
+        ],
+        "morphDiagnostics": [
+          {
+            "name": "Floor_Spill_Reference",
+            "nonfiniteCoordinates": 0,
+            "degenerateEndpointTriangles": 0,
+            "minimumEndpointTriangleAreaMetersSquared": 9.499473234786808e-07,
+            "signedEndpointVolumeMetersCubed": 1.1455009879794233e-05
+          }
+        ]
+      }
+    ]
+  },
+  "shape": {
+    "key": "Floor_Spill_Reference",
+    "default": 0,
+    "floorReference": 1,
+    "animatedObjects": [
+      "Small_Bowel_Attached_Bundle",
+      "Mesentery_Attachment_Fan",
+      "Mesenteric_Vessel_Relief"
+    ],
+    "clipCount": 0,
+    "note": "Single authored morph, not physics. Endpoint normals exported. Intermediate paths have not been collision-tested; floor endpoint is an anatomical placement study with hidden proximal root and finished distal cap."
+  },
+  "sourcing": {
+    "geometry": "Authored offline semantic surfaces, sampled curved bowel paths with transported frames and varied cross sections; measured reused Ash Witness scanned character reference",
+    "atlas": "Generated four-quadrant image source .art-source/gore-proof/tissue-atlas-imagegen-v1.png, resized offline; not a scan or calibrated PBR set",
+    "quadrants": {
+      "topLeft": "exposed muscle fibers",
+      "topRight": "fascia/fat/mesentery",
+      "bottomLeft": "visceral serosa/veins",
+      "bottomRight": "coagulated cavity and distal clot"
+    },
+    "uv": "Full packed atlas coordinates with 20px inset, per-role seams; no normal map. Bowel uses real-distance 0.11m patches; other sweeps use0.065m patches. Wound uses planar per-role patches. Seam intervals are intentional and not geometrical boundaries."
+  },
+  "referenceLedger": [
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/SKILL.md",
+      "loaded": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/model-recipes.md",
+      "loaded": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/render-recipes.md",
+      "loaded": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/checklists/procedural-model-quality.md",
+      "loaded": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-procedural-geometry/SKILL.md",
+      "loaded": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-procedural-geometry/references/profile-sweeps-and-mesh-writers.md",
+      "loaded": true
+    }
+  ],
+  "anatomicalLimits": [
+    "Authored human-scale wound and bowel study, not an exact medical dissection; location and amount of bowel are cinematic.",
+    "Small bowel has irregular contraction; partial colon includes shallow haustra, not a complete abdominal organ inventory.",
+    "Mesentery is three opaque folded sheets with relief vessels; translucency, layered fascia thickness and severed tissue motion remain approximations.",
+    "Generated diffuse atlas contains faint baked highlights. No scanned roughness, normal or SSS data; neutral-color review is mandatory.",
+    "Wound is a separate closed insert. No hole exists in Ash Witness skin until controlled mask/cull integration; overlay alone cannot create a true cavity.",
+    "Floor-reference morph changes arc length and does not preserve volume or enforce collisions. Only endpoint geometry was authored.",
+    "Asset renders do not certify game performance, correct clip attachment, mobile rendering or finished gore mechanics."
+  ],
+  "qualityVerdict": "Offline anatomy direction proof, below professional realistic gore target. One focused correction removed stretched hose-like stripes, smoothed bowel cross sections, broke concentric rim bands, and finished membrane UVs. Neutral/warm/cool endpoint renders were inspected. Remaining loop-like bowel silhouette, broad opaque mesentery fans, thin layered wound rim and generated baked diffuse highlights need an authored/sculpted anatomy pass before game acceptance.",
+  "exportDiagnostics": {
+    "headerLengthMatches": true,
+    "meshCount": 7,
+    "materialCount": 3,
+    "textureCount": 3,
+    "imageCount": 1,
+    "embeddedImages": 1,
+    "externalUris": [],
+    "animationCount": 0,
+    "skinCount": 0,
+    "primitives": [
+      {
+        "mesh": "Fascia_Fat_Lobules_Geometry",
+        "vertices": 1062,
+        "triangles": 1260,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TANGENT",
+          "TEXCOORD_0"
+        ],
+        "normalNonfinite": 0,
+        "normalLengthRange": [
+          0.9999484309947585,
+          0.9999996172021898
+        ],
+        "tangentNonfinite": 0,
+        "tangentLengthRange": [
+          0.9999998872697419,
+          1.0000001312220717
+        ],
+        "morphTargetNames": [],
+        "morphTargets": []
+      },
+      {
+        "mesh": "Mesenteric_Vessel_Relief_Geometry",
+        "vertices": 946,
+        "triangles": 1080,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TANGENT",
+          "TEXCOORD_0"
+        ],
+        "normalNonfinite": 0,
+        "normalLengthRange": [
+          0.9999563166876273,
+          0.9999985946705965
+        ],
+        "tangentNonfinite": 0,
+        "tangentLengthRange": [
+          0.9999998866323303,
+          1.0000001133275156
+        ],
+        "morphTargetNames": [
+          "Floor_Spill_Reference"
+        ],
+        "morphTargets": [
+          {
+            "attributes": [
+              "NORMAL",
+              "POSITION"
+            ],
+            "vertexCounts": {
+              "POSITION": 946,
+              "NORMAL": 946
+            }
+          }
+        ]
+      },
+      {
+        "mesh": "Mesentery_Attachment_Fan_Geometry",
+        "vertices": 1092,
+        "triangles": 1584,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TANGENT",
+          "TEXCOORD_0"
+        ],
+        "normalNonfinite": 0,
+        "normalLengthRange": [
+          0.99995498381125,
+          0.999996835017257
+        ],
+        "tangentNonfinite": 0,
+        "tangentLengthRange": [
+          0.9999998798200139,
+          1.0000001205081457
+        ],
+        "morphTargetNames": [
+          "Floor_Spill_Reference"
+        ],
+        "morphTargets": [
+          {
+            "attributes": [
+              "NORMAL",
+              "POSITION"
+            ],
+            "vertexCounts": {
+              "POSITION": 1092,
+              "NORMAL": 1092
+            }
+          }
+        ]
+      },
+      {
+        "mesh": "Partial_Colon_Haustra_Geometry",
+        "vertices": 833,
+        "triangles": 1404,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TANGENT",
+          "TEXCOORD_0"
+        ],
+        "normalNonfinite": 0,
+        "normalLengthRange": [
+          0.999954058322655,
+          0.9999990525954126
+        ],
+        "tangentNonfinite": 0,
+        "tangentLengthRange": [
+          0.9999998824274295,
+          1.0000001156744243
+        ],
+        "morphTargetNames": [],
+        "morphTargets": []
+      },
+      {
+        "mesh": "Small_Bowel_Attached_Bundle_Geometry",
+        "vertices": 21,
+        "triangles": 20,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TANGENT",
+          "TEXCOORD_0"
+        ],
+        "normalNonfinite": 0,
+        "normalLengthRange": [
+          0.9999625402635812,
+          0.9999948774533681
+        ],
+        "tangentNonfinite": 0,
+        "tangentLengthRange": [
+          0.999999968689663,
+          1.0000001336452955
+        ],
+        "morphTargetNames": [
+          "Floor_Spill_Reference"
+        ],
+        "morphTargets": [
+          {
+            "attributes": [
+              "NORMAL",
+              "POSITION"
+            ],
+            "vertexCounts": {
+              "POSITION": 21,
+              "NORMAL": 21
+            }
+          }
+        ]
+      },
+      {
+        "mesh": "Small_Bowel_Attached_Bundle_Geometry",
+        "vertices": 3546,
+        "triangles": 5980,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TANGENT",
+          "TEXCOORD_0"
+        ],
+        "normalNonfinite": 0,
+        "normalLengthRange": [
+          0.9999517298193485,
+          0.999998991579826
+        ],
+        "tangentNonfinite": 0,
+        "tangentLengthRange": [
+          0.9999998668073364,
+          1.0000001376181782
+        ],
+        "morphTargetNames": [
+          "Floor_Spill_Reference"
+        ],
+        "morphTargets": [
+          {
+            "attributes": [
+              "NORMAL",
+              "POSITION"
+            ],
+            "vertexCounts": {
+              "POSITION": 3546,
+              "NORMAL": 3546
+            }
+          }
+        ]
+      },
+      {
+        "mesh": "Torn_Muscle_Strata_Geometry",
+        "vertices": 1629,
+        "triangles": 2380,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TANGENT",
+          "TEXCOORD_0"
+        ],
+        "normalNonfinite": 0,
+        "normalLengthRange": [
+          0.9999524995404251,
+          0.9999982671969478
+        ],
+        "tangentNonfinite": 0,
+        "tangentLengthRange": [
+          0.9999998693533549,
+          1.0000001295471523
+        ],
+        "morphTargetNames": [],
+        "morphTargets": []
+      },
+      {
+        "mesh": "Wound_Layered_Rim_And_Cavity_Geometry",
+        "vertices": 730,
+        "triangles": 752,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TANGENT",
+          "TEXCOORD_0"
+        ],
+        "normalNonfinite": 0,
+        "normalLengthRange": [
+          0.9999574932290064,
+          0.9999990239029646
+        ],
+        "tangentNonfinite": 0,
+        "tangentLengthRange": [
+          0.9999998598318365,
+          1.0000001295964716
+        ],
+        "morphTargetNames": [],
+        "morphTargets": []
+      },
+      {
+        "mesh": "Wound_Layered_Rim_And_Cavity_Geometry",
+        "vertices": 38,
+        "triangles": 32,
+        "attributes": [
+          "NORMAL",
+          "POSITION",
+          "TANGENT",
+          "TEXCOORD_0"
+        ],
+        "normalNonfinite": 0,
+        "normalLengthRange": [
+          0.9999574932290064,
+          0.9999968548886944
+        ],
+        "tangentNonfinite": 0,
+        "tangentLengthRange": [
+          0.9999999326984077,
+          1.0000000817906283
+        ],
+        "morphTargetNames": [],
+        "morphTargets": []
+      }
+    ],
+    "triangles": 14492,
+    "drawGroups": 9,
+    "rootNode": {
+      "children": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "name": "Abdominal_Wound_Proof_Root",
+      "translation": [
+        -0.009999999776482582,
+        1.0449999570846558,
+        0.10300000011920929
+      ]
+    }
+  },
+  "review": {
+    "neutralWarmCoolFramesViewed": true,
+    "floorReferenceFrameViewed": true,
+    "focusedCorrectionIterations": 1,
+    "claimsPremiumOrIntegrated": false,
+    "checksPassed": [
+      "<=15000 triangles",
+      "<=3 PBR materials",
+      "closed topology/caps/back surfaces",
+      "consistent winding",
+      "finite unit normals",
+      "finite exported tangents",
+      "no degenerate basis triangles",
+      "no degenerate endpoint morph triangles",
+      "20px atlas gutter",
+      "no zero-area triangle UVs",
+      "self-contained GLB without external URLs or skins/clips"
+    ],
+    "unverified": [
+      "intermediate morph self-intersection",
+      "skin cull integration",
+      "bone-following clip behavior",
+      "mobile performance",
+      "blood/physics/gameplay behavior"
+    ]
+  }
+}

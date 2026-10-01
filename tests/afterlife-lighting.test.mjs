@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three.module.js';
-import { AfterlifeLighting } from '../afterlife-lighting.js';
+import { AfterlifeLighting, selectPracticalCues } from '../afterlife-lighting.js';
 
 test('practical pool stays bounded across map rebuilds and preserves objective lights', () => {
   const scene = new THREE.Scene(), world = new THREE.Group(), lighting = new AfterlifeLighting(scene);
@@ -21,4 +21,16 @@ test('practical pool stays bounded across map rebuilds and preserves objective l
   lighting.rebuild(new THREE.Group()); lighting.update(camera, null, 2000);
   assert.ok(lighting.pools.every(o => o.intensity === 0));
   lighting.dispose(); assert.equal(scene.children.length, 0);
+});
+
+test('six-light budget reserves corridor fixtures ahead of nearby lamps behind the camera', () => {
+  const position = new THREE.Vector3(), direction = new THREE.Vector3(0, 0, -1);
+  const cues = [...Array.from({ length: 6 }, (_, i) => ({ position: new THREE.Vector3(i, 3, 3), isZone: true })),
+    { position: new THREE.Vector3(0, 3, -22), isZone: true }, { position: new THREE.Vector3(2, 3, -32), isZone: true }];
+  for (const cue of cues) cue.score = cue.distanceSquared = cue.position.lengthSq();
+  cues.sort((a, b) => a.score - b.score);
+  const selected = selectPracticalCues(cues, position, direction);
+  assert.equal(selected.length, 6);
+  assert.equal(new Set(selected).size, 6);
+  assert.equal(selected.filter(cue => cue.position.z < 0).length, 2);
 });

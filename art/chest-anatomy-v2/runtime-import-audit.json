@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "assetSha256": "e59235781f3aaf82cbc439a19fe112a3f7c3dbdcf581952f3aa151b31db90197",
+  "decoderStubOnly": true,
+  "components": [
+    {
+      "name": "ChestWound",
+      "dictionary": {
+        "TissueTension": 0
+      },
+      "vertexCount": 4075,
+      "targets": [
+        {
+          "name": "TissueTension",
+          "maximumDisplacementMeters": 0.004523832308281826,
+          "affectedVertices": 3497
+        }
+      ],
+      "resetExact": true,
+      "independentCloneInfluences": true,
+      "geometryAndMaterialShared": true,
+      "attributesUnmodified": true,
+      "loadedMorphAttributes": [
+        "position",
+        "normal"
+      ],
+      "tangentLimit": "Bundled GLTFLoader ignores morph tangent deltas; GLB preserves them for interchange, while runtime uses base tangents and morphed normals."
+    },
+    {
+      "name": "Heart",
+      "dictionary": {
+        "GripCompress": 0,
+        "VesselLagLeft": 1,
+        "VesselLagRight": 2
+      },
+      "vertexCount": 10311,
+      "targets": [
+        {
+          "name": "GripCompress",
+          "maximumDisplacementMeters": 0.007679863118737981,
+          "affectedVertices": 10311
+        },
+        {
+          "name": "VesselLagLeft",
+          "maximumDisplacementMeters": 0.006910861567874367,
+          "affectedVertices": 2257
+        },
+        {
+          "name": "VesselLagRight",
+          "maximumDisplacementMeters": 0.006910861567874367,
+          "affectedVertices": 2257
+        }
+      ],
+      "resetExact": true,
+      "independentCloneInfluences": true,
+      "geometryAndMaterialShared": true,
+      "attributesUnmodified": true,
+      "loadedMorphAttributes": [
+        "position",
+        "normal"
+      ],
+      "tangentLimit": "Bundled GLTFLoader ignores morph tangent deltas; GLB preserves them for interchange, while runtime uses base tangents and morphed normals."
+    }
+  ],
+  "acceptedV1Preserved": true
+}

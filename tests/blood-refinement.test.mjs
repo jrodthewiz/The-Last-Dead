@@ -44,8 +44,8 @@ test('flesh impact feedback layers a readable wound, seeded atlas variant and di
  assert.equal(fx.detailActive.wounds,1);
  assert.equal(fx.detailActive.drops,9);
  assert.ok([1,3].includes(fx.splashPool[0].variant),'rifle spray uses a directional atlas tile');
- assert.ok(fx.woundPool[0].size>.19,'wound layer has readable contact scale');
- assert.ok(fx.dropPool[0].size>=.014,'droplets retain visible close range scale');
+ assert.ok(fx.woundPool[0].size>=.10&&fx.woundPool[0].size<=.15,'contact stain stays smaller than the torn chest opening');
+ assert.ok(fx.dropPool[0].size>=.0025&&fx.dropPool[0].size<.006,'airborne droplets stay below a six millimetre radius');
  const matrix=new THREE.Matrix4();fx.bloodDrops.getMatrixAt(0,matrix);
  assert.ok([...matrix.elements].every(Number.isFinite),'droplet matrices stay finite');
  fx.clear();

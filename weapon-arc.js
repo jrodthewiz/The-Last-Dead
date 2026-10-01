@@ -1,9 +1,10 @@
+import {applyWeaponDetailPass} from './weapon-detail-pass.js';
 import {buildArcRedesign, animateArcRedesign} from './weapon-occult-redesign.js';
 
 // Public Arc Lance contract. The shared factory owns the open pronged frame
 // and ceramic capacitor while this module keeps the renderer's call shape.
 export function createArc(options = {}) {
-  return buildArcRedesign(options);
+  return applyWeaponDetailPass(buildArcRedesign(options), 'arc');
 }
 
 export function animateArc(root, time = 0, shot = 0, dt = .016, state = {}) {

@@ -1,0 +1,93 @@
+{
+  "status": "PASS",
+  "sha256": "8a8bae91a89e59330ea57cff77d43dee93a20c13c48686ad59d314d3bc5864f4",
+  "bytes": 1974900,
+  "importer": "Actual bundled vendor/loaders/GLTFLoader.js",
+  "bitmapDecodeStubbed": true,
+  "caveat": "Node bitmap decoding is stubbed. This validates actual topology/morph/material intake and native per-instance morph data; parent browser QA owns image decode and visual acceptance.",
+  "parts": [
+    {
+      "name": "Rat",
+      "indexed": true,
+      "vertices": 4880,
+      "triangles": 6124,
+      "dictionary": {
+        "ScurryA": 0,
+        "ScurryB": 1,
+        "Bite": 2,
+        "TailLeft": 3,
+        "TailRight": 4
+      },
+      "relativeMorphs": true,
+      "zeroDefaults": true,
+      "exactNeutralRestoration": true,
+      "nativeIndependentInstanceMorphs": true,
+      "instanceMorphCapacityWhileCountZero": 3,
+      "sourceGeometryPreserved": true,
+      "keys": [
+        {
+          "name": "ScurryA",
+          "maxDisplacementMeters": 0.012071025550452164
+        },
+        {
+          "name": "ScurryB",
+          "maxDisplacementMeters": 0.012071025550452164
+        },
+        {
+          "name": "Bite",
+          "maxDisplacementMeters": 0.01872140803724362
+        },
+        {
+          "name": "TailLeft",
+          "maxDisplacementMeters": 0.03214032175888319
+        },
+        {
+          "name": "TailRight",
+          "maxDisplacementMeters": 0.032140318049856564
+        }
+      ],
+      "mapsPresent": true,
+      "colorMapSrgb": true,
+      "supportMapsNoColor": true
+    },
+    {
+      "name": "Cockroach",
+      "indexed": true,
+      "vertices": 1766,
+      "triangles": 2252,
+      "dictionary": {
+        "ScurryA": 0,
+        "ScurryB": 1,
+        "AntennaLeft": 2,
+        "AntennaRight": 3
+      },
+      "relativeMorphs": true,
+      "zeroDefaults": true,
+      "exactNeutralRestoration": true,
+      "nativeIndependentInstanceMorphs": true,
+      "instanceMorphCapacityWhileCountZero": 3,
+      "sourceGeometryPreserved": true,
+      "keys": [
+        {
+          "name": "ScurryA",
+          "maxDisplacementMeters": 0.0032093617026463517
+        },
+        {
+          "name": "ScurryB",
+          "maxDisplacementMeters": 0.0032093617026463517
+        },
+        {
+          "name": "AntennaLeft",
+          "maxDisplacementMeters": 0.0055901697771494775
+        },
+        {
+          "name": "AntennaRight",
+          "maxDisplacementMeters": 0.0055901697771494775
+        }
+      ],
+      "mapsPresent": true,
+      "colorMapSrgb": true,
+      "supportMapsNoColor": true
+    }
+  ]
+}

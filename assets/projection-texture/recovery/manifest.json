@@ -1,0 +1,26 @@
+{
+  "kind": "recovery",
+  "resolution": 512,
+  "triangles": 72,
+  "sourceVertices": 144,
+  "bakedVertices": 144,
+  "uvOccupiedTexels": 154281,
+  "projectedTexels": 117079,
+  "projectedCoverage": 0.7588685580207544,
+  "uvInteriorOverlapTexels": 0,
+  "runtimeTextureBytesWithMipmaps": 1398101,
+  "runtimeMaps": [
+    "albedo"
+  ],
+  "materialValues": "source roughness/metalness preserved as constant-per-face vertex data",
+  "unprojectedPolicy": "source color, with explicit authored per-part palette overrides; no invented hidden geometry",
+  "sourceSheet": ".art-source/projection-texture/recovery/painted-projections-v2.png",
+  "runtime": "C:\\Users\\wolfk\\Desktop\\thelastdead\\assets\\projection-texture\\recovery",
+  "fallbackColorOverrides": {
+    "RoomChunk_bloodworks_bloodworks-act-i-entry_RecoveryBayJamb_stained": [
+      62,
+      64,
+      60
+    ]
+  }
+}

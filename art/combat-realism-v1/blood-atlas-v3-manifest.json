@@ -1,0 +1,60 @@
+{
+  "source": "Native built-in ImageGen",
+  "archive": ".art-source/blood-atlas-v3/imagegen-source.png",
+  "nativeResolution": [
+    1254,
+    1254
+  ],
+  "runtime": "assets/textures/blood-residue-atlas-v3.webp",
+  "runtimeResolution": [
+    1024,
+    1024
+  ],
+  "runtimeBytes": 259724,
+  "sha256": "18146db27da1b3a6188c75d95fb73a75a2df644e2ebf0e615d8be151aa669518",
+  "alphaPreserved": true,
+  "processing": "RGBA Lanczos resize plus WebP encoding; no creative image edits",
+  "alphaAuditThreshold": 8,
+  "tiles": [
+    {
+      "row": 0,
+      "column": 0,
+      "alphaBounds": [
+        61,
+        50,
+        458,
+        486
+      ]
+    },
+    {
+      "row": 0,
+      "column": 1,
+      "alphaBounds": [
+        30,
+        48,
+        486,
+        485
+      ]
+    },
+    {
+      "row": 1,
+      "column": 0,
+      "alphaBounds": [
+        30,
+        90,
+        498,
+        434
+      ]
+    },
+    {
+      "row": 1,
+      "column": 1,
+      "alphaBounds": [
+        75,
+        41,
+        440,
+        471
+      ]
+    }
+  ]
+}

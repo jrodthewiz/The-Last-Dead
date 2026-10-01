@@ -139,7 +139,7 @@ export class HorrorScares {
   const dt=clamp(this.lastNowMs?(nowMs-this.lastNowMs)/1000:.016,0,.05);this.lastNowMs=nowMs;
   for(const actor of [this.drop?.actor,this.window?.actor,this.piano?.body])actor?.state.mixer?.update(dt);
   for(const event of this.pending.splice(0)){
-   if(!this.drop||nowMs-this.lastDrop<14000)continue;
+   if(!this.drop||run.mode!=='play'||run.health<=0||nowMs-this.lastDrop<14000||this.canTrigger?.('drop')===false)continue;
    const {group,actor}=this.drop;
    group.position.set((event.x+Math.cos(event.angle)*.83)*CELL,0,(event.y+Math.sin(event.angle)*.83)*CELL);
    group.rotation.y=event.angle+Math.PI/2;
@@ -165,7 +165,7 @@ export class HorrorScares {
   const window=this.window;
   if(window?.actor){
    const distance=Math.hypot(run.x*CELL-window.group.position.x,run.y*CELL-window.group.position.z);
-   if(!window.triggered&&distance<10&&audio?.assetsLoaded&&nowMs-(this.windowArmedAt??(this.windowArmedAt=nowMs))>900){
+   if(!window.triggered&&run.mode==='play'&&run.health>0&&distance<10&&audio?.assetsLoaded&&nowMs-(this.windowArmedAt??(this.windowArmedAt=nowMs))>900&&this.canTrigger?.('window')!==false){
     window.triggered=true;window.started=nowMs;
     window.played=!!audio?.play('window-scream',0,{id:`window-${this.course.dungeonIndex}`,position:{x:window.group.position.x,y:2.5,z:window.group.position.z}});
    }

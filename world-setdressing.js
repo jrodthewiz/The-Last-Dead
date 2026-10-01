@@ -373,6 +373,9 @@ export function buildSetDressingProp(kind, mats, seed = 1) {
 export function buildSetDressing(root, materials, course = {}) {
   const group = new THREE.Group();
   group.name = 'SetDressing';
+  // The static batcher later removes the original meshes/groups. Retain
+  // authentic cloth centres so audio still follows the visible material.
+  group.userData.audioAnchors = [];
   const sector = String(course.sectorId || course.id || 'bloodworks').toLowerCase();
   const recipe = course.dungeon
     ? STORY_RECIPES[course.id] || []
@@ -401,6 +404,12 @@ export function buildSetDressing(root, materials, course = {}) {
       prop.rotation.y = spec.wall ? spot.yaw + (rng() - .5) * .25 : rng() * TAU;
       prop.userData.band = spot.band?.role || '';
       group.add(prop);
+      const cloth=prop.children.find(mesh=>mesh.name.endsWith('_cloth')&&mesh.geometry);
+      if(cloth){
+        cloth.geometry.computeBoundingBox();cloth.updateMatrix();prop.updateMatrix();
+        const point=cloth.geometry.boundingBox.getCenter(new THREE.Vector3()).applyMatrix4(cloth.matrix).applyMatrix4(prop.matrix);
+        group.userData.audioAnchors.push({id:`cloth-${kind}-${count}`,kind,position:{x:point.x,y:point.y,z:point.z}});
+      }
       placed.push({ x: spot.x, z: spot.z, r: spec.radius });
       count++;
     }

@@ -19,6 +19,8 @@ try{
  await page.waitForFunction(()=>document.pointerLockElement);
  await page.evaluate(()=>{
   const d=window.__DEAD_ARRIVAL__;d.run.waveDelay=999;d.run.health=100;d.run.course.enemies=[];
+  // This firing fixture covers all slots independently of dungeon pickups.
+  d.run.ownedWeapons=Array.from({length:d.run.cooldowns.length},(_,i)=>i);
   window.__rifleQA={render:d.renderer.render.bind(d.renderer)};
  });
  const state=()=>page.evaluate(()=>{

@@ -1,0 +1,387 @@
+{
+  "formatVersion": 1,
+  "id": "brutal-anatomy-v1",
+  "status": "BOUNDED_PC_RUNTIME_PRESENTATION_PASSED_WITH_ART_LIMITATIONS",
+  "runtime": {
+    "file": "assets/models/brutal-anatomy-v1.glb",
+    "units": "meters",
+    "root": "BrutalAnatomyKit",
+    "outwardAxis": [
+      0,
+      0,
+      1
+    ],
+    "openingPlane": "local glTF XY",
+    "socketScaleNote": "Original Ash Witness sockets inherit 0.01 scale. Attach code must compensate to preserve the authored metre sizes."
+  },
+  "files": {
+    "candidate": "art/brutal-anatomy-v1/brutal-anatomy-v1.glb",
+    "master": ".art-source/brutal-anatomy-v1/Brutal_Anatomy_v1.blend",
+    "script": "scripts/build-brutal-anatomy.py",
+    "closeups": [
+      "art/brutal-anatomy-v1/neck-neutral-close.png",
+      "art/brutal-anatomy-v1/arm-neutral-close.png",
+      "art/brutal-anatomy-v1/abdomen-intestines-neutral-close.png",
+      "art/brutal-anatomy-v1/neck-neutral-back.png",
+      "art/brutal-anatomy-v1/arm-neutral-back.png"
+    ]
+  },
+  "budget": {
+    "bytes": 1499816,
+    "sha256": "34554073a2966bfa888551f36d9bb2dd1f708b3d22005fb5a514d62abe42ab7d",
+    "triangles": 21588,
+    "drawGroupsAllParts": 4,
+    "drawGroupsAbdomenAndBundle": 2,
+    "materialCount": 1,
+    "imageCount": 3,
+    "textureCount": 3,
+    "textureDimensions": [
+      512,
+      256
+    ],
+    "atlasTilePixels": 128,
+    "atlasPaddingPixels": 10,
+    "metalness": 0,
+    "normalScale": 0.28,
+    "roughnessByIdentity": {
+      "muscle": 0.52,
+      "bone": 0.72,
+      "skin": 0.78,
+      "fat": 0.54,
+      "serosa": 0.38,
+      "cavity": 0.6,
+      "fascia": 0.52,
+      "blood": 0.32
+    },
+    "allImagesEmbedded": true
+  },
+  "parts": [
+    {
+      "name": "NeckWound",
+      "vertices": 1838,
+      "triangles": 3608,
+      "drawGroups": 1,
+      "materials": 1,
+      "boundsGltfMeters": {
+        "low": [
+          -0.07750491797924042,
+          -0.07373438030481339,
+          -0.07500000298023224
+        ],
+        "high": [
+          0.08615557849407196,
+          0.06408244371414185,
+          0.0336737297475338
+        ]
+      },
+      "sizeMeters": [
+        0.16366049647331238,
+        0.13781682401895523,
+        0.10867373272776604
+      ],
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "inconsistentWindingEdges": 0,
+      "degenerateTriangles": 0,
+      "zeroAreaUvTriangles": 0,
+      "normalFinite": true,
+      "normalLengthRange": [
+        0.999952933574745,
+        0.9999988856719186
+      ]
+    },
+    {
+      "name": "ArmWound",
+      "vertices": 1356,
+      "triangles": 2672,
+      "drawGroups": 1,
+      "materials": 1,
+      "boundsGltfMeters": {
+        "low": [
+          -0.05003965646028519,
+          -0.049156252294778824,
+          -0.06700000166893005
+        ],
+        "high": [
+          0.05685415118932724,
+          0.041329480707645416,
+          0.03330162540078163
+        ]
+      },
+      "sizeMeters": [
+        0.10689380764961243,
+        0.09048573300242424,
+        0.10030162706971169
+      ],
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "inconsistentWindingEdges": 0,
+      "degenerateTriangles": 0,
+      "zeroAreaUvTriangles": 0,
+      "normalFinite": true,
+      "normalLengthRange": [
+        0.9999540065082746,
+        1
+      ]
+    },
+    {
+      "name": "AbdomenWound",
+      "vertices": 1530,
+      "triangles": 3008,
+      "drawGroups": 1,
+      "materials": 1,
+      "boundsGltfMeters": {
+        "low": [
+          -0.08795608580112457,
+          -0.11167804896831512,
+          -0.07800000160932541
+        ],
+        "high": [
+          0.09712784737348557,
+          0.09429941326379776,
+          0.016919134184718132
+        ]
+      },
+      "sizeMeters": [
+        0.18508393317461014,
+        0.20597746223211288,
+        0.09491913579404354
+      ],
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "inconsistentWindingEdges": 0,
+      "degenerateTriangles": 0,
+      "zeroAreaUvTriangles": 0,
+      "normalFinite": true,
+      "normalLengthRange": [
+        0.9999533769050583,
+        0.9999981559796021
+      ]
+    },
+    {
+      "name": "IntestinalBundle",
+      "vertices": 6178,
+      "triangles": 12300,
+      "drawGroups": 1,
+      "materials": 1,
+      "boundsGltfMeters": {
+        "low": [
+          -0.16486942768096924,
+          -0.3465508222579956,
+          -0.040599972009658813
+        ],
+        "high": [
+          0.1471559852361679,
+          0.03954869508743286,
+          0.1993970274925232
+        ]
+      },
+      "sizeMeters": [
+        0.31202541291713715,
+        0.38609951734542847,
+        0.239996999502182
+      ],
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "inconsistentWindingEdges": 0,
+      "degenerateTriangles": 0,
+      "zeroAreaUvTriangles": 0,
+      "normalFinite": true,
+      "normalLengthRange": [
+        0.9999510857420789,
+        0.9999992875197867
+      ]
+    }
+  ],
+  "intestines": {
+    "smallBowelPathMeters": 2.7931574827287666,
+    "colonFragmentPathMeters": 0.20046955099849342,
+    "smallBowelRadiusMin": 0.0070064013797773795,
+    "smallBowelRadiusMax": 0.02350999115373261,
+    "compressionVaries": true
+  },
+  "sourcing": {
+    "geometry": "Original closed semantic meshes authored offline; no new generation job, no copied organ model.",
+    "albedo": "Existing generated tissue swatches reused with locally authored bone/ash-skin/fascia identity regions. Not scanned/calibrated PBR.",
+    "normalAndRoughness": "Locally authored coupled pore/fibre fields; physical identity roughness and restrained micro-normal variation.",
+    "referenceAtlas": "art/gore-proof/tissue-atlas-v1-1024.png"
+  },
+  "limits": [
+    "Cinematic fictional anatomical inspiration, not medical reconstruction or AAA realism.",
+    "Generated tissue albedo contains baked lighting cues; roughness and micro-normal maps are authored approximations.",
+    "Bowel loops are static geometry. Local overlap/contact is authored; no collision or volume-preserving softbody simulation.",
+    "Mesentery is finished thin opaque geometry; translucency and real tissue scattering are not represented.",
+    "Separate wound inserts require character mask/cull integration; they do not cut the preserved character by themselves.",
+    "PC runtime contact, socket placement and lighting reviewed within the recorded bounded poses; all-pose anatomical realism remains unverified.",
+    "Bone fracture, fascia and bowel folds remain visibly procedural/stylized at extreme close range.",
+    "Individually closed tissue components meet by authored overlap; this is not a boolean-unioned medical topology.",
+    "Direct macro back views still reveal stretched radial-fan UVs and faceted backing geometry; the dark tissue identity correction does not certify a sculpted underside."
+  ],
+  "qualityVerdict": "Offline topology/maps and neutral front/back views passed; final 17 PC runtime views and independent review accept bounded action readability with art limitations. Professional anatomical realism is not established.",
+  "visualReview": {
+    "inspectedFrames": [
+      "art/brutal-anatomy-v1/neck-neutral-close.png",
+      "art/brutal-anatomy-v1/arm-neutral-close.png",
+      "art/brutal-anatomy-v1/abdomen-intestines-neutral-close.png",
+      "art/brutal-anatomy-v1/neck-neutral-back.png",
+      "art/brutal-anatomy-v1/arm-neutral-back.png"
+    ],
+    "lighting": "Neutral key/fill/rim at authored metre dimensions, no bloom",
+    "corrections": [
+      "Preserved generated roughness/normal pixels by assigning non-color space before pixel upload.",
+      "Finished the narrow mesentery root strip and all bone-arch UVs without collapsed triangles.",
+      "Added dark marrow recessed inside irregular bone cortex and stained arch sectors.",
+      "Recolored and refined mesentery pleats to reduce the canvas-sheet appearance.",
+      "Mapped all closed wound undersides to dark cavity tissue, retaining gray ash skin only on the narrow exterior border."
+    ],
+    "remainingLimits": [
+      "Very tight bowel bends reveal some angular longitudinal segments in a full-frame closeup.",
+      "Opaque membrane has no real translucency or tissue scattering.",
+      "Skin border coloration is generic ash gray and needs the runtime character lighting to confirm its match.",
+      "Runtime uses the measured posed seam centroid/span, cached in the original socket frame; the nonplanar boundary is not rebuilt every animation frame.",
+      "Direct macro back views still reveal stretched radial-fan UVs and faceted backing geometry; the dark tissue identity correction does not certify a sculpted underside."
+    ]
+  },
+  "sourceFitMeasurement": {
+    "source": "assets/models/afterlife-ash-witness-rig-v05.glb (read only)",
+    "method": "Rest-position exterior vertex slice within 0.006 m of y=1.58 m; includes the full original scanned surface",
+    "neckSliceMeters": {
+      "centerY": 1.58,
+      "widthX": 0.170418,
+      "extentZ": [
+        -0.103458,
+        0.03
+      ],
+      "midpointZ": -0.036729
+    },
+    "socketNeckGltfMeters": [
+      0,
+      1.58,
+      0.025
+    ],
+    "fitDecision": "Keep the .164 m authored neck width; moving the runtime frame roughly .062 m posterior is safer than shrinking the cap without matching the cut. Arm dimensions unchanged pending a precise shoulder plane measurement.",
+    "runtimeImplementation": "Use posed .5 one-hot skin boundary segment centroid and planar span, socket.worldToLocal storage and socket.localToWorld tracking; no fixed posterior guess or source-socket mutation."
+  },
+  "verification": {
+    "command": "\"C:/Program Files/Blender Foundation/Blender 2.93/blender.exe\" --background --factory-startup --python scripts/build-brutal-anatomy.py",
+    "checked": [
+      "Authored mesh triangles <22000",
+      "Four mesh primitives and one material",
+      "Closed surfaces, consistent winding, no degenerate triangles",
+      "All UV triangles have positive area; finite unit normals",
+      "Albedo, packed metal/roughness and normal maps retained in GLB",
+      "All image dependencies embedded in GLB",
+      "Three front and two back neutral closeups rendered and inspected"
+    ],
+    "notCertified": [
+      "Professional anatomical realism, all deforming poses and all targets",
+      "Joined co-op visuals and physical controller hardware"
+    ],
+    "postExport": {
+      "attributesFinite": true,
+      "normalsUnitWithinSquaredTolerance": 0.001,
+      "embeddedImagesDecodeTo": [
+        512,
+        256
+      ],
+      "artAndRuntimeCopiesIdentical": true
+    }
+  },
+  "runtimeVerification": {
+    "status": "PASS_BOUNDED_PC_SLICE_WITH_ART_LIMITATIONS",
+    "generatedAt": "2026-09-30T09:40:40.069Z",
+    "scope": {
+      "platforms": [
+        "PC keyboard/mouse",
+        "standard-mapped controller"
+      ],
+      "physicalControllerTested": false,
+      "joinedCoopVisualsTested": false,
+      "mobileAdded": false,
+      "professionalAnatomicalRealismEstablished": false
+    },
+    "cpu": {
+      "passed": 127,
+      "failed": 0,
+      "execution": "Root observed completed in-process Node test command; reproduction in docs/player-injury.md"
+    },
+    "visual": {
+      "views": 17,
+      "result": "PASS",
+      "errors": [],
+      "artifact": "output/playwright/brutal-combat/pc-accepted/report.json",
+      "independentVerdict": "PASS_BOUNDED_PROTOTYPE_ACTION_READABILITY"
+    },
+    "controller": {
+      "checks": 14,
+      "result": "PASS",
+      "hardware": "navigator.getGamepads standard snapshot injection through the actual production frame",
+      "artifact": "output/playwright/brutal-combat/controller-final/report.json"
+    },
+    "injury": {
+      "views": 31,
+      "result": "PASS",
+      "live": {
+        "seconds": 120,
+        "cycles": 12,
+        "mouseShots": 13,
+        "distanceCells": 0.6602484769892065
+      },
+      "artifact": "output/playwright/brutal-combat/injury-regression/report.json"
+    },
+    "audio": {
+      "checks": 30,
+      "result": "PASS",
+      "finalMaximumMeasuredPeak": 0.7866554856300354,
+      "highestObservedAcrossRuns": 0.7937334179878235,
+      "artifact": "output/playwright/brutal-combat/audio.json"
+    },
+    "installedClient": {
+      "iterations": 2,
+      "exitCode": 0,
+      "errors": 0,
+      "imagesInspected": true,
+      "states": [
+        {
+          "screen": "play",
+          "mode": "play",
+          "health": 100,
+          "bite": "held"
+        },
+        {
+          "screen": "play",
+          "mode": "play",
+          "health": 64,
+          "bite": "idle"
+        }
+      ],
+      "artifact": "output/playwright/brutal-combat/controls-final"
+    },
+    "runtimeHashes": {
+      "engine.js": "c459e84bd1c49487facbebf58c112c91127e4b172b1d441b0a2c16f5470f2557",
+      "main.js": "c32f0bdaa99d97bf4a1cf0bdb8fe4b83354aa29425d371b3e917c8aa5730ae36",
+      "gamepad-input.js": "92742ff182ee04b46ca9d78c7ec7a15ec72de119a883ab7e6e281321c204091f",
+      "ui.js": "f23c15bb88171635e854c5ec0f1404ae6d09a7968bc3ab016860261153f82d36",
+      "renderer.js": "0bfe6e0f02718c9dfc68a9fc788ba9210953d589624efb2f4fab17e32c29cb9f",
+      "npc-afterlife-model.js": "fa14800c638c3a3ea3f2d09e55964258607ca1050955ce8288aa428d6e8fe73c",
+      "brutal-combat-visuals.js": "d65ed65e17c0f1a35e492c439c337e24571864a07f9ed4c1ad61b727766a6071",
+      "combat-vfx.js": "524f3e4ee0553c48613eea3c43e372227c34077737995725726aadd19b724a80",
+      "assets/audio.js": "f81ac6feb37bae2c50e16f1c8fcef1da8ac62838e1c42b4824a86529403a81fa",
+      "assets/audio-manifest.js": "9a0aefa05a970fbe4349a36e05eac0bd9074a5e8fe8996fbb4d66b62873c9714",
+      "assets/models/brutal-anatomy-v1.glb": "34554073a2966bfa888551f36d9bb2dd1f708b3d22005fb5a514d62abe42ab7d",
+      "assets/models/afterlife-ash-witness-rig-v05.glb": "26556b4da1694df57995311a796a557622da6d81b6a1ca7f39edd65a79c7426e"
+    },
+    "sourceAndBuildMatch": true,
+    "archivesExcluded": true,
+    "originalTabPreserved": true,
+    "serverPort": 5200,
+    "limitations": [
+      "Source neck/fabric boundaries and survivor sleeves remain angular at macro range.",
+      "Fused/open fingers do not have independent closing contact.",
+      "Organ bundle is static authored geometry rather than deformable softbody tissue.",
+      "Measured cap fit is cached once per wound; no continuously rebuilt fracture topology.",
+      "Fragments settle cosmetically; complete prop collision and skeletal instancing are not added.",
+      "Full-body bisection and head crushing are not part of the three implemented counters."
+    ]
+  }
+}

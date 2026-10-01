@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 
-export const BLOOD_ATLAS_URL = './assets/textures/blood-residue-atlas-v2.webp';
+export const BLOOD_ATLAS_URL = './assets/textures/blood-residue-atlas-v3.webp';
 let atlas = null;
 let ready = Promise.resolve();
 
@@ -17,7 +17,7 @@ function bloodAtlas() {
   atlas.colorSpace = THREE.SRGBColorSpace;
   atlas.anisotropy = 4;
   atlas.userData.sharedAsset = true;
-  atlas.name = 'BloodResidueAtlasV2';
+  atlas.name = 'BloodResidueAtlasV3';
   return atlas;
 }
 
@@ -27,8 +27,8 @@ export function disposeBloodAtlas() { atlas?.dispose(); atlas = null; ready = Pr
 /** One lit, non-emissive material for four irregular residue silhouettes. */
 export function createBloodSurfaceMaterial({instanced = false, variant = 0, dry = 0, opacity = 1, impact = false} = {}) {
   const material = new THREE.MeshPhysicalMaterial({
-    name: impact ? 'BloodImpactPBR' : 'BloodResiduePBR', color: impact ? 0xe3c7bd : 0xb4a7a1, map: bloodAtlas(),
-    roughness: impact ? .31 : .46, metalness: 0, envMapIntensity: impact ? .2 : .12, specularIntensity: impact ? .27 : .18,
+    name: impact ? 'BloodImpactPBR' : 'BloodResiduePBR', color: impact ? 0xc5a7a4 : 0xb4a7a1, map: bloodAtlas(),
+    roughness: impact ? .46 : .52, metalness: 0, envMapIntensity: .12, specularIntensity: impact ? .18 : .15,
     transparent: true, opacity, alphaTest: .015, depthWrite: false,
     side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1,
   });
@@ -49,20 +49,25 @@ export function createBloodSurfaceMaterial({instanced = false, variant = 0, dry 
         vec4 sampledDiffuseColor = texture2D(map, bloodUv);
         // Compress baked color variation. Illumination and wet sheen belong
         // to scene lights, never a white painted highlight or emissive pass.
-        sampledDiffuseColor.rgb = min(sampledDiffuseColor.rgb * ${impact ? '1.28' : '1.04'}, vec3(${impact ? '.46, .14, .105' : '.34, .095, .07'}));
+        sampledDiffuseColor.rgb = min(sampledDiffuseColor.rgb, vec3(.34, .075, .055));
         diffuseColor *= sampledDiffuseColor;
         diffuseColor.rgb *= mix(vec3(1.), vec3(.43, .34, .28), clamp(vBloodState.y, 0., 1.));
       #endif
     `);
     shader.fragmentShader = shader.fragmentShader.replace('#include <roughnessmap_fragment>', `
       #include <roughnessmap_fragment>
-      roughnessFactor = mix(.46, .88, clamp(vBloodState.y, 0., 1.));
+      roughnessFactor = mix(.43, .88, clamp(vBloodState.y, 0., 1.));
       #ifdef USE_MAP
         roughnessFactor = min(.95, roughnessFactor + (1. - sampledDiffuseColor.a) * .14);
       #endif
     `);
+    shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+      vec3 bloodDiffuseLimit=max(diffuseColor.rgb*.62,vec3(.002));
+      reflectedLight.directDiffuse/=vec3(1.)+reflectedLight.directDiffuse/bloodDiffuseLimit;
+      reflectedLight.directSpecular/=vec3(1.)+reflectedLight.directSpecular/vec3(.010);
+    `);
   };
-  material.customProgramCacheKey = () => `blood-residue-v3-${impact ? 'impact' : 'residue'}-${instanced ? 'instances' : `${variant}-${dry}`}`;
+  material.customProgramCacheKey = () => `blood-residue-v4-${impact ? 'impact' : 'residue'}-${instanced ? 'instances' : `${variant}-${dry}`}`;
   return material;
 }
 

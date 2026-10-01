@@ -72,6 +72,9 @@ function walkToDungeonPoint(run, target, label, { allowFloorTransition = false }
       const turn = angleDiff(heading, run.angle);
       const input = Math.abs(turn) > .035 ? { turn: Math.sign(turn) } : { forward: 1 };
       tick(run, 1 / 60, input);
+      // This suite verifies collision/route input. Combat damage is exercised
+      // separately; resolve any optional pressure encountered along the route.
+      for(const enemy of run.course.enemies)enemy.dead=true;
       frameCount += 1;
       waypointFrames += 1;
 
@@ -86,6 +89,14 @@ function walkToDungeonPoint(run, target, label, { allowFloorTransition = false }
     }
   }
 
+  if(allowFloorTransition){
+    for(let frame=0;frame<1800&&run.course===originalCourse&&run.mode!=='win';frame++){
+      tick(run,1/60,{});for(const enemy of run.course.enemies)enemy.dead=true;
+      if(frame%180===0)run.angle+=Math.PI/2;
+    }
+    return {transitioned:run.course!==originalCourse,won:run.mode==='win',frameCount};
+  }
+
   return { transitioned: false, frameCount };
 }
 
@@ -98,7 +109,8 @@ function roomWalkablePoint(course, roomId, avoid = null, from = null) {
       const row = room.footprint?.[Math.floor(y) - room.bounds.minZ];
       const footprintCell = row?.[Math.floor(x) - room.bounds.minX];
       if (room.footprint && footprintCell !== '1' && footprintCell !== 1 && footprintCell !== true) continue;
-      if (canStand(course, x, y, .12)) points.push({ x, y });
+      if (canStand(course, x, y, .12)&&course.dungeonCompiled.reach.has(`${Math.floor(x)},${Math.floor(y)}`)
+        &&course.keys.every(key=>Math.hypot(key.x-x,key.y-y)>.8)) points.push({ x, y });
     }
   }
   assert.ok(points.length > 0, `${course.name}/${roomId}: encounter room needs a walkable test point`);
@@ -114,37 +126,33 @@ function clearDungeonEncountersThroughEngine(run, { afterClear = () => {} } = {}
   const progression = run.dungeonProgression;
   assert.ok(progression?.encounterPlan?.length, `${course.name}: authored encounter plan should not be empty`);
   let guard = 0;
-  while (progression.nextEncounterIndex < progression.encounterPlan.length) {
-    const node = progression.encounterPlan[progression.nextEncounterIndex];
+  while (progression.encounterPlan.some(node=>!node.optional&&node.status!=='cleared')) {
+    const reach=reachableCells(course.cells,course.w,course.h,run);
+    const node = progression.encounterPlan.find(node=>progression.currentEncounter?.nodeIds?.includes(node.id))
+      || progression.encounterPlan.find(node=>!node.optional&&node.status==='pending'
+      &&progression.roomSpawnCells[node.roomId].some(p=>reach.has(`${Math.floor(p.x)},${Math.floor(p.y)}`)));
+    assert.ok(node,`${course.name}: next required room must be reachable`);
     const point = roomWalkablePoint(course, node.roomId, { x: run.x, y: run.y }, run);
     const route = routeThroughWalkableCells(course, run, point);
     assert.ok(route.length > 1 || Math.hypot(run.x - point.x, run.y - point.y) < .2,
       `${course.name}/${node.id}: the next encounter room must be reachable through currently open gates`);
     run.x = point.x;
     run.y = point.y;
-    tick(run, 1 / 60, {});
-    // F4 intentionally revisits its east aisle. Move to the far side of the
-    // same authored room so a second entry has a real travel signal.
-    if (!progression.currentEncounter) {
-      const reentry = roomWalkablePoint(course, node.roomId, { x: run.x, y: run.y }, run);
-      run.x = reentry.x;
-      run.y = reentry.y;
-      tick(run, 1 / 60, {});
-    }
+    for(let frame=0;frame<660&&!progression.currentEncounter;frame++)tick(run,1/60,{});
     const encounter = progression.currentEncounter;
     assert.ok(encounter, `${course.name}/${node.id}: entering the authored room should start its encounter`);
     const encounterId = encounter.id;
     let frames = 0;
-    while (progression.currentEncounter?.id === encounterId && frames < 720) {
+    while (progression.currentEncounter?.id === encounterId && frames < 1800) {
       tick(run, 1 / 60, {});
       for (const enemy of course.enemies) {
-        if (!enemy.dead && enemy.encounterId === encounterId) enemy.dead = true;
+        enemy.dead = true;
       }
       frames += 1;
+      if(frames%180===0)run.angle+=Math.PI/2;
     }
-    assert.ok(frames < 720, `${course.name}/${node.id}: encounter should finish after its authored queue is cleared`);
-    const spawned = course.enemies.filter(enemy => enemy.encounterId === encounterId);
-    assert.equal(spawned.length, node.spawns.length, `${course.name}/${node.id}: every authored spawn should enter the room queue`);
+    assert.ok(frames < 1800, `${course.name}/${node.id}: safe encounter queue should finish`);
+    assert.ok(encounter.queue.every(item=>item.status==='spawned'),`${course.name}/${node.id}: every queued threat including residents was accounted for`);
     assert.equal(node.status, 'cleared', `${course.name}/${node.id}: clearing the queue should mark its room clear`);
     afterClear(node, run);
     guard += 1;
@@ -206,7 +214,7 @@ test('side district arrivals create distinct journeys through each main hall', (
   }
 });
 
-test('Resonance side aisles cannot bypass the sealed choir court', () => {
+test('Resonance side aisles offer a court flank without activating the keyed descent', () => {
   const course = makeDungeonCourse(3);
   const courtDoors = course.openings.filter(opening => opening.roomId === 'f4-court'
     && ['s', 'w', 'e'].includes(opening.side));
@@ -218,9 +226,20 @@ test('Resonance side aisles cannot bypass the sealed choir court', () => {
     return x >= court.bounds.minX && x < court.bounds.maxX
       && z >= court.bounds.minZ && z < court.bounds.maxZ;
   });
-  assert.equal(insideCourt(reachableCells(course.cells, course.w, course.h, course.playerSpawn)), false);
+  assert.ok(courtDoors.filter(opening=>opening.side!=='s').every(opening=>course.openingState[opening.id]));
+  assert.equal(course.openingState[courtDoors.find(opening=>opening.side==='s').id],false);
+  assert.equal(insideCourt(reachableCells(course.cells, course.w, course.h, course.playerSpawn)), true);
+  const exitCell=`${Math.floor(course.exit.x)},${Math.floor(course.exit.y)}`;
+  assert.equal(reachableCells(course.cells,course.w,course.h,course.playerSpawn).has(exitCell),false);
   for (const opening of courtDoors) setDungeonOpeningOpen(course, opening.id, true);
   assert.equal(insideCourt(reachableCells(course.cells, course.w, course.h, course.playerSpawn)), true);
+  // Flanking circulation may reach the lift platform. The authoritative
+  // descent condition still requires its key and the required combat route.
+  const run=newRun(course);run.mode='play';run.x=course.exit.x;run.y=course.exit.y;
+  tick(run,1/60,{});
+  assert.equal(run.dungeonProgression.exitReady,false);
+  assert.equal(run.course,course,'reaching the platform alone cannot descend');
+  assert.ok(course.openings.filter(opening=>opening.lockedBy==='key').every(opening=>!course.openingState[opening.id]));
 });
 
 test('Story weapon finds unlock a persistent arsenal while arena weapons remain available', () => {
@@ -384,7 +403,7 @@ test('every Story wave spawns on the reachable side of its still-locked gates', 
       }
       for (const opening of course.openings.filter(item => item.lockedBy === 'room-clear')) {
         const releaseWave = course.roomClearWaveByOpening[opening.id];
-        if (Number.isInteger(releaseWave) && releaseWave > waveIndex) {
+        if (Number.isInteger(releaseWave) && releaseWave > waveIndex && !course.flowOpenings.includes(opening.id)) {
           assert.equal(course.openingState[opening.id], false, `${course.name}/${opening.id} stays sealed before its local encounter`);
         }
       }
@@ -409,7 +428,7 @@ test('Story spawns stay clear of keys and the playground shows their live positi
   const progression = roomProgression(run);
   assert.equal(progression.state, 'exploration');
   assert.equal(progression.objective, 'Enter Descent Mouth');
-  assert.equal(progression.wave, 0, 'a fresh floor has no timed wave countdown');
+  assert.equal(progression.wave, 0, 'a fresh floor begins its short orientation beat');
   assert.equal(progression.pending, 0, 'a fresh floor has no queued threats before entry');
   assert.match(progression.subtitle, /Next room: Descent Mouth/);
 });
@@ -454,7 +473,8 @@ test('the opening wave gives players time to orient and survives a short no-inpu
     run.mode = 'play';
     for (let frame = 0; frame < 100; frame += 1) tick(run, 1 / 60, {});
     assert.equal(run.wave, 0, `${run.course.name} should keep its first wave back during the opening beat`);
-    assert.equal(run.course.enemies.length, 0, `${run.course.name} should start with a safe entry window`);
+    assert.ok(run.course.enemies.every(enemy=>enemy.resident&&['dormant','wander'].includes(enemy.mind.state)),`${run.course.name} may stage distant residents during the safe orientation window`);
+    assert.equal(run.health,100,`${run.course.name}: orientation window must not damage the player`);
     for (let frame = 100; frame < 408; frame += 1) tick(run, 1 / 60, {});
     assert.ok(run.health > 0, `${run.course.name} should remain survivable while the first wave approaches`);
   }
@@ -469,6 +489,10 @@ test('F5 entry starts on player movement and supports aimed fire through its fir
       .filter(enemy => !enemy.dead)
       .sort((a, b) => Math.hypot(a.x - run.x, a.y - run.y) - Math.hypot(b.x - run.x, b.y - run.y))[0];
     if (target) run.angle = Math.atan2(target.y - run.y, target.x - run.x);
+    else {
+      const waypoint=run.dungeonProgression.navigation.waypoint;
+      if(waypoint)run.angle=Math.atan2(waypoint.y-run.y,waypoint.x-run.x);
+    }
     if (run.cooldowns[run.weapon] <= 0 && shoot(run)) shots += 1;
     tick(run, 1 / 60, { forward: 1, strafe: frame % 120 < 60 ? 1 : -1 });
   }
@@ -476,47 +500,41 @@ test('F5 entry starts on player movement and supports aimed fire through its fir
   assert.equal(run.mode, 'play', 'an active opening route should remain playable for the check window');
   assert.ok(run.health > 0, 'aimed strafing should survive the first pressure beats');
   assert.ok(run.kills >= 2, `aimed fire should clear the entry encounter (got ${run.kills} kills)`);
-  assert.equal(run.wave, 1, `player movement should start the authored entry encounter (got wave ${run.wave})`);
-  assert.deepEqual(run.dungeonProgression.completedEncounterIds, ['dungeon-encounter-0-0'], 'clearing the entry encounter should advance the room plan');
+  assert.ok(run.wave>=2,`continuous movement should carry pressure into the next room (got wave ${run.wave})`);
+  assert.ok(run.dungeonProgression.completedEncounterIds.includes('dungeon-encounter-0-0'), 'clearing the entry encounter advances the room plan');
   assert.equal(run.course.openingState['f5-o-hall1-n'], true, 'clearing the first throat should open its north gate');
 });
 
-test('Story encounter gates release on their own wave, keys open the lift, and exits descend', () => {
+test('Story approach fights release milestones, side routes stay open, and keyed lifts descend', () => {
   const course = makeDungeonCourse(0);
   const run = newRun(course);
   run.mode = 'play';
   const key = course.keys[0];
   const keyGate = course.openings.find(opening => opening.keyId === key.id);
   const pumpGate = course.openings.find(opening => opening.id === 'f1-o-pump-w');
-  const courtGate = course.openings.find(opening => opening.id === 'f1-o-court-w');
+  const courtGate = course.openings.find(opening => opening.id === 'f1-o-court-s-west');
   assert.ok(keyGate);
   assert.ok(pumpGate);
   assert.ok(courtGate);
   assert.equal(course.openingState[keyGate.id], false);
-  assert.equal(course.openingState[pumpGate.id], false);
+  assert.equal(course.openingState[pumpGate.id], true,'side circulation has no redundant clear toll');
   assert.equal(course.openingState[courtGate.id], false);
   let sawEntryClear = false;
-  let sawFirstGate = false;
   let sawCourtGate = false;
   clearDungeonEncountersThroughEngine(run, {
     afterClear(node) {
       if (node.waveIndex === 0) {
         sawEntryClear = true;
-        assert.equal(course.openingState[pumpGate.id], false, 'the entry clear does not open a later room gate');
+        assert.equal(course.openingState[pumpGate.id], true, 'the optional pump flank stays open');
         assert.equal(course.openingState[courtGate.id], false, 'the entry clear does not open the court');
       }
-      if (node.waveIndex === 1 && !sawFirstGate) {
-        sawFirstGate = true;
-        assert.equal(course.openingState[pumpGate.id], true, 'the first authored room-clear gate opens after its wave');
-        assert.equal(course.openingState[courtGate.id], false, 'the court stays sealed until its authored wave');
-      }
-      if (node.waveIndex === 2 && !sawCourtGate) {
+      if (node.roomId === 'f1-pump' && !sawCourtGate) {
         sawCourtGate = true;
-        assert.equal(course.openingState[courtGate.id], true, 'the court opens after its authored wave is cleared');
+        assert.equal(course.openingState[courtGate.id], true, 'clearing the required pump approach opens the forward court milestone');
       }
     },
   });
-  assert.ok(sawEntryClear && sawFirstGate && sawCourtGate, 'the test should observe each authored gate milestone');
+  assert.ok(sawEntryClear && sawCourtGate, 'the test observes the closed and released forward milestone');
   assert.equal(course.openingState[keyGate.id], false, 'the key gate remains separate from encounter gates');
 
   run.x = key.x;

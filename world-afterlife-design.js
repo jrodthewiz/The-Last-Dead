@@ -1,4 +1,6 @@
 import * as THREE from './vendor/three.module.js';
+import { buildDungeonWayfinding } from './dungeon-wayfinding.js';
+import { directDungeonLandmarks } from './dungeon-landmarks.js';
 
 // A small composition pass for the Forsaken Afterlife direction. It is
 // deliberately separate from collision, room construction, and landmark
@@ -376,10 +378,14 @@ function createPropSlots(course, profile) {
   if (center) {
     const size = target.size || {};
     const halfW = Number(size.w ?? size[0] ?? 3) * .5;
+    // The new east service return uses this former display wall as a walking
+    // entrance. Keep the cabinet on the opposite wall so visual geometry does
+    // not block the camera despite the grid collider being open.
+    const propSide=target.id==='f1-loading'&&course.openings?.some(opening=>opening.id==='f1-o-loading-e')?-1:profile.propSide;
     slots.push({
       kind: 'mourning-cabinet', id: 'mourning-cabinet:' + (target.id || 'room'),
-      position: new THREE.Vector3((center.x + profile.propSide * Math.max(.5, halfW - .35)) * CELL, 0, center.z * CELL),
-      rotation: profile.propSide < 0 ? Math.PI : 0, roomId: target.id || '', edge: true,
+      position: new THREE.Vector3((center.x + propSide * Math.max(.5, halfW - .35)) * CELL, 0, center.z * CELL),
+      rotation: propSide < 0 ? Math.PI : 0, roomId: target.id || '', edge: true,
     });
   }
   const entry = rooms.find(room => /entry|spawn/i.test(roomLabel(room))) || rooms[0];
@@ -498,10 +504,12 @@ export function buildAfterlifeMapDesign(root, materials = {}, course = {}, optio
   if (!root) return { root: null, diagnostics: { name: 'AfterlifeMapDesign', version: VERSION, skipped: true }, dispose: () => {} };
   const existing = root.getObjectByName('AfterlifeMapDesign');
   if (existing?.userData?.afterlifeMapDesignDiagnostics) {
-    return { root: existing, diagnostics: existing.userData.afterlifeMapDesignDiagnostics, dispose: () => disposeAfterlifeMapDesign(existing) };
+    return { root: existing, diagnostics: existing.userData.afterlifeMapDesignDiagnostics, update: existing.userData.updateWayfinding, dispose: () => disposeAfterlifeMapDesign(existing) };
   }
 
   const profile = courseProfile(course);
+  root.userData.dungeonArtIdentity = course.id;
+  const landmarks = directDungeonLandmarks(root, course);
   const mapRoot = new THREE.Group();
   mapRoot.name = 'AfterlifeMapDesign';
   mapRoot.userData.afterlifeMapDesign = VERSION;
@@ -571,14 +579,23 @@ export function buildAfterlifeMapDesign(root, materials = {}, course = {}, optio
     collisionChanged: false,
   };
   attachExternalProps(mapRoot, propSlotList, materials, course, profile, options, diagnostics);
+  const wayfinding = buildDungeonWayfinding(mapRoot, course);
+  diagnostics.landmarks = landmarks.diagnostics;
+  diagnostics.wayfinding = wayfinding.diagnostics;
+  diagnostics.draws += wayfinding.diagnostics.draws || 0;
+  diagnostics.triangles += wayfinding.diagnostics.triangles || 0;
+  const update = (run, now, reducedMotion) => { wayfinding.update(run, now, reducedMotion); landmarks.update(run); };
+  mapRoot.userData.disposeWayfinding = () => { wayfinding.dispose(); landmarks.dispose(); };
+  mapRoot.userData.updateWayfinding = update;
   mapRoot.userData.afterlifeMapDesignDiagnostics = diagnostics;
   mapRoot.userData.afterlifeMapDesignOwned = true;
   mapRoot.userData.afterlifeMapProfile = profile.id;
-  return { root: mapRoot, diagnostics, dispose: () => disposeAfterlifeMapDesign(mapRoot) };
+  return { root: mapRoot, diagnostics, update, dispose: () => disposeAfterlifeMapDesign(mapRoot) };
 }
 
 export function disposeAfterlifeMapDesign(root) {
   if (!root) return;
+  root.userData.disposeWayfinding?.();
   const externalResources = collectExternalResources(root);
   const parent = root.parent;
   if (parent) parent.remove(root);

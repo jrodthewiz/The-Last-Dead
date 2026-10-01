@@ -1,0 +1,103 @@
+{
+  "status": "PASS",
+  "master": ".art-source\\vermin-v1\\Vermin_v1.blend",
+  "masterSha256": "1e9c20539bbd1436046290399e8956f98bec214a6b083342824e7f1943d8b0eb",
+  "masterBytes": 2492724,
+  "editableMeshes": [
+    {
+      "name": "Rat",
+      "vertices": 3276,
+      "editableShapeKeys": [
+        "ScurryA",
+        "ScurryB",
+        "Bite",
+        "TailLeft",
+        "TailRight"
+      ],
+      "allWeightsZero": true,
+      "editableVertexGroups": [
+        "body",
+        "ear",
+        "eye",
+        "fore-1",
+        "fore1",
+        "hind-1",
+        "hind1",
+        "jaw",
+        "nose",
+        "tail"
+      ],
+      "hasUvs": true,
+      "hasSurfaceTints": true,
+      "unitScale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Cockroach",
+      "vertices": 1204,
+      "editableShapeKeys": [
+        "ScurryA",
+        "ScurryB",
+        "AntennaLeft",
+        "AntennaRight"
+      ],
+      "allWeightsZero": true,
+      "editableVertexGroups": [
+        "antenna-1",
+        "antenna1",
+        "body",
+        "head",
+        "leg0-1",
+        "leg01",
+        "leg1-1",
+        "leg11",
+        "leg2-1",
+        "leg21",
+        "wing"
+      ],
+      "hasUvs": true,
+      "hasSurfaceTints": true,
+      "unitScale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  ],
+  "packedRuntimeMaps": [
+    {
+      "name": "vermin-albedo",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "packed": true,
+      "colorSpace": "sRGB"
+    },
+    {
+      "name": "vermin-normal",
+      "dimensions": [
+        512,
+        512
+      ],
+      "packed": true,
+      "colorSpace": "Non-Color"
+    },
+    {
+      "name": "vermin-roughness",
+      "dimensions": [
+        512,
+        512
+      ],
+      "packed": true,
+      "colorSpace": "Non-Color"
+    }
+  ],
+  "temporaryWetOverrideRemoved": true,
+  "originalImagegenPngPreservedInArchive": true,
+  "originalImagegenSha256": "8cc6fe39f0045b22492500157d9334e2f5448ca4b15df648fe7589afac39e7be",
+  "note": "The original native ImageGen PNG is preserved as an archive file. The editable Blend packs the three runtime material maps, not an additional runtime dependency."
+}

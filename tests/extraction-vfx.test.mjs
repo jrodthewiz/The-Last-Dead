@@ -89,3 +89,31 @@ test('completed heart remains visible briefly, then releases pooled visuals', ()
   assert.equal(fx.droplets.count,0);
   fx.dispose();
 });
+
+test('actual-model instruments touch tissue and blood stays small without a floating flow bead',()=>{
+  const {fx,run}=fixture(47),frame=new THREE.Group(),heart=new THREE.Group();
+  frame.position.set(0,1,0);frame.add(heart);heart.position.set(-.04,.095,.2);fx.scene.add(frame);frame.updateMatrixWorld(true);
+  const state={frame,anatomy:{heart}};
+  fx.cutaways={current:state,cutPoint(_state,_progress,out){return out.set(0,1,.004);},reset(){},dispose(){}};
+  fx._resetVariant(47,run.course.enemies[0]);
+  const draw=fx._stageValues({phase:'draw',progress:.25,stageProgress:.7});fx._updateTool(1,draw);fx.scene.updateMatrixWorld(true);
+  const needle=new THREE.Vector3(0,.0275,0);fx.needleTip.localToWorld(needle);
+  assert(needle.distanceTo(new THREE.Vector3(0,1,.004))<1e-6,'the needle tip contacts the real-model draw point');
+  fx._updateLink(new THREE.Vector3(0,1,0),draw);assert.equal(fx.link.visible,false);assert.equal(fx.flowBead.visible,false);
+  const rip=fx._stageValues({phase:'rip',progress:.85,stageProgress:.65});fx._updateTool(1,rip);fx._updateLink(new THREE.Vector3(0,1,0),rip);
+  assert.equal(fx.flowBead.visible,false,'flow cannot leak from draw into exposed anatomy');
+  const left=fx.forceps.getObjectByName('ForcepsLeftJaw'),right=fx.forceps.getObjectByName('ForcepsRightJaw');
+  assert(left&&right&&left.position.distanceTo(right.position)>.04,'separated jaws visibly grip the heart');
+  let visible=0;
+  for(let tick=0;tick<24;tick++){
+    fx._updateSourceDroplets(state,1+tick*.016,rip);visible+=fx.droplets.count;
+    assert(fx.droplets.count<=10);
+    for(let i=0;i<fx.droplets.count;i++){
+      const matrix=new THREE.Matrix4(),p=new THREE.Vector3(),q=new THREE.Quaternion(),scale=new THREE.Vector3();
+      fx.droplets.getMatrixAt(i,matrix);matrix.decompose(p,q,scale);
+      assert(scale.x*.026<=.0031,'blood diameter cannot become a large organ-sized polygon');
+      assert(p.y>=.012&&p.toArray().every(Number.isFinite));
+    }
+  }
+  assert(visible>0);fx.dispose();
+});

@@ -1,0 +1,120 @@
+{
+  "status": "PASS_PREPARED_ASSET_FILES",
+  "sources": 8,
+  "clips": 17,
+  "bytes": 1320220,
+  "allCC0": true,
+  "inputHashes": true,
+  "outputHashes": true,
+  "pcmDecode": true,
+  "nonSilent": true,
+  "peakCeilingDbFS": -4,
+  "clickSeamCheck": true,
+  "humanAudition": "pending",
+  "gameplayWiring": "not changed",
+  "browserDecode": "not yet tested",
+  "clipsVerified": [
+    {
+      "file": "roach-swarm-01.wav",
+      "seconds": 1.25,
+      "peakDbFS": -4.0000883347026726,
+      "rms": 0.012582105191758262
+    },
+    {
+      "file": "roach-swarm-02.wav",
+      "seconds": 1.25,
+      "peakDbFS": -4.0000883347026726,
+      "rms": 0.011275277589447793
+    },
+    {
+      "file": "roach-scrabble-01.wav",
+      "seconds": 0.72,
+      "peakDbFS": -25.06472458966602,
+      "rms": 0.00222245065903016
+    },
+    {
+      "file": "roach-scrabble-02.wav",
+      "seconds": 0.72,
+      "peakDbFS": -25.007922929114063,
+      "rms": 0.0047100405343430615
+    },
+    {
+      "file": "roach-scrabble-03.wav",
+      "seconds": 0.72,
+      "peakDbFS": -22.04300341756932,
+      "rms": 0.002155403092212346
+    },
+    {
+      "file": "rat-chew-01.wav",
+      "seconds": 0.75,
+      "peakDbFS": -21.70427163096415,
+      "rms": 0.015798654195240038
+    },
+    {
+      "file": "rat-chew-02.wav",
+      "seconds": 0.75,
+      "peakDbFS": -7.282214693267111,
+      "rms": 0.024844592465193868
+    },
+    {
+      "file": "rat-chew-03.wav",
+      "seconds": 0.75,
+      "peakDbFS": -4.0000883347026726,
+      "rms": 0.018646999887263718
+    },
+    {
+      "file": "rat-squeak-01.wav",
+      "seconds": 1.1,
+      "peakDbFS": -4.491841169136601,
+      "rms": 0.09126593412349406
+    },
+    {
+      "file": "flesh-squish-01.wav",
+      "seconds": 0.9,
+      "peakDbFS": -9.025831249931995,
+      "rms": 0.010673719717660568
+    },
+    {
+      "file": "blood-spit-01.wav",
+      "seconds": 0.65,
+      "peakDbFS": -4.0000883347026726,
+      "rms": 0.07663646732713063
+    },
+    {
+      "file": "blood-spit-02.wav",
+      "seconds": 0.65,
+      "peakDbFS": -4.0000883347026726,
+      "rms": 0.07315959342027921
+    },
+    {
+      "file": "blood-spit-03.wav",
+      "seconds": 0.65,
+      "peakDbFS": -4.0000883347026726,
+      "rms": 0.060035875724614586
+    },
+    {
+      "file": "bone-crunch-01.wav",
+      "seconds": 0.8,
+      "peakDbFS": -4.0000883347026726,
+      "rms": 0.018651733688667148
+    },
+    {
+      "file": "gut-gurgle-01.wav",
+      "seconds": 1.1,
+      "peakDbFS": -4.0000883347026726,
+      "rms": 0.04517981560059459
+    },
+    {
+      "file": "gut-gurgle-02.wav",
+      "seconds": 1.1,
+      "peakDbFS": -4.0000883347026726,
+      "rms": 0.03921383424234452
+    },
+    {
+      "file": "gut-gurgle-03.wav",
+      "seconds": 1.1,
+      "peakDbFS": -4.0000883347026726,
+      "rms": 0.030625372168717822
+    }
+  ]
+}

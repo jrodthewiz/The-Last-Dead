@@ -1,6 +1,6 @@
 import {CAMPAIGN_SECTORS} from './campaign.js';
 import {getRoom, getRoomSequence} from './room-progression.js';
-import {weapons} from './engine.js';
+import {weapons,brutalCandidate,chestCandidate,nearestRat,verminTarget} from './engine.js';
 const PREFS_KEY = 'dead-arrival-prefs-v1';
 
 const DEFAULT_PREFS = Object.freeze({
@@ -13,6 +13,7 @@ const DEFAULT_PREFS = Object.freeze({
   uiVolume: 1,
   reducedMotion: false,
   gore: true,
+  bodycam: true,
   autoRun: false,
 });
 
@@ -76,6 +77,7 @@ function loadPrefs() {
       uiVolume: clamp(merged.uiVolume, 0, 1),
       reducedMotion: merged.reducedMotion === true || merged.reducedMotion === 'true' || merged.reducedMotion === 1,
       gore: merged.gore !== false && merged.gore !== 'false' && merged.gore !== 0,
+      bodycam: merged.bodycam !== false && merged.bodycam !== 'false' && merged.bodycam !== 0,
       autoRun: merged.autoRun === true || merged.autoRun === 'true' || merged.autoRun === 1,
     };
   };
@@ -110,9 +112,9 @@ export function roomProgression(run = {}) {
     const rooms = Array.isArray(course.rooms) ? course.rooms : [];
     const roomId = value => typeof value === 'string' ? value : value?.id;
     const roomFor = id => id ? rooms.find(room => room.id === id) || null : null;
-    const sequence = (Array.isArray(state.roomSequence) ? state.roomSequence : rooms)
+    const sequence = (Array.isArray(course.encounterRoute) ? course.encounterRoute : Array.isArray(state.roomSequence) ? state.roomSequence : rooms)
       .map(roomId).filter(Boolean);
-    const roomCount = Math.max(1, Math.round(Number(state.roomCount) || sequence.length || rooms.length || 1));
+    const roomCount = Math.max(1, Math.round(course.encounterRoute?.length || Number(state.roomCount) || sequence.length || rooms.length || 1));
     const activeRoomId = roomId(state.activeRoomId);
     const encounterRoomId = roomId(state.encounterRoomId)
       || roomId(state.currentEncounterRoomId)
@@ -120,9 +122,10 @@ export function roomProgression(run = {}) {
       || activeRoomId;
     const activeRoom = roomFor(activeRoomId);
     const encounterRoom = roomFor(encounterRoomId) || activeRoom;
-    const indexFromId = sequence.indexOf(encounterRoomId);
+    const routeTarget=state.currentEncounterRoomId||state.navigation?.roomId||state.nextRoomId||encounterRoomId;
+    const indexFromId = sequence.indexOf(routeTarget);
     const suppliedRoomIndex = Number(state.roomIndex);
-    const roomIndex = Math.max(0, Math.min(roomCount - 1, Math.round(Number.isFinite(suppliedRoomIndex) ? suppliedRoomIndex : (indexFromId >= 0 ? indexFromId : 0))));
+    const roomIndex = Math.max(0, Math.min(roomCount - 1, Math.round(course.encounterRoute&&indexFromId>=0?indexFromId:Number.isFinite(suppliedRoomIndex) ? suppliedRoomIndex : (indexFromId >= 0 ? indexFromId : 0))));
     const nextRoomId = roomId(state.nextRoomId) || sequence[roomIndex + 1] || null;
     const nextRoom = roomFor(nextRoomId);
     const waveCount = Math.max(1, Math.round(Number(encounter.waveCount ?? run.waveCount ?? course.waveCount) || 1));
@@ -183,6 +186,7 @@ export function roomProgression(run = {}) {
       encounterRoomId,
       nextRoomId,
       roomSequence: sequence,
+      completedRoomIds: Array.isArray(state.roomsCompleted)?state.roomsCompleted:null,
       wave,
       waveCount,
       active,
@@ -274,6 +278,28 @@ export function roomProgression(run = {}) {
   };
 }
 
+// Guidance describes the next local turn, not the straight-line direction to
+// a remote room or one fleeing enemy. Engine waypoints own wall/door routing.
+export function dungeonNavigationView(run={}){
+ const state=run.dungeonProgression,nav=state?.navigation;
+ if(!run.course?.dungeon||!nav)return{visible:false};
+ const room=run.course.rooms?.find(room=>room.id===(state.currentEncounterRoomId||nav.roomId));
+ const inside=state.activeRoomId===(state.currentEncounterRoomId||nav.roomId);
+ const holding=nav.hold||nav.kind==='hold'||(nav.kind==='combat'&&inside);
+ if(holding){
+  const alive=state.encounter?.active??0,pending=state.encounter?.pending??0;
+  return{visible:true,holding:true,bearing:0,label:alive?`Hold this room · ${alive} threats`:pending?'Hold this room · listen for the next approach':'Room secured'};
+ }
+ if(inside&&nav.kind==='advance')return{visible:true,holding:true,bearing:0,label:'Ready your weapon · watch the entrances'};
+ if(nav.blocked||!nav.waypoint)return{visible:true,holding:true,bearing:0,label:'Route sealed · finish the current encounter'};
+ const dx=nav.waypoint.x-run.x,dy=nav.waypoint.y-run.y;
+ const bearing=Math.atan2(Math.sin(Math.atan2(dy,dx)-(run.angle||0)),Math.cos(Math.atan2(dy,dx)-(run.angle||0)));
+ const magnitude=Math.abs(bearing),turn=magnitude>2.35?'Turn back':magnitude>.48?(bearing>0?'Turn right':'Turn left'):'Straight ahead';
+ const meters=Math.max(1,Math.round(Math.hypot(dx,dy)*4));
+ const returning=state.currentEncounterRoomId&&!inside;
+ return{visible:true,holding:false,bearing,label:returning?`${turn} · return to ${room?.name||'the fight'}`:`${turn} · ${meters} m`};
+}
+
 export class UI {
   constructor({
     root = document.querySelector('#ui'),
@@ -295,6 +321,7 @@ export class UI {
     this.callbacks = { onStart, onResume, onRestart, onMenu, onPause, onHost, onJoin, onAccept, onDisconnect, onSettings, onWeapon, onSound };
     this.prefs = loadPrefs();
     this.screen = 'menu';
+    this.inputDevice = 'keyboard';
     this.run = null;
     this._toastTimer = 0;
     this._lastEventCount = 0;
@@ -452,6 +479,55 @@ export class UI {
 
   escape(){if(this.root.querySelector('.settings-drawer.is-open')){this._setSettingsOpen(false);this.root.querySelector('.screen button')?.focus();return true;}return false;}
 
+  setInputDevice(device){this.inputDevice=device==='gamepad'?'gamepad':'keyboard';this.root.dataset.inputDevice=this.inputDevice;}
+
+  gamepadNavigate(action){
+    if(action==='cancel'){
+      if(this.escape())return true;
+      for(const selector of ['.field-guide','.records-archive','[data-coop-panel]']){
+        const panel=this.root.querySelector(selector);
+        if(panel&&!panel.hidden){panel.hidden=true;const trigger=selector==='.field-guide'?'[data-action="guide"]':`[aria-controls="${panel.id}"]`;this.root.querySelector(trigger)?.setAttribute('aria-expanded','false');return true;}
+      }
+      return false;
+    }
+    const settings=this.root.querySelector('.settings-drawer.is-open'),guide=this.root.querySelector('.field-guide');
+    if(guide&&!guide.hidden&&!settings){
+      if(action==='up'||action==='down'){
+        // The sheet lives inside the existing menu rather than its own overlay.
+        // Scroll whichever ancestor actually owns overflow without moving focus
+        // away from Controls, so A can close the same sheet after reading it.
+        let scroller=null;
+        for(let node=guide;node&&this.root.contains(node);node=node.parentElement){
+          if(node.scrollHeight>node.clientHeight+1&&/auto|scroll/.test(getComputedStyle(node).overflowY)){scroller=node;break;}
+        }
+        if(scroller){const step=Math.max(120,Math.min(320,scroller.clientHeight*.45));scroller.scrollTop=clamp(scroller.scrollTop+(action==='down'?step:-step),0,scroller.scrollHeight-scroller.clientHeight);}
+        return true;
+      }
+      if(action==='confirm'){
+        const toggle=this.root.querySelector('[data-action="guide"]');
+        if(toggle){toggle.focus({preventScroll:true});toggle.click();return true;}
+      }
+    }
+    const scope=settings||this.root.querySelector('.screen:not([hidden])')||this.root;
+    const controls=[...scope.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled)')]
+      .filter(node=>!node.closest('[hidden],.hud,.touch-layer')&&node.getClientRects().length>0);
+    if(!controls.length)return false;
+    const focused=controls.indexOf(document.activeElement),current=controls[focused<0?0:focused];
+    if(action==='confirm'){
+      current.focus({preventScroll:true});
+      if(current.tagName==='BUTTON'||current.type==='checkbox')current.click();
+      return true;
+    }
+    if((action==='left'||action==='right')&&focused>=0&&current.type==='range'){
+      const delta=action==='right'?1:-1,step=Number(current.step)||1;
+      current.value=String(clamp(Number(current.value)+delta*step,Number(current.min)||0,Number(current.max)||100));
+      current.dispatchEvent(new Event('input',{bubbles:true}));return true;
+    }
+    const delta=action==='up'||action==='left'?-1:1;
+    const index=focused<0?0:(focused+delta+controls.length)%controls.length;
+    controls[index].focus({preventScroll:true});return true;
+  }
+
   _updatePref(name, value) {
     if (!(name in DEFAULT_PREFS)) return;
     let next = value;
@@ -520,6 +596,7 @@ export class UI {
       <div class="setting-row"><div class="setting-copy"><strong>Look sensitivity</strong></div><output class="setting-value" data-setting-value="sensitivity">${Number(this.prefs.sensitivity).toFixed(2)}x</output><input type="range" min="0.25" max="2" step="0.05" value="${esc(this.prefs.sensitivity)}" data-setting="sensitivity" aria-label="Look sensitivity" /></div>
       <label class="setting-row"><span class="setting-copy"><strong>Reduced motion</strong></span><span class="toggle"><input type="checkbox" data-setting="reducedMotion" ${this.prefs.reducedMotion ? 'checked' : ''} /><span class="toggle-track"></span></span></label>
       <label class="setting-row"><span class="setting-copy"><strong>Gore effects</strong></span><span class="toggle"><input type="checkbox" data-setting="gore" ${this.prefs.gore ? 'checked' : ''} /><span class="toggle-track"></span></span></label>
+      <label class="setting-row"><span class="setting-copy"><strong>Body-cam lens</strong></span><span class="toggle"><input type="checkbox" data-setting="bodycam" ${this.prefs.bodycam ? 'checked' : ''} /><span class="toggle-track"></span></span></label>
       <label class="setting-row"><span class="setting-copy"><strong>Auto-run</strong></span><span class="toggle"><input type="checkbox" data-setting="autoRun" ${this.prefs.autoRun ? 'checked' : ''} /><span class="toggle-track"></span></span></label>
 
     </aside>`;
@@ -546,7 +623,7 @@ export class UI {
       ${this.devEnabled?'<button class="menu-link" type="button" data-dev-inspect>MAP INSPECTOR <small>F2</small></button>':''}
       <button class="menu-link" type="button" data-action="settings">SETTINGS</button>
       <button class="menu-link" type="button" data-action="guide" aria-expanded="false">CONTROLS</button>
-  <div class="field-guide" hidden><h2>Controls</h2><div class="guide-controls"><b>WASD</b><span>Move / aim</span><b>SPACE / SHIFT</b><span>Jump / dash</span><b>CTRL / F / E</b><span>Slide / parry / tether</span><b>HOLD G</b><span>Drain a corpse, then remove its heart to bank points</span><b>1 2 3 4 5 6 7 8</b><span>Switch weapons</span><b>RIGHT CLICK</b><span>Alternate fire / hold to charge Mourning</span></div></div>
+  <div class="field-guide" hidden><h2>Controls</h2><div class="guide-controls"><b>WASD</b><span>Move / aim</span><b>SPACE / SHIFT</b><span>Jump / dash</span><b>CTRL / F / E</b><span>Slide / parry / tether</span><b>F CLOSE UP</b><span>Chop an arm; twist a weakened, staggered target's neck. During a bite, parry twice to rip free.</span><b>V / R3 CLOSE UP</b><span>Pierce a wounded, staggered target's chest, pull the heart, then release the body (15 energy)</span><b>G / X (TAP)</b><span>Look down to grab a nearby rat; tap again to throw</span><b>F / RB + RAT</b><span>Feed a held rat into a close zombie; aim down for its stomach</span><b>HOLD G</b><span>Drain a corpse, then remove its heart to bank points</span><b>1 2 3 4 5 6 7 8</b><span>Switch weapons</span><b>RIGHT CLICK</b><span>Alternate fire / hold to charge Mourning</span><b>L / R STICK</b><span>Move / look · standard-mapped controller</span><b>RT / LT</b><span>Fire / alternate fire</span><b>RB / LB</b><span>Parry, counter or bite escape / tether</span><b>A / B / L3</b><span>Jump / hold slide / dash</span><b>HOLD X</b><span>Extract a corpse and bank points</span><b>Y / D-PAD</b><span>Cycle weapons</span><b>START</b><span>Pause / resume · menus: stick or D-pad, A confirm, B back</span></div></div>
      </nav></div><div class="cinema-footer" aria-hidden="true"><span>KEEP BREATHING.</span><span>DON'T LOOK AWAY.</span></div>
     </section>${this._settingsMarkup()}`;
     this._applyPrefs();this._syncCoopControls();queueMicrotask(()=>this.root.querySelector('.start-button')?.focus({preventScroll:true}));return this;
@@ -641,6 +718,7 @@ export class UI {
     this._clearToasts();
     this.run = run;
     const courseName = run.course?.name || 'The Bloodworks';
+    const fatalBite=!win&&run.bite?.phase==='terminal';
     const kills = Number(run.kills) || 0;
     const dungeon = run.course?.dungeon === true;
     const wave = dungeon ? (win ? run.dungeonProgression?.floorsCleared || run.course.dungeonIndex + 1 : run.course.dungeonIndex + 1) : (win ? (run.sectorCount||3) : (run.sectorIndex||0));
@@ -658,7 +736,7 @@ export class UI {
     const time = Number(run.time) || 0;
     const old = this.root.querySelector('.screen');
     if (old) old.remove();
-    this.root.insertAdjacentHTML('afterbegin', `<section class="screen finish-screen" aria-label="${win ? dungeon ? 'Descent cleared' : 'Arena cleared' : 'Run over'}"><div class="finish-backdrop"></div><div class="finish-card ${win ? 'is-win' : 'is-dead'}"><span class="kicker">${win ? 'SUBJECT COMPLETE // EXIT SIGNAL FOUND' : 'THE DESCENT CLAIMS ANOTHER.'}</span><h2>${win ? 'DEBT <em>PAID.</em>' : 'YOU ARE <em>DEAD.</em>'}</h2><p class="finish-copy">${esc(endingCopy)}</p><div class="results"><div class="result"><strong>${fmt(time, 1)}s</strong><span class="result-label">run time</span></div><div class="result"><strong>${String(kills).padStart(2, '0')}</strong><span class="result-label">eliminated</span></div><div class="result"><strong>${String(combo).padStart(2, '0')}</strong><span class="result-label">best combo</span></div></div><div class="results"><div class="result"><strong>${String(wave).padStart(2, '0')} / ${String(total).padStart(2, '0')}</strong><span class="result-label">${progressLabel}</span></div><div class="result"><strong>${Math.round(style)}</strong><span class="result-label">style earned</span></div><div class="result"><strong>${esc(run.rank || (win ? 'S' : 'D'))}</strong><span class="result-label">final rank</span></div></div><div class="finish-actions"><button class="primary-button" type="button" data-action="restart">${win ? 'Run it back' : 'RISE AGAIN'} <span>-></span></button><button class="secondary-button" type="button" data-action="menu">Return to menu</button></div></div></section>`);
+    this.root.insertAdjacentHTML('afterbegin', `<section class="screen finish-screen" aria-label="${win ? dungeon ? 'Descent cleared' : 'Arena cleared' : 'Run over'}"><div class="finish-backdrop"></div><div class="finish-card ${win ? 'is-win' : 'is-dead'}"><span class="kicker">${win ? 'SUBJECT COMPLETE // EXIT SIGNAL FOUND' : fatalBite ? 'NECK BITE // SIGNAL LOST' : 'THE DESCENT CLAIMS ANOTHER.'}</span><h2>${win ? 'DEBT <em>PAID.</em>' : fatalBite ? 'TORN <em>APART.</em>' : 'YOU ARE <em>DEAD.</em>'}</h2><p class="finish-copy">${esc(fatalBite?'It caught you at the throat. Fight free faster on the next descent.':endingCopy)}</p><div class="results"><div class="result"><strong>${fmt(time, 1)}s</strong><span class="result-label">run time</span></div><div class="result"><strong>${String(kills).padStart(2, '0')}</strong><span class="result-label">eliminated</span></div><div class="result"><strong>${String(combo).padStart(2, '0')}</strong><span class="result-label">best combo</span></div></div><div class="results"><div class="result"><strong>${String(wave).padStart(2, '0')} / ${String(total).padStart(2, '0')}</strong><span class="result-label">${progressLabel}</span></div><div class="result"><strong>${Math.round(style)}</strong><span class="result-label">style earned</span></div><div class="result"><strong>${esc(run.rank || (win ? 'S' : 'D'))}</strong><span class="result-label">final rank</span></div></div><div class="finish-actions"><button class="primary-button" type="button" data-action="restart">${win ? 'Run it back' : 'RISE AGAIN'} <span>-></span></button><button class="secondary-button" type="button" data-action="menu">Return to menu</button></div></div></section>`);
     return this;
   }
 
@@ -670,14 +748,16 @@ export class UI {
         <strong class="room-name" data-hud="room-name">INTAKE BAY</strong>
         <div class="objective-line"><strong class="hud-value" data-hud="objective">CLEAR INTAKE BAY</strong><span class="room-threat" data-hud="room-threat">THREAT ACTIVE</span></div>
         <span class="hud-sub" data-hud="objective-sub">HUNT THEM DOWN</span>
+        <div class="route-guidance" data-hud="route-guidance" hidden><i data-hud="route-bearing" aria-hidden="true">↑</i><span data-hud="route-label"></span></div>
         <div class="objective-progressline"><div class="objective-progress"><i data-hud="objective-progress"></i></div><span class="room-progress-label" data-hud="room-progress-label">00% CLEAR</span></div>
         <div class="room-route" data-hud="room-route" role="progressbar" aria-label="Encounter progression" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
       </div></div>
        <div class="run-clock"><span data-hud="run-clock">00:00</span><small class="hud-kills" data-hud="kills" aria-label="Kills">KILLS 00</small><small data-hud="network">SOLO</small><small data-hud="fps" hidden></small></div>
        <div class="hud-cluster"><div class="rank"><span class="rank-caption">STYLE</span><strong data-hud="rank">D</strong><div class="rank-meter"><i data-hud="style-fill"></i></div><span data-hud="style-label">GET CLOSE.</span><span class="style-pending" data-hud="style-pending" hidden>0 UNBANKED</span><div class="combat-feed" aria-live="off"></div></div><button class="hud-pause" type="button" data-action="pause" aria-label="Pause game">II</button></div></div>
       <div class="crosshair" data-hud="crosshair" aria-hidden="true"><span class="hitmarker"></span><i></i><b></b></div>
-      <div class="extraction-prompt" data-extraction-prompt hidden><span class="extraction-kicker">CORPSE EXTRACTION</span><strong data-hud="extraction-label">HOLD G / DRAIN BODY</strong><span class="extraction-meter"><i data-hud="extraction-fill"></i></span></div>
-      <div class="hud-bottom"><div class="hud-bottom-left"><div class="vitals"><div class="vitals-line"><svg class="blood-mark" viewBox="0 0 40 60" aria-hidden="true"><path d="M20 0C18 15 2 30 2 40a18 18 0 0 0 36 0C38 29 23 15 20 0Z"/><path class="blood-cut" d="M7 41L24 23L17 42L31 35L18 56"/></svg><strong data-hud="health">100</strong><span class="vital-caption">BLOOD<br><b>VITALS</b></span></div><div class="meter health-meter"><i class="health-trail" data-hud="health-trail"></i><i class="health-fill" data-hud="health-fill"></i></div><span class="critical-label">FEED OR DIE</span></div><div class="dash-cluster"><div class="dash-pips"><i class="dash-pip" data-dash="0"></i><i class="dash-pip" data-dash="1"></i><i class="dash-pip" data-dash="2"></i></div><span>DASH</span></div></div>
+      <aside class="bite-prompt" data-bite-prompt role="status" aria-live="polite" hidden><span class="bite-kicker" data-hud="bite-kicker">CLOSE CONTACT</span><strong data-hud="bite-label">BREAK THE GRIP</strong><span class="bite-instruction" data-hud="bite-instruction">${this.inputDevice==='gamepad'?'RB':'F'} PARRY / MOVE / KEEP FIRING</span><span class="bite-meter" aria-hidden="true"><i data-hud="bite-fill"></i></span></aside>
+      <div class="extraction-prompt" data-extraction-prompt hidden><span class="extraction-kicker">CORPSE EXTRACTION</span><strong data-hud="extraction-label">HOLD ${this.inputDevice==='gamepad'?'X':'G'} / DRAIN BODY</strong><span class="extraction-meter"><i data-hud="extraction-fill"></i></span></div>
+      <div class="hud-bottom"><div class="hud-bottom-left"><div class="vitals"><div class="vitals-line"><svg class="blood-mark" viewBox="0 0 40 60" aria-hidden="true"><path d="M20 0C18 15 2 30 2 40a18 18 0 0 0 36 0C38 29 23 15 20 0Z"/><path class="blood-cut" d="M7 41L24 23L17 42L31 35L18 56"/></svg><strong data-hud="health" aria-label="Health">100</strong><span class="vital-caption">VITALS</span></div><div class="meter health-meter"><i class="health-trail" data-hud="health-trail"></i><i class="health-fill" data-hud="health-fill"></i></div><span class="wound-status" data-hud="wounds" hidden></span><span class="critical-label">FEED OR DIE</span></div><div class="dash-cluster"><div class="dash-pips"><i class="dash-pip" data-dash="0"></i><i class="dash-pip" data-dash="1"></i><i class="dash-pip" data-dash="2"></i></div><span>DASH</span></div></div>
        <div class="hud-bottom-right"><div class="weapon-card"><div class="weapon-line"><span class="weapon-slot" data-hud="weapon-slot">01</span><strong class="weapon-name" data-hud="weapon">OSSUARY</strong></div><span class="weapon-hint" data-hud="weapon-hint">BONEFORGED // COIN RICOCHET</span><span class="arsenal-count" data-hud="arsenal-count">FULL ARSENAL</span><div class="weapon-rack">${WEAPON_NAMES.map((name,i)=>`<button type="button" data-action="equip" data-weapon="${i}" data-weapon-slot="${i}" aria-label="Equip ${name}">${weaponSigil(i)}<span>${i+1}</span></button>`).join('')}</div><span class="weapon-foot"><span data-hud="weapon-resource">COIN x4</span><span data-hud="cooldown-label">READY</span></span><div class="rifle-meter" data-rifle-meter-wrap hidden><i data-hud="rifle-meter"></i></div><div class="cooldown"><i data-hud="cooldown"></i></div></div></div></div>
     </div>`;
   }
@@ -715,7 +795,7 @@ export class UI {
       ? Number(progression.encounterProgress)
       : progression.progress * count - current));
     route.querySelectorAll('[data-room-step]').forEach((step, index) => {
-      const complete = index < current;
+      const complete = progression.completedRoomIds?progression.completedRoomIds.includes(progression.roomSequence[index]):index < current;
       step.classList.toggle('is-complete', complete);
       step.classList.toggle('is-active', index === current);
       step.style.setProperty('--step-progress', complete ? '100%' : index === current ? `${Math.round(fraction * 100)}%` : '0%');
@@ -734,7 +814,8 @@ export class UI {
       hud = this.root.querySelector('.hud');this._applyPrefs();
     }
     const mode = run.mode || 'play';
-    hud.hidden = this.screen!=='play'||(mode!=='play'&&mode!=='ready');
+    const fatalBiteBeat=mode==='dead'&&run.bite?.phase==='terminal';
+    hud.hidden = this.screen!=='play'||(mode!=='play'&&mode!=='ready'&&!fatalBiteBeat);
     const touch = this.root.querySelector('.touch-layer');
     if (touch) touch.hidden = this.screen!=='play';
     const progression = roomProgression(run);
@@ -760,6 +841,50 @@ export class UI {
     crosshair?.classList.toggle('is-shot', Number(run.shot) > 0);
     const reset=run.time<(this._hudTime||0);if(!reset&&this._lastHealth!==undefined&&health<this._lastHealth){this._damageAt=now;this._damageStrength=Math.min(.8,.25+(this._lastHealth-health)/60);}if(reset)this._damageAt=0;this._hudTime=run.time;this._lastHealth=health;hud.classList.toggle('is-critical',health>0&&health<=30);hud.style.setProperty('--damage',String(Math.max(0,1-(now-(this._damageAt||0))/650)*(this._damageStrength||0)));
     this._setHud('health', fmt(health));this._setHud('health-trail','',health);
+    const bite=run.bite||{},bitePrompt=this.root.querySelector('[data-bite-prompt]');
+    const biteActive=['windup','held','terminal'].includes(bite.phase);
+    if(bitePrompt){
+      const counter=run.brutal,counterActive=counter&&counter.phase!=='idle',candidate=counterActive?null:chestCandidate(run)||brutalCandidate(run);
+      const swarmWarning=run.vermin?.swarm?.phase==='warning';
+      const hand=run.verminHand||{},verminActive=hand.phase&&hand.phase!=='idle',rat=counterActive||verminActive||swarmWarning?null:nearestRat(run),target=verminTarget(run);
+      bitePrompt.hidden=!biteActive&&!counterActive&&!candidate&&!verminActive&&!rat&&!swarmWarning;
+      bitePrompt.dataset.phase=counterActive?'counter':verminActive||rat?'vermin':swarmWarning?'warning':bite.phase||'idle';
+      const biteInstruction=bitePrompt.querySelector('[data-hud="bite-instruction"]');
+      if(biteInstruction)biteInstruction.hidden=(!biteActive&&!!counterActive)||bite.phase==='terminal';
+      if(biteActive){
+        const held=bite.phase==='held',terminal=bite.phase==='terminal';
+        const parryHint=this.inputDevice==='gamepad'?'RB PARRY':'F PARRY';
+        this._setHud('bite-kicker',terminal?'SIGNAL LOST':held?'NECK BITE':'CLOSE CONTACT');
+        this._setHud('bite-label',terminal?'FATAL BITE':held?'BREAK THE GRIP':'DODGE NOW');
+        this._setHud('bite-instruction',held&&target?`${this.inputDevice==='gamepad'?'RB':'F'} / FEED RAT`:held?`${parryHint} · MOVE / FIRE`:`${parryHint} · DASH / JUMP`);
+        this._setHud('bite-fill','',held?clamp(Number(bite.escape)||0,0,1)*100:0);
+      }else if(verminActive&&!counterActive||rat){
+        const grab=this.inputDevice==='gamepad'?'X':'G',attack=this.inputDevice==='gamepad'?'RB':'F';
+        const labels={pickup:'GRABBING RAT',held:`${grab} / THROW RAT`,stuff:hand.channel==='stomach'?'INTO THE STOMACH':'INTO THE MOUTH',release:'RAT RELEASED'};
+        this._setHud('bite-kicker',hand.phase==='held'?'BITING / LET GO SOON':'VERMIN');
+        this._setHud('bite-label',rat?`${grab} / GRAB RAT`:labels[hand.phase]||'');
+        this._setHud('bite-instruction',target?`${attack} / ${target.channel==='stomach'?'STOMACH':'MOUTH'}`:hand.phase==='held'?'AIM / THROW · GET CLOSE / FEED':'');
+        if(biteInstruction)biteInstruction.hidden=!target&&hand.phase!=='held';
+        this._setHud('bite-fill','',hand.phase==='held'?Math.min(100,(hand.holdAge||0)/8*100):rat?0:clamp((hand.elapsed||0)/(hand.duration||1),0,1)*100);
+      }else if(counterActive||candidate){
+        const kind=counterActive?counter.kind:candidate.kind,labels={chop:'CHOP THE ARM',twist:'TWIST THE NECK',rip:'RIP FREE',pierce:counter?.phase==='extract'?'TAKE THE HEART':counter?.phase==='recover'?'RELEASE THE BODY':'PIERCE THE CHEST'};
+        const input=this.inputDevice==='gamepad'?(kind==='pierce'?'R3':'RB'):(kind==='pierce'?'V':'F');
+        this._setHud('bite-kicker',counterActive?'CLOSE CONTACT':'COUNTER OPENING');
+        this._setHud('bite-label',counterActive?labels[kind]:`${input} / ${labels[kind]}`);
+        this._setHud('bite-instruction',kind==='pierce'?'15 ENERGY':kind==='twist'?'STAGGERED TARGET':kind==='rip'?'BREAK THE GRIP':'10 ENERGY');
+        this._setHud('bite-fill','',counterActive?clamp(counter.elapsed/counter.duration,0,1)*100:0);
+      }else if(swarmWarning){
+        this._setHud('bite-kicker','BLOOD SCENT');this._setHud('bite-label','SWARM APPROACHING');
+        this._setHud('bite-instruction','');if(biteInstruction)biteInstruction.hidden=true;
+        this._setHud('bite-fill','',clamp((run.vermin.swarm.elapsed||0)/(run.vermin.swarm.duration||2.2),0,1)*100);
+      }
+    }
+    const wounds=run.playerWounds||{},woundLabels={leftArm:'L ARM',rightArm:'R ARM',leftLeg:'L LEG',rightLeg:'R LEG'};
+    const woundParts=Object.entries(woundLabels).filter(([part])=>wounds[part]&&wounds[part]!=='intact').map(([part,label])=>`${label} ${wounds[part]==='severed'?'LOST':'BITTEN'}`);
+    if(Number(wounds.neck)>0)woundParts.push('NECK WOUND');
+    if(Number(wounds.torso)>0)woundParts.push(wounds.eviscerated?'TORSO TORN':'TORSO WOUND');
+    const woundNode=this.root.querySelector('[data-hud="wounds"]');
+    if(woundNode){woundNode.hidden=!woundParts.length;woundNode.textContent=woundParts.slice(0,2).join(' · ')+(woundParts.length>2?` +${woundParts.length-2}`:'');woundNode.title=woundParts.join(' / ');}
     this._setHud('run-clock',`${String(Math.floor((run.time||0)/60)).padStart(2,'0')}:${String(Math.floor((run.time||0)%60)).padStart(2,'0')}`);
     this._setHud('kills', `KILLS ${String(Math.max(0, Math.round(Number(run.kills) || 0))).padStart(2, '0')}`);
     this._setHud('health-fill', '', health);
@@ -772,16 +897,17 @@ export class UI {
     this._setHud('style-total', `${Math.round(Number(run.styleTotal) || style)} pts`);
     this._setHud('style-fill', '', (style / 1800) * 100);
     const pendingStyle=Math.max(0,Math.round(Number(run.stylePending)||0));
+    hud.dataset.styleActive=String(style>0||pendingStyle>0);
     const pendingNode=this.root.querySelector('[data-hud="style-pending"]');
     if(pendingNode){pendingNode.hidden=pendingStyle===0;pendingNode.textContent=`${pendingStyle} UNBANKED`;}
     const extraction=run.extraction;
     const extracting=!!extraction&&extraction.targetId!=null&&['draw','incise','rip'].includes(extraction.phase);
-    const candidate=run.extractCandidateId!=null;
+    const candidate=run.extractCandidateId!=null&&(!run.brutal||run.brutal.phase==='idle');
     const extractionPrompt=this.root.querySelector('[data-extraction-prompt]');
     if(extractionPrompt){
       extractionPrompt.hidden=!extracting&&!candidate;
       extractionPrompt.dataset.phase=extracting?extraction.phase:'ready';
-      this._setHud('extraction-label',extracting?({draw:'DRAWING BLOOD',incise:'OPENING THE CHEST',rip:'PULLING THE HEART'}[extraction.phase]):'HOLD G / EXTRACT');
+      this._setHud('extraction-label',extracting?({draw:'DRAWING BLOOD',incise:'OPENING THE CHEST',rip:'PULLING THE HEART'}[extraction.phase]):this.inputDevice==='gamepad'?'HOLD X / EXTRACT':'HOLD G / EXTRACT');
       this._setHud('extraction-fill','',extracting?clamp(Number(extraction.progress)||0,0,1)*100:0);
     }
     const touchExtract=this.root.querySelector('.touch-extract');
@@ -797,20 +923,22 @@ export class UI {
     const rifleCharge = clamp(run.rifleCharge, 0, 1) * 100;
     const rifleBurst = clamp(Math.floor(Number(run.rifleBurst) || 0), 0, 2);
     const rifleResource = weapon === 6
-      ? (run.meleeActive ? `${run.meleeHeavy ? 'HEAVY' : 'SWING'} / ${run.meleeProgress < .4 ? 'WINDUP' : 'RECOVERING'}` : 'ALT / HEAVY STRIKE')
-      : weapon === 7 ? (run.meleeActive ? 'SHOVE / RECOVERING' : run.sawContact > 0 ? 'CONTACT / CUTTING' : run.sawActive ? `REV ${fmt(run.sawRev * 100)}%` : 'HOLD FIRE / REV + CUT')
+      ? (run.meleeActive ? (run.meleeProgress < .4 ? (run.meleeHeavy ? 'HEAVY SWING' : 'SWING') : 'RECOVERING') : 'ALT / HEAVY STRIKE')
+      : weapon === 7 ? (run.meleeActive ? 'SHOVE' : run.sawContact > 0 ? 'CUTTING' : run.sawActive ? `REV ${fmt(run.sawRev * 100)}%` : 'HOLD FIRE / REV')
       : weapon === 4
-      ? `HEAT ${fmt(rifleHeat)}% / ${rifleBurst > 0 ? `BURST ${rifleBurst} LEFT` : cooldown > 0.01 ? 'BURST RECOVERING' : 'BURST READY'}`
+      ? `HEAT ${fmt(rifleHeat)}%${rifleBurst > 0 ? ` / BURST ${rifleBurst}` : ''}`
       : weapon === 5
-        ? (run.rifleCharging && rifleCharge > 0.01 ? `CHARGING ${fmt(rifleCharge)}%` : cooldown > 0.01 ? 'RECOVERING / PIERCE x3' : 'HOLD ALT / PIERCE x3')
+        ? (run.rifleCharging && rifleCharge > 0.01 ? `CHARGE ${fmt(rifleCharge)}%` : cooldown > 0.01 ? 'RECOVERING' : 'HOLD ALT / PIERCE x3')
         : weapon === 0 ? `COIN x${Math.floor(coins)}`
           : weapon === 1 ? (altCooldown > 0 ? `CORE ${fmt(altCooldown, 1)}s` : 'CORE READY')
             : weapon === 2 ? 'RAIL PIERCE' : 'BURST READY';
-    this._setHud('weapon-resource', rifleResource);
+    this._setHud('weapon-resource', this.inputDevice==='gamepad'?rifleResource.replace(/\bALT\b/g,'LT').replace(/\bFIRE\b/g,'RT'):rifleResource);
     const cooldownLabel = weapon === 7 && !run.meleeActive ? (run.sawActive ? 'RUNNING' : 'IDLE') : weapon === 5 && run.rifleCharging
       ? 'CHARGING'
       : cooldown > 0.01 ? `${fmt(cooldown, 2)}s` : 'READY';
     this._setHud('cooldown-label', cooldownLabel);
+    const cooldownNode=this.root.querySelector('[data-hud="cooldown-label"]');
+    if(cooldownNode)cooldownNode.hidden=['READY','IDLE','CHARGING'].includes(cooldownLabel);
     this._setHud('cooldown', '', maxCooldown ? (1 - cooldown / maxCooldown) * 100 : 100);
     const rifleMeter = this.root.querySelector('[data-rifle-meter-wrap]');
     rifleMeter?.toggleAttribute('hidden', weapon < 4 || weapon === 6);
@@ -819,6 +947,8 @@ export class UI {
     rifleMeter?.classList.toggle('is-saw', weapon === 7);
     this._setHud('rifle-meter', '', weapon === 7 ? clamp(run.sawRev,0,1)*100 : weapon === 4 ? rifleHeat : rifleCharge);
     this._setHud('network', network || 'OFFLINE');
+    const networkNode=this.root.querySelector('[data-hud="network"]');
+    if(networkNode)networkNode.hidden=!network||['SOLO','OFFLINE'].includes(network);
     const fpsNode = this.root.querySelector('[data-hud="fps"]');
     if (fpsNode) { fpsNode.hidden = !this.debug; if (this.debug) fpsNode.textContent = fps ? `${Math.round(fps)} FPS` : '-- FPS'; }
     const floorIndex = Math.max(0, Math.round(run.course?.dungeon ? run.course.dungeonIndex : progression.sectorIndex));
@@ -835,11 +965,30 @@ export class UI {
       ? `${progression.active} ACTIVE${pending ? ` / ${pending} INCOMING` : ''}`
       : pending ? `${pending} INCOMING` : 'NO ACTIVE THREATS';
     this._setHud('sector', `${sectorRoman} / ${sectorTitle}`);
-    this._setHud('room-index', progression.sync ? `ROOM ${String(Math.round(progression.roomIndex) + 1).padStart(2, '0')} / ${String(progression.roomCount).padStart(2, '0')}` : 'ROOM -- / --');
+    this._setHud('room-index', progression.sync ? `${progression.dungeon?'ROUTE':'ROOM'} ${String(Math.round(progression.roomIndex) + 1).padStart(2, '0')} / ${String(progression.roomCount).padStart(2, '0')}` : 'ROOM -- / --');
     this._setHud('room-name', progression.roomName);
     this._setHud('objective', progression.objective || fallbackObjective);
-    this._setHud('objective-sub', compactHudCopy(progression.subtitle || fallbackSubtitle));
+    const approach=this._approachCue;
+    const approachLabel=approach&&approach.until>Date.now()&&approach.roomId===progression.encounterRoomId?`Movement at ${approach.label}`:null;
+    const phase=run.dungeonProgression?.encounter;
+    const phaseLabel=phase?.phaseCount>1&&['combat','telegraph'].includes(progression.state)?`${phase.phase||'Approach'} ${phase.phaseIndex+1}/${phase.phaseCount}`:null;
+    this._setHud('objective-sub', compactHudCopy(approachLabel||phaseLabel||progression.subtitle||fallbackSubtitle));
+    const objectiveSub=this.root.querySelector('[data-hud="objective-sub"]');
+    if(objectiveSub)objectiveSub.hidden=!approachLabel&&!phaseLabel&&progression.state!=='key';
+    const navigation=dungeonNavigationView(run);
+    const guidance=hud.querySelector('[data-hud="route-guidance"]');
+    if(guidance){
+      guidance.hidden=!navigation.visible||(!!navigation.holding&&!run.dungeonProgression?.navigation?.blocked);
+      if(!guidance.hidden){
+        const arrow=guidance.querySelector('[data-hud="route-bearing"]');
+        if(arrow){arrow.style.transform=`rotate(${navigation.bearing}rad)`;arrow.textContent=navigation.holding?'◇':'↑';}
+        guidance.dataset.holding=String(!!navigation.holding);
+        this._setHud('route-label',navigation.label);
+      }
+    }
     this._setHud('room-threat', progression.threat || fallbackThreat);
+    const threatNode=this.root.querySelector('[data-hud="room-threat"]');
+    if(threatNode)threatNode.hidden=['NO ACTIVE THREATS','ROOM CLEAR'].includes(progression.threat||fallbackThreat);
     const encounterState = String(progression.state || '').toLowerCase();
     const encounterPercent = Math.round(clamp((progression.encounterProgress ?? progression.progress) * 100, 0, 100));
     const floorPercent = Math.round(clamp(progression.progress * 100, 0, 100));
@@ -857,9 +1006,11 @@ export class UI {
   _setHud(name, text, width) {
     const node = this.root.querySelector(`[data-hud="${name}"]`);
     if (!node) return;
-    if (text !== '') node.textContent = text;
+    if (text !== '' && node.textContent !== String(text)) node.textContent = text;
     if (width !== undefined) node.style.width = `${clamp(width, 0, 100)}%`;
   }
+
+  approachCue(event){this._approachCue={roomId:event.roomId,label:String(event.label||'the entrance'),until:Date.now()+4200};}
 
   lootDiscovery(item) {
     const hud=this.root.querySelector('.hud');if(!hud)return this;

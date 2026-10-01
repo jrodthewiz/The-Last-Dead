@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>The Last Dead · Anatomy Study</title><link rel="icon" href="data:,">
+  <style>
+    :root{color-scheme:dark;font-family:Arial,sans-serif;background:#111310;color:#e7ddca}
+    *{box-sizing:border-box}body{margin:0;height:100svh;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+    header{padding:20px 28px;border-bottom:1px solid #494137;display:flex;justify-content:space-between;gap:18px;align-items:center}
+    h1{margin:6px 0 0;font-size:clamp(21px,3vw,30px);font-weight:600;letter-spacing:-.02em}.eyebrow{font-size:11px;color:#c09578;letter-spacing:.18em;text-transform:uppercase}.scope{max-width:350px;font-size:13px;line-height:1.45;color:#b4afa3}
+    main{min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto}canvas{display:block;min-height:0;width:100%;height:100%;touch-action:none}
+    .view-note{margin:10px 28px 14px;font-size:12px;color:#b4afa3;pointer-events:none}[data-status]{margin:14px 28px 8px;font-size:13px;line-height:1.5;color:#c7b697}
+    footer{border-top:1px solid #494137;padding:18px 28px max(18px,env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:18px;align-items:start}
+    .group-label{display:block;font-size:10px;letter-spacing:.14em;color:#b4afa3;text-transform:uppercase;margin-bottom:8px}.buttons{display:flex;flex-wrap:wrap;gap:5px}
+    button{font:inherit;font-size:12px;min-height:44px;border:1px solid #4d443b;border-radius:2px;background:#1a1d19;color:#e7ddca;padding:9px 14px;cursor:pointer}button:hover{border-color:#c09578}button[aria-pressed=true]{border-color:#af6b55;background:#453027}button:focus-visible{outline:2px solid #d9c099;outline-offset:3px}button:disabled{opacity:.45;cursor:wait}
+    [data-metrics]{font-size:12px;line-height:1.55;color:#a7a497;white-space:pre-line;min-width:170px}
+    @media(max-width:700px){header{padding:16px 18px;display:block}.scope{font-size:12px;max-width:none;margin:8px 0 0}footer{padding:12px 18px max(12px,env(safe-area-inset-bottom));grid-template-columns:1fr 1fr;gap:10px 12px}.view-note,[data-status]{margin-left:18px;margin-right:18px}[data-metrics]{min-width:0;font-size:11px}button{padding:7px 10px;font-size:11px}h1{font-size:23px}}
+  </style>
+</head>
+<body>
+  <header><div><span class="eyebrow">The Last Dead / art study 01</span><h1>Abdominal anatomy</h1></div><p class="scope">An authored wound and attached organ study. Candidate assets; gameplay integration and injury mechanics remain a separate step.</p></header>
+  <main><div data-status role="status">Loading the anatomy study…</div><canvas aria-label="Interactive anatomy study"></canvas><div class="view-note">Drag to orbit · Scroll to inspect · Cavity for a close view</div></main>
+  <footer>
+    <div><span class="group-label">Presentation</span><div class="buttons"><button data-pose="packed" aria-pressed="true" disabled>Packed</button><button data-pose="spill" aria-pressed="false" disabled>Spilled</button></div></div>
+    <div><span class="group-label">Lighting</span><div class="buttons"><button data-light="neutral" aria-pressed="true">Neutral</button><button data-light="warm" aria-pressed="false">Warm</button><button data-light="cold" aria-pressed="false">Cold</button></div></div>
+    <div><span class="group-label">Inspection</span><div class="buttons"><button data-surface="pbr" aria-pressed="true">Textured</button><button data-surface="clay" aria-pressed="false">Clay</button><button data-view="front">Front</button><button data-view="side">Side</button><button data-view="back">Back</button><button data-view="detail">Cavity</button></div></div>
+    <output data-metrics>Preparing geometry</output>
+  </footer>
+  <script type="module" src="./gore-proof.js"></script>
+</body>
+</html>

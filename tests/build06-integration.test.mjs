@@ -20,7 +20,7 @@ const PLAYER_FIELDS = [
   'time', 'mode', 'health', 'energy', 'weapon', 'cooldowns', 'fireCooldown',
   'shot', 'damage', 'heal', 'aim', 'slide', 'dashTime', 'punch', 'hookTime',
   'hookCooldown', 'hookTarget', 'parryTime', 'parryCooldown', 'slam',
-  'wallJumps', 'style', 'styleTotal', 'styleLabel', 'rank', 'kills', 'combo',
+  'wallJumps', 'style', 'styleTotal', 'stylePending', 'styleLabel', 'rank', 'kills', 'combo',
   'bestCombo', 'lastWeapon', 'repeat', 'coinCharges', 'coinRegen',
   'altCooldown', 'respawnTime',
 ];
@@ -278,13 +278,14 @@ test('Build 06 P2P guest damage and style remain owner-visible in bounded snapsh
   assert.equal(enemy.dead, true, 'guest-owned damage should kill the authoritative target');
   assert.equal(host.kills, 1, 'host world should carry the authoritative kill count');
   assert.equal(guest.kills, 1, 'guest should retain its owner-visible kill count');
-  assert.ok(guest.styleTotal > 0, 'guest should receive style for its own hit');
+  assert.ok(guest.stylePending > 0, 'guest should receive pending style for its own hit');
 
   const snapshot = networkSnapshot(host, 1);
   assertFiniteAndBounded(snapshot);
   assert.ok(snapshot.guest, 'co-op snapshot should include guest player data');
   assert.equal(snapshot.guest.kills, guest.kills);
   assert.equal(snapshot.guest.styleTotal, guest.styleTotal);
+  assert.equal(snapshot.guest.stylePending, guest.stylePending);
   assert.equal(snapshot.director.state, 'intermission');
   assert.ok(!('queue' in snapshot.director), 'co-op snapshot must omit the director queue');
 });
@@ -309,5 +310,5 @@ test('Build 06 guest bazooka splash preserves guest ownership for style and kill
   for (let i = 0; i < 90 && !enemy.dead; i++) tick(host, DT, {});
   assert.equal(enemy.dead, true, 'guest rocket should resolve through the host simulation');
   assert.equal(guest.kills, 1, 'guest should own the rocket kill');
-  assert.ok(guest.styleTotal > 0, 'guest should receive style for rocket splash');
+  assert.ok(guest.stylePending > 0, 'guest should receive pending style for rocket splash');
 });

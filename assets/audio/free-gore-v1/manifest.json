@@ -1,0 +1,525 @@
+{
+  "id": "free-gore-v1",
+  "status": "DOWNLOADED_AND_PREPARED_NOT_WIRED",
+  "downloadDate": "2026-09-30",
+  "license": "CC0 1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "qualityBoundary": "Public high-quality MP3 previews, not the uploader original lossless WAV/AIFF. WAV derivatives preserve the decoded preview and do not recover original fidelity.",
+  "costUSD": 0,
+  "runtimeIntegration": "Separate asset pack only. Active audio manifest/mixer and running game are unchanged.",
+  "preparation": "Mono 44.1kHz PCM16; gentle high/low-pass; highest-energy non-overlapping source windows; 8ms fades; maximum +6dB gain and -4dBFS peak.",
+  "sources": [
+    {
+      "key": "roach-swarm",
+      "id": 380769,
+      "author": "szczur_banshee",
+      "title": "BS _Swarm of roaches.wav",
+      "count": 2,
+      "seconds": 1.25,
+      "highpass": 180,
+      "use": [
+        "vermin-swarm-warning",
+        "vermin-swarm"
+      ],
+      "description": "Real cockroaches recorded in a box near a microphone.",
+      "sourcePage": "https://freesound.org/people/szczur_banshee/sounds/380769/",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "downloadUrl": "https://cdn.freesound.org/previews/380/380769_1732954-hq.mp3",
+      "downloadKind": "Public HQ MP3 preview",
+      "preservedSource": ".art-source/free-gore-v1/380769-roach-swarm-hq-preview.mp3",
+      "sourceBytes": 837838,
+      "sourceSha256": "e202b0dce12805a8603d035be3a58a2566d117a7c05778567ea6247b68cbe1b9",
+      "decodedSeconds": 34.0,
+      "pageSha256": "807b7a71720e0a7fa50fbdda4e3a40778766be8059203a15dcfd0c5769196fb7",
+      "clips": [
+        {
+          "file": "roach-swarm-01.wav",
+          "durationSeconds": 1.25,
+          "sampleRate": 44100,
+          "channels": 1,
+          "format": "PCM16 WAV",
+          "sourceOffsetSeconds": 19.44,
+          "gainDb": -3.385042825725992,
+          "peak": 0.630950927734375,
+          "peakDbFS": -4.0000883347026726,
+          "rms": 0.012582105191758262,
+          "bytes": 110294,
+          "sha256": "8b40054b543f75be8adb7cacf6a6d912333fa1df5251f941caf190c05550d0fd",
+          "loop": false
+        },
+        {
+          "file": "roach-swarm-02.wav",
+          "durationSeconds": 1.25,
+          "sampleRate": 44100,
+          "channels": 1,
+          "format": "PCM16 WAV",
+          "sourceOffsetSeconds": 21.36,
+          "gainDb": -2.859075371864858,
+          "peak": 0.630950927734375,
+          "peakDbFS": -4.0000883347026726,
+          "rms": 0.011275277589447793,
+          "bytes": 110294,
+          "sha256": "b8cd3c80995a4d69d6b3aecc4dad96a9d20db43b5deb061c6ade9e1041374ecb",
+          "loop": false
+        }
+      ]
+    },
+    {
+      "key": "roach-scrabble",
+      "id": 767054,
+      "author": "ThabzMalik",
+      "title": "Cockroaches scurrying and scratching within a cage",
+      "count": 3,
+      "seconds": 0.72,
+      "highpass": 180,
+      "use": [
+        "vermin-crawl",
+        "vermin-pickup"
+      ],
+      "description": "Real indoor cockroach tapping, scratching and rustling.",
+      "sourcePage": "https://freesound.org/people/ThabzMalik/sounds/767054/",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "downloadUrl": "https://cdn.freesound.org/previews/767/767054_15764451-hq.mp3",
+      "downloadKind": "Public HQ MP3 preview",
+      "preservedSource": ".art-source/free-gore-v1/767054-roach-scrabble-hq-preview.mp3",
+      "sourceBytes": 545232,
+      "sourceSha256": "be5a5b9b62578285ef6ba3245bd557e965504b01af4ae88b2e81e2ac48e3b109",
+      "decodedSeconds": 21.397006802721087,
+      "pageSha256": "2af2d4b727e723b52ed753e03223776743df3349631c795c12d4b57b1036750e",
+      "clips": [
+        {
+          "file": "roach-scrabble-01.wav",
+          "durationSeconds": 0.72,
+          "sampleRate": 44100,
+          "channels": 1,
+          "format": "PCM16 WAV",
+          "sourceOffsetSeconds": 6.4,
+          "gainDb": 6.0,
+          "peak": 0.055816650390625,
+          "peakDbFS": -25.06472458966602,
+          "rms": 0.00222245065903016,
+          "bytes": 63548,
+          "sha256": "dd9765feb97ea34ef7fc013f17e5dfd8041af064f12651325c7a19cc5302b369",
+          "loop": false
+        },
+        {
+          "file": "roach-scrabble-02.wav",
+          "durationSeconds": 0.72,
+          "sampleRate": 44100,
+          "channels": 1,
+          "format": "PCM16 WAV",
+          "sourceOffsetSeconds": 8.08,
+          "gainDb": 6.0,
+          "peak": 0.056182861328125,
+          "peakDbFS": -25.007922929114063,
+          "rms": 0.0047100405343430615,
+          "bytes": 63548,
+          "sha256": "92ae1bb01806c8d00411a64df65712ff9cd9ccf92f542ce63308ab35fb463ac0",
+          "loop": false
+        },
+        {
+          "file": "roach-scrabble-03.wav",
+          "durationSeconds": 0.72,
+          "sampleRate": 44100,
+          "channels": 1,
+          "format": "PCM16 WAV",
+          "sourceOffsetSeconds": 13.28,
+          "gainDb": 6.0,
+          "peak": 0.07904052734375,
+          "peakDbFS": -22.04300341756932,
+          "rms": 0.002155403092212346,
+          "bytes": 63548,
+          "sha256": "024aa813351f43ceb2941852a4aa0c1799136f53dd0c867d225eaa2ab59a2753",
+          "loop": false
+        }
+      ]
+    },
+    {
+      "key": "rat-chew",
+      "id": 154477,
+      "author": "lucaslara",
+      "title": "Rat Nibbling_1-2.aif",
+      "count": 3,
+      "seconds": 0.75,
+      "highpass": 90,
+      "use": [
+        "vermin-bite",
+        "vermin-infest"
+      ],
+      "description": "Real rat nibbling and breathing near a microphone; not a recorded attack.",
+      "sourcePage": "https://freesound.org/people/lucaslara/sounds/154477/",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "downloadUrl": "https://cdn.freesound.org/previews/154/154477_2592491-hq.mp3",
+      "downloadKind": "Public HQ MP3 preview",
+      "preservedSource": ".art-source/free-gore-v1/154477-rat-chew-hq-preview.mp3",
+      "sourceBytes": 118704,
+      "sourceSha256": "7321201d1db3e7b56b41f0981ee66c147a130ebbf60a97c50a3b45088d476d81",
+      "decodedSeconds": 6.214557823129252,
+      "pageSha256": "b56ef425e7bc5001b0e751f2f2cd544b6baeb3cc605f0218b14d408203f8ad29",
+      "clips": [
+        {
+          "file": "rat-chew-01.wav",
+          "durationSeconds": 0.75,
+          "sampleRate": 44100,
+          "channels": 1,
+          "format": "PCM16 WAV",
+          "sourceOffsetSeconds": 1.12,
+          "gainDb": 6.0,
+          "peak": 0.082183837890625,
+          "peakDbFS": -21.70427163096415,
+          "rms": 0.015798654195240038,
+          "bytes": 66194,
+          "sha256": "2c72e56d0b72bcec57c26a0699ad6782cea8a0815880112ee875ba8545cbc588",
+          "loop": false
+        },
+        {
+          "file": "rat-chew-02.wav",
+          "durationSeconds": 0.75,
+          "sampleRate": 44100,
+          "channels": 1,
+          "format": "PCM16 WAV",
+          "sourceOffsetSeconds": 3.04,
+          "gainDb": 6.0,
+          "peak": 0.432403564453125,
+          "peakDbFS": -7.282214693267111,
+          "rms": 0.024844592465193868,
+          "bytes": 66194,
+          "sha256": "25fafd2a664d0354ae84e3c12ec9546e075795c7de881210d458f1ff1784393b",
+          "loop": false
+        },
+        {
+          "file": "rat-chew-03.wav",
+          "durationSeconds": 0.75,
+          "sampleRate": 44100,
+          "channels": 1,
+          "format": "PCM16 WAV",
+          "sourceOffsetSeconds": 3.92,
+          "gainDb": 4.913616124419457,
+          "peak": 0.630950927734375,
+          "peakDbFS": -4.0000883347026726,
+          "rms": 0.018646999887263718,
+          "bytes": 66194,
+          "sha256": "41859d3ec81588ccf4708468e9ac639bcfc59dc9561cc38efcaa16a77786bfc9",
+          "loop": false
+        }
+      ]
+    },
+    {
+      "key": "rat-squeak",
+      "id": 536753,
+      "author": "egomassive",
+      "title": "Rat.ogg",
+      "count": 1,
+      "seconds": 1.1,
+      "highpass": 80,
+      "use": [
+        "vermin-pickup",
+        "vermin-bite"
+      ],
+      "description": "Processed rodent squeak derived from Shyguy014 Mouse Squeaks, also identified as CC0 by the uploader. Not an independently recorded rat vocalization.",
+      "sourcePage": "https://freesound.org/people/egomassive/sounds/536753/",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "downloadUrl": "https://cdn.freesound.org/previews/536/536753_1415754-hq.mp3",
+      "downloadKind": "Public HQ MP3 preview",
+      "preservedSource": ".art-source/free-gore-v1/536753-rat-squeak-hq-preview.mp3",
+      "sourceBytes": 22056,
+      "sourceSha256": "c437caaa42c84d19bf5addf75b00faa11f58f9142744ddcc637c12423cd802e1",
+      "decodedSeconds": 1.1190022675736961,
+      "pageSha256": "30003c83ed3450d1477cc90b29c2e53d3df29007a17f902c9151fcbda3f7f275",
+      "clips": [
+        {
+          "file": "rat-squeak-01.wav",
+          "durationSeconds": 1.1,
+          "sampleRate": 44100,
+          "channels": 1,
+          "format": "PCM16 WAV",
+          "sourceOffsetSeconds": 0.0,
+          "gainDb": 6.0,
+          "peak": 0.596221923828125,
+          "peakDbFS": -4.491841169136601,
+          "rms": 0.09126593412349406,
+          "bytes": 97064,
+          "sha256": "0012e416197ec0d3c17228f435147c82ada93e6c5254d535048588ea49855c42",
+          "loop": false
+        }
+      ]
+    },
+    {
+      "key": "flesh-squish",
+      "id": 269482,
+      "author": "editor_adp",
+      "title": "Gooey Squish",
+      "count": 1,
+      "seconds": 0.9,
+      "highpass": 45,
+      "use": [
+        "brutal-contact",
+        "brutal-extract",
+        "vermin-infest"
+      ],
+      "description": "Recorded wet squishing foley; Zoom H4n built-in microphones.",
+      "sourcePage": "https://freesound.org/people/editor_adp/sounds/269482/",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "downloadUrl": "https://cdn.freesound.org/previews/269/269482_2155835-hq.mp3",
+      "downloadKind": "Public HQ MP3 preview",
+      "preservedSource": ".art-source/free-gore-v1/269482-flesh-squish-hq-preview.mp3",
+      "sourceBytes": 18624,
+      "sourceSha256": "9791e09aaaadc35bec351d249bb796d37b2b78b7a6482791228e00ad279dd6e7",
+      "decodedSeconds": 0.9137868480725624,
+      "pageSha256": "2d69f86733e4007f709f75259acb1f578fdab9acab5358f775038a06cd37a1c8",
+      "clips": [
+        {
+          "file": "flesh-squish-01.wav",
+          "durationSeconds": 0.9,
+          "sampleRate": 44100,
+          "channels": 1,
+          "format": "PCM16 WAV",
+          "sourceOffsetSeconds": 0.0,
+          "gainDb": 6.0,
+          "peak": 0.353759765625,
+          "peakDbFS": -9.025831249931995,
+          "rms": 0.010673719717660568,
+          "bytes": 79424,
+          "sha256": "9b14360cee3e8a7113ad5e452f6b006c3fbbc68e71b2b5aa084539c5e8a2980c",
+          "loop": false
+        }
+      ]
+    },
+    {
+      "key": "blood-spit",
+      "id": 237386,
+      "author": "squareal",
+      "title": "Spitting Blood 01.wav",
+      "count": 3,
+      "seconds": 0.65,
+      "highpass": 55,
+      "use": [
+        "bite-start",
+        "bite-damage",
+        "bite-release",
+        "vermin-infest"
+      ],
+      "description": "Liquid spitting foley recorded using Sennheiser 416 and Sound Devices 552.",
+      "sourcePage": "https://freesound.org/people/squareal/sounds/237386/",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "downloadUrl": "https://cdn.freesound.org/previews/237/237386_1502374-hq.mp3",
+      "downloadKind": "Public HQ MP3 preview",
+      "preservedSource": ".art-source/free-gore-v1/237386-blood-spit-hq-preview.mp3",
+      "sourceBytes": 274032,
+      "sourceSha256": "175dd16454755349f59c1a8e93d44712868c3fb100d94d1db67dca5500880df2",
+      "decodedSeconds": 9.905351473922902,
+      "pageSha256": "e9f0ac5b5cd9de56bfde9bcf6939825a0fec19661df5129254a9f06c08e53870",
+      "clips": [
+        {
+          "file": "blood-spit-01.wav",
+          "durationSeconds": 0.65,
+          "sampleRate": 44100,
+          "channels": 1,
+          "format": "PCM16 WAV",
+          "sourceOffsetSeconds": 0.08,
+          "gainDb": 3.0851446051445137,
+          "peak": 0.630950927734375,
+          "peakDbFS": -4.0000883347026726,
+          "rms": 0.07663646732713063,
+          "bytes": 57374,
+          "sha256": "44ce2bb7750d4ce68a310b4eae546f4efffc1e883b924d85ab7cfdc0769ae557",
+          "loop": false
+        },
+        {
+          "file": "blood-spit-02.wav",
+          "durationSeconds": 0.65,
+          "sampleRate": 44100,
+          "channels": 1,
+          "format": "PCM16 WAV",
+          "sourceOffsetSeconds": 3.52,
+          "gainDb": 2.92584070782046,
+          "peak": 0.630950927734375,
+          "peakDbFS": -4.0000883347026726,
+          "rms": 0.07315959342027921,
+          "bytes": 57374,
+          "sha256": "a4023f722a1e38e217d9ac6cda7c771f52addfd58801c18f9046d1ce1850c7cd",
+          "loop": false
+        },
+        {
+          "file": "blood-spit-03.wav",
+          "durationSeconds": 0.65,
+          "sampleRate": 44100,
+          "channels": 1,
+          "format": "PCM16 WAV",
+          "sourceOffsetSeconds": 5.12,
+          "gainDb": -2.5819737312673046,
+          "peak": 0.630950927734375,
+          "peakDbFS": -4.0000883347026726,
+          "rms": 0.060035875724614586,
+          "bytes": 57374,
+          "sha256": "327714c5e6df2931f4293f238dbcd9323769a8bdbbd09c0c122f25f0be3a14c4",
+          "loop": false
+        }
+      ]
+    },
+    {
+      "key": "bone-crunch",
+      "id": 765085,
+      "author": "getwecked",
+      "title": "macaroni crunch",
+      "count": 1,
+      "seconds": 0.8,
+      "highpass": 65,
+      "use": [
+        "brutal-contact",
+        "bite-terminal"
+      ],
+      "description": "Dry macaroni compressed between rocks, recorded using Samson C01UPRO; bone/crush foley rather than actual injury.",
+      "sourcePage": "https://freesound.org/people/getwecked/sounds/765085/",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "downloadUrl": "https://cdn.freesound.org/previews/765/765085_16538157-hq.mp3",
+      "downloadKind": "Public HQ MP3 preview",
+      "preservedSource": ".art-source/free-gore-v1/765085-bone-crunch-hq-preview.mp3",
+      "sourceBytes": 30384,
+      "sourceSha256": "a2be72bd92e93119b01ff45a0e5f5796e9a2bf0306135da95e7db7245d13e373",
+      "decodedSeconds": 1.5,
+      "pageSha256": "6da714b6bfdb1845c2d5e20309fcc517e345b4ab418a75f3030c9c821e5ba952",
+      "clips": [
+        {
+          "file": "bone-crunch-01.wav",
+          "durationSeconds": 0.8,
+          "sampleRate": 44100,
+          "channels": 1,
+          "format": "PCM16 WAV",
+          "sourceOffsetSeconds": 0.4,
+          "gainDb": 4.055951659289003,
+          "peak": 0.630950927734375,
+          "peakDbFS": -4.0000883347026726,
+          "rms": 0.018651733688667148,
+          "bytes": 70604,
+          "sha256": "040a17cdb759ff2a9d76c45c0b6fe63cd0d2a2f9ba83b27f8cdb26219d1b5f3c",
+          "loop": false
+        }
+      ]
+    },
+    {
+      "key": "gut-gurgle",
+      "id": 784955,
+      "author": "newlocknew",
+      "title": "LIQMisc_Gurgling And Squelching Sounds.A Puddle In The Forest 1_EM",
+      "count": 3,
+      "seconds": 1.1,
+      "highpass": 45,
+      "use": [
+        "brutal-extract",
+        "brutal-release",
+        "vermin-infest"
+      ],
+      "description": "Recorded mud/puddle squelching, post-processed by uploader; a design layer for viscera rather than literal organ audio.",
+      "sourcePage": "https://freesound.org/people/newlocknew/sounds/784955/",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "downloadUrl": "https://cdn.freesound.org/previews/784/784955_5828667-hq.mp3",
+      "downloadKind": "Public HQ MP3 preview",
+      "preservedSource": ".art-source/free-gore-v1/784955-gut-gurgle-hq-preview.mp3",
+      "sourceBytes": 969744,
+      "sourceSha256": "c5c7a27f1be9ed348c8207c32ffffbe824903e58cde0304dedb2afa0681c54f7",
+      "decodedSeconds": 35.53510204081633,
+      "pageSha256": "2a8833f30973a420bb7a33f97a45fe7dd1c0fee07ee9f21b9e8b0edecde02f35",
+      "clips": [
+        {
+          "file": "gut-gurgle-01.wav",
+          "durationSeconds": 1.1,
+          "sampleRate": 44100,
+          "channels": 1,
+          "format": "PCM16 WAV",
+          "sourceOffsetSeconds": 4.56,
+          "gainDb": -3.577630020957291,
+          "peak": 0.630950927734375,
+          "peakDbFS": -4.0000883347026726,
+          "rms": 0.04517981560059459,
+          "bytes": 97064,
+          "sha256": "50b67a5139809dee69c87d9779597eff84903b4364bdbed41a6f36c4aabd6e14",
+          "loop": false
+        },
+        {
+          "file": "gut-gurgle-02.wav",
+          "durationSeconds": 1.1,
+          "sampleRate": 44100,
+          "channels": 1,
+          "format": "PCM16 WAV",
+          "sourceOffsetSeconds": 6.24,
+          "gainDb": -5.464797708937609,
+          "peak": 0.630950927734375,
+          "peakDbFS": -4.0000883347026726,
+          "rms": 0.03921383424234452,
+          "bytes": 97064,
+          "sha256": "b56a557c6e6400f1590f1d06930e4e29915bb004951ee1b0df034f7cec7a68ed",
+          "loop": false
+        },
+        {
+          "file": "gut-gurgle-03.wav",
+          "durationSeconds": 1.1,
+          "sampleRate": 44100,
+          "channels": 1,
+          "format": "PCM16 WAV",
+          "sourceOffsetSeconds": 32.64,
+          "gainDb": -5.9057960980768085,
+          "peak": 0.630950927734375,
+          "peakDbFS": -4.0000883347026726,
+          "rms": 0.030625372168717822,
+          "bytes": 97064,
+          "sha256": "9f343403f3a869b7adc0484a9086d86b6cd2f70b2924d827d8e024ec2d11db35",
+          "loop": false
+        }
+      ]
+    }
+  ],
+  "pools": {
+    "free-roach-swarm": [
+      "./audio/free-gore-v1/roach-swarm-01.wav",
+      "./audio/free-gore-v1/roach-swarm-02.wav"
+    ],
+    "free-roach-scrabble": [
+      "./audio/free-gore-v1/roach-scrabble-01.wav",
+      "./audio/free-gore-v1/roach-scrabble-02.wav",
+      "./audio/free-gore-v1/roach-scrabble-03.wav"
+    ],
+    "free-rat-chew": [
+      "./audio/free-gore-v1/rat-chew-01.wav",
+      "./audio/free-gore-v1/rat-chew-02.wav",
+      "./audio/free-gore-v1/rat-chew-03.wav"
+    ],
+    "free-rat-squeak": [
+      "./audio/free-gore-v1/rat-squeak-01.wav"
+    ],
+    "free-flesh-squish": [
+      "./audio/free-gore-v1/flesh-squish-01.wav"
+    ],
+    "free-blood-spit": [
+      "./audio/free-gore-v1/blood-spit-01.wav",
+      "./audio/free-gore-v1/blood-spit-02.wav",
+      "./audio/free-gore-v1/blood-spit-03.wav"
+    ],
+    "free-bone-crunch": [
+      "./audio/free-gore-v1/bone-crunch-01.wav"
+    ],
+    "free-gut-gurgle": [
+      "./audio/free-gore-v1/gut-gurgle-01.wav",
+      "./audio/free-gore-v1/gut-gurgle-02.wav",
+      "./audio/free-gore-v1/gut-gurgle-03.wav"
+    ]
+  },
+  "verification": {
+    "decoder": "FFmpeg 4.2.3",
+    "waveforms": "Non-silent, finite, bounded peaks; browser decode pending; human audition pending."
+  },
+  "references": [
+    "C:/Users/wolfk/.codex/skills/threejs-audio-generator/SKILL.md",
+    "C:/Users/wolfk/.codex/skills/threejs-audio-generator/references/audio-workflows.md"
+  ],
+  "runtimeFiles": 17,
+  "runtimeBytes": 1320220
+}

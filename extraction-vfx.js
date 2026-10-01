@@ -1,4 +1,6 @@
 import * as THREE from './vendor/three.module.js';
+import {HarvestCutaways} from './extraction-cutaway.js';
+import {applyHarvestTissueLightResponse} from './extraction-tissue-materials.js';
 
 // Extraction is a deliberately contained close-range tableau.  The simulation
 // owns the interaction and score; this module only turns the authoritative
@@ -52,10 +54,11 @@ function disposeRoot(root) {
 }
 
 export class ExtractionVFX {
-  constructor({ scene, camera, materials: library = {}, cell = 4 } = {}) {
+  constructor({ scene, camera, renderer = null, materials: library = {}, cell = 4 } = {}) {
     this.scene = scene;
     this.camera = camera;
     this.cell = cell;
+    this.cutaways=renderer?new HarvestCutaways(renderer):null;
     this.settings = { gore: true, reducedMotion: false };
     this.active = false;
     this._run = null;
@@ -115,10 +118,12 @@ export class ExtractionVFX {
     });
     this.bloodBrightMaterial.emissive.setHex(0x0b0001);
     this.bloodBrightMaterial.emissiveIntensity = .1;
+    applyHarvestTissueLightResponse(this.bloodMaterial,{incidentLimit:1.2});
+    applyHarvestTissueLightResponse(this.bloodBrightMaterial,{incidentLimit:1.2});
     this.woundSurfaceMaterial = new THREE.MeshBasicMaterial({color:0x510b13,side:THREE.DoubleSide,transparent:true,opacity:.92,depthWrite:false});
     this.heartSurfaceMaterial = new THREE.MeshBasicMaterial({color:0x72111f,side:THREE.DoubleSide,transparent:true,opacity:.97,depthWrite:false});
-    this.metalMaterial = material(0xc6d0d2, { roughness: .27, metalness: .9 });
-    this.metalMaterial.color.setHex(0xadb9bb);
+    this.metalMaterial = material(0x778589, { roughness: .43, metalness: .86 });
+    applyHarvestTissueLightResponse(this.metalMaterial,{incidentLimit:3.8});
     this.glassMaterial = new THREE.MeshPhysicalMaterial({
       color: 0xc9eef1,
       roughness: .08,
@@ -343,12 +348,16 @@ export class ExtractionVFX {
     this.bladeTool.name = 'IncisionBlade';
     this.bladeTool.position.set(.17, -.07, -.52);
     this.bladeTool.rotation.set(-.55, -.15, .62);
-    const handle = new THREE.Mesh(new THREE.CylinderGeometry(.026, .036, .24, 9), this.gloveMaterial);
-    handle.rotation.z = Math.PI / 2;
-    const blade = new THREE.Mesh(new THREE.BoxGeometry(.018, .018, .3), this.metalMaterial);
+    const handle = new THREE.Mesh(new THREE.BoxGeometry(.016,.009,.145,1,1,5), this.metalMaterial);
+    handle.position.z=.005;
+    const bladeShape=new THREE.Shape();
+    bladeShape.moveTo(-.007,-.066);bladeShape.lineTo(.007,-.066);bladeShape.lineTo(.008,-.098);bladeShape.quadraticCurveTo(.004,-.12,-.005,-.126);bladeShape.lineTo(-.007,-.066);
+    const bladeGeometry=new THREE.ExtrudeGeometry(bladeShape,{depth:.0012,bevelEnabled:true,bevelThickness:.0004,bevelSize:.0003,bevelSegments:1,steps:1,curveSegments:7});
+    bladeGeometry.rotateX(Math.PI/2);
+    const blade = new THREE.Mesh(bladeGeometry, this.metalMaterial);
     blade.name = 'SterileBlade';
-    blade.position.z = -.18;
-    blade.rotation.y = -.08;
+    // The local blade tip is -Z, matching the actual source incision point.
+    blade.position.y=-.0006;
     this.bladeTool.add(handle, blade);
     this.tool.add(this.bladeTool);
 
@@ -357,12 +366,16 @@ export class ExtractionVFX {
     this.forceps.position.set(.07, -.12, -.54);
     this.forceps.rotation.set(-.3, .12, .38);
     for (const side of [-1, 1]) {
-      const tong = new THREE.Mesh(new THREE.CylinderGeometry(.014, .022, .37, 7), this.metalMaterial);
+      const curve=new THREE.CatmullRomCurve3([
+        new THREE.Vector3(side*.034,0,-.035),new THREE.Vector3(side*.030,0,-.09),
+        new THREE.Vector3(side*.024,-.004,-.19),new THREE.Vector3(side*.032,-.002,-.234),new THREE.Vector3(side*.024,0,-.250)
+      ]);
+      const tong = new THREE.Mesh(new THREE.TubeGeometry(curve,14,.0025,6,false), this.metalMaterial);
       tong.name = side < 0 ? 'ForcepsLeft' : 'ForcepsRight';
-      tong.rotation.z = side * .16;
-      tong.position.x = side * .04;
-      tong.position.z = -.14;
       this.forceps.add(tong);
+      const jaw=new THREE.Mesh(new THREE.BoxGeometry(.007,.010,.017),this.metalMaterial);
+      jaw.name=side<0?'ForcepsLeftJaw':'ForcepsRightJaw';
+      jaw.position.set(side*.026,0,-.244);this.forceps.add(jaw);
     }
     this.tool.add(this.forceps);
 
@@ -379,7 +392,7 @@ export class ExtractionVFX {
 
   _makePools() {
     const dropMaterial = this.bloodBrightMaterial;
-    this.droplets = new THREE.InstancedMesh(new THREE.SphereGeometry(.026, 6, 5), dropMaterial, 36);
+    this.droplets = new THREE.InstancedMesh(new THREE.SphereGeometry(.026, 10, 7), dropMaterial, 36);
     this.droplets.name = 'ExtractionDropletPool';
     this.droplets.count = 0;
     this.droplets.frustumCulled = false;
@@ -456,6 +469,10 @@ export class ExtractionVFX {
   }
 
   _updateCorpse(target, now, values) {
+    if(this.cutaways?.current){
+      this.corpse.visible=false;
+      return this.cutaways.current.frame.getWorldPosition(this._vectors.wound);
+    }
     const { camera, target: targetPoint, wound: woundPoint } = this._vectors;
     targetPoint.set((Number(target.x) || 0) * this.cell, (Number(target.z) || 0) * this.cell, (Number(target.y) || 0) * this.cell);
     this.corpse.position.copy(targetPoint);
@@ -523,6 +540,36 @@ export class ExtractionVFX {
     this.forceps.position.z = -.52 - rip * .08;
     this.forceps.rotation.z = .38 + Math.sin(now * 3.4) * .035 * motion;
     this.tool.visible = true;
+    const state=this.cutaways?.current;
+    const glove=this.tool.getObjectByName('ExtractionGlove');if(glove)glove.visible=!state;
+    if(state){
+      // World-space instruments touch the same torso frame as the progressive
+      // skin cut, rather than sweeping in front of the camera independently.
+      if(this.bladeTool.parent!==this.world){this.world.add(this.syringe,this.bladeTool,this.forceps);for(const instrument of [this.syringe,this.bladeTool,this.forceps])instrument.traverse(n=>n.layers.set(0));}
+      this.cutaways.cutPoint(state,incise,this.bladeTool.position);
+      this._vectors.axis.set(0,0,1).applyQuaternion(state.frame.quaternion);
+      this.bladeTool.position.addScaledVector(this._vectors.axis,.126);
+      this.bladeTool.quaternion.copy(state.frame.quaternion);
+      // Roll the jaw plane along the visible grip direction. The two hooks
+      // straddle the outside of the fitted heart instead of projecting as a
+      // single shaft through its centre when the torso is viewed side-on.
+      this._vectors.direction.set(1,0,0).applyQuaternion(this.camera.getWorldQuaternion(this._quaternion));
+      this._vectors.direction.applyQuaternion(this._quaternion.copy(state.frame.quaternion).invert());
+      const gripRoll=Math.atan2(this._vectors.direction.y,this._vectors.direction.x);
+      const gripRadius=1/Math.hypot(Math.cos(gripRoll)/.034,Math.sin(gripRoll)/.047);
+      const heartScale=state.frame.scale.x*state.anatomy.heart.scale.x;
+      this.forceps.scale.set(clamp(gripRadius*heartScale*.72/.026,.65,1.6),1,1);
+      state.anatomy.heart.getWorldPosition(this.forceps.position);this.forceps.position.addScaledVector(this._vectors.axis,.250+.025*heartScale*.72);
+      this.forceps.quaternion.copy(state.frame.quaternion);
+      this.forceps.rotateZ(gripRoll);
+      this.bladeTool.visible=values.phase==='incise';
+      this.syringe.scale.setScalar(.2);this.cutaways.cutPoint(state,0,this.syringe.position);
+      this.syringe.position.addScaledVector(this._vectors.axis,.1105);this.syringe.quaternion.copy(state.frame.quaternion);
+    }else{
+      this.syringe.scale.setScalar(1);
+      this.forceps.scale.setScalar(1);
+      for(const instrument of [this.syringe,this.bladeTool,this.forceps])if(instrument.parent!==this.tool){this.tool.add(instrument);instrument.traverse(n=>n.layers.set(1));}
+    }
   }
 
   _updateLink(woundPoint, values) {
@@ -530,9 +577,12 @@ export class ExtractionVFX {
     this.needleTip.getWorldPosition(needle);
     const streamEnd = this._vectors.streamEnd;
     streamEnd.copy(needle).sub(woundPoint).normalize().multiplyScalar(.22 + values.draw * .1).add(woundPoint);
+    // The fitted syringe holds its blood internally. No floating uptake tube
+    // or travelling bead should survive into the actual open-model incision.
+    if(this.cutaways?.current){this.link.visible=false;this.flowBead.visible=false;return;}
     lineBetween(this.link, woundPoint, streamEnd, .5);
     this.link.visible = values.draw > .08 && values.incise === 0 && values.rip === 0;
-    this.flowBead.visible = values.overall > .18;
+    this.flowBead.visible = values.phase==='draw' && values.overall > .18;
     if (this.flowBead.visible) {
       const t = (values.overall * 1.4 + (this._frame * .012) * (this.settings.reducedMotion ? .35 : 1)) % 1;
       this.flowBead.position.lerpVectors(woundPoint, streamEnd, t);
@@ -541,6 +591,7 @@ export class ExtractionVFX {
   }
 
   _updateDroplets(woundPoint, needlePoint, now, values) {
+    if(this.cutaways?.current){this._updateSourceDroplets(this.cutaways.current,now,values);return;}
     const count = this.settings.gore ? Math.min(36, Math.floor(this._variant.dropCount * (values.incise * .38 + values.rip * .72 + values.draw * .18))) : 0;
     const direction = this._vectors.direction.subVectors(needlePoint, woundPoint);
     const length = Math.max(.001, direction.length());
@@ -565,6 +616,27 @@ export class ExtractionVFX {
     this.droplets.instanceMatrix.needsUpdate = true;
   }
 
+  _updateSourceDroplets(state,now,values){
+    const maximum=this.settings.gore&&values.phase!=='draw'?Math.min(10,Math.floor((4+this._variant.dropCount*.22)*(values.incise*.5+values.rip*.7))):0;
+    const source=this._vectors.target,position=this._vectors.local,scale=this._vectors.scale;
+    const right=this._vectors.direction.set(1,0,0).applyQuaternion(state.frame.quaternion);
+    const front=this._vectors.axis.set(0,0,1).applyQuaternion(state.frame.quaternion);
+    let count=0;this._quaternion.identity();
+    for(let i=0;i<maximum;i++){
+      const age=(now*.8+hash01(this._seed,i+90)*.36)%.36;
+      if(values.rip>.03&&i%3===0)state.anatomy.heart.getWorldPosition(source);
+      else this.cutaways.cutPoint(state,values.incise,source);
+      position.copy(source).addScaledVector(right,(hash01(this._seed,i+91)-.5)*(.012+age*.08));
+      position.addScaledVector(front,.003+age*.025);position.y-=4.905*age*age;
+      if(position.y<.012)continue;
+      // 1.5–3 mm blood drops fall under world gravity, not along a camera ray.
+      const radius=.0015+hash01(this._seed,i+92)*.0015;
+      scale.set(radius/.026,radius/.026*(1+age*1.8),radius/.026);
+      this._matrix.compose(position,this._quaternion,scale);this.droplets.setMatrixAt(count++,this._matrix);
+    }
+    this.droplets.count=count;this.droplets.instanceMatrix.needsUpdate=true;
+  }
+
   update(run, nowMs = 0, dt = .016, options = {}) {
     this.settings.gore = options.gore !== false;
     this.settings.reducedMotion = options.reducedMotion === true;
@@ -577,6 +649,9 @@ export class ExtractionVFX {
     const phaseName = String(extraction?.phase || '').toLowerCase();
     const progress = clamp(Number(extraction?.progress) || 0, 0, 1);
     const done = !extraction || !target || (target.extracted === true && !settling) || phaseName === 'done' || phaseName === 'complete' || (progress >= 1 && phaseName === 'finished');
+    const display = settling ? {phase:'rip',progress:1,stageProgress:1,seed:extraction.lastSeed,variation:target.extractionVariation} : extraction;
+    const values=target&&!done?this._stageValues(display):null;
+    this.cutaways?.update(run,values,done?null:target,this.settings);
     if (done || !this.settings.gore) {
       this.active = false;
       this.root.visible = false;
@@ -590,14 +665,12 @@ export class ExtractionVFX {
     this.active = true;
     this.root.visible = true;
     this._run = run;
-    const display = settling ? {phase:'rip',progress:1,stageProgress:1,seed:extraction.lastSeed,variation:target.extractionVariation} : extraction;
     const seed = display.seed ?? target.seed ?? target.id ?? 0;
     if (this._lastTargetId !== target.id || this._seed !== Number(seed) || !this._variant) this._resetVariant(seed, target, display.variation || target.extractionVariation);
-    const values = this._stageValues(display);
     this._phase = settling ? 'complete' : values.phase;
     this._progress = values.overall;
     this._frame += Math.max(1, dt * 60);
-    const now = nowMs * .001;
+    const now = Number.isFinite(run.time)?run.time:nowMs*.001;
     const woundPoint = this._updateCorpse(target, now, values);
     this._updateTool(now, values);
     this._updateLink(woundPoint, values);
@@ -619,8 +692,9 @@ export class ExtractionVFX {
       seed: this._seed,
       droplets: this.droplets?.count || 0,
       pooledDroplets: this.droplets?.count ?? 0,
-      worldVisible: !!this.corpse?.visible,
+      worldVisible: !!this.corpse?.visible||!!this.cutaways?.diagnostics().visible,
       toolVisible: !!this.tool?.visible,
+      anatomy: this.cutaways?.diagnostics()||null,
     };
   }
 
@@ -636,10 +710,12 @@ export class ExtractionVFX {
     this.droplets.count = 0;
     this.link.visible = false;
     this.flowBead.visible = false;
+    this.cutaways?.reset();
   }
 
   dispose() {
     this.reset();
+    this.cutaways?.dispose();
     this.camera?.remove(this.tool);
     this.scene?.remove(this.root);
     disposeRoot(this.root);

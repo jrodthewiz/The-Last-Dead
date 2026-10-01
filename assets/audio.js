@@ -3,11 +3,11 @@
  * Bundled, sourced samples live under ./audio. Missing or undecodable assets
  * stay silent instead of being replaced with generated oscillator audio.
  */
-import { AUDIO_ASSET_MANIFEST } from './audio-manifest.js';
+import { AUDIO_ASSET_MANIFEST, AUDIO_ASSET_TRIMS_DB, PLAYER_INJURY_CUES, BRUTAL_COMBAT_CUES, VERMIN_CUES } from './audio-manifest.js';
 export { AUDIO_ASSET_MANIFEST };
 
 const GROUPS = ['sfx', 'ui', 'ambience', 'voice', 'music'];
-const GROUP_BASE_LEVELS = Object.freeze({ sfx: .68, ui: .42, ambience: .42, voice: .58, music: .45 });
+const GROUP_BASE_LEVELS = Object.freeze({ sfx: 1, ui: .5, ambience: .62, voice: .78, music: .38 });
 const GROUP_VOLUME_DEFAULTS = Object.freeze({ sfx: 1, ui: 1, ambience: 1, voice: 1, music: 1 });
 const GROUP_BY_TYPE = Object.freeze({
   ambience: 'ambience', ambient: 'ambience', voice: 'voice',
@@ -40,16 +40,16 @@ const MIX_PROFILES = Object.freeze({
   'extract-complete': { group: 'sfx', volume: .17, maxVoices: 2, highpass: 42, lowpass: 2600, cooldown: .08 },
   'extract-cancel': { group: 'sfx', volume: .08, maxVoices: 1, highpass: 550, lowpass: 5800, cooldown: .08 },
   bulletcrackle: { group: 'sfx', volume: .22, maxVoices: 6, highpass: 900, lowpass: 9000, cooldown: .04 },
-  footstep: { group: 'sfx', volume: .14, maxVoices: 3, highpass: 90, lowpass: 3000, cooldown: .06 },
+  footstep: { group: 'sfx', volume: .21, maxVoices: 3, highpass: 85, lowpass: 5600, cooldown: .06 },
   jump: { group: 'sfx', volume: .18, maxVoices: 2, highpass: 80, lowpass: 5600, cooldown: .08 },
   land: { group: 'sfx', volume: .26, maxVoices: 3, highpass: 45, lowpass: 2800, cooldown: .08 },
   dash: { group: 'sfx', volume: .20, maxVoices: 3, highpass: 120, lowpass: 7200, cooldown: .05 },
   slide: { group: 'sfx', volume: .16, maxVoices: 3, highpass: 90, lowpass: 3600, cooldown: .08 },
-  enemyattack: { group: 'voice', volume: .34, maxVoices: 4, highpass: 100, lowpass: 4800, cooldown: .16, refDistance: 2.2, maxDistance: 34 },
+  enemyattack: { group: 'voice', volume: .50, maxVoices: 3, highpass: 100, lowpass: 5800, cooldown: .16, refDistance: 2.5, maxDistance: 30, priority: 3 },
   enemyjump: { group: 'sfx', volume: .24, maxVoices: 3, highpass: 80, lowpass: 4200, cooldown: .1, refDistance: 2, maxDistance: 30 },
   enemyland: { group: 'sfx', volume: .25, maxVoices: 3, highpass: 55, lowpass: 3300, cooldown: .1, refDistance: 2, maxDistance: 32 },
   enemydeath: { group: 'voice', volume: .30, maxVoices: 4, highpass: 65, lowpass: 4300, cooldown: .04, refDistance: 2.4, maxDistance: 36 },
-  moan: { group: 'voice', volume: .18, maxVoices: 2, highpass: 90, lowpass: 3600, cooldown: .5, refDistance: 3, maxDistance: 42 },
+  moan: { group: 'voice', volume: .19, maxVoices: 2, highpass: 95, lowpass: 3600, cooldown: 1.2, refDistance: 2.5, maxDistance: 34, priority: 1 },
   'distant-scream': { group: 'voice', volume: .10, maxVoices: 1, highpass: 80, lowpass: 2900, cooldown: 12, refDistance: 3, maxDistance: 45, rolloffFactor: 1.25 },
   'ceiling-scream': { group: 'voice', volume: .32, maxVoices: 1, highpass: 75, lowpass: 4200, cooldown: 12, refDistance: 3, maxDistance: 25, rolloffFactor: 1.4 },
   'window-scream': { group: 'voice', volume: .40, maxVoices: 1, highpass: 85, lowpass: 4400, cooldown: 12, refDistance: 4, maxDistance: 26, rolloffFactor: 1.2 },
@@ -83,17 +83,17 @@ const SCENE_ALIASES = Object.freeze({
   game: 'play', gameplay: 'play', playing: 'play', ready: 'menu', loss: 'dead', victory: 'win',
 });
 const SHOT_PROFILES = Object.freeze([
-  { volume: .42, highpass: 110, lowpass: 8200, cooldown: .02 },
-  { volume: .50, highpass: 48, lowpass: 6400, cooldown: .08 },
-  { volume: .36, highpass: 520, lowpass: 11800, cooldown: .025 },
-  { volume: .43, highpass: 42, lowpass: 7600, cooldown: .08 },
+  { volume: .82, highpass: 65, lowpass: 10500, bodyDb: 3, cooldown: .02 },
+  { volume: .88, highpass: 35, lowpass: 9200, bodyDb: 3.5, cooldown: .08 },
+  { volume: .55, highpass: 340, lowpass: 11800, cooldown: .025 },
+  { volume: .75, highpass: 32, lowpass: 8400, bodyDb: 2, cooldown: .08 },
   // Carrion is a short, bright automatic report. Keep a four-voice ceiling
   // and a small event cooldown so a held trigger stays punchy instead of
   // turning into a continuous wall of samples.
-  { volume: .36, highpass: 92, lowpass: 9800, cooldown: .055, maxVoices: 4 },
+  { volume: .76, highpass: 65, lowpass: 11000, bodyDb: 2.5, cooldown: .055, maxVoices: 4 },
   // Mourning is deliberately lower and longer. Two voices preserve the
   // charge/recovery punctuation when a player fires a charged shot.
-  { volume: .54, highpass: 34, lowpass: 6700, cooldown: .11, maxVoices: 2 },
+  { volume: .88, highpass: 32, lowpass: 9000, bodyDb: 3, cooldown: .11, maxVoices: 2 },
 ]);
 const clamp = (value, min, max) => Math.max(min, Math.min(max, Number(value) || 0));
 const now = context => context?.currentTime ?? 0;
@@ -103,12 +103,9 @@ function sampleRms(buffer) {
   let count = 0;
   for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
     const samples = buffer.getChannelData(channel);
-    for (let index = 0; index < samples.length; index++) {
-      const sample = samples[index];
-      if (Math.abs(sample) < .0002) continue;
-      power += sample * sample;
-      count++;
-    }
+    // Peak 50ms energy matches repeated reports better than their tail length.
+    const window=Math.max(1,Math.round(buffer.sampleRate*.05));
+    for(let offset=0;offset<samples.length;offset+=window){let sum=0,n=0;for(let i=offset;i<Math.min(samples.length,offset+window);i++){sum+=samples[i]*samples[i];n++;}power=Math.max(power,sum/Math.max(1,n));count=1;}
   }
   return count ? Math.sqrt(power / count) : 0;
 }
@@ -116,7 +113,7 @@ function normalizationPoolKey(key) {
   const parts = key.split(':');
   if (parts[0] === 'shot' || parts[0] === 'mechanism') return parts.length > 2 ? `${parts[0]}:${parts[1]}` : null;
   if (parts[0] === 'ambience' || parts[0].startsWith('music-')) return null;
-  return parts.length > 1 ? parts.slice(0, -1).join(':') : null;
+  return ['enemyattack','enemydeath','moan','footstep'].includes(parts[0])&&parts.length>1?parts.slice(0,-1).join(':'):null;
 }
 function median(values) {
   const sorted = values.slice().sort((a, b) => a - b);
@@ -173,6 +170,16 @@ export class AudioSystem {
     this._master = null;
     this._limiter = null;
     this._groups = new Map();
+    this._buses = new Map();
+    this._duckGains = new Map();
+    this._outputTrim = null;
+    this._mixInput = null;
+    this._roomInput = null;
+    this._listenerPosition = {x:0,y:0,z:0};
+    this._spatialSources = new Set();
+    this._spatialEmitters = new Map();
+    this._droppedVoices = 0;
+    this._duckEvents = 0;
     this._buffers = new Map();
     this._soundEnvelopes = new Map();
     this._bufferGains = new WeakMap();
@@ -247,7 +254,35 @@ export class AudioSystem {
     return clamp(Math.pow(level / envelope.peak, .75), 0, 1);
   }
   get debugInfo() {
-    return Object.freeze({ loaded: this._loaded, decoded: this._buffers.size, manifestEntries: this._assetCount, normalizedPools: this._normalizedPools, normalizedSamples: this._normalizedSamples, errors: this.loadErrors });
+    return Object.freeze({ loaded: this._loaded, decoded: this._buffers.size, manifestEntries: this._assetCount, normalizedPools: this._normalizedPools, normalizedSamples: this._normalizedSamples, errors: this.loadErrors, mix:this.mixDiagnostics() });
+  }
+  mixDiagnostics() {
+    return {version:2,master:this._volume,muted:this._muted,paused:this._paused,
+      outputTrim:this._outputTrim?.gain.value??.86,limiterReductionDb:this._limiter?.reduction??0,
+      topology:'bus groups → compressor → 0.86 headroom → user master → output',
+      groups:Object.fromEntries(GROUPS.map(name=>[name,{base:GROUP_BASE_LEVELS[name],user:this._groupVolumes[name],current:this._groups.get(name)?.gain.value??0}])),
+      duckGains:Object.fromEntries([...this._duckGains].map(([name,node])=>[name,node.gain.value])),
+      activeVoices:this._sources.size,droppedVoices:this._droppedVoices,duckEvents:this._duckEvents,
+      calibratedSources:Object.keys(AUDIO_ASSET_TRIMS_DB).length,roomTaps:this._roomInput?2:0};
+  }
+  _createMixGraph() {
+    const ctx=this._ctx;
+    this._master=ctx.createGain();this._mixInput=ctx.createGain();this._outputTrim=ctx.createGain();this._outputTrim.gain.value=.86;
+    this._limiter=ctx.createDynamicsCompressor();
+    Object.assign(this._limiter.threshold,{value:-5});this._limiter.knee.value=3;this._limiter.ratio.value=16;this._limiter.attack.value=.001;this._limiter.release.value=.12;
+    this._mixInput.connect(this._limiter).connect(this._outputTrim).connect(this._master).connect(ctx.destination);
+    this._groups.set('master',this._master);
+    for(const name of GROUPS){const gain=ctx.createGain(),duck=ctx.createGain();gain.gain.value=this._groupTarget(name);gain.connect(duck).connect(this._mixInput);this._groups.set(name,gain);this._duckGains.set(name,duck);}
+    for(const name of ['weapons','foley','injury']){const gain=ctx.createGain();gain.connect(this._group('sfx'));this._buses.set(name,gain);this._duckGains.set(name,gain);}
+    // Two quiet, non-feedback early reflections give dry bundled reports a
+    // shared concrete room. They inherit source distance and the SFX slider.
+    if(ctx.createDelay){this._roomInput=ctx.createGain();this._roomInput.gain.value=.09;
+      for(const [seconds,pan]of [[.037,-.35],[.079,.35]]){const delay=ctx.createDelay(.2),filter=ctx.createBiquadFilter();delay.delayTime.value=seconds;filter.type='lowpass';filter.frequency.value=3400;this._roomInput.connect(delay).connect(filter);if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=pan;filter.connect(p).connect(this._group('sfx'));}else filter.connect(this._group('sfx'));}}
+    this._applyMasterGain();
+  }
+  _duckBus(name,factor,start,hold,release){
+    const node=this._duckGains.get(name);if(!node)return;
+    const p=node.gain;p.cancelScheduledValues(start);p.setTargetAtTime(factor,start,.012);p.setTargetAtTime(1,start+hold,release);this._duckEvents++;
   }
   meleeDiagnostics() {
     return Object.freeze({
@@ -268,22 +303,7 @@ export class AudioSystem {
     if (!this._ctx) {
       try {
         this._ctx = new Context();
-        this._master = this._ctx.createGain();
-        this._limiter = this._ctx.createDynamicsCompressor();
-        this._limiter.threshold.value = -4;
-        this._limiter.knee.value = 4;
-        this._limiter.ratio.value = 20;
-        this._limiter.attack.value = .003;
-        this._limiter.release.value = .22;
-        this._master.connect(this._limiter).connect(this._ctx.destination);
-        this._groups.set('master', this._master);
-        for (const name of GROUPS) {
-          const gain = this._ctx.createGain();
-          gain.gain.value = (GROUP_BASE_LEVELS[name] ?? .6) * this._groupVolumes[name];
-          gain.connect(this._master);
-          this._groups.set(name, gain);
-        }
-        this._applyMasterGain();
+        this._createMixGraph();
       } catch {
         this._ctx = null;
         this._master = null;
@@ -338,9 +358,12 @@ export class AudioSystem {
 
   pause() {
     this._paused = true;
+    this.stopSpatialEmitters();
+    for(const source of [...this._spatialSources])this._stopSpatialSource(source,true);
     this._stopMeleeLoops({ playShutdown: false, suppressTail: true });
     this._stopAmbient();
     this._fadeMusic(0.0001, .12);
+    for(const node of this._duckGains.values())if(this._ctx){node.gain.cancelScheduledValues(now(this._ctx));node.gain.setValueAtTime(1,now(this._ctx));}
     for (const [type, voices] of this._voices) if (type !== 'music' && GROUP_BY_TYPE[type] !== 'ui') {
       for (const source of voices) { try { source.stop(); } catch {} }
     }
@@ -379,6 +402,7 @@ export class AudioSystem {
       return this._musicScene;
     }
     const target = MUSIC_SCENES[next] ? next : 'menu';
+    if(target!=='play')this.stopSpatialEmitters();
     this._musicScene = target;
     this._resumeScene = target;
     this._sceneRequested = true;
@@ -409,6 +433,7 @@ export class AudioSystem {
   }
 
   updateListener(listener = {}) {
+    this._listenerPosition={x:Number(listener.x)||0,y:Number(listener.y??listener.z)||0,z:Number(listener.z??listener.y)||0};
     const L = this._ctx?.listener;
     if (!L) return false;
     const set = (name, value) => {
@@ -419,9 +444,11 @@ export class AudioSystem {
     set('positionX', listener.x);
     set('positionY', listener.y ?? listener.z);
     set('positionZ', listener.z ?? listener.y);
+    if(!L.positionX?.setValueAtTime)L.setPosition?.(this._listenerPosition.x,this._listenerPosition.y,this._listenerPosition.z);
     if (listener.forwardX !== undefined) {
       set('forwardX', listener.forwardX); set('forwardY', listener.forwardY ?? 0); set('forwardZ', listener.forwardZ ?? -1);
       set('upX', listener.upX ?? 0); set('upY', listener.upY ?? 1); set('upZ', listener.upZ ?? 0);
+      if(!L.forwardX?.setValueAtTime)L.setOrientation?.(listener.forwardX,listener.forwardY??0,listener.forwardZ??-1,listener.upX??0,listener.upY??1,listener.upZ??0);
     }
     return true;
   }
@@ -437,6 +464,9 @@ export class AudioSystem {
     const index = parsed.weapon;
     const details = parsed.details;
     if (name === 'ambience') return this._playAmbience(details);
+    if (VERMIN_CUES[name]) return this._playVermin(name,details);
+    if (PLAYER_INJURY_CUES[name]) return this._playPlayerInjury(name,details);
+    if(['brutal-start','brutal-contact','brutal-extract','brutal-release'].includes(name))return this._playBrutalCounter(name,details);
     const profile = { ...resolveMix(name, index) };
     if (details.type === 'horror-approach') Object.assign(profile, {
       volume: .15, maxVoices: 1, highpass: 110,
@@ -468,8 +498,8 @@ export class AudioSystem {
       // A quiet mechanical report on each round carries the automatic rhythm;
       // a small deterministic pitch shift keeps consecutive rounds distinct.
       mix.rate = clamp(1 + Math.sin(sequence * 2.399) * .025 - heat * .028, .94, 1.04);
-      mix.volume = details.mode === 'burst' ? .35 : .41;
-      mix.highpass = details.mode === 'burst' ? 105 : 88;
+      mix.volume = details.mode === 'burst' ? .72 : .78;
+      mix.highpass = details.mode === 'burst' ? 78 : 65;
       mix.mechanismVolume = details.mode === 'burst' ? .095 : .085;
       mix.mechanismDelay = .042;
     }
@@ -479,7 +509,7 @@ export class AudioSystem {
     }
     const cooldown = Number(details.cooldown ?? profile.cooldown ?? 0);
     if (cooldown > 0) {
-      const sourceId = details.enemyId ?? details.id ?? '';
+      const sourceId = details.enemyId ?? details.id ?? details.playerId ?? '';
       const key = name + ':' + index + ':' + String(sourceId);
       const time = globalThis.performance?.now?.() ?? Date.now();
       if (time - (this._lastPlay.get(key) || -Infinity) < cooldown * 1000) return false;
@@ -493,7 +523,8 @@ export class AudioSystem {
       ? this._chooseBuffer('chainsaw-wall', 0, details.variant)
       : this._chooseBuffer(name, index, details.variant);
     if (buffer) {
-      this._playBuffer(buffer, name, index, mix);
+      const played=this._playBuffer(buffer, name, index, mix);
+      if(!played)return false;
       if (name === 'extract-rip') {
         const tear = this._chooseBuffer('melee-hit', 0, 3);
         if (tear) this._playBuffer(tear, name, index, {...mix,volume:.12,highpass:120,lowpass:3100,rate:mix.rate*.8,delay:.11});
@@ -507,6 +538,76 @@ export class AudioSystem {
       return true;
     }
     return false;
+  }
+
+  resetCounterCues() {
+    for(const key of this._lastPlay.keys())if(key.startsWith('counter:')||key.startsWith('vermin:'))this._lastPlay.delete(key);
+  }
+
+  _playVermin(name,details={}) {
+    const layers=VERMIN_CUES[name];if(!layers)return false;
+    const key=`vermin:${name}:${details.playerId||'host'}:${details.ratId||0}:${details.enemyId||0}:${details.sequence||0}:${details.bites||0}:${details.crawlSequence||details.infestationSequence||0}`;
+    if(this._lastPlay.has(key))return false;
+    this._lastPlay.set(key,now(this._ctx));
+    if(this._lastPlay.size>512)for(const [id]of this._lastPlay){if(id.startsWith('vermin:')){this._lastPlay.delete(id);if(this._lastPlay.size<384)break;}}
+    let played=false;
+    for(const [index,layer]of layers.entries()){
+      const buffer=this._chooseBuffer(layer.pool,0,(Number(details.sequence)||0)+index);if(!buffer)continue;
+      played=!!this._playBuffer(buffer,'vermin-foley',0,{...details,...layer,group:'sfx',mixBus:'foley',maxVoices:4,priority:name==='vermin-bite'?2:1,
+        position:name==='vermin-bite'||name==='vermin-crawl'||name==='vermin-pickup'?null:details.position,
+        refDistance:1.5,maxDistance:16,rolloffFactor:1.35,loop:false,
+        delay:Math.max(0,Number(details.delay)||0)+(layer.delay||0)})||played;
+    }
+    return played;
+  }
+
+  _playBrutalCounter(name,details={}) {
+    const cue=name==='brutal-start'?'start':name==='brutal-extract'?details.kind+'-extract':name==='brutal-release'?details.kind+'-release':details.kind;
+    const layers=BRUTAL_COMBAT_CUES[cue];if(!layers)return false;
+    const at=now(this._ctx)+Math.max(0,Number(details.delay)||0),key=`counter:${name}:${details.playerId||'host'}:${details.enemyId||0}:${details.sequence||0}`;
+    if(this._lastPlay.has(key))return false;
+    this._lastPlay.set(key,at);
+    // Limit the deduplication ledger as well as voices in long runs.
+    if(this._lastPlay.size>512)for(const [id]of this._lastPlay){if(id.startsWith('counter:')){this._lastPlay.delete(id);if(this._lastPlay.size<384)break;}}
+    let played=false;
+    for(const [index,layer]of layers.entries()){
+      const buffer=this._chooseBuffer(layer.pool,0,layer.variant??((Number(details.sequence)||0)+index));if(!buffer)continue;
+      played=!!this._playBuffer(buffer,name,0,{...details,...layer,group:'sfx',mixBus:'injury',maxVoices:6,priority:4,
+        delay:Math.max(0,Number(details.delay)||0)+(layer.delay||0),rate:layer.rate*(1+Math.sin((Number(details.sequence)||0)*2.399+index)*.018)})||played;
+    }
+    return played;
+  }
+
+  _playPlayerInjury(name, details = {}) {
+    const cue=PLAYER_INJURY_CUES[name],time=now(this._ctx),at=time+Math.max(0,Number(details.delay)||0);
+    const key=`injury:${name}`,previous=this._lastPlay.get(key);
+    // Audio clock scheduling also makes deterministic offline renders valid.
+    // One global victim cooldown prevents multiple attackers stacking a cue.
+    if(previous!==undefined&&at-previous<cue.cooldown)return false;
+    this._lastPlay.set(key,at);
+    if(name==='bite-release'||name==='bite-terminal'){
+      for(const type of ['bite-windup','bite-start','bite-struggle','bite-damage'])for(const source of this._voices.get(type)||[]){
+        try{source._deadArrivalGain?.gain.cancelScheduledValues(at);source._deadArrivalGain?.gain.setTargetAtTime(.0001,at,.008);source.stop(at+.035);}catch{}
+      }
+    }
+    const severity=name==='bite-damage'?1+Math.min(3,Math.max(0,Number(details.stage)||0))*.045:1;
+    let played=false;
+    for(const [index,layer]of cue.layers.entries()){
+      const variant=layer.variant??(Number.isFinite(Number(details.sequence))?Number(details.sequence)+index:undefined);
+      const buffer=this._chooseBuffer(layer.pool,0,variant);if(!buffer)continue;
+      const source=this._playBuffer(buffer,name,0,{...layer,group:layer.group||'sfx',mixBus:'injury',
+        volume:layer.volume*severity,maxVoices:6,priority:5,position:null,occluded:false,
+        rate:layer.rate+(Math.sin((Number(details.sequence)||0)*2.399+index)*.018),
+        delay:Math.max(0,Number(details.delay)||0)+(layer.delay||0),loop:false});
+      played=!!source||played;
+    }
+    if(played){
+      this._duckBus('music',cue.duck,at,.28,.22);
+      this._duckBus('ambience',Math.max(.58,cue.duck),at,.22,.25);
+      this._duckBus('foley',.62,at,.18,.16);
+      this._duckBus('weapons',name==='bite-terminal'?.72:.88,at,.12,.12);
+    }
+    return played;
   }
 
   /**
@@ -576,6 +677,8 @@ export class AudioSystem {
   dispose() {
     if (this._disposed) return;
     this._disposed = true;
+    this.stopSpatialEmitters();
+    this._spatialSources.clear();
     this._stopMeleeLoops({ playShutdown: false, suppressTail: true, immediate: true });
     if (this._atmosphereTimer) clearTimeout(this._atmosphereTimer);
     this._atmosphereTimer = null;
@@ -593,6 +696,9 @@ export class AudioSystem {
       try { gain.disconnect(); } catch {}
     }
     this._groups.clear();
+    this._buses.clear();this._duckGains.clear();
+    for(const node of [this._roomInput,this._mixInput,this._outputTrim])try{node?.disconnect();}catch{}
+    this._roomInput=null;this._mixInput=null;this._outputTrim=null;
     this._voices.clear();
     this._soundEnvelopes.clear();
     if (this._limiter) { try { this._limiter.disconnect(); } catch {} }
@@ -671,13 +777,16 @@ export class AudioSystem {
   }
 
   _normalizePools() {
+    this._normalizedPools=0;this._normalizedSamples=0;
     const pools = new Map();
     for (const [key, buffer] of this._buffers) {
+      const trim=10**((AUDIO_ASSET_TRIMS_DB[key]||0)/20);
+      this._bufferGains.set(buffer,trim);
       const poolKey = normalizationPoolKey(key);
       if (!poolKey) continue;
       let pool = pools.get(poolKey);
       if (!pool) { pool = []; pools.set(poolKey, pool); }
-      pool.push({ buffer, rms: sampleRms(buffer) });
+      pool.push({ buffer, rms: sampleRms(buffer)*trim, trim });
     }
     for (const pool of pools.values()) {
       if (pool.length < 2) continue;
@@ -686,8 +795,8 @@ export class AudioSystem {
       this._normalizedPools++;
       for (const item of pool) {
         if (!item.rms) continue;
-        const level = clamp(target / item.rms, .5, 2);
-        this._bufferGains.set(item.buffer, level);
+        const level = clamp(target / item.rms, .708, 1.413);
+        this._bufferGains.set(item.buffer, item.trim*level);
         if (Math.abs(level - 1) > .01) this._normalizedSamples++;
       }
     }
@@ -736,6 +845,96 @@ export class AudioSystem {
       this._meleeStartGain = null;
     }, { once: true });
     return true;
+  }
+
+  // Keyed world samples own their panner for their entire lifetime. Ordinary
+  // play() calls stay one-shots; moving enemy calls can opt into trackKey.
+  startSpatialEmitter(id, cue, details = {}) {
+    if (!id || this._disposed || this._paused || !this._ctx || this._ctx.state === 'closed' || !details.position) return false;
+    if (this._spatialEmitters.has(id)) return this.updateSpatialEmitter(id, details);
+    if (this._spatialEmitters.size >= 4) return false;
+    const buffer = this._chooseBuffer(cue, 0, details.variant);
+    if (!buffer) return false;
+    const loop = Boolean(details.loop), type = loop ? 'spatial-bed' : 'spatial-detail';
+    const source = this._playBuffer(buffer, type, 0, {group:'ambience',volume:.08,highpass:120,lowpass:5200,
+      refDistance:2,maxDistance:24,rolloffFactor:1.25,fadeIn:loop?.6:.08,rate:1,priority:1,
+      ...details,loop,maxVoices:4,emitterId:id});
+    if (!source) return false;
+    this._spatialEmitters.set(id, source);
+    return true;
+  }
+
+  updateSpatialEmitter(id, details = {}) {
+    const source = this._spatialEmitters.get(id);
+    if (!source || !this._spatialSources.has(source)) return false;
+    this._updateSpatialSource(source, details);
+    return true;
+  }
+
+  stopSpatialEmitter(id, {immediate = false} = {}) {
+    const source = this._spatialEmitters.get(id);
+    if (!source) return false;
+    this._spatialEmitters.delete(id);
+    this._stopSpatialSource(source, immediate);
+    return true;
+  }
+
+  stopSpatialEmitters({immediate = true} = {}) {
+    for (const id of [...this._spatialEmitters.keys()]) this.stopSpatialEmitter(id, {immediate});
+  }
+
+  updateTrackedSources(resolve, occlusion) {
+    if (this._disposed || this._paused) return;
+    for (const source of this._spatialSources) {
+      if (source._emitterId) continue; // The room director supplies these poses.
+      const key = source._spatialProfile?.trackKey;
+      let pose = key ? resolve?.(key) : {position:source._spatialProfile.position};
+      if (!pose) {this._stopSpatialSource(source);continue;}
+      if(key)pose={...pose,position:{...pose.position,y:pose.position.y+(Number(source._spatialProfile.trackOffsetY)||0)}};
+      const occluded = occlusion ? occlusion(pose.position) : pose.occluded;
+      this._updateSpatialSource(source, {...pose,occluded});
+    }
+  }
+
+  spatialDiagnostics() {
+    const describe = source => ({id:source._emitterId||null,type:source._spatialType,
+      trackKey:source._spatialProfile?.trackKey||null,position:{...source._spatialProfile?.position},
+      occluded:!!source._spatialProfile?.occluded,loop:source.loop,
+      gain:source._deadArrivalGain?.gain.value??0,lowpass:source._spatialLowpass?.frequency.value??null});
+    return {listener:{...this._listenerPosition},emitters:[...this._spatialEmitters.values()].map(describe),
+      tracked:[...this._spatialSources].filter(s=>s._spatialProfile?.trackKey).map(describe),
+      sources:this._spatialSources.size,paused:this._paused};
+  }
+
+  _stopSpatialSource(source, immediate = false) {
+    this._spatialSources.delete(source);
+    if (source._emitterId && this._spatialEmitters.get(source._emitterId) === source) this._spatialEmitters.delete(source._emitterId);
+    const t=now(this._ctx);
+    try {
+      if (!immediate) {source._deadArrivalGain.gain.cancelScheduledValues(t);source._deadArrivalGain.gain.setTargetAtTime(.0001,t,.035);}
+      source.stop(immediate?t:t+.15);
+    } catch {}
+    if(immediate){this._sources.delete(source);this._voices.get(source._spatialType)?.delete(source);}
+  }
+
+  _updateSpatialSource(source, details = {}) {
+    const profile=source._spatialProfile;if(!profile||!this._ctx)return;
+    Object.assign(profile,details);
+    if(details.position) this._setSpatialPosition(source._spatialPanner,details.position,true);
+    const L=this._listenerPosition,p=profile.position,t=now(this._ctx);
+    const distance=Math.hypot(p.x-L.x,p.y-L.y,p.z-L.z);
+    const lowpass=Math.min(profile.lowpass||20000,distance>5?Math.max(1900,7600-distance*180):20000,
+      profile.occluded?(distance<3?2300:1300):20000);
+    source._spatialLowpass?.frequency.setTargetAtTime(lowpass,t,.06);
+    // Leave a one-shot's authored end fade intact. Its scheduled stop still
+    // bounds the lifetime while moving/occlusion updates run at 20 Hz.
+    const target=clamp(profile.volume??.38,0,1)*(source._normalizationGain??1)*(profile.occluded?.78:1);
+    if ((!source._spatialEndAt || t<source._spatialEndAt-.1) && Math.abs(target-source._spatialGainTarget)>1e-7) {
+      source._spatialGainTarget=target;
+      source._deadArrivalGain.gain.cancelScheduledValues(t);
+      source._deadArrivalGain.gain.setTargetAtTime(target,t,.06);
+      if(source._spatialEndAt){const end=source._spatialEndAt;source._deadArrivalGain.gain.setValueAtTime(target,end-.025);source._deadArrivalGain.gain.linearRampToValueAtTime(.0001,end);}
+    }
   }
 
   _startMeleeStop(position) {
@@ -897,40 +1096,48 @@ export class AudioSystem {
     const panner = this._ctx.createPanner();
     panner.panningModel = details.panningModel || 'HRTF';
     panner.distanceModel = 'inverse';
-    panner.refDistance = Number(details.refDistance ?? 1.2);
-    panner.maxDistance = Number(details.maxDistance ?? 28);
-    panner.rolloffFactor = Number(details.rolloffFactor ?? 1.1);
-    const set = (key, value) => {
-      const target = panner[key];
-      if (target && typeof target.setValueAtTime === 'function') target.setValueAtTime(Number(value) || 0, now(this._ctx));
-      else if (target) target[key] = Number(value) || 0;
-    };
-    set('positionX', position.x);
-    set('positionY', position.y ?? position.z);
-    set('positionZ', position.z ?? position.y);
+    panner.refDistance = clamp(details.refDistance ?? 1.2,.1,100);
+    panner.maxDistance = clamp(details.maxDistance ?? 28,panner.refDistance,1000);
+    panner.rolloffFactor = clamp(details.rolloffFactor ?? 1.1,0,10);
+    this._setSpatialPosition(panner,position);
     return panner;
   }
 
-  _trimVoices(type, limit = 10) {
-    const voices = this._voices.get(type);
-    if (!voices || !limit) return;
-    while (voices.size >= limit) {
-      const oldest = voices.values().next().value;
-      if (!oldest) break;
-      try { oldest.stop(); } catch {}
-      this._sources.delete(oldest);
-      voices.delete(oldest);
-    }
+  _setSpatialPosition(panner, position, smooth = false) {
+    if(!panner)return;
+    const p=[position.x,position.y??position.z,position.z??position.y].map(v=>Number.isFinite(v)?v:0),t=now(this._ctx);
+    if(panner.positionX?.setValueAtTime) for(const [i,key]of ['positionX','positionY','positionZ'].entries()) {
+      if(smooth)panner[key].setTargetAtTime(p[i],t,.025);else panner[key].setValueAtTime(p[i],t);
+    } else panner.setPosition?.(...p);
   }
 
-  _filterNode(input, profile) {
+  _trimVoices(type, limit = 10, priority = 1) {
+    const voices = this._voices.get(type);
+    if (!voices || !limit) return true;
+    while (voices.size >= limit) {
+      const oldest = [...voices].sort((a,b)=>(a._mixPriority||1)-(b._mixPriority||1))[0];
+      if (!oldest) break;
+      if(priority<(oldest._mixPriority||1)){this._droppedVoices++;return false;}
+      try {oldest._deadArrivalGain?.gain.setTargetAtTime(.0001,now(this._ctx),.005);oldest.stop(now(this._ctx)+.02);} catch {}
+      this._sources.delete(oldest);
+      this._spatialSources.delete(oldest);
+      if(oldest._emitterId&&this._spatialEmitters.get(oldest._emitterId)===oldest)this._spatialEmitters.delete(oldest._emitterId);
+      voices.delete(oldest);
+      this._droppedVoices++;
+    }
+    return true;
+  }
+
+  _filterNode(input, profile, owner = null) {
     let node = input;
+    if(profile.bodyDb){const body=this._ctx.createBiquadFilter();body.type='lowshelf';body.frequency.value=180;body.gain.value=profile.bodyDb;node.connect(body);owner?._spatialNodes.push(body);node=body;}
     if (profile.highpass) {
       const highpass = this._ctx.createBiquadFilter();
       highpass.type = 'highpass';
       highpass.frequency.value = profile.highpass;
       highpass.Q.value = .55;
       node.connect(highpass);
+      owner?._spatialNodes.push(highpass);
       node = highpass;
     }
     if (profile.lowpass) {
@@ -939,6 +1146,7 @@ export class AudioSystem {
       lowpass.frequency.value = profile.lowpass;
       lowpass.Q.value = .5;
       node.connect(lowpass);
+      if(owner){owner._spatialNodes.push(lowpass);owner._spatialLowpass=lowpass;}
       node = lowpass;
     }
     return node;
@@ -946,18 +1154,33 @@ export class AudioSystem {
 
   _playBuffer(buffer, type, weapon = 0, details = {}) {
     const profile = { ...resolveMix(type, weapon), ...details };
+    const spatialProfile = profile.position ? {...profile,position:{...profile.position}} : null;
+    const position=profile.position,L=this._listenerPosition;
+    const distance=position?Math.hypot((position.x||0)-L.x,(position.y||0)-L.y,(position.z||0)-L.z):0;
+    // Distant idle crowds do not consume the voice budget needed by an attack.
+    if((type==='moan'&&distance>26)||(profile.maxDistance&&distance>profile.maxDistance*1.2)){this._droppedVoices++;return null;}
+    if(type==='moan'&&(this._voices.get('enemyattack')?.size||0)>0){this._droppedVoices++;return null;}
+    if(position&&distance>5)profile.lowpass=Math.min(profile.lowpass||10000,Math.max(1900,7600-distance*180));
+    if(profile.occluded&&position){profile.lowpass=Math.min(profile.lowpass||10000,distance<3?2300:1300);profile.volume=(profile.volume??.3)*.78;}
     const source = this._ctx.createBufferSource();
     const gain = this._ctx.createGain();
     const group = profile.group || GROUP_BY_TYPE[type] || 'sfx';
     const level = clamp(profile.volume ?? .38, 0, 1);
     const maxVoices = Math.max(1, Math.floor(Number(profile.maxVoices) || 10));
-    if (type !== 'ambience') this._trimVoices(type, maxVoices);
+    source._mixPriority=(profile.priority||1)/(1+distance*.08);
+    if (type !== 'ambience'&&!this._trimVoices(type, maxVoices,source._mixPriority))return null;
     source.buffer = buffer;
     const rateMin = type === 'footstep' ? .93 : .97;
     const rateMax = type === 'footstep' ? 1.07 : 1.03;
     source.playbackRate.value = clamp(profile.rate ?? random(rateMin, rateMax), 0.5, 2);
     if (profile.detune !== undefined) source.detune.value = Number(profile.detune) || 0;
     const t = now(this._ctx), bufferGain = level * (this._bufferGains.get(buffer) ?? 1);
+    const at=t+Math.max(0,Number(profile.delay)||0);
+    if(type==='shot'||type==='explosion'){
+      this._duckBus('music',.58,at,.16,.16);this._duckBus('ambience',.78,at,.12,.20);
+    }else if(['enemyattack','ceiling-scream','window-scream','damage'].includes(type)&&distance<9){
+      this._duckBus('weapons',.76,at,.16,.12);this._duckBus('foley',.58,at,.20,.18);this._duckBus('music',.48,at,.24,.24);
+    }
     if (Number(profile.fadeIn) > 0) {
       gain.gain.setValueAtTime(.0001, t);
       gain.gain.setTargetAtTime(bufferGain, t, Math.max(.02, Number(profile.fadeIn) / 3));
@@ -965,8 +1188,11 @@ export class AudioSystem {
     // Persistent melee loops need to retune their gain while they are live.
     // Keep the node private to the source so one-shot callers remain unchanged.
     source._deadArrivalGain = gain;
+    source._spatialGainTarget=bufferGain;
+    if(spatialProfile){source._spatialProfile=spatialProfile;source._spatialType=type;source._emitterId=profile.emitterId||null;
+      source._spatialNodes=[gain];source._normalizationGain=this._bufferGains.get(buffer)??1;}
     source.connect(gain);
-    let node = this._filterNode(gain, profile);
+    let node = this._filterNode(gain, profile, spatialProfile?source:null);
     source.loop = type === 'ambience' || Boolean(profile.loop);
     const modulationHz = clamp(profile.modulationHz, 0, 150);
     const modulationDepth = clamp(profile.modulationDepth, 0, .35);
@@ -991,15 +1217,24 @@ export class AudioSystem {
       } catch {}
     }
     const spatial = this._createSpatialNode(profile);
-    if (spatial) node.connect(spatial).connect(this._group(group));
-    else node.connect(this._group(group));
+    if(spatial){node.connect(spatial);node=spatial;source._spatialPanner=spatial;source._spatialNodes.push(spatial);this._spatialSources.add(source);}
+    const weaponBus=type==='shot'||type==='mechanism'||type==='rocket'||type==='explosion'||type.startsWith('chainsaw');
+    node.connect(group==='sfx'?(this._buses.get(profile.mixBus||(weaponBus?'weapons':'foley'))||this._group(group)):this._group(group));
+    if(this._roomInput&&['shot','explosion','melee-wall'].includes(type))node.connect(this._roomInput);
     if (source.loop && type === 'ambience') {
       this._stopAmbient();
       this._ambientSource = source;
       this._ambientGain = gain;
     }
     this._track(source, source.loop, type);
-    source.start(t + Math.max(0, Number(profile.delay) || 0));
+    source.start(at,source.loop?clamp(profile.offset??0,0,Math.max(0,buffer.duration-.005)):0);
+    if(!source.loop&&Number(profile.duration)>0){
+      const end=at+Math.min(Number(profile.duration),buffer.duration/Math.max(.5,source.playbackRate.value));
+      source._spatialEndAt=end;
+      gain.gain.setValueAtTime(bufferGain,Math.max(at,end-.025));
+      gain.gain.linearRampToValueAtTime(.0001,end);
+      source.stop(end+.005);
+    }
     return source;
   }
 
@@ -1084,6 +1319,10 @@ export class AudioSystem {
     const cleanup = () => {
       this._sources.delete(source);
       voices?.delete(source);
+      this._spatialSources.delete(source);
+      if(source._emitterId&&this._spatialEmitters.get(source._emitterId)===source)this._spatialEmitters.delete(source._emitterId);
+      for(const node of source._spatialNodes||[])try{node.disconnect();}catch{}
+      try{source.disconnect();}catch{}
     };
     source.addEventListener?.('ended', cleanup);
     if (!persistent && !source.addEventListener) source.onended = cleanup;

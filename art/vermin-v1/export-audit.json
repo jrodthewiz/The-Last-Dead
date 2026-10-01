@@ -1,0 +1,179 @@
+{
+  "status": "PASS",
+  "parts": [
+    {
+      "name": "Cockroach_Authored_Indexed_Mesh",
+      "triangles": 2252,
+      "exportedVertices": 1766,
+      "attributes": {
+        "POSITION": {
+          "count": 1766,
+          "finite": true
+        },
+        "NORMAL": {
+          "count": 1766,
+          "finite": true,
+          "lengthRange": [
+            0.9999533295631409,
+            1.0
+          ]
+        },
+        "TANGENT": {
+          "count": 1766,
+          "finite": true,
+          "lengthRange": [
+            0.9999998211860657,
+            1.0000001192092896
+          ]
+        },
+        "TEXCOORD_0": {
+          "count": 1766,
+          "finite": true
+        },
+        "COLOR_0": {
+          "count": 1766,
+          "finite": true
+        }
+      },
+      "morphTargets": [
+        {
+          "name": "ScurryA",
+          "attributes": [
+            "POSITION",
+            "NORMAL"
+          ],
+          "maxDisplacementMeters": 0.0032093615736812353
+        },
+        {
+          "name": "ScurryB",
+          "attributes": [
+            "POSITION",
+            "NORMAL"
+          ],
+          "maxDisplacementMeters": 0.0032093615736812353
+        },
+        {
+          "name": "AntennaLeft",
+          "attributes": [
+            "POSITION",
+            "NORMAL"
+          ],
+          "maxDisplacementMeters": 0.005590169690549374
+        },
+        {
+          "name": "AntennaRight",
+          "attributes": [
+            "POSITION",
+            "NORMAL"
+          ],
+          "maxDisplacementMeters": 0.005590169690549374
+        }
+      ],
+      "defaultWeights": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "indexed": true,
+      "drawGroups": 1
+    },
+    {
+      "name": "Rat_Authored_Indexed_Mesh",
+      "triangles": 6124,
+      "exportedVertices": 4880,
+      "attributes": {
+        "POSITION": {
+          "count": 4880,
+          "finite": true
+        },
+        "NORMAL": {
+          "count": 4880,
+          "finite": true,
+          "lengthRange": [
+            0.9999510049819946,
+            1.0
+          ]
+        },
+        "TANGENT": {
+          "count": 4880,
+          "finite": true,
+          "lengthRange": [
+            0.9999998807907104,
+            1.0000001192092896
+          ]
+        },
+        "TEXCOORD_0": {
+          "count": 4880,
+          "finite": true
+        },
+        "COLOR_0": {
+          "count": 4880,
+          "finite": true
+        }
+      },
+      "morphTargets": [
+        {
+          "name": "ScurryA",
+          "attributes": [
+            "POSITION",
+            "NORMAL"
+          ],
+          "maxDisplacementMeters": 0.012071025557816029
+        },
+        {
+          "name": "ScurryB",
+          "attributes": [
+            "POSITION",
+            "NORMAL"
+          ],
+          "maxDisplacementMeters": 0.012071025557816029
+        },
+        {
+          "name": "Bite",
+          "attributes": [
+            "POSITION",
+            "NORMAL"
+          ],
+          "maxDisplacementMeters": 0.018721407279372215
+        },
+        {
+          "name": "TailLeft",
+          "attributes": [
+            "POSITION",
+            "NORMAL"
+          ],
+          "maxDisplacementMeters": 0.03214032202959061
+        },
+        {
+          "name": "TailRight",
+          "attributes": [
+            "POSITION",
+            "NORMAL"
+          ],
+          "maxDisplacementMeters": 0.03214031830430031
+        }
+      ],
+      "defaultWeights": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "indexed": true,
+      "drawGroups": 1
+    }
+  ],
+  "bytes": 1974900,
+  "sha256": "8a8bae91a89e59330ea57cff77d43dee93a20c13c48686ad59d314d3bc5864f4",
+  "materialCount": 1,
+  "drawGroups": 2,
+  "embeddedImages": 3,
+  "embeddedImageNames": [
+    "vermin-normal",
+    "vermin-albedo",
+    "vermin-roughness"
+  ],
+  "morphNormals": true
+}

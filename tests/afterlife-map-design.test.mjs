@@ -16,6 +16,16 @@ function topology(course) {
   return JSON.stringify({ cells: course.cells, walls: course.walls, blocks: course.blocks });
 }
 
+test('Old Intake cabinet leaves the new eastern return visibly open',()=>{
+  const course=makeDungeonCourse(0),result=buildAfterlifeMapDesign(new THREE.Group(),materials(),course);
+  const cabinet=result.diagnostics.propSlots.find(slot=>slot.kind==='mourning-cabinet');
+  const opening=course.openings.find(item=>item.id==='f1-o-loading-e');
+  assert.equal(cabinet.roomId,'f1-loading');
+  assert.ok(cabinet.position[0]<course.rooms.find(room=>room.id==='f1-loading').center.x*4,'cabinet is on the wall opposite the return opening');
+  assert.ok(Math.hypot(cabinet.position[0]-opening.anchor.x*4,cabinet.position[2]-(opening.anchor.y+.5)*4)>8,'model clearance exceeds its visual footprint');
+  result.dispose();
+});
+
 test('the map composition pass stays bounded and leaves every course topology intact', () => {
   const courses = [
     ...[0, 1, 2, 3, 4].map(makeDungeonCourse),
@@ -27,7 +37,7 @@ test('the map composition pass stays bounded and leaves every course topology in
     const result = buildAfterlifeMapDesign(root, materials(), course);
     assert.equal(topology(course), before, course.id + ': composition must not mutate collision topology');
     assert.equal(result.diagnostics.collisionChanged, false, course.id + ': map layer reports visual-only ownership');
-    assert.ok(result.diagnostics.draws <= 6, course.id + ': visible map design should stay under six instanced draws');
+    assert.ok(result.diagnostics.draws <= 7, course.id + ': composition plus the single route-strip pool stays under seven draws');
     assert.ok(result.diagnostics.triangles <= 25000, course.id + ': map design should stay under the lightweight triangle budget');
     assert.ok(result.diagnostics.sightlineBreaks >= 1, course.id + ': map design needs a grounded sightline break');
     assert.ok(result.diagnostics.upperSilhouettePieces >= 1, course.id + ': route should gain an upper silhouette cue');
@@ -75,8 +85,17 @@ test('story composition uses one grounded edge divider and a lateral ceiling sil
   assert.equal(diagnostics.sightlineBreaks, 1);
   assert.equal(diagnostics.upperSilhouettePieces, 1);
   assert.ok(diagnostics.composition.divider.anchor[1] > 0, 'divider must be grounded from the floor');
-  assert.ok(Math.abs(diagnostics.composition.divider.anchor[0] - diagnostics.composition.divider.openingCenter[0]) > 6, 'divider must sit at an opening edge');
+  const dividerOpening = course.openings.find(opening => opening.id === diagnostics.composition.divider.id);
+  const dividerAxis = dividerOpening.axis === 'v' ? 2 : 0;
+  const dividerHalfSpan = (dividerOpening.widthCells ?? dividerOpening.width) * 4 * .5;
+  const dividerCenterOffset = Math.abs(diagnostics.composition.divider.anchor[dividerAxis] - diagnostics.composition.divider.openingCenter[dividerAxis]);
+  assert.ok(dividerCenterOffset - .44 > dividerHalfSpan, 'the entire .88m divider stays outside the authored opening aperture');
   assert.ok(diagnostics.composition.silhouette.anchor[1] > 5, 'silhouette must remain high');
-  assert.ok(Math.abs(diagnostics.composition.silhouette.anchor[0] - diagnostics.composition.divider.anchor[0]) > 20, 'silhouette should create a second lateral read');
+  const silhouetteOpening = course.openings.find(opening => opening.id === diagnostics.composition.silhouette.id);
+  const silhouetteAxis = silhouetteOpening.axis === 'v' ? 2 : 0;
+  const silhouetteCenter = (silhouetteAxis === 0 ? silhouetteOpening.anchor.x : silhouetteOpening.anchor.y) * 4;
+  const silhouetteOffset = Math.abs(diagnostics.composition.silhouette.anchor[silhouetteAxis] - silhouetteCenter);
+  assert.notEqual(silhouetteOpening.id, dividerOpening.id, 'the high silhouette marks a second authored opening');
+  assert.ok(silhouetteOffset > (silhouetteOpening.widthCells ?? silhouetteOpening.width) * 4 * .5, 'the high silhouette is offset toward the second opening edge');
   result.dispose();
 });

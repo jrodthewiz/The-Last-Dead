@@ -194,6 +194,85 @@ function ossuaryDetails(group) {
   group.userData.detailMaterial = {metal, accent, glow};
 }
 
+
+// Second-pass construction cues: layered strap plates, vent slots, slotted
+// screws, hammer / lugs and worn edge strips. Dimensions follow the factories in
+// weapon-occult-redesign.js (+Y up, -Z fire).
+function slotScrews(group, positions, metal, dark, axis = 'x', radius = .014) {
+  const head = new THREE.CylinderGeometry(radius, radius * 1.08, radius * .7, 10);
+  const slot = new THREE.BoxGeometry(radius * 1.7, radius * .3, radius * .3);
+  positions.forEach((p, i) => {
+    const rot = axis === 'x' ? [0, 0, Math.PI / 2] : axis === 'y' ? [0, 0, 0] : [Math.PI / 2, 0, 0];
+    add(group, head, metal, p, rot, [1, 1, 1], 'micro-slotted-screw');
+    const off = [...p]; if (axis === 'x') off[0] += Math.sign(p[0]) * radius * .36; else if (axis === 'y') off[1] += radius * .36; else off[2] += Math.sign(p[2] || 1) * radius * .36;
+    add(group, slot, dark, off, [axis === 'x' ? 0 : 0, axis === 'z' ? 0 : 0, (i % 3) * .6 + (axis === 'x' ? Math.PI / 2 : 0)], [1, 1, 1], 'micro-screw-slot');
+  });
+}
+
+function ventSlots(group, dark, count, start, step, y, x, w, len) {
+  const slot = new THREE.BoxGeometry(w, .008, len);
+  for (let i = 0; i < count; i++) add(group, slot, dark, [x, y, start - i * step], [0, 0, 0], [1, 1, 1], 'micro-vent-slot');
+}
+
+function edgeStrip(group, metal, from, to, w = .008) {
+  const a = V(from), b = V(to), len = a.distanceTo(b);
+  const mesh = add(group, new THREE.BoxGeometry(w, w, len), metal, a.clone().add(b).multiplyScalar(.5).toArray(), [0, 0, 0], [1, 1, 1], 'micro-worn-edge');
+  mesh.lookAt(b.clone());
+  return mesh;
+}
+
+function extraDetails(group, kind) {
+  const worn = material(0xa9a49a, .3, .92);
+  const dark = material(0x050506, .6, .4);
+  const steel = material(0x5b5e63, .42, .85);
+  if (kind === 'ossuary') {
+    // Hammer with a knurled spur, top strap, underlug and ejector rod.
+    add(group, plate([[-.03, 0], [.03, 0], [.026, .07], [.0, .085], [-.026, .07]], .05, .006), steel, [0, .2, .255], [0, 0, 0], [1, 1, 1], 'ossuary-hammer');
+    for (let i = 0; i < 4; i++) add(group, new THREE.BoxGeometry(.075, .005, .008), dark, [0, .245 + i * .006, .28], [.0, 0, 0], [1, 1, 1], 'ossuary-hammer-knurl');
+    add(group, plate([[-.06, -.03], [.06, -.03], [.05, .03], [-.05, .03]], .5, .004), worn, [0, .205, -.02], [Math.PI / 2, 0, 0], [1, 1, 1], 'ossuary-top-strap');
+    add(group, plate([[-.055, -.03], [.055, -.03], [.045, .04], [-.045, .04]], .55, .006), steel, [0, -.115, -.62], [Math.PI / 2, 0, 0], [1, 1, 1], 'ossuary-underlug');
+    add(group, new THREE.CylinderGeometry(.014, .014, .42, 10), worn, [.0, -.16, -.55], [Math.PI / 2, 0, 0], [1, 1, 1], 'ossuary-ejector-rod');
+    add(group, new THREE.SphereGeometry(.024, 10, 8), steel, [0, -.16, -.76], [0, 0, 0], [1, 1, 1], 'ossuary-ejector-knob');
+    ventSlots(group, dark, 6, -.36, .085, .168, 0, .04, .05);
+    for (const side of [-1, 1]) {
+      ventSlots(group, dark, 4, -.42, .12, .045, side * .143, .006, .07);
+      edgeStrip(group, worn, [side * .085, .192, .26], [side * .085, .192, -.24]);
+      edgeStrip(group, worn, [side * .2, -.03, .26], [side * .2, -.03, -.24]);
+    }
+    slotScrews(group, [[-.21, .1, .2], [-.21, -.08, .2], [-.21, .1, -.18], [.21, .1, .2], [.21, -.08, .2], [.21, .1, -.18]], worn, dark, 'x');
+    // Trigger guard loop and trigger
+    add(group, new THREE.TorusGeometry(.07, .009, 8, 22, Math.PI * 1.3), steel, [0, -.24, .15], [0, Math.PI / 2, Math.PI * 1.15], [1, 1, 1], 'ossuary-trigger-guard');
+    add(group, plate([[-.008, 0], [.008, 0], [.006, -.075], [-.006, -.075]], .02, .003), worn, [0, -.14, .16], [0, Math.PI / 2, .15], [1, 1, 1], 'ossuary-trigger');
+  } else if (kind === 'reliquary') {
+    // Rocket chamber: bolted armour bands, fuse ports and a stepped rear-sight lug.
+    for (const z of [-.28, .24]) for (let i = 0; i < 8; i++) {
+      const a = i / 8 * Math.PI * 2 + Math.PI / 8;
+      slotScrews(group, [[Math.sin(a) * .3, .04 + Math.cos(a) * .3, z]], worn, dark, 'y', .016);
+    }
+    for (const side of [-1, 1]) {
+      ventSlots(group, dark, 5, -.15, .06, .34, side * .06, .012, .035);
+      edgeStrip(group, worn, [side * .2, .3, .3], [side * .14, .335, -.33]);
+    }
+    add(group, plate([[-.05, 0], [.05, 0], [.035, .07], [-.035, .07]], .12, .006), steel, [0, .33, -.02], [0, 0, 0], [1, 1, 1], 'reliquary-top-lug');
+    for (let i = 0; i < 6; i++) add(group, new THREE.BoxGeometry(.11, .006, .012), dark, [0, .405, -.05 - i * .03], [0, 0, 0], [1, 1, 1], 'reliquary-lug-grooves');
+    // barrel bands
+    for (const z of [-.5, -.7, -.85]) add(group, new THREE.TorusGeometry(.17 - (z + .5) * -.1, .009, 6, 20), worn, [0, .04, z], [0, 0, 0], [1, 1, 1], 'reliquary-barrel-band');
+  } else if (kind === 'arc') {
+    ventSlots(group, dark, 6, -.05, .07, .26, .0, .05, .028);
+    for (const side of [-1, 1]) {
+      edgeStrip(group, worn, [side * .27, .21, .18], [side * .32, .2, -.62]);
+      edgeStrip(group, worn, [side * .2, -.11, .1], [side * .26, -.12, -.55]);
+    }
+    slotScrews(group, [[-.24, .19, .18], [.24, .19, .18], [-.14, .13, -1.0], [.14, .13, -1.0]], worn, dark, 'y');
+    // stepped emitter lens rings
+    for (let i = 0; i < 3; i++) add(group, new THREE.TorusGeometry(.11 - i * .012, .006, 6, 24), worn, [0, .1, -1.04 - i * .05], [0, 0, 0], [1, 1, 1], 'arc-emitter-step');
+  } else if (kind === 'breach') {
+    ventSlots(group, dark, 7, -.28, .09, .2, 0, .06, .04);
+    for (const side of [-1, 1]) edgeStrip(group, worn, [side * .2, .17, .2], [side * .2, .17, -.9]);
+    slotScrews(group, [[-.24, .08, .05], [.24, .08, .05], [-.24, -.02, -.3], [.24, -.02, -.3]], worn, dark, 'x');
+  }
+}
+
 export function applyWeaponDetailPass(root, kind) {
   if (!root?.add) return root;
   const group = new THREE.Group();
@@ -204,6 +283,9 @@ export function applyWeaponDetailPass(root, kind) {
   else if (kind === 'breach') breachDetails(group);
   else if (kind === 'reliquary') reliquaryDetails(group);
   else ossuaryDetails(group);
+  extraDetails(group, kind);
   mergeDetailMeshes(group);
+  const registry=root.userData.sculptRuntime?.materials;
+  if(registry){const owned=new Set(Object.values(registry));let index=0;group.traverse(node=>{for(const material of (Array.isArray(node.material)?node.material:[node.material]).filter(Boolean))if(!owned.has(material)){registry['detail'+index++]=material;owned.add(material);}});}
   return root;
 }

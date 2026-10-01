@@ -1,0 +1,222 @@
+{
+  "status": "ACCEPTED_FOR_BOUNDED_AUTHORED_CREATURE_FIDELITY",
+  "modelSha256": "8a8bae91a89e59330ea57cff77d43dee93a20c13c48686ad59d314d3bc5864f4",
+  "reviewer": "/root/vermin_art",
+  "proofCount": 16,
+  "proofs": [
+    {
+      "file": "art/vermin-v1/rat-neutral-front.png",
+      "sha256": "4430be903cdb75d5de595e7e0e73612499055075e9318db98386ba669275cb29",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "nonblank": true,
+      "actuallyInspected": true
+    },
+    {
+      "file": "art/vermin-v1/rat-neutral-side.png",
+      "sha256": "e6f12d4b7ca0bdc08320b675e13e20562bfdaae7a8bb87bd09593e683d59ee56",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "nonblank": true,
+      "actuallyInspected": true
+    },
+    {
+      "file": "art/vermin-v1/rat-neutral-top.png",
+      "sha256": "0066d8bf05811c2c6b97a432f509ea761cc9f40f097a7cf821a0a1f39cffe968",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "nonblank": true,
+      "actuallyInspected": true
+    },
+    {
+      "file": "art/vermin-v1/rat-cold-contact.png",
+      "sha256": "16ed4439e9c3ba637288b0fb1edc75b92904b7c5443f8e0811f77760b7c49b8c",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "nonblank": true,
+      "actuallyInspected": true
+    },
+    {
+      "file": "art/vermin-v1/rat-warm-wet.png",
+      "sha256": "838b468a094c45bce3e5eb19185b53b88f31b6dc766c12a0fe5eac873aa3f9ef",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "nonblank": true,
+      "actuallyInspected": true
+    },
+    {
+      "file": "art/vermin-v1/rat-scurry-a.png",
+      "sha256": "610fbbd0e3a8afcfbb1af1ac0840e4ea36dbefc1c01d8ab34b296b522f10b219",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "nonblank": true,
+      "actuallyInspected": true
+    },
+    {
+      "file": "art/vermin-v1/rat-scurry-b.png",
+      "sha256": "45c6678767f2188f58a09cb4071f6f7a7ca8640ffdaffbafe388c2e9089a01d9",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "nonblank": true,
+      "actuallyInspected": true
+    },
+    {
+      "file": "art/vermin-v1/rat-bite-contact.png",
+      "sha256": "10508e27ed4ad76db45cc9f494b516c7bb33e63bd07b5e0f66959b8730872871",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "nonblank": true,
+      "actuallyInspected": true
+    },
+    {
+      "file": "art/vermin-v1/cockroach-neutral-front.png",
+      "sha256": "46808b38b24ee4bc63e7ed96d1bb205c726e32411d0f62c20a175b2662aae78e",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "nonblank": true,
+      "actuallyInspected": true
+    },
+    {
+      "file": "art/vermin-v1/cockroach-neutral-side.png",
+      "sha256": "142c48778b5270de1288dff29ede2488706012e2a1088dbcf15bd5cd27c8d936",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "nonblank": true,
+      "actuallyInspected": true
+    },
+    {
+      "file": "art/vermin-v1/cockroach-neutral-top.png",
+      "sha256": "b7d5c0d20c6bc0938cd837f34a54e224e6fc0980e2a9f2edf84ea3812adeda25",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "nonblank": true,
+      "actuallyInspected": true
+    },
+    {
+      "file": "art/vermin-v1/cockroach-cold-contact.png",
+      "sha256": "f23e4ba4d5bf587ceeeeea4f5a577bb9171b3e88641e371fa08be6732823e6a2",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "nonblank": true,
+      "actuallyInspected": true
+    },
+    {
+      "file": "art/vermin-v1/cockroach-warm-wet.png",
+      "sha256": "22e92beda4f7b6cca8f9abd87071edf598415fc50f99b86f06496ab255bbf0e6",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "nonblank": true,
+      "actuallyInspected": true
+    },
+    {
+      "file": "art/vermin-v1/cockroach-scurry-a.png",
+      "sha256": "7fb70463efa0482fec31fe645ac22affff147539ee416c5d6e7390878510e588",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "nonblank": true,
+      "actuallyInspected": true
+    },
+    {
+      "file": "art/vermin-v1/cockroach-scurry-b.png",
+      "sha256": "1f0cc75baf9938258bdfb132906ce019fdabc63ae1547cf8032c82f233b29645",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "nonblank": true,
+      "actuallyInspected": true
+    },
+    {
+      "file": "art/vermin-v1/cockroach-antenna-bend.png",
+      "sha256": "1a1100b5ae5a47e751b78b9a97a1cecf2ae1bcbe02db77da922dfcd8c5b257f8",
+      "dimensions": [
+        1024,
+        768
+      ],
+      "nonblank": true,
+      "actuallyInspected": true
+    }
+  ],
+  "embeddedMapDecode": [
+    {
+      "name": "vermin-normal",
+      "mimeType": "image/png",
+      "dimensions": [
+        512,
+        512
+      ],
+      "decoded": true,
+      "mode": "RGB",
+      "bytes": 262039,
+      "sha256": "a0f90a6b540cc14abf8992074a37c57311cccb4dc350be949bddeb1a8de58b81"
+    },
+    {
+      "name": "vermin-albedo",
+      "mimeType": "image/jpeg",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "decoded": true,
+      "mode": "RGB",
+      "bytes": 313848,
+      "sha256": "b1cdf676c00f6514bd9bca9f63b80594bf6628dceb789d7f74c31300f926b8fc"
+    },
+    {
+      "name": "vermin-roughness",
+      "mimeType": "image/png",
+      "dimensions": [
+        512,
+        512
+      ],
+      "decoded": true,
+      "mode": "RGB",
+      "bytes": 214699,
+      "sha256": "b4e12ea758644e2c7d5ef3662f3e3df5beafa2535d6f866635d7313bde0449bb"
+    }
+  ],
+  "findings": [
+    "Both complete silhouettes, floor contact and facial/appendage attachment read in final neutral front, side and top proofs.",
+    "Rat paws have four foredigits and five hinddigits, tapered tail, seated ear cups and unequal whiskers. Bite opens the jaw with paired incisors and dark oral material; scurry A/B visibly alternate paw lift.",
+    "Cockroach has a low oval body, seated overlapping forewings, small eyes, six jointed legs, shallow abdomen ridges, paired cerci and long tapered antennae. Both gaits and antenna bend are finite and visible.",
+    "Cold and warm lighting retain surface identity. The warm-wet proof temporarily multiplies roughness by0.65 only for sensitivity verification; that override is removed before saving the master and is absent from the exported asset.",
+    "First proofs were rejected for floating rat facial details/tufts, misplaced upper teeth and clipped roach verification camera; source geometry or proof framing were corrected and final16 proofs were reviewed anew.",
+    "A later parent top-view review rejected detached cockroach antenna/cerci roots and a swallowed head. The final correction buries both appendage roots into their actual surface volumes and exposes a short darker head; all eight affected cockroach views were rendered and inspected again. Rat geometry and its eight proof images were unchanged."
+  ],
+  "limitations": [
+    "Procedurally authored forms remain schematic at close inspection; this is not scanned or photoreal animal art.",
+    "Rat fur uses generated albedo, normal details and small geometric guard tufts rather than true hair strands; gait uses shape keys rather than full skeletal locomotion.",
+    "Generated chitin retains some painted highlights and marbling. The shallow abdomen seams and thin wing cover forms improve morphology but do not establish entomological realism.",
+    "Runtime hand/weapon and enemy contact, crowd density, per-instance GPU morphing, game lighting and actual gameplay remain parent browser QA responsibilities."
+  ],
+  "newPaidApiJobs": 0,
+  "newCreditSpend": 0
+}

@@ -1,0 +1,164 @@
+{
+  "status": "PASS",
+  "triangles": 21508,
+  "drawGroups": 2,
+  "attributes": [
+    {
+      "component": "ChestWound",
+      "semantic": "POSITION",
+      "count": 4075,
+      "finite": true
+    },
+    {
+      "component": "ChestWound",
+      "semantic": "NORMAL",
+      "count": 4075,
+      "finite": true,
+      "lengthRange": [
+        0.9999545216560364,
+        0.9999988675117493
+      ]
+    },
+    {
+      "component": "ChestWound",
+      "semantic": "TANGENT",
+      "count": 4075,
+      "finite": true,
+      "lengthRange": [
+        0.9999998211860657,
+        1.0000001192092896
+      ]
+    },
+    {
+      "component": "ChestWound",
+      "semantic": "TEXCOORD_0",
+      "count": 4075,
+      "finite": true
+    },
+    {
+      "component": "ChestWound",
+      "semantic": "COLOR_0",
+      "count": 4075,
+      "finite": true
+    },
+    {
+      "component": "Heart",
+      "semantic": "POSITION",
+      "count": 10310,
+      "finite": true
+    },
+    {
+      "component": "Heart",
+      "semantic": "NORMAL",
+      "count": 10310,
+      "finite": true,
+      "lengthRange": [
+        0.9999510645866394,
+        0.9999991655349731
+      ]
+    },
+    {
+      "component": "Heart",
+      "semantic": "TANGENT",
+      "count": 10310,
+      "finite": true,
+      "lengthRange": [
+        0.9999998211860657,
+        1.0000001192092896
+      ]
+    },
+    {
+      "component": "Heart",
+      "semantic": "TEXCOORD_0",
+      "count": 10310,
+      "finite": true
+    },
+    {
+      "component": "Heart",
+      "semantic": "COLOR_0",
+      "count": 10310,
+      "finite": true
+    }
+  ],
+  "morphs": [
+    {
+      "component": "ChestWound",
+      "name": "TissueTension",
+      "count": 4075,
+      "attributes": [
+        "NORMAL",
+        "POSITION",
+        "TANGENT"
+      ],
+      "maxDisplacementMeters": 0.004523832350969315,
+      "affectedExportedVertices": 3497,
+      "finite": true
+    },
+    {
+      "component": "Heart",
+      "name": "GripCompress",
+      "count": 10310,
+      "attributes": [
+        "NORMAL",
+        "POSITION",
+        "TANGENT"
+      ],
+      "maxDisplacementMeters": 0.008476092480123043,
+      "affectedExportedVertices": 10310,
+      "finite": true
+    },
+    {
+      "component": "Heart",
+      "name": "VesselLagLeft",
+      "count": 10310,
+      "attributes": [
+        "NORMAL",
+        "POSITION",
+        "TANGENT"
+      ],
+      "maxDisplacementMeters": 0.006910861469805241,
+      "affectedExportedVertices": 2187,
+      "finite": true
+    },
+    {
+      "component": "Heart",
+      "name": "VesselLagRight",
+      "count": 10310,
+      "attributes": [
+        "NORMAL",
+        "POSITION",
+        "TANGENT"
+      ],
+      "maxDisplacementMeters": 0.006910861469805241,
+      "affectedExportedVertices": 2187,
+      "finite": true
+    }
+  ],
+  "embeddedMaps": [
+    {
+      "name": "chest-normal",
+      "width": 1024,
+      "height": 512,
+      "bytes": 524932,
+      "embedded": true
+    },
+    {
+      "name": "chest-albedo",
+      "width": 1024,
+      "height": 512,
+      "bytes": 520414,
+      "embedded": true
+    },
+    {
+      "name": "chest-roughness",
+      "width": 1024,
+      "height": 512,
+      "bytes": 371978,
+      "embedded": true
+    }
+  ],
+  "acceptedV1Preserved": true,
+  "acceptedV1Sha256": "896c71c578f6a6ff78b09b152ab9918e8e472d9ac5cda73fa7a3ea542f0685b5",
+  "bytes": 3618024,
+  "sha256": "301d939e7b30278ccf966554a6db2f69f67b13876e30317eee060605028f777c"
+}

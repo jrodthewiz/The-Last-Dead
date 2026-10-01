@@ -112,7 +112,7 @@ test('Reliquary factory is bounded and repeated shot pulses reset muzzle flash',
   const meta = root.userData.reliquary;
   assert.equal(meta.kind, 'reliquary');
   assert.ok(meta.sockets.muzzle && meta.sockets.projectileOrigin && meta.sockets.muzzleFlash);
-  assert.deepEqual(root.userData.sculptRuntime.collider.size, [.42, .82, 1.48]);
+  assert.deepEqual(root.userData.sculptRuntime.collider.size, [.68, .94, 1.62]);
 
   animateReliquary(root, 1, 0, .016);
   assert.equal(meta.lastShot, 1);

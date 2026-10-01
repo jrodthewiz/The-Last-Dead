@@ -1,7 +1,7 @@
 import * as THREE from '../../vendor/three.module.js';
-import {GLTFLoader} from '../../vendor/loaders/GLTFLoader.js';
+import {loadGlb} from '../load-glb.js';
 import {clone as cloneSkeleton} from '../../vendor/utils/SkeletonUtils.js';
-import {installViewmodelDepthBoundary} from './viewmodel-depth.js';
+import {FOREGROUND_ARM_URL,installForegroundArms} from './foreground-arms.js';
 
 export const SURVIVOR_MODEL_URL = new URL('./tld-survivor-v02.glb', import.meta.url).href;
 const clamp=THREE.MathUtils.clamp;
@@ -25,6 +25,7 @@ export function createMeshySurvivor(template,clips,{firstPerson=false}={}) {
   head.visible=arms.visible=!firstPerson;
   const bones={};model.traverse(o=>{if(o.isBone)bones[o.name]=o;if(o.isMesh){o.castShadow=!firstPerson;o.receiveShadow=true;o.frustumCulled=false;}});
   actor.updateMatrixWorld(true);
+  const intactBodyGeometry=body.geometry;
   if(firstPerson) {
     // Only the local upper jacket leans behind the camera; lower body proportions stay intact.
     body.geometry=body.geometry.clone();const p=new THREE.Vector3(),inverse=body.matrixWorld.clone().invert(),positions=body.geometry.attributes.position;
@@ -39,7 +40,7 @@ export function createMeshySurvivor(template,clips,{firstPerson=false}={}) {
   for(let i=0;i<position.count;i++){point.fromBufferAttribute(position,i).applyMatrix4(body.matrixWorld);if(point.y<.045)sole.push(i);}
   const stride=Math.max(1,Math.floor(sole.length/80)),soleSamples=sole.filter((_,i)=>i%stride===0);
   const basePose=Object.values(bones).map(bone=>({bone,position:bone.position.clone(),rotation:bone.quaternion.clone(),scale:bone.scale.clone()}));
-  actor.userData={source:'meshy-v02',firstPerson,head,body,arms,bones,mixer,actions,soleSamples,point,basePose,
+  actor.userData={source:'meshy-v02',firstPerson,head,body,arms,bones,mixer,actions,soleSamples,point,basePose,intactBodyGeometry,
     axis:new THREE.Vector3(),parentRotation:new THREE.Quaternion(),actorRotation:new THREE.Quaternion(),delta:new THREE.Quaternion(),
     legs:[{hip:bones.LeftUpLeg,knee:bones.LeftLeg},{hip:bones.RightUpLeg,knee:bones.RightLeg}],animation:'Idle_Relaxed'};
   return actor;
@@ -82,49 +83,7 @@ export function animateMeshySurvivor(actor,run,dt,camera=null) {
 }
 
 export function installMeshyViewSleeves(renderer,template) {
-  let count=0;
-  for(const group of renderer.weaponGroups)group.traverse(arm=>{
-    if(!arm.userData.gripSocket||!arm.userData.sculptRuntime?.parts)return;
-    // Melee sleeves are fitted from a fixed shoulder to the animated grip.
-    // Preserve that articulated cloth/wrist assembly instead of replacing it
-    // with the rifle sleeve's baked, extended silhouette.
-    if(arm.userData.dynamicMeleeArm)return;
-    const side=arm.userData.side<0?'Left':'Right',source=template.getObjectByName('TLD_ViewSleeve_'+side),limb=arm.userData.sculptRuntime.parts[0];
-    if(!source?.isMesh)return;
-    for(const child of [...limb.children])if(child.isMesh){child.removeFromParent();child.geometry.dispose();child.material?.dispose();}
-    const geometry=source.geometry.clone(),positions=geometry.attributes.position;
-    // The view sleeve is fitted to the hand at its upper end. Sweep its lower
-    // sections on a short diagonal toward the player's elbow; the previous
-    // high-curvature path made the support arm look like a bent hose.
-    const support=side==='Left';
-    const extension=support ? .98 : .52;
-    const spread=support ? -1.0 : .33;
-    const dx=-spread/.34,dy=1+extension/.34,length=Math.hypot(dx,dy);
-    for(let i=0;i<positions.count;i++){
-      const x=positions.getX(i),y=positions.getY(i),z=positions.getZ(i);
-      const t=clamp((.34-y)/.34,0,1);
-      // The imported sleeve is extremely narrow through the middle. Keep
-      // substantial forearm volume all the way from the grip to the elbow;
-      // perspective supplies the final widening at the near-camera opening.
-      const elbow=1+.10*Math.exp(-Math.pow((t-.58)/.24,2));
-      const gripFullness=(support ? .48 : .40)*Math.pow(1-t,2);
-      const width=((support ? 4.35-1.15*t : 3.95-1.10*t)+gripFullness)*elbow;
-      const depth=(support ? 2.25-.24*t : 2.12-.20*t)*elbow;
-      positions.setX(i,spread*t+x*width*dy/length);
-      positions.setY(i,y-extension*t-x*width*dx/length);
-      positions.setZ(i,z*depth);
-    }
-    positions.needsUpdate=true;geometry.computeVertexNormals();geometry.computeBoundingSphere();
-    const sleeve=new THREE.Mesh(geometry,source.material.clone());sleeve.name='MeshySleeve_'+side;
-    sleeve.material.color.multiplyScalar(1.18);
-    sleeve.material.depthTest=false;sleeve.material.depthWrite=false;sleeve.material.side=THREE.FrontSide;
-    sleeve.layers.set(1);sleeve.userData.viewmodelArm=true;sleeve.userData.weaponBatchIgnore=true;
-    const mobileSleeve = (renderer.canvas?.clientWidth ?? 1280) < 600 ? .78 : 1;
-    sleeve.scale.set(mobileSleeve,1,mobileSleeve);
-    sleeve.castShadow=sleeve.receiveShadow=false;limb.add(sleeve);arm.userData.viewmodelSource='meshy-v02-sleeve-with-fitted-grip';count++;
-  });
-  installViewmodelDepthBoundary(renderer.weaponRig);
-  return count;
+  return installForegroundArms(renderer,template);
 }
 
 export function releaseMeshyAsset(root) {
@@ -136,14 +95,23 @@ export function releaseMeshyAsset(root) {
 
 export async function loadMeshySurvivors(renderer,state) {
   try {
-    const gltf=await new GLTFLoader().loadAsync(SURVIVOR_MODEL_URL);
+    const gltf=await loadGlb(SURVIVOR_MODEL_URL);
     if(state.disposed){releaseMeshyAsset(gltf.scene);return;}
-    state.template=gltf.scene;
+    state.armStatus='loading';state.template=gltf.scene;
     const local=createMeshySurvivor(gltf.scene,gltf.animations,{firstPerson:true}),peer=createMeshySurvivor(gltf.scene,gltf.animations);
     state.local.removeFromParent();state.peer.removeFromParent();
     // Fallback meshes own geometry, while their materials are also used by existing grip hands.
     for(const previous of [state.local,state.peer])previous.traverse(o=>o.geometry?.dispose());
     state.local=local;state.peer=peer;renderer.scene.add(local,peer);peer.visible=false;local.visible=false;
-    state.viewSleeves=installMeshyViewSleeves(renderer,gltf.scene);state.status='ready';
+    state.status='ready';
+    // A missing foreground derivative must not send imported full-body actors
+    // through the procedural fallback animator or discard their valid clips.
+    try{
+      const arms=await loadGlb(FOREGROUND_ARM_URL);
+      if(state.disposed){releaseMeshyAsset(arms.scene);return;}
+      try{state.viewSleeves=installMeshyViewSleeves(renderer,arms.scene);}
+      catch(error){releaseMeshyAsset(arms.scene);throw error;}
+      state.armTemplate=arms.scene;state.armStatus='ready';
+    }catch(error){state.armStatus='fallback';state.armError=String(error?.message||error);}
   } catch(error) {state.status='fallback';state.error=String(error?.message||error);}
 }

@@ -299,36 +299,46 @@ export function buildOssuaryRedesign() {
   const root = new THREE.Group();
   root.name = 'Ossuary';
   const parts = {};
-  const materials = commonMaterials(basePalette('ossuary'));
+  const materials = commonMaterials({ ...basePalette('ossuary'),
+    steel: 0x778185, edge: 0x9da5a5, panel: 0x3c4549,
+    wood: 0x705241, brass: 0x89724f, black: 0x171b1d,
+  });
   const receiver = part('receiver', root, parts);
-  add(receiver, profile([[-.16, -.14], [.16, -.14], [.2, -.03], [.17, .13], [.08, .19], [-.08, .19], [-.17, .13], [-.2, -.03]], .52, .028), materials.steel, [0, .01, .01], [0, 0, 0], [1, 1, 1], 'receiver-shell');
-  add(receiver, profile([[-.13, -.1], [.13, -.1], [.15, -.02], [.12, .1], [.06, .14], [-.06, .14], [-.12, .1], [-.15, -.02]], .028, .007), materials.edge, [0, .015, .285], [0, 0, 0], [1, 1, 1], 'receiver-face-plate');
-  add(receiver, profile([[-.08, -.055], [.08, -.055], [.095, .01], [.07, .08], [-.07, .08], [-.095, .01]], .012, .003), materials.black, [0, .02, .304], [0, 0, 0], [1, 1, 1], 'receiver-inset');
+  // The cylinder has a real open frame now: a compact rear lockwork housing,
+  // lower cradle and continuous top strap, rather than a block through its axis.
+  add(receiver, profile([[-.13, -.18], [.13, -.18], [.16, -.07], [.145, .095], [.07, .15], [-.07, .15], [-.145, .095], [-.16, -.07]], .25, .014), materials.steel, [0, 0, .15], [0, 0, 0], [1, 1, 1], 'receiver-shell');
+  add(receiver, profile([[-.11, -.13], [.11, -.13], [.126, -.05], [.115, .065], [.05, .11], [-.05, .11], [-.115, .065], [-.126, -.05]], .022, .005), materials.panel, [0, .005, .286], [0, 0, 0], [1, 1, 1], 'receiver-face-plate');
+  add(receiver, new THREE.BoxGeometry(.065, .065, .01), materials.black, [0, .075, .302], [0, 0, 0], [1, 1, 1], 'hammer-recess');
+  add(receiver, profile([[-.075, -.025], [.075, -.025], [.075, .025], [-.075, .025]], .45, .009), materials.steel, [0, -.303, -.145], [0, 0, 0], [1, 1, 1], 'cylinder-lower-cradle');
   for (const side of [-1, 1]) {
-    add(receiver, profile([[-.06, -.09], [.06, -.09], [.075, .08], [-.075, .08]], .03, .006), materials.panel, [side * .208, .01, .03], [0, side * Math.PI / 2, 0], [1, 1, 1], `receiver-cheek-${side}`);
-    add(receiver, new THREE.CylinderGeometry(.026, .026, .035, 16), materials.brass, [side * .23, .02, -.12], [0, 0, Math.PI / 2], [1, 1, 1], `receiver-rivet-${side}`);
+    add(receiver, profile([[-.06, -.09], [.06, -.09], [.075, .06], [-.075, .06]], .009, .004), materials.panel, [side * .162, -.01, .15], [0, side * Math.PI / 2, 0], [1, 1, 1], `receiver-cheek-${side}`);
+    add(receiver, new THREE.CylinderGeometry(.018, .018, .012, 12), materials.edge, [side * .17, -.05, .15], [0, 0, Math.PI / 2], [1, 1, 1], `receiver-rivet-${side}`);
   }
-  add(receiver, profile([[-.035, -.02], [.035, -.02], [.042, .075], [-.042, .075]], .05, .009), materials.edge, [0, .215, .01], [0, 0, 0], [1, 1, 1], 'top-sight-rail');
+  const hammer = part('hammer', receiver, parts);
+  tagWeaponMechanism(hammer, 'ossuary-hammer', 'x');
+  hammer.position.set(0, .12, .24);
+  add(hammer, profile([[-.025, -.045], [.025, -.045], [.028, .04], [.045, .06], [.045, .082], [-.03, .075]], .053, .004), materials.edge, [0, 0, 0], [0, 0, 0], [1, 1, 1], 'hammer-spur');
 
   const recoilCarriage = part('recoil-carriage', root, parts);
   const barrel = part('barrel', recoilCarriage, parts);
   tagWeaponMechanism(barrel, 'tapered-bore', 'z');
-  add(barrel, new THREE.CylinderGeometry(.112, .15, .8, 20), materials.steel, [0, .035, -.57], [Math.PI / 2, 0, Math.PI / 8], [1, 1, 1], 'barrel-shell');
-  add(barrel, new THREE.CylinderGeometry(.075, .092, .83, 16, 1, true), materials.black, [0, .035, -.58], [Math.PI / 2, 0, 0], [1, 1, 1], 'barrel-bore');
-  for (const [index, z] of [-.27, -.43, -.61, -.79].entries()) addRing(barrel, .145 - index * .006, .012, [0, .035, z], materials.edge, `barrel-collar-${index}`);
-  add(barrel, profile([[-.045, -.018], [.045, -.018], [.034, .055], [-.034, .055]], .05, .008), materials.edge, [0, .176, -.51], [0, 0, 0], [1, 1, 1], 'barrel-sight');
+  add(barrel, profile([[-.095, -.1], [.095, -.1], [.12, -.05], [.12, .065], [.068, .105], [-.068, .105], [-.12, .065], [-.12, -.05]], .65, .009), materials.steel, [0, .035, -.665], [0, 0, 0], [1, 1, 1], 'barrel-shell');
+  add(barrel, new THREE.CylinderGeometry(.02, .02, .59, 12), materials.edge, [0, -.11, -.66], [Math.PI / 2, 0, 0], [1, 1, 1], 'ejector-rod');
+  add(barrel, profile([[-.045, -.027], [.045, -.027], [.04, .027], [-.04, .027]], .64, .006), materials.panel, [0, -.15, -.66], [0, 0, 0], [1, 1, 1], 'barrel-underlug');
+  add(barrel, new THREE.BoxGeometry(.018, .065, .085), materials.panel, [0, .175, -1.035], [0, 0, 0], [1, 1, 1], 'barrel-sight');
+  add(barrel, new THREE.BoxGeometry(.02, .013, .026), materials.edge, [0, .212, -1.015], [0, 0, 0], [1, 1, 1], 'front-sight-tip');
 
   const cylinder = part('cylinder', recoilCarriage, parts);
   tagWeaponMechanism(cylinder, 'ossuary-cylinder', 'z');
-  // Mount the cylinder on the near side of the receiver like the reference
-  // revolver. Its face must survive the first-person rear receiver overlap.
-  cylinder.position.x = -.14;
-  add(cylinder, new THREE.CylinderGeometry(.215, .215, .3, 24), materials.bone, [0, .02, -.19], [Math.PI / 2, 0, 0], [1, 1, 1], 'cylinder-shell');
+  // Align the upper chamber with the barrel. Keeping the mesh centred on its
+  // rotation pivot prevents the old off-axis drum from orbiting while indexing.
+  cylinder.position.y = -.095;
+  add(cylinder, new THREE.CylinderGeometry(.203, .203, .3, 36), materials.steel, [0, 0, -.19], [Math.PI / 2, 0, 0], [1, 1, 1], 'cylinder-shell');
   // The player is on +Z. Keep the authored face and chamber insets on that
   // side; placing them on the -Z muzzle side leaves a blank ivory backside in
   // the first-person view.
-  add(cylinder, new THREE.CylinderGeometry(.233, .233, .045, 24), materials.edge, [0, .02, -.025], [Math.PI / 2, 0, 0], [1, 1, 1], 'cylinder-face');
-  add(cylinder, new THREE.CylinderGeometry(.075, .075, .055, 18), materials.brass, [0, .02, .01], [Math.PI / 2, 0, 0], [1, 1, 1], 'cylinder-hub');
+  add(cylinder, new THREE.CylinderGeometry(.208, .208, .025, 36), materials.panel, [0, 0, -.025], [Math.PI / 2, 0, 0], [1, 1, 1], 'cylinder-face');
+  add(cylinder, new THREE.CylinderGeometry(.04, .04, .034, 12), materials.edge, [0, 0, -.004], [Math.PI / 2, 0, 0], [1, 1, 1], 'cylinder-hub');
   const chamberInsets = new THREE.InstancedMesh(new THREE.CircleGeometry(.038, 16), materials.black, 6);
   chamberInsets.name = 'chamber-insets';
   chamberInsets.userData.explodeWithParent = true;
@@ -336,50 +346,58 @@ export function buildOssuaryRedesign() {
   for (let i = 0; i < 6; i++) {
     const angle = i / 6 * Math.PI * 2 + Math.PI / 6;
     const x = Math.cos(angle) * .13;
-    const y = .02 + Math.sin(angle) * .13;
+    const y = Math.sin(angle) * .13;
     add(cylinder, new THREE.CylinderGeometry(.047, .047, .03, 16, 1, true), materials.black, [x, y, .01], [Math.PI / 2, 0, 0], [1, 1, 1], `chamber-${i}`);
     insetMarker.position.set(x, y, .029);
     insetMarker.rotation.set(0, 0, 0);
     insetMarker.scale.set(1, 1, 1);
     insetMarker.updateMatrix();
     chamberInsets.setMatrixAt(i, insetMarker.matrix);
-    addRing(cylinder, .049, .007, [x, y, .03], materials.brass, `chamber-ring-${i}`);
+    addRing(cylinder, .047, .004, [x, y, .03], materials.brass, `chamber-ring-${i}`);
   }
   chamberInsets.instanceMatrix.needsUpdate = true;
   cylinder.add(chamberInsets);
   const ribs = part('ribs', cylinder, parts);
   tagWeaponMechanism(ribs, 'cylinder-cradle', 'z');
-  for (const side of [-1, 1]) addTube(ribs, [[side * .14, .16, -.02], [side * .235, .1, -.17], [side * .2, -.03, -.34]], [.027, .038, .025], materials.edge, 12, `rib-${side}`);
-  addTube(ribs, [[-.19, -.11, -.03], [-.24, -.02, -.19], [-.18, .1, -.34]], [.022, .03, .02], materials.bone, 12, 'lower-rib-left');
-  addTube(ribs, [[.19, -.11, -.03], [.24, -.02, -.19], [.18, .1, -.34]], [.022, .03, .02], materials.bone, 12, 'lower-rib-right');
-
-  const spine = part('spine', root, parts);
-  addTube(spine, [[0, .22, .3], [0, .23, -.06], [0, .22, -.47], [0, .19, -.88]], [.026, .033, .029, .018], materials.edge, 12, 'spine-rail');
   for (let i = 0; i < 6; i++) {
-    const z = .2 - i * .15;
-    add(spine, new THREE.SphereGeometry(.055, 11, 6), materials.bone, [0, .22, z], [0, 0, 0], [1.05, .65, .72], `vertebra-${i}`);
+    const angle = i / 6 * Math.PI * 2;
+    const flute = profile([[-.025, -.11], [.025, -.11], [.035, -.075], [.035, .075], [.025, .11], [-.025, .11], [-.035, .075], [-.035, -.075]], .006, .003);
+    flute.rotateX(Math.PI / 2);
+    flute.rotateZ(-angle);
+    add(ribs, flute, materials.panel, [Math.sin(angle) * .203, Math.cos(angle) * .203, -.19], [0, 0, 0], [1, 1, 1], `cylinder-flute-${i}`);
   }
 
+  const spine = part('spine', root, parts);
+  add(spine, profile([[-.062, -.016], [.062, -.016], [.056, .016], [-.056, .016]], .62, .005), materials.panel, [0, .168, -.04], [0, 0, 0], [1, 1, 1], 'machined-top-strap');
+  for (const side of [-1, 1]) add(spine, new THREE.BoxGeometry(.008, .006, .52), materials.edge, [side * .05, .187, -.055], [0, 0, 0], [1, 1, 1], `strap-edge-${side}`);
+  for (const side of [-1, 1]) add(spine, new THREE.BoxGeometry(.035, .039, .038), materials.panel, [side * .04, .204, .213], [0, 0, 0], [1, 1, 1], `rear-sight-notch-${side}`);
+
   const muzzleHousing = part('muzzle-housing', recoilCarriage, parts);
-  add(muzzleHousing, profile([[-.18, -.13], [.18, -.13], [.2, -.05], [.16, .12], [.08, .16], [-.08, .16], [-.16, .12], [-.2, -.05]], .22, .022), materials.edge, [0, .035, -1.0], [0, 0, 0], [1, 1, 1], 'muzzle-housing');
-  add(muzzleHousing, new THREE.CylinderGeometry(.16, .175, .13, 28), materials.edge, [0, .035, -1.12], [Math.PI / 2, 0, 0], [1, 1, 1], 'muzzle-collar');
-  add(muzzleHousing, new THREE.CylinderGeometry(.098, .105, .03, 24, 1, true), materials.black, [0, .035, -1.195], [Math.PI / 2, 0, 0], [1, 1, 1], 'muzzle-bore');
-  add(muzzleHousing, new THREE.CircleGeometry(.092, 24), materials.black, [0, .035, -1.212], [0, Math.PI, 0], [1, 1, 1], 'muzzle-aperture');
+  add(muzzleHousing, profile([[-.11, -.09], [.11, -.09], [.125, -.04], [.12, .065], [.07, .105], [-.07, .105], [-.12, .065], [-.125, -.04]], .25, .008), materials.steel, [0, .035, -1.085], [0, 0, 0], [1, 1, 1], 'muzzle-housing');
+  add(muzzleHousing, new THREE.CylinderGeometry(.081, .081, .034, 24), materials.edge, [0, .035, -1.198], [Math.PI / 2, 0, 0], [1, 1, 1], 'muzzle-collar');
+  add(muzzleHousing, new THREE.CylinderGeometry(.058, .06, .03, 20, 1, true), materials.black, [0, .035, -1.203], [Math.PI / 2, 0, 0], [1, 1, 1], 'muzzle-bore');
+  add(muzzleHousing, new THREE.CircleGeometry(.056, 20), materials.black, [0, .035, -1.22], [0, Math.PI, 0], [1, 1, 1], 'muzzle-aperture');
   const jaw = part('jaw', muzzleHousing, parts);
   tagWeaponMechanism(jaw, 'jaw-clamp', 'z');
-  const jawLeft = addTube(jaw, [[-.17, .12, -.88], [-.205, .08, -.99], [-.16, -.02, -1.11]], [.035, .04, .018], materials.bone, 12, 'jaw-left');
-  const jawRight = addTube(jaw, [[.17, .12, -.88], [.205, .08, -.99], [.16, -.02, -1.11]], [.035, .04, .018], materials.bone, 12, 'jaw-right');
+  // Retain the existing dynamic jaw contract as two machined recoil clamps.
+  // Baked local placement lets the existing action translate each whole plate.
+  const clampGeometry = side => {
+    const geometry = profile([[-.075, -.04], [.065, -.04], [.085, -.014], [.085, .036], [-.065, .036], [-.085, .012]], .022, .004);
+    geometry.rotateY(Math.PI / 2);
+    geometry.translate(side * .13, .035, -1.055);
+    return geometry;
+  };
+  const jawLeft = add(jaw, clampGeometry(-1), materials.panel, [0, 0, 0], [0, 0, 0], [1, 1, 1], 'jaw-left');
+  const jawRight = add(jaw, clampGeometry(1), materials.panel, [0, 0, 0], [0, 0, 0], [1, 1, 1], 'jaw-right');
   jawLeft.userData.weaponDynamic = true;
   jawRight.userData.weaponDynamic = true;
-  add(jaw, new THREE.CylinderGeometry(.035, .035, .06, 16), materials.brass, [-.18, .1, -.92], [0, 0, Math.PI / 2], [1, 1, 1], 'jaw-hinge-left');
-  add(jaw, new THREE.CylinderGeometry(.035, .035, .06, 16), materials.brass, [.18, .1, -.92], [0, 0, Math.PI / 2], [1, 1, 1], 'jaw-hinge-right');
-  for (const side of [-1, 1]) for (let i = 0; i < 2; i++) add(jaw, new THREE.ConeGeometry(.016, .065, 8), materials.bone, [side * (.15 + i * .025), -.01, -1.105], [Math.PI / 2, 0, side * .16], [1, 1, 1], `jaw-tooth-${side}-${i}`);
+  for (const side of [-1, 1]) add(jaw, new THREE.CylinderGeometry(.018, .018, .02, 12), materials.edge, [side * .141, .035, -.99], [0, 0, Math.PI / 2], [1, 1, 1], `shroud-retaining-pin-${side}`);
   const grip = part('grip', root, parts);
   grip.position.set(0, -.16, .12);
   grip.rotation.x = .16;
   add(grip, profile([[-.105, .08], [.105, .08], [.115, -.06], [.085, -.38], [.02, -.43], [-.08, -.38], [-.115, -.06]], .22, .023), materials.wood, [0, 0, 0], [0, 0, 0], [1, 1, 1], 'wood-grip');
-  add(grip, profile([[-.075, -.04], [.075, -.04], [.07, -.27], [-.07, -.27]], .024, .006), materials.panel, [0, -.02, .12], [0, 0, 0], [1, 1, 1], 'grip-side-inset');
-  addGripWraps(grip, materials, .105, .12, 7);
+  add(grip, profile([[-.065, -.04], [.065, -.04], [.06, -.3], [-.06, -.3]], .016, .006), materials.black, [0, -.02, .116], [0, 0, 0], [1, 1, 1], 'grip-backstrap');
+  for (let i = 0; i < 6; i++) add(grip, new THREE.BoxGeometry(.112, .007, .009), materials.panel, [0, -.073 - i * .038, .128], [0, 0, 0], [1, 1, 1], `backstrap-groove-${i}`);
   const guard = part('guard', root, parts);
   addTube(guard, [[0, -.03, -.04], [0, -.2, -.04], [0, -.29, .06], [0, -.2, .18]], [.018, .022, .022, .015], materials.edge, 10, 'trigger-guard');
   const trigger = part('trigger', guard, parts);
@@ -401,6 +419,15 @@ export function buildOssuaryRedesign() {
     spin: 0, recoil: 0, flash: 0, heat: 0, jawTension: 0, lastShot: 0, shotFx: fx,
   };
   finish(root, 'ossuary', parts, materials, sockets, {type: 'box', size: [.48, .82, 1.48]});
+  // Scoped material separation: broad aged steel, matte parkerized panels,
+  // narrow worn edges. Other occult weapons keep their existing texture path.
+  materials.edge.map = null;
+  materials.panel.map = null;
+  applyWeaponMaterialProfile(materials, {
+    steel: { roughness: .54, metalness: .72, envMapIntensity: .64, colorScale: 1 },
+    edge: { roughness: .41, metalness: .8, envMapIntensity: .62, colorScale: 1 },
+    panel: { roughness: .76, metalness: .42, envMapIntensity: .3, colorScale: 1 },
+  });
   root.userData.ossuary = meta;
   return root;
 }
@@ -428,19 +455,19 @@ export function animateOssuaryRedesign(root, shot = 0, time = 0, dt = .016) {
   meta.jawOpening = damp(meta.jawOpening, meta.jawOpeningTarget, 18, delta);
   meta.recoilCarriage.position.z = meta.recoil * .06;
   meta.recoilCarriage.rotation.x = meta.recoil * -.026;
-  meta.cylinder.rotation.z = meta.spin + Math.sin(time * 2.4) * .012;
-  meta.jaw.rotation.x = Math.sin(time * 2.2) * .01 - meta.jawTension * .08;
-  meta.ribs.rotation.z = Math.sin(time * 2.2) * .012 + meta.jawTension * .035;
+  meta.cylinder.rotation.z = meta.spin;
+  meta.parts.hammer.rotation.x = -meta.recoil * .38;
+  meta.jaw.rotation.x = -meta.jawTension * .035;
+  meta.ribs.rotation.z = 0;
   const jawOpen = meta.jawOpening;
-  // Hinge the existing bone members away from the bore. The outward travel is
-  // intentionally larger than the idle sway so a still action frame shows a
-  // changed silhouette and a real aperture, even before muzzle flash is read.
+  // Recoil clamps briefly unload sideways. Their semantic jaw fields remain
+  // intact for the runtime batching and mechanism contracts.
   meta.jawLeft.position.x = -jawOpen * .072;
   meta.jawLeft.position.y = jawOpen * .014;
   meta.jawRight.position.x = jawOpen * .072;
   meta.jawRight.position.y = jawOpen * .014;
-  meta.jawLeft.rotation.z = -.12 - jawOpen * .26;
-  meta.jawRight.rotation.z = .12 + jawOpen * .26;
+  meta.jawLeft.rotation.z = -jawOpen * .06;
+  meta.jawRight.rotation.z = jawOpen * .06;
   meta.materials.glow.emissiveIntensity = .14 + meta.heat * 2.1 + meta.flash * 4.2;
   meta.materials.heat.emissiveIntensity = .16 + meta.heat * 2.8 + meta.flash * 3.2;
   meta.shotFx.muzzleFlash.visible = meta.flash > .012;

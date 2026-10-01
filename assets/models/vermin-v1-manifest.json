@@ -1,0 +1,533 @@
+{
+  "id": "vermin-v1",
+  "status": "ACCEPTED_FOR_BOUNDED_AUTHORED_CREATURE_FIDELITY",
+  "runtime": {
+    "file": "assets/models/vermin-v1.glb",
+    "units": "meters",
+    "forwardAxis": [
+      0,
+      0,
+      1
+    ],
+    "upAxis": [
+      0,
+      1,
+      0
+    ],
+    "floorPivot": [
+      0,
+      0,
+      0
+    ],
+    "objectScale": [
+      1,
+      1,
+      1
+    ],
+    "components": [
+      "Rat",
+      "Cockroach"
+    ]
+  },
+  "budget": {
+    "status": "PASS",
+    "parts": [
+      {
+        "name": "Cockroach_Authored_Indexed_Mesh",
+        "triangles": 2252,
+        "exportedVertices": 1766,
+        "attributes": {
+          "POSITION": {
+            "count": 1766,
+            "finite": true
+          },
+          "NORMAL": {
+            "count": 1766,
+            "finite": true,
+            "lengthRange": [
+              0.9999533295631409,
+              1.0
+            ]
+          },
+          "TANGENT": {
+            "count": 1766,
+            "finite": true,
+            "lengthRange": [
+              0.9999998211860657,
+              1.0000001192092896
+            ]
+          },
+          "TEXCOORD_0": {
+            "count": 1766,
+            "finite": true
+          },
+          "COLOR_0": {
+            "count": 1766,
+            "finite": true
+          }
+        },
+        "morphTargets": [
+          {
+            "name": "ScurryA",
+            "attributes": [
+              "POSITION",
+              "NORMAL"
+            ],
+            "maxDisplacementMeters": 0.0032093615736812353
+          },
+          {
+            "name": "ScurryB",
+            "attributes": [
+              "POSITION",
+              "NORMAL"
+            ],
+            "maxDisplacementMeters": 0.0032093615736812353
+          },
+          {
+            "name": "AntennaLeft",
+            "attributes": [
+              "POSITION",
+              "NORMAL"
+            ],
+            "maxDisplacementMeters": 0.005590169690549374
+          },
+          {
+            "name": "AntennaRight",
+            "attributes": [
+              "POSITION",
+              "NORMAL"
+            ],
+            "maxDisplacementMeters": 0.005590169690549374
+          }
+        ],
+        "defaultWeights": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "indexed": true,
+        "drawGroups": 1
+      },
+      {
+        "name": "Rat_Authored_Indexed_Mesh",
+        "triangles": 6124,
+        "exportedVertices": 4880,
+        "attributes": {
+          "POSITION": {
+            "count": 4880,
+            "finite": true
+          },
+          "NORMAL": {
+            "count": 4880,
+            "finite": true,
+            "lengthRange": [
+              0.9999510049819946,
+              1.0
+            ]
+          },
+          "TANGENT": {
+            "count": 4880,
+            "finite": true,
+            "lengthRange": [
+              0.9999998807907104,
+              1.0000001192092896
+            ]
+          },
+          "TEXCOORD_0": {
+            "count": 4880,
+            "finite": true
+          },
+          "COLOR_0": {
+            "count": 4880,
+            "finite": true
+          }
+        },
+        "morphTargets": [
+          {
+            "name": "ScurryA",
+            "attributes": [
+              "POSITION",
+              "NORMAL"
+            ],
+            "maxDisplacementMeters": 0.012071025557816029
+          },
+          {
+            "name": "ScurryB",
+            "attributes": [
+              "POSITION",
+              "NORMAL"
+            ],
+            "maxDisplacementMeters": 0.012071025557816029
+          },
+          {
+            "name": "Bite",
+            "attributes": [
+              "POSITION",
+              "NORMAL"
+            ],
+            "maxDisplacementMeters": 0.018721407279372215
+          },
+          {
+            "name": "TailLeft",
+            "attributes": [
+              "POSITION",
+              "NORMAL"
+            ],
+            "maxDisplacementMeters": 0.03214032202959061
+          },
+          {
+            "name": "TailRight",
+            "attributes": [
+              "POSITION",
+              "NORMAL"
+            ],
+            "maxDisplacementMeters": 0.03214031830430031
+          }
+        ],
+        "defaultWeights": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "indexed": true,
+        "drawGroups": 1
+      }
+    ],
+    "bytes": 1974900,
+    "sha256": "8a8bae91a89e59330ea57cff77d43dee93a20c13c48686ad59d314d3bc5864f4",
+    "materialCount": 1,
+    "drawGroups": 2,
+    "embeddedImages": 3,
+    "embeddedImageNames": [
+      "vermin-normal",
+      "vermin-albedo",
+      "vermin-roughness"
+    ],
+    "morphNormals": true,
+    "embeddedMapDecode": [
+      {
+        "name": "vermin-normal",
+        "mimeType": "image/png",
+        "dimensions": [
+          512,
+          512
+        ],
+        "decoded": true,
+        "mode": "RGB",
+        "bytes": 262039,
+        "sha256": "a0f90a6b540cc14abf8992074a37c57311cccb4dc350be949bddeb1a8de58b81"
+      },
+      {
+        "name": "vermin-albedo",
+        "mimeType": "image/jpeg",
+        "dimensions": [
+          1024,
+          1024
+        ],
+        "decoded": true,
+        "mode": "RGB",
+        "bytes": 313848,
+        "sha256": "b1cdf676c00f6514bd9bca9f63b80594bf6628dceb789d7f74c31300f926b8fc"
+      },
+      {
+        "name": "vermin-roughness",
+        "mimeType": "image/png",
+        "dimensions": [
+          512,
+          512
+        ],
+        "decoded": true,
+        "mode": "RGB",
+        "bytes": 214699,
+        "sha256": "b4e12ea758644e2c7d5ef3662f3e3df5beafa2535d6f866635d7313bde0449bb"
+      }
+    ]
+  },
+  "parts": [
+    {
+      "name": "Rat",
+      "vertices": 3276,
+      "triangles": 6124,
+      "boundsGltfMeters": {
+        "low": [
+          -0.0540618970990181,
+          0.0010000001639127731,
+          -0.3540850877761841
+        ],
+        "high": [
+          0.0540618970990181,
+          0.10654588788747787,
+          0.15061400830745697
+        ]
+      },
+      "sizeMeters": [
+        0.1081237941980362,
+        0.1055458877235651,
+        0.504699096083641
+      ],
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "inconsistentWindingEdges": 0,
+      "degenerateTriangles": 0,
+      "positionFinite": true,
+      "morphs": [
+        {
+          "name": "ScurryA",
+          "maxDisplacementMeters": 0.012071025448774532,
+          "affectedVertices": 3244,
+          "reversedTriangles": 0
+        },
+        {
+          "name": "ScurryB",
+          "maxDisplacementMeters": 0.012071025448774532,
+          "affectedVertices": 3244,
+          "reversedTriangles": 0
+        },
+        {
+          "name": "Bite",
+          "maxDisplacementMeters": 0.01872140821554755,
+          "affectedVertices": 118,
+          "reversedTriangles": 0
+        },
+        {
+          "name": "TailLeft",
+          "maxDisplacementMeters": 0.03214032192307296,
+          "affectedVertices": 385,
+          "reversedTriangles": 0
+        },
+        {
+          "name": "TailRight",
+          "maxDisplacementMeters": 0.03214031830097706,
+          "affectedVertices": 385,
+          "reversedTriangles": 0
+        }
+      ]
+    },
+    {
+      "name": "Cockroach",
+      "vertices": 1204,
+      "triangles": 2252,
+      "boundsGltfMeters": {
+        "low": [
+          -0.021244976669549942,
+          0.0005979308043606579,
+          -0.023058682680130005
+        ],
+        "high": [
+          0.021287374198436737,
+          0.008285610936582088,
+          0.05502317100763321
+        ]
+      },
+      "sizeMeters": [
+        0.04253235086798668,
+        0.0076876801322214305,
+        0.07808185368776321
+      ],
+      "boundaryEdges": 0,
+      "nonmanifoldEdges": 0,
+      "inconsistentWindingEdges": 0,
+      "degenerateTriangles": 0,
+      "positionFinite": true,
+      "morphs": [
+        {
+          "name": "ScurryA",
+          "maxDisplacementMeters": 0.0032093617034104354,
+          "affectedVertices": 355,
+          "reversedTriangles": 0
+        },
+        {
+          "name": "ScurryB",
+          "maxDisplacementMeters": 0.0032093617034104354,
+          "affectedVertices": 355,
+          "reversedTriangles": 0
+        },
+        {
+          "name": "AntennaLeft",
+          "maxDisplacementMeters": 0.005590169832465848,
+          "affectedVertices": 126,
+          "reversedTriangles": 0
+        },
+        {
+          "name": "AntennaRight",
+          "maxDisplacementMeters": 0.005590169832465848,
+          "affectedVertices": 126,
+          "reversedTriangles": 0
+        }
+      ]
+    }
+  ],
+  "morphs": {
+    "Rat": {
+      "ScurryA": 0,
+      "ScurryB": 1,
+      "Bite": 2,
+      "TailLeft": 3,
+      "TailRight": 4
+    },
+    "Cockroach": {
+      "ScurryA": 0,
+      "ScurryB": 1,
+      "AntennaLeft": 2,
+      "AntennaRight": 3
+    },
+    "defaultWeights": 0,
+    "range": [
+      0,
+      1
+    ],
+    "normals": true,
+    "drive": "Alternate mutually exclusive ScurryA/B weights. TailLeft/Right and AntennaLeft/Right mutually exclusive. Rat Bite rotates only lower jaw, oral slit and lower incisors."
+  },
+  "files": {
+    "script": "scripts/build-vermin.py",
+    "master": ".art-source/vermin-v1/Vermin_v1.blend",
+    "proofs": [
+      "art/vermin-v1/rat-neutral-front.png",
+      "art/vermin-v1/rat-neutral-side.png",
+      "art/vermin-v1/rat-neutral-top.png",
+      "art/vermin-v1/rat-cold-contact.png",
+      "art/vermin-v1/rat-warm-wet.png",
+      "art/vermin-v1/rat-scurry-a.png",
+      "art/vermin-v1/rat-scurry-b.png",
+      "art/vermin-v1/rat-bite-contact.png",
+      "art/vermin-v1/cockroach-neutral-front.png",
+      "art/vermin-v1/cockroach-neutral-side.png",
+      "art/vermin-v1/cockroach-neutral-top.png",
+      "art/vermin-v1/cockroach-cold-contact.png",
+      "art/vermin-v1/cockroach-warm-wet.png",
+      "art/vermin-v1/cockroach-scurry-a.png",
+      "art/vermin-v1/cockroach-scurry-b.png",
+      "art/vermin-v1/cockroach-antenna-bend.png"
+    ],
+    "exportAudit": "art/vermin-v1/export-audit.json",
+    "visualReview": "art/vermin-v1/visual-review.json",
+    "runtimeImportAudit": "art/vermin-v1/runtime-import-audit.json",
+    "packedMasterSha256": "1e9c20539bbd1436046290399e8956f98bec214a6b083342824e7f1943d8b0eb",
+    "packedMasterBytes": 2492724,
+    "packedMasterAudit": "art/vermin-v1/master-audit.json",
+    "runtimeImportVerifier": ".art-source/vermin-v1/verify-import.mjs",
+    "visualReviewRecorder": ".art-source/vermin-v1/finalize-review.py"
+  },
+  "sourcing": {
+    "geometry": "Original Blender custom profile/sweep surfaces with separate digits, closed ears and authored appendages; no copied 3D mesh.",
+    "albedo": "Native ImageGen four-surface atlas, packed original preserved; resampled to1024, contrast-compressed broad lighting with a dark chitin material factor. JPEG albedo and authored normal/roughness field maps embedded.",
+    "source": "C:\\Users\\wolfk\\.codex\\generated_images\\01a0ebc8-b456-7601-95ee-38cdda87a5df\\exec-6cac08d0-8ded-4977-97ba-56274870ef2f.png",
+    "sourceSha256": "8cc6fe39f0045b22492500157d9334e2f5448ca4b15df648fe7589afac39e7be",
+    "newPaidJobs": 0,
+    "newCreditSpend": 0,
+    "decision": "Hybrid native ImageGen texture + offline controllable morphology and morph keys. No API credentials used; parent credential probe applies to sourcing ledger."
+  },
+  "anatomy": [
+    "Brown rat continuous tapered torso/head silhouette, shorter ears, blunt elongated muzzle, four foredigits/five hinddigits, paired upper/lower incisors and unequal whiskers.",
+    "Rat naked tapered tail, fur guard tufts and ear cup surfaces.",
+    "Flattened cockroach thorax and abdomen, overlapping forewings, six jointed spiny legs, two long tapering antennae and paired cerci."
+  ],
+  "research": [
+    {
+      "url": "https://animaldiversity.org/accounts/Rattus_norvegicus/",
+      "supports": "Brown coarse dorsal fur, lighter belly, naked ears and tail shorter than body."
+    },
+    {
+      "url": "https://animaldiversity.org/collections/contributors/arttoday/rat/",
+      "supports": "Four foredigits and five hinddigits."
+    },
+    {
+      "url": "https://entomology.ucr.edu/we-ch-4",
+      "supports": "Insect segmented body and six thoracic legs."
+    },
+    {
+      "url": "https://www.sites.ext.vt.edu/departments/entomology/factsheets/brownban.html",
+      "supports": "Flattened oval cockroach body, spiny legs and filamentous antennae."
+    }
+  ],
+  "verification": {
+    "command": "blender.exe --background --factory-startup --python scripts/build-vermin.py",
+    "checks": [
+      "Closed authored surfaces, consistent winding, finite indexed triangles",
+      "Rat<=8000tris, Cockroach<=2500tris, two drawgroups, one material",
+      "All nine shape keys contain POSITION+NORMAL and defaultzero weights",
+      "Exact exported binary attribute and target validation",
+      "Neutral/morph/cold/warm CPU proof renders",
+      "All16 final proof images actually inspected; image hashes recorded",
+      "Actual embedded JPEG and PNG maps decoded and dimensions audited",
+      "Actual bundled GLTFLoader material/topology/morph intake; native instance morph isolation and hidden-pool updates audited in Node with bitmap decode explicitly stubbed",
+      "Packed editable Blender master re-opened; three maps packed, nine editable keys neutral, temporary wet proof override removed"
+    ],
+    "notCertified": [
+      "Runtime floor and hand contacts",
+      "Physical softbody simulation",
+      "Game renderer visual quality",
+      "Professional photorealism"
+    ]
+  },
+  "limits": [
+    "Authored fictional brown sewer rat and roach, not scanned zoological assets.",
+    "Generated albedo has residual painted lighting; normal/roughness maps are approximate authored fields.",
+    "Closed overlapping appendage surfaces rather than one boolean-unioned watertight creature.",
+    "Gaits are bounded relative shape keys, not skeletal locomotion or physical paws.",
+    "No alpha-card or strand-based fur; modest geometric guard tufts and texture normal details."
+  ],
+  "referenceLedger": [
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/SKILL.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/visual-scorecard.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/implementation-blueprint.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/model-recipes.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/render-recipes.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/checklists/procedural-model-quality.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/checklists/material-lighting-quality.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/checklists/performance-safe-visual-detail.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/checklists/aaa-game-quality-gate.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-aaa-graphics-builder/references/checklists/aaa-visual-scorecard.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-3d-generator/SKILL.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-3d-generator/references/threejs-integration.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-3d-generator/references/image-generator-workflows.md",
+      "read": true
+    },
+    {
+      "path": "C:/Users/wolfk/.codex/skills/threejs-image-generator/SKILL.md",
+      "read": true
+    }
+  ],
+  "qualityVerdict": "Accepted as bounded authored support/interaction creatures; parent gameplay visual QA is required. No professional photorealism or physical animal fidelity claim."
+}

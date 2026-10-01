@@ -4,7 +4,8 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 const assetUrl = new URL('../assets/models/', import.meta.url);
-const manifest = JSON.parse(await readFile(new URL('afterlife-character-family-manifest.json', assetUrl), 'utf8'));
+let manifest;
+test.before(async()=>{manifest=JSON.parse(await readFile(new URL('afterlife-character-family-manifest.json',assetUrl),'utf8'));});
 
 function glbJson(bytes) {
   assert.equal(bytes.toString('ascii', 0, 4), 'glTF', 'binary glTF magic');

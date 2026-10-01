@@ -10,3 +10,22 @@ export function installBoundedLightEvaluation(){
  ShaderChunk.lights_fragment_begin='// bounded-direct-light-v1\n'+source.slice(0,split).split(direct).join('if ( directLight.visible ) { '+direct+' }')+source.slice(split);
  return true;
 }
+
+const viewmodelMaterials=new WeakSet();
+// Camera layers select lights for the whole render, not per receiving mesh.
+// Keep the body lantern on the dungeon without flooding nearby gun surfaces;
+// viewmodels retain their key/rim, reflected light and point-light muzzle flash.
+export function isolateViewmodelSpotlights(material){
+ if(!material?.isMeshStandardMaterial||viewmodelMaterials.has(material))return;
+ viewmodelMaterials.add(material);
+ const previousCompile=material.onBeforeCompile;
+ const previousKey=material.customProgramCacheKey();
+ material.onBeforeCompile=function(shader,renderer){
+  previousCompile.call(this,shader,renderer);
+  const spot='getSpotLightInfo( spotLight, geometryPosition, directLight );';
+  const lights=ShaderChunk.lights_fragment_begin.replace(spot,spot+'\n directLight.color = vec3( 0.0 ); directLight.visible = false;');
+  shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_begin>',lights);
+ };
+ material.customProgramCacheKey=()=>previousKey+'|viewmodel-spots-v1';
+ material.needsUpdate=true;
+}

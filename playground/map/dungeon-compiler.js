@@ -488,6 +488,82 @@ function roomAtPoint(rooms, x, z) {
   return rooms.find(room => roomContainsCell(room, x, z)) || null;
 }
 
+// Real threshold lanes, in the same cell coordinates used by collision.
+// Never stage a reinforcement on arbitrary floor inside its encounter room.
+// The final two cells always cross THIS opening, even where another door
+// would provide a shorter path through the fully-open topology.
+export function compileIngressGroups(compiled) {
+  const groups = Object.fromEntries(compiled.rooms.map(room => [room.id, []]));
+  const { cells, width, height } = compiled;
+  const entryCells=cloneCells(compiled.sealedCells);
+  for(const opening of compiled.openings)if(OPENING_KINDS[opening.kind]?.alwaysOpen||(!opening.lockedBy&&!opening.secret&&opening.kind!=='vent'))setOpeningCells(entryCells,width,height,opening,true);
+  const key = p => `${p.x},${p.y}`;
+  const floor = p => p.x >= 0 && p.y >= 0 && p.x < width && p.y < height
+    && cells[p.y * width + p.x]?.some(side => !side);
+  const steps = [[0,-1,0,2],[1,0,1,3],[0,1,2,0],[-1,0,3,1]];
+  for (const opening of compiled.openings) {
+    if (opening.secret || opening.kind === 'vent' || opening.lockedBy === 'key') continue;
+    const room = compiled.rooms.find(item => item.id === opening.roomId);
+    const routeCells=room.kind==='entry'?entryCells:cells;
+    const { dx, dz } = SIDE_VECTORS[opening.side];
+    const tangent = Array.from({length:opening.span[1]-opening.span[0]+1},(_,i)=>opening.span[0]+i)
+      .sort((a,b)=>Math.abs(a+.5-(opening.span[0]+opening.span[1]+1)/2)-Math.abs(b+.5-(opening.span[0]+opening.span[1]+1)/2));
+    let lane;
+    for (const t of tangent) {
+      const portal = opening.axis === 'h' ? {x:t+.5,y:opening.at} : {x:opening.at,y:t+.5};
+      const inner = {x:Math.floor(portal.x-dx*.5),y:Math.floor(portal.y-dz*.5)};
+      const outer = {x:Math.floor(portal.x+dx*.5),y:Math.floor(portal.y+dz*.5)};
+      if (!floor(inner)||!floor(outer)||!roomContainsCell(room,inner.x,inner.y)||roomContainsCell(room,outer.x,outer.y)) continue;
+      const side = steps.find(step=>step[0]===dx&&step[1]===dz);
+      if(cells[inner.y*width+inner.x][side[2]]||cells[outer.y*width+outer.x][side[3]])continue;
+      lane={portal,inner,outer};break;
+    }
+    if (!lane) continue;
+    const nodes=[{...lane.outer,depth:0,parent:-1}],seen=new Set([key(lane.outer)]);
+    for(let i=0;i<nodes.length;i++){
+      const p=nodes[i];if(p.depth>=12)continue;
+      for(const [sx,sy,side,opposite] of steps){
+        const next={x:p.x+sx,y:p.y+sy};
+        if(!floor(next)||seen.has(key(next))||roomContainsCell(room,next.x,next.y)
+          ||routeCells[p.y*width+p.x][side]||routeCells[next.y*width+next.x][opposite])continue;
+        seen.add(key(next));nodes.push({...next,depth:p.depth+1,parent:i});
+      }
+    }
+    // Favour staging with real depth behind the threshold, then an offset
+    // from its sightline. Visibility remains an authoritative runtime check.
+    const observer=room.kind==='entry'?{x:compiled.entry.x,y:compiled.entry.z}:room.center;
+    const hidden=p=>{
+      // Conservative compile-time staging preference; the engine still does
+      // exact visibility checks against every live player before spawning.
+      const dx=p.x+.5-observer.x,dy=p.y+.5-observer.y,steps=Math.ceil(Math.hypot(dx,dy)*16);
+      let x=Math.floor(observer.x),y=Math.floor(observer.y);
+      for(let i=1;i<=steps;i++){
+        const nx=Math.floor(observer.x+dx*i/steps),ny=Math.floor(observer.y+dy*i/steps);
+        if(nx!==x){const d=nx>x?1:3;if(routeCells[y*width+x]?.[d]||routeCells[y*width+nx]?.[(d+2)%4])return true;}
+        if(ny!==y){const d=ny>y?2:0;if(routeCells[y*width+nx]?.[d]||routeCells[ny*width+nx]?.[(d+2)%4])return true;}
+        x=nx;y=ny;
+      }return false;
+    };
+    const ranked=nodes.map((p,i)=>({i,p,score:(hidden(p)?100:0)-Math.abs(p.depth-6)*2
+      +Math.min(3,Math.abs((p.x-lane.outer.x)*dz-(p.y-lane.outer.y)*dx))})).sort((a,b)=>b.score-a.score);
+    const selected=[];
+    for(const candidate of ranked){
+      if(selected.some(other=>Math.hypot(other.p.x-candidate.p.x,other.p.y-candidate.p.y)<2))continue;
+      selected.push(candidate);if(selected.length===3)break;
+    }
+    for(const [variant,candidate]of selected.entries()){
+      const route=[];
+      for(let i=candidate.i;i>=0;i=nodes[i].parent)route.push({x:nodes[i].x+.5,y:nodes[i].y+.5});
+      route.push(lane.portal,{x:lane.inner.x+.5,y:lane.inner.y+.5});
+      groups[room.id].push({id:`${opening.id}-ingress-${variant}`,openingId:opening.id,roomId:room.id,
+        origin:route[0],portal:lane.portal,arrival:route.at(-1),route,
+        label:`${room.identity?.landmark||room.name} / ${opening.side.toUpperCase()} entrance`,
+        side:opening.side,phase:room.identity?.beat||'reinforcement'});
+    }
+  }
+  return groups;
+}
+
 function setOpeningCells(cells, width, height, opening, open) {
   const wall = open ? 0 : 1;
   if (opening.axis === 'h') {

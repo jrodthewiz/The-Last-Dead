@@ -1,10 +1,11 @@
 // Adapts the authored Story descent to the live FPS course contract.
 // Coordinates stay in the compiler's 4 m cells so collision, render geometry,
 // enemy spawns, keys, and the map playground all use the same source.
-import { DUNGEON_LAYERS } from './dungeon-data.js';
-import { OPENING_KINDS, compileLayer, encounterReachForWave, roomClearEncounterSchedule, roomContainsCell } from './dungeon-compiler.js';
+import { DUNGEON_LAYERS, DUNGEON_ROUTES } from './dungeon-data.js';
+import { OPENING_KINDS, compileLayer, compileIngressGroups, encounterReachForWave, roomClearEncounterSchedule, roomContainsCell } from './dungeon-compiler.js';
 import { wallSegments } from './grid.js';
 import { dungeonArtDirection } from '../../dungeon-art-direction.js';
+import { roomRecoveryPolicy } from '../../dungeon-encounter-design.js';
 
 const compiledLayers = new Map();
 // Keep the first enemies in the entry room, but outside the player's opening melee range.
@@ -98,6 +99,7 @@ export function makeDungeonCourse(index = 0) {
     .map(opening => opening.id));
   const waveCount = Math.max(1, ...layer.spots.map(spot => Math.floor(spot.wave) + 1));
   const roomClearWaveByOpening = roomClearEncounterSchedule(layer, compiled);
+  const route = DUNGEON_ROUTES[floorIndex];
   const course = {
     name: layer.name,
     tag: layer.tag,
@@ -118,7 +120,26 @@ export function makeDungeonCourse(index = 0) {
     playerSpawn: { x: layer.entry.x, y: layer.entry.z, angle: layer.entry.angle },
     exit: { x: layer.exit.x, y: layer.exit.z },
     enemies: [],
-    rooms: compiled.rooms,
+    route: [...route],
+    encounterRoute: route.filter(id => compiled.rooms.some(room => room.id === id && room.encounter?.budget > 0 && room.identity?.beat !== 'resupply')),
+    ingressGroups: compileIngressGroups(compiled),
+    rooms: compiled.rooms.map(room => {
+      const keyRoom = layer.keys.some(key => key.roomId === room.id);
+      const branch = !route.includes(room.id);
+      const role = room.kind === 'entry' ? 'entry' : room.kind === 'exit' ? 'exit'
+        : keyRoom ? 'combat' : room.kind === 'secret' ? 'recovery'
+        : room.encounter?.budget > 0 ? 'combat'
+        : (layer.loot || []).some(item => item.roomId === room.id) ? 'supply' : 'recovery';
+      return { ...room, flow: { role, optional: (branch || room.identity?.beat === 'resupply') && !keyRoom,
+        sequence: branch ? route.length + room.order : route.indexOf(room.id),
+        beat: room.identity?.beat || (role === 'exit' ? 'descent' : role === 'combat' ? 'ambush' : 'recovery'),
+        landmark: room.identity?.landmark || room.name,
+        landmarkId: layer.landmarks?.find(item => item.roomId === room.id)?.id || null,
+        goal: room.identity?.goal || (keyRoom ? 'Recover the lift key' : role === 'combat' && (layer.loot || []).some(item => item.roomId === room.id)
+          ? 'Clear the defenders and collect equipment' : role === 'supply' ? 'Collect equipment before pushing on'
+          : role === 'recovery' ? 'Recover, then rejoin the forward route' : role === 'exit' ? 'Descend to the next floor'
+          : 'Break through and keep moving') } };
+    }),
     openings: compiled.openings,
     landmarks: layer.landmarks || [],
     machinery: layer.machinery || [],
@@ -136,6 +157,7 @@ export function makeDungeonCourse(index = 0) {
     keys: [],
     loot: [],
     evidence: [],
+    supplies: [],
     evidenceTotal: DUNGEON_LAYERS.reduce((sum, floor) => sum + (floor.evidence || []).length, 0),
     startingWeapons: [...new Set([0, ...DUNGEON_LAYERS.slice(0, floorIndex)
       .flatMap(previous => (previous.loot || []).map(item => item.weaponIndex))])],
@@ -197,8 +219,48 @@ export function makeDungeonCourse(index = 0) {
     });
   }
 
+  // Every authored main-route combat beat owns a real encounter, including
+  // wards omitted by the old five-wave spot list. Keep legacy wave numbers
+  // for gate release compatibility; flow.sequence owns the route order.
+  for (const id of course.encounterRoute) {
+    if(course.waveSpawns.some(spawns=>spawns.some(spawn=>spawn.roomId===id)))continue;
+    const room=course.rooms.find(item=>item.id===id);
+    const waveIndex=Math.min(waveCount-1,Math.max(1,Math.floor(room.flow.sequence/2)));
+    const point=nearestFloorPoint(compiled.reach,course.w,course.h,room.center.x,room.center.y,
+      reservedByWave[waveIndex],{bounds:room.bounds});
+    const variants=Object.entries(room.encounter.composition||{}).flatMap(([variant,count])=>Array(count).fill(variant));
+    course.waveSpawns[waveIndex].push({id:`${id}-route-threat`,x:point.x,y:point.y,variant:variants[0]||'stalker',roomId:id});
+  }
+  for(const room of course.rooms)room.encounter={...room.encounter,
+    ingressOpeningIds:[...new Set(course.ingressGroups[room.id].map(group=>group.openingId))]};
+
   for (const { key, position } of keyPositions) {
     course.keys.push({ ...key, x: position.x, y: position.y });
+  }
+  // Side circulation remains open, except the foundry's final arena: opening
+  // both court flanks immediately made the key detour cut through the final
+  // fight on its way back to the hall. Its authored doors release together
+  // after the approach, completing the ward/pump/gantry loop.
+  course.flowOpenings = course.openings.filter(opening => opening.lockedBy === 'room-clear'
+    && opening.roomId !== 'f1-court'
+    && (opening.side === 'w' || opening.side === 'e')).map(opening => opening.id);
+  for (const id of course.flowOpenings) course.openingState[id] = true;
+  const entryOpening = course.openings.filter(opening => opening.roomId === entryRoom?.id
+    && course.openingState[opening.id] && !opening.secret)
+    .sort((a,b) => Math.hypot(a.anchor.x-course.playerSpawn.x,a.anchor.y-course.playerSpawn.y)
+      - Math.hypot(b.anchor.x-course.playerSpawn.x,b.anchor.y-course.playerSpawn.y))[0];
+  if (entryOpening) course.playerSpawn.angle = Math.atan2(entryOpening.anchor.y-course.playerSpawn.y,
+    entryOpening.anchor.x-course.playerSpawn.x);
+  for (const room of course.rooms) {
+    const recovery = roomRecoveryPolicy(course, room);
+    room.flow.safeRespite = recovery.isSafeRoom;
+    room.flow.safeAfterClear = recovery.safeAfterClear;
+    if (room.reward) room.reward = recovery.label;
+    if (!recovery.hasSupply) continue;
+    const position = nearestFloorPoint(compiled.reach, course.w, course.h, room.center.x, room.center.y,
+      lootReserved, { bounds: room.bounds });
+    course.supplies.push({ id: `${room.id}-supplies`, roomId: room.id, kind: 'recovery',
+      x: position.x, y: position.y, health: recovery.health, energy: recovery.energy, label: recovery.label });
   }
   rebuildCells(course);
   // Reserve the wall instances once, including every closable doorway. Use

@@ -6,7 +6,7 @@ export function prepareSurvivors(renderer){
  if(!state.ready&&renderer.weaponGroups&&typeof document!=='undefined'){state.status='loading';state.ready=loadMeshySurvivors(renderer,state);}
  return state.ready||Promise.resolve();
 }
-export function disposeSurvivors(renderer){const state=renderer._survivors;if(!state)return;state.disposed=true;for(const body of [state.local,state.peer]){body.userData.mixer?.stopAllAction();body.removeFromParent();releaseMeshyAsset(body);}if(state.template)releaseMeshyAsset(state.template);}
+export function disposeSurvivors(renderer){const state=renderer._survivors;if(!state)return;state.disposed=true;for(const body of [state.local,state.peer]){body.userData.mixer?.stopAllAction();body.removeFromParent();releaseMeshyAsset(body);}if(state.template)releaseMeshyAsset(state.template);if(state.armTemplate)releaseMeshyAsset(state.armTemplate);}
 export function updateSurvivors(renderer,run,now){
  if(!renderer._survivors)prepareSurvivors(renderer);const state=renderer._survivors;
  if(state.status==='ready'){

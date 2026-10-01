@@ -1,0 +1,230 @@
+{
+  "version": 1,
+  "source": "assets\\survivor\\tld-survivor-v02.glb",
+  "source_sha256": "f3c9b277985435845d0848f9fc9ca32fa92da9f695c911f7ea48eacff712db03",
+  "sourcing": "hybrid: original Meshy survivor UV atlas + authored Blender metric surfaces",
+  "source_preserved": true,
+  "coordinate_system": "glTF Y-up, metres; forward -Z",
+  "asset": "assets\\survivor\\viewmodel-arms-v1.glb",
+  "sha256": "754871fa53ebddc9b9bfb5d59120b33592288895cde2f9b4f2dc752e9472708e",
+  "bytes": 9998464,
+  "textures": 4,
+  "texture_resolution": [
+    2048,
+    2048
+  ],
+  "materials": 4,
+  "meshes": 27,
+  "triangles": 76455,
+  "interaction": {
+    "node": "TLD_Remote_Arms",
+    "source_vertices": 13418,
+    "source_triangles": 13796,
+    "radial_spikes_corrected": 1881,
+    "source_skin_joints": [
+      "Hips",
+      "LeftUpLeg",
+      "LeftLeg",
+      "LeftFoot",
+      "LeftToeBase",
+      "Spine02",
+      "Spine01",
+      "Spine",
+      "neck",
+      "Head",
+      "head_end",
+      "headfront",
+      "LeftShoulder",
+      "LeftArm",
+      "LeftForeArm",
+      "LeftHand",
+      "RightShoulder",
+      "RightArm",
+      "RightForeArm",
+      "RightHand",
+      "RightUpLeg",
+      "RightLeg",
+      "RightFoot",
+      "RightToeBase"
+    ],
+    "bind_matrices_byte_preserved": true,
+    "skin_indices_and_weights_byte_preserved": true,
+    "bone_transforms_preserved": true,
+    "clips": 0,
+    "head_and_torso_meshes_exported": false,
+    "radial_limits": {
+      "upper_arm": 0.086,
+      "forearm": 0.06
+    }
+  },
+  "hand_surface_revision": 2,
+  "hand_surface": {
+    "profiles": {
+      "Index": {
+        "girth": 1.0,
+        "tip": 0.6,
+        "knuckle": 0.33,
+        "joint1": 0.25,
+        "joint2": 0.6,
+        "pad": 0.1,
+        "lean": -0.035
+      },
+      "Middle": {
+        "girth": 1.025,
+        "tip": 0.63,
+        "knuckle": 0.37,
+        "joint1": 0.27,
+        "joint2": 0.62,
+        "pad": 0.13,
+        "lean": 0.025
+      },
+      "Ring": {
+        "girth": 0.98,
+        "tip": 0.57,
+        "knuckle": 0.32,
+        "joint1": 0.29,
+        "joint2": 0.64,
+        "pad": 0.105,
+        "lean": 0.05
+      },
+      "Little": {
+        "girth": 0.96,
+        "tip": 0.52,
+        "knuckle": 0.28,
+        "joint1": 0.3,
+        "joint2": 0.63,
+        "pad": 0.08,
+        "lean": 0.055
+      },
+      "Thumb": {
+        "girth": 1.03,
+        "tip": 0.68,
+        "knuckle": 0.4,
+        "joint1": 0.34,
+        "joint2": 0.72,
+        "pad": 0.16,
+        "lean": -0.035
+      }
+    },
+    "contact_centrelines_and_pivots_preserved": true,
+    "palm": "smoothed metacarpal arch, thenar/hypothenar pads, rounded heel/thumb web, tapered distal glove cap",
+    "digits": "asymmetric dorsal knuckles/palmar pads, distinct distal taper/girth, radial dorsal nail frame",
+    "material": "source atlas color + physical flexion/knuckle creases, fine pore tangent normals, packed variable roughness",
+    "skin_factor": [
+      0.62,
+      0.43,
+      0.33
+    ],
+    "normal_strength": 0.65,
+    "normal_detail_height_metres": 1.4e-05,
+    "maximum_crease_height_metres": 9.5e-05
+  },
+  "hand_preview_archive": ".art-source\\viewmodel-arms-v1\\hand-refinement-preview",
+  "contract": {
+    "sleeve_nodes": [
+      "TLD_ViewSleeve_Left",
+      "TLD_ViewSleeve_Right"
+    ],
+    "sleeve_wrist": [
+      0,
+      0,
+      0
+    ],
+    "sleeve_elbow": [
+      0,
+      -0.34,
+      0
+    ],
+    "upper_sleeve_nodes": [
+      "TLD_UpperSleeve_Left",
+      "TLD_UpperSleeve_Right"
+    ],
+    "upper_elbow": [
+      0,
+      0,
+      0
+    ],
+    "upper_shoulder": [
+      0,
+      -0.4,
+      0
+    ],
+    "upper_max_radial_envelope": 0.087,
+    "upper_caps": {
+      "TLD_UpperSleeve_Left": [
+        {
+          "name": "UpperShoulderCap_Left",
+          "center": [
+            0.0,
+            -0.4,
+            0.0
+          ],
+          "radius": 0.059676607495095686,
+          "storage": "triangles within upper sleeve mesh"
+        },
+        {
+          "name": "UpperElbowCap_Left",
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "radius": 0.06197594103424148,
+          "storage": "triangles within upper sleeve mesh"
+        }
+      ],
+      "TLD_UpperSleeve_Right": [
+        {
+          "name": "UpperShoulderCap_Right",
+          "center": [
+            0.0,
+            -0.4,
+            0.0
+          ],
+          "radius": 0.06611797303514474,
+          "storage": "triangles within upper sleeve mesh"
+        },
+        {
+          "name": "UpperElbowCap_Right",
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "radius": 0.05987564102805142,
+          "storage": "triangles within upper sleeve mesh"
+        }
+      ]
+    },
+    "hand_nodes": [
+      "TLD_GripHand_Left",
+      "TLD_GripHand_Right"
+    ],
+    "grip_socket": [
+      0,
+      0,
+      0
+    ],
+    "hand_wrist": [
+      0,
+      -0.075,
+      0.015
+    ],
+    "trigger_pivot": "RightTriggerFinger",
+    "fingers_per_hand": 5,
+    "scale_policy": "Native metric scale only; rotate/translate sleeves to wrist/elbow."
+  },
+  "limitations": [
+    "New ordinary weapon grip geometry is rigid except explicit digit pivots.",
+    "Interaction hand topology remains the original fused Meshy hand; source sleeves only receive radial spike cleanup.",
+    "This derivative corrects silhouette and scale; it is not a photogrammetric hand scan or AAA certification."
+  ],
+  "authoring": ".art-source\\viewmodel-arms-v1\\Viewmodel_Arms_v1.blend",
+  "proofs": [
+    ".art-source\\viewmodel-arms-v1\\proof-front.png",
+    ".art-source\\viewmodel-arms-v1\\proof-side.png",
+    ".art-source\\viewmodel-arms-v1\\proof-palm.png",
+    ".art-source\\viewmodel-arms-v1\\proof-interaction.png"
+  ],
+  "integrated_authoring": ".art-source\\viewmodel-arms-v1\\Viewmodel_Arms_Integrated_v1.blend"
+}

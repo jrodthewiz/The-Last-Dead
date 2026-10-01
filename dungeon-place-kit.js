@@ -28,6 +28,23 @@ function burialArchGeometry() {
   return geometry;
 }
 const ARCH = burialArchGeometry();
+// A shallow open vault, separate from the wall-niche arch. Its lowest edge is
+// above 4 m; neither its shoulders nor its crown cross an eye-level sightline.
+function vaultRibGeometry() {
+  const shape = new THREE.Shape();
+  shape.moveTo(-.5, 0);
+  shape.quadraticCurveTo(-.36, .78, 0, 1);
+  shape.quadraticCurveTo(.36, .78, .5, 0);
+  shape.lineTo(.47, -.025);
+  shape.quadraticCurveTo(.34, .65, 0, .86);
+  shape.quadraticCurveTo(-.34, .65, -.47, -.025);
+  shape.closePath();
+  const geometry = new THREE.ExtrudeGeometry(shape, { depth: 1, bevelEnabled: false, curveSegments: 12 });
+  geometry.translate(0, 0, -.5);
+  geometry.userData.sharedAsset = true;
+  return geometry;
+}
+const RIB = vaultRibGeometry();
 BOX.userData.sharedAsset = true;
 PIPE.userData.sharedAsset = true;
 
@@ -68,13 +85,37 @@ export function planDungeonPlaceKit(course) {
       .slice(0, room.kind === 'hub' || room.kind === 'arena' ? 10 : 5);
     for (const wall of chosen) walls.push({ roomId: room.id, style, ...wall });
     if (room.kind === 'hub' || room.kind === 'arena' || room.kind === 'hall' || room.kind === 'loop') {
-      const longX = maxX - minX >= maxZ - minZ;
+      const longX = room.architectureAxis ? room.architectureAxis === 'x' : maxX - minX >= maxZ - minZ;
       const span = longX ? maxX - minX : maxZ - minZ;
       const count = Math.max(1, Math.floor(span / 3));
       for (let i = 1; i <= count; i++) {
-        const at = (longX ? minX : minZ) + span * i / (count + 1);
+        const axisCell = Math.floor((longX ? minX : minZ) + span * i / (count + 1));
+        const at = axisCell + .5;
+        // Fit each bay to its actual footprint cross-section. A bounding box
+        // would put ribs across clipped corners and float the end corbels.
+        const runs = [];
+        let start = null;
+        const low = longX ? minZ : minX, high = longX ? maxZ : maxX;
+        for (let cross = low; cross <= high; cross++) {
+          const inside = cross < high && belongsToRoom(room, longX ? axisCell : cross, longX ? cross : axisCell);
+          if (inside && start === null) start = cross;
+          if (!inside && start !== null) { runs.push([start, cross]); start = null; }
+        }
+        const run = runs.sort((a, b) => (b[1] - b[0]) - (a[1] - a[0]))[0];
+        if (!run || run[1] - run[0] < 2) continue;
+        // grid.wallSegments deduplicates the same edge from either adjacent
+        // cell. Match its physical edge rather than assuming the owner cell
+        // is always on the interior side of the room.
+        const endWall = cross => (course.permanentWalls || course.walls || []).some(wall =>
+          wall.horizontal === longX && wall.x === (longX ? at : cross) && wall.z === (longX ? cross : at));
+        // Reserve openings: wall-mounted corbels only belong to permanent
+        // panels, never a live doorway or a branch into another room.
+        if (!endWall(run[0]) || !endWall(run[1])) continue;
         beams.push({ roomId: room.id, style, longX, at,
-          x0: minX + .45, x1: maxX - .45, z0: minZ + .45, z1: maxZ - .45 });
+          x0: longX ? at : run[0] + .08, x1: longX ? at : run[1] - .08,
+          z0: longX ? run[0] + .08 : at, z1: longX ? run[1] - .08 : at,
+          springHeight: style === 'crypt' || style === 'choir' ? 4.35 : 5.75,
+          crownHeight: 6.12 });
       }
     }
     rooms.push({ id: room.id, style, wallCount: chosen.length });
@@ -153,7 +194,7 @@ export function buildDungeonPlaceKit(root, materials, course) {
   if (!course?.dungeon) return group;
   const plan = planDungeonPlaceKit(course);
   const layers = Object.fromEntries(['frame', 'trim', 'recess', 'pale', 'signal', 'glass', 'bone', 'ceiling']
-    .map(key => [key, { box: [], pipe: [], arch: [] }]));
+    .map(key => [key, { box: [], pipe: [], arch: [], rib: [] }]));
   const put = (layer, shape, x, y, z, sx, sy, sz, ry = 0) =>
     layers[layer][shape].push({ x, y, z, sx, sy, sz, ry });
   const wallBox = (wall, layer, x, y, depth, width, height, thickness, shape = 'box') => {
@@ -221,9 +262,29 @@ export function buildDungeonPlaceKit(root, materials, course) {
     const width = beam.longX ? (beam.z1 - beam.z0) * CELL : (beam.x1 - beam.x0) * CELL;
     const yaw = beam.longX ? Math.PI / 2 : 0;
     const layer = beam.style === 'crypt' ? 'bone' : beam.style === 'surgical' ? 'pale' : 'frame';
-    put(layer, 'box', bx, 5.75, bz, width, .42, .42, yaw);
-    put('trim', 'box', bx, 5.45, bz, width - .2, .1, .18, yaw);
-    if (beam.style === 'surgical') put('signal', 'box', bx, 5.36, bz, Math.min(3.6, width - .4), .06, .11, yaw);
+    if (beam.style === 'crypt' || beam.style === 'choir') {
+      put(layer, 'rib', bx, beam.springHeight, bz, width, beam.crownHeight - beam.springHeight, .34, yaw);
+      // A bronze inner rib makes the choir vault legible as organ-hall
+      // infrastructure; the crypt keeps the more austere stone silhouette.
+      if (beam.style === 'choir') put('trim', 'rib', bx, beam.springHeight + .05, bz + .03,
+        width - .14, beam.crownHeight - beam.springHeight - .08, .11, yaw);
+      for (const side of [-1, 1]) {
+        const px = bx + Math.cos(yaw) * side * (width * .5 - .12);
+        const pz = bz - Math.sin(yaw) * side * (width * .5 - .12);
+        put(layer, 'box', px, 4.05, pz, .48, .68, .54, yaw);
+        put('trim', 'box', px, 4.4, pz, .64, .12, .65, yaw);
+      }
+    } else {
+      put(layer, 'box', bx, 5.75, bz, width, .42, .42, yaw);
+      put('trim', 'box', bx, 5.45, bz, width - .2, .1, .18, yaw);
+      for (const side of [-1, 1]) {
+        const px = bx + Math.cos(yaw) * side * (width * .5 - .08);
+        const pz = bz - Math.sin(yaw) * side * (width * .5 - .08);
+        put(layer, 'box', px, 5.15, pz, .5, 1.02, .5, yaw);
+        put('trim', 'box', px, 4.64, pz, .62, .12, .64, yaw);
+      }
+      if (beam.style === 'surgical') put('signal', 'box', bx, 5.36, bz, Math.min(3.6, width - .4), .06, .11, yaw);
+    }
   }
   for (const cell of plan.ceilings) {
     put('ceiling', 'box', (cell.x + .5) * CELL, 6.47, (cell.z + .5) * CELL,
@@ -231,17 +292,19 @@ export function buildDungeonPlaceKit(root, materials, course) {
   }
   const mats = palette(materials, course.artDirection);
   for (const [key, shapes] of Object.entries(layers)) {
-    if (!shapes.box.length && !shapes.pipe.length && !shapes.arch.length) {
+    if (!Object.values(shapes).some(entries => entries.length)) {
       if (!Object.values(materials).includes(mats[key])) mats[key].dispose();
       continue;
     }
     addInstanced(group, `${key}_box`, BOX, mats[key], shapes.box);
     addInstanced(group, `${key}_pipe`, PIPE, mats[key], shapes.pipe);
     addInstanced(group, `${key}_arch`, ARCH, mats[key], shapes.arch);
+    addInstanced(group, `${key}_rib`, RIB, mats[key], shapes.rib);
   }
   group.userData.plan = plan;
   group.userData.wallPanels = plan.walls.length;
   group.userData.overheadBeams = plan.beams.length;
+  group.userData.vaultRibs = plan.beams.filter(beam => beam.style === 'crypt' || beam.style === 'choir').length;
   group.userData.ceilingCells = plan.ceilings.length;
   root.add(group);
   return group;

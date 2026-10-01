@@ -17,8 +17,12 @@ node_modules/
 
 # Local diagnostics, browser profiles, and Blender recovery copies.
 .codex-temp/
+output/playwright/
 .cua-native-repair.ps1
 .read-process-env.ps1
 *.blend[0-9]*
 __pycache__/
 *.py[cod]
+
+# Local assistant permission settings.
+.claude/

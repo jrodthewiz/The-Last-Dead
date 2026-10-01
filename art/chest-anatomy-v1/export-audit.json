@@ -1,0 +1,121 @@
+{
+  "status": "PASS",
+  "sha256": "896c71c578f6a6ff78b09b152ab9918e8e472d9ac5cda73fa7a3ea542f0685b5",
+  "bytes": 2675712,
+  "attributes": [
+    {
+      "mesh": "ChestWound_Original_Authored_Geometry",
+      "attribute": "POSITION",
+      "count": 4858,
+      "finite": true
+    },
+    {
+      "mesh": "ChestWound_Original_Authored_Geometry",
+      "attribute": "NORMAL",
+      "count": 4858,
+      "finite": true,
+      "normalLengthRange": [
+        0.9999499688487011,
+        0.9999997228991087
+      ]
+    },
+    {
+      "mesh": "ChestWound_Original_Authored_Geometry",
+      "attribute": "TANGENT",
+      "count": 4858,
+      "finite": true,
+      "normalLengthRange": [
+        0.9999998507396679,
+        1.0000001310261664
+      ]
+    },
+    {
+      "mesh": "ChestWound_Original_Authored_Geometry",
+      "attribute": "TEXCOORD_0",
+      "count": 4858,
+      "finite": true
+    },
+    {
+      "mesh": "ChestWound_Original_Authored_Geometry",
+      "attribute": "COLOR_0",
+      "count": 4858,
+      "finite": true
+    },
+    {
+      "mesh": "Heart_Original_Authored_Geometry",
+      "attribute": "POSITION",
+      "count": 10309,
+      "finite": true
+    },
+    {
+      "mesh": "Heart_Original_Authored_Geometry",
+      "attribute": "NORMAL",
+      "count": 10309,
+      "finite": true,
+      "normalLengthRange": [
+        0.9999503772665201,
+        0.9999996012941954
+      ]
+    },
+    {
+      "mesh": "Heart_Original_Authored_Geometry",
+      "attribute": "TANGENT",
+      "count": 10309,
+      "finite": true,
+      "normalLengthRange": [
+        0.9999998526321485,
+        1.0000001397608225
+      ]
+    },
+    {
+      "mesh": "Heart_Original_Authored_Geometry",
+      "attribute": "TEXCOORD_0",
+      "count": 10309,
+      "finite": true
+    },
+    {
+      "mesh": "Heart_Original_Authored_Geometry",
+      "attribute": "COLOR_0",
+      "count": 10309,
+      "finite": true
+    }
+  ],
+  "images": [
+    {
+      "name": "chest-normal",
+      "mimeType": "image/png",
+      "size": [
+        1024,
+        512
+      ],
+      "decodedBytes": 2097664,
+      "embedded": true
+    },
+    {
+      "name": "chest-albedo",
+      "mimeType": "image/png",
+      "size": [
+        1024,
+        512
+      ],
+      "decodedBytes": 2097664,
+      "embedded": true
+    },
+    {
+      "name": "chest-roughness",
+      "mimeType": "image/png",
+      "size": [
+        1024,
+        512
+      ],
+      "decodedBytes": 1573376,
+      "embedded": true
+    }
+  ],
+  "nodes": [
+    "ChestWound",
+    "Heart",
+    "ChestAnatomyKit"
+  ],
+  "materialCount": 1
+}

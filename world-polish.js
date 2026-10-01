@@ -1,5 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import {mergeGeometries} from './vendor/utils/BufferGeometryUtils.js';
+import {createBloodSurfaceMaterial} from './blood-surface.js';
 
 // ---------------------------------------------------------------------------
 // Landmark architecture.  Non-colliding architecture stays on the perimeter or
@@ -197,6 +198,22 @@ function shroudedBody() {
   return geometry;
 }
 
+// Low, dragged residue replaces the old capsule-and-sphere floor chains. The
+// existing alpha atlas owns the ragged silhouette; this slight relief catches
+// oblique light without turning every deposit into another knee-high object.
+function floorResidueGeometry(width, length, relief = .012) {
+  const geometry = new THREE.PlaneGeometry(width, length, 4, 3);
+  geometry.rotateX(-Math.PI / 2);
+  const position = geometry.attributes.position;
+  for (let i = 0; i < position.count; i++) {
+    const x = position.getX(i), z = position.getZ(i);
+    const edge = Math.max(0, 1 - Math.abs(x) / (width * .5)) * Math.max(0, 1 - Math.abs(z) / (length * .5));
+    position.setY(i, .016 + edge * relief * (.65 + Math.sin(x * 9 + z * 7) * .35));
+  }
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
 let LIFE_GEOMETRY = null;
 function lifeGeometry() {
   if (LIFE_GEOMETRY) return LIFE_GEOMETRY;
@@ -210,6 +227,7 @@ function lifeGeometry() {
   ];
   G.barrel = mergeParts(barrelParts);
   G.splat = splatGeometry(3);
+  G.residue = floorResidueGeometry(1.8, 1.45);
   G.bodyPile = mergeParts([
     shroudedBody(),
     capsule(.11, .46, 4, 7, -.4, .16, .28, 0, 0, 1.35),
@@ -258,12 +276,7 @@ function lifeGeometry() {
     sphere(.045, 6, 5, -.075, .02, .19),
     sphere(.045, 6, 5, .075, .02, .19),
   ]);
-  G.limbs = mergeParts([
-    capsule(.085, .46, 4, 7, 0, .1, 0, 0, .4, Math.PI / 2),
-    capsule(.075, .34, 3, 6, .3, .12, .26, 0, 1.2, Math.PI / 2),
-    capsule(.1, .52, 4, 7, -.35, .1, -.2, 0, .9, Math.PI / 2),
-    sphere(.1, 6, 5, .6, .1, .1),
-  ]);
+  G.limbs = floorResidueGeometry(1.38, .83, .032);
   G.hook = mergeParts([
     cyl(.028, .028, 1.3, 6, 0, 2.35, 0),
     torus(.17, .028, 5, 10, 0, 1.62, 0, 0, 0, 0, Math.PI * 1.55),
@@ -416,7 +429,8 @@ function lifeMaterials(materials, sector) {
     rust: make(palette.rust, { roughness: .86, metalness: .34, role: 'rust' }),
     bone: make(palette.bone, { roughness: .82, metalness: .1, role: 'bone' }),
     gore: make(palette.gore, { roughness: .5, metalness: .06, role: 'gore' }),
-    blood: make(palette.blood, { roughness: .28, metalness: .04, role: 'pool' }),
+    blood: createBloodSurfaceMaterial({ variant: 0, dry: .48, opacity: .83 }),
+    residue: createBloodSurfaceMaterial({ variant: 2, dry: .72, opacity: .88 }),
     oil: make(palette.oil, { roughness: .2, metalness: .42, role: 'oil' }),
     cloth: make(palette.cloth, { roughness: .93, metalness: .04, role: 'cloth' }),
     wax: make(palette.wax, { roughness: .46, metalness: .05, role: 'wax' }),
@@ -798,6 +812,33 @@ function dressOssuary(placer, field) {
   }
 }
 
+// Authored correction for the shallow F3 crossing: retain the deterministic
+// recipe and every existing instance, but bank these five floor clusters off
+// the processional aisle. Indices refer to the stable LIFE_VERSION 2 recipe;
+// attached eye/flame offsets move with their parent cluster. This runs once
+// while constructing the world, before instancing, never in the frame loop.
+function bankCatacombCrossingScatter(placer, course) {
+  if (course.id !== 'f3-catacombs') return [];
+  const moved = [];
+  const bank = (kind, index, x, z, attachedKind, attachedIndices = []) => {
+    const entry = placer.items.get(kind)?.[index];
+    if (!entry) return;
+    const from = [entry.x, entry.z], dx = x - entry.x, dz = z - entry.z;
+    entry.x = x; entry.z = z;
+    for (const attachedIndex of attachedIndices) {
+      const attached = placer.items.get(attachedKind)?.[attachedIndex];
+      if (attached) { attached.x += dx; attached.z += dz; }
+    }
+    moved.push({ kind, index, from, to: [x, z] });
+  };
+  bank('barrelTipped', 4, 75, 66.5);
+  bank('bonePile', 12, 74.7, 62.7);
+  bank('skull', 8, 85.8, 58.2, 'skullEyes', [5]);
+  bank('wax', 1, 74.8, 57.8, 'flame', [2, 3]);
+  bank('wax', 5, 83.5, 66.7, 'flame', [10, 11]);
+  return moved;
+}
+
 function dressChoir(placer, field) {
   const rng = placer.rng;
   const walls = wallSpots(field, rng, { inset: 1.4, spacing: 3.2 });
@@ -827,7 +868,7 @@ function dressChoir(placer, field) {
 // --- instancing --------------------------------------------------------------
 
 const KIND_GEOMETRY = Object.freeze({
-  barrel: 'barrel', barrelTipped: 'barrel', oil: 'splat', blood: 'splat', congealed: 'splat',
+  barrel: 'barrel', barrelTipped: 'barrel', oil: 'splat', blood: 'residue', congealed: 'residue',
   bodyPile: 'bodyPile', bonePile: 'bonePile', boneStack: 'boneStack', ribArc: 'ribArc',
   skull: 'skullCluster', skullCluster: 'skullCluster', skullShelf: 'skullShelf', skullEyes: 'skullEyes',
   limbs: 'limbs', hook: 'hook', cage: 'cage', cageBody: 'cageBody', hangingCorpse: 'hangingCorpse',
@@ -837,8 +878,8 @@ const KIND_GEOMETRY = Object.freeze({
 
 const KIND_MATERIAL = Object.freeze({
   barrel: 'metal', barrelTipped: 'metal', oil: 'oil', blood: 'blood', congealed: 'blood',
-  bodyPile: 'gore', bonePile: 'bone', boneStack: 'bone', ribArc: 'bone', skull: 'bone',
-  skullCluster: 'bone', skullShelf: 'bone', skullEyes: 'accent', limbs: 'gore', hook: 'metalDeep',
+  bodyPile: 'cloth', bonePile: 'bone', boneStack: 'bone', ribArc: 'bone', skull: 'bone',
+  skullCluster: 'bone', skullShelf: 'bone', skullEyes: 'accent', limbs: 'residue', hook: 'metalDeep',
   cage: 'metalDeep', cageBody: 'metalDeep', hangingCorpse: 'cloth', boneChime: 'bone',
   pipes: 'brass', pipeFallen: 'brass', censer: 'brass', pew: 'cloth', teeth: 'bone',
   wax: 'wax', flame: 'flame', brazier: 'rust', bellCluster: 'brass',
@@ -848,6 +889,7 @@ const KIND_OPTIONS = Object.freeze({
   oil: { castShadow: false, receiveShadow: false },
   blood: { castShadow: false, receiveShadow: false },
   congealed: { castShadow: false, receiveShadow: false },
+  limbs: { castShadow: false, receiveShadow: false },
   skullEyes: { castShadow: false, receiveShadow: false },
   flame: { castShadow: false, receiveShadow: false },
   boneChime: { castShadow: false, receiveShadow: false },
@@ -874,6 +916,7 @@ function instancedProps(kind, entries, geometry, material) {
   mesh.name = `WorldLife_${kind}`;
   mesh.userData.propKind = kind;
   mesh.userData.noBatch = true;
+  if (material.userData.bloodSurface) mesh.userData.afterlifeSkip = true;
   mesh.computeBoundingSphere?.();
   return mesh;
 }
@@ -892,6 +935,7 @@ export function buildWorldLifeKit(root, materials, course = {}) {
   if (sector === 'ossuary') dressOssuary(placer, field);
   else if (sector === 'choir') dressChoir(placer, field);
   else dressBloodworks(placer, field, course);
+  const relocatedScatter = bankCatacombCrossingScatter(placer, course);
   const group = new THREE.Group();
   group.name = `WorldLife_${sector}`;
   group.userData.sectorId = sector;
@@ -911,6 +955,7 @@ export function buildWorldLifeKit(root, materials, course = {}) {
     sector, propCount: total, instancedDraws: group.children.length, version: LIFE_VERSION,
     field: { bands: field.bands.length, walls: field.wallSegments.length, lanes: field.lanes.length },
     counts: Object.fromEntries([...placer.items].map(([kind, list]) => [kind, list.length])),
+    relocatedScatter,
   };
   return group;
 }
