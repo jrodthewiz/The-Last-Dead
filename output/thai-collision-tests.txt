@@ -1,0 +1,46 @@
+✔ hash01 is deterministic and in range (4.0679ms)
+✔ a searching infected follows a new audible location without an instant attack (4.4829ms)
+✔ competing sounds select the strongest perceived source regardless of queue order (1.8589ms)
+✔ investigation listens with seeded head/body cadence, then gives up searching (3.7867ms)
+✔ reacquiring a nearby player cancels the listening pause and keeps the hunt warning (0.8977ms)
+✔ flanking melee turns into its travel lane while ranged retreat keeps aim (0.8779ms)
+✔ wall-deflected walking faces measured motion, and arrival never overshoots (0.6541ms)
+✔ crowd displacement has a moving signal and committed contact remains planted (0.4487ms)
+✔ findPath routes around walls and reports sealed goals (130.847ms)
+✔ dormant sleepers ignore distant footsteps but wake to a nearby shot (28.0867ms)
+✔ hit reactions stagger once, then a grace window prevents stun-lock (2.4249ms)
+✔ groups keep apart, never clip walls, and cap simultaneous melee (217.8792ms)
+✔ melee windup locks aim so a strafing player dodges (2.125ms)
+✔ spawn picker rejects points in view or too close, prefers behind (1.4913ms)
+✔ pacing director enforces tension, release and ambush caps (0.5777ms)
+✔ dungeon pressure enters through authored door lanes without random floor residents (167.8879ms)
+✔ free movement follows aim; optional autorun; input release stops ground travel (8.0831ms)
+✔ dash does not tunnel through cover, including diagonal corners at frame spikes (4.4286ms)
+✔ jump, air dash and slam land; slide is faster than ground run (3.595ms)
+✔ vertical aim matters, walls occlude shots and fire cooldown is enforced (0.8634ms)
+✔ close-range damage heals and produces bounded blood/gore (2.1496ms)
+✔ coin toss can be shot for lethal ricochet (0.691ms)
+✔ parry reflects projectile and returns it to an enemy (2.6856ms)
+✔ shotgun core explodes on cover and cannot blast through walls (3.8696ms)
+✔ peer shots affect authoritative shared world; peer movement respects walls (1.0922ms)
+✔ waves progress, exit clears run, death and restart reset state (19.8762ms)
+✔ tether pulls a light enemy close and draws player toward a heavy (1.1585ms)
+✔ enemies route around cover instead of remaining pinned to the wall (23.6736ms)
+✔ melee attacks telegraph before damage and punches interrupt the windup (1.8566ms)
+✔ casters commit a visible windup before releasing a projectile (1.7706ms)
+✔ Ossuary hit blood originates at the ray height and tracers carry weapon identity (0.5134ms)
+✔ wall shots do not spawn enemy blood and effects expire (1.0269ms)
+✔ campaign director is deterministic, telegraphs safe spawns, and advances sectors (79.8107ms)
+✔ bazooka rockets detonate with splash, rocket jump, and wall occlusion (9.7611ms)
+✔ campaign final exit produces victory after the third sector (0.6746ms)
+✔ bazooka alternate fire detonates only the owner live rocket (0.3985ms)
+✔ static imported prop bounds stop feet, swept movement and sight from both axes (7.6655ms)
+✔ infected pathfinding routes around a prop rather than through its cell (0.4069ms)
+ℹ tests 38
+ℹ suites 0
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 872.3423

@@ -1,0 +1,31 @@
+✔ chest mount responds to travel and turn, then settles without changing aim (2.2382ms)
+✔ mount motion has the same response at 30, 60 and 144 Hz (0.7614ms)
+✔ landing responds once, cuts reset history, and accessibility removes mount motion (0.8554ms)
+✔ actual eight weapon grips preserve adult forearm length and bounded wrists throughout melee strokes (246.5997ms)
+✔ foreground contract validates before mutating a working weapon assembly (100.4319ms)
+✔ batched firearm grip stays attached during repeated yaw reversals and recoil (235.601ms)
+✔ interaction arms wait for the cleaned derivative instead of caching the first body template (0.6934ms)
+✔ direct Mesh hand nodes retain their geometry inside the fitted hand (104.2762ms)
+✔ cleaned interaction arms keep original UVs, normalized weights, bind graph and source asset intact (28.0206ms)
+✔ authored grip hands have four distinct fingers, opposed thumbs and isolated trigger articulation (1.1416ms)
+✔ batches static sibling surfaces without flattening animated pivots or pooled FX (1.3596ms)
+✔ reduces the un-compacted Breach factory while preserving its animation contract (22.1764ms)
+✔ keeps the existing factory reductions monotonic and reports no unsafe flattening (48.2786ms)
+✔ publishes the conservative weapon batching contract (0.1581ms)
+✔ recoil is distinct by weapon, immediate, and settles at 30/60/120 Hz (7.8837ms)
+✔ look lag follows at matched rates and stabilizes while aiming (0.6994ms)
+✔ start/stop drag reverses and settles without persistent idle bob (2.3244ms)
+✔ landing produces one bounded dip and settles (1.2814ms)
+✔ zero/invalid dt does not advance or consume a pending shot (0.3225ms)
+✔ new run, switch, teleport and long pause clear recoil and look momentum (0.442ms)
+✔ automatic sequence edges repeat without replaying shots on hidden guns (0.2718ms)
+✔ reduced motion scales secondary motion while retaining readable firing (0.2045ms)
+✔ trigger finger articulates without moving palm, socket, or support fingers (4.2442ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1190.9313

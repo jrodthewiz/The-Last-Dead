@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {makeCourse,newRun,addPeer,tick,tickPlayer,clamp,weapons,validateVerminSnapshot,validateVerminHand,validateVerminCrawl} from '../engine.js';
+import {listenerPose,isPredictedFirearmEcho} from '../spatial-audio.js';
 
-const source=readFileSync(new URL('../main.js',import.meta.url),'utf8');
+const source=readFileSync(new URL('../main.js',import.meta.url),'utf8').replaceAll('\r\n','\n');
 const receive=source.slice(source.indexOf('function receive('),source.indexOf('function intent('));
 const apply=source.slice(source.indexOf('function applySnapshot('),source.indexOf('// Keep short trigger taps'));
 const fields=source.match(/^const playerFields=.*\n(?:playerFields\.push.*\n)+/m)[0];
@@ -30,9 +31,9 @@ test('actual remote input routing preserves a released rat tap and never repeats
 function guestHarness(){
   const run=newRun(makeCourse()),played=[];run.course.index=0;run.health=100;
   const c=vm.createContext({run,screen:'play',lastSnapshot:-1,lastNetEvent:-1,settings:{autoRun:false},
-    saneSnapshot:()=>true,syncRoomGateCells(){},spatialEvent:e=>e,ui:{toast(){}},
+    saneSnapshot:()=>true,syncRoomGateCells(){},spatialEvent:e=>e,listenerPose,isPredictedFirearmEcho,ui:{toast(){}},
     validateVerminSnapshot,validateVerminHand,validateVerminCrawl,
-    audio:{play:type=>played.push(type)}});
+    audio:{play:type=>played.push(type),updateListener(){}}});
   vm.runInContext(fields+'\n'+events+'\n'+apply,c);
   return{run,played,c};
 }

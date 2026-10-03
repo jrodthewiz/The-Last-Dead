@@ -1,0 +1,7 @@
+The powerPreference option is currently ignored when calling requestAdapter() on Windows. See https://crbug.com/369219127
+Pending WebGPU texture  cad89a86-4363-4880-8424-ac95901d70e0 undefined
+Pending WebGPU texture  fbb7ab93-480f-4d97-a682-f90f5ea4e669 undefined
+Pending WebGPU texture  066e7530-47e4-46f3-b856-64e55f0e5642 undefined
+Calling [RenderPassEncoder (unlabeled)].Draw with a vertex count of 0 is unusual.
+Pending WebGPU texture  95db94e2-96e5-4caf-a216-00fcbea439ec undefined
+{ ready: true, screen: 'play', error: '' }

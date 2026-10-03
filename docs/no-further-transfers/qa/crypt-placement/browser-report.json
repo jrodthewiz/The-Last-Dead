@@ -1,0 +1,746 @@
+{
+  "errors": [],
+  "httpErrors": [],
+  "chapters": [
+    {
+      "index": 2,
+      "title": "The Names They Kept",
+      "phase": "complete",
+      "stations": [
+        {
+          "id": "name-reliquary",
+          "kind": "reliquary",
+          "roomId": "f3-vault",
+          "label": "Recover the name reliquary",
+          "x": 6.5,
+          "y": 6.5,
+          "status": "complete"
+        },
+        {
+          "id": "name-return",
+          "kind": "socket",
+          "roomId": "f3-court",
+          "label": "Return the names to the court",
+          "x": 20.5,
+          "y": 7.5,
+          "status": "complete"
+        }
+      ],
+      "exitReady": true,
+      "transmission": "The names are restored to the court. Follow the bell service route.",
+      "visuals": {
+        "stations": 2,
+        "meshes": 26,
+        "triangles": 1896,
+        "geometries": 11,
+        "materials": 8
+      },
+      "renderer": {
+        "renderer": "three.js",
+        "bodycam": {
+          "enabled": true,
+          "reducedMotion": false,
+          "debugMode": 0,
+          "blur": [
+            -1.966671199219371e-23,
+            -0.000010382043535486209
+          ],
+          "lens": [
+            0.48,
+            1.032
+          ],
+          "sensor": [
+            0.028,
+            0.0018,
+            0.52,
+            0.03
+          ],
+          "recording": [
+            540,
+            0.74,
+            0.24,
+            0.045
+          ],
+          "targets": [
+            {
+              "width": 1440,
+              "height": 900,
+              "format": "RGBA16F",
+              "samples": 4,
+              "mipmaps": true
+            },
+            {
+              "width": 1,
+              "height": 1,
+              "format": "RGBA16F"
+            },
+            {
+              "width": 1,
+              "height": 1,
+              "format": "RGBA16F"
+            }
+          ]
+        },
+        "bodycamMount": {
+          "x": 0,
+          "y": -0.14,
+          "pitch": 0.0008126771741237643,
+          "roll": 0
+        },
+        "worldBatch": {
+          "removed": 533,
+          "batches": 41
+        },
+        "staticWorld": {
+          "frozen": 176,
+          "pruned": 24
+        },
+        "boundedLighting": true,
+        "afterlifeLighting": {
+          "practicalPool": 6,
+          "authoredCues": 39,
+          "destinationCues": 21,
+          "lanternShadow": 512,
+          "shadowUpdates": 4
+        },
+        "afterlifeAtmosphere": {
+          "name": "AfterlifeAtmosphere",
+          "seed": 915775324,
+          "courseId": "f3-catacombs",
+          "bounded": true,
+          "coordinateCellMeters": 4,
+          "floorY": 0,
+          "roomCount": 11,
+          "roomIds": [
+            "f3-entry",
+            "f3-hub",
+            "f3-cryptW",
+            "f3-cryptE",
+            "f3-court",
+            "f3-vault",
+            "f3-niche",
+            "f3-ossuaryS",
+            "f3-stores",
+            "f3-tomb",
+            "f3-apse"
+          ],
+          "mistPatches": 22,
+          "coldSources": 10,
+          "specks": 46,
+          "practicalGlowPoints": 54,
+          "beams": 0,
+          "drawCalls": 3,
+          "reducedMotion": false,
+          "mobileBudget": false,
+          "noSceneFogMutation": true,
+          "noDynamicLights": true,
+          "disposed": false
+        },
+        "afterlifeSurfaces": {
+          "applied": true,
+          "version": 1,
+          "sector": "ossuary",
+          "visited": 692,
+          "meshes": 593,
+          "changedMeshes": 411,
+          "changedMaterials": 48,
+          "clonedMaterials": 48,
+          "skipped": 47,
+          "skippedSubtrees": 47,
+          "preservedCues": 16,
+          "materialSyncScheduled": true,
+          "materialSyncPending": 0,
+          "roles": {
+            "roomFloor": 15,
+            "roomFloorInset": 1,
+            "roomRecess": 3,
+            "roomMetal": 85,
+            "roomWall": 3,
+            "roomPanel": 2,
+            "roomTrim": 55,
+            "roomSignal": 79,
+            "roomRust": 7,
+            "roomBone": 147,
+            "roomHazard": 14
+          }
+        },
+        "afterlifeMapDesign": {
+          "name": "AfterlifeMapDesign",
+          "version": "afterlife-map-design-v2",
+          "courseId": "f3-catacombs",
+          "profile": "ossuary",
+          "thresholds": 4,
+          "routeMeters": 0,
+          "sightlineBreaks": 1,
+          "upperSilhouettePieces": 1,
+          "composition": {
+            "mode": "story-edge-divider",
+            "divider": {
+              "id": "f3-o-hub-s",
+              "roomId": "f3-hub",
+              "anchor": [
+                79.63,
+                1.12,
+                71.28
+              ],
+              "openingCenter": [
+                76,
+                0,
+                72
+              ],
+              "edgeSide": 1
+            },
+            "silhouette": {
+              "id": "f3-o-hub-n-w",
+              "roomId": "f3-hub",
+              "anchor": [
+                59.8,
+                5.75,
+                56.34
+              ],
+              "edgeSide": -1
+            }
+          },
+          "propsFallback": 0,
+          "draws": 7,
+          "triangles": 1512,
+          "propSlots": [
+            {
+              "id": "mourning-cabinet:f3-cryptW",
+              "kind": "mourning-cabinet",
+              "roomId": "f3-cryptW",
+              "position": [
+                9.4,
+                0,
+                52
+              ],
+              "anchor": null,
+              "lightingPool": false,
+              "pillarClearance": false,
+              "clearanceFrom": null
+            },
+            {
+              "id": "wheelchair:f3-entry",
+              "kind": "wheelchair",
+              "roomId": "f3-entry",
+              "position": [
+                128.6,
+                0,
+                104.24981993515331
+              ],
+              "anchor": "entry",
+              "lightingPool": true,
+              "pillarClearance": true,
+              "clearanceFrom": "f3-sp-entry-bone-gate"
+            }
+          ],
+          "externalPropsAttached": [
+            "mourning-cabinet:f3-cryptW",
+            "wheelchair:f3-entry"
+          ],
+          "externalPropsMissing": [],
+          "externalPropErrors": [],
+          "collisionChanged": false,
+          "landmarks": {
+            "landmarks": 8,
+            "stateSurfaces": 0,
+            "addedDraws": 0,
+            "addedActiveLights": 0
+          },
+          "wayfinding": {
+            "signs": 12,
+            "draws": 4,
+            "triangles": 1476,
+            "activeLightIncrease": 0,
+            "steamCards": 18,
+            "routeStrips": 10,
+            "collisionChanged": false,
+            "destinations": [
+              {
+                "roomId": "f3-entry",
+                "openingId": "f3-o-entry-n",
+                "role": "entry",
+                "number": "01"
+              },
+              {
+                "roomId": "f3-hub",
+                "openingId": "f3-o-hub-n-e",
+                "role": "combat",
+                "number": "04"
+              },
+              {
+                "roomId": "f3-hub",
+                "openingId": "f3-o-hub-n-c",
+                "role": "combat",
+                "number": "04"
+              },
+              {
+                "roomId": "f3-cryptW",
+                "openingId": "f3-o-cryptW-e",
+                "role": "combat",
+                "number": "10"
+              },
+              {
+                "roomId": "f3-cryptE",
+                "openingId": "f3-o-cryptE-s",
+                "role": "combat",
+                "number": "03"
+              },
+              {
+                "roomId": "f3-court",
+                "openingId": "f3-o-court-s",
+                "role": "combat",
+                "number": "05"
+              },
+              {
+                "roomId": "f3-court",
+                "openingId": "f3-o-court-e",
+                "role": "combat",
+                "number": "05"
+              },
+              {
+                "roomId": "f3-vault",
+                "openingId": "f3-o-vault-e",
+                "role": "combat",
+                "number": "06"
+              },
+              {
+                "roomId": "f3-niche",
+                "openingId": "f3-o-niche-w",
+                "role": "combat",
+                "number": "14"
+              },
+              {
+                "roomId": "f3-ossuaryS",
+                "openingId": "f3-o-ossuary-e",
+                "role": "combat",
+                "number": "15"
+              },
+              {
+                "roomId": "f3-stores",
+                "openingId": "f3-o-stores-s",
+                "role": "combat",
+                "number": "02"
+              },
+              {
+                "roomId": "f3-apse",
+                "openingId": "f3-o-apse-s",
+                "role": "exit",
+                "number": "07"
+              }
+            ]
+          }
+        },
+        "crowd": {
+          "visible": 0,
+          "culled": 0,
+          "animated": 0,
+          "staggered": 0
+        },
+        "afterlifeEnemies": 0,
+        "ashWitness": {
+          "loaded": true,
+          "error": null,
+          "instances": 0,
+          "clips": [
+            "AshWitness_Idle",
+            "AshWitness_Shuffle",
+            "AshWitness_Chase",
+            "AshWitness_AttackLunge",
+            "AshWitness_HitRecoil",
+            "AshWitness_Collapse"
+          ],
+          "articulation": []
+        },
+        "transmissionCoverage": 1,
+        "weaponBatch": [
+          {
+            "parents": 4,
+            "groups": 7,
+            "meshesBefore": 88,
+            "meshesAfter": 75,
+            "mergedMeshes": 7,
+            "mergedSources": 20
+          },
+          {
+            "parents": 4,
+            "groups": 6,
+            "meshesBefore": 108,
+            "meshesAfter": 97,
+            "mergedMeshes": 6,
+            "mergedSources": 17
+          },
+          {
+            "parents": 5,
+            "groups": 8,
+            "meshesBefore": 107,
+            "meshesAfter": 92,
+            "mergedMeshes": 8,
+            "mergedSources": 23
+          },
+          {
+            "parents": 4,
+            "groups": 6,
+            "meshesBefore": 113,
+            "meshesAfter": 98,
+            "mergedMeshes": 6,
+            "mergedSources": 21
+          },
+          {
+            "parents": 6,
+            "groups": 9,
+            "meshesBefore": 118,
+            "meshesAfter": 97,
+            "mergedMeshes": 9,
+            "mergedSources": 30
+          },
+          {
+            "parents": 3,
+            "groups": 5,
+            "meshesBefore": 104,
+            "meshesAfter": 91,
+            "mergedMeshes": 5,
+            "mergedSources": 18
+          },
+          {
+            "parents": 3,
+            "groups": 3,
+            "meshesBefore": 82,
+            "meshesAfter": 71,
+            "mergedMeshes": 3,
+            "mergedSources": 14
+          },
+          {
+            "parents": 1,
+            "groups": 1,
+            "meshesBefore": 78,
+            "meshesAfter": 75,
+            "mergedMeshes": 1,
+            "mergedSources": 4
+          }
+        ],
+        "survivor": {
+          "status": "ready",
+          "source": "meshy-v02",
+          "viewSleeves": 15,
+          "error": null
+        },
+        "playerInjury": {
+          "phase": "idle",
+          "envelope": 0,
+          "fatal": false,
+          "intactCorpse": false,
+          "fragments": 9,
+          "visibleFragments": 0,
+          "entrails": 0,
+          "entrailSource": "bundled-authored-UV-PBR",
+          "entrailDeformation": "native-per-instance-morph-texture",
+          "gripHands": 0,
+          "contactDistance": 0,
+          "articulation": {
+            "jawRig": false,
+            "controls": 0,
+            "gripControls": 0
+          },
+          "deathBack": 0,
+          "spray": 0,
+          "pooledSpray": 36,
+          "source": "bundled-survivor-skin-partition",
+          "ownedWoundMaterials": 589
+        },
+        "targetFrameMs": 6.944444444444445,
+        "webgl": true,
+        "error": null,
+        "width": 1440,
+        "height": 900,
+        "dpr": 1,
+        "renderScale": 1,
+        "fov": 110,
+        "meshes": 1257,
+        "instancedMeshes": 97,
+        "geometries": 1062,
+        "materials": 645,
+        "triangles": 1984642,
+        "calls": 187,
+        "gpuTriangles": 552758,
+        "rendererGeometries": 1026,
+        "explosions": {
+          "active": 0,
+          "fire": 0,
+          "smoke": 0,
+          "embers": 0,
+          "rings": 0,
+          "maxExplosions": 18,
+          "reducedMotion": false,
+          "gore": true
+        },
+        "impacts": {
+          "marks": 0,
+          "smoke": 0,
+          "fluid": {
+            "splashes": 0,
+            "wounds": 0,
+            "drops": 0,
+            "deposits": 0,
+            "trajectory": "analytic world-metre gravity/drag",
+            "emissive": false
+          },
+          "capacity": {
+            "marks": 96,
+            "smoke": 96
+          }
+        },
+        "extraction": {
+          "active": false,
+          "phase": "",
+          "progress": 0,
+          "targetId": null,
+          "seed": 0,
+          "droplets": 0,
+          "pooledDroplets": 0,
+          "worldVisible": false,
+          "toolVisible": false,
+          "anatomy": {
+            "corpses": 0,
+            "visible": 0,
+            "current": null,
+            "opening": 0,
+            "organs": null,
+            "surface": null,
+            "materials": null,
+            "chains": 0,
+            "heartsDropped": 0,
+            "limits": {
+              "corpses": 4,
+              "chains": 2,
+              "particles": 32
+            }
+          }
+        },
+        "brutalCombat": {
+          "status": "ready",
+          "error": null,
+          "active": false,
+          "kind": "idle",
+          "hands": 0,
+          "contactDistances": [],
+          "pickupView": false,
+          "recoveryRetreat": 0,
+          "armSource": "bundled-skinned-survivor",
+          "grip": {
+            "status": "ready",
+            "controls": 6,
+            "independentDigits": false,
+            "hands": {
+              "left": {
+                "grip": 0,
+                "mode": "heart",
+                "angles": {
+                  "proximal": 0,
+                  "distal": 0,
+                  "thumbOpposition": 0,
+                  "thumbFlex": 0
+                },
+                "affectedVertices": 1544,
+                "distalAffectedVertices": 687,
+                "thumbAffectedVertices": 360,
+                "skippedFullSlots": 0
+              },
+              "right": {
+                "grip": 0,
+                "mode": "heart",
+                "angles": {
+                  "proximal": 0,
+                  "distal": 0,
+                  "thumbOpposition": 0,
+                  "thumbFlex": 0
+                },
+                "affectedVertices": 1297,
+                "distalAffectedVertices": 577,
+                "thumbAffectedVertices": 288,
+                "skippedFullSlots": 0
+              }
+            },
+            "left": 0,
+            "right": 0
+          },
+          "woundedActors": 0,
+          "fragments": 0,
+          "spray": 0,
+          "limits": {
+            "woundedActors": 12,
+            "fragments": 6,
+            "spray": 48
+          },
+          "chest": {
+            "status": "ready",
+            "error": null,
+            "assetVersion": "v2",
+            "deformation": "bounded-shape-keys",
+            "hearts": 0,
+            "weaponReleased": false,
+            "weaponRetrieved": false,
+            "weaponGripGap": null
+          },
+          "physics": {
+            "engine": "cannon-es-0.20.0",
+            "timestep": 0.016666666666666666,
+            "ragdolls": 0,
+            "frozen": 0,
+            "held": 0,
+            "drops": 0,
+            "tissueChains": 0,
+            "tissueBodies": 0,
+            "tissueConstraints": 0,
+            "maxTissueChains": 2,
+            "culledTissueChains": 0,
+            "tissueSupportedParticles": 0,
+            "maxTissueSupportAcceleration": 55,
+            "tissueCompliantGuides": 0,
+            "bodies": 300,
+            "dynamicBodies": 0,
+            "constraints": 0,
+            "staticColliders": 300,
+            "sleeping": 0,
+            "steps": 0,
+            "maxRagdolls": 4,
+            "maxDrops": 12,
+            "culledRagdolls": 0,
+            "culledDrops": 0,
+            "clampedFrames": 0,
+            "preparedSkinGeometries": 3,
+            "solverIterations": 12,
+            "frictionReduction": true,
+            "ccd": "60 Hz fixed steps, 8 m/s speed clamp; no full CCD",
+            "collisionScope": "flat floor and course wall segments; cosmetic bodies only"
+          },
+          "anatomy": {
+            "actors": 0,
+            "compiledCuts": 0,
+            "pending": 0,
+            "lastPreviewMs": 0,
+            "maxPreviewMs": 0,
+            "capLoops": 0,
+            "failures": []
+          }
+        },
+        "vermin": {
+          "status": "ready",
+          "error": null,
+          "asset": "vermin-v1",
+          "rats": 14,
+          "roaches": 42,
+          "held": false,
+          "attachments": 0,
+          "infestations": 0,
+          "blood": 0,
+          "armSource": "bundled-skinned-survivor-left-arm",
+          "hand": {
+            "phase": "idle",
+            "age": 0,
+            "pickup": 0,
+            "reach": 0,
+            "visible": false,
+            "grip": 0,
+            "bite": 0,
+            "insert": 0,
+            "release": 1
+          },
+          "grip": {
+            "status": "ready",
+            "controls": 6,
+            "independentDigits": false,
+            "hands": {
+              "left": {
+                "grip": 0,
+                "mode": "heart",
+                "angles": {
+                  "proximal": 0,
+                  "distal": 0,
+                  "thumbOpposition": 0,
+                  "thumbFlex": 0
+                },
+                "affectedVertices": 1544,
+                "distalAffectedVertices": 687,
+                "thumbAffectedVertices": 360,
+                "skippedFullSlots": 0
+              },
+              "right": {
+                "grip": 0,
+                "mode": "heart",
+                "angles": {
+                  "proximal": 0,
+                  "distal": 0,
+                  "thumbOpposition": 0,
+                  "thumbFlex": 0
+                },
+                "affectedVertices": 1297,
+                "distalAffectedVertices": 577,
+                "thumbAffectedVertices": 288,
+                "skippedFullSlots": 0
+              }
+            }
+          },
+          "gripGapMeters": null,
+          "gripSurfaceVertices": {
+            "survivor": 356,
+            "rat": 410
+          },
+          "handBite": {
+            "contactDistanceMeters": null,
+            "sourceHandVertex": null,
+            "ratMouthVertex": 3780,
+            "twistRadians": 0,
+            "recoilMeters": 0
+          },
+          "shoulderLeanMeters": 0,
+          "victimPullMeters": 0,
+          "crawlRoute": "none",
+          "crawlSurface": null,
+          "swarm": "idle",
+          "morphMode": "native-per-instance",
+          "limits": {
+            "rats": 24,
+            "roaches": 96,
+            "attachments": 3,
+            "infestations": 8,
+            "blood": 18
+          }
+        },
+        "rendererTextures": 145,
+        "enemyContactShadows": 0,
+        "enemies": 0,
+        "gore": 0,
+        "blood": 0,
+        "projectiles": 0,
+        "spawnTelegraphs": 0,
+        "tracers": 0,
+        "coins": 0,
+        "world": "f3-catacombs",
+        "warden": "ready",
+        "wardenInstances": 0
+      },
+      "contextLost": false
+    }
+  ],
+  "views": [
+    {
+      "width": 1440,
+      "height": 900,
+      "scrollWidth": 1440,
+      "source": "Burial Keeper / The Names They Kept"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "scrollWidth": 390,
+      "source": "Burial Keeper / The Names They Kept"
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "scrollWidth": 844,
+      "source": "Burial Keeper / The Names They Kept"
+    }
+  ]
+}

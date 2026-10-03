@@ -21,6 +21,13 @@ function fixture(seed = 17) {
   return { fx, run };
 }
 
+test('extraction preparation exposes tools and droplets then restores all visibility and counts',async()=>{
+ const {fx}=fixture();const before=[];for(const root of [fx.root,fx.tool])root.traverse(object=>before.push({object,visible:object.visible,culled:object.frustumCulled,count:object.count}));
+ const restore=await fx.prepareWarmup();assert.equal(fx.bladeTool.visible,true);assert.equal(fx.forceps.visible,true);assert(fx.droplets.count>0);
+ restore();restore();for(const entry of before){assert.equal(entry.object.visible,entry.visible);assert.equal(entry.object.frustumCulled,entry.culled);assert.equal(entry.object.count,entry.count);}
+ fx.dispose();
+});
+
 test('extraction tableau advances through draw, incision, and heart rip without growing pools', () => {
   const { fx, run } = fixture();
   fx.update(run, 0, .016, { gore: true });

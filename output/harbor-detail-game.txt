@@ -1,0 +1,5 @@
+Harbor loaded; real movement pickup checks begin
+Melee stashed; opening inventory
+Melee equipped and second weapon retained; entering truck
+Drive, brake and safe exit passed; capturing waterfront
+{"passed":true,"startupMs":148037,"pickups":[{"id":"harbor-weapon-0","weaponIndex":6},{"id":"harbor-weapon-1","weaponIndex":1}],"vehicleDistance":1.2538928955201456,"views":3}

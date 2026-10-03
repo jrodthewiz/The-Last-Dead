@@ -12,11 +12,33 @@ export const RUNTIME_FILES = [
   'map-playground.html',
   'app.js',
   'main.js',
+  'campaign-entry.js',
   'gamepad-input.js',
   'dev-flight.js',
   'peer.js',
   'signaling.js',
   'engine.js',
+  'campaign-journey.js',
+  'journey-presentation.js',
+  'journey-visuals.js',
+  'district-materials.js',
+  'scavenger-pack.js',
+  'scavenger-fitting.js',
+  'weapon-inventory.js',
+  'harbor-course.js','low-tide.js','low-tide-save.js','low-tide-visuals.js',
+  'coastal-world-layout.js','coastal-world-visuals.js','coastal-world-map.js','coastal-water.js',
+  'coastal-neighborhood-layout.js','coastal-neighborhood-visuals.js',
+  'coastal-instancing.js',
+  'harbor-collision.js',
+  'harbor-thai-layout.js',
+  'harbor-thai-visuals.js',
+  'community-buildings.js',
+  'webgpu-material-hooks.js',
+  'harbor-navigation.js',
+  'harbor-visuals.js', 'harbor-detail.js', 'harbor-interiors.js', 'harbor-interior-visuals.js',
+  'harbor-vehicle.js',
+  'scavenger-pack-ui.js',
+  'scavenger-pack.css',
   'dungeon-encounter-design.js',
   'enemy-anatomy.js',
   'enemy-cut-geometry.js',
@@ -29,6 +51,7 @@ export const RUNTIME_FILES = [
   'room-kit.js',
   'room-progression.js',
   'renderer.js',
+  'webgpu-backend.js','webgpu-shaders.js','webgpu-water.js',
   'player-injury-visuals.js',
   'brutal-combat-visuals.js',
   'chest-finisher-visuals.js',
@@ -191,8 +214,8 @@ if (path.resolve(process.argv[1] || '') === path.resolve(fileURLToPath(import.me
     console.log(`Files: ${result.copiedFiles.join(', ') || '(none)'}`);
     console.log(`Directories: ${result.copiedDirectories.join(', ') || '(none)'}`);
     if (wantsServe(process.argv.slice(2))) {
-      const { startServer } = await import('./server.mjs');
-      const running = await startServer({ root: result.outputRoot, port: process.env.DEAD_ARRIVAL_PORT || 5200 });
+      const { startLocalServer } = await import('./server.mjs');
+      const running = await startLocalServer({ root: result.outputRoot, port: process.env.DEAD_ARRIVAL_PORT || 5200 });
       console.log(`http://127.0.0.1:${running.port}/`);
     }
   } catch (error) {

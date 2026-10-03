@@ -282,6 +282,25 @@ function makeMistMaterial(options) {
   });
 }
 
+// Screen-sized quads work on both backends; WebGPU has no variable-size points.
+function atmosphereSprites(geometry,material){
+ const count=geometry.attributes.position.count;
+ for(const [name,attribute] of Object.entries(geometry.attributes)){
+  const values=new attribute.array.constructor(count*4*attribute.itemSize);
+  for(let i=0;i<count;i++)for(let corner=0;corner<4;corner++)for(let c=0;c<attribute.itemSize;c++)values[(i*4+corner)*attribute.itemSize+c]=attribute.getComponent(i,c);
+  geometry.setAttribute(name,new THREE.BufferAttribute(values,attribute.itemSize));
+ }
+ const corners=new Float32Array(count*8),indices=[];
+ for(let i=0;i<count;i++){corners.set([-.5,-.5,.5,-.5,.5,.5,-.5,.5],i*8);const k=i*4;indices.push(k,k+1,k+2,k,k+2,k+3);}
+ geometry.setAttribute('pointCorner',new THREE.BufferAttribute(corners,2));geometry.setIndex(indices);
+ material.uniforms.uViewport={value:new THREE.Vector2(1,1)};
+ material.vertexShader='attribute vec2 pointCorner;varying vec2 vPointUv;uniform vec2 uViewport;\n'+material.vertexShader.replace('void main() {','void main() {float gl_PointSize=1.;vPointUv=pointCorner+.5;').replace('gl_Position = projectionMatrix * viewPosition;','gl_Position = projectionMatrix * viewPosition;gl_Position.xy+=pointCorner*2.*gl_PointSize/uViewport*gl_Position.w;');
+ material.vertexShader=material.vertexShader.replaceAll('gl_PointSize','spriteSize');
+ material.fragmentShader='varying vec2 vPointUv;\n'+material.fragmentShader.replaceAll('gl_PointCoord','vPointUv');
+ const mesh=new THREE.Mesh(geometry,material);mesh.onBeforeRender=renderer=>renderer.getDrawingBufferSize(material.uniforms.uViewport.value);
+ return mesh;
+}
+
 function makeSpeckMaterial(options) {
   return new THREE.ShaderMaterial({
     name: 'AfterlifeColdSpeckMaterial',
@@ -609,7 +628,7 @@ export class AfterlifeAtmosphere {
       this._speckGeometry.setAttribute('aLightRadius', new THREE.Float32BufferAttribute(lightRadii, 1));
       this._speckGeometry.computeBoundingSphere();
       this._speckMaterial = makeSpeckMaterial(this.options);
-      this._specksObject = new THREE.Points(this._speckGeometry, this._speckMaterial);
+      this._specksObject = atmosphereSprites(this._speckGeometry, this._speckMaterial);
       this._specksObject.name = 'AfterlifeColdLightSpecks';
       this._specksObject.frustumCulled = false;
       this._specksObject.renderOrder = 5;
@@ -638,7 +657,7 @@ export class AfterlifeAtmosphere {
       this._practicalGeometry.setAttribute('aMote', new THREE.Float32BufferAttribute(motes, 1));
       this._practicalGeometry.computeBoundingSphere();
       this._practicalMaterial = makePracticalGlowMaterial(course, this.options);
-      this._practicalObject = new THREE.Points(this._practicalGeometry, this._practicalMaterial);
+      this._practicalObject = atmosphereSprites(this._practicalGeometry, this._practicalMaterial);
       this._practicalObject.name = 'AfterlifePracticalGlow';
       this._practicalObject.frustumCulled = false;
       this._practicalObject.renderOrder = 5;

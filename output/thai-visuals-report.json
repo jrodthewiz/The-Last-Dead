@@ -1,0 +1,57 @@
+{
+  "result": {
+    "loaded": [
+      "concrete-walk-up-flat-block",
+      "bangkok-hospital-clinic-building",
+      "low-rise-condominium",
+      "bangkok-apartment-block",
+      "student-dormitory-block",
+      "iced-fruit-cart",
+      "terrazzo-pedestal-park-table",
+      "street-stall-canopy-cart",
+      "noodle-soup-cart",
+      "toyota-commuter-van",
+      "municipal-wheelie-bin",
+      "toyota-hilux",
+      "tuk-tuk",
+      "steel-cobra-head-street-lamp",
+      "concrete-jersey-barrier",
+      "oil-drum",
+      "truck-flat"
+    ],
+    "errors": [],
+    "water": "three shared displaced analytic waves; sky reflection; deep-water body color approximation",
+    "thai": {
+      "loaded": [
+        "concrete-walk-up-flat-block",
+        "bangkok-hospital-clinic-building",
+        "low-rise-condominium",
+        "bangkok-apartment-block",
+        "student-dormitory-block",
+        "iced-fruit-cart",
+        "terrazzo-pedestal-park-table",
+        "street-stall-canopy-cart",
+        "noodle-soup-cart",
+        "toyota-commuter-van",
+        "municipal-wheelie-bin",
+        "toyota-hilux",
+        "tuk-tuk",
+        "steel-cobra-head-street-lamp",
+        "concrete-jersey-barrier",
+        "oil-drum"
+      ],
+      "errors": [],
+      "placements": 71,
+      "buildings": 7,
+      "props": 64
+    },
+    "render": {
+      "frame": 1,
+      "calls": 149,
+      "triangles": 68076,
+      "points": 0,
+      "lines": 0
+    }
+  },
+  "errors": []
+}

@@ -23,10 +23,14 @@
 #ui .menu-actions { width:100%; max-width:330px; gap:3px; overflow:visible; padding:0 0 0 4px; }
 #ui .start-button { display:flex; align-items:center; justify-content:space-between; min-height:57px; padding:15px 0; margin:0 0 17px; border-top:1px solid #939e873b; border-bottom:1px solid #939e873b; color:#d8d8c9; }
 #ui .start-button .menu-choice { font:normal 12px/1.4 'Courier New',monospace; letter-spacing:.2em; }
+#ui .start-button .menu-choice small { display:block; margin-top:7px; color:#a9b3ad; font:normal 10px/1.5 'Courier New',monospace; letter-spacing:.12em; }
 #ui .menu-enter-arrow { font:25px/1 Georgia,serif; color:#ba4d43; }
 #ui .start-button::before,#ui .start-button::after { display:none; }
 #ui .menu-link,#ui .coop-toggle,#ui .coop-toggle b { font:normal 11px/1.4 'Courier New',monospace; letter-spacing:.2em; color:#a9b3ad; }
 #ui .menu-link,#ui .coop-toggle { min-height:44px; padding:11px 0; }
+#ui .menu-link.dev-mode-button { display:flex; align-items:center; justify-content:space-between; gap:12px; color:#cfad96; letter-spacing:.1em; }
+#ui .dev-mode-button span { color:inherit; font:inherit; }
+#ui .dev-mode-button kbd { flex:none; padding:2px 5px; border:1px solid #cfad9655; border-radius:2px; font:inherit; }
 #ui .menu-link:hover,#ui .coop-toggle:hover,#ui .start-button:hover { color:#f0e8d6; transform:translateX(4px); }
 #ui .menu-link:active,#ui .coop-toggle:active,#ui .start-button:active { color:#d67968; transform:translateX(2px); }
 #ui .menu-screen button:focus-visible { outline:1px solid #bd837099; outline-offset:4px; }

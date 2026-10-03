@@ -34,6 +34,18 @@ async function fixture(){
 const matrix=(pool,index=0)=>{const result=new THREE.Matrix4();pool.getMatrixAt(index,result);return result;};
 const morph=(pool,index=0)=>{const holder={morphTargetInfluences:Array(pool.userData.morphHolder.morphTargetInfluences.length).fill(0)};pool.getMorphAt(index,holder);return holder.morphTargetInfluences;};
 
+test('preparation exposes cold hand and instanced variants and restores active visual state',async()=>{
+ const {visual}=await fixture();visual.setupArm();visual.viewRats.count=2;visual.viewRoot.visible=false;
+ const before=[visual.root,visual.viewRoot,visual.arms,...visual.pools,visual.spray].map(object=>({object,visible:object.visible,count:object.count}));
+ const restore=visual.prepareWarmup();
+ assert.equal(visual.arms.visible,true);assert.equal(visual.viewRoot.visible,true);
+ for(const pool of visual.pools)assert(pool.count>0);
+ assert.equal(visual.viewRats.count,2);
+ restore();restore();
+ for(const entry of before){assert.equal(entry.object.visible,entry.visible);assert.equal(entry.object.count,entry.count);}
+ visual.dispose();
+});
+
 test('canonical grab, contact, hand bite and recovery use phase seconds at 30/60/120 Hz',()=>{
   assert.equal(verminHandPose({phase:'pickup',elapsed:0}).pickup,0);assert.equal(verminHandPose({phase:'pickup',elapsed:.36}).pickup,1);
   assert.equal(verminHandPose({phase:'release',elapsed:.3}).visible,false);

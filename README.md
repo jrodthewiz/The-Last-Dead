@@ -19,7 +19,9 @@ Requires Node.js 18 or newer. No package installation or API keys are needed.
 
 The launcher reuses this project's existing server and refuses to replace another app using the port.
 
-Solo play starts in the five-floor Story descent, with connected rooms, side routes, keys, and exits. You begin with the Ossuary and build an eight-weapon arsenal by exploring side rooms. Unclaimed weapons glow in the world, show their rarity, and equip when picked up; finds stay with you as you descend. Each floor key reveals another part of the facility's story. Nine optional records in side rooms and sealed caches add the voices of people who lived through it; pause to review everything you have recovered. Use `?dungeon=0` through `?dungeon=4` to start a specific floor, or `?campaign=1` to play the three-sector arena sequence. Co-op uses the arena sequence and starts with all eight weapons.
+**Play Campaign** enters Blackwater's full open coast, with the Low Tide chapter, connected neighborhoods, six playable interiors, equipment exploration and a persistent Netmakers safehouse checkpoint. This is the single public solo campaign entry. The older dungeon layouts remain available for development through `?dungeon=0` to `?dungeon=4`; `?campaign=1` selects the legacy arena test route. `?debug` alone uses the same open-world entry as ordinary play. Co-op still uses the arena sequence and starts with all eight weapons.
+
+**Dev Mode — Fly Around (F2)** is directly beneath Play Campaign on localhost (or with `?dev`). It opens the same campaign world with simulation frozen: WASD flies, E/Space rises, Q/Ctrl descends, Shift boosts, and the mouse wheel changes speed. Click the scene to capture mouse look; Tab releases it; F2 returns to the player. Fly Mode is also available from pause.
 
 ## Controls
 
@@ -34,9 +36,11 @@ Solo play starts in the five-floor Story descent, with connected rooms, side rou
 | F | Punch / timed projectile parry |
 | E | Tether: pull light enemies close, pull yourself to heavy enemies |
 | 1–8 or wheel | Select or cycle weapons you have found in Story: Ossuary / shotgun / arc lance / Reliquary / Carrion / Mourning / Wake Bat / Ripper Chainsaw |
-| R / Esc | Restart / pause |
+| R | Weapon status: weapons replenish automatically; no manual reload needed |
+| Esc | Pause / resume; restart is available in the pause menu |
+| Enter | Retry after death or a completed run |
 
-Shoot airborne coins for ricochets. Shoot cores to detonate them; the arc lance amplifies the blast. Damage enemies up close to restore health. Mix attacks to increase your style rank. Clear encounters, find the floor key, and reach the lift to descend. The fifth floor ends the Story descent. Settings include look sensitivity, separate master, effects, enemy voice, music, ambience, and interface volumes, reduced motion, gore, and optional auto-run. Audio levels update live and persist on this device. Touch controls and drag-to-look are included.
+Shoot airborne coins for ricochets. Shoot cores to detonate them; the arc lance amplifies the blast. Damage enemies up close to restore health. Mix attacks to increase your style rank. Follow the Low Tide objectives, establish the Netmakers safehouse, and explore the connected coast for equipment and records. Hold Q at chapter machinery and use B for the field map and journal. Settings include look sensitivity, separate master, effects, enemy voice, music, ambience, and interface volumes, reduced motion, gore, and optional auto-run. Audio levels update live and persist on this device. Touch controls and drag-to-look are included.
 
 **Carrion (5)** is an automatic rifle: hold fire to suppress, or tap alternate fire for a tight three-round burst. Heat widens sustained fire and cools automatically; bursts remain precise. **Mourning (6)** fires heavy single shots. Hold alternate fire for 0.55 seconds to charge a shot that pierces up to three enemies; releasing early cancels it. Both rifles have unlimited ammunition, distinct mechanical animations and sampled reports. The touch weapon button cycles weapons you own.
 
@@ -77,10 +81,27 @@ Gameplay: engine.js. Rendering: renderer.js. Inputs/co-op authority: main.js. UI
 
 ## Current scope
 
-This build contains a five-floor Story descent plus three arena sectors for co-op and optional solo play, four enemy families with difficulty variants, and eight weapons with combo mechanics. Boss encounters, full advanced combat-tech parity, matchmaking and broad device/network certification remain future work. It is an original playable foundation, not full ULTRAKILL feature parity.
+The main campaign is the Blackwater open coast: Low Tide mission progression, connected coastal neighborhoods, six playable interiors, a drivable truck and safehouse saves. Many neighborhood buildings are still exterior shells. The five-floor dungeon and three-sector arena remain development/co-op content; the legacy dungeon floors are not yet physically connected to the coast. Continued district/interior expansion, matchmaking and broad device certification remain future work.
 
 The original Findle game remains separate. No generation credentials are included. Sampled sound effects, ambience, and music ship locally; variants are level-matched by event pool and a master limiter controls peaks. The pause-screen settings let players adjust master, effects, enemy voices, music, ambience, and interface levels live; preferences save in local storage. Sources and CC0 licensing are recorded in [audio sources](docs/audio-sources.md). New enemy and weapon concepts and procedural reconstruction evidence are in docs/build08-art and docs/build08-enemy-art.
 
 ## Railway
 
 Use the repository root, build command **npm run build**, start command **npm start**, and **PORT=8080** when the domain target port is 8080. With PORT set, the server binds to **0.0.0.0**; local development defaults to **127.0.0.1:5200**. HOST can explicitly override the bind address. The platform PORT takes precedence over the legacy local port setting.
+
+### Blackwater Harbor playable slice
+
+Choose **BLACKWATER HARBOR** from the title screen for the solo exterior expedition.
+Walk over weapon finds to stash them; **B** opens the backpack to equip melee/firearms
+and fit upgrades. At the truck: **Q** enter/exit, **W/S** drive, **A/D** steer,
+**Space** brake. Recover three weapons, drive 32 metres and reach the ferry on foot.
+A fresh run resets the pack. Water is currently scenery beyond the quay.
+
+Use **B → FIELD MAP** for numbered landmarks, remaining weapon finds, the truck,
+ferry and a suggested walking route. HUD guidance follows open streets and the
+Netmakers gate; it changes as you complete the expedition objectives.
+
+See [iteration scope and next steps](docs/harbor-iteration.md) and
+[reproducible CC0 asset acquisition](docs/harbor-assets.md).
+Run `npm run test:harbor` for mechanics and `npm run test:harbor:browser` for
+an owned-browser smoke test (`PLAYWRIGHT_PATH`/`CHROME_PATH` overrides supported).

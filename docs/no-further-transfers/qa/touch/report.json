@@ -1,0 +1,9 @@
+{
+  "errors": [],
+  "checks": {
+    "touchOperate": true,
+    "touchCancel": true,
+    "controllerOperate": true,
+    "landscapeFits": true
+  }
+}

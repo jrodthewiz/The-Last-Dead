@@ -4,7 +4,7 @@ import {createMeleeReaction,restoreMeleeReaction,updateMeleeReaction} from './me
 import {ENEMY_PROFILES} from './campaign.js';
 import {createCharacterArticulation,restoreCharacterArticulation,applyCharacterArticulation,enemyArticulationPose} from './character-articulation.js';
 
-export const AFTERLIFE_ASH_WITNESS_URL = './assets/models/afterlife-ash-witness-rig-v05.glb';
+export const AFTERLIFE_ASH_WITNESS_URL = './assets/models/afterlife-ash-witness-motion-v06.glb';
 
 export const AFTERLIFE_ASH_WITNESS_CLIPS = Object.freeze({
  idle: 'AshWitness_Idle',

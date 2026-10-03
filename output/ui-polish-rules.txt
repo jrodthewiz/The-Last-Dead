@@ -1,0 +1,23 @@
+✔ complete chapter is ordered, allows either supply order, and remains an open world (80.1367ms)
+✔ every mission step has a collision-clear street route and an accessible indoor station (118.8315ms)
+✔ stash conserves scrap, respects capacity, and cannot be used before claiming shelter (4.2055ms)
+✔ checkpoint restores only validated state at safehouse and reports storage failure (23.3003ms)
+✔ inactive, airborne and distant interactions cannot advance the chapter (4.038ms)
+✔ shift bell reaches resident minds and moves living infected toward the dock circuit (109.8887ms)
+✔ scrap collection is one-time and respects bounded backpack capacity (0.9281ms)
+✔ one fitting consumes once and changes only the chosen owned weapon (0.4439ms)
+✔ caches remain available when full and can be collected after fitting (0.5673ms)
+✔ pickup cannot cross a sealed wall and dead or airborne players do not scavenge (1.175ms)
+✔ co-op pickup and fittings use the host shared backpack (0.6152ms)
+✔ floor transitions preserve resource and upgrade state with distinct pickup IDs (0.426ms)
+✔ snapshot validation bounds scrap, history, and recognized weapon mods (0.3825ms)
+✔ real floor caches are deterministic clear points separated from other loot and landmarks (572.1562ms)
+✔ extended five floors distribute clear scrap caches over original and annex routes (2515.0265ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3564.1222

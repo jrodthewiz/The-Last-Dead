@@ -167,6 +167,21 @@ export class VerminVisuals{
     installViewmodelDepthBoundary(this.viewRoot);this.status='ready';
   }
   addPool(source,capacity,name,parent,material=source.material){const pool=createVerminPool(source,capacity,name,material);this.pools.push(pool);parent.add(pool);return pool;}
+  prepareWarmup(){
+    this.setupArm();
+    // Zero-count attachments and the hidden skinned hand otherwise miss shader
+    // preparation, even though their assets have finished loading. The caller
+    // owns the offscreen render target and restores this before resuming play.
+    const saved=[];
+    for(const object of [this.root,this.viewRoot,this.arms,...this.pools,this.spray]){
+      if(!object)continue;
+      saved.push({object,visible:object.visible,count:object.count});
+      object.visible=true;
+      if(object.isInstancedMesh)object.count=Math.max(1,object.count);
+    }
+    let restored=false;
+    return ()=>{if(restored)return;restored=true;for(const entry of saved){entry.object.visible=entry.visible;if(entry.count!==undefined)entry.object.count=entry.count;}};
+  }
   setupArm(){
     const survivor=this.renderer._survivors;if(survivor?.armStatus==='loading')return;
     const template=survivor?.armTemplate||survivor?.template;if(this.arms||!template)return;

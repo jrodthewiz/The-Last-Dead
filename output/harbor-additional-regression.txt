@@ -1,0 +1,37 @@
+✔ operate input preserves the independent harvest binding and rearms after pause (3.2811ms)
+✔ chapter communication survives action completion while the input prompt disappears (0.4689ms)
+✔ enemy preparation yields every three actors and preserves the bounded pool (102.5858ms)
+✔ a retired course stops preparing after its pending batch (14.0417ms)
+✔ initial equipment uploads yield and later floors reuse buffers, restoring all visibility (213.2478ms)
+✔ course cancellation on the final equipment yield does not mark buffers ready (243.5776ms)
+✔ anatomy pipelines draw during preparation, release their temporary scene and invalidate on cancellation (283.5582ms)
+✔ every story floor compiles into a sealed-until-opened, reachable level (67.3664ms)
+✔ story floors stay long, looped, keyed and dressed (14.5209ms)
+✔ side district arrivals create distinct journeys through each main hall (170.4851ms)
+✔ Resonance side aisles offer a court flank without activating the keyed descent (46.6281ms)
+✔ Story weapon finds unlock a persistent arsenal while arena weapons remain available (1720.9111ms)
+✔ optional records live in distinct reachable rooms and survive the descent (666.1593ms)
+✔ Story architecture follows real walkable cells and leaves encounter courts open above (165.8195ms)
+✔ playground scenes expose the dungeon for the browser renderer (468.356ms)
+✔ the five Story floors adapt into collision-safe live FPS courses (147.8108ms)
+✔ every Story wave spawns on the reachable side of its still-locked gates (112.5969ms)
+✔ Story spawns stay clear of keys and the playground shows their live positions (206.9939ms)
+✔ all five Story floors support a live-input route from entry through key pickup to the lift (1740.7739ms)
+✔ the opening wave gives players time to orient and survives a short no-input check (333.5524ms)
+✔ F5 entry starts on player movement and supports aimed fire through its first gate (242.5317ms)
+✔ Story approach fights release milestones, side routes stay open, and keyed lifts descend (1299.397ms)
+✔ arena sectors and campaign overview still build (9.9398ms)
+✔ all extended destination rooms get signs with valid atlas UVs (560.9657ms)
+✔ panel wear is stable and varied without changing geometry (1.387ms)
+✔ visible fitting follows its barrel and survives weapon batching, then resets with a new pack (118.992ms)
+✔ full pack explains blocked collection once per approach and leaves the cache collectible (2.4226ms)
+✔ a projectile retains its fitted weapon damage after switching equipment (1.5956ms)
+✔ shotgun cores carry their own fitting without borrowing a later selected weapon (0.9652ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9566.4948

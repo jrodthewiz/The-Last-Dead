@@ -1,0 +1,330 @@
+{
+  "date": "2026-10-01",
+  "project": "The Last Dead",
+  "changes": [
+    {
+      "area": "Exploration and stationary shadows",
+      "cause": "The lantern rebuilt its depth map every 45 ms despite a stationary lamp and static shadow casters.",
+      "fix": "Reuse the map for tiny idle movement; update on significant translation/turning and immediately on world invalidation or floor rebuild.",
+      "files": [
+        "afterlife-lighting.js"
+      ],
+      "evidence": [
+        {
+          "floor": 0,
+          "updatesDuring48MeasuredFrames": 0
+        },
+        {
+          "floor": 1,
+          "updatesDuring48MeasuredFrames": 0
+        }
+      ]
+    },
+    {
+      "area": "Empty cosmetic physics",
+      "cause": "The corpse world ran broadphase/solver steps against static walls even with no dynamic bodies.",
+      "fix": "Advance its elapsed clock while skipping empty steps and clearing the idle accumulator. New drops/ragdolls retain their normal fixed timestep.",
+      "files": [
+        "corpse-physics.js"
+      ],
+      "evidence": [
+        {
+          "floor": 0,
+          "meanCpuMsBefore": 0.21,
+          "meanCpuMsAfter": 0.006
+        },
+        {
+          "floor": 1,
+          "meanCpuMsBefore": 0.329,
+          "meanCpuMsAfter": 0.004
+        },
+        {
+          "floor": 2,
+          "meanCpuMsBefore": 0.227,
+          "meanCpuMsAfter": 0.004
+        },
+        {
+          "floor": 3,
+          "meanCpuMsBefore": 0.623,
+          "meanCpuMsAfter": 0.002
+        },
+        {
+          "floor": 4,
+          "meanCpuMsBefore": 0.563,
+          "meanCpuMsAfter": 0
+        },
+        {
+          "floor": "campaign",
+          "meanCpuMsBefore": 0.125,
+          "meanCpuMsAfter": 0.006
+        }
+      ]
+    },
+    {
+      "area": "Corpse pose synchronization",
+      "cause": "Each bone queried its world quaternion, redundantly rebuilding the ancestor transform chain.",
+      "fix": "Decompose the already-current parent matrix in hierarchy order.",
+      "files": [
+        "corpse-physics.js"
+      ],
+      "evidence": {
+        "mode": "Node CPU only, four actual imported corpse rigs, 120 measured syncs after warmup",
+        "samples": [
+          {
+            "repeat": 0,
+            "before": {
+              "medianMs": 0.4193000000000211,
+              "p95Ms": 0.884900000000016,
+              "meanMs": 0.48734083333331457
+            },
+            "after": {
+              "medianMs": 0.24700000000029831,
+              "p95Ms": 0.5017000000002554,
+              "meanMs": 0.2986933333333354
+            }
+          },
+          {
+            "repeat": 1,
+            "before": {
+              "medianMs": 0.7714000000000851,
+              "p95Ms": 0.9116999999996551,
+              "meanMs": 0.7157583333333188
+            },
+            "after": {
+              "medianMs": 0.19309999999995853,
+              "p95Ms": 0.3605999999999767,
+              "meanMs": 0.20739499999998542
+            }
+          },
+          {
+            "repeat": 2,
+            "before": {
+              "medianMs": 0.2930999999998676,
+              "p95Ms": 0.3584000000000742,
+              "meanMs": 0.30269250000003467
+            },
+            "after": {
+              "medianMs": 0.14949999999953434,
+              "p95Ms": 0.2004000000006272,
+              "meanMs": 0.15822916666663786
+            }
+          }
+        ],
+        "poseEquality": "Every local bone position/quaternion matched the baseline within 1e-6."
+      }
+    },
+    {
+      "area": "Projectile/tracer allocation churn",
+      "cause": "Every line allocated new vectors; every frame allocated classification arrays and a concatenated projectile list.",
+      "fix": "Reuse two scratch vectors and three lists, retaining hostile-before-core priority, reflection/rocket exclusions, pool caps and clearing.",
+      "files": [
+        "renderer.js"
+      ],
+      "evidence": "Combat-buffer tests check exact endpoints, overflow priority, stable buffers, clearing and finite values."
+    },
+    {
+      "area": "Severing and temporary skin previews",
+      "cause": "source.clone copied all skin attributes for each preview and reuploaded those same immutable vertices.",
+      "fix": "Share immutable source attributes/index; own only the new region masks. Disposal hides shared buffers from Three.js cleanup and releases only owned masks.",
+      "files": [
+        "enemy-cut-preview.js"
+      ],
+      "evidence": {
+        "before": {
+          "meshes": 3,
+          "vertices": [
+            43019,
+            43019,
+            43019
+          ],
+          "constructionMs": 9,
+          "renderMs": 156.59999999962747,
+          "uploads": {
+            "calls": 23,
+            "bytes": 10191192
+          },
+          "sharedSourceAttributes": false,
+          "maskBytes": 3097368,
+          "restoreUploads": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "contextLost": false,
+          "triangles": 31905
+        },
+        "after": {
+          "meshes": 3,
+          "vertices": [
+            43019,
+            43019,
+            43019
+          ],
+          "constructionMs": 8.200000000186265,
+          "renderMs": 104.3999999994412,
+          "uploads": {
+            "calls": 6,
+            "bytes": 3097368
+          },
+          "sharedSourceAttributes": true,
+          "maskBytes": 3097368,
+          "restoreUploads": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "contextLost": false,
+          "triangles": 31905
+        },
+        "uploadReductionPercent": 69.6
+      }
+    },
+    {
+      "area": "First-use effect pipelines",
+      "cause": "compileAsync warmed shaders but left the first actual mask/cap draw path cold.",
+      "fix": "Draw preview/cap variants during loading, finish their GPU work, restore temporary scene state and release resources on success/cancellation/failure.",
+      "files": [
+        "renderer.js"
+      ],
+      "evidence": {
+        "isolatedColdRenderMs": 104.3999999994412,
+        "isolatedPrimedRenderMs": 1.2000000001862645,
+        "limits": "This isolates driver warmup; it does not imply every live-combat hitch is eliminated."
+      }
+    }
+  ],
+  "verification": {
+    "unitTests": {
+      "passed": 130,
+      "failed": 0,
+      "log": "output/playwright/performance/unit-tests.log",
+      "coverage": [
+        "movement/collision",
+        "enemy AI and attack animation",
+        "anatomy cuts/source ownership",
+        "corpse and extraction tissue physics",
+        "all-floor door updates",
+        "resource preparation/cancellation",
+        "projectile buffers"
+      ]
+    },
+    "production": {
+      "viewport": [
+        1280,
+        720
+      ],
+      "dpr": 1,
+      "measurement": "Synchronous render submission followed by gl.finish; engine tick costs reported separately.",
+      "allFloors": {
+        "cases": 24,
+        "floors": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          "campaign"
+        ],
+        "scenarios": [
+          "exploration",
+          "camera-turn",
+          "combat",
+          "corpses"
+        ],
+        "file": "output/playwright/performance/latest.json",
+        "scope": "Final production build with every performance fix applied.",
+        "input": {
+          "time": 1.2416666666666647,
+          "shots": 5,
+          "health": 10000,
+          "contextLost": false
+        },
+        "noBrowserErrors": true,
+        "lateShaderPrograms": 0
+      },
+      "finalTargetedRetest": {
+        "cases": 8,
+        "floors": [
+          0,
+          1
+        ],
+        "file": "output/playwright/performance/primed.json",
+        "input": {
+          "time": 1.441666666666664,
+          "shots": 4,
+          "health": 10000,
+          "contextLost": false
+        },
+        "noBrowserErrors": true,
+        "lateShaderPrograms": 0
+      },
+      "floorLifecycle": {
+        "file": ".logs/story-progression/browser.json",
+        "result": {
+          "errors": [],
+          "floors": [
+            {
+              "floor": 1,
+              "prepared": true,
+              "actors": 13,
+              "contextLost": false
+            }
+          ],
+          "views": [
+            {
+              "width": 1280,
+              "scrollWidth": 1280,
+              "objective": "Push into the first isolation ward"
+            },
+            {
+              "width": 390,
+              "scrollWidth": 390,
+              "objective": "Push into the first isolation ward"
+            }
+          ]
+        },
+        "checks": [
+          "real movement",
+          "pause/resume",
+          "loading freezes simulation",
+          "next-floor preparation",
+          "immediate objective refresh",
+          "desktop/mobile HUD fit",
+          "restart"
+        ]
+      },
+      "sourceRestoreUploads": {
+        "calls": 0,
+        "bytes": 0
+      }
+    },
+    "build": "node build.mjs passed",
+    "diff": "git diff --check passed",
+    "userTab": "Existing user tab and port-5200 server were preserved. Tests used independent Chrome processes and ephemeral production servers."
+  },
+  "commands": [
+    "npm run test:performance",
+    "npm run test:cut-preview",
+    "node tests/corpse-sync-performance.mjs",
+    "node tests/story-floor-loading.mjs"
+  ],
+  "testDependencies": "Browser checks use local Playwright or PLAYWRIGHT_PATH and CHROME_PATH overrides. Runtime/build still need only Node and bundled assets.",
+  "referenceLedger": [
+    {
+      "read": true,
+      "path": "C:/Users/wolfk/.codex/skills/threejs-debug-profiler/references/debug-profile-checklists.md"
+    },
+    {
+      "read": true,
+      "path": "C:/Users/wolfk/.codex/skills/threejs-debug-profiler/references/checklists/performance-profile.md"
+    },
+    {
+      "read": true,
+      "path": "C:/Users/wolfk/.codex/skills/threejs-debug-profiler/references/checklists/scene-debugging.md"
+    }
+  ],
+  "remainingLimits": [
+    "Dense scenery and active ragdoll/contact solving remain major costs.",
+    "Live combat/corpse fixtures still contain intermittent long frames; worker topology replacement, GPU texture/resource first use and GC need deeper traces before attributing every spike.",
+    "Headless synchronized samples varied across runs. They do not establish normal-play FPS, a 144-FPS guarantee, mobile performance or co-op frame-rate behavior.",
+    "No art detail, gameplay rules, collision representation or third-party runtime dependency was removed."
+  ]
+}

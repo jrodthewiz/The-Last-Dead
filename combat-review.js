@@ -2,7 +2,9 @@
 // mechanisms and shooting state, with repeatable visual motion inputs.
 import { Renderer } from './renderer.js';
 import { makeCampaignCourse, newRun, tickPlayer, shoot, switchWeapon, weapons } from './engine.js';
-const renderer = new Renderer(document.querySelector('#world'));
+const canvas=document.querySelector('#world');
+const backend=await (await import('./webgpu-backend.js')).createWebGPUBackend(canvas);
+const renderer = new Renderer(canvas,{backend});
 const course = makeCampaignCourse(0);
 course.enemies = [];
 let run, anchor, elapsed = 0, last = 0, paused = false, ready = false;

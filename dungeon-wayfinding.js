@@ -24,7 +24,7 @@ export function planDungeonWayfinding(course) {
   if (!course?.dungeon) return [];
   const encounterOrder = [...new Set((course.waveSpawns || []).flat().map(item => item.roomId).filter(Boolean))];
   const rooms = (course.rooms || []).filter(room => room.kind !== 'secret');
-  return rooms.slice(0, 16).flatMap((room, atlasRow) => {
+  return rooms.flatMap((room, atlasRow) => {
     const sequence = Number.isFinite(room.flow?.sequence) ? room.flow.sequence : room.order;
     const previous = rooms.filter(item => (item.flow?.sequence ?? item.order) < sequence).sort((a, b) => (b.flow?.sequence ?? b.order) - (a.flow?.sequence ?? a.order))[0];
     const approach = previous?.center || course.playerSpawn;
@@ -55,11 +55,12 @@ export function planDungeonWayfinding(course) {
 function signAtlas(plan) {
   if (typeof document === 'undefined') return null;
   const canvas = document.createElement('canvas');
-  canvas.width = 1024; canvas.height = 2048;
+  const rows = Math.max(16, ...plan.map(item => item.atlasRow + 1));
+  canvas.width = 1024; canvas.height = rows * 128;
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
   const draw = substrate => {
-    ctx.fillStyle = '#191f20'; ctx.fillRect(0, 0, 1024, 2048);
+    ctx.fillStyle = '#191f20'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     plan.forEach((item, index) => {
     const y = item.atlasRow * 128;
     ctx.fillStyle = '#afab96'; ctx.fillRect(8, y + 8, 1008, 112);
@@ -108,6 +109,7 @@ export function buildDungeonWayfinding(parent, course) {
   root.userData.noBatch = true; root.userData.afterlifeSkip = true; root.userData.visualOnly = true;
   parent.add(root);
   const atlas = signAtlas(plan);
+  const atlasRows = Math.max(16, ...plan.map(item => item.atlasRow + 1));
   // A bounded retroreflective face keeps printed text below HDR bloom. The
   // destination practical still lights the actual doorway and surrounding wall.
   const enamel = new THREE.MeshBasicMaterial({ color: 0xb3aa95, map: atlas, toneMapped: true });
@@ -122,7 +124,7 @@ export function buildDungeonWayfinding(parent, course) {
     marker.position.set(item.x, 3.35, item.z); marker.rotation.set(0, item.yaw, 0); marker.scale.set(1, 1, 1); marker.updateMatrix();
     const face = new THREE.PlaneGeometry(4.4, .86);
     const uv = face.attributes.uv;
-    for (let i = 0; i < uv.count; i++) uv.setY(i, 1 - item.atlasRow / 16 - (1 - uv.getY(i)) / 16);
+    for (let i = 0; i < uv.count; i++) uv.setY(i, 1 - item.atlasRow / atlasRows - (1 - uv.getY(i)) / atlasRows);
     face.applyMatrix4(marker.matrix); signGeometries.push(face);
     const tangentX = Math.cos(item.yaw), tangentZ = -Math.sin(item.yaw);
     for (let j = 0; j < 3; j++) {
@@ -176,6 +178,8 @@ export function buildDungeonWayfinding(parent, course) {
       returnSignTexture = new THREE.CanvasTexture(canvas); returnSignTexture.colorSpace = THREE.SRGBColorSpace;
       returnSign = new THREE.Mesh(new THREE.PlaneGeometry(3.2, .8), new THREE.MeshBasicMaterial({ map: returnSignTexture, side: THREE.DoubleSide }));
       returnSign.name = 'LoadingReturnBendSign'; returnSign.position.set(25 * CELL - .3, 2.35, 20.6 * CELL);
+      returnSign.position.x += (course.extension?.originalOffset?.x || 0) * CELL;
+      returnSign.position.z += (course.extension?.originalOffset?.z || 0) * CELL;
       returnSign.rotation.y = -Math.PI / 2; root.add(returnSign);
     }
   }

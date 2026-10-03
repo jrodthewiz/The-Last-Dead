@@ -4,13 +4,13 @@ import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import * as THREE from '../vendor/three.module.js';
 import {GLTFLoader} from '../vendor/loaders/GLTFLoader.js';
-import {createAfterlifeModel,animateAfterlifeModel,disposeAfterlifeModel} from '../npc-afterlife-model.js';
+import {AFTERLIFE_ASH_WITNESS_URL,createAfterlifeModel,animateAfterlifeModel,disposeAfterlifeModel} from '../npc-afterlife-model.js';
 import {enemyArticulationPose,biteArticulationPose,applyCharacterArticulation,restoreCharacterArticulation} from '../character-articulation.js';
 import {enemyFxBegin,enemyFxEnd} from '../enemy-fx.js';
 
 // Real v05 skeleton/skin/six clips; only PNG bitmap decoding is stubbed. Keep
 // parsing in the test hook so Node's shared Windows runner finishes loading.
-const url=new URL('../assets/models/afterlife-ash-witness-rig-v05.glb',import.meta.url),bytes=readFileSync(url);
+const url=new URL('../'+AFTERLIFE_ASH_WITNESS_URL,import.meta.url),bytes=readFileSync(url);
 const digest=value=>createHash('sha256').update(value).digest('hex');
 const attributeBytes=a=>Buffer.from(a.array.buffer,a.array.byteOffset,a.array.byteLength);
 let asset,sourceMesh,sourceFields,clipFields,bindFields,sourceHash;

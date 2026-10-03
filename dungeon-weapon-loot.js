@@ -36,6 +36,8 @@ export function buildDungeonWeaponLoot(worldRoot, course) {
     root.name = `StoryWeaponFind_${loot.id}`;
     root.userData.noBatch = true;
     root.position.set(loot.x * 4, 0, loot.y * 4);
+    // Exterior finds stay human-sized; cathedral display racks keep their scale.
+    if(course.harbor)root.scale.setScalar(.5);
     const dark = metal(), inner = recess(), bright = signal(color);
     const beaconMaterial = new THREE.MeshBasicMaterial({ color, toneMapped: false });
     const halo = new THREE.Mesh(new THREE.TorusGeometry(1.14, .055, 8, 40), beaconMaterial);

@@ -1,0 +1,9 @@
+The powerPreference option is currently ignored when calling requestAdapter() on Windows. See https://crbug.com/369219127
+Pending WebGPU texture BloodResidueAtlasV3 a444175b-9550-4673-bc1d-c0d7d18ff178 undefined
+Pending WebGPU texture  c1f3a26e-ccea-4a9c-9539-9aa14cadee99 undefined
+Pending WebGPU texture  28544417-aa91-4f59-86fe-55276092bbbd undefined
+Pending WebGPU texture  bc35b5f3-ef07-4e80-ae5c-5a143c422d36 undefined
+Calling [RenderPassEncoder (unlabeled)].Draw with a vertex count of 0 is unusual.
+THREE.AttributeNode: Vertex attribute "uv" not found on geometry.
+THREE.AttributeNode: Vertex attribute "uv" not found on geometry.
+THREE.AttributeNode: Vertex attribute "uv" not found on geometry.

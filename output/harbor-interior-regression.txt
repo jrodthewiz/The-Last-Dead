@@ -1,0 +1,19 @@
+✔ Power Cut connects Dock Road to the promenade with blocked store wings and reachable salvage (54.5649ms)
+✔ Netmakers gate admits walking to salvage while yard walls and store block passage (8.5261ms)
+✔ harbor six blocks, shore and every pickup obey authoritative collision (14.3959ms)
+✔ harbor truck has clearance along dock road and all runtime assets embed palettes (12.7866ms)
+✔ street routes enter Netmakers through its gate, not closed walls (7.647ms)
+✔ guidance changes from salvage to truck to ferry and removes collected map markers (24.7613ms)
+✔ Q enters once, held Q does not eject, driving brakes and safely exits (12.4463ms)
+✔ truck footprint cannot tunnel through the shoreline or boundaries at frame spikes (7.8595ms)
+✔ a sealed wall prevents entry and blocked doors prevent unsafe dismount (1.9315ms)
+✔ weapons require ownership, driving suppresses firing, and a fresh expedition resets vehicle and bag (2.9015ms)
+✔ harbor extraction requires three recovered weapons and travel, never a synthetic arena wave (1.3648ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 208.5136

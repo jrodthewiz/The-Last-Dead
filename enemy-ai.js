@@ -9,6 +9,7 @@
 // States:  dormant -> wander -> investigate -> stalk <-> flank -> (attack) ->
 //          recover -> stalk;  stagger interrupts anything;  emerge gates spawns.
 
+import {propSegmentClear} from './harbor-collision.js';
 export const TAU = Math.PI * 2;
 export const ingressMoveSpeed = speed => Math.max(Number(speed)||.3,.6)*1.1;
 export const hash01 = (a, b = 0) => {
@@ -25,6 +26,7 @@ export const isHunting = e => !!e.mind && HUNTING.has(e.mind.state);
 
 // Loudness of player actions: radius in cells and how convincing it is (0..1).
 export const NOISE = Object.freeze({
+  'low-tide-bell': {radius:40,loud:1.4},
   shot: { radius: 15, loud: 1 }, explosion: { radius: 24, loud: 1 }, rocket: { radius: 18, loud: 1 },
   'rocket-detonate': { radius: 24, loud: 1 }, 'bat-swing': { radius: 7, loud: .5 }, punch: { radius: 6, loud: .45 },
   'melee-hit': { radius: 10, loud: .8 }, 'chainsaw-hit': { radius: 15, loud: 1 }, 'melee-wall': { radius: 8, loud: .55 },
@@ -87,6 +89,7 @@ export function findPath(env, course, from, to, maxNodes = 1400) {
       if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
       const n = ny * w + nx;
       if (prev.has(n) || course.cells[cell][side] || course.cells[n].every(v => v === 1)) continue;
+      if(!propSegmentClear(course,cell===start?from.x:x+.5,cell===start?from.y:y+.5,nx+.5,ny+.5))continue;
       prev.set(n, cell);
       queue.push(n);
     }
@@ -116,7 +119,7 @@ export function findPath(env, course, from, to, maxNodes = 1400) {
 // enemy slides off corners instead of pinning; never leaves canStand space.
 function moveToward(env, course, e, tx, ty, speed, dt, sepX = 0, sepY = 0) {
   const heading = Math.atan2(ty - e.y, tx - e.x);
-  const step = speed * dt;
+  const step = Math.min(speed * dt, Math.hypot(tx - e.x, ty - e.y));
   if (step <= 1e-6) return 0;
   const vx0 = Math.cos(heading) + sepX, vy0 = Math.sin(heading) + sepY;
   const base = Math.atan2(vy0, vx0);
@@ -133,6 +136,7 @@ function moveToward(env, course, e, tx, ty, speed, dt, sepX = 0, sepY = 0) {
 
 function navigate(ctx, e, goal, speed) {
   const { env, course, dt } = ctx;
+  const fromX = e.x, fromY = e.y;
   const nav = e.nav;
   const dGoal = Math.hypot(goal.x - e.x, goal.y - e.y);
   let wp = goal;
@@ -176,7 +180,8 @@ function navigate(ctx, e, goal, speed) {
     const a = Math.atan2(goal.y - e.y, goal.x - e.x) + nav.sideDir * 1.4;
     moveToward(env, course, e, e.x + Math.cos(a), e.y + Math.sin(a), speed * .8, dt);
   }
-  return { moved, blocked: false, heading: Math.atan2(wp.y - e.y, wp.x - e.x) };
+  const travelX = e.x - fromX, travelY = e.y - fromY;
+  return { moved: Math.hypot(travelX, travelY), blocked: false, heading: Math.atan2(travelY, travelX) };
 }
 
 /* ------------------------------------------------------------- creation -- */
@@ -188,6 +193,7 @@ export function createMind(e, opts = {}) {
     state, t: 0, aware: state === 'stalk' ? 1 : (opts.aware || 0), lostFor: 0,
     home: { x: opts.home?.x ?? e.x, y: opts.home?.y ?? e.y },
     lastKnown: null, noise: null, dest: null, pause: hash01(e.id, 1) * 2, search: 0,
+    searchTempo: 1.2 + hash01(e.id, 10) * .8, searchPhase: hash01(e.id, 11) * TAU, searchFacing: 0,
     wakeAt: -1, emerge: opts.emerge || 0, token: false, engageT: 0, firstAttack: opts.firstAttack ?? .7,
     justAttacked: false, recover: 0, graceT: 0, flankT: 0, flankSide: hash01(e.id, 2) < .5 ? 1 : -1,
     orbitDir: hash01(e.id, 3) < .5 ? 1 : -1, orbitBeat: -1, wanderT: 0, startle: 0, glance: 0, relentless: opts.relentless ?? state === 'stalk',
@@ -282,14 +288,31 @@ function perceive(ctx, e, target, d, ang, visible) {
     m.lostFor = 0;
     sensed = true;
   } else if (hunting) m.lostFor += dt;
+  let heard=null,heardPower=.08;
   for (const n of ctx.noises) {
     const dd = Math.hypot(n.x - e.x, n.y - e.y);
     const los = ctx.env.castRay(ctx.course, e.x, e.y, Math.atan2(n.y - e.y, n.x - e.x)).dist > dd - .2;
     const eff = n.radius * (los ? 1 : .55) * (dormant ? .6 : 1) * (tune.hearing || 1);
     if (dd >= eff) continue;
     const power = (1 - dd / eff) * n.loud;
+    // Pick the strongest audible source, independent of event insertion order.
+    if(power>heardPower || (power===heardPower&&heard&&(n.x<heard.x||n.x===heard.x&&n.y<heard.y))) {
+      heard=n;heardPower=power;
+    }
+  }
+  if(heard) {
+    const n=heard,power=heardPower;
     if (power > .55) { m.aware = Math.max(m.aware, 1); m.lastKnown = { x: n.x, y: n.y }; }
-    else if (power > .08) { m.aware = Math.max(m.aware, .3 + power * .5); m.noise = { x: n.x, y: n.y, t: 0 }; }
+    else if (power > .08) {
+      m.aware = Math.max(m.aware, .3 + power * .5);
+      // A new sound elsewhere interrupts listening at the old destination.
+      // Repeated sounds at the same point must not restart the search clock.
+      if (m.state === 'investigate' && m.search > 0 &&
+          Math.hypot(n.x - (m.noise?.x ?? e.x), n.y - (m.noise?.y ?? e.y)) > .75) {
+        m.search = 0; m.t = 0; e.nav.path = null; e.nav.repath = 0;
+      }
+      m.noise = { x: n.x, y: n.y, t: 0 };
+    }
     sensed = true;
   }
   if (!sensed) m.aware = Math.max(0, m.aware - (hunting ? .05 : .28) * dt);
@@ -302,6 +325,7 @@ function enter(e, state) {
   const m = e.mind;
   if (m.state === state) return;
   m.state = state; m.t = 0;
+  if (state !== 'investigate') m.search = 0;
   e.state = state;
 }
 
@@ -340,6 +364,8 @@ export function stepMind(ctx, e, target) {
   if (!e.aiTune) Object.defineProperty(e, 'aiTune', { value: tuningFor(e, profile), writable: true, enumerable: false, configurable: true });
   const tune = e.aiTune;
   const dt = ctx.dt, course = ctx.course, env = ctx.env;
+  const fromX = e.x, fromY = e.y;
+  e.moving = 0;
   m.t += dt; m.graceT = Math.max(0, m.graceT - dt); m.startle = Math.max(0, m.startle - dt);
   const dx = target.x - e.x, dy = target.y - e.y, d = Math.hypot(dx, dy), ang = Math.atan2(dy, dx);
   const visible = e.seesTarget === true;
@@ -356,7 +382,7 @@ export function stepMind(ctx, e, target) {
       // combat gait must not turn the warned doorway approach into a 20 s wait.
       const ingressSpeed=ingressMoveSpeed(baseSpeed);
       const waypoint=e.ingressRoute[0],motion=navigate(ctx,e,waypoint,ingressSpeed);
-      turnFacing(e,Math.atan2(waypoint.y-e.y,waypoint.x-e.x),tune.turn,dt);
+      if(motion.moved>1e-5)turnFacing(e,motion.heading,tune.turn,dt);
       e.state='stalk';e.moving=motion.moved>1e-5?clampN(motion.moved/Math.max(dt,.0001)/Math.max(baseSpeed,.2),0,2):0;
       e.ingressProgress=(e.ingressTotal-e.ingressRoute.length)/Math.max(1,e.ingressTotal);
       // A player pushing directly into the lane can still be fought. Do not
@@ -436,14 +462,17 @@ export function stepMind(ctx, e, target) {
       if (!goal) { enter(e, 'wander'); break; }
       if (m.search > 0) {
         m.search -= dt;
-        heading = e.facing + Math.sin(m.t * 2.2) * .9 * dt * 4;
+        // Each infected stops to listen between slow body sweeps. Its head
+        // checks the room faster; the cadence stays reproducible for co-op.
+        const phase = m.t * m.searchTempo + m.searchPhase;
+        heading = phase % 1.8 < .3 ? e.facing : m.searchFacing + Math.sin(phase) * .65;
         lookGoal = null;
         if (m.search <= 0) { m.noise = null; enter(e, 'wander'); m.dest = null; m.pause = .8; }
         break;
       }
       const res = navigate(ctx, e, goal, baseSpeed * .62);
       moved = res.moved; heading = res.heading;
-      if (Math.hypot(goal.x - e.x, goal.y - e.y) < .5 || res.blocked || m.t > 12) { m.search = 2.2 + hash01(e.id, 9) * 1.4; m.t = 0; }
+      if (Math.hypot(goal.x - e.x, goal.y - e.y) < .5 || res.blocked || m.t > 12) { m.search = 2.2 + hash01(e.id, 9) * 1.4; m.searchFacing = e.facing; m.t = 0; }
       lookGoal = null;
       break;
     }
@@ -574,10 +603,16 @@ export function stepMind(ctx, e, target) {
     }
   }
 
-  // Facing: aim-locked during a swing, else travel direction, else the player.
+  // Net travel includes wall slides and crowd separation; intent alone could
+  // turn a blocked actor into the wall or leave a moving actor in idle.
+  moved = Math.hypot(e.x - fromX, e.y - fromY);
+  if (moved > 1e-5) heading = Math.atan2(e.y - fromY, e.x - fromX);
+  // Ranged strafes and close melee footwork keep aim. A distant approach or
+  // flank turns the body into its actual lane while the head watches the target.
   if (!fixedFace) {
     let desired = e.facing;
-    if (lookGoal !== null && hunting && visible) desired = lookGoal;
+    const aimAtTarget = tune.band || m.state === 'recover' || d <= Math.max(1.6,ctx.reach*1.2);
+    if (lookGoal !== null && hunting && visible && aimAtTarget) desired = lookGoal;
     else if (heading !== null && moved > 1e-5) desired = heading;
     else if (lookGoal !== null && hunting) desired = m.lastKnown ? Math.atan2(m.lastKnown.y - e.y, m.lastKnown.x - e.x) : lookGoal;
     else if (m.startle > 0) desired = ang;
@@ -587,6 +622,7 @@ export function stepMind(ctx, e, target) {
   // Head-look: relative glance toward the player when aware, idle drift otherwise.
   let lookTarget;
   if (hunting || m.startle > 0) lookTarget = clampN(wrap(ang - e.facing), -1.1, 1.1);
+  else if (m.state === 'investigate' && m.search > 0) lookTarget = Math.sin(m.t * m.searchTempo * 2.1 + m.searchPhase) * .65;
   else if (m.aware > .3 && d < tune.sight) lookTarget = clampN(wrap(ang - e.facing), -.9, .9) * m.aware;
   else lookTarget = Math.sin(ctx.time * .7 + e.id * 1.7) * .35 * (m.state === 'dormant' ? .4 : 1);
   e.look += (lookTarget - e.look) * (1 - Math.exp(-6 * dt));

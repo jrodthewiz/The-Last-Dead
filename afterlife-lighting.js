@@ -65,12 +65,17 @@ export class AfterlifeLighting {
     this.scene.add(this.root);
     this.position = new THREE.Vector3();
     this.direction = new THREE.Vector3();
+    this.shadowPosition = new THREE.Vector3();
+    this.shadowDirection = new THREE.Vector3();
+    this.shadowInvalidated = true;
+    this.shadowUpdates = 0;
     this.candidates = [];
   }
 
   rebuild(world, story = false) {
     this.candidates.length = 0;
     this.nextPracticalSelection = 0;
+    this.shadowInvalidated = true;
     world.updateMatrixWorld(true);
     world.traverse(node => {
       if (!node.isPointLight || !Number.isFinite(node.userData.baseIntensity)) return;
@@ -93,6 +98,10 @@ export class AfterlifeLighting {
       });
       node.visible = false;
     });
+    // A daylight course has no authored practical cues. Keep its zero-output
+    // pool out of the shader layout for the entire course; do not toggle lights
+    // as the player moves, which would compile variants during play.
+    for(const light of this.pools)light.visible=this.candidates.length>0;
   }
 
   update(camera, renderer, now, reducedMotion = false) {
@@ -105,11 +114,22 @@ export class AfterlifeLighting {
     this.lantern.position.y += .08;
     this.lantern.target.position.copy(this.position).addScaledVector(this.direction, 16);
     this.lantern.intensity = reducedMotion ? 48 : 48 + Math.sin(now * .0011);
-    // Only this shadow updates during play; the directional architecture map remains cached.
-    if (renderer && (!this.lastShadow || now - this.lastShadow >= 45)) {
+    // All animated world/actor casters are disabled by the renderer. This depth
+    // map changes only with the lamp pose or an explicit world invalidation.
+    // Ignore tiny idle sway; intensity flicker needs no new depth map.
+    const moved = this.shadowPosition.distanceToSquared(this.lantern.position) > .0004 ||
+      this.shadowDirection.distanceToSquared(this.direction) > .000004;
+    const invalidated = this.shadowInvalidated || renderer?.shadowMap.needsUpdate;
+    if (renderer && (invalidated || (moved && now - (this.lastShadow ?? -Infinity) >= 45))) {
       this.lastShadow = now;
+      this.shadowPosition.copy(this.lantern.position);
+      this.shadowDirection.copy(this.direction);
+      this.shadowInvalidated = false;
+      this.shadowUpdates++;
       this.lantern.shadow.needsUpdate = true;
-      renderer.shadowMap.needsUpdate = true;
+      // Native WebGPU consumes each light's flag, not the legacy global one.
+      // Re-raising that global flag here would invalidate every shadow forever.
+      if(!renderer.isWebGPURenderer)renderer.shadowMap.needsUpdate = true;
     }
     this.lantern.shadow.autoUpdate = false;
     // Authored practicals are stationary. Re-rank five times a second;
@@ -137,6 +157,6 @@ export class AfterlifeLighting {
     });
   }
 
-  diagnostics() { return { practicalPool: this.pools.length, authoredCues: this.candidates.length, destinationCues: this.candidates.filter(cue => cue.destination).length, lanternShadow: 512 }; }
+  diagnostics() { return { practicalPool: this.pools.length, authoredCues: this.candidates.length, destinationCues: this.candidates.filter(cue => cue.destination).length, lanternShadow: 512, shadowUpdates: this.shadowUpdates }; }
   dispose() { this.root.removeFromParent(); this.lantern.shadow.dispose(); this.candidates.length = 0; }
 }

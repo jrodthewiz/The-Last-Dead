@@ -1,0 +1,24 @@
+✔ Power Cut connects Dock Road to the promenade with blocked store wings and reachable salvage (57.1645ms)
+✔ Netmakers gate admits walking to salvage while yard walls and store block passage (11.3919ms)
+✔ harbor six blocks, shore and every pickup obey authoritative collision (8.5881ms)
+✔ harbor truck has clearance along dock road and all runtime assets embed palettes (14.8358ms)
+✔ street routes enter Netmakers through its gate, not closed walls (5.2862ms)
+✔ guidance changes from salvage to truck to ferry and removes collected map markers (6.1758ms)
+✔ Q enters once, held Q does not eject, driving brakes and safely exits (12.2371ms)
+✔ truck footprint cannot tunnel through the shoreline or boundaries at frame spikes (6.3194ms)
+✔ a sealed wall prevents entry and blocked doors prevent unsafe dismount (1.9734ms)
+✔ weapons require ownership, driving suppresses firing, and a fresh expedition resets vehicle and bag (3.2167ms)
+✔ harbor extraction requires three recovered weapons and travel, never a synthetic arena wave (1.2183ms)
+✔ proximity stash preserves equipped gun, creates melee ownership once, and keeps scrap separate (0.3602ms)
+✔ wall, absent geometry callback, range, pause, death and air all retain weapon pickup (0.3709ms)
+✔ unknown objects and invalid weapon indexes cannot grant inventory (0.1558ms)
+✔ already owned world pickups are removed without duplicating ownership (0.1563ms)
+✔ shared world pickup grants ownership and common pickup history to both players (0.1949ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 240.9335

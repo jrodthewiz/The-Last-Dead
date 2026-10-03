@@ -2,6 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DevFlight } from '../dev-flight.js';
 const player = { x: 2, y: 3, z: 0, slide: 0, angle: 0, pitch: 0 };
+test('hover remains fixed and Q/E altitude keys cancel even with duplicate bindings held',()=>{
+  const flight=new DevFlight();flight.enter(player);const origin={...flight.pose};
+  flight.update(.1,new Set());assert.deepEqual(flight.pose,origin);
+  flight.update(.1,new Set(['KeyE','Space','KeyQ']));assert.deepEqual(flight.pose,origin);
+  flight.update(.1,new Set(['KeyE']));assert.ok(Math.abs(flight.pose.y-origin.y-1.2)<1e-9);
+  flight.update(.1,new Set(['KeyQ']));assert.ok(Math.abs(flight.pose.y-origin.y)<1e-9);
+});
 test('flight moves independently in world metres with no collision or gravity', () => {
   const run = structuredClone(player), flight = new DevFlight();
   flight.enter(run);

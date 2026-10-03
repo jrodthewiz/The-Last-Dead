@@ -1,0 +1,26 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="icon" href="data:,"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/horror-ui.css"><link rel="stylesheet" href="/scavenger-pack.css"></head><body><canvas id="world"></canvas><div id="ui"></div><script type="module">
+import * as THREE from '/vendor/three.module.js';
+import {HarborWorld} from '/harbor-visuals.js';
+import {makeHarborCourse} from '/harbor-course.js';
+import {newRun,tickPlayer,weapons} from '/engine.js';
+import {lowTidePrompt,lowTideObjective} from '/low-tide.js';
+import {createLowTideSave} from '/low-tide-save.js';
+import {UI} from '/ui.js';
+import {createScavengerPackUI} from '/scavenger-pack-ui.js';
+const checkpoint=createLowTideSave({getItem:()=>null,setItem:()=>{}});
+const run=newRun(makeHarborCourse({lowTide:true}));run.mode='play';
+const station=run.course.lowTideStations.find(s=>s.id===(new URLSearchParams(location.search).get('station')||'shelter'));
+run.course.activeInterior=run.course.harborRooms.find(r=>r.id===station.roomId);Object.assign(run,{x:station.x,y:station.y,angle:Math.PI,pitch:-.08});
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x728f97);
+const renderer=new URLSearchParams(location.search).get('renderer')==='webgpu'?await (await import('/webgpu-backend.js')).createWebGPUBackend(document.querySelector('#world')):new THREE.WebGLRenderer({canvas:document.querySelector('#world'),antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
+const camera=new THREE.PerspectiveCamera(66,innerWidth/innerHeight,.1,500),world=new HarborWorld(scene,run.course);await world.ready;
+const bodycam=new URLSearchParams(location.search).has('post')?new (await import('/bodycam-pass.js')).BodycamPass(renderer):null;if(bodycam){bodycam.fixedTime=5;bodycam.debugMode=Number(new URLSearchParams(location.search).get('postDebug')||0);}
+const ui=new UI({onPause:()=>{}});ui.menu();ui.play();document.body.classList.add('playing');
+const pack=createScavengerPackUI({getRun:()=>run,weapons,onOpen:()=>run.mode='pause',onClose:()=>run.mode='play'});
+const keys=new Set();addEventListener('keydown',e=>{keys.add(e.code);if(e.code==='KeyB'&&!e.repeat)pack.toggle();});addEventListener('keyup',e=>keys.delete(e.code));
+function draw(){checkpoint.save(run);world.update(run.time,run.vehicle,run);camera.position.set(run.x*4,1.9,run.y*4);camera.lookAt(run.x*4+Math.cos(run.angle)*4,1.6,run.y*4+Math.sin(run.angle)*4);if(bodycam)bodycam.render(scene,camera,1000);else renderer.render(scene,camera);ui.hud(run,{fps:60,network:'QA FIXTURE'});pack.update(run,{visible:true});}
+window.advanceTime=ms=>{for(let i=0;i<Math.ceil(ms/1000*60);i++)tickPlayer(run,1/60,{interact:keys.has('KeyQ'),forward:keys.has('KeyW')?1:0});draw();};
+window.render_game_to_text=()=>JSON.stringify({fixture:'Isolated real harbor renderer and interaction rules; no full combat renderer',player:{x:run.x,y:run.y},mission:run.lowTide,action:lowTidePrompt(run)?.label,objective:lowTideObjective(run)});
+addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();draw();});
+window.lowTideQA={world,run,bodycam,renderer,scene,camera,draw,pack,ui};draw();window.qaReady=true;
+</script></body></html>

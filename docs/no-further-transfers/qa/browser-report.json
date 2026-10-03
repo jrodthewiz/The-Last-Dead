@@ -1,0 +1,192 @@
+{
+  "errors": [],
+  "httpErrors": [],
+  "chapters": [
+    {
+      "index": 0,
+      "title": "The Shift That Never Ended",
+      "phase": "complete",
+      "stations": [
+        {
+          "id": "cargo-pump",
+          "kind": "pump",
+          "roomId": "f1-pump",
+          "label": "Prime the cargo pump",
+          "x": 29.5,
+          "y": 13.5,
+          "status": "complete"
+        }
+      ],
+      "exitReady": true,
+      "transmission": "The receiving line is online. Inez’s ledger sends the missing evacuees below.",
+      "visuals": {
+        "stations": 1,
+        "meshes": 15,
+        "triangles": 1092,
+        "geometries": 9,
+        "materials": 8
+      },
+      "contextLost": false
+    },
+    {
+      "index": 1,
+      "title": "Everyone Comes Back",
+      "phase": "complete",
+      "stations": [
+        {
+          "id": "ward-a-relay",
+          "kind": "relay",
+          "roomId": "f2-wardA",
+          "label": "Isolate Ward A",
+          "x": 6.5,
+          "y": 18.5,
+          "status": "complete"
+        },
+        {
+          "id": "drain-relay",
+          "kind": "relay",
+          "roomId": "f2-wardD",
+          "label": "Isolate the drain ward",
+          "x": 28.5,
+          "y": 10.5,
+          "status": "complete"
+        }
+      ],
+      "exitReady": true,
+      "transmission": "The ward circuit is isolated. Their discharge orders lead to the burial keepers.",
+      "visuals": {
+        "stations": 2,
+        "meshes": 18,
+        "triangles": 816,
+        "geometries": 10,
+        "materials": 9
+      },
+      "contextLost": false
+    },
+    {
+      "index": 2,
+      "title": "The Names They Kept",
+      "phase": "complete",
+      "stations": [
+        {
+          "id": "name-reliquary",
+          "kind": "reliquary",
+          "roomId": "f3-vault",
+          "label": "Recover the name reliquary",
+          "x": 5.5,
+          "y": 4.5,
+          "status": "complete"
+        },
+        {
+          "id": "name-return",
+          "kind": "socket",
+          "roomId": "f3-court",
+          "label": "Return the names to the court",
+          "x": 20.5,
+          "y": 7.5,
+          "status": "complete"
+        }
+      ],
+      "exitReady": true,
+      "transmission": "The names are restored to the court. Follow the bell service route.",
+      "visuals": {
+        "stations": 2,
+        "meshes": 26,
+        "triangles": 1896,
+        "geometries": 11,
+        "materials": 8
+      },
+      "contextLost": false
+    },
+    {
+      "index": 3,
+      "title": "A Choir With No Audience",
+      "phase": "complete",
+      "stations": [
+        {
+          "id": "nave-chime",
+          "kind": "chime",
+          "roomId": "f4-nave",
+          "label": "Sound the nave chime",
+          "x": 16.5,
+          "y": 15.5,
+          "status": "complete"
+        },
+        {
+          "id": "tower-chime",
+          "kind": "chime",
+          "roomId": "f4-tower",
+          "label": "Sound the tower chime",
+          "x": 4.5,
+          "y": 5.5,
+          "status": "complete"
+        },
+        {
+          "id": "chancel-chime",
+          "kind": "chime",
+          "roomId": "f4-chancel",
+          "label": "Sound the chancel chime",
+          "x": 16.5,
+          "y": 3.5,
+          "status": "complete"
+        }
+      ],
+      "exitReady": true,
+      "transmission": "The three chimes hold the transfer engine in check. Reach the warden below.",
+      "visuals": {
+        "stations": 3,
+        "meshes": 24,
+        "triangles": 2808,
+        "geometries": 14,
+        "materials": 9
+      },
+      "contextLost": false
+    },
+    {
+      "index": 4,
+      "title": "No Further Transfers",
+      "phase": "complete",
+      "stations": [
+        {
+          "id": "transfer-stop",
+          "kind": "shutdown",
+          "roomId": "f5-hall3",
+          "label": "Stop further transfers",
+          "x": 14.5,
+          "y": 5.5,
+          "status": "complete"
+        }
+      ],
+      "exitReady": true,
+      "transmission": "NO FURTHER TRANSFERS. The engine is contained; the eighteen evacuees’ records are released from its return circuit. Leave through the final threshold.",
+      "visuals": {
+        "stations": 1,
+        "meshes": 10,
+        "triangles": 408,
+        "geometries": 7,
+        "materials": 7
+      },
+      "contextLost": false
+    }
+  ],
+  "views": [
+    {
+      "width": 1440,
+      "height": 900,
+      "scrollWidth": 1440,
+      "source": "The Warden / No Further Transfers"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "scrollWidth": 390,
+      "source": "The Warden / No Further Transfers"
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "scrollWidth": 844,
+      "source": "The Warden / No Further Transfers"
+    }
+  ]
+}

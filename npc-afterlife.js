@@ -357,8 +357,8 @@ function updateAction(state, moving, dt) {
   const amount = clamp(moving / .75, 0, 1);
   const running = clamp((moving - 1.1) / 1.4, 0, 1);
   if (idle) idle.setEffectiveWeight(1 - amount);
-  if (walk) {walk.setEffectiveWeight(amount * (1 - running));walk.setEffectiveTimeScale(clamp(moving / 1.05, .55, 1.35));}
-  if (run) {run.setEffectiveWeight(amount * running);run.setEffectiveTimeScale(clamp(moving / 2.15, .65, 1.35));}
+  if (walk) {walk.setEffectiveWeight(amount * (1 - running));walk.setEffectiveTimeScale(state.gaitDirection * clamp(moving / 1.05, .55, 1.35));}
+  if (run) {run.setEffectiveWeight(amount * running);run.setEffectiveTimeScale(state.gaitDirection * clamp(moving / 2.15, .65, 1.35));}
   if (mixer) mixer.update(clamp(dt, 0, .05));
 }
 
@@ -424,7 +424,7 @@ export function createAfterlifeEnemy(template, clips = [], kind = 0, variant = '
   const state = {
     root, pivot, actor, actorState, bones: actorState.bones, materials: materialEntries.map(entry => entry.material),
     materialEntries, faceParts: [], telegraph: null, hood: null, appearance: profile,
-    deadAt: null, last: 0, lastPosition: null, variant: profile.key, kind, seed,
+    deadAt: null, last: null, lastPosition: null, gaitDirection: 1, variant: profile.key, kind, seed,
   };
   addFaceDetails(root, state, profile, kind);
   state.telegraph = addTelegraph(root, kind, profile);
@@ -466,8 +466,9 @@ export function resetAfterlifeEnemy(root, variant = '', seed = 0) {
   state.variant = profile.key;
   state.seed = seed;
   state.deadAt = null;
-  state.last = 0;
-  state.lastPosition = root.position.clone();
+  state.last = null;
+  state.lastPosition = null;
+  state.gaitDirection = 1;
   root.visible = true;
   root.scale.set(1, 1, 1);
   state.pivot.position.set(0, 0, 0);
@@ -493,7 +494,7 @@ export function animateAfterlifeEnemy(root, enemy = {}, now = 0, seed = 0) {
   const state = root?.userData?.afterlife;
   if (!state) return;
   const t = now * .001;
-  const dt = state.last ? Math.min(.05, Math.max(0, (now - state.last) / 1000)) : .016;
+  const dt = state.last === null ? 0 : Math.min(.05, Math.max(0, (now - state.last) / 1000));
   state.last = now;
   const profile = resolveAfterlifeAppearance(state.kind, enemy.variant || state.variant, seed || state.seed);
   if (profile.key !== state.variant) {
@@ -527,7 +528,10 @@ export function animateAfterlifeEnemy(root, enemy = {}, now = 0, seed = 0) {
   if (state.lastPosition) {
     const dx = root.position.x - state.lastPosition.x;
     const dz = root.position.z - state.lastPosition.z;
-    moving = Math.hypot(dx, dz) / Math.max(.001, dt);
+    const distance = Math.hypot(dx, dz);
+    moving = dt > 0 && distance < .8 && !(enemy.stagger > 0) ? distance / dt : 0;
+    const forward = -(dx * Math.sin(root.rotation.y) + dz * Math.cos(root.rotation.y));
+    if (moving > .001) state.gaitDirection = forward < -.25 * distance ? -1 : 1;
     state.lastPosition.set(root.position.x, root.position.y, root.position.z);
   } else {
     state.lastPosition = root.position.clone();

@@ -1,6 +1,6 @@
 // Standard-mapped browser gamepads feed the same intents as keyboard/mouse.
 // No browser globals are needed here: callers supply each fresh pad snapshot.
-export const GAMEPAD_BINDINGS=Object.freeze({jump:0,slide:1,harvest:2,nextWeapon:3,hook:4,parry:5,alt:6,fire:7,pause:9,dash:10,chest:11,up:12,down:13,left:14,right:15});
+export const GAMEPAD_BINDINGS=Object.freeze({jump:0,slide:1,harvest:2,nextWeapon:3,hook:4,parry:5,alt:6,fire:7,interact:8,pause:9,dash:10,chest:11,up:12,down:13,left:14,right:15});
 const finite=value=>Number.isFinite(Number(value))?Number(value):0;
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 export function stickWithDeadzone(x,y,deadzone=.18){
@@ -10,7 +10,7 @@ export function stickWithDeadzone(x,y,deadzone=.18){
  const strength=(Math.min(1,length)-deadzone)/(1-deadzone);
  return{x:x/length*strength,y:y/length*strength};
 }
-export function emptyGamepadFrame(){return{connected:false,changed:false,active:false,armed:false,forward:0,strafe:0,turn:0,lookY:0,fire:false,alt:false,slide:false,harvest:false,edges:{},weaponStep:0,menuDirection:null};}
+export function emptyGamepadFrame(){return{connected:false,changed:false,active:false,armed:false,forward:0,strafe:0,turn:0,lookY:0,fire:false,alt:false,slide:false,harvest:false,interact:false,edges:{},weaponStep:0,menuDirection:null};}
 const buttonDown=(pad,index)=>{const button=pad.buttons?.[index];return !!button?.pressed||finite(button?.value)>.5;};
 const identity=pad=>`${pad.index}:${pad.id||''}`;
 
@@ -44,7 +44,7 @@ export class GamepadInput {
    frame.forward=-move.y;frame.strafe=move.x;
    // engine.tickPlayer applies turn * 2 rad/s and lookY rad/s at fixed dt.
    frame.turn=aim.x*this.yawSpeed/2;frame.lookY=-aim.y*this.pitchSpeed;
-   for(const action of ['fire','alt','slide','harvest'])frame[action]=buttons[action];
+   for(const action of ['fire','alt','slide','harvest','interact'])frame[action]=buttons[action];
    frame.weaponStep=frame.edges.nextWeapon||frame.edges.up||frame.edges.right?1:frame.edges.down||frame.edges.left?-1:0;
   }else if(context==='menu'){
    const direction=buttons.up?'up':buttons.down?'down':buttons.left?'left':buttons.right?'right'

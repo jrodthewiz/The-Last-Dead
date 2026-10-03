@@ -1,3 +1,5 @@
+import {createLowTide,tickLowTideInteraction,updateLowTide} from './low-tide.js';
+import {harborRoomAt,roomCollision,tickHarborRoom} from './harbor-interiors.js';
 import {
   CAMPAIGN_SECTORS,
   CAMPAIGN_SECTOR_COUNT,
@@ -10,6 +12,11 @@ import {
 } from './campaign.js';
 import { createRoomProgression, updateRoomProgression, currentRoom, syncRoomGateCells, canTraverseRoomGates } from './room-progression.js';
 import { makeDungeonCourse, setDungeonOpeningOpen } from './playground/map/dungeon-course.js';
+import { createJourney, updateJourney, journeyComplete } from './campaign-journey.js';
+import {attachScavengerPickups,createScavengerPack,tickScavengerPack,weaponDamageMultiplier} from './scavenger-pack.js';
+import {createHarborVehicle,tickHarborVehicle,vehicleContains} from './harbor-vehicle.js';
+import {tickWeaponInventory} from './weapon-inventory.js';
+import {propCanStand,propRay} from './harbor-collision.js';
 import { encounterRoster, encounterStages, encounterAliveCap, encounterRelief, roomRecoveryPolicy } from './dungeon-encounter-design.js';
 import { createMind, stepMind, reactToHit, collectNoises, getIngressCandidates, isIngressRouteOpen, pickSpawnPoint, createPacing, updatePacing, noteAmbush, spawnAnimFor, EMERGE_TIME, wakeEnemy, findPath, isHunting, hash01, turnFacing, ingressMoveSpeed } from './enemy-ai.js';
 import {installVerminEnvironment,createVerminState,makeVerminHand,makeVerminCrawl,resetVerminWorld,cancelVermin,interceptVerminInput,tickVermin} from './vermin-system.js';
@@ -49,8 +56,9 @@ export function makeCourse(index=0,options={}){
  return{...courses[0],w,h,cells,blocks,index:0,sectorIndex:0,sectorId:'bloodworks',campaign:false,enemies:[],spawnPoints:CAMPAIGN_SECTORS[0].spawnPoints.map(([x,y])=>({x,y})),points:[{x:6,y:10.5},{x:6,y:1}],playerSpawn:{x:6,y:10.5,angle:-Math.PI/2},exit:{x:6,y:1},turns:[]};
 }
 export const makeCampaignCourse=index=>createCampaignCourse(index);
-export function castRay(m,x,y,angle,max=24){const dx=Math.cos(angle),dy=Math.sin(angle);let cx=Math.floor(x),cy=Math.floor(y),dist=0,side=0;for(let i=0;i<100;i++){if(cx<0||cy<0||cx>=m.w||cy>=m.h)return{dist:Math.max(.02,dist),side,u:0};const tx=dx>0?(cx+1-x)/dx:dx<0?(cx-x)/dx:Infinity,ty=dy>0?(cy+1-y)/dy:dy<0?(cy-y)/dy:Infinity;side=tx<ty?0:1;dist=side===0?tx:ty;const direction=side===0?(dx>0?1:3):(dy>0?2:0);if(m.cells[cy*m.w+cx][direction]||dist>max){const hit=side===0?y+dy*dist:x+dx*dist;return{dist:Math.max(.02,Math.min(dist,max)),side,u:hit-Math.floor(hit)};}if(side===0)cx+=dx>0?1:-1;else cy+=dy>0?1:-1;}return{dist:max,side,u:0};}
-export function canStand(m,x,y,r=.075){if(m.cells[Math.floor(y)*m.w+Math.floor(x)]?.every(v=>v===1))return false;if(x<r||y<r||x>m.w-r||y>m.h-r)return false;for(let cy=Math.max(0,Math.floor(y-r));cy<=Math.min(m.h-1,Math.floor(y+r));cy++)for(let cx=Math.max(0,Math.floor(x-r));cx<=Math.min(m.w-1,Math.floor(x+r));cx++){const walls=m.cells[cy*m.w+cx],segments=[[cx,cy,cx+1,cy],[cx+1,cy,cx+1,cy+1],[cx,cy+1,cx+1,cy+1],[cx,cy,cx,cy+1]];for(let d=0;d<4;d++){if(!walls[d])continue;const[a,b,c,e]=segments[d];if(Math.hypot(x-clamp(x,a,c),y-clamp(y,b,e))<r-1e-7)return false;}}return true;}
+function gridCastRay(m,x,y,angle,max=24){const dx=Math.cos(angle),dy=Math.sin(angle);let cx=Math.floor(x),cy=Math.floor(y),dist=0,side=0;for(let i=0;i<100;i++){if(cx<0||cy<0||cx>=m.w||cy>=m.h)return{dist:Math.max(.02,dist),side,u:0};const tx=dx>0?(cx+1-x)/dx:dx<0?(cx-x)/dx:Infinity,ty=dy>0?(cy+1-y)/dy:dy<0?(cy-y)/dy:Infinity;side=tx<ty?0:1;dist=side===0?tx:ty;const direction=side===0?(dx>0?1:3):(dy>0?2:0);if(m.cells[cy*m.w+cx][direction]||dist>max){const hit=side===0?y+dy*dist:x+dx*dist;return{dist:Math.max(.02,Math.min(dist,max)),side,u:hit-Math.floor(hit)};}if(side===0)cx+=dx>0?1:-1;else cy+=dy>0?1:-1;}return{dist:max,side,u:0};}
+export function castRay(m,x,y,angle,max=24){const room=harborRoomAt(m,x,y);if(room)return propRay(roomCollision(room),x,y,angle,max)||{dist:max,side:0,u:0};const grid=gridCastRay(m,x,y,angle,max);if(!m.obstacles?.length)return grid;const prop=propRay(m,x,y,angle,grid.dist);return prop&&prop.dist<grid.dist?prop:grid;}
+export function canStand(m,x,y,r=.075){const room=harborRoomAt(m,x,y);if(room)return x-r>=(room.x-room.width/2)/4&&x+r<=(room.x+room.width/2)/4&&y-r>=(room.z-room.depth/2)/4&&y+r<=(room.z+room.depth/2)/4&&propCanStand(roomCollision(room),x,y,r);if(m.obstacles?.length&&!propCanStand(m,x,y,r))return false;if(m.cells[Math.floor(y)*m.w+Math.floor(x)]?.every(v=>v===1))return false;if(x<r||y<r||x>m.w-r||y>m.h-r)return false;for(let cy=Math.max(0,Math.floor(y-r));cy<=Math.min(m.h-1,Math.floor(y+r));cy++)for(let cx=Math.max(0,Math.floor(x-r));cx<=Math.min(m.w-1,Math.floor(x+r));cx++){const walls=m.cells[cy*m.w+cx],segments=[[cx,cy,cx+1,cy],[cx+1,cy,cx+1,cy+1],[cx,cy+1,cx+1,cy+1],[cx,cy,cx,cy+1]];for(let d=0;d<4;d++){if(!walls[d])continue;const[a,b,c,e]=segments[d];if(Math.hypot(x-clamp(x,a,c),y-clamp(y,b,e))<r-1e-7)return false;}}return true;}
 
 export const viewAngle=r=>r.angle;
 
@@ -150,6 +158,8 @@ function createDungeonProgression(course){
  };
 }
 export function newRun(course, options = {}){
+ if(course?.harbor)course.activeInterior=null;
+ if(course?.extended)attachScavengerPickups(course);
  const campaign=course?.campaign===true;
  const sectorIndex=Number.isInteger(course?.sectorIndex)?course.sectorIndex:0;
  const sector=getSector(sectorIndex);
@@ -157,12 +167,15 @@ export function newRun(course, options = {}){
  const waveCount=campaign?(sector.waves?.length||CAMPAIGN_WAVE_COUNT):Math.max(1,Number(course?.waveCount)||3);
  return{
   course,x:spawn.x,y:spawn.y,z:0,angle:spawn.angle??-Math.PI/2,pitch:0,vx:0,vy:0,vz:0,speed:0,distance:0,time:0,mode:'ready',
-  health:100,energy:100,weapon:0,ownedWeapons:course?.dungeon?[...(course.startingWeapons||[0])]:weapons.map((_,index)=>index),storyRecords:[],cooldowns:Array.from({length:weapons.length},()=>0),fireCooldown:0,shot:0,damage:0,heal:0,aim:0,slide:0,dashTime:0,punch:0,hookTime:0,hookCooldown:0,hookTarget:-1,parryTime:0,parryCooldown:0,slam:false,wallJumps:0,
+  health:100,energy:100,weapon:0,ownedWeapons:course?.dungeon||course?.scavenging?[...(course.startingWeapons||[0])]:weapons.map((_,index)=>index),storyRecords:[],cooldowns:Array.from({length:weapons.length},()=>0),fireCooldown:0,shot:0,damage:0,heal:0,aim:0,slide:0,dashTime:0,punch:0,hookTime:0,hookCooldown:0,hookTarget:-1,parryTime:0,parryCooldown:0,slam:false,wallJumps:0,
   style:0,styleTotal:0,stylePending:0,styleLabel:'GET CLOSE. GET LOUD.',rank:'D',kills:0,combo:0,bestCombo:0,lastWeapon:-1,repeat:0,
   campaign,sectorIndex,sectorCount:campaign?CAMPAIGN_SECTOR_COUNT:(course?.dungeon?course.dungeonCount:1),sectorId:course?.sectorId||sector.id,sectorName:course?.name||sector.name,wave:0,waveCount,waveDelay:campaign?(sector.waves[0]?.intermission??1.2):course?.dungeon?0:1.2,
   director:campaign?{state:'intermission',budget:0,spent:0,remainingBudget:0,aliveCap:0,active:0,pending:0,queue:[],elapsed:0,seed:sectorIndex*1000+1}:null,
   roomProgression:campaign?createRoomProgression(course,sectorIndex,options):null,
   dungeonProgression:course?.dungeon?createDungeonProgression(course):null,
+  journey:createJourney(course),journeyInteract:false,
+  backpack:createScavengerPack(),lowTide:course?.lowTide?createLowTide():null,
+  vehicle:createHarborVehicle(course),harborProgress:course?.harbor?{initialized:false,ready:false}:null,
   spawnTelegraphs:[],explosions:[],projectiles:[],coins:[],coinCharges:4,coinRegen:0,altCooldown:0,respawnTime:0,
   rifleHeat:0,rifleBurst:0,rifleBurstTimer:0,rifleCharge:0,rifleCharging:false,rifleKick:0,rifleKickYaw:0,shotSequence:0,lastShotMode:'',
   meleeActive:false,meleeProgress:1,meleeDuration:0,meleeHeavy:false,meleeResolved:false,meleeSequence:0,meleeContact:0,meleeHitStop:0,sawRev:0,sawActive:false,sawContact:0,sawTick:0,
@@ -173,8 +186,8 @@ export function newRun(course, options = {}){
  };
 }
 export function look(r,dx,dy){if(r.mode!=='play')return;r.angle=angleDiff(r.angle+dx*.002,0);r.pitch=clamp(r.pitch-dy*.002,-1.35,1.35);}
-export function switchWeapon(r,i){if(!Number.isInteger(i)||!weapons[i]||r.weapon===i||r.course?.dungeon&&!r.ownedWeapons?.includes(i))return false;r.weapon=i;r.shot=0;r.rifleBurst=0;r.rifleBurstTimer=0;r.rifleCharge=0;r.rifleCharging=false;r.rifleKick=0;r.rifleKickYaw=0;r.aim=0;cancelMelee(r);return true;}
-export function nextOwnedWeapon(r,step=1){const owned=r.course?.dungeon?r.ownedWeapons:weapons.map((_,index)=>index);if(!owned?.length)return 0;for(let offset=1;offset<=weapons.length;offset++){const index=(r.weapon+Math.sign(step||1)*offset+weapons.length*2)%weapons.length;if(owned.includes(index))return index;}return r.weapon;}
+export function switchWeapon(r,i){if(!Number.isInteger(i)||!weapons[i]||r.weapon===i||(r.course?.dungeon||r.course?.scavenging)&&!r.ownedWeapons?.includes(i))return false;r.weapon=i;r.shot=0;r.rifleBurst=0;r.rifleBurstTimer=0;r.rifleCharge=0;r.rifleCharging=false;r.rifleKick=0;r.rifleKickYaw=0;r.aim=0;cancelMelee(r);return true;}
+export function nextOwnedWeapon(r,step=1){const owned=r.course?.dungeon||r.course?.scavenging?r.ownedWeapons:weapons.map((_,index)=>index);if(!owned?.length)return 0;for(let offset=1;offset<=weapons.length;offset++){const index=(r.weapon+Math.sign(step||1)*offset+weapons.length*2)%weapons.length;if(owned.includes(index))return index;}return r.weapon;}
 export function eye(r){return EYE+r.z-r.slide*.18;}
 function enemyProfile(e){
  const fallback=e.kind===3?'bellwraith':e.kind===2?'brute':e.kind===1?'caster':'stalker';
@@ -748,7 +761,16 @@ function dungeonNavigation(r,force=false){
   }
   for(const node of required)offer(targetForRoom(node.roomId),'advance',node.roomId,
    course.rooms.find(room=>room.id===node.roomId)?.flow?.goal||`Push through ${dungeonRoomName(course,node.roomId)}`,priority(node.roomId),node);
-  if(!required.length&&p.keysCollected.length>=(course.keys||[]).length)offer(course.exit,'exit',null,'Reach the descent lift');
+  const journeyTarget=r.journey?.target;
+  if(journeyTarget){
+   const defended=plan.find(node=>node.roomId===journeyTarget.roomId&&node.status!=='cleared');
+   // Keep authored route order and active combat guidance. Once a station's
+   // room is cleared, its signature action precedes the next route beat.
+   offer(journeyTarget,'journey',journeyTarget.roomId,r.journey.objective,
+    defended?priority(journeyTarget.roomId)+.25:priority(journeyTarget.roomId)-2);
+  }
+  if(!required.length&&p.keysCollected.length>=(course.keys||[]).length&&!journeyTarget)
+   offer(course.exit,'exit',null,r.journey?.phase==='complete'&&course.dungeonIndex===4?'Leave through the final threshold':'Reach the descent lift');
  }
  options.sort((a,b)=>(a.distance+a.priority)-(b.distance+b.priority));
  const chosen=options[0];
@@ -930,7 +952,8 @@ function updateDungeonEncounter(r,dt){
  }
  updateDungeonDirector(r,dt);
  const required=plan.filter(node=>!node.optional),active=aliveEnemies(r).filter(e=>isHunting(e)||!e.resident).length;
- p.exitReady=!p.currentEncounter&&!active&&required.every(node=>node.status==='cleared')&&p.keysCollected.length>=r.course.keys.length;
+ p.combatReady=!p.currentEncounter&&!active&&required.every(node=>node.status==='cleared')&&p.keysCollected.length>=r.course.keys.length;
+ p.exitReady=p.combatReady&&journeyComplete(r);
  if(required.every(node=>node.status==='cleared'))r.wave=r.waveCount;
  if(p.exitReady)p.phase='exit';
  dungeonSyncEncounter(r);
@@ -1065,7 +1088,7 @@ function updateDungeonProgression(r){
   if(!collector)continue;
   progression.lootCollected.push(item.id);
   const newWeapon=!r.ownedWeapons.includes(item.weaponIndex);
-  if(newWeapon){r.ownedWeapons.push(item.weaponIndex);switchWeapon(r,item.weaponIndex);}
+  if(newWeapon){r.ownedWeapons.push(item.weaponIndex);switchWeapon(r,item.weaponIndex);if(r.peer)r.peer.ownedWeapons=[...r.ownedWeapons];}
   r.events.push({type:'dungeon-weapon',lootId:item.id,weaponIndex:item.weaponIndex,weaponName:weapons[item.weaponIndex].name,rarity:item.rarity,story:item.story,newWeapon,floorIndex:course.dungeonIndex,x:item.x,y:item.y});
  }
  for(const item of course.evidence||[]){
@@ -1082,19 +1105,43 @@ function updateDungeonProgression(r){
   }
  }
 }
+// Death freezes player updates. Clear every transient movement/action intent
+// before revival or relocation so a stored dash, hook or charge cannot resume.
+function resetPlayerMotion(player){
+ player.z=0;player.vx=0;player.vy=0;player.vz=0;player.speed=0;player.dashTime=0;player.slide=0;
+ player.hookTime=0;player.hookTarget=-1;player.slam=false;player.wallJumps=0;player.pressed={};
+ player.respawnTime=0;player.journeyInteract=false;player.rifleCharge=0;player.rifleCharging=false;
+ player.rifleBurst=0;player.rifleBurstTimer=0;player.parryTime=0;player.punch=0;
+ cancelMelee(player);cancelExtraction(player,'relocated');
+}
+function revivePlayer(player,survivor){
+ player.x=survivor.x;player.y=survivor.y;player.health=65;
+ resetPlayerMotion(player);resetBite(player);player.bite.cooldown=BITE_TIMING.grace;
+}
 function advanceDungeonFloor(r){
- const previous=r.course,progress=r.dungeonProgression||{},floorIndex=previous.dungeonIndex+1,course=makeDungeonCourse(floorIndex);
+ const previous=r.course,progress=r.dungeonProgression||{},previousJourney=r.journey,floorIndex=previous.dungeonIndex+1,course=makeDungeonCourse(floorIndex,{journey:previous.journeyEnabled===true,extended:previous.extended===true});
+ if(course.extended)attachScavengerPickups(course);
  r.course=course;r.sectorIndex=floorIndex;r.sectorCount=course.dungeonCount;r.sectorId=course.sectorId;r.sectorName=course.name;resetVerminWorld(r);
- resetBite(r);
+ resetPlayerMotion(r);resetBite(r);r.journey=createJourney(course,previousJourney);
   r.dungeonProgression=createDungeonProgression(course);
   r.dungeonProgression.startIndex=progress.startIndex??previous.dungeonIndex;
   r.dungeonProgression.floorsCleared=(progress.floorsCleared||0)+1;
   r.wave=0;r.waveCount=course.waveCount;r.waveDelay=0;r.director=null;r.campaignComplete=false;
  r.x=course.playerSpawn.x;r.y=course.playerSpawn.y;r.z=0;r.vx=0;r.vy=0;r.vz=0;r.angle=course.playerSpawn.angle??-Math.PI/2;r.pitch=0;
  r.spawnTelegraphs=[];r.projectiles=[];r.coins=[];r.explosions=[];r.pools=[];r.tracers=[];r.gore=[];r.blood=[];r.limbs=[];
+ if(r.peer){
+  const peer=r.peer;peer.course=course;peer.dungeonProgression=r.dungeonProgression;peer.journey=r.journey;
+  peer.sectorIndex=floorIndex;peer.sectorCount=course.dungeonCount;peer.sectorId=course.sectorId;peer.sectorName=course.name;
+  peer.x=course.playerSpawn.x+.35;peer.y=course.playerSpawn.y;
+  if(!canStand(course,peer.x,peer.y,.1)){peer.x=course.playerSpawn.x;peer.y=course.playerSpawn.y;}
+  peer.angle=r.angle;peer.pitch=0;peer.mode='play';peer.health=Math.max(65,peer.health);
+  resetPlayerMotion(peer);resetBite(peer);peer.ownedWeapons=[...r.ownedWeapons];peer.storyRecords=r.storyRecords;
+  peer.vermin=r.vermin;peer._verminCourse=course;peer.wave=0;peer.waveCount=course.waveCount;peer.waveDelay=0;
+  for(const key of ['spawnTelegraphs','projectiles','coins','explosions','pools','tracers','gore','blood','limbs'])peer[key]=r[key];
+ }
  r.events.push({type:'sector-transition',sectorIndex:floorIndex,sectorName:course.name,dungeon:true,floorIndex,floorCount:course.dungeonCount});
 }
-function move(r,dx,dy){const n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.04));for(let i=0;i<n;i++){const nx=r.x+dx/n,ny=r.y+dy/n;if(canTraverseRoomGates(r.course,r.roomProgression,r.x,r.y,nx,r.y)&&canStand(r.course,nx,r.y,.1))r.x=nx;else r.vx=0;if(canTraverseRoomGates(r.course,r.roomProgression,r.x,r.y,r.x,ny)&&canStand(r.course,r.x,ny,.1))r.y=ny;else r.vy=0;}}
+function move(r,dx,dy){const n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.04));for(let i=0;i<n;i++){const nx=r.x+dx/n,ny=r.y+dy/n;if(canTraverseRoomGates(r.course,r.roomProgression,r.x,r.y,nx,r.y)&&canStand(r.course,nx,r.y,.1)&&!vehicleContains(r.vehicle,nx,r.y,.1))r.x=nx;else r.vx=0;if(canTraverseRoomGates(r.course,r.roomProgression,r.x,r.y,r.x,ny)&&canStand(r.course,r.x,ny,.1)&&!vehicleContains(r.vehicle,r.x,ny,.1))r.y=ny;else r.vy=0;}}
 // Elapsed is total sequence time. Keep the strike time and full duration in
 // state so host and guest visuals can use the same timeline across phases.
 export const BRUTAL_TIMING=Object.freeze({
@@ -1140,7 +1187,7 @@ function parryTarget(r){
 // UI readiness derives from the same pure selector used by the F action.
 // A near-complete struggle always escapes, even when the counter is unavailable.
 export function brutalCandidate(r){
- if(r.mode!=='play'||r.health<=0||r.parryCooldown>0||brutalActive(r))return null;
+ if(r.mode!=='play'||r.health<=0||r.vehicle?.occupied||r.parryCooldown>0||brutalActive(r))return null;
  const held=r.bite?.phase==='held',e=held?r.course.enemies.find(e=>e.id===r.bite.enemyId):parryTarget(r);
  if(!brutalEligible(r,e)||held&&r.bite.escape<.35)return null;
  const stagger=r.bite?.phase==='windup'&&r.bite.enemyId===e.id?Math.max(e.stagger||0,1.1):(e.stagger||0);
@@ -1169,6 +1216,7 @@ export function chestCandidate(r){
  return{enemyId:e.id,kind:'pierce',side:'right'};
 }
 export function chestFinisher(r){
+ if(r.vehicle?.occupied)return false;
  const candidate=chestCandidate(r);
  return !!candidate&&beginBrutal(r,r.course.enemies.find(e=>e.id===candidate.enemyId),candidate.kind,candidate.side);
 }
@@ -1234,7 +1282,7 @@ function advanceBrutal(world,r,dt){
  }else if(b.phase==='contact'&&b.elapsed+1e-8>=b.contactAt+timing.contact){b.phase='recover';brutalEvent(r,'brutal-recover',e);}
  if(b.elapsed+1e-8>=b.duration){brutalEvent(r,'brutal-complete',e);r.brutal=makeBrutalState(b.sequence);}
 }
-export function parry(r){if(r.mode!=='play'||r.health<=0||r.parryCooldown>0)return false;
+export function parry(r){if(r.mode!=='play'||r.health<=0||r.vehicle?.occupied||r.parryCooldown>0)return false;
  const candidate=brutalCandidate(r);
  r.parryTime=.19;r.parryCooldown=.45;r.punch=.3;const punchIndex=r.events.length;r.events.push({type:'punch',x:r.x,y:r.y,z:eye(r)});
  if(r.bite?.phase==='held'){
@@ -1292,7 +1340,7 @@ function impulseMeleeEnemy(e,angle,power,kind){
 function meleeImpact(r,target,damage,power,kind,heavy){
  const world=r.world||r,{e,a,z}=target,deadBefore=e.dead;
  const hit={...(target.bodyHit||{x:r.x+Math.cos(r.angle)*target.d,y:r.y+Math.sin(r.angle)*target.d,z:clamp(z,(e.meleeZ||0)+.02,enemyHitHeight(e,.52)+(e.meleeZ||0))}),source:kind==='chainsaw'?'chainsaw':'blunt',angle:r.angle,pitch:r.pitch};
- damageEnemy(r,e,damage,kind==='chainsaw'?'+ CARVED UP':heavy?'+ HOME RUN':'+ LIGHTS OUT',hit);
+ damageEnemy(r,e,damage*weaponDamageMultiplier(r,r.weapon),kind==='chainsaw'?'+ CARVED UP':heavy?'+ HOME RUN':'+ LIGHTS OUT',hit);
  impulseMeleeEnemy(e,a,power,kind);
  // A short local contact record feeds the existing bounded splash pool. It
  // deliberately has no luminous bullet beam or muzzle flash.
@@ -1317,7 +1365,7 @@ function meleeWall(r,range,heavy=false){
 }
 
 export function shootMelee(r,secondary=false,predicted=false){
- if(r.mode!=='play'||r.health<=0||brutalActive(r)||verminBusy(r)||r.weapon<6||r.weapon>7)return false;
+ if(r.mode!=='play'||r.health<=0||r.vehicle?.occupied||brutalActive(r)||verminBusy(r)||r.weapon<6||r.weapon>7)return false;
  if(r.weapon===7&&!secondary)return false; // Held cutting is stepped below.
  if(r.meleeActive||r.cooldowns[r.weapon]>0)return false;
  r.meleeActive=true;r.meleeProgress=0;r.meleeResolved=false;r.meleeHeavy=secondary;
@@ -1418,7 +1466,7 @@ function fireRifleRound(r, mode, predicted = false) {
  else for(let i=0;i<targets.length;i++){
   scoringHit ||= !targets[i].e.dead;
   const t=targets[i],head=t.bodyHit?t.bodyHit.part==='head':t.z>.38,damage=(charged?11:w.damage)*(head?1.5:1)*Math.pow(.82,i);
-  damageEnemy(r,t.e,damage,charged?'+ THROUGH THE VEIL':head?'+ HEADSHOT':'+ ELIMINATED',{...(t.bodyHit||{x:r.x+dx*t.along,y:r.y+dy*t.along,z:t.z}),angle:a,pitch:r.pitch});
+  damageEnemy(r,t.e,damage*weaponDamageMultiplier(r,r.weapon),charged?'+ THROUGH THE VEIL':head?'+ HEADSHOT':'+ ELIMINATED',{...(t.bodyHit||{x:r.x+dx*t.along,y:r.y+dy*t.along,z:t.z}),angle:a,pitch:r.pitch});
   if(charged)t.e.stagger=Math.max(t.e.stagger||0,.22);
   end=t.along;hit=true;surface='flesh';
  }
@@ -1431,7 +1479,7 @@ function fireRifleRound(r, mode, predicted = false) {
 }
 
 export function shootRifle(r, secondary=false, predicted=false) {
- if(r.mode!=='play'||r.health<=0||brutalActive(r)||verminBusy(r)||(r.weapon!==4&&r.weapon!==5))return false;
+ if(r.mode!=='play'||r.health<=0||r.vehicle?.occupied||brutalActive(r)||verminBusy(r)||(r.weapon!==4&&r.weapon!==5))return false;
  if(r.cooldowns[r.weapon]>0||r.rifleBurst>0)return false;
  if(r.weapon===5&&secondary){
   if(!r.rifleCharging){r.rifleCharging=true;r.rifleCharge=0;r.events.push({type:'rifle-charge',weapon:5,x:r.x,y:r.y,z:eye(r),predicted});}
@@ -1464,7 +1512,7 @@ function advanceRifles(r,dt,input){
  r.aim+=(focus-r.aim)*(1-Math.exp(-dt*12));
 }
 
-export function shoot(r,secondary=false){if(r.mode!=='play'||r.health<=0||brutalActive(r)||verminBusy(r))return false;const world=r.world||r;
+export function shoot(r,secondary=false){if(r.mode!=='play'||r.health<=0||r.vehicle?.occupied||brutalActive(r)||verminBusy(r))return false;const world=r.world||r;
  if(r.weapon>=6)return shootMelee(r,secondary);
  if(r.weapon>=4)return shootRifle(r,secondary);
  if(secondary&&r.weapon===0){if(r.altCooldown||r.coinCharges<=0)return false;r.coinCharges--;r.altCooldown=.3;world.coins.push({id:world.nextId++,x:r.x+Math.cos(r.angle)*.2,y:r.y+Math.sin(r.angle)*.2,z:eye(r)+.03,vx:Math.cos(r.angle)*.9,vy:Math.sin(r.angle)*.9,vz:1.15,life:3});r.events.push({type:'coin',weapon:0,x:r.x,y:r.y,z:eye(r)});return true;}
@@ -1476,19 +1524,22 @@ export function shoot(r,secondary=false){if(r.mode!=='play'||r.health<=0||brutal
   return true;
 }
 if(r.cooldowns[r.weapon]>0)return false;
- if(r.weapon===3){const w=weapons[3],speed=7.2,dx=Math.cos(r.angle)*Math.cos(r.pitch),dy=Math.sin(r.angle)*Math.cos(r.pitch),dz=Math.sin(r.pitch);r.cooldowns[3]=w.interval;r.fireCooldown=w.interval;r.shot=1;r.lastWeapon=r.weapon;r.repeat=0;const rocket={id:world.nextId++,kind:'rocket',weapon:3,x:r.x,y:r.y,z:eye(r),vx:dx*speed,vy:dy*speed,vz:dz*speed,life:4,radius:w.radius,damage:w.damage,knockback:w.knockback,ownerId:playerId(r),selfBoost:true,reflected:false};world.projectiles.push(rocket);r.events.push({type:'rocket',weapon:3,x:rocket.x,y:rocket.y,z:rocket.z,projectileId:rocket.id});return true;}
- if(secondary&&r.weapon===1){r.cooldowns[1]=.95;r.shot=1;const core={id:world.nextId++,kind:'core',weapon:1,x:r.x,y:r.y,z:eye(r),vx:Math.cos(r.angle)*Math.cos(r.pitch)*2.8,vy:Math.sin(r.angle)*Math.cos(r.pitch)*2.8,vz:Math.sin(r.pitch)*2.8+.5,life:3,reflected:true,core:true,ownerId:playerId(r)};world.projectiles.push(core);r.events.push({type:'shot',weapon:1,x:core.x,y:core.y,z:core.z,projectileId:core.id});return true;}
+ if(r.weapon===3){const w=weapons[3],speed=7.2,dx=Math.cos(r.angle)*Math.cos(r.pitch),dy=Math.sin(r.angle)*Math.cos(r.pitch),dz=Math.sin(r.pitch);r.cooldowns[3]=w.interval;r.fireCooldown=w.interval;r.shot=1;r.lastWeapon=r.weapon;r.repeat=0;const rocket={id:world.nextId++,kind:'rocket',weapon:3,x:r.x,y:r.y,z:eye(r),vx:dx*speed,vy:dy*speed,vz:dz*speed,life:4,radius:w.radius,damage:w.damage*weaponDamageMultiplier(r,3),knockback:w.knockback,ownerId:playerId(r),selfBoost:true,reflected:false};world.projectiles.push(rocket);r.events.push({type:'rocket',weapon:3,x:rocket.x,y:rocket.y,z:rocket.z,projectileId:rocket.id});return true;}
+ if(secondary&&r.weapon===1){r.cooldowns[1]=.95;r.shot=1;const core={id:world.nextId++,kind:'core',weapon:1,x:r.x,y:r.y,z:eye(r),vx:Math.cos(r.angle)*Math.cos(r.pitch)*2.8,vy:Math.sin(r.angle)*Math.cos(r.pitch)*2.8,vz:Math.sin(r.pitch)*2.8+.5,life:3,reflected:true,core:true,damageMultiplier:weaponDamageMultiplier(r,1),ownerId:playerId(r)};world.projectiles.push(core);r.events.push({type:'shot',weapon:1,x:core.x,y:core.y,z:core.z,projectileId:core.id});return true;}
 const w=weapons[r.weapon];r.cooldowns[r.weapon]=w.interval*(secondary&&r.weapon===0?2:1);r.fireCooldown=r.cooldowns[r.weapon];r.shot=1;r.events.push({type:'shot',weapon:r.weapon,x:r.x,y:r.y,z:eye(r)});r.repeat=r.lastWeapon===r.weapon?r.repeat+1:0;r.lastWeapon=r.weapon;
  const pellets=r.weapon===1?9:1,pierce=r.weapon===2||(secondary&&r.weapon===0);let hits=0;
  for(let i=0;i<pellets;i++){const offset=pellets>1?(i-4)/4:0,a=r.angle+offset*w.cone,pitch=r.pitch+(pellets>1?Math.sin(i*2.4)*.075:0),wallHit=castRay(r.course,r.x,r.y,a,w.range),wall=wallHit.dist,oz=eye(r),slope=Math.tan(pitch),floor=slope<0?Math.max(0,(.01-oz)/slope):Infinity,max=Math.min(w.range,wall,floor);let end=max;
  const targets=r.course.enemies.filter(e=>!e.extracted&&(!e.dead||supportsAnatomy(e))).map(e=>enemyRayTarget(e,r,a,pitch,max)).filter(Boolean).sort((a,b)=>a.along-b.along);
  const coin=r.weapon===0?world.coins.find(c=>{const dx=c.x-r.x,dy=c.y-r.y,d=dx*Math.cos(a)+dy*Math.sin(a);return d>0&&d<max&&Math.abs(-dx*Math.sin(a)+dy*Math.cos(a))<.085&&Math.abs(c.z-(oz+d*slope))<.085;}):null;
- if(coin){coin.life=0;const target=r.course.enemies.filter(e=>!e.dead&&castRay(r.course,coin.x,coin.y,Math.atan2(e.y-coin.y,e.x-coin.x)).dist>Math.hypot(e.x-coin.x,e.y-coin.y)-.1).sort((a,b)=>Math.hypot(a.x-coin.x,a.y-coin.y)-Math.hypot(b.x-coin.x,b.y-coin.y))[0];if(target){damageEnemy(r,target,9,'+ RICOCHET');award(r,180,'+ RICOCHET');world.tracers.push({id:world.nextId++,x:coin.x,y:coin.y,z:coin.z,tx:target.x,ty:target.y,tz:.4,ownerId:playerId(r),life:.22,duration:.22,weapon:0,ricochet:true,rail:true});hits++;}continue;}
- const core=world.projectiles.find(p=>{if(!p.core||p.life<=0)return false;const dx=p.x-r.x,dy=p.y-r.y,d=dx*Math.cos(a)+dy*Math.sin(a);return d>0&&d<max&&Math.abs(-dx*Math.sin(a)+dy*Math.cos(a))<.14&&Math.abs(p.z-(oz+d*slope))<.14;});if(core){core.life=0;core.nuke=r.weapon===2;explode(world,core);award(r,core.nuke?350:120,core.nuke?'+ CORE NUKE':'+ CORE SHOT');hits++;continue;}for(const t of targets.slice(0,pierce?100:1)){const head=t.bodyHit?t.bodyHit.part==='head':t.z>.38,wasDead=t.e.dead;damageEnemy(r,t.e,w.damage*(head?1.5:1)*(secondary&&r.weapon===0?2:1),head?'+ HEADSHOT':'+ ELIMINATED',{...(t.bodyHit||{x:r.x+Math.cos(a)*t.along,y:r.y+Math.sin(a)*t.along,z:t.z}),angle:a,pitch});if(!wasDead)hits++;if(!pierce)end=t.along;}
+ if(coin){coin.life=0;const target=r.course.enemies.filter(e=>!e.dead&&castRay(r.course,coin.x,coin.y,Math.atan2(e.y-coin.y,e.x-coin.x)).dist>Math.hypot(e.x-coin.x,e.y-coin.y)-.1).sort((a,b)=>Math.hypot(a.x-coin.x,a.y-coin.y)-Math.hypot(b.x-coin.x,b.y-coin.y))[0];if(target){damageEnemy(r,target,9*weaponDamageMultiplier(r,0),'+ RICOCHET');award(r,180,'+ RICOCHET');world.tracers.push({id:world.nextId++,x:coin.x,y:coin.y,z:coin.z,tx:target.x,ty:target.y,tz:.4,ownerId:playerId(r),life:.22,duration:.22,weapon:0,ricochet:true,rail:true});hits++;}continue;}
+ const core=world.projectiles.find(p=>{if(!p.core||p.life<=0)return false;const dx=p.x-r.x,dy=p.y-r.y,d=dx*Math.cos(a)+dy*Math.sin(a);return d>0&&d<max&&Math.abs(-dx*Math.sin(a)+dy*Math.cos(a))<.14&&Math.abs(p.z-(oz+d*slope))<.14;});if(core){core.life=0;core.nuke=r.weapon===2;if(core.nuke)core.damageMultiplier=weaponDamageMultiplier(r,2);explode(world,core);award(r,core.nuke?350:120,core.nuke?'+ CORE NUKE':'+ CORE SHOT');hits++;continue;}for(const t of targets.slice(0,pierce?100:1)){const head=t.bodyHit?t.bodyHit.part==='head':t.z>.38,wasDead=t.e.dead;damageEnemy(r,t.e,w.damage*weaponDamageMultiplier(r,r.weapon)*(head?1.5:1)*(secondary&&r.weapon===0?2:1),head?'+ HEADSHOT':'+ ELIMINATED',{...(t.bodyHit||{x:r.x+Math.cos(a)*t.along,y:r.y+Math.sin(a)*t.along,z:t.z}),angle:a,pitch});if(!wasDead)hits++;if(!pierce)end=t.along;}
  if(pellets===1||i%2===0)(r.world||r).tracers.push({id:(r.world||r).nextId++,x:r.x,y:r.y,z:oz,tx:r.x+Math.cos(a)*end,ty:r.y+Math.sin(a)*end,tz:oz+slope*end,surface:(!pierce&&targets.length)?'flesh':floor<=wall&&floor<=w.range?'floor':wall<w.range&&oz+slope*end<=1.45?'wall':'air',normal:floor<=wall&&floor<=w.range?{x:0,y:0,z:1}:wallHit.side===0?{x:-Math.sign(Math.cos(a)),y:0,z:0}:{x:0,y:-Math.sign(Math.sin(a)),z:0},ownerId:playerId(r),life:.18,duration:.18,weapon:r.weapon,hit:targets.length>0,rail:r.weapon===2});}
  if(hits)award(r,Math.max(8,55-r.repeat*9)*(r.weapon===1?1:1.3),r.repeat<1?'+ FRESH WEAPON':'+ HIT');return true;
 }
-export function tickPlayer(r,dt,input={}){if(r.mode!=='play'||r.health<=0)return;dt=clamp(dt,0,.05);r.time+=dt;
+export function tickPlayer(r,dt,input={}){r.journeyInteract=r.mode==='play'&&r.health>0&&!!input.interact;if(r.mode!=='play'||r.health<=0)return;dt=clamp(dt,0,.05);r.time+=dt;
+ if(r.lowTide&&tickLowTideInteraction(r,input))return;
+ if(r.course.harbor&&tickHarborRoom(r,input,{canStand}))return;
+ if(r.vehicle&&tickHarborVehicle(r,dt,input,{canStand,castRay})){cancelMelee(r);r.shot=0;return;}
  const harvestHeld=!!input.harvest,verminConsumes=interceptVerminInput(r,input);
  if(verminConsumes)input={...input,harvest:false,fire:false,alt:false};
  if(!input.predictWeapons)r._biteInput={effort:Math.abs(input.forward||0)+Math.abs(input.strafe||0)>.1||!!input.jump||!!input.dash};
@@ -1508,6 +1559,7 @@ export function tickPlayer(r,dt,input={}){if(r.mode!=='play'||r.health<=0)return
  if(r.dashTime<=0)r.vz-=5.5*dt;r.z=Math.max(0,r.z+r.vz*dt);if(r.z===0){r.vz=0;r.wallJumps=0;if(r.slam){r.slam=false;for(const e of r.course.enemies)if(!e.dead&&Math.hypot(e.x-r.x,e.y-r.y)<1.15&&castRay(r.course,r.x,r.y,Math.atan2(e.y-r.y,e.x-r.x)).dist>Math.hypot(e.x-r.x,e.y-r.y)-.1)damageEnemy(r,e,5,'+ GROUND SLAM');r.events.push({type:'slam',x:r.x,y:r.y,z:0});}else if(wasAir)r.events.push({type:'land',x:r.x,y:r.y,z:0});}
  // Keep extraction after movement so any actual displacement in this tick
  // cancels the committed action before it can advance or award.
+ if(r.course.activeInterior&&r.z>.35){r.z=.35;r.vz=Math.min(0,r.vz);}
  if(!heldByBite)advanceExtraction(r,dt,input);
 }
 // Recompute a short grid route only when cover blocks line of sight.
@@ -1567,7 +1619,7 @@ function splatGlob(r,p,z){
  }
  r.events.push({type:'blood',x:gx,y:gy,z:gz,enemyId:p.enemyId,variant:p.variant,splat:true,projectileId:p.id});
 }
-export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive');if(r.peer)cancelBrutal(r.peer,'inactive');return;}dt=clamp(dt,0,.05);tickPlayer(r,dt,input);
+export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive');if(r.peer)cancelBrutal(r.peer,'inactive');return;}dt=clamp(dt,0,.05);tickPlayer(r,dt,input);updateLowTide(r,dt);
  for(const defender of [r,...(r.peer?[r.peer]:[])])advanceBrutal(r,defender,dt);
  for(const defender of [r,...(r.peer?[r.peer]:[])])advancePlayerBite(r,defender,dt);
  tickVermin(r,dt);
@@ -1590,7 +1642,7 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
    const d=Math.hypot(t.x-e.x,t.y-e.y);
    // Sight lines are cast once per enemy per tick and shared with the movement
    // pass below, so the pack memory costs no extra raycasts.
-   const seen=castRay(r.course,e.x,e.y,Math.atan2(t.y-e.y,t.x-e.x)).dist>d-.1;
+   const seen=!r.course.activeInterior&&castRay(r.course,e.x,e.y,Math.atan2(t.y-e.y,t.x-e.x)).dist>d-.1;
    e.seesTarget=seen;
    if(seen){pack.alert=2.6;pack.lastX=t.x;pack.lastY=t.y;}
    if(d<pack.leaderD){pack.leaderD=d;pack.leader=e;}
@@ -1600,6 +1652,7 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
  const aiCtx={env:AI_ENV,course:r.course,dt,time:r.time,noises:aiAlive.some(en=>en.mind)?collectNoises(r):[],packs,alive:aiAlive,navBudget:4,profile:null,reach:0,tokens:{melee:0,ranged:0,maxMelee:aiAlive.length>=5?3:2,maxRanged:2}};
  for(const en of aiAlive)if(en.mind?.token){if(isMeleeRole(enemyProfile(en).role))aiCtx.tokens.melee++;else aiCtx.tokens.ranged++;}
  for(const e of r.course.enemies){
+ if(r.lowTide&&r.course.activeInterior){e.attacking=false;e.windup=0;continue;}
  advanceMeleeImpulse(r,e,dt);
  e.flash=Math.max(0,e.flash-dt);e.strike=Math.max(0,(e.strike||0)-dt);e.stagger=Math.max(0,(e.stagger||0)-dt);e.biteCooldown=Math.max(0,(e.biteCooldown||0)-dt);if(e.dead)continue;const profile=enemyProfile(e);
  if([r,r.peer].some(player=>player&&biteActive(player)&&player.bite.enemyId===e.id))continue;
@@ -1753,13 +1806,27 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
   b.size=b.baseSize*(1+.16*(1-Math.exp(-b.age*1.3)));
  }
  r.style=Math.max(0,r.style-dt*35);r.rank=r.style>1400?'SSS':r.style>1100?'SS':r.style>800?'S':r.style>550?'A':r.style>300?'B':r.style>120?'C':'D';
- if(r.campaign){
+ if(r.course.harbor){
+  const progress=r.harborProgress;
+  if(!progress.initialized){
+   progress.initialized=true;
+   for(const [order,point] of (r.course.harborSpawns||[]).entries())spawnEnemy(r,{variant:point.variant||'stalker',resident:true,mindState:'wander',order,spawnAnim:'none'},point);
+  }
+  if(!r.vehicle?.occupied&&!r.course.activeInterior){tickWeaponInventory(r,{castRay});tickScavengerPack(r,{castRay});}
+  progress.ready=(r.backpack.weaponPickups?.length||0)>=3&&(r.vehicle?.distance||0)>=8;
+  if(!r.lowTide&&progress.ready&&!r.vehicle?.occupied&&Math.hypot(r.x-r.course.exit.x,r.y-r.course.exit.y)<.65){r.mode='win';r.events.push({type:'win',x:r.x,y:r.y,z:eye(r)});}
+ }else if(r.campaign){
   updateCampaignDirector(r,dt);
   updateRoomProgression(r,dt);
   checkCampaignExit(r);
   }else if(r.course?.dungeon){
+   if(r.course.extended)tickScavengerPack(r,{castRay});
    updateDungeonProgression(r);
    updateDungeonEncounter(r,dt);
+   const journeySequence=r.journey?.eventSeq;
+   updateJourney(r,dt,{castRay});
+   r.dungeonProgression.exitReady=r.dungeonProgression.combatReady&&journeyComplete(r);
+   if(r.journey?.eventSeq!==journeySequence)dungeonNavigation(r,true);
    if(r.dungeonProgression.exitReady&&(Math.hypot(r.x-r.course.exit.x,r.y-r.course.exit.y)<.6||(r.peer&&Math.hypot(r.peer.x-r.course.exit.x,r.peer.y-r.course.exit.y)<.6))){
     if(r.course.dungeonIndex+1<r.course.dungeonCount)advanceDungeonFloor(r);
     else{r.mode='win';r.campaignComplete=true;r.dungeonProgression.floorsCleared=r.course.dungeonCount-r.dungeonProgression.startIndex;r.events.push({type:'win',floorIndex:r.course.dungeonIndex,floorCount:r.course.dungeonCount,x:r.x,y:r.y,z:eye(r)});}
@@ -1767,16 +1834,16 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
   }else if(!r.course.enemies.some(isThreat)){
   if(r.wave<r.waveCount){r.waveDelay-=dt;if(r.waveDelay<=0){spawnWave(r);r.waveDelay=2;}}
   else if(Math.hypot(r.x-r.course.exit.x,r.y-r.course.exit.y)<.6||(r.peer&&Math.hypot(r.peer.x-r.course.exit.x,r.peer.y-r.course.exit.y)<.6)){r.mode='win';r.events.push({type:'win',x:r.x,y:r.y,z:eye(r)});}
- } if(r.peer){r.peer.style=Math.max(0,r.peer.style-dt*35);r.peer.rank=styleRank(r.peer.style);if(r.health<=0&&r.peer.health>0){r.respawnTime=(r.respawnTime||0)+dt;if(r.respawnTime>3){r.x=r.peer.x;r.y=r.peer.y;r.z=0;r.health=65;r.respawnTime=0;resetBite(r);r.bite.cooldown=BITE_TIMING.grace;}}if(r.peer.health<=0&&r.health>0){r.peer.respawnTime=(r.peer.respawnTime||0)+dt;if(r.peer.respawnTime>3){r.peer.x=r.x;r.peer.y=r.y;r.peer.z=0;r.peer.health=65;r.peer.respawnTime=0;resetBite(r.peer);r.peer.bite.cooldown=BITE_TIMING.grace;}}}if(r.health<=0&&(!r.peer||r.peer.health<=0)){r.mode='dead';r.events.push({type:'dead'});}
+ } if(r.peer){r.peer.style=Math.max(0,r.peer.style-dt*35);r.peer.rank=styleRank(r.peer.style);if(r.health<=0&&r.peer.health>0){r.respawnTime=(r.respawnTime||0)+dt;if(r.respawnTime>3)revivePlayer(r,r.peer);}if(r.peer.health<=0&&r.health>0){r.peer.respawnTime=(r.peer.respawnTime||0)+dt;if(r.peer.respawnTime>3)revivePlayer(r.peer,r);}}if(r.health<=0&&(!r.peer||r.peer.health<=0)){r.mode='dead';r.events.push({type:'dead'});}
 }
 
 export const styleRank=v=>v>1400?"SSS":v>1100?"SS":v>800?"S":v>550?"A":v>300?"B":v>120?"C":"D";
-export function addPeer(r){const p=newRun(r.course,{requireEntry:r.roomProgression?.requireEntry===true});p.x=(r.course.playerSpawn?.x??6)+.5;p.y=r.course.playerSpawn?.y??10.5;p.mode='play';p.playerId='peer';p.world=r;p.vermin=r.vermin;p.roomProgression=r.roomProgression||p.roomProgression;if(p.roomProgression)syncRoomGateCells(r.course,p.roomProgression);r.peer=p;return p;}
+export function addPeer(r){const p=newRun(r.course,{requireEntry:r.roomProgression?.requireEntry===true});p.x=(r.course.playerSpawn?.x??6)+.5;p.y=r.course.playerSpawn?.y??10.5;if(!canStand(r.course,p.x,p.y,.1)){p.x=r.x;p.y=r.y;}p.mode='play';p.playerId='peer';p.world=r;p.vermin=r.vermin;p.roomProgression=r.roomProgression||p.roomProgression;if(r.course.dungeon){p.dungeonProgression=r.dungeonProgression;p.journey=r.journey;p.ownedWeapons=[...r.ownedWeapons];p.storyRecords=r.storyRecords;}if(p.roomProgression)syncRoomGateCells(r.course,p.roomProgression);r.peer=p;return p;}
 
 function explode(r,p){
  if(p.exploded)return;
  p.exploded=true;
- const rocket=p.kind==='rocket',radius=rocket?(p.radius||1.65):(p.nuke?2.3:1.1),baseDamage=rocket?(p.damage||24):(p.nuke?22:9);
+ const rocket=p.kind==='rocket',radius=rocket?(p.radius||1.65):(p.nuke?2.3:1.1),baseDamage=rocket?(p.damage||24):(p.nuke?22:9)*(p.damageMultiplier||1);
  const owner=p.ownerId==='peer'?r.peer:p.ownerId==='host'?r:null;
  const attacker=owner||r;
  for(const e of r.course.enemies){
@@ -1802,4 +1869,4 @@ function explode(r,p){
  burst(r,{id:p.id,x:p.x,y:p.y,z:p.z},rocket?48:24,{x:p.x,y:p.y,z:p.z});
  r.events.push({type:'explosion',weapon:rocket?3:(p.weapon||1),x:p.x,y:p.y,z:p.z,radius,projectileId:p.id});
 }
-export function grapple(r){if(r.mode!=='play'||r.health<=0||r.hookCooldown>0)return false;const target=r.course.enemies.filter(e=>!e.dead).map(e=>({e,d:Math.hypot(e.x-r.x,e.y-r.y),a:Math.atan2(e.y-r.y,e.x-r.x)})).filter(t=>t.d<7&&Math.abs(angleDiff(t.a,r.angle))<.3&&castRay(r.course,r.x,r.y,t.a).dist>t.d-.1).sort((a,b)=>a.d-b.d)[0];if(!target)return false;r.hookTarget=target.e.id;r.hookTime=.65;r.hookCooldown=1;award(r,35,'+ TETHER');r.events.push({type:'hook'});return true;}
+export function grapple(r){if(r.mode!=='play'||r.health<=0||r.vehicle?.occupied||r.hookCooldown>0)return false;const target=r.course.enemies.filter(e=>!e.dead).map(e=>({e,d:Math.hypot(e.x-r.x,e.y-r.y),a:Math.atan2(e.y-r.y,e.x-r.x)})).filter(t=>t.d<7&&Math.abs(angleDiff(t.a,r.angle))<.3&&castRay(r.course,r.x,r.y,t.a).dist>t.d-.1).sort((a,b)=>a.d-b.d)[0];if(!target)return false;r.hookTarget=target.e.id;r.hookTime=.65;r.hookCooldown=1;award(r,35,'+ TETHER');r.events.push({type:'hook'});return true;}

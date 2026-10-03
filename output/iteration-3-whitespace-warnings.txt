@@ -1,0 +1,66 @@
+warning: LF will be replaced by CRLF in AGENTS.md.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in README.md.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in afterlife-lighting.js.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in build.mjs.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in corpse-physics.js.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in docs/enemy-motion/warden-in-game.json.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in dungeon-wayfinding.js.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in enemy-ai.js.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in enemy-ai.test.mjs.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in enemy-cut-preview.js.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in engine.js.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in gamepad-input.js.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in horror-ui.css.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in index.html.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in main.js.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in npc-afterlife-model.js.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in npc-afterlife.js.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in npc-warden.js.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in package.json.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in playground/map/dungeon-course.js.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in progress.md.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in renderer.js.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in tests/afterlife-animation.test.mjs.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in tests/afterlife-lighting.test.mjs.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in tests/character-rig-v05.test.mjs.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in tests/corpse-physics.test.mjs.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in tests/enemy-animation-quality.test.mjs.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in tests/loading-preparation.test.mjs.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in tests/melee-input-coop.mjs.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in tests/story-floor-loading.mjs.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in tests/vermin-integration.test.mjs.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in tests/warden-motion.test.mjs.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in ui.js.
+The file will have its original line endings in your working directory

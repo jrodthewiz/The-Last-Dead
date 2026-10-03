@@ -6,14 +6,24 @@ import { OPENING_KINDS, compileLayer, compileIngressGroups, encounterReachForWav
 import { wallSegments } from './grid.js';
 import { dungeonArtDirection } from '../../dungeon-art-direction.js';
 import { roomRecoveryPolicy } from '../../dungeon-encounter-design.js';
+import { makeJourneyStations } from '../../campaign-journey.js';
+import { extendDungeonLayer } from './dungeon-extension.js';
 
 const compiledLayers = new Map();
+const extendedLayouts = new Map();
 // Keep the first enemies in the entry room, but outside the player's opening melee range.
 const START_WAVE_CLEARANCE = 3;
 
-function compiledFor(index) {
-  if (!compiledLayers.has(index)) compiledLayers.set(index, compileLayer(DUNGEON_LAYERS[index]));
-  return compiledLayers.get(index);
+function layoutFor(index, extended) {
+  if (!extended) return { layer: DUNGEON_LAYERS[index], route: DUNGEON_ROUTES[index] };
+  if (!extendedLayouts.has(index)) extendedLayouts.set(index, extendDungeonLayer(DUNGEON_LAYERS[index], DUNGEON_ROUTES[index]));
+  return extendedLayouts.get(index);
+}
+
+function compiledFor(index, extended = false) {
+  const key = `${index}:${extended}`;
+  if (!compiledLayers.has(key)) compiledLayers.set(key, compileLayer(layoutFor(index, extended).layer));
+  return compiledLayers.get(key);
 }
 
 function cloneCells(cells) {
@@ -90,16 +100,16 @@ function roomAt(rooms, x, z) {
   return rooms.find(room => roomContainsCell(room, x, z)) || null;
 }
 
-export function makeDungeonCourse(index = 0) {
+export function makeDungeonCourse(index = 0, options = {}) {
   const floorIndex = Math.max(0, Math.min(DUNGEON_LAYERS.length - 1, Math.floor(Number(index) || 0)));
-  const layer = DUNGEON_LAYERS[floorIndex];
-  const compiled = compiledFor(floorIndex);
+  const extended = options.extended === true;
+  const { layer, route } = layoutFor(floorIndex, extended);
+  const compiled = compiledFor(floorIndex, extended);
   const initiallyOpen = new Set(compiled.openings
     .filter(opening => OPENING_KINDS[opening.kind]?.alwaysOpen || (!opening.lockedBy && !opening.secret && opening.kind !== 'vent'))
     .map(opening => opening.id));
   const waveCount = Math.max(1, ...layer.spots.map(spot => Math.floor(spot.wave) + 1));
   const roomClearWaveByOpening = roomClearEncounterSchedule(layer, compiled);
-  const route = DUNGEON_ROUTES[floorIndex];
   const course = {
     name: layer.name,
     tag: layer.tag,
@@ -113,6 +123,12 @@ export function makeDungeonCourse(index = 0) {
     dungeon: true,
     dungeonIndex: floorIndex,
     dungeonCount: DUNGEON_LAYERS.length,
+    extended,
+    extension: extended ? { ...layer.extension,
+      baseRouteMeters: compiledFor(floorIndex).metrics.routeMeters,
+      routeMeters: compiled.metrics.routeMeters,
+      routeRatio: compiled.metrics.routeMeters / compiledFor(floorIndex).metrics.routeMeters,
+    } : null,
     artDirection: dungeonArtDirection({ dungeon: true, id: layer.id }),
     waveCount,
     w: layer.width,
@@ -205,10 +221,15 @@ export function makeDungeonCourse(index = 0) {
   ));
   for (const spot of layer.spots) {
     const waveIndex = Math.max(0, Math.min(waveCount - 1, Math.floor(spot.wave)));
+    const annexRoom = spot.annex && course.rooms.find(room => room.id === spot.roomId);
     const startWaveConstraints = waveIndex === 0
       ? { origin: course.playerSpawn, minDistance: START_WAVE_CLEARANCE, bounds: entryRoom?.bounds }
-      : {};
-    const position = nearestFloorPoint(reachByWave[waveIndex], course.w, course.h, spot.x, spot.z, reservedByWave[waveIndex], startWaveConstraints);
+      : annexRoom ? { bounds: annexRoom.bounds } : {};
+    // Annex markers remain in their owner room while the original key keeps
+    // the transfer corridor sealed. The room encounter scheduler activates
+    // them only when the player actually reaches that wing.
+    const spawnReach = annexRoom ? compiled.reach : reachByWave[waveIndex];
+    const position = nearestFloorPoint(spawnReach, course.w, course.h, spot.x, spot.z, reservedByWave[waveIndex], startWaveConstraints);
     const room = roomAt(compiled.rooms, position.x, position.y);
     course.waveSpawns[waveIndex].push({
       id: spot.id,
@@ -287,6 +308,22 @@ export function makeDungeonCourse(index = 0) {
   }
   course.wallSlots = [...slots.values()];
   course.dressingCells = dressingCells;
+  if (options.journey === true) {
+    course.journeyEnabled = true;
+    // The last shutdown requires all chambers cleared. Put its operating
+    // point at the end of the added wing so it cannot require a return trip
+    // to the original final chamber after the annex has been completed.
+    if (extended && floorIndex === DUNGEON_LAYERS.length - 1) {
+      const roomId = 'f5-hall3', annexId = `annex-${roomId}`;
+      const stationRooms = course.rooms.filter(room => room.id !== roomId)
+        .map(room => room.id === annexId ? { ...room, id: roomId } : room);
+      const stationScenery = pieces => pieces.filter(piece => piece.roomId !== roomId)
+        .map(piece => piece.roomId === annexId ? { ...piece, roomId } : piece);
+      course.journeyStations = makeJourneyStations({ ...course, rooms: stationRooms,
+        landmarks: stationScenery(course.landmarks), setpieces: stationScenery(course.setpieces) })
+        .map(station => ({ ...station, roomId: annexId }));
+    } else course.journeyStations = makeJourneyStations(course);
+  }
   return course;
 }
 

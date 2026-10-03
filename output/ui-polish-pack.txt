@@ -1,0 +1,348 @@
+{
+  "errors": [],
+  "sizes": [
+    {
+      "width": 1280,
+      "height": 720,
+      "overflow": false,
+      "panelWidth": 840,
+      "panelLeft": 220,
+      "panelRight": 1060,
+      "panelScrollWidth": 838,
+      "panelClientWidth": 838,
+      "buttons": [
+        {
+          "height": 46,
+          "scrollWidth": 44,
+          "clientWidth": 44
+        },
+        {
+          "height": 108,
+          "scrollWidth": 190,
+          "clientWidth": 190
+        },
+        {
+          "height": 108,
+          "scrollWidth": 190,
+          "clientWidth": 190
+        },
+        {
+          "height": 108,
+          "scrollWidth": 190,
+          "clientWidth": 190
+        },
+        {
+          "height": 108,
+          "scrollWidth": 190,
+          "clientWidth": 190
+        },
+        {
+          "height": 108,
+          "scrollWidth": 190,
+          "clientWidth": 190
+        },
+        {
+          "height": 108,
+          "scrollWidth": 190,
+          "clientWidth": 190
+        },
+        {
+          "height": 108,
+          "scrollWidth": 190,
+          "clientWidth": 190
+        },
+        {
+          "height": 108,
+          "scrollWidth": 190,
+          "clientWidth": 190
+        },
+        {
+          "height": 46,
+          "scrollWidth": 108,
+          "clientWidth": 108
+        },
+        {
+          "height": 59,
+          "scrollWidth": 143,
+          "clientWidth": 143
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "panelWidth": 354,
+      "panelLeft": 18,
+      "panelRight": 372,
+      "panelScrollWidth": 352,
+      "panelClientWidth": 352,
+      "buttons": [
+        {
+          "height": 46,
+          "scrollWidth": 44,
+          "clientWidth": 44
+        },
+        {
+          "height": 134,
+          "scrollWidth": 151,
+          "clientWidth": 151
+        },
+        {
+          "height": 134,
+          "scrollWidth": 151,
+          "clientWidth": 151
+        },
+        {
+          "height": 134,
+          "scrollWidth": 151,
+          "clientWidth": 151
+        },
+        {
+          "height": 134,
+          "scrollWidth": 151,
+          "clientWidth": 151
+        },
+        {
+          "height": 134,
+          "scrollWidth": 151,
+          "clientWidth": 151
+        },
+        {
+          "height": 134,
+          "scrollWidth": 151,
+          "clientWidth": 151
+        },
+        {
+          "height": 134,
+          "scrollWidth": 151,
+          "clientWidth": 151
+        },
+        {
+          "height": 134,
+          "scrollWidth": 151,
+          "clientWidth": 151
+        },
+        {
+          "height": 46,
+          "scrollWidth": 312,
+          "clientWidth": 312
+        },
+        {
+          "height": 59,
+          "scrollWidth": 312,
+          "clientWidth": 312
+        }
+      ]
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "overflow": false,
+      "panelWidth": 808,
+      "panelLeft": 18,
+      "panelRight": 826,
+      "panelScrollWidth": 806,
+      "panelClientWidth": 806,
+      "buttons": [
+        {
+          "height": 46,
+          "scrollWidth": 44,
+          "clientWidth": 44
+        },
+        {
+          "height": 108,
+          "scrollWidth": 184,
+          "clientWidth": 184
+        },
+        {
+          "height": 108,
+          "scrollWidth": 184,
+          "clientWidth": 184
+        },
+        {
+          "height": 108,
+          "scrollWidth": 184,
+          "clientWidth": 184
+        },
+        {
+          "height": 108,
+          "scrollWidth": 184,
+          "clientWidth": 184
+        },
+        {
+          "height": 108,
+          "scrollWidth": 184,
+          "clientWidth": 184
+        },
+        {
+          "height": 108,
+          "scrollWidth": 184,
+          "clientWidth": 184
+        },
+        {
+          "height": 108,
+          "scrollWidth": 184,
+          "clientWidth": 184
+        },
+        {
+          "height": 108,
+          "scrollWidth": 184,
+          "clientWidth": 184
+        },
+        {
+          "height": 46,
+          "scrollWidth": 108,
+          "clientWidth": 108
+        },
+        {
+          "height": 59,
+          "scrollWidth": 143,
+          "clientWidth": 143
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 640,
+      "overflow": false,
+      "panelWidth": 284,
+      "panelLeft": 18,
+      "panelRight": 302,
+      "panelScrollWidth": 282,
+      "panelClientWidth": 282,
+      "buttons": [
+        {
+          "height": 46,
+          "scrollWidth": 44,
+          "clientWidth": 44
+        },
+        {
+          "height": 148,
+          "scrollWidth": 116,
+          "clientWidth": 116
+        },
+        {
+          "height": 148,
+          "scrollWidth": 116,
+          "clientWidth": 116
+        },
+        {
+          "height": 133.99996948242188,
+          "scrollWidth": 116,
+          "clientWidth": 116
+        },
+        {
+          "height": 133.99996948242188,
+          "scrollWidth": 116,
+          "clientWidth": 116
+        },
+        {
+          "height": 134,
+          "scrollWidth": 116,
+          "clientWidth": 116
+        },
+        {
+          "height": 134,
+          "scrollWidth": 116,
+          "clientWidth": 116
+        },
+        {
+          "height": 134,
+          "scrollWidth": 116,
+          "clientWidth": 116
+        },
+        {
+          "height": 134,
+          "scrollWidth": 116,
+          "clientWidth": 116
+        },
+        {
+          "height": 46,
+          "scrollWidth": 242,
+          "clientWidth": 242
+        },
+        {
+          "height": 59,
+          "scrollWidth": 242,
+          "clientWidth": 242
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "width": 1280,
+      "height": 720,
+      "opened": true,
+      "upgrade": true,
+      "keyboardClose": true,
+      "focusTrap": true,
+      "fieldMap": true,
+      "unchangedFrameMutations": 0
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "opened": true,
+      "upgrade": true,
+      "keyboardClose": true,
+      "focusTrap": true,
+      "fieldMap": true,
+      "unchangedFrameMutations": 0
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "opened": true,
+      "upgrade": true,
+      "keyboardClose": true,
+      "focusTrap": true,
+      "fieldMap": true,
+      "unchangedFrameMutations": 0
+    },
+    {
+      "width": 320,
+      "height": 640,
+      "opened": true,
+      "upgrade": true,
+      "keyboardClose": true,
+      "focusTrap": true,
+      "fieldMap": true,
+      "unchangedFrameMutations": 0
+    }
+  ],
+  "materials": {
+    "width": 1254,
+    "source": "http://127.0.0.1:52639/assets/textures/service-district-atlas-v1.webp",
+    "shared": true,
+    "styles": [
+      [
+        13158844,
+        0.89,
+        0.28
+      ],
+      [
+        12177354,
+        0.92,
+        0.03
+      ],
+      [
+        12761258,
+        0.96,
+        0.03
+      ],
+      [
+        11125706,
+        0.76,
+        0.35
+      ],
+      [
+        8559493,
+        0.94,
+        0.18
+      ]
+    ],
+    "uvSafe": true
+  }
+}

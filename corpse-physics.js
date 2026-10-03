@@ -292,7 +292,9 @@ export class CorpsePhysics{
       if(bone.name==='Hips'){
         inverse.copy(bone.parent.matrixWorld).invert();point.applyMatrix4(inverse);bone.position.copy(point);
       }else bone.position.copy(binding.localPosition);
-      bone.parent.getWorldQuaternion(rotation);rotation.invert();bone.quaternion.copy(rotation).multiply(binding.worldQuaternion).normalize();bone.scale.copy(binding.localScale);
+      // Parent matrices are current: bindings follow hierarchy traversal order.
+      // getWorldQuaternion would update the entire ancestor chain per bone.
+      bone.parent.matrixWorld.decompose(end,rotation,scale);rotation.invert();bone.quaternion.copy(rotation).multiply(binding.worldQuaternion).normalize();bone.scale.copy(binding.localScale);
       bone.updateMatrix();bone.updateWorldMatrix(false,false);
     }
     state.root.updateWorldMatrix(true,true);
@@ -469,6 +471,10 @@ export class CorpsePhysics{
     if(time<this.lastTime-1e-6)return;
     const elapsed=time-this.lastTime;this.lastTime=time;if(elapsed<=0||run?.mode==='pause'||run?.mode==='paused')return;
     const dt=Math.min(.12,elapsed);if(elapsed>.12)this.clampedFrames++;
+    // An exploration frame has only static walls in this cosmetic world.
+    // Advance the clock without doing 60Hz broadphase/solver work or banking
+    // an idle backlog for the next corpse/drop to inherit.
+    if(!this.rigs.size&&!this.drops.size&&!this.tissueChains.size){this.accumulator=0;return;}
     for(const state of this.rigs.values())if(state.held)this._captureHeld(state,dt);
     this.accumulator+=dt;const step=CORPSE_PHYSICS_LIMITS.timestep;
     while(this.accumulator+1e-10>=step){

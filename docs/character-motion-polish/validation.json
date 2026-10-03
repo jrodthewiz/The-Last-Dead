@@ -1,0 +1,232 @@
+[
+  {
+    "character": "zombie",
+    "source": ".art-source\\motion-polish\\afterlife-ash-witness-rig-v05.glb",
+    "sourceSha256": "26556b4da1694df57995311a796a557622da6d81b6a1ca7f39edd65a79c7426e",
+    "output": "assets\\models\\afterlife-ash-witness-motion-v06.glb",
+    "outputSha256": "c0ccf66c9bcbc9486e0677afaccaf0a3ddfb8517da23a634f22140e930aaeee4",
+    "bytes": 3726128,
+    "changes": [
+      {
+        "clip": "AshWitness_Idle",
+        "bone": "Spine01",
+        "samples": 147,
+        "maxOffsetRadians": 0.011779643595218658
+      },
+      {
+        "clip": "AshWitness_Idle",
+        "bone": "Spine",
+        "samples": 147,
+        "maxOffsetRadians": 0.0149863725528121
+      },
+      {
+        "clip": "AshWitness_Idle",
+        "bone": "LeftShoulder",
+        "samples": 147,
+        "maxOffsetRadians": 0.017332319170236588
+      },
+      {
+        "clip": "AshWitness_Idle",
+        "bone": "RightShoulder",
+        "samples": 147,
+        "maxOffsetRadians": 0.014218994416296482
+      },
+      {
+        "clip": "AshWitness_Idle",
+        "bone": "neck",
+        "samples": 147,
+        "maxOffsetRadians": 0.029548345133662224
+      },
+      {
+        "clip": "AshWitness_Idle",
+        "bone": "Head",
+        "samples": 147,
+        "maxOffsetRadians": 0.0361596904695034
+      },
+      {
+        "clip": "AshWitness_Shuffle",
+        "bone": "Spine01",
+        "samples": 98,
+        "maxOffsetRadians": 0.023315241560339928
+      },
+      {
+        "clip": "AshWitness_Shuffle",
+        "bone": "Spine",
+        "samples": 98,
+        "maxOffsetRadians": 0.0356081947684288
+      },
+      {
+        "clip": "AshWitness_Shuffle",
+        "bone": "LeftShoulder",
+        "samples": 98,
+        "maxOffsetRadians": 0.030587133020162582
+      },
+      {
+        "clip": "AshWitness_Shuffle",
+        "bone": "RightShoulder",
+        "samples": 98,
+        "maxOffsetRadians": 0.02591131255030632
+      },
+      {
+        "clip": "AshWitness_Shuffle",
+        "bone": "neck",
+        "samples": 98,
+        "maxOffsetRadians": 0.029869364574551582
+      },
+      {
+        "clip": "AshWitness_Shuffle",
+        "bone": "Head",
+        "samples": 98,
+        "maxOffsetRadians": 0.041668057441711426
+      },
+      {
+        "clip": "AshWitness_Chase",
+        "bone": "Spine01",
+        "samples": 50,
+        "maxOffsetRadians": 0.023325465619564056
+      },
+      {
+        "clip": "AshWitness_Chase",
+        "bone": "Spine",
+        "samples": 50,
+        "maxOffsetRadians": 0.03560149669647217
+      },
+      {
+        "clip": "AshWitness_Chase",
+        "bone": "LeftShoulder",
+        "samples": 50,
+        "maxOffsetRadians": 0.030555937439203262
+      },
+      {
+        "clip": "AshWitness_Chase",
+        "bone": "RightShoulder",
+        "samples": 50,
+        "maxOffsetRadians": 0.025883693248033524
+      },
+      {
+        "clip": "AshWitness_Chase",
+        "bone": "neck",
+        "samples": 50,
+        "maxOffsetRadians": 0.029845407232642174
+      },
+      {
+        "clip": "AshWitness_Chase",
+        "bone": "Head",
+        "samples": 50,
+        "maxOffsetRadians": 0.04165660962462425
+      }
+    ],
+    "preservedChannels": 414,
+    "geometryBindTextureAndCombatExact": true,
+    "blend": ".art-source\\motion-polish\\zombie-motion-v06.blend",
+    "renders": [
+      "zombie-AshWitness_Idle-0.png",
+      "zombie-AshWitness_Idle-25.png",
+      "zombie-AshWitness_Idle-50.png",
+      "zombie-AshWitness_Idle-75.png",
+      "zombie-AshWitness_Shuffle-0.png",
+      "zombie-AshWitness_Shuffle-25.png",
+      "zombie-AshWitness_Shuffle-50.png",
+      "zombie-AshWitness_Shuffle-75.png",
+      "zombie-AshWitness_Chase-0.png",
+      "zombie-AshWitness_Chase-25.png",
+      "zombie-AshWitness_Chase-50.png",
+      "zombie-AshWitness_Chase-75.png"
+    ]
+  },
+  {
+    "character": "warden",
+    "source": ".art-source\\motion-polish\\bloodworks-warden.glb",
+    "sourceSha256": "b115227402bb3aaf7b249dcb3f0376b65cbd94c0befccad40dc68217790ee139",
+    "output": "assets\\models\\bloodworks-warden.glb",
+    "outputSha256": "1160433f5322ce432b1794cb6e17c25c87bb63933cc7d666384366b61724d6bf",
+    "bytes": 34196388,
+    "changes": [
+      {
+        "clip": "TLD_Idle",
+        "bone": "Spine01",
+        "samples": 151,
+        "maxOffsetRadians": 0.008228668011724949
+      },
+      {
+        "clip": "TLD_Idle",
+        "bone": "Spine",
+        "samples": 151,
+        "maxOffsetRadians": 0.010495219379663467
+      },
+      {
+        "clip": "TLD_Idle",
+        "bone": "LeftShoulder",
+        "samples": 151,
+        "maxOffsetRadians": 0.012118840590119362
+      },
+      {
+        "clip": "TLD_Idle",
+        "bone": "RightShoulder",
+        "samples": 151,
+        "maxOffsetRadians": 0.009959032759070396
+      },
+      {
+        "clip": "TLD_Idle",
+        "bone": "neck",
+        "samples": 151,
+        "maxOffsetRadians": 0.020681556314229965
+      },
+      {
+        "clip": "TLD_Idle",
+        "bone": "Head",
+        "samples": 151,
+        "maxOffsetRadians": 0.02530614286661148
+      },
+      {
+        "clip": "TLD_Walk",
+        "bone": "Spine01",
+        "samples": 84,
+        "maxOffsetRadians": 0.01632646471261978
+      },
+      {
+        "clip": "TLD_Walk",
+        "bone": "Spine",
+        "samples": 84,
+        "maxOffsetRadians": 0.024926429614424706
+      },
+      {
+        "clip": "TLD_Walk",
+        "bone": "LeftShoulder",
+        "samples": 84,
+        "maxOffsetRadians": 0.02140665426850319
+      },
+      {
+        "clip": "TLD_Walk",
+        "bone": "RightShoulder",
+        "samples": 84,
+        "maxOffsetRadians": 0.01811259798705578
+      },
+      {
+        "clip": "TLD_Walk",
+        "bone": "neck",
+        "samples": 84,
+        "maxOffsetRadians": 0.020899444818496704
+      },
+      {
+        "clip": "TLD_Walk",
+        "bone": "Head",
+        "samples": 84,
+        "maxOffsetRadians": 0.0291748084127903
+      }
+    ],
+    "preservedChannels": 420,
+    "geometryBindTextureAndCombatExact": true,
+    "blend": ".art-source\\motion-polish\\warden-motion-v06.blend",
+    "renders": [
+      "warden-TLD_Idle-0.png",
+      "warden-TLD_Idle-25.png",
+      "warden-TLD_Idle-50.png",
+      "warden-TLD_Idle-75.png",
+      "warden-TLD_Walk-0.png",
+      "warden-TLD_Walk-25.png",
+      "warden-TLD_Walk-50.png",
+      "warden-TLD_Walk-75.png"
+    ]
+  }
+]

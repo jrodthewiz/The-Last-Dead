@@ -1,0 +1,9 @@
+# Viewmodel turn/recoil stability — 2026-10-02
+
+User reported small horizontal flicker during repeated mouse turns and the hand appearing to leave the gun under recoil. Read Three.js debug-profiler skill, debug-profile-checklists and scene-debugging checklist. Inspected input, WeaponPresentation, arm fitting, batching, depth ownership and compositor order.
+
+Confirmed compositor defect: rotation blur and horizontal scanline displacement operated on the combined world/viewmodel image. Camera-attached weapons and hands therefore received world camera-motion effects. Added a resolved depth texture to the existing bodycam target and use the existing viewmodel depth boundary (0..0.01) to exclude foreground pixels from rotational blur and scanline displacement. Removed combined-image rolling-shutter shear. Static lens styling and background motion blur remain. No aim, recoil strength or firing mechanics changed.
+
+Verification: isolated browser renders real BodycamPass plus the actual pistol and imported grip hand through32turn/recoil frames, with no console/page errors. Fixed foreground sample mean pixel difference under imposed camera blur:0/255; same sample with legacy unmasked effects:24.615/255. Background still responds:23.705/255. Maximum pistol grip/socket gap3.51e-16metres. Geometry tests cover all6batched firearms across48turn/recoil frames each, in addition to existing melee/pose tests.23tests and production build pass. Evidence: output/playwright/viewmodel-motion/report.json and turning-recoil.png.
+
+Limit: the simulation did not reproduce a mechanical hand/socket separation; grip tests were already stable before the compositor fix. This change fixes the demonstrated image-space distortion that can make contact appear unstable, not an invented geometry fault. The isolated browser check is not a fresh full-campaign playthrough or a guarantee against another weapon-specific visual issue on the user's device.

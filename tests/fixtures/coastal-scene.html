@@ -1,0 +1,26 @@
+<!doctype html><html><head><base href="/"><link rel="icon" href="data:,"></head><body style="margin:0"><canvas></canvas><script type="module">
+import * as THREE from '/vendor/three.module.js';
+import {createWebGPUBackend} from '/webgpu-backend.js';
+import {makeHarborCourse} from '/harbor-course.js';
+import {HarborWorld} from '/harbor-visuals.js';
+import {newRun} from '/engine.js';
+window.qaPhase='backend';
+const renderer=await createWebGPUBackend(document.querySelector('canvas'));renderer.setSize(1280,800);
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.25;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x728f97);scene.fog=new THREE.Fog(0x728f97,160,700);
+const sun=new THREE.DirectionalLight(0xffe0b0,2.5);sun.position.set(-80,130,-60);scene.add(sun);
+const camera=new THREE.PerspectiveCamera(65,1.6,.1,2400);
+window.qaPhase='world';const course=makeHarborCourse({openWorld:true,lowTide:true});const world=new HarborWorld(scene,course);
+window.qaPhase='assets';await world.ready;
+const views={lighthouse:[[347,1.8,309],[357,11,292]],spawn:[[64,1.8,64],[84,1.5,56]],street:[[232,1.8,176],[232,1.5,230]],overview:[[180,270,440],[190,0,145]],coast:[[232,2,312],[232,1,500]]};
+const run=newRun(course);
+window.sceneQA={renderer,world,course,async view(name){
+ let from,to;const interior=name.startsWith('room-'),entrance=name.startsWith('entrance-');
+ course.activeInterior=interior?course.harborRooms[Number(name.split('-')[1])]:null;
+ if(interior){const r=course.activeInterior;from=[r.spawn.x*4,1.8,r.spawn.y*4];to=[r.x-.5,1.5,r.z-r.depth/2];}
+ else if(entrance){const i=Number(name.split('-')[1]),r=course.harborRooms[i],a=i===4?-Math.PI/2:0;from=[r.door.x*4+Math.sin(a)*3,1.8,r.door.y*4+Math.cos(a)*3];to=[r.door.x*4,1.6,r.door.y*4];}
+ else [from,to]=views[name];
+ world.update(4,null,run);camera.position.fromArray(from);camera.lookAt(...to);renderer.render(scene,camera);await renderer.backend.device.queue.onSubmittedWorkDone();return {name,backend:renderer.migration.backend,diagnostics:world.diagnostics};
+}};
+window.qaPhase='render';await window.sceneQA.view('overview');window.qaReady=true;window.qaPhase='ready';
+</script></body></html>

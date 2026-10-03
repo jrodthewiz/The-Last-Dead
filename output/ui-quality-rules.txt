@@ -1,0 +1,17 @@
+✔ street routes enter Netmakers through its gate, not closed walls (60.8387ms)
+✔ guidance changes from salvage to truck to ferry and removes collected map markers (58.3584ms)
+✔ all room entrances have clear routes from the dock spawn and field map markers (84.6096ms)
+✔ complete chapter is ordered, allows either supply order, and remains an open world (77.9435ms)
+✔ every mission step has a collision-clear street route and an accessible indoor station (130.0048ms)
+✔ stash conserves scrap, respects capacity, and cannot be used before claiming shelter (7.7807ms)
+✔ checkpoint restores only validated state at safehouse and reports storage failure (32.6496ms)
+✔ inactive, airborne and distant interactions cannot advance the chapter (2.4132ms)
+✔ shift bell reaches resident minds and moves living infected toward the dock circuit (87.2554ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 687.613

@@ -40,6 +40,7 @@ void main(){
 const FRAGMENT = `
 uniform sampler2D tScene;
 uniform sampler2D tExposure;
+uniform sampler2D tDepth;
 uniform vec2 uRes;
 uniform float uTime;
 uniform float uStrength;
@@ -72,7 +73,8 @@ void main(){
   float aspect=uRes.x/uRes.y;
   // The physical mount owns sway. Row readout bends a fast turn slightly;
   // the centre stays anchored and a stationary camera has no image drift.
-  c+=uBlur*(vUv.y-.5)*.24*uMotion;
+  // Camera-mounted hands and weapons have no camera-rotation velocity.
+  // Keep the lens static; rolling shutter on this combined image shears grips.
   float edge=(aspect*aspect+1.)*.25;
   vec2 p=vec2(c.x*aspect,c.y)/sqrt(edge);
   float r2=dot(p,p);
@@ -88,14 +90,15 @@ void main(){
   // Low-amplitude, correlated row timing errors, rather than whole-screen shake.
   float line=floor(vUv.y*signalSize.y/3.);
   float lineError=hash(vec2(line,recordingTime))-.5;
-  uv.x+=lineError/signalSize.x*uRecording.z*uMotion*uStrength;
+  float worldMotion=step(.012,texture2D(tDepth,uv).r);
+  uv.x+=lineError/signalSize.x*uRecording.z*uMotion*uStrength*worldMotion;
   vec2 dir=c*uSensor.y*r2*uStrength*(1.+uGlitch*3.);
   // Rotation motion blur, sampled along the camera's screen-space velocity.
   vec3 col=vec3(0.);
   if(dot(uBlur,uBlur)>1e-8){
     for(int i=0;i<5;i++){
       float f=float(i)/4.-.5;
-      vec2 o=uBlur*f;
+      vec2 o=uBlur*f*worldMotion;
       col+=vec3(sceneAt(uv+o+dir).r,sceneAt(uv+o).g,sceneAt(uv+o-dir).b);
     }
     col/=5.;
@@ -216,6 +219,7 @@ export class BodycamPass {
       uniforms: {
         tScene: { value: null },
         tExposure: { value: null },
+        tDepth: { value: null },
         uRes: { value: new THREE.Vector2(1, 1) },
         uTime: { value: 0 },
         uStrength: { value: 1 },
@@ -249,6 +253,9 @@ export class BodycamPass {
       generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter, magFilter: THREE.LinearFilter,
     });
     this.material.uniforms.tScene.value = this.target.texture;
+    // Viewmodel draws reserve depth 0..0.01; sample that same boundary in post.
+    this.target.depthTexture = new THREE.DepthTexture(w,h,THREE.UnsignedIntType);
+    this.material.uniforms.tDepth.value = this.target.depthTexture;
     this.exposureMaterial.uniforms.tScene.value = this.target.texture;
     this.exposureMaterial.uniforms.uMaxLod.value = Math.floor(Math.log2(Math.max(w, h)));
     this.material.uniforms.uRes.value.set(w, h);
@@ -319,7 +326,15 @@ export class BodycamPass {
       u.uDebug.value = this.debugMode;
       if (this.reducedMotion) u.uBlur.value.set(0, 0);
       else u.uBlur.value.copy(this._blur);
-      r.render(this.scene, this.camera);
+      // WebGPU applies tone mapping in a renderer-wide output pass; the
+      // material's toneMapped flag cannot exempt this already-graded resolve.
+      const toneMapping = r.toneMapping;
+      try {
+        r.toneMapping = THREE.NoToneMapping;
+        r.render(this.scene, this.camera);
+      } finally {
+        r.toneMapping = toneMapping;
+      }
     } finally {
       this.quad.material = this.material;
       r.setRenderTarget(previousTarget);

@@ -1,0 +1,43 @@
+✔ hash01 is deterministic and in range (1.7777ms)
+✔ a searching infected follows a new audible location without an instant attack (2.8918ms)
+✔ competing sounds select the strongest perceived source regardless of queue order (1.8377ms)
+✔ investigation listens with seeded head/body cadence, then gives up searching (4.6681ms)
+✔ reacquiring a nearby player cancels the listening pause and keeps the hunt warning (0.5613ms)
+✔ flanking melee turns into its travel lane while ranged retreat keeps aim (0.5193ms)
+✔ wall-deflected walking faces measured motion, and arrival never overshoots (0.3306ms)
+✔ crowd displacement has a moving signal and committed contact remains planted (0.2489ms)
+✔ findPath routes around walls and reports sealed goals (79.1246ms)
+✔ dormant sleepers ignore distant footsteps but wake to a nearby shot (28.213ms)
+✔ hit reactions stagger once, then a grace window prevents stun-lock (3.5128ms)
+✔ groups keep apart, never clip walls, and cap simultaneous melee (294.7648ms)
+✔ melee windup locks aim so a strafing player dodges (2.7242ms)
+✔ spawn picker rejects points in view or too close, prefers behind (2.3036ms)
+✔ pacing director enforces tension, release and ambush caps (0.8489ms)
+✔ dungeon pressure enters through authored door lanes without random floor residents (232.0856ms)
+✔ the deterministic annex doubles the traversable route and shares the collision grid on every floor (1348.3418ms)
+✔ annex fights have room-owned spawns and the final descent remains after the added route (535.7702ms)
+✔ the original key opens the real annex approach through gameplay and does not finish the floor (150.0961ms)
+✔ all five extended floors support actual movement, key proximity, held signatures, persistent fittings and the final exit (4073.409ms)
+✔ all extended destination rooms get signs with valid atlas UVs (677.8222ms)
+✔ panel wear is stable and varied without changing geometry (0.5759ms)
+✔ visible fitting follows its barrel and survives weapon batching, then resets with a new pack (134.4819ms)
+✔ full pack explains blocked collection once per approach and leaves the cache collectible (0.6819ms)
+✔ scrap collection is one-time and respects bounded backpack capacity (0.2562ms)
+✔ one fitting consumes once and changes only the chosen owned weapon (0.1615ms)
+✔ caches remain available when full and can be collected after fitting (0.1257ms)
+✔ pickup cannot cross a sealed wall and dead or airborne players do not scavenge (0.142ms)
+✔ co-op pickup and fittings use the host shared backpack (0.1978ms)
+✔ floor transitions preserve resource and upgrade state with distinct pickup IDs (0.2441ms)
+✔ snapshot validation bounds scrap, history, and recognized weapon mods (0.2501ms)
+✔ real floor caches are deterministic clear points separated from other loot and landmarks (246.2191ms)
+✔ extended five floors distribute clear scrap caches over original and annex routes (1114.3588ms)
+✔ a projectile retains its fitted weapon damage after switching equipment (0.7525ms)
+✔ shotgun cores carry their own fitting without borrowing a later selected weapon (0.5485ms)
+ℹ tests 35
+ℹ suites 0
+ℹ pass 35
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9093.1402

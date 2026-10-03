@@ -1,10 +1,10 @@
+import {sampleViewmodelClip} from './assets/survivor/viewmodel-motion.js';
 // Local, visual-only first-person handling. Gameplay owns aim, cadence and
 // hit detection; this driver owns the gun/arms transform under the camera.
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const finite = (v, fallback = 0) => Number.isFinite(v) ? v : fallback;
 const follow = (value, target, response, dt) => target + (value - target) * Math.exp(-response * dt);
 const angleDelta = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
-const smooth = t => t * t * (3 - 2 * t);
 
 // Travel is in the shared viewmodel frame, angles are radians, time seconds.
 export const WEAPON_HANDLING = Object.freeze([
@@ -20,6 +20,11 @@ export const WEAPON_HANDLING = Object.freeze([
 
 export class WeaponPresentation {
   constructor() {
+    this.fireClip = new Float64Array(6);
+    this.drawClip = new Float64Array(6);
+    this.landClip = new Float64Array(6);
+    this.idleClip = new Float64Array(6);
+    this.walkClip = new Float64Array(6);
     this.pose = { position: { x: .02, y: -.012, z: 0 }, rotation: { x: 0, y: 0, z: 0 },
       trigger: 0, recoil: 0, equip: 1, landing: 0, lookLag: 0, movementLag: 0, weapon: 0, phase: 'idle' };
     this.run = null;
@@ -84,29 +89,33 @@ export class WeaponPresentation {
       this.landAge = 0; this.airborne = false; this.fallSpeed = 0;
     } else this.landAge += dt;
     const land = this.landAge < 1 ? Math.sin(this.landAge * 19) * Math.exp(-this.landAge * 12) * this.landStrength : 0;
-    const kick = this.shotStrength && this.shotAge < 1.5
-      ? Math.exp(-this.shotAge * profile.recovery) * Math.cos(this.shotAge * profile.frequency) * this.shotStrength : 0;
+    const firePose=sampleViewmodelClip(profile.name+'/fire',this.shotAge,this.fireClip);
+    const landPose=sampleViewmodelClip(profile.name+'/land',this.landAge,this.landClip);
+    const kick=profile.kick ? firePose[2]/profile.kick*this.shotStrength : 0;
     const recoilScale = (reducedMotion ? .50 : 1) * (1 - aim * .28);
     if (!changed) this.equipAge = Math.min(profile.equip, this.equipAge + dt);
     const equip = clamp(this.equipAge / profile.equip, 0, 1);
-    const draw = 1 - smooth(clamp(equip / .82, 0, 1));
-    const catchPose = equip > .72 && equip < 1 ? Math.sin((equip - .72) / .28 * Math.PI) : 0;
+    const drawPose=sampleViewmodelClip(profile.name+'/draw',this.equipAge,this.drawClip);
     const drawScale = reducedMotion ? .32 : 1;
     const phase = finite(run.distance) * 7;
-    const bob = this.move * .012 * steady * motion;
-    const breath = Math.sin(this.elapsed * 1.65) * .002 * steady * motion;
+    const walkPose=sampleViewmodelClip(profile.name+'/walk',((phase/(2*Math.PI))%1+1)%1,this.walkClip);
+    const idlePose=sampleViewmodelClip(profile.name+'/idle',this.elapsed%4,this.idleClip);
+    const bob = this.move * steady * motion;
+    const breath = idlePose[1] * steady * motion;
     const lower = clamp(finite(run.dashTime) / .18, 0, 1) * .055 + clamp(finite(run.slide), 0, 1) * .025;
     const punch = clamp(finite(run.punch), 0, 1);
     const p = this.pose.position, r = this.pose.rotation;
-    p.x = .02 - aim * .10 + Math.sin(phase) * bob - this.lookX * .008 * steady * motion - dragSide * .007 * motion;
-    p.y = -.012 + Math.cos(phase * 2) * bob * .35 + breath - land * .085 * motion - lower * motion
-      + (-draw * .23 + catchPose * .009) * drawScale;
-    p.z = kick * profile.kick * recoilScale + dragForward * .010 * motion - punch * .045 + draw * .06 * drawScale;
-    r.x = kick * profile.pitch * recoilScale - this.lookY * .020 * steady * motion + dragForward * .014 * motion
-      - land * .095 * motion + punch * .1 + (draw * .48 - catchPose * .035) * drawScale;
-    r.y = -aim * .02 + this.lookX * .018 * steady * motion + kick * profile.roll * this.shotSide * recoilScale;
-    r.z = Math.sin(phase) * bob * .6 - this.lookX * .011 * steady * motion - dragSide * .016 * motion
-      + kick * profile.roll * recoilScale + draw * profile.cant * drawScale;
+    p.x = .02 - aim * .10 + walkPose[0] * bob - this.lookX * .008 * steady * motion - dragSide * .007 * motion;
+    p.x += drawPose[0]*drawScale;
+    p.y = -.012 + walkPose[1] * bob + breath + landPose[1]*this.landStrength*motion - lower * motion
+      + drawPose[1]*drawScale + firePose[1]*this.shotStrength*recoilScale;
+    p.z = kick * profile.kick * recoilScale + dragForward * .010 * motion - punch * .045 + drawPose[2]*drawScale
+      + landPose[2]*this.landStrength*motion;
+    r.x = firePose[3]*this.shotStrength*recoilScale - this.lookY * .020 * steady * motion + dragForward * .014 * motion
+      + landPose[3]*this.landStrength*motion + punch * .1 + drawPose[3]*drawScale;
+    r.y = -aim * .02 + this.lookX * .018 * steady * motion + firePose[4]*this.shotStrength*this.shotSide*recoilScale + drawPose[4]*drawScale;
+    r.z = walkPose[5] * bob - this.lookX * .011 * steady * motion - dragSide * .016 * motion
+      + firePose[5]*this.shotStrength*recoilScale + drawPose[5]*drawScale + landPose[5]*this.landStrength*motion;
     this.pose.trigger = weapon < 6 && this.shotAge < .6 ? Math.exp(-this.shotAge * 24) : 0;
     this.pose.recoil = kick; this.pose.equip = equip; this.pose.landing = land;
     this.pose.lookLag = Math.hypot(this.lookX, this.lookY);

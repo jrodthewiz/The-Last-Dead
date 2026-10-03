@@ -1,0 +1,19 @@
+✔ harbor six blocks, shore and every pickup obey authoritative collision (24.1197ms)
+✔ harbor truck has clearance along dock road and all runtime assets embed palettes (22.1709ms)
+✔ all extended destination rooms get signs with valid atlas UVs (1077.4039ms)
+✔ panel wear is stable and varied without changing geometry (0.9265ms)
+✔ visible fitting follows its barrel and survives weapon batching, then resets with a new pack (285.0199ms)
+✔ full pack explains blocked collection once per approach and leaves the cache collectible (4.4396ms)
+✔ proximity stash preserves equipped gun, creates melee ownership once, and keeps scrap separate (0.8202ms)
+✔ wall, absent geometry callback, range, pause, death and air all retain weapon pickup (0.9126ms)
+✔ unknown objects and invalid weapon indexes cannot grant inventory (0.9183ms)
+✔ already owned world pickups are removed without duplicating ownership (0.789ms)
+✔ shared world pickup grants ownership and common pickup history to both players (0.6932ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1543.6196

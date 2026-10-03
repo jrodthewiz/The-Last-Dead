@@ -28,6 +28,15 @@ function pose(root,name){return root.getObjectByName(name).getWorldPosition(new 
 function finiteRig(state){for(const node of state.nodes){for(const value of [...node.body.position.toArray(),...node.body.quaternion.toArray(),...node.body.velocity.toArray()])assert(Number.isFinite(value),node.key+' remains finite');}}
 function simpleDrop(){const mesh=new THREE.Mesh(new THREE.BoxGeometry(.18,.14,.3),new THREE.MeshStandardMaterial());mesh.position.set(4,2,4);return mesh;}
 
+test('empty cosmetic world skips idle steps and a new drop starts without an accumulated backlog',()=>{
+  const physics=new CorpsePhysics();physics.rebuild(course());physics.update({time:0,mode:'play'});
+  advance(physics,2);
+  assert.equal(physics.steps,0);assert.equal(physics.accumulator,0);assert.equal(physics.lastTime,2);
+  const drop=physics.addDrop(simpleDrop());physics.update({time:2+CORPSE_PHYSICS_LIMITS.timestep,mode:'play'});physics.sync();
+  assert.equal(physics.steps,1);assert(drop.body.position.y<2,'new bodies still fall on their first live step');
+  physics.dispose();
+});
+
 test('official cannon-es JS distribution and MIT license are bundled with no runtime dependency',()=>{
   const vendor=readFileSync(new URL('../vendor/cannon-es.js',import.meta.url)),license=readFileSync(new URL('../vendor/CANNON-ES-LICENSE.txt',import.meta.url),'utf8');
   assert.equal(vendor.length,346256);assert(license.includes('Copyright (c) 2015 cannon.js Authors'));assert(license.includes('Permission is hereby granted, free of charge'));assert.equal(typeof CANNON.World,'function');

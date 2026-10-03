@@ -8,6 +8,12 @@ import {Renderer} from '../renderer.js';
 import {BrutalCombatVisuals} from '../brutal-combat-visuals.js';
 import {VerminVisuals} from '../vermin-visuals.js';
 import {animateMeleeWeapon} from '../weapon-melee.js';
+import {animateOssuary} from '../weapon-ossuary.js';
+import {animateBreach} from '../weapon-breach.js';
+import {animateArc} from '../weapon-arc.js';
+import {animateReliquary} from '../weapon-reliquary.js';
+import {animateRifle} from '../weapon-rifles.js';
+import {batchStaticWeaponMeshes} from '../weapon-batching.js';
 import {installForegroundArms,fitForegroundArms,FOREGROUND_WRIST_LIMIT} from '../assets/survivor/foreground-arms.js';
 
 let asset,source;
@@ -86,6 +92,22 @@ test('foreground contract validates before mutating a working weapon assembly',(
   const children=[...hand.children],parent=hand.parent;
   assert.throws(()=>installForegroundArms(r,new T.Group()),/Missing TLD_GripHand_Right/);
   assert.equal(hand.parent,parent);assert.deepEqual(hand.children,children);
+});
+
+test('batched firearm grip stays attached during repeated yaw reversals and recoil',()=>{
+ const r=fixture();for(const g of r.weaponGroups)batchStaticWeaponMeshes(g);
+ installForegroundArms(r,asset);
+ for(let weapon=0;weapon<6;weapon++)for(let i=0;i<48;i++){
+  const g=r.weaponGroups[weapon],shot=i%12<3?1:0;
+  r.camera.rotation.y=Math.sin(i*.6)*2.8;r.weaponRig.rotation.y=Math.sin(i*.6)*.09;
+  r.weaponRig.position.z=i%12<3?.088:0;
+  if(weapon===0)animateOssuary(g,shot,i/60,1/60);
+  if(weapon===1)animateBreach(g.userData.model,i/60,shot,1/60);
+  if(weapon===2)animateArc(g.userData.model,i/60,shot,1/60);
+  if(weapon===3)animateReliquary(g,shot,i/60,1/60);
+  if(weapon>=4)animateRifle(g,shot,i/60,1/60,{kick:shot,shotSequence:Math.floor(i/12)});
+  fitForegroundArms(g);assertFit(g);
+ }
 });
 
 test('interaction arms wait for the cleaned derivative instead of caching the first body template',()=>{

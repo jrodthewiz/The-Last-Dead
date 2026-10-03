@@ -1,0 +1,15 @@
+✔ actual eight weapon grips preserve adult forearm length and bounded wrists throughout melee strokes (300.4851ms)
+✔ foreground contract validates before mutating a working weapon assembly (98.6558ms)
+✔ batched firearm grip stays attached during repeated yaw reversals and recoil (142.6162ms)
+✔ interaction arms wait for the cleaned derivative instead of caching the first body template (0.7257ms)
+✔ direct Mesh hand nodes retain their geometry inside the fitted hand (95.5874ms)
+✔ cleaned interaction arms keep original UVs, normalized weights, bind graph and source asset intact (28.6933ms)
+✔ authored grip hands have four distinct fingers, opposed thumbs and isolated trigger articulation (1.9447ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1008.4465

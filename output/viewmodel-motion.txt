@@ -1,0 +1,1 @@
+{"foregroundError":0,"legacyForegroundError":24.615450980392158,"worldError":23.705,"maxGripGap":3.510833468576701e-16,"frames":32,"depthTexture":true}

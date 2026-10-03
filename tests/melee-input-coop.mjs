@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {mkdir,writeFile} from 'node:fs/promises';
+import {startPeerBroker} from './peerjs-broker-fixture.mjs';
 const require=createRequire(import.meta.url),{chromium}=require(process.env.PLAYWRIGHT_PATH||'playwright');
 const base=(process.env.DEAD_ARRIVAL_URL||'http://127.0.0.1:5200/dist/').replace(/\/?$/,'/');
 const out=process.env.MELEE_QA_OUTPUT||'docs/melee-pass/verification/input-coop';
 await mkdir(out,{recursive:true});
 const report={url:base,checks:{},errors:[],samples:[]};
 const pages=[];
+const broker=process.argv.includes('--local-broker')?await startPeerBroker(process.env.PLAYWRIGHT_PATH||require.resolve('playwright')):null;
 const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH});
 const inspect=page=>{
  pages.push(page);
@@ -15,7 +17,8 @@ const inspect=page=>{
  page.on('console',m=>{if(m.type()==='error')report.errors.push(m.text());});
  page.on('response',r=>{if(r.status()>=400)report.errors.push(`${r.status()} ${r.url()}`);});
 };
-const ready=page=>page.waitForFunction(()=>window.__DEAD_ARRIVAL__?.renderer?._weaponsPrepared,undefined,{timeout:90000});
+// The cinematic menu loads independently; weapon preparation starts on entry.
+const ready=page=>page.waitForFunction(()=>!!window.__DEAD_ARRIVAL__?.renderer,undefined,{timeout:90000});
 const state=page=>page.evaluate(()=>{const d=window.__DEAD_ARRIVAL__,r=d.run;return{screen:d.screen,weapon:r.weapon,health:r.health,mode:r.mode,saw:r.sawActive,rev:r.sawRev,sequence:r.meleeSequence,active:r.meleeActive,enemies:r.course.enemies.map(e=>({id:e.id,hp:e.hp,hits:e.hits,dead:e.dead})),audio:d.audio.meleeDiagnostics(),memory:{...d.renderer.renderer.info.memory}};});
 async function touchControls(page){
  const cdp=await page.context().newCDPSession(page);
@@ -70,8 +73,9 @@ try{
 
  // Real room-code rendezvous and RTCDataChannel; no snapshot/transport mocks.
  if(!process.argv.includes('--mobile-only')){
- const hostContext=await browser.newContext({viewport:{width:960,height:720},hasTouch:true,isMobile:true});
- const guestContext=await browser.newContext({viewport:{width:960,height:720},hasTouch:true,isMobile:true});
+ const hostContext=await browser.newContext({viewport:{width:1280,height:900},hasTouch:true,isMobile:false});
+ const guestContext=await browser.newContext({viewport:{width:1280,height:900},hasTouch:true,isMobile:false});
+ if(broker)for(const context of [hostContext,guestContext])await context.addInitScript(port=>{window.__DEAD_ARRIVAL_PEER_CONFIG__={host:'127.0.0.1',port,path:'/',secure:false,config:{iceServers:[]}};},broker.port);
  const host=await hostContext.newPage(),guest=await guestContext.newPage();inspect(host);inspect(guest);
  await Promise.all([host.goto(base+'?debug=1',{waitUntil:'domcontentloaded'}),guest.goto(base+'?debug=1',{waitUntil:'domcontentloaded'})]);
  await Promise.all([ready(host),ready(guest)]);
@@ -80,7 +84,8 @@ try{
  const code=await host.locator('[name="roomCode"]').inputValue();
  await guest.locator('[data-action="coop-toggle"]').tap();await guest.locator('[name="joinCode"]').fill(code);await guest.locator('[data-action="join"]').tap();
  await Promise.all([host.waitForFunction(()=>window.__DEAD_ARRIVAL__.session?.connected),guest.waitForFunction(()=>window.__DEAD_ARRIVAL__.session?.connected)]);
- await guest.waitForFunction(()=>window.__DEAD_ARRIVAL__.screen==='play');
+ await guest.waitForFunction(()=>window.__DEAD_ARRIVAL__.screen==='play',undefined,{timeout:180000});
+ await Promise.all([host,guest].map(page=>page.waitForFunction(()=>window.__DEAD_ARRIVAL__.renderer._weaponsPrepared,undefined,{timeout:180000})));
  console.log('Two local clients connected through room code and RTCDataChannel.');
  for(const p of [host,guest])await p.evaluate(()=>{
   const a=window.__DEAD_ARRIVAL__.audio,play=a.play.bind(a);window.__meleeSounds=[];
@@ -172,4 +177,4 @@ try{
  }
  assert.deepEqual(report.errors,[]);
  console.log(JSON.stringify({checks:report.checks,errors:report.errors,samples:report.samples.length}));
-}catch(error){report.failure=error.stack;report.failureStates=await Promise.all(pages.filter(p=>!p.isClosed()).map(p=>p.evaluate(()=>{const d=window.__DEAD_ARRIVAL__,r=d?.run;return{screen:d?.screen,mode:r?.mode,connected:d?.session?.connected,transport:window.__meleeTransport,counts:r&&Object.fromEntries(['projectiles','coins','gore','blood','tracers','spawnTelegraphs','explosions'].map(k=>[k,r[k]?.length])),player:{x:r?.x,y:r?.y,z:r?.z,angle:r?.angle,pitch:r?.pitch,health:r?.health,weapon:r?.weapon,sequence:r?.meleeSequence,active:r?.meleeActive},peer:r?.peer&&{x:r.peer.x,y:r.peer.y,z:r.peer.z,angle:r.peer.angle,pitch:r.peer.pitch,health:r.peer.health,weapon:r.peer.weapon,mode:r.peer.mode,sequence:r.peer.meleeSequence,active:r.peer.meleeActive},enemies:r?.course.enemies,audio:window.__meleeSounds};}).catch(e=>({error:e.message}))));throw error;}finally{await browser.close();await writeFile(out+'/qa-results.json',JSON.stringify(report,null,2));}
+}catch(error){report.failure=error.stack;for(let i=0;i<pages.length;i++)if(!pages[i].isClosed())await pages[i].screenshot({path:out+'/failed-page-'+i+'.png'}).catch(()=>{});report.failureStates=await Promise.all(pages.filter(p=>!p.isClosed()).map(p=>p.evaluate(()=>{const d=window.__DEAD_ARRIVAL__,r=d?.run;return{screen:d?.screen,mode:r?.mode,connected:d?.session?.connected,ui:document.body.innerText.slice(0,1400),join:document.querySelector('[data-action="join"]')?.getBoundingClientRect().toJSON(),transport:window.__meleeTransport,counts:r&&Object.fromEntries(['projectiles','coins','gore','blood','tracers','spawnTelegraphs','explosions'].map(k=>[k,r[k]?.length])),player:{x:r?.x,y:r?.y,z:r?.z,angle:r?.angle,pitch:r?.pitch,health:r?.health,weapon:r?.weapon,sequence:r?.meleeSequence,active:r?.meleeActive},peer:r?.peer&&{x:r.peer.x,y:r.peer.y,z:r.peer.z,angle:r.peer.angle,pitch:r.peer.pitch,health:r.peer.health,weapon:r.peer.weapon,mode:r.peer.mode,sequence:r.peer.meleeSequence,active:r.peer.meleeActive},enemies:r?.course.enemies,audio:window.__meleeSounds};}).catch(e=>({error:e.message}))));throw error;}finally{await browser.close();if(broker){report.signalingFixture={...broker.counts};await broker.close();}await writeFile(out+'/qa-results.json',JSON.stringify(report,null,2));}

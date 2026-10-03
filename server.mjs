@@ -401,6 +401,21 @@ export async function startServer({ port = DEFAULT_PORT, host = '127.0.0.1', roo
 
 export const defaultPort = DEFAULT_PORT;
 
+// Local debug entrypoints may coexist with another running game. Keep the
+// low-level startServer strict for tests and explicitly hosted deployments.
+export async function startLocalServer(options = {}) {
+  const preferred = parsePort(options.port ?? DEFAULT_PORT);
+  for (let port = preferred; port <= Math.min(65535, preferred + 20); port++) {
+    try { return await startServer({ ...options, port }); }
+    catch (error) {
+      if (error.code !== 'EADDRINUSE' || preferred === 0) throw error;
+      console.log(`Port ${port} is occupied; trying another port without stopping its app.`);
+    }
+  }
+  // Reserve an available port atomically if the whole preferred range is busy.
+  return startServer({ ...options, port: 0 });
+}
+
 const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : '';
 if (invokedPath === path.resolve(fileURLToPath(import.meta.url))) {
   try {
@@ -408,7 +423,7 @@ if (invokedPath === path.resolve(fileURLToPath(import.meta.url))) {
     if (options.help) {
       console.log('Usage: node server.mjs [--port 5200] [--dist ./dist]');
     } else {
-      const running = await startServer(options);
+      const running = await (process.env.PORT ? startServer : startLocalServer)(options);
       console.log(`The Last Dead serving ${running.root}`);
       console.log(`http://${running.host}:${running.port}/`);
     }

@@ -1,0 +1,111 @@
+{
+  "url": "http://127.0.0.1:5200/",
+  "checks": {
+    "chunkedPayload": true,
+    "coopBat": true,
+    "coalescedTriggerTap": true,
+    "coalescedSwitchCancels": true,
+    "coopSawRelease": true,
+    "coopPause": true,
+    "coopSoak": {
+      "seconds": 0,
+      "iterations": 0
+    },
+    "disconnect": true
+  },
+  "errors": [],
+  "samples": [],
+  "transport": [
+    {
+      "statuses": [],
+      "sent": 151,
+      "received": 149,
+      "rejected": 0,
+      "maxReceivedBytes": 270,
+      "lastReceived": {
+        "type": "input",
+        "bytes": 90
+      },
+      "lastSent": {
+        "type": "snapshot",
+        "seq": 152,
+        "bytes": 20699,
+        "counts": {
+          "enemies": 1,
+          "projectiles": 0,
+          "coins": 0,
+          "gore": 4,
+          "blood": 9,
+          "tracers": 0,
+          "spawnTelegraphs": 0,
+          "explosions": 0
+        },
+        "ok": true,
+        "buffered": 14059
+      }
+    },
+    {
+      "statuses": [],
+      "sent": 148,
+      "received": 151,
+      "rejected": 0,
+      "maxReceivedBytes": 49184,
+      "lastReceived": {
+        "type": "snapshot",
+        "seq": 152,
+        "bytes": 20699,
+        "counts": {
+          "enemies": 1,
+          "projectiles": 0,
+          "coins": 0,
+          "gore": 4,
+          "blood": 9,
+          "tracers": 0,
+          "spawnTelegraphs": 0,
+          "explosions": 0
+        }
+      },
+      "lastSent": {
+        "type": "input",
+        "bytes": 90,
+        "ok": true,
+        "buffered": 76
+      }
+    }
+  ],
+  "final": {
+    "screen": "play",
+    "weapon": 0,
+    "health": 100,
+    "mode": "play",
+    "saw": false,
+    "rev": 0,
+    "sequence": 2,
+    "active": false,
+    "enemies": [
+      {
+        "id": 99005,
+        "hp": 96.25,
+        "hits": 3,
+        "dead": false
+      }
+    ],
+    "audio": {
+      "weapon": 0,
+      "running": false,
+      "contacting": false,
+      "motorSources": 0,
+      "contactSources": 0,
+      "startupSources": 0,
+      "shutdownSources": 0
+    },
+    "memory": {
+      "geometries": 957,
+      "textures": 135
+    }
+  },
+  "signalingFixture": {
+    "opened": 2,
+    "forwarded": 6
+  }
+}

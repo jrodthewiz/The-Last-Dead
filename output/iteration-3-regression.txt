@@ -1,0 +1,35 @@
+✔ survivor enemy animation keeps the last mixer pose when a clip is unchanged (70.7328ms)
+✔ Cantor zero-time frames freeze and retreat reverses the gait without turning its casting aim (51.5196ms)
+✔ floor 1: doors update existing instances, including reopening and closing (2817.9811ms)
+✔ floor 2: doors update existing instances, including reopening and closing (593.3828ms)
+✔ floor 3: doors update existing instances, including reopening and closing (1245.1512ms)
+✔ floor 4: doors update existing instances, including reopening and closing (210.7395ms)
+✔ floor 5: doors update existing instances, including reopening and closing (63.5575ms)
+✔ floor surface identities remain distinct through the final material pass (0.7518ms)
+✔ portal structure follows the floor palette while its signal keeps its cue (10.2306ms)
+✔ steel tunnel crown and jamb retain the same material role (2.2177ms)
+✔ guidance follows a turning open-grid path and disappears when blocked (1.0189ms)
+✔ landmark practical and moving face change after clearing its owning room (5.5476ms)
+✔ host processing stamps both shooters and forwards their actual positional firearm cues (45.0163ms)
+✔ listener matches actual camera axes and engine eye height in metres, including sliding and airborne poses (149.0225ms)
+✔ own firearm audio stays head-relative while remote shots use world units and shooter identity (140.0659ms)
+✔ all world sounds use actual engine wall rays from the local listener without changing canonical anchors (11.3596ms)
+✔ eligible living enemy cues recover missing coordinates and follow current position/occlusion (8.9918ms)
+✔ impacts, deaths and completed firearm shots never inherit entity tracking (1.3523ms)
+✔ only a live remote rifle charge may track the peer, with independent occlusion and cleanup on death (3.8893ms)
+✔ local firearm echoes are rejected by shooter identity without suppressing peer or enemy sounds (0.4892ms)
+✔ explicit metre positions are copied, occluded locally and missing coordinates remain safe (5.7985ms)
+✔ batches static sibling surfaces without flattening animated pivots or pooled FX (149.3774ms)
+✔ reduces the un-compacted Breach factory while preserving its animation contract (884.9824ms)
+✔ keeps the existing factory reductions monotonic and reports no unsafe flattening (2068.0464ms)
+✔ publishes the conservative weapon batching contract (0.3606ms)
+✔ weapon mechanisms give each shot a distinct lightweight motion cue (456.8279ms)
+✔ batched runtime weapons keep live Ossuary and Reliquary mechanism meshes (83.031ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11580.0719

@@ -74,3 +74,14 @@ test('survivor enemy animation keeps the last mixer pose when a clip is unchange
     state.actorState.mixer?.stopAllAction();
   }
 });
+
+test('Cantor zero-time frames freeze and retreat reverses the gait without turning its casting aim',()=>{
+ const root=createAfterlifeEnemy(skinnedSurvivorTemplate(),clips(),1,'caster',3),state=root.userData.afterlife,e=enemy();root.rotation.y=-Math.PI/2;
+ try{
+  animateAfterlifeEnemy(root,e,0,3);const time=state.actorState.mixer.time;
+  for(let i=0;i<10;i++)animateAfterlifeEnemy(root,e,0,3);assert.equal(state.actorState.mixer.time,time,'canonical time zero must not advance repeatedly');
+  root.position.x=.02;animateAfterlifeEnemy(root,e,20,3);assert.equal(state.gaitDirection,1);assert(state.actorState.actions.Walk_Forward.getEffectiveTimeScale()>0);
+  root.position.x=0;animateAfterlifeEnemy(root,e,40,3);assert.equal(state.gaitDirection,-1);assert(state.actorState.actions.Walk_Forward.getEffectiveTimeScale()<0);assert.equal(root.rotation.y,-Math.PI/2);
+  root.position.x=12;animateAfterlifeEnemy(root,e,60,3);assert.equal(state.actorState.actions.Walk_Forward.getEffectiveWeight(),0,'teleport must not create a run burst');
+ }finally{state.actorState.mixer.stopAllAction();}
+});

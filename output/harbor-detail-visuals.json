@@ -1,0 +1,62 @@
+{
+  "result": {
+    "loaded": [
+      "concrete-walk-up-flat-block",
+      "student-dormitory-block",
+      "bangkok-hospital-clinic-building",
+      "bangkok-apartment-block",
+      "low-rise-condominium",
+      "noodle-soup-cart",
+      "street-stall-canopy-cart",
+      "iced-fruit-cart",
+      "terrazzo-pedestal-park-table",
+      "toyota-commuter-van",
+      "toyota-hilux",
+      "tuk-tuk",
+      "municipal-wheelie-bin",
+      "steel-cobra-head-street-lamp",
+      "concrete-jersey-barrier",
+      "oil-drum"
+    ],
+    "errors": [],
+    "water": "three shared displaced analytic waves; sky reflection; deep-water body color approximation",
+    "thai": {
+      "loaded": [
+        "concrete-walk-up-flat-block",
+        "student-dormitory-block",
+        "bangkok-hospital-clinic-building",
+        "bangkok-apartment-block",
+        "low-rise-condominium",
+        "noodle-soup-cart",
+        "street-stall-canopy-cart",
+        "iced-fruit-cart",
+        "terrazzo-pedestal-park-table",
+        "toyota-commuter-van",
+        "toyota-hilux",
+        "tuk-tuk",
+        "municipal-wheelie-bin",
+        "steel-cobra-head-street-lamp",
+        "concrete-jersey-barrier",
+        "oil-drum"
+      ],
+      "errors": [],
+      "placements": 71,
+      "buildings": 7,
+      "props": 64
+    },
+    "detail": {
+      "fencePanels": 308,
+      "fenceDrawCalls": 3,
+      "vehicle": "Thai Kit Hilux",
+      "backgroundBuildings": 9
+    },
+    "render": {
+      "frame": 1,
+      "calls": 242,
+      "triangles": 757324,
+      "points": 0,
+      "lines": 0
+    }
+  },
+  "errors": []
+}

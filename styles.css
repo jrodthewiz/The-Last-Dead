@@ -1540,3 +1540,7 @@ input[type="range"] {
  .touch-cluster { gap: 4px; grid-template-columns: repeat(3,44px); grid-template-rows: repeat(2,44px); }
  .touch-button,.touch-button.fire { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
 }
+/* Local developer controls remain clickable while the simulation is frozen. */
+.dev-flight-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.dev-flight-actions button { flex:1 1 140px; }
+body.inspecting .pack-launcher { display:none!important; }
