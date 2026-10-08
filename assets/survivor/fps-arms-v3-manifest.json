@@ -1,0 +1,185 @@
+{
+  "version": 3,
+  "asset": "assets\\survivor\\fps-arms-v3.glb",
+  "authoring": ".art-source\\viewmodel-arms-v3\\The_Last_Dead_Animated_FPS_Arms_v3.blend",
+  "sha256": "41a7a22880c9cc6d8cd516b693874f775f2679af531734878b3d0692d0b38c3d",
+  "bytes": 19074868,
+  "protected_source_hashes": {
+    "assets\\survivor\\viewmodel-arms-v1.glb": "754871fa53ebddc9b9bfb5d59120b33592288895cde2f9b4f2dc752e9472708e",
+    "assets\\survivor\\viewmodel-arms-v2.glb": "beba75aa9a173532af038c67c286fde96e1149275e4fe0a496a31cdd86f23fcf",
+    "assets\\survivor\\tld-survivor-v02.glb": "f3c9b277985435845d0848f9fc9ca32fa92da9f695c911f7ea48eacff712db03"
+  },
+  "blender": "2.93.0",
+  "actions": [
+    "FPSBones_arc_arc/draw",
+    "FPSBones_arc_arc/fire",
+    "FPSBones_arc_arc/idle",
+    "FPSBones_arc_arc/walk",
+    "FPSBones_bat_bat/draw",
+    "FPSBones_bat_bat/idle",
+    "FPSBones_bat_bat/strike",
+    "FPSBones_bat_bat/walk",
+    "FPSBones_breach_breach/draw",
+    "FPSBones_breach_breach/fire",
+    "FPSBones_breach_breach/idle",
+    "FPSBones_breach_breach/walk",
+    "FPSBones_carrion_carrion/draw",
+    "FPSBones_carrion_carrion/fire",
+    "FPSBones_carrion_carrion/idle",
+    "FPSBones_carrion_carrion/walk",
+    "FPSBones_chainsaw_chainsaw/draw",
+    "FPSBones_chainsaw_chainsaw/idle",
+    "FPSBones_chainsaw_chainsaw/strike",
+    "FPSBones_chainsaw_chainsaw/walk",
+    "FPSBones_mourning_mourning/draw",
+    "FPSBones_mourning_mourning/fire",
+    "FPSBones_mourning_mourning/idle",
+    "FPSBones_mourning_mourning/walk",
+    "FPSBones_ossuary_ossuary/draw",
+    "FPSBones_ossuary_ossuary/fire",
+    "FPSBones_ossuary_ossuary/idle",
+    "FPSBones_ossuary_ossuary/walk",
+    "FPSBones_reliquary_reliquary/draw",
+    "FPSBones_reliquary_reliquary/fire",
+    "FPSBones_reliquary_reliquary/idle",
+    "FPSBones_reliquary_reliquary/walk"
+  ],
+  "runtime_contract": "Dedicated skinned FPS arms; bone clip playback with grip-frame correction; body/interaction assets separate",
+  "acceptance": "Pending native gameplay, continuous animation and adversarial visual review",
+  "losslessExportCleanup": {
+    "removedBindConstantTracks": 2955,
+    "animatedChannels": [
+      {
+        "name": "arc/draw",
+        "channels": 12
+      },
+      {
+        "name": "arc/fire",
+        "channels": 10
+      },
+      {
+        "name": "arc/idle",
+        "channels": 8
+      },
+      {
+        "name": "arc/walk",
+        "channels": 8
+      },
+      {
+        "name": "bat/draw",
+        "channels": 12
+      },
+      {
+        "name": "bat/idle",
+        "channels": 8
+      },
+      {
+        "name": "bat/strike",
+        "channels": 10
+      },
+      {
+        "name": "bat/walk",
+        "channels": 8
+      },
+      {
+        "name": "breach/draw",
+        "channels": 12
+      },
+      {
+        "name": "breach/fire",
+        "channels": 10
+      },
+      {
+        "name": "breach/idle",
+        "channels": 8
+      },
+      {
+        "name": "breach/walk",
+        "channels": 8
+      },
+      {
+        "name": "carrion/draw",
+        "channels": 12
+      },
+      {
+        "name": "carrion/fire",
+        "channels": 10
+      },
+      {
+        "name": "carrion/idle",
+        "channels": 8
+      },
+      {
+        "name": "carrion/walk",
+        "channels": 8
+      },
+      {
+        "name": "chainsaw/draw",
+        "channels": 12
+      },
+      {
+        "name": "chainsaw/idle",
+        "channels": 8
+      },
+      {
+        "name": "chainsaw/strike",
+        "channels": 10
+      },
+      {
+        "name": "chainsaw/walk",
+        "channels": 8
+      },
+      {
+        "name": "mourning/draw",
+        "channels": 12
+      },
+      {
+        "name": "mourning/fire",
+        "channels": 10
+      },
+      {
+        "name": "mourning/idle",
+        "channels": 8
+      },
+      {
+        "name": "mourning/walk",
+        "channels": 8
+      },
+      {
+        "name": "ossuary/draw",
+        "channels": 6
+      },
+      {
+        "name": "ossuary/fire",
+        "channels": 5
+      },
+      {
+        "name": "ossuary/idle",
+        "channels": 4
+      },
+      {
+        "name": "ossuary/walk",
+        "channels": 4
+      },
+      {
+        "name": "reliquary/draw",
+        "channels": 12
+      },
+      {
+        "name": "reliquary/fire",
+        "channels": 10
+      },
+      {
+        "name": "reliquary/idle",
+        "channels": 8
+      },
+      {
+        "name": "reliquary/walk",
+        "channels": 8
+      }
+    ],
+    "beforeBytes": 22175536,
+    "afterBytes": 19074868
+  },
+  "triangles": 510518
+}

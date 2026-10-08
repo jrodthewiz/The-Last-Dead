@@ -4,8 +4,6 @@
 // No second world render or geometry changes are required.
 import {isolateViewmodelSpotlights} from '../../bounded-lighting.js';
 export function installViewmodelDepthBoundary(rig) {
-  const beforeDraw=renderer=>renderer.getContext().depthRange(0,.01);
-  const afterDraw=renderer=>renderer.getContext().depthRange(0,1);
   rig.traverse(object=>{
     // Draw authored hands after the weapon body so a palm sitting on the
     // grip remains legible in the close camera.  Depth testing is preserved;
@@ -13,8 +11,7 @@ export function installViewmodelDepthBoundary(rig) {
     // meshes.
     object.renderOrder=object.userData?.viewmodelArm?1010:1000;
     if(object.isMesh){
-      object.onBeforeRender=beforeDraw;object.onAfterRender=afterDraw;
-      for(const material of (Array.isArray(object.material)?object.material:[object.material]))isolateViewmodelSpotlights(material);
+      for(const material of (Array.isArray(object.material)?object.material:[object.material])){if(!material.userData.viewmodelDepth){const key=material.customProgramCacheKey();material.userData.viewmodelDepth=true;material.customProgramCacheKey=()=>key+'|viewmodel-depth-v1';material.needsUpdate=true;}isolateViewmodelSpotlights(material);}
     }
   });
 }

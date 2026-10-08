@@ -6,6 +6,23 @@ import {GLTFLoader} from '../vendor/loaders/GLTFLoader.js';
 import {createAfterlifeModel} from '../npc-afterlife-model.js';
 import {BrutalCombatVisuals} from '../brutal-combat-visuals.js';
 import {HarvestSurface} from '../extraction-surface.js';
+import {HarvestCutaways} from '../extraction-cutaway.js';
+
+test('harvest splitting preserves normalized attribute values and restores their source buffers',()=>{
+ const geometry=new T.PlaneGeometry(.4,.4,3,3),count=geometry.attributes.position.count;
+ geometry.setAttribute('skinIndex',new T.Uint16BufferAttribute(new Uint16Array(count*4),4));
+ const weights=new Float32Array(count*4);for(let i=0;i<count;i++)weights[i*4]=1;
+ geometry.setAttribute('skinWeight',new T.Float32BufferAttribute(weights,4));
+ const colors=new Uint8Array(count*3);for(let i=0;i<colors.length;i++)colors[i]=(i*37)%256;
+ const color=new T.Uint8BufferAttribute(colors,3,true);geometry.setAttribute('color',color);
+ const material=new T.MeshStandardMaterial(),mesh=new T.SkinnedMesh(geometry,material),bone=new T.Bone();bone.name='Hips';mesh.add(bone);mesh.bind(new T.Skeleton([bone]));mesh.updateMatrixWorld(true);
+ const frame=new T.Group(),entry={mesh,geometry,regions:new Float32Array(count)},surface=new HarvestSurface({meshes:[entry]},frame);
+ assert(surface.entries.length>0);assert(geometry.attributes.color.count>count);
+ assert.deepEqual(Array.from(geometry.attributes.color.array.slice(0,colors.length)),Array.from(colors));
+ assert.equal(geometry.attributes.color.normalized,true);
+ for(let i=count;i<geometry.attributes.color.count;i++)for(let k=0;k<3;k++){const value=geometry.attributes.color.getComponent(i,k);assert(value>=0&&value<=1);}
+ surface.dispose();assert.equal(geometry.attributes.color,color);geometry.dispose();material.dispose();mesh.skeleton.dispose();
+});
 
 test('real imported coat is split, retracts with skinning, and restores original buffers',async()=>{
   const previous={self:globalThis.self,createImageBitmap:globalThis.createImageBitmap,ProgressEvent:globalThis.ProgressEvent};let gltf;
@@ -52,4 +69,13 @@ test('real imported coat is split, retracts with skinning, and restores original
   for(const e of surface.entries)for(let i=0;i<e.basePositions.length;i++)assert(Math.abs(e.geometry.attributes.position.array[i]-e.basePositions[i])<1e-4);
   surface.dispose();for(const s of saved){assert.equal(s.entry.geometry.attributes.position,s.position);assert.equal(s.entry.geometry.index,s.index);assert.equal(s.entry.geometry.attributes.uv,s.uv);assert(!s.entry.geometry.attributes.harvestSide);}
   combat.releaseActor(body);
+  // Preparation must use the real skinned hook while leaving the source asset
+  // and live combat actor capacity untouched.
+  const scene=new T.Group(),cutaways=new HarvestCutaways({scene,_ashWitnessAsset:{template:gltf.scene,clips:[]},brutalCombatVisuals:combat});
+  const restore=await cutaways.prepareWarmup(),sample=cutaways._warmup;
+  assert(sample.actor);assert.equal(combat.actors.size,0);assert.equal(sample.combat.actors.size,1);
+  const state=sample.combat.actors.get(sample.actor);assert(state.meshes.length>0);
+  for(const entry of state.meshes){assert(entry.geometry.attributes.brutalMembership);assert(entry.mesh.material.customProgramCacheKey().includes('brutal-source-seam-v9-material-reference'));assert(!entry.geometry.attributes.harvestSide);}
+  let borrowedDisposals=0;gltf.scene.traverse(node=>node.geometry?.addEventListener('dispose',()=>borrowedDisposals++));
+  restore();assert.equal(sample.actor.visible,false);cutaways.dispose();assert.equal(sample.combat.actors.size,0);assert.equal(borrowedDisposals,0);
 });

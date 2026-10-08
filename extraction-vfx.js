@@ -683,6 +683,20 @@ export class ExtractionVFX {
     }
   }
 
+  async prepareWarmup(){
+    const restoreAnatomy=await this.cutaways?.prepareWarmup();
+    const saved=[];
+    // Tools and droplets live under normally hidden roots. Compile their
+    // actual bounded pools as well as the source-anatomy tissue variants.
+    for(const root of [this.root,this.tool])root.traverse(object=>{
+      saved.push({object,visible:object.visible,culled:object.frustumCulled,count:object.count});
+      object.visible=true;object.frustumCulled=false;
+      if(object.isInstancedMesh)object.count=Math.max(1,object.count);
+    });
+    let restored=false;
+    return ()=>{if(restored)return;restored=true;for(const entry of saved){entry.object.visible=entry.visible;entry.object.frustumCulled=entry.culled;if(entry.count!==undefined)entry.object.count=entry.count;}restoreAnatomy?.();};
+  }
+
   diagnostics() {
     return {
       active: this.active,

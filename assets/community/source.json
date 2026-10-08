@@ -1,0 +1,11 @@
+{
+  "repository": "https://github.com/StarKnightt/night-street",
+  "commit": "333f064778105640588a95d2c2d150780044e7bf",
+  "license": "MIT",
+  "files": [
+    "facade.ts",
+    "emit.ts",
+    "noise.ts"
+  ],
+  "adaptation": "Single bounded building, four merged material groups; no upstream renderer or procedural shader baking."
+}

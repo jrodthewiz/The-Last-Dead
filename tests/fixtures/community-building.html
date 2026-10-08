@@ -1,0 +1,7 @@
+<!doctype html><html><head><link rel="icon" href="data:,"></head><body style="margin:0"><script type="module">
+import * as THREE from '/vendor/three.module.js';
+import {createHarborTenement} from '/community-buildings.js';
+const renderer=new URLSearchParams(location.search).has('webgpu')?await (await import('/webgpu-backend.js')).createWebGPUBackend(document.createElement('canvas')):new THREE.WebGLRenderer({antialias:true});renderer.setSize(1000,700);renderer.setPixelRatio(1);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.2;document.body.appendChild(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x809ca4);scene.add(new THREE.HemisphereLight(0xd7e5e7,0x6e6858,2));const sun=new THREE.DirectionalLight(0xffe1b4,3);sun.position.set(-12,25,-18);scene.add(sun);const model=createHarborTenement();scene.add(model);const floor=new THREE.Mesh(new THREE.PlaneGeometry(100,100),new THREE.MeshStandardMaterial({color:0x77766b,roughness:1}));floor.rotation.x=-Math.PI/2;floor.position.y=-.04;scene.add(floor);const camera=new THREE.PerspectiveCamera(48,1000/700,.1,200);camera.position.set(-22,17,-26);camera.lookAt(0,6,0);if(new URLSearchParams(location.search).has('post')){const {BodycamPass}=await import('/bodycam-pass.js');const pass=new BodycamPass(renderer);for(let i=0;i<4;i++)pass.render(scene,camera,i*16);}else renderer.render(scene,camera);window.preview={renderer,model,scene,camera};window.qaReady=true;
+</script></body></html>
+

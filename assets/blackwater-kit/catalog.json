@@ -1,0 +1,26 @@
+{
+  "name": "Blackwater Apocalypse Kit",
+  "version": 1,
+  "description": "Original source-authored architecture for The Last Dead. This local inspection catalog uses the Vibe3D createModel workflow; it is not an installed upstream registry or CLI package.",
+  "module": "./architecture.js",
+  "factory": "createModel",
+  "preview": "/blackwater-review.html",
+  "units": "metres",
+  "up": "+Y",
+  "front": "+Z",
+  "origin": "ground centre",
+  "presets": [
+    {"id": "blackwater-shop", "options": {"kind": "shop", "width": 16, "depth": 12, "height": 11, "seed": 1401}},
+    {"id": "blackwater-corner", "options": {"kind": "corner", "width": 16, "depth": 12, "height": 15, "seed": 1400}},
+    {"id": "bell-pharmacy", "options": {"kind": "shop", "width": 16, "depth": 12, "height": 11, "seed": 1405, "label": "BELL PHARMACY", "enterable": true, "doorOffset": 2}},
+    {"id": "house-front-gable", "options": {"kind": "house", "width": 16, "depth": 12, "height": 6.4, "seed": 1410}},
+    {"id": "house-dormer", "options": {"kind": "house", "width": 16, "depth": 12, "height": 6.4, "seed": 1408}},
+    {"id": "house-upper-bay", "options": {"kind": "house", "width": 16, "depth": 12, "height": 6.4, "seed": 1409}}
+  ],
+  "contract": {
+    "return": ["root", "parts", "sockets", "materials", "colliders", "diagnostics", "dispose"],
+    "parts": ["structure", "facade", "roof", "interior", "utilities", "entrance"],
+    "materialOwnership": "Supplied materials are borrowed. Unique house siding and shop signs are model-owned. Call the model dispose method for owned resources; the district controller releases shared materials.",
+    "collision": "The furniture plan is shared by geometry and collision. Exterior walls use the coastal navigation grid. Only Bell Pharmacy is enterable in inspection 01."
+  }
+}

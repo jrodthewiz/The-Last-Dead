@@ -25,6 +25,17 @@ function fixture(){
   return{body,geometry,material,mesh,physics,combat,enemy,run,cutaways,clean};
 }
 
+test('harvest preparation retains sample resources without adding gameplay corpse state',async()=>{
+ const f=fixture(),{cutaways}=f;cutaways.root.visible=false;
+ const restore=await cutaways.prepareWarmup(),sample=cutaways._warmup;
+ assert.equal(cutaways.states.size,0);assert.equal(cutaways.root.visible,true);
+ assert.equal(sample.anatomy.root.visible,true);
+ let disposed=0;sample.geometry.addEventListener('dispose',()=>disposed++);
+ restore();restore();assert.equal(cutaways.root.visible,false);assert.equal(sample.anatomy.root.visible,false);assert.equal(disposed,0);
+ const restoreAgain=await cutaways.prepareWarmup();assert.equal(cutaways._warmup,sample);restoreAgain();
+ f.clean();assert.equal(disposed,1);assert.equal(cutaways._warmup,null);
+});
+
 test('harvest aperture follows the real posed torso frame and preserves source mesh ownership',()=>{
   const f=fixture(),{cutaways,run,enemy,body,combat,mesh,material}=f;
   body.getObjectByName('Socket_Chest').rotation.set(.6,.15,.28);body.updateMatrixWorld(true);

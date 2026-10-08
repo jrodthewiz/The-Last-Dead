@@ -1,0 +1,1190 @@
+{
+  "package": "@thai-kit/props",
+  "version": "0.3.4",
+  "source": "https://github.com/keysforthewin/thaikit",
+  "license": "MIT",
+  "licenseVerifiedAgainst": "https://raw.githubusercontent.com/keysforthewin/thaikit/main/LICENSE",
+  "three": "../../vendor/three.module.js",
+  "textureDependencies": "Generated CanvasTextures and embedded data URI images; no remote texture requests",
+  "models": [
+    {
+      "id": "electric-meter-box",
+      "module": "./electric-meter-box.js",
+      "export": "createModel",
+      "bytes": 85769,
+      "sourceSha256": "05de708b8f71f2993ea51e4255ab37693d4a202411b0b49e1a119c866ee47924",
+      "declaredSize": {
+        "d": 0.16,
+        "h": 0.4,
+        "w": 0.3
+      },
+      "pivot": "back-center",
+      "sourceBudgets": {
+        "triangles": 600,
+        "drawCalls": 1,
+        "materials": 1,
+        "textures": 1
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "electric-meter-box",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -0.1497499942779541,
+            -0.2608990967273712,
+            0
+          ],
+          "max": [
+            0.1497499942779541,
+            0.20496264100074768,
+            0.1509999930858612
+          ],
+          "size": [
+            0.2994999885559082,
+            0.4658617377281189,
+            0.1509999930858612
+          ]
+        },
+        "triangles": 600,
+        "meshes": 1,
+        "materials": 1,
+        "textures": [
+          {
+            "width": 512,
+            "height": 640
+          }
+        ],
+        "drawCalls": 1
+      }
+    },
+    {
+      "id": "folding-laminate-trestle-table",
+      "module": "./folding-laminate-trestle-table.js",
+      "export": "createModel",
+      "bytes": 63541,
+      "sourceSha256": "b687c1e756ae24942ea47b47ef4026dbe30902be5accf71f3133cdde1c1916a3",
+      "declaredSize": {
+        "d": 0.67,
+        "h": 0.75,
+        "w": 1.56
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 828,
+        "drawCalls": 2,
+        "materials": 2,
+        "textures": 2
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "folding-laminate-trestle-table",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -0.7950000166893005,
+            0.0022534288000315428,
+            -0.3499999940395355
+          ],
+          "max": [
+            0.7950000166893005,
+            0.7519999742507935,
+            0.3499999940395355
+          ],
+          "size": [
+            1.590000033378601,
+            0.7497465454507619,
+            0.699999988079071
+          ]
+        },
+        "triangles": 828,
+        "meshes": 2,
+        "materials": 2,
+        "textures": [
+          {
+            "width": 256,
+            "height": 256
+          },
+          {
+            "width": 256,
+            "height": 256
+          }
+        ],
+        "drawCalls": 2
+      }
+    },
+    {
+      "id": "folding-padded-banquet-chair",
+      "module": "./folding-padded-banquet-chair.js",
+      "export": "createModel",
+      "bytes": 66346,
+      "sourceSha256": "b1ff162cdf3888c23db5db4908f9e550798edd2549d5d83faba2fc6d7ab5fb70",
+      "declaredSize": {
+        "d": 0.55,
+        "h": 0.88,
+        "w": 0.45
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 1476,
+        "drawCalls": 2,
+        "materials": 2,
+        "textures": 2
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "folding-padded-banquet-chair",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -0.25,
+            -4.3213366218708416e-10,
+            -0.23499999940395355
+          ],
+          "max": [
+            0.25,
+            0.8820000290870667,
+            0.24202631413936615
+          ],
+          "size": [
+            0.5,
+            0.8820000295192003,
+            0.4770263135433197
+          ]
+        },
+        "triangles": 1476,
+        "meshes": 2,
+        "materials": 2,
+        "textures": [
+          {
+            "width": 256,
+            "height": 256
+          },
+          {
+            "width": 256,
+            "height": 256
+          }
+        ],
+        "drawCalls": 2
+      }
+    },
+    {
+      "id": "oil-drum",
+      "module": "./oil-drum.js",
+      "export": "createModel",
+      "bytes": 59332,
+      "sourceSha256": "7b48dc924ec11aefaa782bc7bd92f4edea405247940fa877b77b4045771e6e0e",
+      "declaredSize": {
+        "d": 0.58,
+        "h": 0.85,
+        "w": 0.58
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 1696,
+        "drawCalls": 2,
+        "materials": 2,
+        "textures": 2
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "oil-drum",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -0.28999999165534973,
+            0,
+            -0.28999999165534973
+          ],
+          "max": [
+            0.28999999165534973,
+            0.8500000238418579,
+            0.28999999165534973
+          ],
+          "size": [
+            0.5799999833106995,
+            0.8500000238418579,
+            0.5799999833106995
+          ]
+        },
+        "triangles": 1696,
+        "meshes": 2,
+        "materials": 2,
+        "textures": [
+          {
+            "width": 1024,
+            "height": 1024
+          },
+          {
+            "width": 256,
+            "height": 256
+          }
+        ],
+        "drawCalls": 2
+      }
+    },
+    {
+      "id": "municipal-wheelie-bin",
+      "module": "./municipal-wheelie-bin.js",
+      "export": "createModel",
+      "bytes": 60136,
+      "sourceSha256": "e74fe0186d075d1c47b9967c713063a42225959145565a40287684f933c231e4",
+      "declaredSize": {
+        "d": 0.62,
+        "h": 1.07,
+        "w": 0.58
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 600,
+        "drawCalls": 2,
+        "materials": 1,
+        "textures": 1
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "municipal-wheelie-bin",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -0.36000001430511475,
+            3.278255444882916e-9,
+            -0.33000001311302185
+          ],
+          "max": [
+            0.36000001430511475,
+            1.0700000524520874,
+            0.33000001311302185
+          ],
+          "size": [
+            0.7200000286102295,
+            1.070000049173832,
+            0.6600000262260437
+          ]
+        },
+        "triangles": 600,
+        "meshes": 2,
+        "materials": 1,
+        "textures": [
+          {
+            "width": 256,
+            "height": 256
+          }
+        ],
+        "drawCalls": 2
+      }
+    },
+    {
+      "id": "concrete-jersey-barrier",
+      "module": "./concrete-jersey-barrier.js",
+      "export": "createModel",
+      "bytes": 53730,
+      "sourceSha256": "874bab531103efbe88e9fa732173e367b931444ad6ac2fbee3261cabba522dfb",
+      "declaredSize": {
+        "d": 0.6,
+        "h": 0.8,
+        "w": 2
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 272,
+        "drawCalls": 1,
+        "materials": 1,
+        "textures": 1
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "concrete-jersey-barrier",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -1.0240000486373901,
+            0,
+            -0.30000001192092896
+          ],
+          "max": [
+            1.0016000270843506,
+            0.800000011920929,
+            0.30000001192092896
+          ],
+          "size": [
+            2.0256000757217407,
+            0.800000011920929,
+            0.6000000238418579
+          ]
+        },
+        "triangles": 272,
+        "meshes": 1,
+        "materials": 1,
+        "textures": [
+          {
+            "width": 512,
+            "height": 512
+          }
+        ],
+        "drawCalls": 1
+      }
+    },
+    {
+      "id": "chain-link-fence-panel",
+      "module": "./chain-link-fence-panel.js",
+      "export": "createModel",
+      "bytes": 37823,
+      "sourceSha256": "3dd258bbe309f1c5c68449635636db013d8f64fbc16972e94069f4102b102139",
+      "declaredSize": {
+        "d": 0.08,
+        "h": 2,
+        "w": 3
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 1840,
+        "drawCalls": 3,
+        "materials": 3,
+        "textures": 3
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "chain-link-fence-panel",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -1.7015976905822754,
+            -0.010104723274707794,
+            -0.29528164863586426
+          ],
+          "max": [
+            1.6340643167495728,
+            2.0339999198913574,
+            0.3511732220649719
+          ],
+          "size": [
+            3.335662007331848,
+            2.044104643166065,
+            0.6464548707008362
+          ]
+        },
+        "triangles": 1840,
+        "meshes": 3,
+        "materials": 3,
+        "textures": [
+          {
+            "width": 256,
+            "height": 256
+          },
+          {
+            "width": 128,
+            "height": 128
+          },
+          {
+            "width": 256,
+            "height": 256
+          }
+        ],
+        "drawCalls": 3
+      }
+    },
+    {
+      "id": "iced-fruit-cart",
+      "module": "./iced-fruit-cart.js",
+      "export": "createModel",
+      "bytes": 60628,
+      "sourceSha256": "53ac995af4759b16a8721c17ac7913ba220fb66a362ecac05e8673ade3c38092",
+      "declaredSize": {
+        "d": 0.76,
+        "h": 1.5,
+        "w": 1.43
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 3796,
+        "drawCalls": 4,
+        "materials": 3,
+        "textures": 3
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "iced-fruit-cart",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -0.6613709926605225,
+            0.0026325657963752747,
+            -0.38587185740470886
+          ],
+          "max": [
+            0.7145959734916687,
+            1.5452601909637451,
+            0.36899998784065247
+          ],
+          "size": [
+            1.3759669661521912,
+            1.5426276251673698,
+            0.7548718452453613
+          ]
+        },
+        "triangles": 3508,
+        "meshes": 4,
+        "materials": 3,
+        "textures": [
+          {
+            "width": 256,
+            "height": 256
+          },
+          {
+            "width": 256,
+            "height": 256
+          },
+          {
+            "width": 256,
+            "height": 256
+          }
+        ],
+        "drawCalls": 5
+      }
+    },
+    {
+      "id": "noodle-soup-cart",
+      "module": "./noodle-soup-cart.js",
+      "export": "createModel",
+      "bytes": 39904,
+      "sourceSha256": "dcb8922d6abfa158767008a2385d96f8eddbb58f101f67d30f93510b81f21e15",
+      "declaredSize": {
+        "d": 0.88,
+        "h": 1.5,
+        "w": 1.5
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 3800,
+        "drawCalls": 3,
+        "materials": 2,
+        "textures": 2
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "noodle-soup-cart",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -0.7600955367088318,
+            -1.0728835597717534e-9,
+            -0.44200000166893005
+          ],
+          "max": [
+            0.7600955367088318,
+            1.5086326599121094,
+            0.44200000166893005
+          ],
+          "size": [
+            1.5201910734176636,
+            1.508632660984993,
+            0.8840000033378601
+          ]
+        },
+        "triangles": 3288,
+        "meshes": 3,
+        "materials": 2,
+        "textures": [
+          {
+            "width": 512,
+            "height": 512
+          },
+          {
+            "width": 256,
+            "height": 256
+          }
+        ],
+        "drawCalls": 3
+      }
+    },
+    {
+      "id": "street-stall-canopy-cart",
+      "module": "./street-stall-canopy-cart.js",
+      "export": "createModel",
+      "bytes": 61589,
+      "sourceSha256": "95bacb87f857058c4c0b328035d9747d1be06adf2ff4b9d4da813fd4a8fd259c",
+      "declaredSize": {
+        "d": 1,
+        "h": 2.1,
+        "w": 1.4
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 1240,
+        "drawCalls": 3,
+        "materials": 3,
+        "textures": 2
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "street-stall-canopy-cart",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -0.699999988079071,
+            1.907348590179936e-8,
+            -0.5009315013885498
+          ],
+          "max": [
+            0.699999988079071,
+            2.0188002586364746,
+            0.5019999742507935
+          ],
+          "size": [
+            1.399999976158142,
+            2.0188002395629887,
+            1.0029314756393433
+          ]
+        },
+        "triangles": 1240,
+        "meshes": 3,
+        "materials": 3,
+        "textures": [
+          {
+            "width": 256,
+            "height": 256
+          },
+          {
+            "width": 256,
+            "height": 256
+          }
+        ],
+        "drawCalls": 3
+      }
+    },
+    {
+      "id": "steel-cobra-head-street-lamp",
+      "module": "./steel-cobra-head-street-lamp.js",
+      "export": "createModel",
+      "bytes": 41534,
+      "sourceSha256": "892f96bcf9f7c1b4df6ed799ee110f36863034f12bd60e090f73072e2c7b499e",
+      "declaredSize": {
+        "d": 0.36,
+        "h": 9,
+        "w": 2.6
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 1104,
+        "drawCalls": 4,
+        "materials": 3,
+        "textures": 1
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "steel-cobra-head-street-lamp",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -0.17000000178813934,
+            -2.6822088994293836e-10,
+            -0.17000000178813934
+          ],
+          "max": [
+            2.440000057220459,
+            8.850000381469727,
+            0.17000000178813934
+          ],
+          "size": [
+            2.6100000590085983,
+            8.850000381737948,
+            0.3400000035762787
+          ]
+        },
+        "triangles": 1104,
+        "meshes": 4,
+        "materials": 3,
+        "textures": [
+          {
+            "width": 512,
+            "height": 512
+          }
+        ],
+        "drawCalls": 4
+      }
+    },
+    {
+      "id": "toyota-commuter-van",
+      "module": "./toyota-commuter-van.js",
+      "export": "createModel",
+      "bytes": 27794,
+      "sourceSha256": "04e2c4eff9bf47dce73ad9101c3bccff3bcc3f2f41b359a7746dfd2a0f7334c6",
+      "declaredSize": {
+        "d": 5.38,
+        "h": 2.28,
+        "w": 1.88
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 6412,
+        "drawCalls": 4,
+        "materials": 3,
+        "textures": 2
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "toyota-commuter-van",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -1.0299999713897705,
+            0,
+            -2.75
+          ],
+          "max": [
+            1.0299999713897705,
+            2.2699999809265137,
+            2.768521547317505
+          ],
+          "size": [
+            2.059999942779541,
+            2.2699999809265137,
+            5.518521547317505
+          ]
+        },
+        "triangles": 3676,
+        "meshes": 4,
+        "materials": 3,
+        "textures": [
+          {
+            "width": 512,
+            "height": 512
+          },
+          {
+            "width": 256,
+            "height": 256
+          }
+        ],
+        "drawCalls": 4
+      }
+    },
+    {
+      "id": "toyota-hilux",
+      "module": "./toyota-hilux.js",
+      "export": "createModel",
+      "bytes": 27995,
+      "sourceSha256": "36d2fce2483168b1305b73157148581c8381f4287738ff4a163f2a0de75c8095",
+      "declaredSize": {
+        "d": 5.33,
+        "h": 1.82,
+        "w": 1.86
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 7576,
+        "drawCalls": 4,
+        "materials": 3,
+        "textures": 1
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "toyota-hilux",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -1.0299999713897705,
+            0.00639110803604126,
+            -2.7100000381469727
+          ],
+          "max": [
+            1.0299999713897705,
+            1.8200000524520874,
+            2.680171489715576
+          ],
+          "size": [
+            2.059999942779541,
+            1.8136089444160461,
+            5.390171527862549
+          ]
+        },
+        "triangles": 4120,
+        "meshes": 4,
+        "materials": 3,
+        "textures": [
+          {
+            "width": 512,
+            "height": 512
+          }
+        ],
+        "drawCalls": 4
+      }
+    },
+    {
+      "id": "corrugated-metal-canopy-module",
+      "module": "./corrugated-metal-canopy-module.js",
+      "export": "createModel",
+      "bytes": 68654,
+      "sourceSha256": "de3abfab71e6df205b6905de292b21ee940e9f3dcbf30d6813f98e30f670f20d",
+      "declaredSize": {
+        "d": 4,
+        "h": 2.9,
+        "w": 4
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 3188,
+        "drawCalls": 3,
+        "materials": 2,
+        "textures": 2
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "corrugated-metal-canopy-module",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -2,
+            -3.452301200468355e-8,
+            -2
+          ],
+          "max": [
+            2,
+            2.9000000953674316,
+            2
+          ],
+          "size": [
+            4,
+            2.9000001298904436,
+            4
+          ]
+        },
+        "triangles": 2888,
+        "meshes": 3,
+        "materials": 2,
+        "textures": [
+          {
+            "width": 512,
+            "height": 512
+          },
+          {
+            "width": 512,
+            "height": 512
+          }
+        ],
+        "drawCalls": 3
+      }
+    },
+    {
+      "id": "tuk-tuk",
+      "module": "./tuk-tuk.js",
+      "export": "createModel",
+      "bytes": 39219,
+      "sourceSha256": "36d338c545bf0887e0bad10d7d5027ba8c96324266ba892919b1acd8192e667e",
+      "declaredSize": {
+        "d": 2.9,
+        "h": 1.95,
+        "w": 1.4
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 4778,
+        "drawCalls": 4,
+        "materials": 4,
+        "textures": 2
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "tuk-tuk",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -0.639999981969595,
+            0,
+            -1.440999984741211
+          ],
+          "max": [
+            0.639999981969595,
+            1.9549999237060547,
+            1.4595551490783691
+          ],
+          "size": [
+            1.27999996393919,
+            1.9549999237060547,
+            2.90055513381958
+          ]
+        },
+        "triangles": 3866,
+        "meshes": 4,
+        "materials": 4,
+        "textures": [
+          {
+            "width": 256,
+            "height": 256
+          },
+          {
+            "width": 256,
+            "height": 256
+          }
+        ],
+        "drawCalls": 4
+      }
+    },
+    {
+      "id": "terrazzo-pedestal-park-table",
+      "module": "./terrazzo-pedestal-park-table.js",
+      "export": "createModel",
+      "bytes": 42995,
+      "sourceSha256": "f262677fcf227a30251ff03f7d77b39250e8c1f1ec181db88c4df506bad6e751",
+      "declaredSize": {
+        "d": 0.62,
+        "h": 0.72,
+        "w": 0.62
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 108,
+        "drawCalls": 2,
+        "materials": 2,
+        "textures": 2
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "terrazzo-pedestal-park-table",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -0.3100000023841858,
+            1.4156102678963833e-10,
+            -0.3100000023841858
+          ],
+          "max": [
+            0.3100000023841858,
+            0.7200000286102295,
+            0.3100000023841858
+          ],
+          "size": [
+            0.6200000047683716,
+            0.7200000284686685,
+            0.6200000047683716
+          ]
+        },
+        "triangles": 108,
+        "meshes": 2,
+        "materials": 2,
+        "textures": [
+          {
+            "width": 512,
+            "height": 512
+          },
+          {
+            "width": 256,
+            "height": 256
+          }
+        ],
+        "drawCalls": 2
+      }
+    },
+    {
+      "id": "bangkok-apartment-block",
+      "module": "./bangkok-apartment-block.js",
+      "export": "createModel",
+      "bytes": 15535,
+      "sourceSha256": "415c7582b705829ef4a6747a936c60e5d0c1f16672be1177519803dd6402ecf5",
+      "declaredSize": {
+        "d": 12.3,
+        "h": 19,
+        "w": 15
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 27904,
+        "drawCalls": 16,
+        "materials": 12,
+        "textures": 3
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "bangkok-apartment-block",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -7.5,
+            0,
+            -6.150000095367432
+          ],
+          "max": [
+            7.489999771118164,
+            19.000000834465027,
+            6.150000095367432
+          ],
+          "size": [
+            14.989999771118164,
+            19.000000834465027,
+            12.300000190734863
+          ]
+        },
+        "triangles": 4510,
+        "meshes": 16,
+        "materials": 12,
+        "textures": [
+          {
+            "width": 256,
+            "height": 256
+          },
+          {
+            "width": 512,
+            "height": 96
+          },
+          {
+            "width": 1024,
+            "height": 116
+          }
+        ],
+        "drawCalls": 16
+      }
+    },
+    {
+      "id": "concrete-walk-up-flat-block",
+      "module": "./concrete-walk-up-flat-block.js",
+      "export": "createModel",
+      "bytes": 15575,
+      "sourceSha256": "3d364c0debc930dc56cb5180927e7aff3e887305180d5c848bd38b223e906f1c",
+      "declaredSize": {
+        "d": 10.5,
+        "h": 17.5,
+        "w": 26.5
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 3256,
+        "drawCalls": 10,
+        "materials": 9,
+        "textures": 5
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "concrete-walk-up-flat-block",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -13.350000381469727,
+            -1.4901161415892261e-9,
+            -5.349999904632568
+          ],
+          "max": [
+            13.350000381469727,
+            17.5,
+            5.349999904632568
+          ],
+          "size": [
+            26.700000762939453,
+            17.500000001490115,
+            10.699999809265137
+          ]
+        },
+        "triangles": 604,
+        "meshes": 10,
+        "materials": 9,
+        "textures": [
+          {
+            "width": 512,
+            "height": 512
+          },
+          {
+            "width": 1024,
+            "height": 256
+          },
+          {
+            "width": 512,
+            "height": 512
+          },
+          {
+            "width": 64,
+            "height": 64
+          },
+          {
+            "width": 256,
+            "height": 256
+          }
+        ],
+        "drawCalls": 10
+      }
+    },
+    {
+      "id": "low-rise-condominium",
+      "module": "./low-rise-condominium.js",
+      "export": "createModel",
+      "bytes": 17608,
+      "sourceSha256": "1c467feeae1343a2957d1387ade4f898282c91c154c6cfcf6c613721c4c7e233",
+      "declaredSize": {
+        "d": 17.3,
+        "h": 21,
+        "w": 21.8
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 18844,
+        "drawCalls": 13,
+        "materials": 11,
+        "textures": 2
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "low-rise-condominium",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -10.919999655336142,
+            -4.7683716530855236e-8,
+            -7.719999846071005
+          ],
+          "max": [
+            10.919999655336142,
+            20.999999284744263,
+            9.600000381469727
+          ],
+          "size": [
+            21.839999310672283,
+            20.99999933242798,
+            17.32000022754073
+          ]
+        },
+        "triangles": 2816,
+        "meshes": 13,
+        "materials": 11,
+        "textures": [
+          {
+            "width": 256,
+            "height": 256
+          },
+          {
+            "width": 1024,
+            "height": 360
+          }
+        ],
+        "drawCalls": 13
+      }
+    },
+    {
+      "id": "student-dormitory-block",
+      "module": "./student-dormitory-block.js",
+      "export": "createModel",
+      "bytes": 20714,
+      "sourceSha256": "be4019cac401e3a9336b2ea29552ac57f17bf827b515821fef8bf11d63341829",
+      "declaredSize": {
+        "d": 13.3,
+        "h": 24,
+        "w": 14.9
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 5848,
+        "drawCalls": 15,
+        "materials": 14,
+        "textures": 7
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "student-dormitory-block",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -7.4650000631809235,
+            -5.9604645663569045e-9,
+            -6.400000095367432
+          ],
+          "max": [
+            7.4650000631809235,
+            24,
+            6.885000228881836
+          ],
+          "size": [
+            14.930000126361847,
+            24.000000005960466,
+            13.285000324249268
+          ]
+        },
+        "triangles": 3230,
+        "meshes": 15,
+        "materials": 14,
+        "textures": [
+          {
+            "width": 512,
+            "height": 512
+          },
+          {
+            "width": 1024,
+            "height": 1024
+          },
+          {
+            "width": 256,
+            "height": 208
+          },
+          {
+            "width": 256,
+            "height": 128
+          },
+          {
+            "width": 256,
+            "height": 256
+          },
+          {
+            "width": 1024,
+            "height": 232
+          },
+          {
+            "width": 512,
+            "height": 256
+          }
+        ],
+        "drawCalls": 15
+      }
+    },
+    {
+      "id": "bangkok-hospital-clinic-building",
+      "module": "./bangkok-hospital-clinic-building.js",
+      "export": "createModel",
+      "bytes": 70073,
+      "sourceSha256": "399e0a4312ee20870acd7a3d879e0b58ccac2afb3f10350f12e2b5ba8aeb1ddc",
+      "declaredSize": {
+        "d": 7,
+        "h": 6,
+        "w": 8
+      },
+      "pivot": "base-center",
+      "sourceBudgets": {
+        "triangles": 1212,
+        "drawCalls": 11,
+        "materials": 7,
+        "textures": 2
+      },
+      "license": "MIT",
+      "measured": {
+        "id": "bangkok-hospital-clinic-building",
+        "threeRevision": "184",
+        "bounds": {
+          "min": [
+            -4,
+            -4.7683716530855236e-8,
+            -3.5
+          ],
+          "max": [
+            4.090000152587891,
+            6,
+            3.5
+          ],
+          "size": [
+            8.09000015258789,
+            6.0000000476837165,
+            7
+          ]
+        },
+        "triangles": 960,
+        "meshes": 11,
+        "materials": 7,
+        "textures": [
+          {
+            "width": 2048,
+            "height": 320
+          },
+          {
+            "width": 512,
+            "height": 512
+          }
+        ],
+        "drawCalls": 11
+      }
+    }
+  ]
+}

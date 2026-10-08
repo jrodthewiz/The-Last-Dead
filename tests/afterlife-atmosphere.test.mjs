@@ -19,7 +19,7 @@ test('afterlife atmosphere is deterministic and bounded to authored rooms', () =
   assert.ok(a.mistPatches < course.dungeonCompiled.metrics.walkableCells);
   assert.ok(a.drawCalls <= 3);
   assert.ok(a.practicalGlowPoints > 0 && a.practicalGlowPoints <= a.coldSources + 48);
-  assert.equal(first.root.getObjectByName('AfterlifePracticalGlow')?.isPoints, true);
+  assert.equal(first.root.getObjectByName('AfterlifePracticalGlow')?.isMesh, true);
   const foundry = new AfterlifeAtmosphere(new THREE.Group(), makeDungeonCourse(0));
   const entry = foundry.course.lights.find(light => light.role === 'entry').anchor;
   const positions = foundry.root.getObjectByName('AfterlifePracticalGlow').geometry.getAttribute('position');

@@ -21,7 +21,7 @@ export class DevFlight {
     const has = key => Number(keys.has(key));
     this.look((has('ArrowRight') - has('ArrowLeft')) * dt * 650, (has('ArrowDown') - has('ArrowUp')) * dt * 650);
     const forward = has('KeyW') - has('KeyS'), side = has('KeyD') - has('KeyA');
-    const up = has('Space') + has('KeyE') - Math.max(has('ControlLeft'), has('ControlRight')) - has('KeyQ');
+    const up = Math.max(has('Space'),has('KeyE')) - Math.max(has('ControlLeft'),has('ControlRight'),has('KeyQ'));
     const { angle, pitch } = this.pose;
     const dx = Math.cos(angle) * Math.cos(pitch) * forward - Math.sin(angle) * side;
     const dz = Math.sin(angle) * Math.cos(pitch) * forward + Math.cos(angle) * side;

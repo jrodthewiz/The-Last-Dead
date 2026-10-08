@@ -41,13 +41,13 @@ export function createWarden(template,clips=[],kind=0,variant='',seed=0){
  const modelScale=appearance.modelScale??1;root.scale.setScalar(modelScale);
  applyWardenVariant(materials,appearance);
  ring.material.color.setHex(appearance.signal);
- root.userData.warden={pivot,normalizer,model,bones,materials,deadAt:null,mixer,actions,idleAction:actions.idle||null,walkAction:actions.walk||null,last:0,sourceHeight:size.y,normalization:scale,kind,ring,lastPosition:null,motion:0,wasWalking:false,modelScale,variant:appearance.key,appearance};return root;
+ root.userData.warden={pivot,normalizer,model,bones,materials,deadAt:null,mixer,actions,idleAction:actions.idle||null,walkAction:actions.walk||null,last:null,sourceHeight:size.y,normalization:scale,kind,ring,lastPosition:null,motion:0,wasWalking:false,gaitPhase:0,gaitDirection:1,wasStriking:false,strikeRecoveryAt:null,modelScale,variant:appearance.key,appearance};return root;
 }
 
 export function resetWarden(root,variant='',seed=0){
  const w=root?.userData?.warden;if(!w)return root;
- root.visible=true;w.deadAt=null;w.hitStartedAt=null;w.lastFlash=0;w.last=0;w.motion=0;w.lastPosition=null;
- w.pivot.position.set(0,0,0);w.pivot.rotation.set(0,0,0);
+ root.visible=true;w.deadAt=null;w.hitStartedAt=null;w.lastFlash=0;w.last=null;w.motion=0;w.lastPosition=null;w.gaitPhase=0;w.gaitDirection=1;w.wasStriking=false;w.strikeRecoveryAt=null;
+ w.pivot.position.set(0,0,0);w.pivot.rotation.set(0,Math.PI,0);
  for(const item of w.bones.values()){item.bone.position.copy(item.position);item.bone.quaternion.copy(item.base);}
  if(w.mixer){w.mixer.stopAllAction();for(const[name,action]of Object.entries(w.actions||{})){action.reset();action.setEffectiveWeight(name==='idle'||!w.idleAction?1:0);action.play();action.paused=!['idle','walk'].includes(name);}w.mixer.setTime?.(0);w.wasWalking=false;}
  const appearance=resolveWardenVariant(w.kind,variant||w.variant,seed);
@@ -58,28 +58,49 @@ export function resetWarden(root,variant='',seed=0){
 const q=new THREE.Quaternion(),axis=new THREE.Vector3();
 function pose(bones,names,x=0,y=0,z=0){const item=names.map(n=>bones.get(n)).find(Boolean);if(!item)return;item.bone.quaternion.copy(item.base);for(const[a,v]of[[[1,0,0],x],[[0,1,0],y],[[0,0,1],z]]){axis.set(...a);q.setFromAxisAngle(axis,v);item.bone.quaternion.multiply(q);}}
 function animateAuthoredWarden(root,w,enemy,now){
- const t=now*.001,dt=w.last?Math.min(.05,Math.max(0,(now-w.last)/1000)):.016;w.last=now;
- const moved=w.lastPosition?Math.hypot(root.position.x-w.lastPosition.x,root.position.z-w.lastPosition.z)/Math.max(.001,dt):0;
+ const t=now*.001,dt=w.last===null?0:Math.min(.05,Math.max(0,(now-w.last)/1000));w.last=now;
+ const dx=w.lastPosition?root.position.x-w.lastPosition.x:0,dz=w.lastPosition?root.position.z-w.lastPosition.z:0;
+ const distance=Math.hypot(dx,dz),travel=dt>0&&distance<.8&&!enemy.dead&&!(enemy.stagger>0)?distance:0;
+ const moved=travel/Math.max(.001,dt);
  w.lastPosition??=new THREE.Vector3();w.lastPosition.copy(root.position);
- w.motion+=(Math.min(3,moved)-w.motion)*Math.min(1,dt*12);
+ w.motion+=(Math.min(3,moved)-w.motion)*(1-Math.exp(-12*dt));
  const flash=Math.max(0,enemy.flash||0);
  if(flash>.001&&!(w.lastFlash>.001))w.hitStartedAt=t;
  w.lastFlash=flash;
  const hitElapsed=w.hitStartedAt==null?Infinity:t-w.hitStartedAt;
  const hitAction=w.actions.hit,hitDuration=hitAction?.getClip().duration||0;
- const hitWeight=hitElapsed<hitDuration?Math.min(1,Math.max(0,(hitDuration-hitElapsed)/.10)):0;
  const windup=!!enemy.attacking&&!!w.actions.windup;
  const strike=!windup&&(enemy.strike||0)>0&&!!w.actions.strike;
  const dead=!!enemy.dead&&!!w.actions.collapse;
+ // Ordinary flash must not mask a committed windup/contact. A real stagger
+ // still interrupts it, and the engine continues to own damage timing.
+ const committed=(windup||strike)&&!(enemy.stagger>0);
+ if(committed)w.hitStartedAt=null;
+ const hitWeight=!committed&&hitElapsed<hitDuration?Math.min(1,Math.max(0,(hitDuration-hitElapsed)/.10)):0;
+ if(dead||windup||strike||enemy.stagger>0)w.strikeRecoveryAt=null;
+ else if(w.wasStriking){w.strikeRecoveryAt=t;w.strikeRecoveryTime=w.actions.strike.time;}
+ w.wasStriking=strike;
+ const recoveryDuration=w.motion>.12?.14:.22;
+ const recoveryProgress=w.strikeRecoveryAt===null?1:Math.min(1,Math.max(0,(t-w.strikeRecoveryAt)/recoveryDuration));
+ const recoveryWeight=1-recoveryProgress*recoveryProgress*(3-2*recoveryProgress);
  if(dead)w.deadAt??=t;else w.deadAt=null;
- const combatWeight=dead?1:hitWeight?hitWeight:windup||strike?1:0;
+ const combatWeight=dead?1:hitWeight?hitWeight:windup||strike?1:recoveryWeight;
  const walkWeight=Math.max(0,Math.min(1,(w.motion-.12)/.72));
  w.actions.idle?.setEffectiveWeight((1-walkWeight)*(1-combatWeight));
  w.actions.walk?.setEffectiveWeight(walkWeight*(1-combatWeight));
- if(w.actions.walk)w.actions.walk.setEffectiveTimeScale(Math.max(.55,Math.min(1.6,w.motion/1.35)));
+ if(w.actions.walk){
+  // Preserve the former 1.35m/s gait calibration, now driven by displacement
+  // so retreat reverses the feet and stationary combat cannot drift the phase.
+  const stride=w.actions.walk.getClip().duration*1.35;
+  const forward=-(dx*Math.sin(root.rotation.y)+dz*Math.cos(root.rotation.y));
+  if(travel>.0001)w.gaitDirection=forward<-.25*travel?-1:1;
+  const footTravel=enemy.attacking||enemy.strike>0||enemy.stagger>0||enemy.dead?0:travel;
+  w.gaitPhase=((w.gaitPhase+w.gaitDirection*footTravel/stride)%1+1)%1;
+  w.actions.walk.paused=true;w.actions.walk.time=w.gaitPhase*w.actions.walk.getClip().duration;
+ }
  const windupAction=w.actions.windup,strikeAction=w.actions.strike,collapseAction=w.actions.collapse;
  if(windupAction){windupAction.time=windup?windupAction.getClip().duration*Math.max(0,Math.min(1,1-(enemy.windup||0)/(enemy.windupTime||.65))):0;windupAction.setEffectiveWeight(windup&&!dead&&!hitWeight?1:0);}
- if(strikeAction){const phase=Math.max(0,Math.min(1,1-(enemy.strike||0)/.24));strikeAction.time=strike?strikeAction.getClip().duration*(.34+phase*.66):0;strikeAction.setEffectiveWeight(strike&&!dead&&!hitWeight?1:0);}
+ if(strikeAction){const phase=Math.max(0,Math.min(1,1-(enemy.strike||0)/.24));strikeAction.time=strike?strikeAction.getClip().duration*(.34+phase*.66):recoveryWeight?THREE.MathUtils.lerp(w.strikeRecoveryTime,strikeAction.getClip().duration,recoveryProgress):0;strikeAction.setEffectiveWeight(!dead&&!hitWeight?(strike?1:recoveryWeight):0);}
  if(hitAction){hitAction.time=Math.min(hitDuration,Math.max(0,hitElapsed));hitAction.setEffectiveWeight(dead?0:hitWeight);}
  if(collapseAction){collapseAction.time=dead?Math.min(collapseAction.getClip().duration,t-w.deadAt):0;collapseAction.setEffectiveWeight(dead?1:0);}
  w.mixer.update(dt);

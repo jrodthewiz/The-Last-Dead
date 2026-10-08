@@ -1,13 +1,19 @@
 import * as THREE from '../../vendor/three.module.js';
 import {installViewmodelDepthBoundary} from './viewmodel-depth.js';
+import {createSleeveBend, bendSleeve} from './foreground-sleeves.js';
+import {sculptForegroundAnatomy} from './foreground-anatomy.js';
+import {FPS_GRIP_PROFILES} from './fps-grip-profiles.js';
 
-export const FOREGROUND_ARM_URL = new URL('./viewmodel-arms-v1.glb', import.meta.url).href;
+export const FOREGROUND_ARM_URL = new URL('./viewmodel-arms-v2.glb', import.meta.url).href;
+export const FOREGROUND_ARM_REVISION = 2;
 // One uniform presentation scale, including the hand and both cloth segments.
 // Weapon groups have a .64 scale; this yields a .305 m forearm in the view.
 export const FOREGROUND_ARM_SCALE = 1.4;
+// Adult joint lengths are independent of the weapon's presentation size.
+// A smaller receiver must not shrink the player's hands or shorten the arms.
+export const FOREGROUND_ARM_METRIC_SCALE = FOREGROUND_ARM_SCALE * .64;
 export const FOREGROUND_WRIST_LIMIT = THREE.MathUtils.degToRad(75);
 const DOWN = new THREE.Vector3(0, -1, 0);
-const HELD_DEPTH = [.02,.18,.29,.26,.25,.43,.14,.07];
 const HINTS = [
   {right:[.42,-.88,.52]},
   {right:[.42,-.88,.52],left:[-.50,-.77,.22]},
@@ -26,9 +32,10 @@ function fitHardwareGrip(renderer,group,weapon,side) {
   if(!part||weapon>=6)return renderer._findWeaponSocket(model,side==='right'?'grip':'supportGrip');
   // The prototype handles were wider than an adult curled hand. Fit only
   // the manufactured grip, leaving the receiver and its mechanisms intact.
-  part.scale.set(side==='right'?.40:.58,.65,side==='right'?.40:.58);
+  part.scale.set(side==='right'?.30:.46,.65,side==='right'?.30:.46);
   const anchor=new THREE.Object3D();anchor.name=`Anatomical${side}Grip`;
-  anchor.position.set(0,side==='right'?-.17:-.12,0);part.add(anchor);
+  anchor.position.set(0,side==='right'?(weapon===1?-.05:-.07):-.12,0);part.add(anchor);
+  anchor.userData.fpsGripKind=FPS_GRIP_PROFILES[weapon][side].kind;
   model.userData[side==='right'?'grip':'supportGrip']=anchor;
   return anchor;
 }
@@ -45,6 +52,20 @@ function ownedSurface(source) {
     node.userData.weaponBatchIgnore = true;
     if (!node.isMesh) return;
     node.geometry = node.geometry.clone();
+    const colors=node.geometry.attributes.color;
+    const materials=Array.isArray(node.material)?node.material:[node.material];
+    if(colors&&materials.some(m=>/Full_Worn_Leather_Gloves_v2|Graphic_Canvas_v2/.test(m.name))){
+      // The Blender loop palette was exported through an extra sRGB-to-linear
+      // conversion (.06 canvas becomes .0049; .03 leather becomes .0023).
+      // Recover the authored values once, on this owned runtime copy only.
+      const palette=new Float32Array(colors.count*colors.itemSize),color=new THREE.Color();
+      for(let i=0;i<colors.count;i++){
+        color.setRGB(colors.getX(i),colors.getY(i),colors.getZ(i)).convertLinearToSRGB();
+        palette[i*colors.itemSize]=color.r;palette[i*colors.itemSize+1]=color.g;palette[i*colors.itemSize+2]=color.b;
+        if(colors.itemSize===4)palette[i*4+3]=colors.getW(i);
+      }
+      node.geometry.setAttribute('color',new THREE.Float32BufferAttribute(palette,colors.itemSize));
+    }
     node.material = (Array.isArray(node.material) ? node.material : [node.material]).map(m => {
       const material = m.clone();
       material.depthTest = true;
@@ -78,7 +99,8 @@ function placeHand(f) {
     hand.quaternion.copy(parentRotation.multiply(rotation)).multiply(f.correction);
     arm.worldToLocal(grip.getWorldPosition(point));
     hand.position.copy(point).add(f.offset);
-    hand.scale.setScalar(FOREGROUND_ARM_SCALE);
+    f.presentationScale = FOREGROUND_ARM_METRIC_SCALE / arm.getWorldScale(f.scale).x;
+    hand.scale.setScalar(f.presentationScale);
     hand.updateWorldMatrix(true,true);
 }
 
@@ -109,6 +131,7 @@ function lowestDirection(f,normal) {
 }
 
 export function fitForegroundArms(group) {
+  if(group?.userData.authoredFPS)return true;
   const fits=group?.userData.foregroundArmFits,placement=group?.userData.foregroundFitRig;
   if(!fits||!placement)return false;
   const camera=group.userData.foregroundCamera,normal=placement.userData.bottomNormal;
@@ -117,7 +140,7 @@ export function fitForegroundArms(group) {
   normal.set(0,1,-Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))).normalize();
   placement.position.set(0,0,0);
   group.updateWorldMatrix(true,true);
-  let depth=HELD_DEPTH[group.userData.foregroundWeapon];
+  let depth=0;
   for(const f of fits){
     placeHand(f);preferredForearm(f);
     f.arm.getWorldQuaternion(f.toCamera).premultiply(placement.userData.inverseCameraRotation.copy(placement.userData.cameraRotation).invert());
@@ -158,9 +181,12 @@ export function fitForegroundArms(group) {
       f.cameraDirection.applyQuaternion(f.coneRotation).normalize();
     }
     direction.copy(f.cameraDirection).applyQuaternion(f.fromCamera.copy(f.toCamera).invert());
-    forearm.position.copy(point);forearm.quaternion.setFromUnitVectors(DOWN,direction);
-    forearm.scale.setScalar(FOREGROUND_ARM_SCALE);
-    elbow.copy(point).addScaledVector(direction,f.forearmLength*FOREGROUND_ARM_SCALE);
+    forearm.position.copy(point);
+    // Transport the hand's roll into the sleeve instead of choosing an
+    // unrelated shortest-arc frame. The cuff must turn with the wrist.
+    forearm.quaternion.copy(f.coneTarget.setFromUnitVectors(f.wristDirection,direction)).multiply(hand.quaternion);
+    forearm.scale.setScalar(f.presentationScale);
+    elbow.copy(point).addScaledVector(direction,f.forearmLength*f.presentationScale);
     f.cameraElbow.copy(f.cameraWrist).addScaledVector(f.cameraDirection,a);
     f.cameraDirection.copy(f.shoulderAnchor).sub(f.cameraElbow).normalize();
     const capLimit=THREE.MathUtils.clamp((-f.capMargin-normal.dot(f.cameraElbow))/b,-1,1);
@@ -170,8 +196,10 @@ export function fitForegroundArms(group) {
       f.cameraDirection.copy(normal).multiplyScalar(capLimit).addScaledVector(f.tangent.normalize(),Math.sqrt(1-capLimit*capLimit));
     }
     direction.copy(f.cameraDirection).applyQuaternion(f.fromCamera);
-    upper.position.copy(elbow);upper.quaternion.setFromUnitVectors(DOWN,direction);
-    upper.scale.setScalar(FOREGROUND_ARM_SCALE);
+    upper.position.copy(elbow);
+    upper.quaternion.copy(f.coneTarget.setFromUnitVectors(f.forearmDirection.copy(DOWN).applyQuaternion(forearm.quaternion),direction)).multiply(forearm.quaternion);
+    upper.scale.setScalar(f.presentationScale);
+    bendSleeve(f.sleeveBend, hand.quaternion, upper.quaternion);
     f.shoulderPlaneDistance=normal.dot(f.cameraElbow)+b*normal.dot(f.cameraDirection)+f.capMargin;
     f.wristAngle = Math.acos(THREE.MathUtils.clamp(
       f.wristDirection.copy(DOWN).applyQuaternion(hand.quaternion).dot(
@@ -183,12 +211,12 @@ export function fitForegroundArms(group) {
 
 function capEnvelope(source,length){
   source.updateWorldMatrix(true,true);
-  const point=new THREE.Vector3();let radius=0,overshoot=0;
+  const point=new THREE.Vector3(),inverse=source.matrixWorld.clone().invert();let radius=0,overshoot=0;
   source.traverse(mesh=>{
     if(!mesh.isMesh)return;
     const positions=mesh.geometry.attributes.position;
     for(let i=0;i<positions.count;i++){
-      point.fromBufferAttribute(positions,i).applyMatrix4(mesh.matrixWorld);
+      point.fromBufferAttribute(positions,i).applyMatrix4(mesh.matrixWorld).applyMatrix4(inverse);
       if(point.y<=-length+.025){radius=Math.max(radius,Math.hypot(point.x,point.z));overshoot=Math.max(overshoot,-point.y-length);}
     }
   });
@@ -227,28 +255,33 @@ export function installForegroundArms(renderer,template) {
         else disposeLegacy(child);
       }
       const imported=ownedSurface(handSource);
+      sculptForegroundAnatomy(imported,'hand',side,{wrappedIndex:weapon>=6});
       hand.add(imported);
       hand.name='HandPose'; arm.add(hand); hand.add(socket); socket.position.set(0,0,0);socket.quaternion.identity();
       const wrist=new THREE.Object3D();wrist.name='ViewWrist';wrist.position.set(0,-.075,.015);hand.add(wrist);
       const forearm=ownedSurface(sleeveSource),upper=ownedSurface(upperSource);
+      sculptForegroundAnatomy(forearm,'forearm',side);
+      sculptForegroundAnatomy(upper,'upper',side);
       forearm.name='AuthoredForearm_'+suffix;upper.name='AuthoredUpperSleeve_'+suffix;
       arm.add(forearm,upper);
       arm.userData.triggerFinger=side==='right'?hand.getObjectByName('RightTriggerFinger'):undefined;
       arm.userData.sockets={wrist,hand:socket,elbow:upper};
       arm.userData.sculptRuntime.parts=[forearm,hand,upper];
-      arm.userData.viewmodelSource='blender-native-metric-arms-v1';
+      arm.userData.viewmodelSource='blender-native-metric-arms-v2';
       // Support holds rotate about the horizontal fore-end. The chainsaw's
       // raised handle and bat's stacked vertical hold use the grip frame.
       const correction=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),side==='right'?-Math.PI/2:Math.PI/2);
-      if(weapon===6||(side==='left'&&weapon===4))correction.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.PI/2));
+      if(weapon===6)correction.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.PI/2));
+      if(side==='left'&&weapon===4)correction.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),Math.PI/2));
       if(weapon===7&&side==='left')correction.premultiply(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(.03,-.28,-.96).normalize()));
-      const cap=capEnvelope(upperSource,.40);
+      const cap=capEnvelope(upper,.40);
       const fit={arm,hand,grip,wrist,forearm,upper,correction,capRadius:cap.radius,capOvershoot:cap.overshoot,
         hint:new THREE.Vector3(...HINTS[weapon][side]),offset:new THREE.Vector3(),
         shoulderAnchor:new THREE.Vector3(side==='left'?-.32:.32,-.44,.12),shoulderPoint:new THREE.Vector3(),
         forearmLength:.34,upperLength:.40,point:new THREE.Vector3(),direction:new THREE.Vector3(),elbow:new THREE.Vector3(),
         scale:new THREE.Vector3(),cameraWrist:new THREE.Vector3(),cameraWristDirection:new THREE.Vector3(),bestDirection:new THREE.Vector3(),tangent:new THREE.Vector3(),cameraDirection:new THREE.Vector3(),trialDirection:new THREE.Vector3(),cameraElbow:new THREE.Vector3(),toCamera:new THREE.Quaternion(),fromCamera:new THREE.Quaternion(),
-        rotation:new THREE.Quaternion(),parentRotation:new THREE.Quaternion(),coneRotation:new THREE.Quaternion(),coneTarget:new THREE.Quaternion(),wristDirection:new THREE.Vector3(),forearmDirection:new THREE.Vector3()};
+        rotation:new THREE.Quaternion(),parentRotation:new THREE.Quaternion(),coneRotation:new THREE.Quaternion(),coneTarget:new THREE.Quaternion(),wristDirection:new THREE.Vector3(),forearmDirection:new THREE.Vector3(),
+        sleeveBend:createSleeveBend(forearm,.34)};
       arm.userData.foregroundArmFit=fit;fits.push(fit);count++;
     }
     group.userData.foregroundArmFits=fits;

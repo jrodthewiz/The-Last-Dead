@@ -2,14 +2,22 @@ import * as THREE from './vendor/three.module.js';
 import {anatomyRegion} from './enemy-cut-geometry.js';
 const membershipCache=new WeakMap();
 export function previewGeometry(source,mesh){
- const geometry=source.clone();delete geometry.userData.sharedAsset;geometry.userData.corpseSourceGeometry=source.userData.corpseSourceGeometry||source.uuid;
+ // Preview masks never edit the imported skin. Reuse its already-uploaded
+ // attributes instead of copying/uploading every full skin at impact time.
+ const geometry=new THREE.BufferGeometry();geometry.index=source.index;geometry.attributes={...source.attributes};geometry.morphAttributes={...source.morphAttributes};geometry.morphTargetsRelative=source.morphTargetsRelative;
+ geometry.groups=source.groups.map(group=>({...group}));geometry.drawRange={...source.drawRange};geometry.boundingBox=source.boundingBox?.clone()||null;geometry.boundingSphere=source.boundingSphere?.clone()||null;
+ geometry.userData={...source.userData};delete geometry.userData.sharedAsset;geometry.userData.corpseSourceGeometry=source.userData.corpseSourceGeometry||source.uuid;
  let attributes=membershipCache.get(source.attributes.position.array);
  if(!attributes){
   const count=source.attributes.position.count,a=new Float32Array(count*3),b=new Float32Array(count*3),weights=source.attributes.skinWeight,indices=source.attributes.skinIndex,names=mesh.skeleton.bones.map(b=>anatomyRegion(b.name));
   for(let i=0;i<count;i++){const sums=[0,0,0,0,0,0];for(let j=0;j<4;j++)sums[names[indices.getComponent(i,j)]||0]+=weights.getComponent(i,j);let region=0;for(let j=1;j<6;j++)if(sums[j]>sums[region])region=j;if(region>=1&&region<=3)a[i*3+region-1]=1;if(region>=4)b[i*3+region-4]=1;}
   attributes=[new THREE.Float32BufferAttribute(a,3),new THREE.Float32BufferAttribute(b,3)];membershipCache.set(source.attributes.position.array,attributes);
  }
- geometry.setAttribute('anatomyA',attributes[0]);geometry.setAttribute('anatomyB',attributes[1]);return geometry;
+ // Each preview owns its small masks. Disposing one preview must not delete
+ // buffers owned by another preview or by the still-visible original actor.
+ geometry.setAttribute('anatomyA',attributes[0].clone());geometry.setAttribute('anatomyB',attributes[1].clone());
+ let disposed=false;geometry.dispose=function(){if(disposed)return;disposed=true;const{anatomyA,anatomyB}=this.attributes;this.index=null;this.attributes={anatomyA,anatomyB};this.morphAttributes={};THREE.BufferGeometry.prototype.dispose.call(this);};
+ return geometry;
 }
 export function cutPreviewMaterial(source,{region,plane,offcut=false}){
  const material=source.clone(),previous=source.onBeforeCompile,cache=source.customProgramCacheKey();

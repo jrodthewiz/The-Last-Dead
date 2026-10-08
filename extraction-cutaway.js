@@ -1,7 +1,8 @@
 import * as THREE from './vendor/three.module.js';
 import {createExtractionAnatomy} from './extraction-anatomy.js';
 import {HarvestSurface} from './extraction-surface.js';
-import {applyHarvestTissueMaterials,disposeHarvestTissueTextures} from './extraction-tissue-materials.js';
+import {applyHarvestTissueMaterials,disposeHarvestTissueTextures,harvestTissueTexturesReady} from './extraction-tissue-materials.js';
+import {createAfterlifeModel,disposeAfterlifeModel} from './npc-afterlife-model.js';
 
 const clamp=THREE.MathUtils.clamp;
 const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
@@ -17,9 +18,47 @@ export class HarvestCutaways {
     this.point=new THREE.Vector3();this.axis=new THREE.Vector3();this.rotation=new THREE.Quaternion();
     this.torsoUp=new THREE.Vector3();this.torsoFront=new THREE.Vector3();this.torsoRight=new THREE.Vector3();this.torsoBasis=new THREE.Matrix4();
     this.run=null;this.course=null;
+    // Decode shared tissue images during loading, before the first G hold.
+    this.ready=harvestTissueTexturesReady();
   }
   get physics(){return this.renderer.brutalCombatVisuals?.physics;}
   get combat(){return this.renderer.brutalCombatVisuals;}
+  async prepareWarmup(){
+    if(this.disposed)return ()=>{};
+    if(!this._warmup){
+      const anatomy=createExtractionAnatomy(25),materials=applyHarvestTissueMaterials(anatomy);
+      anatomy.setOpening(1);anatomy.useSourceSkin();
+      // The incision uses its own tissue response and vertex-color layout.
+      // Retain a tiny representative alongside the organ geometry so that
+      // releasing the loading pose cannot dispose the compiled variants.
+      const geometry=new THREE.PlaneGeometry(.1,.1),n=geometry.attributes.position.count;
+      geometry.setAttribute('color',new THREE.Float32BufferAttribute(new Float32Array(n*3).fill(1),3));
+      geometry.setAttribute('tissueRegion',new THREE.Float32BufferAttribute(new Float32Array(n),1));
+      const edge=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:0x5e1721,roughness:.46,side:THREE.DoubleSide}));
+      anatomy.root.add(edge);materials.addMesh(edge,{tintStrength:.9,diffuseGain:.62,occlusion:.7,regionalGain:false});
+      anatomy.root.name='HarvestPreparationSample';anatomy.root.visible=false;this.root.add(anatomy.root);
+      this._warmup={anatomy,materials,edge,geometry};
+    }
+    const sample=this._warmup;
+    if(!sample.actor&&this.renderer._ashWitnessAsset&&this.combat){
+      // First incision also switches the SOURCE skinned material to the wound
+      // hook. Static organs cannot warm that skinning/attribute combination.
+      // A private owner avoids occupying or evicting any live wounded actor.
+      const actor=createAfterlifeModel(this.renderer._ashWitnessAsset,0,25);
+      const combat=Object.create(Object.getPrototypeOf(this.combat));
+      Object.assign(combat,{root:new THREE.Group(),actors:new Map()});
+      actor.updateMatrixWorld(true);combat.bindActor(actor);
+      const borrowed=new Set();(this.renderer._ashWitnessAsset.template||this.renderer._ashWitnessAsset).traverse(node=>{if(node.geometry)borrowed.add(node.geometry);});
+      actor.name='HarvestSkinnedPreparationSample';actor.visible=false;
+      sample.anatomy.root.add(actor,combat.root);Object.assign(sample,{actor,combat,borrowed});
+    }
+    await sample.materials.ready;
+    if(this.disposed)return ()=>{};
+    const saved=[];sample.anatomy.root.traverse(object=>{saved.push([object,object.visible,object.frustumCulled]);object.visible=true;object.frustumCulled=false;});
+    const visible=this.root.visible;this.root.visible=true;
+    let restored=false;
+    return ()=>{if(restored)return;restored=true;this.root.visible=visible;for(const [object,wasVisible,wasCulled]of saved){object.visible=wasVisible;object.frustumCulled=wasCulled;}};
+  }
   create(enemy,body,seed) {
     while(this.states.size>=HARVEST_LIMITS.corpses)this.remove(this.states.keys().next().value);
     const anatomy=createExtractionAnatomy(seed),frame=anatomy.root;
@@ -142,5 +181,5 @@ export class HarvestCutaways {
   }
   reset(){for(const id of [...this.states.keys()])this.remove(id);this.current=null;}
   diagnostics(){return{corpses:this.states.size,visible:[...this.states.values()].filter(s=>s.frame.visible&&this.root.visible).length,current:this.current?.id??null,opening:this.current?.opening??0,organs:this.current?.anatomy.diagnostics()??null,surface:this.current?.surface.diagnostics()??null,materials:this.current?.tissueMaterials.diagnostics()??null,chains:[...this.states.values()].filter(s=>s.chain&&!s.chain.removed).length,heartsDropped:[...this.states.values()].filter(s=>s.released).length,limits:HARVEST_LIMITS};}
-  dispose(){this.reset();this.root.removeFromParent();disposeHarvestTissueTextures();}
+  dispose(){this.disposed=true;this.reset();if(this._warmup){const s=this._warmup;if(s.actor){s.combat.releaseActor(s.actor);disposeAfterlifeModel(s.actor);const materials=new Set(),geometries=new Set(),skeletons=new Set();s.actor.traverse(node=>{if(node.geometry&&!s.borrowed.has(node.geometry))geometries.add(node.geometry);if(node.skeleton)skeletons.add(node.skeleton);for(const m of Array.isArray(node.material)?node.material:node.material?[node.material]:[])materials.add(m);});for(const g of geometries)g.dispose();for(const m of materials)m.dispose();for(const skeleton of skeletons)skeleton.dispose();}s.materials.dispose();s.geometry.dispose();s.edge.material.dispose();s.anatomy.dispose();this._warmup=null;}this.root.removeFromParent();disposeHarvestTissueTextures();}
 }

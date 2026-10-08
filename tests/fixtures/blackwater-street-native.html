@@ -1,0 +1,14 @@
+<!doctype html><html><head><base href="/"><link rel="icon" href="data:,"></head><body style="margin:0"><script type="module">
+import * as THREE from '/vendor/three.module.js';
+import {WebGPURenderer} from '/vendor/three.webgpu.js';
+import {makeBlackwaterGraphicMaterial,makeBlackwaterBands} from '/blackwater-render-looks.js';
+const renderer=new WebGPURenderer({antialias:true});await renderer.init();renderer.setSize(960,600);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.25;document.body.appendChild(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#3676aa');scene.add(new THREE.HemisphereLight('#91b6e4','#536d76',1.25));const sun=new THREE.DirectionalLight('#ffda95',2.7);sun.position.set(-35,70,-18);scene.add(sun);
+const bands=makeBlackwaterBands([.075,.34,1]),surfaces=[];
+for(const [role,x,z,w,d]of [['asphalt',199,56,32,12],['paving',199,49,32,2]]){const source=new THREE.MeshStandardMaterial({color:role==='asphalt'?'#343f52':'#a7b6aa'});source.userData.lookRole=role;const material=makeBlackwaterGraphicMaterial(source,bands);surfaces.push(material.blackwaterSurfaceNodes);const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,d),material);mesh.rotation.x=-Math.PI/2;mesh.position.set(x,0,z);scene.add(mesh);}
+const camera=new THREE.PerspectiveCamera(65,960/600,.1,100);camera.position.set(211,10,67);camera.lookAt(196,0,56);
+renderer.backend.device.lost.then(info=>window.streetDeviceLoss={reason:info.reason,message:info.message});
+await renderer.renderAsync(scene,camera);await renderer.backend.device.queue.onSubmittedWorkDone();
+window.streetPreview={renderer,surfaces,scene,camera};window.streetReady=true;
+window.setStreetField=async name=>{for(const surface of surfaces)surface.setDebug(surface.metadata.debugChannels.includes(name)?name:'final');await renderer.renderAsync(scene,camera);await renderer.backend.device.queue.onSubmittedWorkDone();};
+</script></body></html>

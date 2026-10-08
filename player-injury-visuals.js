@@ -1,8 +1,10 @@
 import * as THREE from './vendor/three.module.js';
+import {cloneRuntimeMaterial} from './runtime-clone.js';
 import {createBloodResiduePool} from './blood-surface.js';
 import {createBloodDropletPool,bloodFlight,stampBloodDroplet,finishBloodDropletPool} from './fluid-blood.js';
 import {addSoftTissueCompliance} from './soft-tissue-compliance.js';
 import {castRay} from './engine.js';
+import {groundAt} from './coastal-terrain.js';
 import {articulationDiagnostics} from './character-articulation.js';
 
 const clamp=THREE.MathUtils.clamp;
@@ -64,7 +66,7 @@ function installWoundSurface(mesh,region,uniforms,atlas,owned) {
     region==null?meshAnatomyRegions(mesh):new Float32Array(geometry.attributes.position.count).fill(region),1));
   const source=Array.isArray(mesh.material)?mesh.material:[mesh.material];
   const next=source.map(material=>{
-    const m=material.clone(),previous=material.onBeforeCompile,cache=material.customProgramCacheKey?.()||'';
+    const m=cloneRuntimeMaterial(material),previous=material.onBeforeCompile,cache=material.customProgramCacheKey?.()||'';
     delete m.userData.sharedLibrary;
     m.onBeforeCompile=shader=>{
       previous?.call(m,shader);
@@ -138,7 +140,7 @@ export function createAnatomyFragments(actor) {
       geometry.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(unique.length*3),3));
       if(g.attributes.uv){const uv=[];for(const id of unique)uv.push(g.attributes.uv.getX(id),g.attributes.uv.getY(id));geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));}
       geometry.setIndex(ids.map(id=>map.get(id)));
-      const material=(Array.isArray(source.material)?source.material[0]:source.material).clone();
+      const material=cloneRuntimeMaterial(Array.isArray(source.material)?source.material[0]:source.material);
       mutedTissueLighting(material,.6);
       material.color?.multiplyScalar(.58);material.roughness=Math.max(.88,material.roughness||0);material.envMapIntensity=.08;
       material.side=THREE.DoubleSide;delete material.userData.sharedLibrary;
@@ -193,7 +195,7 @@ export class PlayerInjuryVisuals {
     // Reuse the already loaded authored UV/PBR surface; the visible pool owns
     // its geometry/material and native morph texture, never the shared maps.
     this.entrailRig.dispose();this.entrails.geometry.dispose();this.entrails.material.dispose();
-    this.entrails.geometry=source.geometry.clone();this.entrails.material=source.material.clone();
+    this.entrails.geometry=source.geometry.clone();this.entrails.material=cloneRuntimeMaterial(source.material);
     this.entrails.material.onBeforeCompile=source.material.onBeforeCompile;
     this.entrails.material.customProgramCacheKey=()=> 'player-imported-intestines-v1';
     this.entrails.material.envMapIntensity=.22;this.entrails.material.color.multiplyScalar(1.2);
@@ -202,7 +204,7 @@ export class PlayerInjuryVisuals {
   }
   bind() {
     const r=this.renderer,body=r._survivors?.local;
-    const key=(body?.uuid||'fallback')+':'+(r._survivors?.viewSleeves||0);
+    const key=(body?.uuid||'fallback')+':'+(r._survivors?.viewSleeves||0)+':'+(r._survivors?.fpsTemplate?.uuid||'legacy');
     if(this.bindingKey===key)return;this.bindingKey=key;
     if(body&&body!==this.body&&body.userData.source==='meshy-v02') {
       this.fragments.forEach(f=>{f.mesh.removeFromParent();f.mesh.geometry.dispose();f.mesh.material.dispose();});
@@ -210,7 +212,7 @@ export class PlayerInjuryVisuals {
       for(const part of this.intactParts){part.mesh.geometry.dispose();part.mesh.material.dispose();}this.intactCorpse.clear();this.intactParts=[];
       for(const source of new Set(this.fragments.map(f=>f.source))){
         const geometry=source.geometry.clone();geometry.deleteAttribute('skinIndex');geometry.deleteAttribute('skinWeight');geometry.deleteAttribute('playerRegion');
-        const material=(Array.isArray(source.material)?source.material[0]:source.material).clone();
+        const material=cloneRuntimeMaterial(Array.isArray(source.material)?source.material[0]:source.material);
         mutedTissueLighting(material,.6);material.color?.multiplyScalar(.58);material.roughness=.9;material.envMapIntensity=.08;delete material.userData.sharedLibrary;
         const mesh=new THREE.Mesh(geometry,material);mesh.frustumCulled=false;this.intactCorpse.add(mesh);this.intactParts.push({source,mesh});
       }
@@ -346,7 +348,7 @@ export class PlayerInjuryVisuals {
     }
     this.residue.count=3;
     for(let i=0;i<3;i++) {
-      this.marker.position.set(run.x*4+(i-1)*.42,.025+i*.002,run.y*4+.25);this.marker.rotation.set(-Math.PI/2,0,i*2.1);this.marker.scale.set(1.6-i*.25,1.2+i*.16,1);this.marker.updateMatrix();this.residue.setMatrixAt(i,this.marker.matrix);this.residue.geometry.attributes.bloodState.setXY(i,i,0);
+      this.marker.position.set(run.x*4+(i-1)*.42,groundAt(run.course,run.x,run.y)*4+.025+i*.002,run.y*4+.25);this.marker.rotation.set(-Math.PI/2,0,i*2.1);this.marker.scale.set(1.6-i*.25,1.2+i*.16,1);this.marker.updateMatrix();this.residue.setMatrixAt(i,this.marker.matrix);this.residue.geometry.attributes.bloodState.setXY(i,i,0);
     }
     this.residue.instanceMatrix.needsUpdate=true;this.residue.geometry.attributes.bloodState.needsUpdate=true;
     if(run.playerWounds?.eviscerated||run.bite?.reason==='torso'){
@@ -394,7 +396,7 @@ export class PlayerInjuryVisuals {
       this.intactCorpse.visible=!gore&&this.intactParts.length>0;
       const fall=clamp((this.elapsed-.16)/.95,0,1),smooth=fall*fall*(3-2*fall);
       this.intactCorpse.quaternion.setFromAxisAngle(this.corpseAxis,smooth*1.48);
-      this.intactCorpse.position.set(run.x*4+Math.cos(run.angle||0)*smooth*.9,.05,run.y*4+Math.sin(run.angle||0)*smooth*.9);
+      this.intactCorpse.position.set(run.x*4+Math.cos(run.angle||0)*smooth*.9,groundAt(run.course,run.x,run.y)*4+.05,run.y*4+Math.sin(run.angle||0)*smooth*.9);
       this.intactCorpse.updateMatrix();const e=this.intactCorpse.matrix.elements,c=this.corpseCenter,h=this.corpseHalf;
       const floor=.045+Math.abs(e[1])*h.x+Math.abs(e[5])*h.y+Math.abs(e[9])*h.z-(e[1]*c.x+e[5]*c.y+e[9]*c.z);
       this.intactCorpse.position.y=Math.max(.05,floor);

@@ -3,13 +3,18 @@ import {clone} from './vendor/utils/SkeletonUtils.js';
 import {createMeleeReaction,restoreMeleeReaction,updateMeleeReaction} from './melee-reaction.js';
 import {ENEMY_PROFILES} from './campaign.js';
 import {createCharacterArticulation,restoreCharacterArticulation,applyCharacterArticulation,enemyArticulationPose} from './character-articulation.js';
+import {ASH_WITNESS_APPEARANCE,ASH_WITNESS_MODEL_URL} from './zombie-appearances.js';
 
-export const AFTERLIFE_ASH_WITNESS_URL = './assets/models/afterlife-ash-witness-rig-v05.glb';
+export const AFTERLIFE_ASH_WITNESS_URL = ASH_WITNESS_MODEL_URL;
 
 export const AFTERLIFE_ASH_WITNESS_CLIPS = Object.freeze({
  idle: 'AshWitness_Idle',
  shuffle: 'AshWitness_Shuffle',
  chase: 'AshWitness_Chase',
+ run: 'AshWitness_Run',
+ crawl: 'AshWitness_Crawl',
+ crawlIdle: 'AshWitness_CrawlIdle',
+ contort: 'AshWitness_Contort',
  attack: 'AshWitness_AttackLunge',
  hit: 'AshWitness_HitRecoil',
  collapse: 'AshWitness_Collapse',
@@ -17,6 +22,54 @@ export const AFTERLIFE_ASH_WITNESS_CLIPS = Object.freeze({
 
 const findClip = (clips, name) => clips.find(clip => clip?.name === name) || null;
 const boundsCache = new WeakMap();
+const groundVertexCache=new WeakMap();
+const groundBoneNames=new Set(['LeftHand','RightHand','LeftGrip','RightGrip','LeftForeArm','RightForeArm','LeftLeg','RightLeg','LeftFoot','RightFoot','LeftToeBase','RightToeBase']);
+const groundDirections=[];
+for(let x=-1;x<=1;x++)for(let y=-1;y<=1;y++)for(let z=-1;z<=1;z++)if(x||y||z)groundDirections.push([x,y,z]);
+
+function groundSamples(model){
+ const samples=[],point=new THREE.Vector3();
+ model.traverse(mesh=>{
+  if(!mesh.isSkinnedMesh)return;
+  let indices=groundVertexCache.get(mesh.geometry);
+  if(!indices){
+   const groups=new Map(),skin=mesh.geometry.attributes.skinIndex,weights=mesh.geometry.attributes.skinWeight,position=mesh.geometry.attributes.position;
+   for(let i=0;i<mesh.skeleton.bones.length;i++)if(groundBoneNames.has(mesh.skeleton.bones[i].name))groups.set(i,groundDirections.map(()=>({score:-Infinity,vertex:-1})));
+   for(let vertex=0;vertex<position.count;vertex++){
+    let boneIndex=-1,largest=0;
+    for(let slot=0;slot<4;slot++){const weight=weights.getComponent(vertex,slot);if(weight>largest){largest=weight;boneIndex=skin.getComponent(vertex,slot);}}
+    const candidates=groups.get(boneIndex);if(!candidates)continue;
+    point.fromBufferAttribute(position,vertex).applyMatrix4(mesh.bindMatrix).applyMatrix4(mesh.skeleton.boneInverses[boneIndex]);
+    for(let direction=0;direction<groundDirections.length;direction++){
+     const axis=groundDirections[direction],score=point.x*axis[0]+point.y*axis[1]+point.z*axis[2];
+     if(score>candidates[direction].score){candidates[direction].score=score;candidates[direction].vertex=vertex;}
+    }
+   }
+   const unique=new Set();for(const candidates of groups.values())for(const candidate of candidates)if(candidate.vertex>=0)unique.add(candidate.vertex);
+   indices=new Uint32Array(unique);groundVertexCache.set(mesh.geometry,indices);
+  }
+  if(indices.length)samples.push({mesh,indices});
+ });
+ return samples;
+}
+
+function groundCrawlerTransition(root,state,enemy){
+ const shot=Math.max(state.attackAction?.getEffectiveWeight()||0,state.hitAction?.getEffectiveWeight()||0),rise=state.grappleRise;
+ const bridge=enemy.dead&&state.crawlDeathBridge?.applied;
+ const changing=(shot>0&&shot<1)||(rise>0&&rise<1)||bridge;
+ state.floorLift=0;
+ if(!state.crawlerBlend||!changing||state.revivalPose)return;
+ // Quaternion blending sweeps hands/soles in an arc even when both endpoint
+ // clips are grounded. Skin support samples are selected once from 26 extreme
+ // directions per distal bone; the hot path never scans the complete mesh.
+ root.updateMatrixWorld(true);let minimum=Infinity;
+ for(const support of state.groundSamples){
+  support.mesh.skeleton.update();
+  for(const vertex of support.indices){support.mesh.getVertexPosition(vertex,state.groundPoint).applyMatrix4(support.mesh.matrixWorld);minimum=Math.min(minimum,state.groundPoint.y-root.position.y);}
+ }
+ state.floorLift=Math.min(.24,Math.max(0,.012-minimum));
+ state.pivot.position.y+=state.floorLift;
+}
 // Measured from the Blender Dread v02 contact/transfer samples: the two feet
 // cover about .95m together over the 1.5s authored cycle. Use this to keep the
 // in-place clip's phase close to the simulation root speed without IK.
@@ -142,6 +195,10 @@ export function createAfterlifeModel(asset,kind=0,seed=0){
  const idleClip=findClip(clips,AFTERLIFE_ASH_WITNESS_CLIPS.idle);
  const shuffleClip=findClip(clips,AFTERLIFE_ASH_WITNESS_CLIPS.shuffle);
  const chaseClip=findClip(clips,AFTERLIFE_ASH_WITNESS_CLIPS.chase);
+ const runClip=findClip(clips,AFTERLIFE_ASH_WITNESS_CLIPS.run);
+ const crawlClip=findClip(clips,AFTERLIFE_ASH_WITNESS_CLIPS.crawl);
+ const crawlIdleClip=findClip(clips,AFTERLIFE_ASH_WITNESS_CLIPS.crawlIdle);
+ const contortClip=findClip(clips,AFTERLIFE_ASH_WITNESS_CLIPS.contort);
  const attackClip=findClip(clips,AFTERLIFE_ASH_WITNESS_CLIPS.attack);
  const hitClip=findClip(clips,AFTERLIFE_ASH_WITNESS_CLIPS.hit);
  const collapseClip=findClip(clips,AFTERLIFE_ASH_WITNESS_CLIPS.collapse);
@@ -151,6 +208,10 @@ export function createAfterlifeModel(asset,kind=0,seed=0){
   if(idleClip){actions.idle=mixer.clipAction(idleClip);actions.idle.setLoop(THREE.LoopRepeat,Infinity).setEffectiveWeight(1).setEffectiveTimeScale(idleRate).play();actions.idle.time=idlePhase*idleClip.duration;}
   if(shuffleClip){actions.shuffle=mixer.clipAction(shuffleClip);actions.shuffle.setLoop(THREE.LoopRepeat,Infinity).setEffectiveWeight(0).play();}
   if(chaseClip){actions.chase=mixer.clipAction(chaseClip);actions.chase.setLoop(THREE.LoopRepeat,Infinity).setEffectiveWeight(0).play();}
+  if(runClip){actions.run=mixer.clipAction(runClip);actions.run.setLoop(THREE.LoopRepeat,Infinity).setEffectiveWeight(0).play();}
+  if(crawlClip){actions.crawl=mixer.clipAction(crawlClip);actions.crawl.setLoop(THREE.LoopRepeat,Infinity).setEffectiveWeight(0).play();}
+  if(crawlIdleClip){actions.crawlIdle=mixer.clipAction(crawlIdleClip);actions.crawlIdle.setLoop(THREE.LoopRepeat,Infinity).setEffectiveWeight(0).setEffectiveTimeScale(idleRate).play();actions.crawlIdle.time=idlePhase*crawlIdleClip.duration;}
+  if(contortClip){actions.contort=mixer.clipAction(contortClip);actions.contort.setLoop(THREE.LoopRepeat,Infinity).setEffectiveWeight(0).play();actions.contort.paused=true;}
   if(attackClip){actions.attack=mixer.clipAction(attackClip);actions.attack.setLoop(THREE.LoopOnce,1);actions.attack.clampWhenFinished=true;actions.attack.setEffectiveWeight(0);}
   if(hitClip){actions.hit=mixer.clipAction(hitClip);actions.hit.setLoop(THREE.LoopOnce,1);actions.hit.clampWhenFinished=true;actions.hit.setEffectiveWeight(0);}
   if(collapseClip){actions.collapse=mixer.clipAction(collapseClip);actions.collapse.setLoop(THREE.LoopOnce,1);actions.collapse.clampWhenFinished=true;actions.collapse.setEffectiveWeight(0);}
@@ -158,12 +219,22 @@ export function createAfterlifeModel(asset,kind=0,seed=0){
  }
  const state={
   marker:'afterlife-model',
+  sourceTemplate:template,appearance:asset?.appearance||ASH_WITNESS_APPEARANCE,appearancePalette:asset?.appearancePalette||null,preserveAtlasColors:!!asset?.preserveAtlasColors,
   model,pivot,normalizer,warningRing,materials,mixer,actions,clips,articulation:createCharacterArticulation(model),
   articulationContext:{time:0,seed,idlePhase,attackRecovery:null,hitWeight:0},
   kind, seed, last:null, motion:0, deadAt:null, lastPosition:new THREE.Vector3(), hasLastPosition:false,
+  attention:{yaw:0,pitch:0,tilt:0,applied:false,
+    controls:[['neck',.35],['Head',.65]].map(([name,weight])=>({bone:model.getObjectByName(name),weight,rest:new THREE.Quaternion()})).filter(c=>c.bone),
+    world:new THREE.Quaternion(),parent:new THREE.Quaternion(),delta:new THREE.Quaternion(),rotation:new THREE.Quaternion(),
+    axisUp:new THREE.Vector3(0,1,0),axisRight:new THREE.Vector3(),axisForward:new THREE.Vector3(),rootRotation:new THREE.Quaternion()},
   sourceHeight:size.y, normalization:scale,
   idleAction:actions.idle||null, shuffleAction:actions.shuffle||null,
   chaseAction:actions.chase||null, chaseBlend:0, gaitPhase:actorPhase(seed,23), gaitDirection:1, turnMotion:0, facingYaw:null,idlePhase,idleRate,
+  runAction:actions.run||null,crawlAction:actions.crawl||null,crawlIdleAction:actions.crawlIdle||null,contortAction:actions.contort||null,
+  motionClass:'shambler',runBlend:0,crawlerBlend:0,contortBlend:0,grappleRise:0,contortPhase:0,
+  locomotionWeights:{idle:1,shuffle:0},gaitActions:[actions.shuffle,actions.chase,actions.run,actions.crawl].filter(Boolean),
+  crawlDeathBridge:null,
+  groundSamples:groundSamples(model),groundPoint:new THREE.Vector3(),floorLift:0,
   attackAction:actions.attack||null, hitAction:actions.hit||null,
   collapseAction:actions.collapse||null, collapseStarted:false,
   attackActive:false, hitActive:false, attackStartedAt:null, hitStartedAt:null,hitResumeAt:null,attackResumeAt:null,
@@ -173,6 +244,7 @@ export function createAfterlifeModel(asset,kind=0,seed=0){
   gaitTransferMeters:ASH_WITNESS_GAIT_TRANSFER_METERS,
   shuffleStride:shuffleClip?.userData?.strideMeters||ASH_WITNESS_GAIT_TRANSFER_METERS,
   chaseStride:chaseClip?.userData?.strideMeters||1.55,
+  runStride:runClip?.userData?.strideMeters||1.8,crawlStride:crawlClip?.userData?.strideMeters||.72,
   authoredFall:!!collapseClip?.userData?.authoredFall,
   capturedAttack:attackClip?.userData?.bodycamMotionVersion===4,
   attackContact:attackClip?.userData?.contactSeconds||.375,
@@ -186,14 +258,20 @@ export function createAfterlifeModel(asset,kind=0,seed=0){
  // existing `warden`/`bellwraith` contracts.
  root.userData.afterlife=state;
  root.userData.afterlifeModel=true;
- root.userData.source=state.articulation.hasJaw?'meshy-ash-witness-jaw-grip-v05':'meshy-ash-witness-retargeted-v04';
+ root.userData.appearance=state.appearance;
+ root.userData.source=state.appearance!==ASH_WITNESS_APPEARANCE?`meshy-${state.appearance}-canonical-v07`:state.articulation.hasJaw?'meshy-ash-witness-jaw-grip-v05':'meshy-ash-witness-retargeted-v04';
  return root;
 }
 
 const setWeights=(state,idleWeight,shuffleWeight,collapseWeight,attackWeight=0,hitWeight=0)=>{
- if(state.idleAction)state.idleAction.setEffectiveWeight(idleWeight);
- if(state.shuffleAction)state.shuffleAction.setEffectiveWeight(shuffleWeight*(1-state.chaseBlend));
- if(state.chaseAction)state.chaseAction.setEffectiveWeight(shuffleWeight*state.chaseBlend);
+ const low=state.crawlerBlend*(1-state.grappleRise),standing=1-low,runner=state.runBlend;
+ if(state.idleAction)state.idleAction.setEffectiveWeight(idleWeight*standing);
+ if(state.crawlIdleAction)state.crawlIdleAction.setEffectiveWeight(idleWeight*low*(1-state.contortBlend));
+ if(state.contortAction)state.contortAction.setEffectiveWeight(idleWeight*low*state.contortBlend);
+ if(state.crawlAction)state.crawlAction.setEffectiveWeight(shuffleWeight*low);
+ if(state.shuffleAction)state.shuffleAction.setEffectiveWeight(shuffleWeight*standing*(1-runner)*(1-state.chaseBlend));
+ if(state.chaseAction)state.chaseAction.setEffectiveWeight(shuffleWeight*standing*(1-runner)*state.chaseBlend);
+ if(state.runAction)state.runAction.setEffectiveWeight(shuffleWeight*standing*runner);
  if(state.attackAction)state.attackAction.setEffectiveWeight(attackWeight);
  if(state.hitAction)state.hitAction.setEffectiveWeight(hitWeight);
  if(state.collapseAction)state.collapseAction.setEffectiveWeight(collapseWeight);
@@ -223,10 +301,10 @@ const stopOneShot=(state,key)=>{
 
 const locomotionWeights=(state)=>{
  const shuffleWeight=Math.max(0,Math.min(1,(Math.max(state.motion,state.turnMotion)-.08)/.65));
- return {
-  idle:state.shuffleAction?1-shuffleWeight:1,
-  shuffle:state.shuffleAction?shuffleWeight:0,
- };
+ const canMove=state.crawlerBlend?state.crawlAction:state.shuffleAction||state.runAction;
+ state.locomotionWeights.idle=canMove?1-shuffleWeight:1;
+ state.locomotionWeights.shuffle=canMove?shuffleWeight:0;
+ return state.locomotionWeights;
 };
 
 const oneShotWeight=(state,key)=>{
@@ -239,7 +317,15 @@ const oneShotWeight=(state,key)=>{
  const cancelled=key==='attack'&&state.attackCancelledAt!==null?1-THREE.MathUtils.smoothstep(state.last-state.attackCancelledAt,0,120):1;
  const resumeAt=key==='hit'?state.hitResumeAt:state.attackResumeAt;
  const resume=resumeAt!==null?1-THREE.MathUtils.smoothstep(state.last-resumeAt,0,160):1;
- const alpha=Math.min(fadeIn,fadeOut,cancelled)*resume;
+ let alpha=Math.min(fadeIn,fadeOut,cancelled)*resume;
+ if(key==='attack'&&state.crawlerBlend){
+  // Rise with the canonical anticipation instead of popping a crawling body
+  // upright in the generic 85ms fade. Contact still owns the exact v06 pose.
+  const contact=Math.min(state.attackContact,duration*.45),follow=Math.min(.5,duration*.60);
+  const rise=THREE.MathUtils.smoothstep(action.time,0,contact*.88);
+  const settle=1-THREE.MathUtils.smoothstep(action.time,follow,duration-.025);
+  alpha*=state.attackPhase==='windup'?rise:state.attackPhase==='recovery'?settle:1;
+ }
  blend.alpha=alpha;
  blend.phase=fadeIn<1?'in':fadeOut<1||resume<1?'out':'hold';
  return alpha;
@@ -275,9 +361,52 @@ function syncSwipe(state,enemy,dt){
  * Drive animation selection without changing the simulation's attack/death
  * countdowns. `enemy.attacking` remains the existing telegraph authority.
  */
+function restoreAttention(state){
+ const attention=state.attention;if(!attention?.applied)return;
+ for(const control of attention.controls)control.bone.quaternion.copy(control.rest);
+ attention.applied=false;
+}
+
+function applyAttention(root,state,enemy,dt){
+ const a=state.attention;
+ const locked=enemy.dead||enemy.attacking||enemy.strike>0||enemy.stagger>0||state.attackActive||state.hitActive||['windup','held','terminal'].includes(enemy.bitePhase);
+ const gain=1-Math.exp(-dt*7);
+ a.yaw+=(THREE.MathUtils.clamp(Number(enemy.look)||0,-.95,.95)-a.yaw)*gain;
+ a.pitch+=(THREE.MathUtils.clamp(Number(enemy.lookPitch)||0,-.16,.28)-a.pitch)*gain;
+ const tilt=(Number(enemy.noticeStrength)||0)*.075*(actorPhase(state.seed,97)<.5?-1:1);
+ a.tilt+=(tilt-a.tilt)*gain;
+ // Contacts keep their exact authored pose; attention resumes only after the
+ // one-shot releases. World-axis deltas also fit differing Meshy bind bases.
+ if(locked||Math.abs(a.yaw)+Math.abs(a.pitch)+Math.abs(a.tilt)<1e-6)return;
+ root.updateWorldMatrix(true,true);root.getWorldQuaternion(a.rootRotation);
+ a.axisRight.set(1,0,0).applyQuaternion(a.rootRotation);
+ a.axisForward.set(0,0,-1).applyQuaternion(a.rootRotation);
+ for(const c of a.controls){
+  c.rest.copy(c.bone.quaternion);c.bone.getWorldQuaternion(a.world);
+  a.delta.setFromAxisAngle(a.axisUp,-a.yaw*c.weight);
+  a.rotation.setFromAxisAngle(a.axisRight,a.pitch*c.weight);a.delta.multiply(a.rotation);
+  a.rotation.setFromAxisAngle(a.axisForward,a.tilt*c.weight);a.delta.multiply(a.rotation);
+  a.world.premultiply(a.delta);c.bone.parent.getWorldQuaternion(a.parent).invert();
+  c.bone.quaternion.copy(a.parent.multiply(a.world)).normalize();c.bone.updateWorldMatrix(false,true);
+ }
+ a.applied=true;
+}
+
 export function animateAfterlifeModel(root,enemy={},now=0,seed=0){
  const state=root?.userData?.afterlife;
  if(!state)return false;
+ restoreAttention(state);
+ // A low corpse begins from the pose that actually died. Restoring the mixer's
+ // previous target first also keeps this short bridge stable at paused times.
+ const bridge=state.crawlDeathBridge;
+ if(bridge?.applied){for(const p of bridge.bones){p.bone.position.copy(p.targetPosition);p.bone.quaternion.copy(p.targetQuaternion);}bridge.applied=false;}
+ if(enemy.dead&&!state.collapseStarted&&state.motionClass==='crawler'){
+  state.crawlDeathBridge??={bones:[],applied:false};
+  const deathPose=state.crawlDeathBridge;
+  deathPose.pivotLift=state.pivot.position.y;
+  if(!deathPose.bones.length)state.model.traverse(bone=>{if(bone.isBone)deathPose.bones.push({bone,position:bone.position.clone(),quaternion:bone.quaternion.clone(),targetPosition:new THREE.Vector3(),targetQuaternion:new THREE.Quaternion()});});
+  for(const p of deathPose.bones){p.position.copy(p.bone.position);p.quaternion.copy(p.bone.quaternion);}
+ }
  if(state.crawlRestore){for(const p of state.crawlRestore)p.bone.quaternion.copy(p.quaternion);state.crawlRestore.length=0;}
  restoreCharacterArticulation(state.articulation);
  if(enemy.meleeHitId&&!state.meleeReaction)state.meleeReaction=createMeleeReaction(state.model,{seed:enemy.id});
@@ -292,10 +421,18 @@ export function animateAfterlifeModel(root,enemy={},now=0,seed=0){
  state.lastPosition.set(root.position.x,root.position.y,root.position.z);state.hasLastPosition=true;
  const moved=Math.min(6.5,Math.max(0,measuredSpeed));
  state.motion+=(moved-state.motion)*(1-Math.exp(-12*dt));
- state.chaseBlend=state.chaseAction?THREE.MathUtils.smoothstep(state.motion,1.2,2.5):0;
- const stride=THREE.MathUtils.lerp(state.shuffleStride,state.chaseStride,state.chaseBlend);
+ // 'crawl' belongs to amputated support; 'crawler' is the authored, uninjured
+ // creature. Older saved enemies/fixture clips fall back to the original gait.
+ const requested=enemy.locomotion==='crawler'||(!enemy.locomotion&&enemy.variant==='skitter')?'crawler':enemy.locomotion==='runner'||(!enemy.locomotion&&enemy.variant==='bloodhound')?'runner':'shambler';
+ state.motionClass=requested==='crawler'&&state.crawlAction&&state.crawlIdleAction?'crawler':requested==='runner'&&state.runAction?'runner':'shambler';
+ state.crawlerBlend=state.motionClass==='crawler'?1:0;
+ state.runBlend=state.motionClass==='runner'?THREE.MathUtils.smoothstep(state.motion,.65,1.65):0;
+ state.chaseBlend=state.motionClass==='shambler'&&state.chaseAction?THREE.MathUtils.smoothstep(state.motion,1.2,2.5):0;
+ const standingStride=THREE.MathUtils.lerp(THREE.MathUtils.lerp(state.shuffleStride,state.chaseStride,state.chaseBlend),state.runStride,state.runBlend);
+ const stride=state.crawlerBlend?state.crawlStride:standingStride;
  state.gaitTransferMeters=stride;
- const cycle=THREE.MathUtils.lerp(state.shuffleAction?.getClip().duration||ASH_WITNESS_GAIT_CYCLE_SECONDS,state.chaseAction?.getClip().duration||ASH_WITNESS_GAIT_CYCLE_SECONDS,state.chaseBlend);
+ const standingCycle=THREE.MathUtils.lerp(THREE.MathUtils.lerp(state.shuffleAction?.getClip().duration||ASH_WITNESS_GAIT_CYCLE_SECONDS,state.chaseAction?.getClip().duration||ASH_WITNESS_GAIT_CYCLE_SECONDS,state.chaseBlend),state.runAction?.getClip().duration||ASH_WITNESS_GAIT_CYCLE_SECONDS,state.runBlend);
+ const cycle=state.crawlerBlend?state.crawlAction.getClip().duration:standingCycle;
  state.gaitTimeScale=state.motion*cycle/stride;
  let turn=0;
  if(!enemy.dead){
@@ -324,7 +461,19 @@ export function animateAfterlifeModel(root,enemy={},now=0,seed=0){
  const turnSpeed=dt>0?turnTravel/dt:0;
  state.turnMotion+=(turnSpeed-state.turnMotion)*(1-Math.exp(-12*dt));
  state.gaitPhase=((state.gaitPhase+state.gaitDirection*(traveled+turnTravel)/stride)%1+1)%1;
- for(const action of [state.shuffleAction,state.chaseAction])if(action){action.paused=true;action.time=state.gaitPhase*action.getClip().duration;}
+ for(const action of state.gaitActions){action.paused=true;action.time=state.gaitPhase*action.getClip().duration;}
+ const grapple=enemy.bitePhase==='windup'||enemy.bitePhase==='held'||enemy.bitePhase==='terminal';
+ const riseTarget=enemy.bitePhase==='windup'?THREE.MathUtils.smoothstep(Number(enemy.biteProgress)||0,0,.78):grapple?1:0;
+ state.grappleRise=state.crawlerBlend?(grapple?riseTarget:state.grappleRise*Math.exp(-10*dt)):0;
+ const contortDuration=state.contortAction?.getClip().duration||1.8,period=7.1+actorPhase(seed,67)*3.7;
+ const contortAge=((now*.001+actorPhase(seed,71)*period)%period+period)%period;
+ const contortAllowed=state.crawlerBlend&&state.contortAction&&!combatLock&&!state.hitActive&&state.motion<.1;
+ const contortIntent=Number.isFinite(enemy.contortion)?THREE.MathUtils.clamp(enemy.contortion,0,1):actorPhase(seed,73)<.34&&contortAge<contortDuration?Math.sin(Math.PI*contortAge/contortDuration)**2:0;
+ const contortTarget=contortAllowed?contortIntent:0;
+ state.contortBlend+=(contortTarget-state.contortBlend)*(1-Math.exp(-12*dt));
+ if(!state.crawlerBlend)state.contortBlend=0;
+ state.contortPhase=(contortAge%contortDuration)/contortDuration;
+ if(state.contortAction)state.contortAction.time=state.contortPhase*contortDuration;
  // `enemy.attack === 0` means the cooldown is ready in engine.js; it is not
  // an attack countdown. Only the explicit windup/swing flags may drive this
  // visual telegraph, otherwise every idle enemy would lunge forever.
@@ -347,6 +496,7 @@ export function animateAfterlifeModel(root,enemy={},now=0,seed=0){
  const hitEdge=hitCount>state.lastHits||(flash>.01&&state.lastFlash<=.01)||(stagger>.01&&state.lastStagger<=.01);
  state.lastHits=hitCount;state.lastFlash=flash;state.lastStagger=stagger;
  if(enemy.dead){
+  if(state.crawlerBlend&&state.authoredFall)state.pivot.position.y=0;
   stopOneShot(state,'attack');
   stopOneShot(state,'hit');
   if(!state.collapseStarted){
@@ -397,6 +547,14 @@ export function animateAfterlifeModel(root,enemy={},now=0,seed=0){
  state.pivot.position.z=!state.capturedAttack&&state.attackActive&&state.attackAction?
   -.30*Math.sin(Math.PI*state.attackAction.time/state.attackAction.getClip().duration)*state.attackAction.getEffectiveWeight():0;
  state.mixer?.update(dt);
+ if(enemy.dead&&state.crawlDeathBridge){
+  const deathPose=state.crawlDeathBridge,blend=THREE.MathUtils.smoothstep((now-state.deadAt)/1000,.12,.48);
+  if(blend<1){
+   for(const p of deathPose.bones){p.targetPosition.copy(p.bone.position);p.targetQuaternion.copy(p.bone.quaternion);p.bone.position.lerpVectors(p.position,p.targetPosition,blend);p.bone.quaternion.slerpQuaternions(p.quaternion,p.targetQuaternion,blend);}
+   deathPose.applied=true;
+   state.pivot.position.y=deathPose.pivotLift*(1-blend);
+  }
+ }
  if(state.meleeReaction)updateMeleeReaction(state.meleeReaction,enemy,dt,-root.rotation.y-Math.PI/2);
  const attackDuration=state.attackAction?.getClip().duration||1,follow=Math.min(.5,attackDuration*.60);
  const attackRecovery=state.attackActive&&state.attackPhase==='recovery'?THREE.MathUtils.clamp((state.attackAction.time-follow)/Math.max(.001,attackDuration-follow),0,1):null;
@@ -404,6 +562,7 @@ export function animateAfterlifeModel(root,enemy={},now=0,seed=0){
  articulationContext.time=now*.001;articulationContext.seed=state.seed;
  articulationContext.idlePhase=state.idleAction?state.idleAction.time/state.idleAction.getClip().duration:state.idlePhase;
  articulationContext.attackRecovery=attackRecovery;articulationContext.hitWeight=state.hitActive?state.hitAction?.getEffectiveWeight()||0:0;
+ articulationContext.motionClass=state.motionClass;articulationContext.burst=Number(enemy.burst)||0;articulationContext.contortion=state.contortBlend;
  applyCharacterArticulation(state.articulation,enemyArticulationPose(enemy,articulationContext));
  if(!enemy.dead&&enemy.locomotion==='crawl'){
   // Loss of support folds the entire body toward its travel direction. The
@@ -422,6 +581,7 @@ export function animateAfterlifeModel(root,enemy={},now=0,seed=0){
    }
   }
  }else state.crawlStartedAt=null;
+ groundCrawlerTransition(root,state,enemy);
  if(!enemy.dead&&state.revivalPose){
   state.revivalStartedAt??=now;
   const rise=THREE.MathUtils.smoothstep((now-state.revivalStartedAt)/1000,0,.95),pose=state.revivalPose;
@@ -445,14 +605,17 @@ export function animateAfterlifeModel(root,enemy={},now=0,seed=0){
  }
  if(state.attackActive&&state.attackAction&&state.attackAction.time>=state.attackAction.getClip().duration-.001&&!warning&&strike<=0)stopOneShot(state,'attack');
  if(state.attackActive&&state.attackCancelledAt!==null&&now-state.attackCancelledAt>=120)stopOneShot(state,'attack');
- if(state.hitActive&&state.hitAction&&state.hitAction.time>=state.hitAction.getClip().duration-.001)stopOneShot(state,'hit');
+  if(state.hitActive&&state.hitAction&&state.hitAction.time>=state.hitAction.getClip().duration-.001)stopOneShot(state,'hit');
+ applyAttention(root,state,enemy,dt);
  return true;
 }
 
 export function disposeAfterlifeModel(root){
  const state=root?.userData?.afterlife;
  if(!state)return;
+ restoreAttention(state);
  restoreCharacterArticulation(state.articulation);
+ if(state.crawlDeathBridge?.applied)for(const p of state.crawlDeathBridge.bones){p.bone.position.copy(p.targetPosition);p.bone.quaternion.copy(p.targetQuaternion);}
  state.mixer?.stopAllAction();
  state.mixer?.uncacheRoot(state.model);
   state.mixer=null;state.actions={};

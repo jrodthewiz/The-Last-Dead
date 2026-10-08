@@ -45,7 +45,7 @@ test('look lag follows at matched rates and stabilizes while aiming', () => {
     const hip = Math.abs(driver.pose.rotation.y);
     state.aim = 1; state.angle += 1 / fps;
     driver.update(state, 1 / fps);
-    assert.ok(Math.abs(driver.pose.rotation.y + .02) < hip * .3);
+    assert.ok(Math.abs(driver.pose.rotation.y) < hip * .3);
   }
   samples.forEach(v => close(v, samples[0]));
 });

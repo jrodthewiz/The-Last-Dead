@@ -96,7 +96,7 @@ const inputSource=main.slice(main.indexOf('function intent('),main.indexOf("addE
 function mainHarness({guest=false}={}){
  const p=pad(),run=newRun(makeCourse()),played=[];run.mode='play';
  const context=vm.createContext({run,screen:'play',windowFocused:true,document:{hidden:false},navigator:{getGamepads:()=>[p]},inspector:{active:false},
-  gamepadInput:new GamepadInput(),gamepadFrame:emptyGamepadFrame(),inputDevice:'keyboard',keys:new Set(),touches:new Map(),pulses:new Set(),settings:{},fire:false,alt:false,
+  gamepadInput:new GamepadInput(),gamepadFrame:emptyGamepadFrame(),inputDevice:'keyboard',keys:new Set(),touches:new Map(),pulses:new Set(),settings:{},fire:false,alt:false,attachment:false,
   session:guest?{connected:true,role:'guest'}:null,parrySequence:0,chestSequence:0,hookSequence:0,verminSequence:0,clamp,switchWeapon,nextOwnedWeapon,attackVermin:()=>false,
   parry:()=>{context.parries=(context.parries||0)+1;},chestFinisher:()=>{context.chestActions=(context.chestActions||0)+1;},grapple:()=>{context.hooks=(context.hooks||0)+1;},audio:{play:type=>played.push(type)},
   useInputDevice:device=>{context.inputDevice=device;},ui:{gamepadNavigate:action=>{context.navigation=action;return true;}},
@@ -124,6 +124,13 @@ test('actual main input bridge sends single parry/hook sequences and respects gu
   context.run.health=0;setButton(p,5,false);setButton(p,4,false);context.updateGamepad();setButton(p,5);setButton(p,4);context.updateGamepad();
   assert.equal(context.parrySequence,1);assert.equal(context.hookSequence,1,'downed players cannot enqueue extra abilities');
  }
+});
+
+test('LT + RB fires the fitted launcher without also parrying, with other guns retaining parry',()=>{
+ const {p,context}=mainHarness();switchWeapon(context.run,1);setButton(p,6);context.updateGamepad();
+ setButton(p,5);context.updateGamepad();assert.equal(context.intent().attachment,true);assert.equal(context.intent().alt,true);assert.equal(context.parrySequence,0);
+ context.pulses.clear();context.updateGamepad();assert.equal(context.intent().attachment,false,'launcher chord is a single press');
+ setButton(p,5,false);context.updateGamepad();switchWeapon(context.run,0);setButton(p,5);context.updateGamepad();assert.equal(context.parrySequence,1);
 });
 
 test('R3 sends its own single chest sequence and a guest never predicts the finisher',()=>{

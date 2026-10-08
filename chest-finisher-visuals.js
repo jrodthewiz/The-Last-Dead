@@ -1,5 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import {loadGlb} from './assets/load-glb.js';
+import {bodySpearState} from './body-spear-visuals.js';
 
 const clamp=THREE.MathUtils.clamp;
 const smooth=(a,b,t)=>{const x=clamp((t-a)/(b-a),0,1);return x*x*(3-2*x);};
@@ -54,11 +55,13 @@ export function captureWeaponVisual(source) {
 // clock. All points are in metres, with +Z out from the victim's chest.
 export function chestHandPoint(side,elapsed,timing={}) {
   const contact=timing.contactAt??.24,extract=timing.extractionAt??.68,release=timing.releaseAt??.95;
-  if(side==='Left')return new THREE.Vector3(-.15,.045,.075);
-  const drive=smooth(contact*.32,contact,elapsed),withdraw=smooth(extract-.24,extract+.05,elapsed);
+  const motion=bodySpearState(elapsed);
+  if(side==='Left')return new THREE.Vector3(-.15,.20,.095);
+  const drive=motion.drive,withdraw=smooth(extract-.24,extract+.05,elapsed),depth=timing.spearDepth??.12;
   // The close grapple needs a bounded withdrawal so the held hand and organ
   // stay in front of the lens rather than crossing its near plane.
-  return new THREE.Vector3(.045+.09*withdraw,-.028+.045*withdraw,THREE.MathUtils.lerp(.35,-.08,drive)+.24*withdraw);
+  const fitted=Number.isFinite(timing.spearDepth),z=THREE.MathUtils.lerp(THREE.MathUtils.lerp(.35,-depth-.055,drive),.19,withdraw);
+  return new THREE.Vector3((fitted?0:.045)+.14*motion.coil+.09*withdraw,(fitted?0:-.028)-.065*motion.coil+.045*withdraw,z);
 }
 
 export class ChestFinisherVisuals {
@@ -86,7 +89,7 @@ export class ChestFinisherVisuals {
   }
   addWound(state) {
     if(this.status!=='ready')return;
-    const wound=this.component('ChestWound');if(wound)state.attachments.add(wound);state.chestWound=wound;
+    const wound=this.combat.bodySpear?.addWound(state)||this.component('ChestWound');if(wound&&!wound.parent)state.attachments.add(wound);state.chestWound=wound;
     state.heart=this.component('Heart');state.heartReleased=false;
     if(state.heart){state.heart.visible=false;this.combat.root.add(state.heart);}
   }
@@ -104,6 +107,7 @@ export class ChestFinisherVisuals {
     const elapsed=owner?.brutal.elapsed??Math.max(0,combatWorldTime(run)-wound.at+.24),extract=owner?.brutal.extractionAt??.68,release=owner?.brutal.releaseAt??.95;
     const tissue=chestTissueState(elapsed,owner?.brutal,this.renderer?.settings?.reducedMotion);
     applyTissueShapes(heart,tissue);applyTissueShapes(state.chestWound,tissue);
+    applyTissueShapes(state.bodySpear?.exit,tissue);
     const extracted=!!wound.heartRemoved||!!owner?.brutal.extractionApplied;
     heart.visible=gore&&extracted&&(elapsed>=extract||state.heartReleased);
     if(!state.heartReleased){

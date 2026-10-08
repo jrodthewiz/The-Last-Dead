@@ -1,0 +1,54 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {mkdir,writeFile} from 'node:fs/promises';
+const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_PATH||'playwright');
+const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH});
+const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+const page=await context.newPage(),report={errors:[],checks:{}};
+const output='docs/no-further-transfers/qa/touch';await mkdir(output,{recursive:true});
+page.on('pageerror',error=>report.errors.push(error.message));
+try {
+ await page.goto(`${process.env.DEAD_ARRIVAL_URL||'http://127.0.0.1:5200/'}?dungeon=0`,{waitUntil:'domcontentloaded'});
+ await page.waitForFunction(()=>!!window.__DEAD_ARRIVAL__,null,{timeout:180000});
+ await page.locator('[data-action="start"]').tap();
+ await page.waitForFunction(()=>window.__DEAD_ARRIVAL__.screen==='play',null,{timeout:180000});
+ await page.evaluate(()=>{
+  const run=window.__DEAD_ARRIVAL__.run,station=run.journey.stations[0];
+  Object.assign(run,{x:station.x,y:station.y,z:0,vx:0,vy:0,vz:0,health:9999,angle:0,pitch:0});
+  for(const node of run.dungeonProgression.encounterPlan)node.status='cleared';
+  run.dungeonProgression.currentEncounter=null;run.course.enemies=[];
+ });
+ await page.waitForFunction(()=>!!window.__DEAD_ARRIVAL__.run.journey.prompt);
+ await page.waitForTimeout(120);
+ const button=page.locator('.touch-operate');assert.ok(await button.isVisible());
+ const box=await button.boundingBox();assert.ok(box.x>=0&&box.y>=0&&box.x+box.width<=390&&box.y+box.height<=844);
+ const cdp=await context.newCDPSession(page);
+ const down=()=>cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:box.x+box.width/2,y:box.y+box.height/2,id:1}]});
+ await down();await page.waitForTimeout(200);
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});
+ await page.waitForTimeout(120);
+ assert.equal(await page.evaluate(()=>window.__DEAD_ARRIVAL__.run.journey.step),0,'cancel prevents an incomplete action');
+ await down();await page.waitForFunction(()=>window.__DEAD_ARRIVAL__.run.journey.step===1,null,{timeout:12000});
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+ await page.waitForFunction(()=>window.__DEAD_ARRIVAL__.run.journey.phase==='complete');
+ report.checks.touchOperate=true;report.checks.touchCancel=true;
+ await page.evaluate(async()=>{
+  const {createJourney}=await import('./campaign-journey.js'),app=window.__DEAD_ARRIVAL__;
+  app.run.journey=createJourney(app.run.course);
+  window.journeyTestPad={index:0,id:'journey-standard',mapping:'standard',connected:true,axes:[0,0,0,0],buttons:Array.from({length:17},()=>({pressed:false,value:0}))};
+  Object.defineProperty(navigator,'getGamepads',{configurable:true,value:()=>[window.journeyTestPad]});
+ });
+ await page.waitForFunction(()=>window.__DEAD_ARRIVAL__.controller.armed);
+ await page.evaluate(()=>{window.journeyTestPad.buttons[8].pressed=true;});
+ await page.waitForFunction(()=>window.__DEAD_ARRIVAL__.run.journey.step===1,null,{timeout:12000});
+ await page.evaluate(()=>{window.journeyTestPad.buttons[8].pressed=false;});
+ assert.equal(await page.evaluate(()=>window.__DEAD_ARRIVAL__.controller.intent.harvest),false,'View does not trigger extraction');
+ report.checks.controllerOperate=true;
+ assert.ok(await page.locator('.touch-layer [data-action="fire"]').isVisible());
+ await page.screenshot({path:`${output}/portrait.png`});
+ await page.setViewportSize({width:844,height:390});await page.waitForTimeout(200);
+ report.checks.landscapeFits=await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth);
+ assert.equal(report.checks.landscapeFits,true);
+ await page.screenshot({path:`${output}/landscape.png`});
+ assert.deepEqual(report.errors,[]);console.log(JSON.stringify(report));
+}finally{await writeFile(`${output}/report.json`,JSON.stringify(report,null,2));await browser.close();}

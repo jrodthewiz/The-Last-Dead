@@ -15,6 +15,7 @@ export const COUNTER_GRIP_MODES=Object.freeze({
   heart:Object.freeze({proximal:.76,distal:1.18,thumbOpposition:1.02,thumbFlex:.52}),
   gun:Object.freeze({proximal:.88,distal:1.34,thumbOpposition:1.18,thumbFlex:.44}),
   brace:Object.freeze({proximal:.44,distal:.52,thumbOpposition:.55,thumbFlex:.24}),
+  spear:Object.freeze({proximal:.035,distal:.025,thumbOpposition:.28,thumbFlex:.08}),
 });
 
 function armMesh(root) {

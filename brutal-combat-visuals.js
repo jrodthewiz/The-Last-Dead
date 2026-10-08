@@ -6,10 +6,12 @@ import {reachBiteArm} from './player-injury-visuals.js';
 import {createBloodDropletPool,bloodFlight,stampBloodDroplet,finishBloodDropletPool} from './fluid-blood.js';
 import {CorpsePhysics} from './corpse-physics.js';
 import {ChestFinisherVisuals,chestHandPoint,combatWorldTime} from './chest-finisher-visuals.js';
+import {BodySpearVisuals,applyBodySpearReaction} from './body-spear-visuals.js';
 import {addCounterGripRig,setCounterGrip,counterGripDiagnostics} from './hand-grip-rig.js';
 import {addSoftTissueCompliance} from './soft-tissue-compliance.js';
 import {EnemyAnatomyVisuals} from './enemy-anatomy-visuals.js';
-import {castRay} from './engine.js';
+import {castRay,eye} from './engine.js';
+import {actorGroundAt} from './coastal-structures.js';
 
 const clamp=THREE.MathUtils.clamp, UP=new THREE.Vector3(0,1,0), FRONT=new THREE.Vector3(0,0,1);
 const smooth=(a,b,t)=>{const p=clamp((t-a)/(b-a),0,1);return p*p*(3-2*p);};
@@ -77,7 +79,7 @@ export function counterCutBoundary(mesh,regions,region,origin) {
   if(length>0)center.divideScalar(length);return{center,length,points};
 }
 
-const CUT_DECL='uniform float uBrutalKind,uBrutalRegion,uHarvestOpen; uniform vec2 uHarvestExtent; uniform vec3 uHarvestCenter,uHarvestRight,uHarvestUp,uHarvestFront,uBrutalCenter,uBrutalRight,uBrutalUp,uBrutalFront; varying vec3 vBrutalMembership; varying vec3 vBrutalWorld;';
+const CUT_DECL='uniform float uBrutalKind,uBrutalRegion,uHarvestOpen,uSpearOpen; uniform vec2 uHarvestExtent,uSpearExtent,uSpearExitExtent; uniform vec3 uSpearExitCenter,uSpearExitFront,uHarvestCenter,uHarvestRight,uHarvestUp,uHarvestFront,uBrutalCenter,uBrutalRight,uBrutalUp,uBrutalFront; varying vec3 vBrutalMembership; varying vec3 vBrutalWorld;';
 const CUT_FRAGMENT=`
   // Harvesting opens the source topology itself; its shadow and depth passes
   // see the same retracted skinned vertices, without an oval discard mask.
@@ -87,22 +89,37 @@ const CUT_FRAGMENT=`
     vec3 d=vBrutalWorld-uBrutalCenter;
     // The v2 chest rim covers a smaller inner cut. Keeping the discarded
     // source coat inside that lip prevents a floating black outer silhouette.
-    vec2 extent=uBrutalKind>3.5?vec2(.059,.069):vec2(.073,.10);
+    vec2 extent=uSpearOpen>.5?uSpearExtent:(uBrutalKind>3.5?vec2(.059,.069):vec2(.073,.10));
     vec2 p=vec2(dot(d,uBrutalRight),dot(d,uBrutalUp))/extent;
     float edge=1.+.055*sin(atan(p.y,p.x)*9.);
     if(dot(d,uBrutalFront)>-.055&&length(p)<edge)discard;
+    if(uSpearOpen>.5){
+      vec3 back=vBrutalWorld-uSpearExitCenter;
+      vec2 backP=vec2(dot(back,uBrutalRight),dot(back,uBrutalUp))/uSpearExitExtent;
+      if(dot(back,uSpearExitFront)>-.055&&length(backP)<edge)discard;
+      // Clear folded inner fabric throughout the fitted entry/exit bore.
+      float boreDepth=max(.001,dot(uBrutalCenter-uSpearExitCenter,uBrutalFront));
+      float inward=-dot(d,uBrutalFront);
+      vec2 boreExtent=mix(uSpearExtent,uSpearExitExtent,clamp(inward/boreDepth,0.,1.));
+      vec2 boreP=vec2(dot(d,uBrutalRight),dot(d,uBrutalUp))/boreExtent;
+      if(inward>-.055&&inward<boreDepth+.055&&length(boreP)<edge)discard;
+    }
   }
 `;
 function cutShader(material,uniforms) {
   const previous=material.onBeforeCompile,cache=material.customProgramCacheKey();
+  material.userData.brutalCutUniforms=uniforms;
   material.onBeforeCompile=shader=>{
     previous.call(material,shader);Object.assign(shader.uniforms,uniforms);
+    shader.uniforms.uBodyIncidentLimit={value:1.25};
     shader.vertexShader='attribute vec3 brutalMembership; varying vec3 vBrutalMembership; varying vec3 vBrutalWorld;\n'+shader.vertexShader;
     shader.vertexShader=shader.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvBrutalMembership=brutalMembership; vBrutalWorld=(modelMatrix*vec4(transformed,1.)).xyz;');
     shader.fragmentShader=CUT_DECL+'\n'+shader.fragmentShader;
     shader.fragmentShader=shader.fragmentShader.replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\n'+CUT_FRAGMENT);
   };
-  material.customProgramCacheKey=()=>cache+'-brutal-source-seam-v5';material.needsUpdate=true;
+  // The native port reads cut uniforms from the current rendered material.
+  // Identical rigs can reuse the warmed program without sharing wound state.
+  material.customProgramCacheKey=()=>cache+'-brutal-source-seam-v9-material-reference';material.needsUpdate=true;
 }
 
 /** Capture the actual posed imported skin, including its original UVs. */
@@ -159,7 +176,7 @@ export class BrutalCombatVisuals {
   constructor(renderer) {
     this.renderer=renderer;this.root=new THREE.Group();this.root.name='BrutalCombat';renderer.scene.add(this.root);
     this.actors=new Map();this.harvestRoots=new Set();this.fragments=[];this.poseRestore=[];this.seen=new Map();this.status='loading';this.armStatus='waiting';
-    this.physics=new CorpsePhysics({maxRagdolls:4,maxDrops:12});this.chest=new ChestFinisherVisuals(this);this.anatomy=new EnemyAnatomyVisuals(this);
+    this.physics=new CorpsePhysics({maxRagdolls:4,maxDrops:12});this.bodySpear=new BodySpearVisuals(this);this.chest=new ChestFinisherVisuals(this);this.anatomy=new EnemyAnatomyVisuals(this);
     this.spray=createBloodDropletPool(BRUTAL_VISUAL_LIMITS.spray);this.spray.name='BrutalSpray';this.root.add(this.spray);
     this.drops=Array.from({length:BRUTAL_VISUAL_LIMITS.spray},()=>({start:new THREE.Vector3(),velocity:new THREE.Vector3(),at:-100,size:0,angle:0}));
     this.marker=new THREE.Object3D();this.point=new THREE.Vector3();this.target=new THREE.Vector3();this.pole=new THREE.Vector3();this.cameraPoint=new THREE.Vector3();this.axis=new THREE.Vector3();this.right=new THREE.Vector3();this.rotation=new THREE.Quaternion();this.delta=new THREE.Quaternion();this.parentRotation=new THREE.Quaternion();this.scale=new THREE.Vector3();
@@ -173,16 +190,31 @@ export class BrutalCombatVisuals {
         `);};m.customProgramCacheKey=()=> 'brutal-tissue-light-response-v1';
       }});
     }).catch(error=>{this.status='unavailable';this.error=String(error.message||error);});
-    this.ready=Promise.all([this.ready,this.chest.ready]);
+    this.ready=Promise.all([this.ready,this.chest.ready,this.bodySpear.ready]);
   }
   component(name) {
     const source=this.asset?.getObjectByName(name);if(!source)return null;
     const part=source.clone(true);part.position.set(0,0,0);part.quaternion.identity();part.scale.setScalar(1);part.frustumCulled=false;return part;
   }
+  prepareWarmup(roots=[]) {
+    this.setupArms();
+    const restores=[],bound=[],group=new THREE.Group();group.name='FinisherLoadingResources';this.root.add(group);
+    for(const root of roots){
+      if(!root.userData.afterlifeModel||this.actors.has(root))continue;
+      this.bindActor(root);bound.push(root);const visible=root.visible;root.visible=true;restores.push(()=>root.visible=visible);
+      root.traverse(mesh=>{if(!mesh.isMesh)return;const culled=mesh.frustumCulled;mesh.frustumCulled=false;restores.push(()=>mesh.frustumCulled=culled);});
+    }
+    for(const name of ['BodySpear_Entry','BodySpear_Exit','BodySpear_Tunnel']){const mesh=this.bodySpear?.component(name);if(mesh)group.add(mesh);}
+    for(const name of ['ChestWound','Heart']){const mesh=this.chest?.component(name);if(mesh)group.add(mesh);}
+    if(this.arms){const visible=this.arms.visible;this.arms.visible=true;restores.push(()=>this.arms.visible=visible);}
+    let released=false;
+    return()=>{if(released)return;released=true;group.removeFromParent();for(const root of bound)this.releaseActor(root);for(const restore of restores.reverse())restore();};
+  }
   beginFrame() {
     // Capture the last solved ragdoll before the live mixer writes this frame.
     if(this.physics&&this.run)for(const [id,entry]of this.renderer._enemyVisuals){const enemy=this.run.course.enemies.find(e=>e.id===id);if(enemy&&!enemy.dead&&this.physics.has(entry.root)){this.captureRisePose(entry.root);this.physics.removeRagdoll(entry.root);}}
     setCounterGrip(this.counterGrip,{left:0,right:0});
+    setCounterGrip(this.remoteGrip,{left:0,right:0});
     if(this.hiddenBody){this.hiddenBody.node.visible=this.hiddenBody.visible;this.hiddenBody=null;}
     for(let i=this.poseRestore.length-1;i>=0;i--){const p=this.poseRestore[i];p.node.position.copy(p.position);p.node.rotation.copy(p.rotation);}
     this.poseRestore.length=0;
@@ -218,6 +250,7 @@ export class BrutalCombatVisuals {
     const state={root,meshes:[],materials:new Map(),attachments:new THREE.Group(),wound:null,uniforms:{uBrutalKind:{value:0},uBrutalRegion:{value:0},uBrutalCenter:{value:new THREE.Vector3()},uBrutalRight:{value:new THREE.Vector3(1,0,0)},uBrutalUp:{value:UP.clone()},uBrutalFront:{value:FRONT.clone()}}};
     state.attachments.name='BrutalWoundAttachment';this.root.add(state.attachments);
     Object.assign(state.uniforms,{uHarvestOpen:{value:0},uHarvestExtent:{value:new THREE.Vector2(.18,.24)},uHarvestCenter:{value:new THREE.Vector3()},uHarvestRight:{value:new THREE.Vector3(1,0,0)},uHarvestUp:{value:UP.clone()},uHarvestFront:{value:FRONT.clone()}});
+    Object.assign(state.uniforms,{uSpearOpen:{value:0},uSpearExtent:{value:new THREE.Vector2(.059,.075)},uSpearExitExtent:{value:new THREE.Vector2(.072,.087)},uSpearExitCenter:{value:new THREE.Vector3()},uSpearExitFront:{value:FRONT.clone().negate()}});
     root.traverse(mesh=>{
       if(!mesh.isSkinnedMesh)return;
       const regions=counterRegions(mesh),original=mesh.geometry,geometry=original.clone();delete geometry.userData.sharedAsset;
@@ -225,9 +258,13 @@ export class BrutalCombatVisuals {
       const membership=new Float32Array(regions.length*3);
       for(let i=0;i<regions.length;i++)if(regions[i]>=3&&regions[i]<=5)membership[i*3+regions[i]-3]=1;
       geometry.setAttribute('brutalMembership',new THREE.Float32BufferAttribute(membership,3));mesh.geometry=geometry;
-      const materials=Array.isArray(mesh.material)?mesh.material:[mesh.material];for(const m of materials)if(!state.materials.has(m)){state.materials.set(m,{compile:m.onBeforeCompile,cache:m.customProgramCacheKey});cutShader(m,state.uniforms);}
+      // Native WebGPU caches each converted material's node graph. A cut
+      // added after its first draw needs a fresh owned material, not just a
+      // version bump on the already-converted uncut source.
+      const sourceMaterial=mesh.material,ownedMaterials=(Array.isArray(sourceMaterial)?sourceMaterial:[sourceMaterial]).map(source=>{const m=source.clone();m.onBeforeCompile=source.onBeforeCompile;m.customProgramCacheKey=source.customProgramCacheKey;state.materials.set(m,{compile:m.onBeforeCompile,cache:m.customProgramCacheKey});cutShader(m,state.uniforms);return m;});
+      mesh.material=Array.isArray(sourceMaterial)?ownedMaterials:ownedMaterials[0];
       const depth=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking}),distance=new THREE.MeshDistanceMaterial();cutShader(depth,state.uniforms);cutShader(distance,state.uniforms);
-      state.meshes.push({mesh,regions,original,geometry,depth:mesh.customDepthMaterial,distance:mesh.customDistanceMaterial,ownedDepth:depth,ownedDistance:distance});mesh.customDepthMaterial=depth;mesh.customDistanceMaterial=distance;
+      state.meshes.push({mesh,regions,original,geometry,sourceMaterial,ownedMaterials,depth:mesh.customDepthMaterial,distance:mesh.customDistanceMaterial,ownedDepth:depth,ownedDistance:distance});mesh.customDepthMaterial=depth;mesh.customDistanceMaterial=distance;
     });
     this.actors.set(root,state);return state;
   }
@@ -246,7 +283,7 @@ export class BrutalCombatVisuals {
     this.harvestRoots?.delete(root);
     this.chest?.releaseWound(state);
     state.tissueRig?.dispose();
-    for(const entry of state.meshes){entry.mesh.geometry=entry.original;entry.geometry.dispose();entry.ownedDepth.dispose();entry.ownedDistance.dispose();entry.mesh.customDepthMaterial=entry.depth;entry.mesh.customDistanceMaterial=entry.distance;}
+    for(const entry of state.meshes){entry.mesh.geometry=entry.original;entry.mesh.material=entry.sourceMaterial;entry.ownedMaterials.forEach(m=>m.dispose());entry.geometry.dispose();entry.ownedDepth.dispose();entry.ownedDistance.dispose();entry.mesh.customDepthMaterial=entry.depth;entry.mesh.customDistanceMaterial=entry.distance;}
     for(const [material,hooks]of state.materials){material.onBeforeCompile=hooks.compile;material.customProgramCacheKey=hooks.cache;material.needsUpdate=true;}
     state.uniforms.uBrutalKind.value=0;state.attachments.removeFromParent();this.actors.delete(root);
   }
@@ -255,7 +292,7 @@ export class BrutalCombatVisuals {
   }
   attachWound(state,wound) {
     state.tissueRig?.dispose();state.tissueRig=null;this.chest?.releaseWound(state);
-    state.wound=wound;state.cutCenterLocal=null;state.capScale=null;state.attachments.clear();
+    state.wound=wound;state.cutCenterLocal=null;state.capScale=null;state.bodySpear=null;state.uniforms.uSpearOpen.value=0;state.attachments.clear();
     if(wound.type==='pierce'){this.chest?.addWound(state);return;}
     const cap=this.component(wound.type==='twist'?'NeckWound':wound.type==='rip'?'AbdomenWound':'ArmWound');if(cap)state.attachments.add(cap);
     if(wound.type==='rip'){const bundle=this.component('IntestinalBundle');if(bundle){bundle.name='AttachedIntestines';bundle.position.set(0,-.075,.07);state.tissueRig=addSoftTissueCompliance(bundle,{axis:'y',anchorEnd:'max',sag:.025,bend:.012});state.attachments.add(bundle);}}
@@ -293,9 +330,11 @@ export class BrutalCombatVisuals {
     uniforms.uBrutalKind.value=gore?({chop:1,twist:2,rip:3,pierce:4}[wound.type]||0):0;
     uniforms.uBrutalRegion.value=wound.type==='twist'?5:wound.side==='left'?3:4;
     uniforms.uBrutalCenter.value.copy(attachments.position);uniforms.uBrutalRight.value.set(1,0,0).applyQuaternion(attachments.quaternion);uniforms.uBrutalUp.value.copy(UP).applyQuaternion(attachments.quaternion);uniforms.uBrutalFront.value.copy(FRONT).applyQuaternion(attachments.quaternion);
+    if(wound.type==='pierce')this.bodySpear?.placeWound(state,gore);
   }
   emit(root,wound,time) {
     this.anchor(root,wound).getWorldPosition(this.point);
+    if(wound.type==='pierce'){const state=this.actors.get(root),entry=state?.bodySpear&&this.bodySpear.frame(root,wound.sequence,true)?.entry;if(entry)this.point.copy(entry);}
     const origin=this.point.clone(),region=wound.type==='twist'?5:wound.side==='left'?3:4;
     if(wound.type!=='rip'&&wound.type!=='pierce'){
       const state=this.actors.get(root),piece=new THREE.Group();piece.name='Detached_'+(wound.type==='twist'?'Head':wound.side+'Arm');
@@ -325,7 +364,10 @@ export class BrutalCombatVisuals {
   playerPoint(point,run,remote) {
     if(!remote)return this.renderer.camera.localToWorld(point);
     const yaw=-run.angle-Math.PI/2,x=point.x,z=point.z;
-    return point.set(run.x*4+x*Math.cos(yaw)+z*Math.sin(yaw),(.4+(run.z||0))*4+point.y,run.y*4+z*Math.cos(yaw)-x*Math.sin(yaw));
+    // Serialized host players carry support coordinates, but no course. Resolve
+    // their floor in the receiving world so stair/terrain grips stay in parity.
+    const pose=run.course?run:{...run,course:run.world?.course||this.run?.course};
+    return point.set(run.x*4+x*Math.cos(yaw)+z*Math.sin(yaw),eye(pose)*4+point.y,run.y*4+z*Math.cos(yaw)-x*Math.sin(yaw));
   }
   playerRotation(run,remote) {
     if(remote)return this.rotation.setFromEuler(new THREE.Euler(0,-run.angle-Math.PI/2,0));
@@ -334,6 +376,7 @@ export class BrutalCombatVisuals {
   pose(run,remote=false) {
     const b=run.brutal,r=this.renderer,active=b&&b.phase!=='idle'&&b.phase!=='cancelled';
     if(!remote){this.active=!!active;this.kind=active?b.kind:'idle';this.hands=0;this.contactDistances=[];this.pickupView=false;this.recoveryRetreat=0;if(this.arms)this.arms.visible=false;}
+    else this.peerContactDistances=[];
     if(!active||run.health<=0||run.playerWounds?.leftArm==='severed'||run.playerWounds?.rightArm==='severed')return;
     const root=r._enemyVisuals.get(b.enemyId)?.root;if(!root)return;
     if(this.tracePose&&!remote)this.poseStages=[poseFrame(root,run,'input')];
@@ -348,13 +391,13 @@ export class BrutalCombatVisuals {
     this.save(root);this.cameraPoint.set(0,0,0);this.playerPoint(this.cameraPoint,run,remote);this.point.copy(this.cameraPoint).sub(root.position);this.point.y=0;
     // Bring the victim into fixed arm reach while the local shoulder cuts
     // remain behind the body camera. Peer body placement keeps its own rig.
-    const distance=this.point.length(),gap=remote?(b.kind==='rip'?.76:b.kind==='pierce'?.84:.66):(b.kind==='pierce'?.44:b.kind==='twist'?.36:.40);
-    root.position.addScaledVector(this.point.normalize(),clamp(distance-gap,b.kind==='rip'?-.35:0,remote?.35:.55)*envelope);root.updateMatrixWorld(true);
+    const distance=this.point.length(),gap=b.kind==='pierce'?.44:remote?(b.kind==='rip'?.76:.66):(b.kind==='twist'?.36:.40);
+    root.position.addScaledVector(this.point.normalize(),clamp(distance-gap,b.kind==='rip'?-.35:0,b.kind==='pierce'?.55:remote?.35:.55)*envelope);root.updateMatrixWorld(true);
     // A counter has an authored upper-body pose. Locomotion/recoil clips keep
     // their lower-body ownership, but cannot spin the wound away at contact.
-    const template=r._ashWitnessAsset?.template;
+    const template=root.userData.afterlife?.sourceTemplate||r._ashWitnessAsset?.template;
     const pivot=root.userData.afterlife?.pivot;
-    if(pivot&&b.kind==='pierce'){this.save(pivot);pivot.rotation.set(0,0,0);pivot.position.y=0;pivot.position.z=0;}
+    if(pivot&&b.kind==='pierce'){this.save(pivot);pivot.quaternion.slerp(new THREE.Quaternion(),envelope);pivot.position.y*=1-envelope;pivot.position.z*=1-envelope;}
     const poseWeight=envelope*(b.kind==='twist'&&b.contactApplied?1-smooth(contact+.32,duration,t):1);
     for(const name of ['Hips','Spine02','Spine01','Spine','neck','Head']){
       const node=root.getObjectByName(name),base=template?.getObjectByName(name);if(!node||!base)continue;
@@ -375,7 +418,7 @@ export class BrutalCombatVisuals {
         root.rotation.y+=Math.atan2(Math.sin(correction),Math.cos(correction))*envelope;root.updateMatrixWorld(true);
       }
     }
-    if((b.kind==='rip'||b.kind==='pierce')&&!remote)r.camera.rotation.x-=envelope*(b.kind==='pierce'?-.06:.50);
+    if((b.kind==='rip'||b.kind==='pierce')&&!remote)r.camera.rotation.x-=envelope*(b.kind==='pierce'?.30:.50);
     if(!remote&&(b.kind==='twist'||b.kind==='chop'))r.camera.rotation.x+=envelope*(b.kind==='twist'?.26:.16);
     if(this.tracePose&&!remote)this.poseStages.push(poseFrame(root,run,'facing'));
     const head=root.getObjectByName('Head'),spine=root.getObjectByName('Spine02');
@@ -383,7 +426,8 @@ export class BrutalCombatVisuals {
       this.save(head);head.parent.getWorldQuaternion(this.parentRotation).invert();this.axis.copy(UP).applyQuaternion(this.parentRotation);
       this.delta.setFromAxisAngle(this.axis,(smooth(.07,contact+.08,t)*1.62)*leave);head.quaternion.premultiply(this.delta);
     }
-    if(spine&&(b.kind==='rip'||b.kind==='pierce')){
+    if(b.kind==='pierce')applyBodySpearReaction(root,t,poseWeight,node=>this.save(node));
+    if(spine&&b.kind==='rip'){
       this.save(spine);spine.rotation.x-=.10*smooth(.08,contact+.26,t)*leave;root.updateMatrixWorld(true);
       for(const [prefix,side]of [['Left',-1],['Right',1]]){
         const upper=root.getObjectByName(prefix+'Arm'),lower=root.getObjectByName(prefix+'ForeArm'),hand=root.getObjectByName(prefix+'Hand');if(!upper||!lower||!hand)continue;
@@ -396,15 +440,30 @@ export class BrutalCombatVisuals {
     if(this.tracePose&&!remote)this.poseStages.push(poseFrame(root,run,'spine'));
     const target=root.getObjectByName(b.kind==='pierce'?'Socket_Chest':b.kind==='rip'?'Socket_Abdomen':b.kind==='twist'?'Head':b.side==='left'?'LeftArm':'RightArm');
     if(target)target.getWorldPosition(this.target);else this.target.copy(root.position).add(new THREE.Vector3(0,1.35,0));
+    const spearFrame=b.kind==='pierce'?this.bodySpear?.frame(root,b.sequence,!!b.contactApplied):null;
+    if(spearFrame)this.target.copy(spearFrame.entry);
     if(b.kind==='twist'&&b.contactApplied&&r.settings.gore){const fragment=this.fragments.find(f=>f.enemyId===b.enemyId&&f.kind==='twist');if(fragment)this.target.copy(fragment.center).applyMatrix4(fragment.piece.matrixWorld);}
     let pickupView=false;
     const arms=remote?r._survivors?.peer:this.arms,bones=remote?arms?.userData.bones:this.armBones;
     if(arms&&bones){
+      if(remote&&!this.remoteGrip)this.remoteGrip=addCounterGripRig(arms);
+      if(remote&&spearFrame&&t<b.releaseAt){
+        // The peer's animated full-body shoulders differ from the dedicated
+        // view arms. Step the presentation toward the paired contact rather
+        // than stretching either imported arm segment.
+        const upper=bones.RightArm,lower=bones.RightForeArm,hand=bones.RightHand;
+        if(upper&&lower&&hand){
+          const shoulder=upper.getWorldPosition(new THREE.Vector3()),elbow=lower.getWorldPosition(new THREE.Vector3()),wrist=hand.getWorldPosition(new THREE.Vector3());
+          const goal=chestHandPoint('Right',t,{...b,spearDepth:spearFrame.depth}).applyQuaternion(spearFrame.rotation).add(spearFrame.entry),reach=shoulder.distanceTo(elbow)+elbow.distanceTo(wrist);
+          const excess=Math.max(0,shoulder.distanceTo(goal)-reach*.985);
+          if(excess>0){this.save(arms);const forward=goal.sub(shoulder);forward.y=0;arms.position.addScaledVector(forward.normalize(),Math.min(.18,excess+.015)*envelope);arms.updateMatrixWorld(true);}
+        }
+      }
       if(!remote){for(const p of this.armBase){p.node.position.copy(p.p);p.node.quaternion.copy(p.q);}
         // The higher reduced-motion eye mount needs slightly closer shoulders
         // for a two-hand head grip, while the sleeve cuts remain offscreen.
-        const shoulderDepth=(b.kind==='rip'?-.21:b.kind==='twist'?-.13:-.18)+.18*recoveryDip;
-        arms.position.set(run.x*4+Math.cos(run.angle)*shoulderDepth,(run.z||0)*4-.12-.92*recoveryDip,run.y*4+Math.sin(run.angle)*shoulderDepth);arms.rotation.set(0,-run.angle-Math.PI/2,0);arms.updateMatrixWorld(true);arms.visible=envelope>.001;
+        const shoulderDepth=(b.kind==='pierce'?.05:b.kind==='rip'?-.21:b.kind==='twist'?-.13:-.18)+.18*recoveryDip;
+        arms.position.set(run.x*4+Math.cos(run.angle)*shoulderDepth,(actorGroundAt(run.course,run)+(run.z||0))*4-.12-.92*recoveryDip,run.y*4+Math.sin(run.angle)*shoulderDepth);arms.rotation.set(0,-run.angle-Math.PI/2,0);arms.updateMatrixWorld(true);arms.visible=envelope>.001;
         // A falling body can deflect the gun sideways. Lean toward its actual
         // grip using the imported arm lengths, rather than a fixed floor mark.
         const weapon=this.chest?.weapon;
@@ -447,7 +506,7 @@ export class BrutalCombatVisuals {
         if(remote){this.save(upper);this.save(lower);this.save(hand);}
         this.point.copy(this.target);
         if(b.kind==='pierce'){
-          if(target){target.getWorldQuaternion(this.rotation);this.point.copy(chestHandPoint(prefix,t,b)).applyQuaternion(this.rotation).add(this.target);}
+          if(target){if(spearFrame)this.rotation.copy(spearFrame.rotation);else target.getWorldQuaternion(this.rotation);this.point.copy(chestHandPoint(prefix,t,spearFrame?{...b,spearDepth:spearFrame.depth}:b)).applyQuaternion(this.rotation).add(this.target);}
           const home=new THREE.Vector3(side*.23,-.30,-.30);this.playerPoint(home,run,remote);
           this.point.lerp(home,1-enter);
           if(t>=b.releaseAt)this.point.lerp(home,smooth(b.releaseAt,duration-.05,t));
@@ -486,13 +545,20 @@ export class BrutalCombatVisuals {
         }else this.delta.setFromEuler(new THREE.Euler(b.kind==='chop'?.8:.15,side*.2,b.kind==='chop'?-.65*side:.7*side));
         hand.quaternion.slerp(this.parentRotation.multiply(this.rotation).multiply(this.delta),envelope*.85);
         hand.updateMatrixWorld(true);
-        if(!remote){hand.getWorldPosition(this.cameraPoint);this.contactDistances.push({side:prefix,distance:this.cameraPoint.distanceTo(this.point)});}
+        if(b.kind==='pierce'&&prefix==='Right'&&spearFrame){
+          const longitudinal=(remote?this.remoteGrip:this.counterGrip)?.hands.right?.measurements.longitudinalAxis||[0,1,0];
+          hand.getWorldQuaternion(this.rotation);this.axis.fromArray(longitudinal).applyQuaternion(this.rotation).normalize();this.right.copy(spearFrame.front).negate();
+          this.delta.setFromUnitVectors(this.axis,this.right).multiply(this.rotation);hand.parent.getWorldQuaternion(this.parentRotation).invert();
+          hand.quaternion.slerp(this.parentRotation.multiply(this.delta),envelope*(1-smooth(.48,.65,t)));hand.updateMatrixWorld(true);
+        }
+        hand.getWorldPosition(this.cameraPoint);(remote?this.peerContactDistances:this.contactDistances).push({side:prefix,distance:this.cameraPoint.distanceTo(this.point)});
       }
-      if(!remote){
+      {
         const heartGrip=b.kind==='pierce'?smooth(b.extractionAt-.11,b.extractionAt+.04,t)*(1-smooth(b.releaseAt-.02,b.releaseAt+.08,t)):0;
         const gunGrip=b.kind==='pierce'?smooth(1.28,1.35,t)*(1-smooth(1.44,duration,t)):0;
         const otherGrip=b.kind==='twist'?.72*envelope:b.kind==='rip'?.55*envelope:0;
-        setCounterGrip(this.counterGrip,{left:b.kind==='pierce'?.24*envelope:otherGrip,right:Math.max(heartGrip,gunGrip,otherGrip),leftMode:'brace',rightMode:gunGrip>heartGrip?'gun':b.kind==='pierce'?'heart':'brace'});
+        const spearGrip=b.kind==='pierce'&&t<b.extractionAt-.11?envelope:0;
+        setCounterGrip(remote?this.remoteGrip:this.counterGrip,{left:b.kind==='pierce'?.24*envelope:otherGrip,right:Math.max(spearGrip,heartGrip,gunGrip,otherGrip),leftMode:'brace',rightMode:spearGrip?'spear':gunGrip>heartGrip?'gun':b.kind==='pierce'?'heart':'brace'});
         arms.updateMatrixWorld(true);
       }
     }
@@ -547,10 +613,14 @@ export class BrutalCombatVisuals {
       this.placeWound(state,gore);
       if(wound.type==='pierce'){
         if(!state.heart&&this.chest?.status==='ready')this.chest.addWound(state);
+        if(!state.bodySpear&&this.bodySpear?.status==='ready'){
+          const previous=state.chestWound,entry=this.bodySpear.addWound(state);
+          if(entry){previous?.removeFromParent();state.chestWound=entry;this.bodySpear.placeWound(state,gore);}
+        }
         this.chest?.updateWound(state,run,gore);
       }
       const key=String(enemy.id)+':'+wound.playerId+':'+wound.sequence;
-      if(!this.seen.has(key)){this.seen.set(key,true);if(time-(wound.at||0)<.35)this.emit(root,wound,time);}
+      if(!this.seen.has(key)){this.seen.set(key,true);if(time-(wound.at||0)<.35){this.emit(root,wound,time);if(wound.type==='pierce')this.bodySpear?.emitExit(state,wound,time);}}
       if(this.seen.size>256)this.seen.delete(this.seen.keys().next().value);
       const bundle=state.attachments.getObjectByName('AttachedIntestines');
       if(bundle){
@@ -570,8 +640,8 @@ export class BrutalCombatVisuals {
     finishBloodDropletPool(this.spray,count);
     if(this.chest){this.chest.updateWeapon(run);this.chest.heartCount=[...this.actors.values()].filter(s=>s.heart?.visible).length;}
   }
-  diagnostics() {return{status:this.status,error:this.error||null,active:this.active,kind:this.kind,hands:this.hands,contactDistances:this.contactDistances||[],pickupView:!!this.pickupView,recoveryRetreat:this.recoveryRetreat||0,armSource:this.armStatus,grip:{...counterGripDiagnostics(this.counterGrip),left:this.counterGrip?.hands.left?.grip||0,right:this.counterGrip?.hands.right?.grip||0},woundedActors:this.actors.size,fragments:this.fragments.length,spray:this.spray.count,limits:BRUTAL_VISUAL_LIMITS,chest:this.chest?.diagnostics(),physics:this.physics?.diagnostics(),anatomy:this.anatomy?.diagnostics(),poseStages:this.tracePose?this.poseStages:undefined};}
+  diagnostics() {return{status:this.status,error:this.error||null,active:this.active,kind:this.kind,hands:this.hands,contactDistances:this.contactDistances||[],pickupView:!!this.pickupView,recoveryRetreat:this.recoveryRetreat||0,armSource:this.armStatus,grip:{...counterGripDiagnostics(this.counterGrip),left:this.counterGrip?.hands.left?.grip||0,right:this.counterGrip?.hands.right?.grip||0},woundedActors:this.actors.size,fragments:this.fragments.length,spray:this.spray.count,limits:BRUTAL_VISUAL_LIMITS,chest:this.chest?.diagnostics(),bodySpear:this.bodySpear?.diagnostics(),physics:this.physics?.diagnostics(),anatomy:this.anatomy?.diagnostics(),poseStages:this.tracePose?this.poseStages:undefined};}
   releaseFragment(f) {if(f.physics)this.physics?.removeDrop(f.physics);f.piece.removeFromParent();f.piece.traverse(mesh=>{if(!mesh.isMesh||mesh.geometry.userData.sharedAsset)return;if(!mesh.userData.anatomySharedPreview)mesh.geometry.dispose();mesh.skeleton?.dispose();for(const m of Array.isArray(mesh.material)?mesh.material:[mesh.material])m.dispose();});}
   releaseAsset(asset) {const geometries=new Set(),materials=new Set(),textures=new Set();asset?.traverse(mesh=>{if(mesh.geometry)geometries.add(mesh.geometry);for(const m of (Array.isArray(mesh.material)?mesh.material:[mesh.material]).filter(Boolean)){materials.add(m);for(const t of Object.values(m))if(t?.isTexture)textures.add(t);}});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());}
-  dispose() {this.disposed=true;this.beginFrame();for(const root of [...this.actors.keys()])this.releaseActor(root);for(const f of this.fragments)this.releaseFragment(f);this.anatomy?.dispose();this.chest?.dispose();this.physics?.dispose();this.counterGrip?.dispose();this.armMaterials?.forEach(m=>m.dispose());this.arms?.traverse(mesh=>mesh.skeleton?.dispose());this.spray.geometry.dispose();this.spray.material.dispose();this.spray.dispose();this.releaseAsset(this.asset);this.root.removeFromParent();}
+  dispose() {this.disposed=true;this.beginFrame();for(const root of [...this.actors.keys()])this.releaseActor(root);for(const f of this.fragments)this.releaseFragment(f);this.anatomy?.dispose();this.chest?.dispose();this.bodySpear?.dispose();this.physics?.dispose();this.counterGrip?.dispose();this.remoteGrip?.dispose();this.armMaterials?.forEach(m=>m.dispose());this.arms?.traverse(mesh=>mesh.skeleton?.dispose());this.spray.geometry.dispose();this.spray.material.dispose();this.spray.dispose();this.releaseAsset(this.asset);this.root.removeFromParent();}
 }

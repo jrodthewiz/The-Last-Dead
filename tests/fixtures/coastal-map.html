@@ -1,0 +1,13 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Coastal field map QA</title>
+<link rel="icon" href="data:,"><link rel="stylesheet" href="../../styles.css"><link rel="stylesheet" href="../../horror-ui.css"><link rel="stylesheet" href="../../scavenger-pack.css">
+<body><script type="module">
+import {makeHarborCourse} from '../../harbor-course.js';
+import {newRun} from '../../engine.js';
+import {createScavengerPackUI} from '../../scavenger-pack-ui.js';
+import {harborNavigation} from '../../harbor-navigation.js';
+const run=newRun(makeHarborCourse({openWorld:true,lowTide:true}));run.mode='play';
+const ui=createScavengerPackUI({getRun:()=>run,onOpen:()=>run.mode='pause',onClose:()=>run.mode='play'});
+ui.update(run,{visible:true});
+addEventListener('keydown',event=>{if(event.code==='KeyB'&&!event.repeat&&!ui.isOpen){event.preventDefault();ui.open();}});
+window.coastalMapQA={run,ui,navigation:()=>harborNavigation(run)};
+</script></body></html>

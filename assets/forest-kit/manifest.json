@@ -1,0 +1,218 @@
+{
+  "name": "The Last Dead forest vegetation",
+  "library": "@dgreenheck/ez-tree",
+  "version": "1.1.0",
+  "repository": "https://github.com/dgreenheck/ez-tree",
+  "commit": "dcf309bd86bd521083d9c70f01f2de45fdc7c457",
+  "commitDate": "2026-07-16T19:52:59Z",
+  "license": "MIT",
+  "copyright": "Copyright (c) 2024 Daniel Greenheck",
+  "runtimeThree": "Existing vendor/three.module.js r184 only; no package dependency added",
+  "sourcing": {
+    "method": "hybrid: vendored MIT procedural growth system + MIT leaf cutouts + CC0 ambientCG Bark001 + authored native material/instancing/LOD adapter",
+    "generatorCredentials": "Root phase04 probe: TRIPO_API_KEY=MISSING, GEMINI_API_KEY=MISSING, ELEVENLABS_API_KEY=MISSING",
+    "externalRuntimeRequests": false
+  },
+  "adaptations": [
+    "Geometry-only TreeGeometry constructor replaces demo Group/Mesh/material allocations.",
+    "Remove demo materials, raw GLSL/onBeforeCompile wind, exported LOD meshes and trellis rendering. Preserve original growth, child-placement and rounded leaf normal rules.",
+    "Map all Three imports to existing game vendor; add browser-native .js extensions.",
+    "Include only Ash Medium and Pine Medium presets, unchanged JSON with generated equivalent ESM exports.",
+    "Optional barkTextureMeters makes cumulative original-ring arc-length V stable between LODs and U integer circumference repeats. Omitted option preserves exact upstream UV contract.",
+    "Forest adapter normalizes skeleton geometry, adds15% root flare and removes collapsed pine triangles; native TSL leaf-only rooted flutter occurs after instance transforms."
+  ],
+  "textures": [
+    {
+      "path": "textures/ash.png",
+      "license": "MIT (project leaf assets)",
+      "size": [
+        1024,
+        1024
+      ],
+      "role": "sRGB ash branch/leaf cutout; alpha test .42",
+      "wrap": "clamp",
+      "filter": "linear+mipmaps, anisotropy2"
+    },
+    {
+      "path": "textures/pine.png",
+      "license": "MIT (project leaf assets)",
+      "size": [
+        1024,
+        1024
+      ],
+      "role": "sRGB pine needle cutout; alpha test .32",
+      "wrap": "clamp",
+      "filter": "linear+mipmaps, anisotropy2"
+    },
+    {
+      "path": "textures/bark-color.jpg",
+      "license": "CC0-1.0",
+      "source": "https://ambientcg.com/view?id=Bark001",
+      "licenseSource": "https://docs.ambientcg.com/license/",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "sRGB bark color luminance; authored brown palette",
+      "wrap": "repeat",
+      "filter": "linear+mipmaps, anisotropy4",
+      "meters": 0.6
+    },
+    {
+      "path": "textures/bark-normalgl.jpg",
+      "license": "CC0-1.0",
+      "source": "https://ambientcg.com/view?id=Bark001",
+      "licenseSource": "https://docs.ambientcg.com/license/",
+      "size": [
+        512,
+        1024
+      ],
+      "role": "linear OpenGL normal; scale .5",
+      "wrap": "repeat",
+      "filter": "linear+mipmaps, anisotropy4",
+      "meters": 0.6
+    }
+  ],
+  "files": [
+    {
+      "path": "LICENSE.ez-tree.txt",
+      "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/LICENSE",
+      "upstreamSha256": "20e4afadfb10c67952b3d73cd2982d21d165ab4ae82b0dd9e4d6f2166ee349b6",
+      "upstreamBytes": 1073,
+      "vendoredSha256": "20e4afadfb10c67952b3d73cd2982d21d165ab4ae82b0dd9e4d6f2166ee349b6",
+      "vendoredBytes": 1073,
+      "adapted": false
+    },
+    {
+      "path": "LICENSE.textures.md",
+      "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/app/public/textures/LICENSE.md",
+      "upstreamSha256": "c4c67cf955536e61d9ac3fdf13830114edcd4c19c9aa0356ed0862cedf64140a",
+      "upstreamBytes": 1378,
+      "vendoredSha256": "c4c67cf955536e61d9ac3fdf13830114edcd4c19c9aa0356ed0862cedf64140a",
+      "vendoredBytes": 1378,
+      "adapted": false
+    },
+    {
+      "path": "upstream-package.json",
+      "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/package.json",
+      "upstreamSha256": "48f5ddc8af8ee19b1ee6d2ff7047a3a42575aa13e5f721bd871506e161a90131",
+      "upstreamBytes": 1411,
+      "vendoredSha256": "48f5ddc8af8ee19b1ee6d2ff7047a3a42575aa13e5f721bd871506e161a90131",
+      "vendoredBytes": 1411,
+      "adapted": false
+    },
+    {
+      "path": "ez-tree/tree.js",
+      "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/tree.js",
+      "upstreamSha256": "a1b7bd933cb2078e9373c9c853c620be8a3edc84a9edda6a4073c8ad2a31f934",
+      "upstreamBytes": 40609,
+      "vendoredSha256": "3d754c2f5621e4f988a56531cc875b85709673ef185a9290610c7a50ad83cda5",
+      "vendoredBytes": 24279,
+      "adapted": true
+    },
+    {
+      "path": "ez-tree/rng.js",
+      "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/rng.js",
+      "upstreamSha256": "e4f2bfff79a0a6af3f909f106876e9208be1bb88cc7f7d1541a6858cbaa0c3c8",
+      "upstreamBytes": 586,
+      "vendoredSha256": "e4f2bfff79a0a6af3f909f106876e9208be1bb88cc7f7d1541a6858cbaa0c3c8",
+      "vendoredBytes": 586,
+      "adapted": false
+    },
+    {
+      "path": "ez-tree/branch.js",
+      "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/branch.js",
+      "upstreamSha256": "f71a5e0df6b74ae521942f1722e5a0dd17707add05f12691da96231fdeff8571",
+      "upstreamBytes": 787,
+      "vendoredSha256": "16cc15e2c89e7b001e949ade58d23ebbcac9f45959c00dfd736a00d2886c2258",
+      "vendoredBytes": 813,
+      "adapted": true
+    },
+    {
+      "path": "ez-tree/options.js",
+      "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/options.js",
+      "upstreamSha256": "092e20ee9073d7402e2fa04d570c17ff150276b5f8c941b3da629edf4ecfe0b9",
+      "upstreamBytes": 5186,
+      "vendoredSha256": "542dc3d646eae22b4870ab0ce04a03265113bded825903e9df1fe3cf04124436",
+      "vendoredBytes": 5189,
+      "adapted": true
+    },
+    {
+      "path": "ez-tree/enums.js",
+      "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/enums.js",
+      "upstreamSha256": "d83df789447a421baaecfd18cc8187bf3f80f6cf6e7ba7866812ed527f104092",
+      "upstreamBytes": 151,
+      "vendoredSha256": "d83df789447a421baaecfd18cc8187bf3f80f6cf6e7ba7866812ed527f104092",
+      "vendoredBytes": 151,
+      "adapted": false
+    },
+    {
+      "path": "presets/ash_medium.json",
+      "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/presets/ash_medium.json",
+      "upstreamSha256": "4fbda008f54a1421c67bdff3022d64aba1d497253bc45dc7f186e3a4f78a9edd",
+      "upstreamBytes": 1414,
+      "vendoredSha256": "4fbda008f54a1421c67bdff3022d64aba1d497253bc45dc7f186e3a4f78a9edd",
+      "vendoredBytes": 1414,
+      "adapted": false
+    },
+    {
+      "path": "presets/pine_medium.json",
+      "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/presets/pine_medium.json",
+      "upstreamSha256": "001254eff844a6d41aff3c409b78effe2a2995c8dd7a21ae301b1e7fb9da0118",
+      "upstreamBytes": 1408,
+      "vendoredSha256": "001254eff844a6d41aff3c409b78effe2a2995c8dd7a21ae301b1e7fb9da0118",
+      "vendoredBytes": 1408,
+      "adapted": false
+    },
+    {
+      "path": "textures/ash.png",
+      "source": "https://media.githubusercontent.com/media/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/app/public/textures/leaves/ash.png",
+      "upstreamSha256": "5ec987db3829a839856c32c79b18a33a78f209e911cad55c65abfb77f30e2d29",
+      "upstreamBytes": 181423,
+      "vendoredSha256": "5ec987db3829a839856c32c79b18a33a78f209e911cad55c65abfb77f30e2d29",
+      "vendoredBytes": 181423,
+      "adapted": false
+    },
+    {
+      "path": "textures/pine.png",
+      "source": "https://media.githubusercontent.com/media/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/app/public/textures/leaves/pine.png",
+      "upstreamSha256": "88be36a2387554ac4b7c7d1549eae454a37ad896e8e33a7d6ae5956bd169ab08",
+      "upstreamBytes": 303684,
+      "vendoredSha256": "88be36a2387554ac4b7c7d1549eae454a37ad896e8e33a7d6ae5956bd169ab08",
+      "vendoredBytes": 303684,
+      "adapted": false
+    },
+    {
+      "path": "textures/bark-color.jpg",
+      "source": "https://media.githubusercontent.com/media/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/app/public/textures/bark/Bark001_1K-JPG/Bark001_1K-JPG_Color.jpg",
+      "upstreamSha256": "2a7e8c742aa0110057d7a3ff0e8ec193c26ef23b77bc778fb9258c0e41b29474",
+      "upstreamBytes": 831490,
+      "vendoredSha256": "2a7e8c742aa0110057d7a3ff0e8ec193c26ef23b77bc778fb9258c0e41b29474",
+      "vendoredBytes": 831490,
+      "adapted": false
+    },
+    {
+      "path": "textures/bark-normalgl.jpg",
+      "source": "https://media.githubusercontent.com/media/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/app/public/textures/bark/Bark001_1K-JPG/Bark001_1K-JPG_NormalGL.jpg",
+      "upstreamSha256": "d7a275aa573a701d8814d7378abd8ea227f651ae6da33f8c57a6b862419e621e",
+      "upstreamBytes": 1270807,
+      "vendoredSha256": "d7a275aa573a701d8814d7378abd8ea227f651ae6da33f8c57a6b862419e621e",
+      "vendoredBytes": 1270807,
+      "adapted": false
+    },
+    {
+      "path": "presets.js",
+      "source": "Original integration / exact upstream JSON converted to browser ESM",
+      "vendoredSha256": "23068796bfd9ce65cf4a9eb24875d8741157f4d139c4361524f7001e126f7c51",
+      "vendoredBytes": 2948,
+      "adapted": true
+    },
+    {
+      "path": "README.md",
+      "source": "Original integration / exact upstream JSON converted to browser ESM",
+      "vendoredSha256": "b60c43daea1c5ab49eec09454eff95f8cff7a70de81f9d723d7e2b22271428bf",
+      "vendoredBytes": 4866,
+      "adapted": true
+    }
+  ]
+}

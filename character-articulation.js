@@ -69,7 +69,14 @@ export function enemyArticulationPose(enemy={},presentation={}){
   // Small mixed-frequency tension follows each actor's own breath rather than
   // making an entire mob open their mouths or clench on one global sine wave.
   const breath=.7*Math.sin(idlePhase*Math.PI*2)+.3*Math.sin(time*.93+seed*.71);
-  const idleJaw=.04+.014*breath,idleGrip=.12+.018*Math.sin(time*1.17+seed*2.399);
+  const motionClass=presentation.motionClass||enemy.locomotion;
+  const burst=clamp(Number(presentation.burst??enemy.burst)||0),contortion=clamp(Number(presentation.contortion??enemy.contortion)||0);
+  // Predatory runners breathe through a tense open mouth; the floor creature
+  // holds its hands ready to pull. These small channels yield to every combat
+  // phase below, including the same anatomical contact range as the shambler.
+  const notice=clamp(Number(enemy.noticeStrength)||0);
+  const idleJaw=.04+.014*breath+.075*notice+(motionClass==='runner'?.025+.032*burst:motionClass==='crawler'?.018+.028*contortion:0);
+  const idleGrip=.12+.018*Math.sin(time*1.17+seed*2.399)+.14*notice+(motionClass==='crawler'?.16:motionClass==='runner'?.055*burst:0);
   const windup=enemy.attacking?1-THREE.MathUtils.clamp((Number(enemy.windup)||0)/Math.max(.01,Number(enemy.windupTime??enemy.windupDuration)||.5),0,1):0;
   let jaw=idleJaw,grip=idleGrip,tension=0;
   if(enemy.attacking){

@@ -21,6 +21,19 @@
     "test:coop": "node tests/coop-game.test.mjs",
     "test:map": "node --test tests/map-playground.test.mjs",
     "test:story-art": "node --test tests/dungeon-art.test.mjs",
-    "test:setdressing": "node --test tests/world-setdressing.test.mjs"
+    "test:setdressing": "node --test tests/world-setdressing.test.mjs",
+    "pretest:performance": "node build.mjs",
+    "test:performance": "node tests/performance-matrix.mjs",
+    "pretest:cut-preview": "node build.mjs",
+    "test:cut-preview": "node tests/cut-preview-performance.mjs",
+    "test:open-world": "node --test --test-isolation=none tests/dungeon-extension.test.mjs tests/scavenger-pack.test.mjs tests/weapon-fitting-integration.test.mjs tests/scavenger-iteration.test.mjs",
+    "test:open-world:browser": "node tests/open-world-poc-browser.mjs",
+    "test:harbor": "node --test --test-isolation=none tests/harbor-course.test.mjs tests/harbor-navigation.test.mjs tests/harbor-vehicle.test.mjs tests/weapon-inventory.test.mjs",
+    "test:harbor:browser": "node tests/harbor-browser.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12",
+    "three": "0.184.0",
+    "vgpu": "0.5.0"
   }
 }

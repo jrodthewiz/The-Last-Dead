@@ -1,0 +1,27 @@
+<!doctype html><html><head><base href="/"><link rel="icon" href="data:,"></head><body style="margin:0"><canvas></canvas><script type="module">
+import * as THREE from '/vendor/three.module.js';
+import {createBloodSurfaceMaterial,bloodAtlasReady} from '/blood-surface.js';
+import {createWebGPUBackend} from '/webgpu-backend.js';
+import {prepareCoastalInstances} from '/coastal-instancing.js';
+const renderer=new URLSearchParams(location.search).get('renderer')==='webgl'?new THREE.WebGLRenderer({canvas:document.querySelector('canvas'),antialias:true}):await createWebGPUBackend(document.querySelector('canvas'));renderer.setSize(800,600);const scene=new THREE.Scene();scene.background=new THREE.Color(0x5d6660);scene.add(new THREE.HemisphereLight(0xffffff,0x888888,2));const light=new THREE.DirectionalLight(0xffffff,2);light.position.set(2,4,5);scene.add(light);const camera=new THREE.PerspectiveCamera(55,4/3,.1,30);camera.position.set(0,0,6);
+for(let i=0;i<4;i++){const m=createBloodSurfaceMaterial({variant:i,dry:i/3});const mesh=new THREE.Mesh(new THREE.PlaneGeometry(1.5,1.5),m);mesh.position.set((i%2-.5)*2,(Math.floor(i/2)-.5)*2,0);scene.add(mesh);}
+const {createHarvestTissueMaterial}=await import('/extraction-tissue-materials.js');
+const loader=new THREE.TextureLoader();const [albedo,relief]=await Promise.all([loader.loadAsync('/assets/textures/harvest-tissue-atlas-v1.webp'),loader.loadAsync('/assets/textures/harvest-tissue-height-v1.webp')]);
+const tissue=new THREE.Mesh(new THREE.SphereGeometry(.65,24,16),createHarvestTissueMaterial({albedo,relief,region:0}));scene.add(tissue);
+const {AfterlifeAtmosphere}=await import('/afterlife-atmosphere.js');const {makeDungeonCourse}=await import('/playground/map/dungeon-course.js');const atmosphere=new AfterlifeAtmosphere(scene,makeDungeonCourse(4));atmosphere.update(1,{x:0,y:0});
+const {cutPreviewMaterial}=await import('/enemy-cut-preview.js');const cutGeometry=new THREE.SphereGeometry(.6,20,12);const a=new Float32Array(cutGeometry.attributes.position.count*3);for(let i=0;i<a.length;i+=3)a[i]=1;cutGeometry.setAttribute('anatomyA',new THREE.BufferAttribute(a,3));cutGeometry.setAttribute('anatomyB',new THREE.BufferAttribute(new Float32Array(a.length),3));const cut=new THREE.Mesh(cutGeometry,cutPreviewMaterial(new THREE.MeshStandardMaterial({color:0xa58b69}),{region:1,plane:new THREE.Vector4(0,1,0,0)}));cut.position.x=2.4;scene.add(cut);
+const {PlayerInjuryVisuals}=await import('/player-injury-visuals.js');const arm=new THREE.Mesh(new THREE.SphereGeometry(.5,18,12),new THREE.MeshStandardMaterial({color:0xc3ac8f}));arm.position.set(-2.4,0,0);scene.add(arm);const owner={scene,weaponGroups:[{userData:{viewArms:{rightArm:arm}}}]};const injury=new PlayerInjuryVisuals(owner);injury.bind();injury.uniforms.b.value.x=.6;injury.root.visible=false;
+const {ImpactVFX}=await import('/impact-vfx.js');const impacts=new ImpactVFX(scene);impacts.burst({surface:'flesh',x:0,y:-1,z:-.35,tx:0,ty:0,tz:-.35,id:2,weapon:0});impacts.update(.02,camera);impacts.root.position.z=.3;
+if(new URLSearchParams(location.search).has('atmosphere')){
+ // The game renders these raw-linear shaders into the bodycam's linear target.
+ renderer.outputColorSpace=THREE.LinearSRGBColorSpace;
+ for(const child of [...scene.children])if(child!==atmosphere.root)scene.remove(child);
+ scene.background=new THREE.Color(0x000000);
+ const glow=atmosphere.root.getObjectByName('AfterlifePracticalGlow');
+ const p=new THREE.Vector3().fromBufferAttribute(glow.geometry.attributes.position,0);
+ camera.position.copy(p).add(new THREE.Vector3(0,0,5));camera.lookAt(p);
+ window.hideAtmosphere=()=>{atmosphere.root.visible=false;renderer.render(scene,camera);};
+}
+await bloodAtlasReady();if(renderer.backend?.isWebGPUBackend)scene.traverse(object=>{if(object.isInstancedMesh)prepareCoastalInstances(object);});renderer.render(scene,camera);window.qaReady=true;window.preview={renderer,scene,camera};window.advanceEffects=()=>{injury.uniforms.b.value.x=1;impacts.update(.065,camera);renderer.render(scene,camera);};
+</script></body></html>
+

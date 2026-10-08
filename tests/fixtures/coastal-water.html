@@ -1,0 +1,12 @@
+<!doctype html><html><head><base href="/"><link rel="icon" href="data:,"></head><body style="margin:0"><canvas></canvas><script type="module">
+import * as THREE from '/vendor/three.module.js';
+import {createWebGPUBackend} from '/webgpu-backend.js';
+import {makeCoastalWater} from '/coastal-water.js';
+const renderer=await createWebGPUBackend(document.querySelector('canvas'));
+renderer.setSize(1280,800);
+const scene=new THREE.Scene();scene.background=new THREE.Color(.13,.21,.22);
+const camera=new THREE.PerspectiveCamera(65,1.6,.1,5000);camera.position.set(230,4,315);camera.lookAt(230,1,420);
+const water=makeCoastalWater(THREE,{level:-.65});scene.add(water);
+window.waterQA={renderer,water,advance(time){water.material.uniforms.time.value=time;renderer.render(scene,camera);return {time,backend:renderer.migration.backend,materials:renderer.migration.customMaterials};}};
+window.waterQA.advance(0);window.qaReady=true;
+</script></body></html>

@@ -72,7 +72,8 @@ try {
     await page.screenshot({ path: `.logs/story-progression/${name}.png` });
   }
   await page.evaluate(() => { window.__DEAD_ARRIVAL__.renderer._prepareWeaponResources = window.originalFloorPreparation; });
-  await page.keyboard.press('KeyR');
+  await page.keyboard.press('Escape');
+  await page.locator('.pause-screen [data-action="restart"]').click();
   await page.waitForFunction(() => window.__DEAD_ARRIVAL__.screen === 'play' && window.__DEAD_ARRIVAL__.run.course.dungeonIndex === 0, null, { timeout: 180000 });
   assert.equal(await page.locator('.descent-loading').count(), 0, 'restart completes preparation');
   assert.deepEqual(report.errors, []);

@@ -1,0 +1,11 @@
+{
+  "repository": "https://github.com/L1vsun/NEONBAY",
+  "commit": "baac38fecd1698c67dcf75ccffb1a82592798e9c",
+  "license": "MIT",
+  "licenseFile": "NEONBAY-LICENSE.txt",
+  "sourceFile": "src/world.js",
+  "sourceFunction": "frontage",
+  "sourceLines": "403-425",
+  "runtimeFile": "neonbay-frontage.js",
+  "adaptation": "Street-edge tangent/inward-normal frontage packing, seeded lot dimensions and bounded fit checks, adapted to rectangular blocks and The Last Dead's four-metre collision grid. Existing roads, coastline, movement and rendering remain owned by The Last Dead. No upstream driving, shader or Voronoi network code imported."
+}

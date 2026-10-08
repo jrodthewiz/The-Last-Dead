@@ -4,13 +4,13 @@ import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import * as THREE from '../vendor/three.module.js';
 import {GLTFLoader} from '../vendor/loaders/GLTFLoader.js';
-import {createAfterlifeModel,animateAfterlifeModel,disposeAfterlifeModel} from '../npc-afterlife-model.js';
+import {AFTERLIFE_ASH_WITNESS_URL,createAfterlifeModel,animateAfterlifeModel,disposeAfterlifeModel} from '../npc-afterlife-model.js';
 import {enemyArticulationPose,biteArticulationPose,applyCharacterArticulation,restoreCharacterArticulation} from '../character-articulation.js';
 import {enemyFxBegin,enemyFxEnd} from '../enemy-fx.js';
 
-// Real v05 skeleton/skin/six clips; only PNG bitmap decoding is stubbed. Keep
+// Real v07 skeleton/skin/ten clips; only PNG bitmap decoding is stubbed. Keep
 // parsing in the test hook so Node's shared Windows runner finishes loading.
-const url=new URL('../assets/models/afterlife-ash-witness-rig-v05.glb',import.meta.url),bytes=readFileSync(url);
+const url=new URL('../'+AFTERLIFE_ASH_WITNESS_URL,import.meta.url),bytes=readFileSync(url);
 const digest=value=>createHash('sha256').update(value).digest('hex');
 const attributeBytes=a=>Buffer.from(a.array.buffer,a.array.byteOffset,a.array.byteLength);
 let asset,sourceMesh,sourceFields,clipFields,bindFields,sourceHash;
@@ -37,7 +37,7 @@ test('actual imported actors have deterministic independent idle timing and neve
  assert(Math.abs(sa.idleAction.time-sc.idleAction.time)>.1,'different enemies do not breathe on one idle key');
  assert(sa.idleRate>=.96&&sa.idleRate<=1.04);assert.notEqual(sa.idleRate,sc.idleRate);nearPose(pose(a),pose(b));
  for(const root of [a,b,c]){animateAfterlifeModel(root,enemy(),1000,root===c?7:3);disposeAfterlifeModel(root);}
- assert.equal(asset.clips.length,6);assert.equal(JSON.stringify(asset.clips.map(c=>({name:c.name,duration:c.duration,userData:c.userData,tracks:c.tracks.map(t=>({name:t.name,times:[...t.times],values:[...t.values]}))}))),clipFields);
+ assert.equal(asset.clips.length,10);assert.equal(JSON.stringify(asset.clips.map(c=>({name:c.name,duration:c.duration,userData:c.userData,tracks:c.tracks.map(t=>({name:t.name,times:[...t.times],values:[...t.values]}))}))),clipFields);
  for(const [name,a] of Object.entries(sourceMesh.geometry.attributes))assert.equal(digest(attributeBytes(a)),sourceFields[name],name);
  assert.deepEqual(sourceMesh.skeleton.boneInverses.map(m=>m.toArray()),bindFields);assert.equal(digest(readFileSync(url)),sourceHash);
 });

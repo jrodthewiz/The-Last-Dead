@@ -218,16 +218,14 @@
 #ui .run-clock{top:0;white-space:nowrap}
 #ui .hud-kills{padding-left:12px;border-left:1px solid #6e3a344d;color:#e05a50;font:700 8px/1 Arial,sans-serif;letter-spacing:.16em;text-shadow:0 1px 6px #000}
 
-/* Restrained body-camera treatment: a transparent scanline and edge falloff
-   give the play view a recorded feel while leaving the sightline untouched. */
+/* Clear first-person presentation: the world pass owns the image. */
 body.playing #ui[data-screen="play"]::before{
- opacity:.065;
- background-image:repeating-linear-gradient(to bottom,rgba(238,227,203,.09) 0 1px,transparent 1px 5px),linear-gradient(90deg,rgba(83,164,164,.045),transparent 22%,transparent 78%,rgba(214,77,61,.045));
- background-size:100% 5px,100% 100%;
- animation:bodycam-roll 11s steps(12,end) infinite;
+ opacity:0;
+ background:none;
+ animation:none;
 }
 body.playing #ui[data-screen="play"]::after{
- background:radial-gradient(ellipse at center,transparent 53%,rgba(0,0,0,.42) 100%),linear-gradient(90deg,rgba(79,126,133,.035),transparent 18%,transparent 82%,rgba(179,53,47,.035));
+ background:none;
 }
 @keyframes bodycam-roll{0%,100%{opacity:.06;transform:translate3d(0,0,0)}50%{opacity:.085;transform:translate3d(0,1px,0)}}
 body.playing #ui[data-screen="play"][data-reduced-motion="true"]::before{animation:none}
@@ -237,8 +235,8 @@ body.playing #ui[data-screen="play"][data-reduced-motion="true"]::before{animati
  #ui .run-clock{display:flex;top:0;left:50%;transform:translateX(-50%)}
  #ui .run-clock [data-hud="run-clock"],#ui .run-clock [data-hud="network"],#ui .run-clock [data-hud="fps"]{display:none}
  #ui .hud-kills{padding-left:0;border-left:0;font-size:7px;letter-spacing:.14em}
- body.playing #ui[data-screen="play"]::before{opacity:.045;background-size:100% 6px,100% 100%;animation:none}
- body.playing #ui[data-screen="play"]::after{background:radial-gradient(ellipse at center,transparent 52%,rgba(0,0,0,.34) 100%)}
+ body.playing #ui[data-screen="play"]::before{opacity:0;background:none;animation:none}
+ body.playing #ui[data-screen="play"]::after{background:none}
 }
 @media(pointer:coarse){body.playing #ui[data-screen="play"]::before{animation:none}}
 
@@ -385,6 +383,11 @@ body:has(#ui[data-reduced-motion="true"]) #bodycam-hud .bc-rec i{animation:none}
  #ui .bite-prompt{left:22px;bottom:190px}
  #ui .extraction-prompt{bottom:88px}
 }
+/* Short landscape has one left-hand instruction lane; contact takes priority. */
+@media(min-width:701px) and (max-height:520px){
+ #ui .hud:has([data-bite-prompt]:not([hidden])) .objective{visibility:hidden}
+ #ui .bite-prompt{left:22px;top:16px;bottom:auto}
+}
 
 /* Leave a dedicated status row above the two rows of touch actions. */
 @media(max-width:700px) and (min-height:520px){
@@ -404,3 +407,45 @@ body:has(#ui[data-reduced-motion="true"]) #bodycam-hud .bc-rec i{animation:none}
  #ui [data-hud="health"]{font-size:36px}
  #ui .weapon-rack{display:none}
 }
+
+/* The transmission belongs to the current chapter; combat prompts keep priority. */
+#ui .journey-transmission{max-width:310px;margin-top:10px;padding:8px 10px;border-left:1px solid #af9276;background:#090b0cbb;color:#d6ccbc}
+#ui .journey-transmission span{font:9px/1.3 'Courier New',monospace;letter-spacing:.03em;color:#d6bda0}
+#ui .journey-transmission p{margin:5px 0 0;font:12px/1.4 'Courier New',monospace}
+#ui .journey-prompt{position:absolute;left:50%;bottom:185px;transform:translateX(-50%);max-width:360px;width:max-content;padding:10px 14px;border-left:2px solid #bd9870;background:#080b0ce8;color:#eee0ca;text-align:center}
+#ui .journey-prompt strong{font:700 13px/1.4 'Courier New',monospace}
+#ui .journey-meter{display:block;height:3px;margin-top:8px;background:#b8977028}
+#ui .journey-meter i{display:block;width:0;height:100%;background:#d2b68e}
+#ui .touch-operate{position:absolute;bottom:calc(130px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);min-width:68px;min-height:60px;border:1px solid #bd9870;background:#16191be8;color:#f1dec4;font:700 11px/1.4 'Courier New',monospace;pointer-events:auto;touch-action:none}
+#ui .journey-prompt[hidden],#ui .journey-transmission[hidden],#ui .touch-operate[hidden]{display:none}
+@media(max-width:700px){
+ #ui .journey-transmission{max-width:230px;margin-top:6px;padding:6px 8px}
+ #ui .journey-transmission span{font-size:8px}
+ #ui .journey-transmission p{font-size:10px;line-height:1.35}
+ #ui .journey-prompt{bottom:calc(335px + env(safe-area-inset-bottom,0px));max-width:calc(100vw - 32px)}
+ #ui .journey-prompt strong{font-size:11px}
+}
+@media(max-height:520px){
+ #ui .journey-transmission p{display:none}
+ #ui .journey-prompt{bottom:130px}
+}
+#ui[data-experience="low-tide"] .objective[data-progression="room"]{width:min(360px,calc(100vw - 150px));max-width:360px;padding:12px 16px 12px 12px;background:linear-gradient(90deg,#111b18e6,#111b18a6 85%,transparent);border-left:2px solid #b49a6d}
+#ui[data-experience="low-tide"] .objective-line [data-hud="objective"]{font-size:13px;line-height:1.45;letter-spacing:.02em}
+#ui[data-experience="low-tide"] .objective-context{height:auto;min-height:14px;flex-wrap:wrap}
+#ui[data-experience="low-tide"] .room-name{font-size:21px;line-height:1.15;margin:5px 0 8px}
+#ui[data-experience="low-tide"] .room-threat{display:none}
+#ui[data-experience="low-tide"] .route-guidance{font-size:11px;color:#aec3b1}
+#ui[data-experience="low-tide"] .journey-transmission{border-left:0;border-top:1px solid #70806a;padding:10px 0 0;background:none}
+#ui[data-experience="low-tide"] .journey-transmission p{font:12px/1.5 Arial,sans-serif;color:#d0d4c5}
+#ui[data-experience="low-tide"] .journey-transmission span{font:600 12px/1.4 Arial,sans-serif;color:#e6c68e}
+#ui[data-experience="low-tide"] .journey-prompt{bottom:120px;max-width:min(460px,calc(100vw - 40px));border:1px solid #877450;border-bottom:2px solid #d6b77b;padding:12px 18px}
+#ui[data-experience="low-tide"] .journey-prompt strong{font:600 12px/1.4 Arial,sans-serif;letter-spacing:.06em}
+#ui[data-experience="low-tide"] .journey-meter{display:none}
+#ui[data-experience="low-tide"] .journey-prompt[data-available="false"]{border-color:#555e53;color:#b7c0b0}
+#ui .low-tide-recovery .finish-card{max-width:640px}
+#ui .low-tide-recovery h2{font-size:clamp(38px,6vw,72px);line-height:.98}
+.recovery-ledger{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;border-block:1px solid #55624d;padding:20px 0;margin:22px 0}
+.recovery-ledger dt{font-size:10px;letter-spacing:.12em;color:#b6a57e}.recovery-ledger dd{margin:8px 0 0;font-size:19px;color:#e0dec9}
+.recovery-objective{font-size:14px;color:#c8d2b8;margin-bottom:22px}
+@media(max-width:600px){#ui[data-experience="low-tide"] .objective[data-progression="room"]{width:calc(100vw - 130px);padding:8px}.recovery-ledger{grid-template-columns:1fr}.recovery-ledger dd{font-size:16px}}
+@media(max-height:600px){#ui[data-experience="low-tide"] .journey-prompt{bottom:94px}#ui[data-experience="low-tide"] .journey-transmission{display:none}#ui .low-tide-recovery .finish-card{padding:24px}#ui .low-tide-recovery h2{font-size:38px}}

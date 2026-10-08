@@ -1,5 +1,16 @@
 import * as THREE from './vendor/three.module.js';
 
+// Cores spawn at the authoritative eye position. Ease their visual shell in
+// outside the camera so the pressure seals cannot clip into screen-sized hoops.
+// Collision, trajectory and explosion timing continue to use the original core.
+export function coreVisualScale(projectile,cameraPosition){
+  if(projectile.life<=0)return 0;
+  if(!cameraPosition)return .65;
+  const distance=Math.hypot(projectile.x*4-cameraPosition.x,(projectile.z||0)*4-cameraPosition.y,projectile.y*4-cameraPosition.z);
+  const t=THREE.MathUtils.clamp((distance-.4)/.8,0,1);
+  return .65*t*t*(3-2*t);
+}
+
 // One deterministic mask shared by the entire stain pool: a wet central body,
 // capillary lobes and detached satellite drops, rather than circular discs.
 export function createBloodMask() {
@@ -30,17 +41,24 @@ export class ProjectileWakes {
     this.mesh.frustumCulled=false;this.mesh.count=0;this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);parent.add(this.mesh);
     this.position=new THREE.Vector3();this.velocity=new THREE.Vector3();this.scale=new THREE.Vector3();this.up=new THREE.Vector3(0,1,0);this.rotation=new THREE.Quaternion();this.matrix=new THREE.Matrix4();this.color=new THREE.Color();
   }
-  update(projectiles,reducedMotion=false){
+  update(projectiles,reducedMotion=false,cameraPosition=null){
     let count=0;
     for(const p of projectiles||[]){
       if(count>=this.capacity)break;
-      if(p.kind==='rocket')continue;
+      if(p.kind==='rocket'||p.attachment)continue;
+      if(p.life<=0)continue;
+      const coreScale=p.core?coreVisualScale(p,cameraPosition):1;
+      if(coreScale===0)continue;
       this.velocity.set(p.vx||0,p.vz||0,p.vy||0);const speed=this.velocity.length();
       if(speed<.01)continue;
       this.rotation.setFromUnitVectors(this.up,this.velocity.multiplyScalar(1/speed));
       this.position.set(p.x*4,(p.z||0)*4,p.y*4);
-      const length=Math.min(reducedMotion?.28:1.7,speed*4*Math.min(p.age||0,.09));
-      this.scale.set(p.core?1.5:1,length,p.core?1.5:1);
+      let length=Math.min(reducedMotion?.28:1.7,speed*4*Math.min(p.age||0,.09));
+      if(p.core&&cameraPosition){
+        const distance=this.position.distanceTo(cameraPosition);
+        length=Math.min(length,Math.max(0,distance-.4)/coreScale);
+      }
+      this.scale.set(p.core?coreScale:1,length*coreScale,p.core?coreScale:1);
       this.matrix.compose(this.position,this.rotation,this.scale);this.mesh.setMatrixAt(count,this.matrix);
       this.color.set(p.reflected?0x79eeff:p.core?0xffc66e:0xff4267);this.mesh.setColorAt(count++,this.color);
     }

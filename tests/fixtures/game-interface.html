@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="data:,"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/horror-ui.css"><link rel="stylesheet" href="/menu-cinematic.css"><link rel="stylesheet" href="/game-interface.css"></head><body><div id="ui"></div><script type="module">
+import {UI} from '/ui.js';
+import {DevFlightUI} from '/dev-flight-ui.js';
+const ui=new UI({onResume:()=>window.resumed++,onRestart:()=>window.restarted++});
+ui.devEnabled=true;
+const camera=new DevFlightUI();document.body.append(camera.element);
+const state={active:true,pose:{x:69.5,y:1.6,z:64},speed:12,pointerLocked:false};
+window.resumed=0;window.restarted=0;
+window.interfaceQA={ui,camera,state,flight:()=>{ui.root.innerHTML='';camera.update(state);},pause:()=>{camera.update({...state,active:false});ui.run={course:{},lowTide:{shelter:false}};ui.pause();},menu:()=>{camera.update({...state,active:false});ui.menu();}};
+interfaceQA.flight();window.qaReady=true;
+</script></body></html>

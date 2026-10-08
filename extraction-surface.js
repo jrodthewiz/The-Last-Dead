@@ -37,14 +37,21 @@ export class HarvestSurface {
     const used=new Set(index?index.array:Array.from({length:attrs.position.count},(_,i)=>i));
     const local=new Map(),torso=new Map();
     for(const id of used){
-      local.set(id,mesh.getVertexPosition(id,new THREE.Vector3()).applyMatrix4(mesh.matrixWorld).applyMatrix4(frameInverse));
       let weight=0;for(let j=0;j<4;j++)if(TORSO.test(mesh.skeleton.bones[attrs.skinIndex.getComponent(id,j)]?.name||''))weight+=attrs.skinWeight.getComponent(id,j);
       torso.set(id,weight);
+      if(weight>.6)local.set(id,mesh.getVertexPosition(id,new THREE.Vector3()).applyMatrix4(mesh.matrixWorld).applyMatrix4(frameInverse));
     }
     const candidate=id=>{const p=local.get(id);return torso.get(id)>.6&&Math.abs(p.x)<.27&&Math.abs(p.y)<.285&&p.z>-.085&&p.z<.10;};
-    const data=Object.fromEntries(Object.entries(attrs).map(([key,attr])=>[key,Array.from({length:attr.count*attr.itemSize},(_,i)=>attr.getComponent(Math.floor(i/attr.itemSize),i%attr.itemSize))]));
+    const triangles=(index?.count||attrs.position.count)/3;this.sourceTriangles+=triangles;
+    // Most imported primitives share a large vertex buffer but their indices
+    // contain no torso skin. Do not copy every attribute for an untouched mesh.
+    const candidates=new Set();for(const id of used)if(candidate(id))candidates.add(id);
+    if(!candidates.size){this.splitTriangles+=triangles;return;}
+    // Preserve the original typed storage; only seam vertices need temporary
+    // JS arrays. Boxing every full source attribute causes avoidable GC here.
+    const data=Object.fromEntries(Object.keys(attrs).map(key=>[key,[]]));
     const sides=Array(attrs.position.count).fill(0),locals=Array(attrs.position.count*3).fill(0),affected=new Set(),seam=[],output=[];
-    for(const id of used)if(candidate(id)){sides[id]=local.get(id).x<0?-1:1;local.get(id).toArray(locals,id*3);affected.add(id);}
+    for(const id of candidates){sides[id]=local.get(id).x<0?-1:1;local.get(id).toArray(locals,id*3);affected.add(id);}
     const edgeCache=new Map();
     const vertex=(a,b,t,side)=>{
       const key=`${Math.min(a,b)}:${Math.max(a,b)}:${side}`;
@@ -61,11 +68,13 @@ export class HarvestSurface {
       for(let j=0;j<4;j++){data.skinIndex.push(influences[j]?.[0]||0);data.skinWeight.push((influences[j]?.[1]||0)/total);}
       const p=local.get(a).clone().lerp(local.get(b),t);p.x=0;p.toArray(locals,id*3);sides.push(side);affected.add(id);edgeCache.set(key,id);return id;
     };
-    const triangles=(index?.count||attrs.position.count)/3;this.sourceTriangles+=triangles;
     for(let i=0;i<triangles;i++){
-      const ids=[0,1,2].map(j=>index?index.getX(i*3+j):i*3+j),xs=ids.map(id=>local.get(id).x);
+      const a=index?index.getX(i*3):i*3,b=index?index.getX(i*3+1):i*3+1,c=index?index.getX(i*3+2):i*3+2;
+      if(!candidates.has(a)||!candidates.has(b)||!candidates.has(c)){output.push(a,b,c);continue;}
+      const ids=[a,b,c];
+      const xs=ids.map(id=>local.get(id).x);
       const crosses=Math.min(...xs)<-1e-7&&Math.max(...xs)>1e-7,existingSeam=xs.some(x=>Math.abs(x)<1e-7);
-      if(!ids.every(candidate)||(!crosses&&!existingSeam)){output.push(...ids);continue;}
+      if(!crosses&&!existingSeam){output.push(...ids);continue;}
       for(const side of [-1,1]){
         const polygon=[],cut=[];
         for(let j=0;j<3;j++){
@@ -81,8 +90,11 @@ export class HarvestSurface {
     if(!affected.size)return;
     const saved={attributes:{...attrs},index:g.index,groups:g.groups.map(v=>({...v})),regions:entry.regions};
     for(const [name,attr]of Object.entries(attrs)){
-      const attribute=new THREE.BufferAttribute(new attr.array.constructor(data[name].length),attr.itemSize,attr.normalized);
-      for(let i=0;i<data[name].length;i++)attribute.setComponent(Math.floor(i/attr.itemSize),i%attr.itemSize,data[name][i]);
+      const size=attr.count*attr.itemSize,added=data[name];
+      const attribute=new THREE.BufferAttribute(new attr.array.constructor(size+added.length),attr.itemSize,attr.normalized);
+      if(!attr.isInterleavedBufferAttribute)attribute.array.set(attr.array);
+      else for(let i=0;i<size;i++)attribute.setComponent(Math.floor(i/attr.itemSize),i%attr.itemSize,attr.getComponent(Math.floor(i/attr.itemSize),i%attr.itemSize));
+      for(let i=0;i<added.length;i++)attribute.setComponent(attr.count+Math.floor(i/attr.itemSize),i%attr.itemSize,added[i]);
       g.setAttribute(name,attribute);
     }
     g.setAttribute('harvestSide',new THREE.Float32BufferAttribute(sides,1));g.setAttribute('harvestLocal',new THREE.Float32BufferAttribute(locals,3));g.setIndex(output);
@@ -90,7 +102,7 @@ export class HarvestSurface {
     // when a mesh uses a single complete-primitive group.
     if(g.groups.length===1){g.clearGroups();g.addGroup(0,output.length,saved.groups[0].materialIndex);}
     entry.regions=new Float32Array(sides.length);entry.regions.set(saved.regions);
-    const normalTriangles=[];for(let i=0;i<output.length;i+=3)if(output.slice(i,i+3).some(id=>affected.has(id)))normalTriangles.push(...output.slice(i,i+3));
+    const normalTriangles=[];for(let i=0;i<output.length;i+=3)if(affected.has(output[i])||affected.has(output[i+1])||affected.has(output[i+2]))normalTriangles.push(output[i],output[i+1],output[i+2]);
     g.computeBoundingBox();g.computeBoundingSphere();
     // The imported actor disables frustum culling. Keep conservative bounds
     // once instead of rescanning its entire 43k-vertex primitive each frame.
