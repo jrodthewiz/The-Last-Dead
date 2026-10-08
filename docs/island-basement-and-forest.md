@@ -243,3 +243,69 @@ landmark now organizes its district; repeated central-town footprints, height
 bands and clean window/facade treatment remain confirmed artistic limitations.
 Civic close construction quality is unverified without a dedicated close view.
 This is a visual improvement, not an 8–9/10 or professional-parity certification.
+
+
+## Island environment and maritime pass
+
+This pass strengthens a wind-scoured fishing/quarantine island: pine duff and
+sheltered birch litter, moss and mineral ground, moored working vessels, and
+parked estate cars/delivery vans across the harbor and outer districts.
+The existing truck remains the drivable vehicle. The three boats and eight
+new cars are stationary scenery; parked cars have authoritative collision.
+Boat hulls remain seaward of the quay, with sagged lines terminating at actual
+bollards. Layout screening preserves building approaches, pickups and roads.
+The first integrated route test exposed a van narrowing the broad truck route;
+its placement moved from (122,52) to (122,48) metres and the route passes.
+
+The eleven props share nine merged material submissions, nine owned materials
+and 18,134 triangles, with no textures, added shadow maps or frame updates.
+Disposal tests prove each owned geometry and material releases exactly once.
+Trees remain at 512 and understory at 2,433. Forest detail stays within the
+existing 14,000-triangle / 40-tile allowance, rather than adding a new pass.
+Final detail is 13,944 triangles: 250 bank plates, 343 root ribbons, 1,156
+duff fragments and eight forked windfall ribbons. Broad wind-stretched
+duff/moss beds follow actual tree canopies; uniform needle dashes were removed.
+The vehicle revision adds shaped raked glazing, tapered hoods, real wheel
+openings and recessed wheels while retaining the shared material batches.
+
+The performance worker compared real v10 overview/woodland placements with
+this forest implementation. Sixty stationary refresh opportunities formerly
+scanned 30,720 trees; now they scan zero. Camera world/projection changes,
+forced refresh and visibility changes invalidate the cache, while wind time
+continues updating. Instance data, shadows, draw counts and triangle counts
+match. Evidence: `output/playwright/island-environment-performance/report.json`.
+This is eliminated CPU work, not a gameplay FPS claim.
+
+The first native v11 inspection passed 17 views, immutable inputs, zero runtime
+and HTTP errors, owned cleanup, and the real E basement round trip with health
+retained. Its works-van camera was inside a building and cannot substantiate
+vehicle appearance; final inspection uses a corrected road camera. Forest
+floor pixels still appeared too smooth, prompting a further bounded art pass.
+
+
+Final v12 uses `output/qa-runtime/island-environment-v12`; revised runtime
+hashes match source before launch. `output/playwright/island-art-v12/report.json`
+passes all 17 native WebGPU views, 45 immutable input hashes, zero runtime/HTTP
+errors, guarded background input and owned browser/server cleanup. Actual E
+travel downstairs and back preserves health at 100. All 43 relevant Node tests
+pass, including the broad truck route, terrain authority, parked-car bounds,
+resource disposal and basement state; `node build.mjs` succeeds.
+
+Twenty warmed stationary samples per view recorded median queue-fenced wall
+times of 41.8 ms overview, 23.4 ms works, 28.2 ms street and 18.5 ms woodland.
+Forest dirty-attribute increments remain zero in each view. These headless
+paused samples describe this run; host load prevents attributing timing changes
+to this patch, and they do not establish gameplay FPS or mobile acceptance.
+
+
+Independent v12 pixel review keeps the fixed overview at 7/10. Local estate/van
+craft improved to about 7/10 within the stylized grammar, with actual cabin/hood
+continuity and wheel openings; boat craft is about 6.5/10. Woodland is about
+6.5/10, with the close ground itself only 5.5–6/10: broader brown duff is more
+coherent, but smooth shaded surfaces still outweigh visible accumulation and
+material relief. The outer clearing remains sparsely planted lawn beside a
+straight engineered stream/walk edge; dense canopy and clear routes provide
+counterevidence. This pass achieves local gains, not an 8/10 certification.
+A further ecological art pass should test one representative ground patch
+with clear moss/needle/path relationships and root/windfall accumulation from
+the same eye-level camera plus an unshadowed material view.

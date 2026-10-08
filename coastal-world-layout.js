@@ -8,6 +8,7 @@ import {CAPE_TERRAIN,capeStreamZ,makeCapeForestPlacements} from './coastal-terra
 import {serializeStructure} from './coastal-structures.js';
 import {makeCoastalWorkbenches} from './coastal-workbenches.js';
 import {makeCoastalUnderstory} from './coastal-understory-layout.js';
+import {makeCoastalMaritime} from './coastal-maritime-layout.js';
 import {attachCoastalScavenging} from './coastal-scavenging.js';
 export function attachCoastalWorld(course) {
   const oldW=course.w,oldH=course.h,oldCells=course.cells,w=112,h=104;
@@ -162,5 +163,7 @@ export function attachCoastalWorld(course) {
   for(const x of CAPE_TERRAIN.bridges)for(const side of [-1,1])course.obstacles.push({id:`cape-bridge-${x}-rail-${side}`,minX:(x+side*2.05-.08)/4,maxX:(x+side*2.05+.08)/4,minY:(capeStreamZ(x)-5.3)/4,maxY:(capeStreamZ(x)+5.3)/4});
   for(const p of course.coastal.forestPlacements)if(p.id.startsWith('cape-forest-'))course.obstacles.push({id:p.id,minX:(p.x-p.collisionRadius)/4,maxX:(p.x+p.collisionRadius)/4,minY:(p.z-p.collisionRadius)/4,maxY:(p.z+p.collisionRadius)/4});
   attachCoastalScavenging(course);
+  course.coastal.maritime=makeCoastalMaritime(course);
+  for(const p of course.coastal.maritime.cars){const b=p.bounds;course.obstacles.push({id:p.id,minX:b.minX/4,maxX:b.maxX/4,minY:b.minZ/4,maxY:b.maxZ/4});}
   return course;
 }

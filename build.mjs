@@ -35,7 +35,7 @@ export const RUNTIME_FILES = [
   'harbor-course.js','low-tide.js','low-tide-save.js','low-tide-visuals.js',
   'coastal-world-layout.js','coastal-world-visuals.js','coastal-world-map.js','coastal-water.js','coastal-terrain.js','coastal-structures.js','coastal-terrain-visuals.js','cape-river.js','forest-vegetation.js',
   'coastal-neighborhood-layout.js','coastal-neighborhood-visuals.js',
-  'coastal-instancing.js',
+  'coastal-instancing.js','coastal-maritime-layout.js','coastal-maritime-visuals.js',
   'coastal-basement-visuals.js',
   'coastal-shoreline-art.js',
   'blackwater-district-layout.js','blackwater-district-visuals.js','blackwater-render-looks.js','blackwater-street-surfaces.js','blackwater-render-pipeline.js','blackwater-graphic-style.js','blackwater-actor-style.js','blackwater-review.html','blackwater-review.js',

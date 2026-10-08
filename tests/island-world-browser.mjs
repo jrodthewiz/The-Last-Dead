@@ -20,6 +20,7 @@ files.push('coastal-workbenches.js','coastal-understory-layout.js','coastal-unde
 files.push('coastal-terrain.js','coastal-terrain-fields.js','coastal-terrain-visuals.js','assets/forest-kit/bank-detail.js','cape-river.js','forest-vegetation.js');
 files.push('island-basement.js','island-basement-layout.js','island-basement-visuals.js','coastal-basement-visuals.js','assets/blackwater-kit/district-anatomy.js');
 files.push('coastal-shoreline-art.js','harbor-shadow-coverage.js','assets/blackwater-kit/skyline.js','coastal-water.js','webgpu-water.js','blackwater-street-surfaces.js');
+files.push('coastal-maritime-layout.js','coastal-maritime-visuals.js','assets/blackwater-kit/maritime-vehicles.js');
 const sourceHashes=Object.fromEntries(await Promise.all(files.map(async p=>[p,createHash('sha256').update(await readFile(resolve(root,p))).digest('hex')])));
 const report={scope:'Immutable actual game on native WebGPU. Controlled fixed starting views; actual W street traversal with aim-only steering and manual120Hz advancement. Fenced stationary renderer timings are not gameplay FPS or phone hardware acceptance.',root,sourceHashes,views:[],inputSafety:[],errors:[],warnings:[],httpErrors:[],ownedNodePid:process.pid};
 const server=await startServer({root,port:0});let browser,page;
@@ -157,6 +158,14 @@ try{
   await measure('woodland-gameplay');
   await page.evaluate(()=>{window.__DEAD_ARRIVAL__.renderer.settings.bodycam=false;});await settle();await capture('woodland-neutral');
   await page.evaluate(()=>{window.__DEAD_ARRIVAL__.renderer.settings.bodycam=true;});
+ }
+ if(process.env.ISLAND_QA_ENVIRONMENT_REVIEW==='1'){
+  await flight([37,3,133],[25,0,128]);await capture('moored-boats');
+  await flight([12,3,60],[5,1,53]);await capture('parked-estate');
+  await flight([275,3,176],[268,1,180.45]);await capture('works-van');
+  await flight([340,1.6,376],[335,.4,382]);await capture('forest-floor');
+  await flight([412,21,402],[361,3,373]);await capture('outer-forest-coast');
+  report.maritime=await page.evaluate(()=>window.__DEAD_ARRIVAL__.renderer.harborWorld.maritime.diagnostics);assert.equal(report.maritime.boats,3);assert.equal(report.maritime.cars,8);assert.equal(report.maritime.drawCalls,9);
  }
  if(process.env.ISLAND_QA_VISUALS_ONLY!=='1'){
  await page.evaluate(()=>{const q=window.__DEAD_ARRIVAL__;if(q.inspector.active)q.requestInspector();const p=q.run.course.basementPortal;Object.assign(q.run,{x:p.x,y:p.y,z:0,angle:p.angle,pitch:0,vx:0,vy:0,vz:0});window.advanceTime(0);});await settle();

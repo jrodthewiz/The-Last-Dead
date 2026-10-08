@@ -270,6 +270,8 @@ export function createForestVegetation({ placements = [], materials = {}, lightS
     bucket.levels.push(pair);
   }
   const frustum = new THREE.Frustum(), projection = new THREE.Matrix4(), cameraPosition = new THREE.Vector3(), lastPosition = new THREE.Vector3(Infinity, Infinity, Infinity), lastQuaternion = new THREE.Quaternion();
+  const lastCameraWorld = new THREE.Matrix4(), lastCameraProjection = new THREE.Matrix4();
+  let cameraCached = false, lastCoordinateSystem, lastReversedDepth;
   let lastTime = -Infinity, updateCount = 0, disposed = false, enabled = true;
   const current = { visibleTrees: 0, culledTrees: 0, draws: 0, triangles: 0, shadowDraws: 0, shadowTriangles: 0, lodTrees: [0, 0, 0], instanceMatrixWrites: 0, instanceColorWrites: 0, dirtyInstancePools: 0, scheduledInstanceUploadBytes: 0 };
   const instanceWork = { matrixWrites: 0, colorWrites: 0, dirtyPools: 0, scheduledUploadBytes: 0 };
@@ -280,11 +282,17 @@ export function createForestVegetation({ placements = [], materials = {}, lightS
     const hasCamera = !!camera?.isCamera;
     if (hasCamera) {
       camera.updateMatrixWorld(); cameraPosition.setFromMatrixPosition(camera.matrixWorld);
-      if (!force && cameraPosition.distanceToSquared(lastPosition) < .25 && camera.quaternion.angleTo(lastQuaternion) < .025 && elapsedSeconds - lastTime < .16) return;
+      const projectionUnchanged = cameraCached && camera.projectionMatrix.equals(lastCameraProjection) && camera.coordinateSystem === lastCoordinateSystem && camera.reversedDepth === lastReversedDepth;
+      // Placement bounds are immutable; exact stationary cameras need no
+      // visibility refresh. Wind time above still advances every frame.
+      if (!force && projectionUnchanged && camera.matrixWorld.equals(lastCameraWorld)) return;
+      if (!force && projectionUnchanged && cameraPosition.distanceToSquared(lastPosition) < .25 && camera.quaternion.angleTo(lastQuaternion) < .025 && elapsedSeconds - lastTime < .16) return;
       projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
       frustum.setFromProjectionMatrix(projection, camera.coordinateSystem, camera.reversedDepth);
       lastPosition.copy(cameraPosition); lastQuaternion.copy(camera.quaternion); lastTime = elapsedSeconds;
-    }
+      lastCameraWorld.copy(camera.matrixWorld); lastCameraProjection.copy(camera.projectionMatrix);
+      lastCoordinateSystem = camera.coordinateSystem; lastReversedDepth = camera.reversedDepth; cameraCached = true;
+    } else cameraCached = false;
     current.visibleTrees = 0; current.culledTrees = 0; current.draws = 0; current.triangles = 0; current.shadowDraws = 0; current.shadowTriangles = 0; current.lodTrees.fill(0);
     current.instanceMatrixWrites = 0; current.instanceColorWrites = 0; current.dirtyInstancePools = 0; current.scheduledInstanceUploadBytes = 0;
     for (const bucket of buckets.values()) {

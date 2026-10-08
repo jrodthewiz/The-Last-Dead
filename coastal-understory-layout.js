@@ -87,9 +87,10 @@ export function makeCoastalUnderstory(coastal) {
       const x=tree.x+Math.cos(angle)*radius,z=tree.z+Math.sin(angle)*radius;
       if(understoryClear(coastal,x,z))p={...p,x,z,y:capeGroundHeight(x,z),community:tree.id};
       const shade=capeGroveField(p.x,p.z).strength;
-      p.kind=hash(p.x,p.z,512)<.66*shade?'fern':'grass';
+      p.kind=hash(p.x,p.z,512)<(tree.species==='conifer'?.52:.85)*shade?'fern':'grass';
       p.scale=p.kind==='fern'?1.05+hash(p.x,p.z,610)*.8:.8+hash(p.x,p.z,630)*.85;
       p.tint=hash(p.x,p.z,670)*(.65-shade*.22);
+      p.habitat=tree.species==='conifer'?'pine-hollow':'sheltered-birch';
     }
     return {...p,id:`understory-${i}`};
   });

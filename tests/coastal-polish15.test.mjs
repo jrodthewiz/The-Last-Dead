@@ -28,6 +28,8 @@ test('bank detail has a bounded cost, grounded vertices and clear bridge/path co
   const art=buildCapeBankDetail({forest:c.coastal.forestPlacements,material});
   try{
     assert.ok(art.diagnostics.plates>200);assert.ok(art.diagnostics.roots>100);
+    assert.ok(art.diagnostics.duffFragments>1000,'pine needles and birch leaf drifts share the existing grounded detail budget');
+    assert.equal(art.diagnostics.fallenBranches,8,'readable forked windfall ribbons flank clear paths and eastern groves');
     assert.ok(art.diagnostics.triangles<=14000);assert.ok(art.diagnostics.batches<=40);
     assert.equal(art.diagnostics.addedMaterials,0);assert.equal(art.diagnostics.addedTextures,0);assert.equal(art.diagnostics.addedShadowMaps,0);
     art.root.traverse(o=>{if(!o.isMesh)return;assert.equal(o.material,material);assert.equal(o.castShadow,false);
@@ -67,4 +69,8 @@ test('habitat polish preserves exact placement roots and all four existing plant
   for(const [zone,cap]of Object.entries(limits))assert.ok(p.filter(p=>p.zone===zone).length<=cap);
   for(const item of p){assert.ok(item.tint>=0&&item.tint<=1);assert.equal(item.y,item.zone==='building-verge'?Math.max(capeGroundHeight(item.x,item.z),.135):capeGroundHeight(item.x,item.z));}
   assert.ok(p.filter(p=>p.zone==='river-bank'&&p.kind==='fern').length>70);
+  const pine=p.filter(p=>p.habitat==='pine-hollow'),birch=p.filter(p=>p.habitat==='sheltered-birch');
+  assert.ok(pine.length>250&&birch.length>250,'both sheltered habitats retain meaningful communities');
+  assert.ok(birch.filter(p=>p.kind==='fern').length/birch.length>pine.filter(p=>p.kind==='fern').length/pine.length,
+    'sheltered birch has a stronger fern layer than the drier pine floor');
 });

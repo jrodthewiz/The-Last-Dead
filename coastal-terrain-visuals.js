@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import {BlackwaterPaintedMaterial,coastalMeadowTint} from './blackwater-render-looks.js';
-import {lights} from './vendor/three.tsl.js';
+import {float,lights,positionWorld} from './vendor/three.tsl.js';
 import {capeGroundHeight,capeStreamZ,capeStreamLevel,capePathMask,capeGroveField,CAPE_TERRAIN} from './coastal-terrain.js';
 import {createCapeRiver} from './cape-river.js';
 import {capeSurfaceFields} from './coastal-terrain-fields.js';
@@ -9,8 +9,12 @@ import {buildCapeBankDetail} from './assets/forest-kit/bank-detail.js';
 export function buildCapeTerrain(world){
   const root=new THREE.Group();root.name='CapeWalkableTerrain';root.userData.noBatch=true;world.root.add(root);
   const material=new BlackwaterPaintedMaterial({color:'#ffffff',vertexColors:true});material.name='CapeMossSoilStone';
-  material.colorNode=coastalMeadowTint();
-  const moss=new THREE.Color('#526957'),stone=new THREE.Color('#89918d'),soil=new THREE.Color('#8c8270'),wet=new THREE.Color('#36494c'),litter=new THREE.Color('#606456'),color=new THREE.Color();
+  const soilX=positionWorld.x,soilZ=positionWorld.z;
+  // Soft soil variation supports the broad root-centred ecological beds.
+  // Distinct leaf/branch geometry owns marks; clear paths avoid uniform dashes.
+  const duff=soilX.mul(2.1).add(soilZ.mul(1.8)).sin().mul(soilX.mul(.39).sub(soilZ.mul(.57)).sin());
+  material.colorNode=coastalMeadowTint().mul(float(.98).add(duff.mul(.055)));
+  const moss=new THREE.Color('#526957'),stone=new THREE.Color('#89918d'),soil=new THREE.Color('#8c8270'),wet=new THREE.Color('#36494c'),litter=new THREE.Color('#606456'),pineDuff=new THREE.Color('#443e30'),birchDuff=new THREE.Color('#867453'),rootMoss=new THREE.Color('#355342'),color=new THREE.Color();
   // Root communities give the soil a shaded interior and lighter path edge.
   // This is vertex albedo, sampled from actual trees; physical ground is shared.
   const canopyBins=new Map();
@@ -19,12 +23,17 @@ export function buildCapeTerrain(world){
     if(!canopyBins.has(key))canopyBins.set(key,[]);canopyBins.get(key).push(tree);
   }
   const canopyAt=(x,z)=>{
-    let cover=0;const bx=Math.floor(x/12),bz=Math.floor(z/12);
+    let cover=0,pine=0,birch=0;const bx=Math.floor(x/12),bz=Math.floor(z/12);
     for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++)for(const tree of canopyBins.get(`${bx+dx}/${bz+dz}`)||[]){
       const radius=tree.height*(tree.species==='conifer'?.25:.34),distance=Math.hypot(x-tree.x,z-tree.z);
       cover=Math.max(cover,Math.max(0,1-distance/radius));
+      // Wind-stretched root/duff drifts, with broken moss shoulders, follow
+      // actual trees. Broad overlapping shapes avoid isolated circular stamps.
+      const dx=x-tree.x+.65*Math.sin(z*.61),dz=z-tree.z;
+      const drift=Math.max(0,1-Math.hypot(dx/(radius*.68+.8),dz/(radius*1.35+1)));
+      if(tree.species==='conifer')pine=Math.max(pine,drift);else birch=Math.max(birch,drift);
     }
-    return cover;
+    return {cover,pine,birch};
   };
   const geometries=[],fieldRanges={};let triangles=0;
   // Exactly disjoint from the original flat town slabs. One-metre samples and
@@ -35,9 +44,12 @@ export function buildCapeTerrain(world){
       const px=x+i,pz=z+j,f=capeSurfaceFields(px,pz),y=f.height;
       vertices.push(px,y,pz);uv.push(px/12,pz/12);
       const band=Math.floor(f.patch*4)/3;
-      const grove=capeGroveField(px,pz).strength,fringe=Math.max(0,Math.min(1,grove*1.35));
-      color.copy(moss).lerp(litter,Math.max(f.leafLitter*.64,fringe*.58)).lerp(soil,f.bank*.56).lerp(stone,f.exposedStone).lerp(wet,f.wetness*.9).lerp(soil,f.path*.95);
-      color.multiplyScalar((.82+band*.15)*(1-canopyAt(px,pz)*.22*(1-f.path)));colors.push(color.r,color.g,color.b);
+      const community=capeGroveField(px,pz),grove=community.strength,fringe=Math.max(0,Math.min(1,grove*1.35));
+      const canopy=canopyAt(px,pz),offPath=1-f.path;
+      color.copy(moss).lerp(litter,f.leafLitter*.58).lerp(community.grove===0?birchDuff:pineDuff,fringe*.74)
+        .lerp(rootMoss,Math.min(1,canopy.cover*.72)*offPath).lerp(pineDuff,canopy.pine*.9*offPath).lerp(birchDuff,canopy.birch*.76*offPath)
+        .lerp(soil,f.bank*.56).lerp(stone,f.exposedStone).lerp(wet,f.wetness*.9).lerp(soil,f.path*.95);
+      color.multiplyScalar((.82+band*.15)*(1-canopy.cover*.12*offPath));colors.push(color.r,color.g,color.b);
       for(const [name,value]of Object.entries(f)){const range=fieldRanges[name]||(fieldRanges[name]=[Infinity,-Infinity]);range[0]=Math.min(range[0],value);range[1]=Math.max(range[1],value);}
       if(i<width&&j<depth){const a=j*(width+1)+i,b=a+width+1;indices.push(a,b,a+1,b,b+1,a+1);}
     }

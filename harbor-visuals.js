@@ -10,6 +10,7 @@ import {buildBlackwaterDistrict} from './blackwater-district-visuals.js';
 import {applyBlackwaterGraphicStyle,applyBlackwaterCoastalSurfaces} from './blackwater-graphic-style.js';
 import {createBlackwaterGraphicSky,BLACKWATER_LOOKS} from './blackwater-render-looks.js';
 import {createForestVegetation} from './forest-vegetation.js';
+import {buildCoastalMaritime} from './coastal-maritime-visuals.js';
 import {createCoastalUnderstory} from './coastal-understory.js';
 import {instanceHarborStaticDetails,isStaticHarborDetail} from './harbor-static-details.js';
 import {createHarborShadowCoverage} from './harbor-shadow-coverage.js';
@@ -62,6 +63,7 @@ export class HarborWorld {
    this.forest=createForestVegetation({placements:course.coastal.forestPlacements,lightSources:[sun,hemi],palette:{bark:'#706b5d',deciduous:'#6d896b',conifer:'#41695e'},lodDistances:[0,28,65],cullDistance:900,shadowDistance:35});this.root.add(this.forest.root);this.terrain?.setLighting([sun,hemi]);
   }
   if(course.coastal?.understoryPlacements){this.understory=createCoastalUnderstory({placements:course.coastal.understoryPlacements,lightSources:[this.forestSun||this.blackwaterSun,hemi]});this.root.add(this.understory.root);this.diagnostics.understory=this.understory.diagnostics;}
+  this.maritime=buildCoastalMaritime(this,{lightSources:[this.blackwaterSun||this.forestSun,hemi].filter(Boolean)});
   this.water=course.coastal?makeCoastalWater(THREE,course.water):this.makeWater(course.water);this.root.add(this.water);
   if(course.coastal)this.diagnostics.water=this.water.userData.waterDiagnostics;
   // Working-harbor scale cues live beyond the collision shore.
@@ -190,5 +192,5 @@ export class HarborWorld {
   if(vehicle){this.vehicle.position.set(vehicle.x*4,0,vehicle.y*4);this.vehicle.rotation.y=-vehicle.angle;}
  }
  release(root){const seen=new Set();root.traverse(o=>{if(o.geometry&&!seen.has(o.geometry)){seen.add(o.geometry);o.geometry.dispose();}for(const m of Array.isArray(o.material)?o.material:o.material?[o.material]:[]){if(seen.has(m))continue;seen.add(m);for(const value of Object.values(m))if(value?.isTexture&&!seen.has(value)){seen.add(value);value.dispose();}m.dispose();}});}
- dispose(){if(this.disposed)return;this.disposed=true;this.shoreline?.dispose();this.coastalGraphic?.dispose();this.staticDetails?.dispose();this.utilityPickup?.dispose();this.understory?.dispose();this.forest?.dispose();this.terrain?.dispose();this.forestSun?.dispose();this.blackwaterGraphic?.dispose();this.blackwaterSun?.dispose();this.graphicSky?.dispose();this.blackwater?.dispose();this.thaiWorld?.dispose();}
+ dispose(){if(this.disposed)return;this.disposed=true;this.maritime?.dispose();this.shoreline?.dispose();this.coastalGraphic?.dispose();this.staticDetails?.dispose();this.utilityPickup?.dispose();this.understory?.dispose();this.forest?.dispose();this.terrain?.dispose();this.forestSun?.dispose();this.blackwaterGraphic?.dispose();this.blackwaterSun?.dispose();this.graphicSky?.dispose();this.blackwater?.dispose();this.thaiWorld?.dispose();}
 }

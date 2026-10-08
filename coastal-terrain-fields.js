@@ -1,4 +1,4 @@
-import {capeGroundHeight,capePathMask,capeStreamZ,capeStreamWidth,capeStreamLevel,CAPE_TERRAIN} from './coastal-terrain.js';
+import {capeGroundHeight,capePathMask,capeStreamZ,capeStreamWidth,capeStreamLevel,capeGroveField,CAPE_TERRAIN} from './coastal-terrain.js';
 
 const clamp=v=>Math.max(0,Math.min(1,v));
 const smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a));return t*t*(3-2*t);};
@@ -23,12 +23,14 @@ export function capeSurfaceFields(x,z){
   const woodland=Math.max(smooth(314,334,z),smooth(380,402,x));
   const patch=soilPatch(x,z);
   const exposedStone=clamp(smooth(.035,.17,slope)*.85+bank*smooth(.28,.7,patch)*.62)*(1-path);
-  const leafLitter=woodland*smooth(.32,.78,patch)*(1-path)*(1-wetness);
+  const grove=capeGroveField(x,z).strength;
+  const leafLitter=woodland*Math.max(smooth(.28,.74,patch),grove*.67)*(1-path)*(1-wetness);
   return {height,path,slope,bankDistance,bank,wetness,woodland,patch,exposedStone,leafLitter};
 }
 
 export function capeDetailClear(x,z,radius=0){
-  if(x<130+radius||x>446-radius||z<316+radius||z>414-radius)return false;
+  if(x<130+radius||x>446-radius||z<120+radius||z>414-radius)return false;
+  if(z<316+radius&&x<386+radius)return false;
   for(const [dx,dz]of [[0,0],[-radius,0],[radius,0],[0,-radius],[0,radius]]){
     const f=capeSurfaceFields(x+dx,z+dz);
     if(f.path>.015||f.bankDistance<.65)return false;
