@@ -1,0 +1,469 @@
+{
+  "title": "The Last Dead Blackwater local PBR texture sources",
+  "downloaded": "2026-10-03",
+  "provider": "Poly Haven",
+  "license": "CC0 1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "apiTerms": "https://github.com/Poly-Haven/Public-API/blob/master/ToS.md",
+  "runtime": "Local bundled files only; no runtime API requests",
+  "normalConvention": "OpenGL (+Y) tangent space",
+  "textureMemory": "Two 2K albedo and normal sets; two 1K sets; four shared 1K ARM textures. 128 MiB RGBA8 including full mipchains.",
+  "assets": [
+    {
+      "id": "worn_plaster_wall",
+      "source": "https://polyhaven.com/a/worn_plaster_wall",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "authors": {
+        "Dimitrios Savva": "All"
+      },
+      "tileMetres": [
+        1.8000000715255737,
+        1.8000000715255737
+      ],
+      "downloadedSources": [
+        {
+          "channel": "Diffuse",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/worn_plaster_wall/worn_plaster_wall_diff_2k.jpg",
+          "downloadedBytes": 3096042,
+          "downloadedSha256": "1cf28fcd1a0aa5873055fbfaf791e4a1528e03d3eeea8f66af23aba651e71f54"
+        },
+        {
+          "channel": "nor_gl",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/worn_plaster_wall/worn_plaster_wall_nor_gl_2k.jpg",
+          "downloadedBytes": 2935964,
+          "downloadedSha256": "ffc110c57a6f98416a9cec390aeee80e1c6a3e6be627cfabfa041a55ccf96546"
+        },
+        {
+          "channel": "Rough",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/worn_plaster_wall/worn_plaster_wall_rough_2k.jpg",
+          "downloadedBytes": 1012956,
+          "downloadedSha256": "1063b53b2cba33f791b895f0d7ac0ee5f3434a54a674164e53405d9cf358f7b1"
+        },
+        {
+          "channel": "AO",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/worn_plaster_wall/worn_plaster_wall_ao_2k.jpg",
+          "downloadedBytes": 1675976,
+          "downloadedSha256": "ab636e099f2b0bc03a2d8190bcb08580c2e515a36079577ae8dc7e71ff9f0cae"
+        }
+      ],
+      "runtimeMaps": [
+        {
+          "channel": "albedo",
+          "path": "assets/textures/blackwater/worn_plaster_wall_diff.jpg",
+          "resolution": [
+            1024,
+            1024
+          ],
+          "bytes": 218683,
+          "sha256": "02d16a1b3043561dc3350129bb3a702bccd65e2556199a20e28d4f445d26d916",
+          "transform": "Resize to 1024px; JPEG quality 88, 4:4:4"
+        },
+        {
+          "channel": "normal",
+          "path": "assets/textures/blackwater/worn_plaster_wall_nor_gl.jpg",
+          "resolution": [
+            1024,
+            1024
+          ],
+          "bytes": 414159,
+          "sha256": "2b04255e0c0d2cc34e66400b5c0db88ad9846e92312dd6d8841c6f3903b29430",
+          "transform": "Resize to 1024px; JPEG quality 94, 4:4:4"
+        },
+        {
+          "channel": "ARM",
+          "path": "assets/textures/blackwater/worn_plaster_wall_arm.webp",
+          "resolution": [
+            1024,
+            1024
+          ],
+          "bytes": 623326,
+          "sha256": "460a53280b9bcd1f0a47e0648089b9f98d4f69cac791e90d6d834ed6331430ae",
+          "transform": "Resize AO and roughness to 1K; R=AO,G=roughness,B=0 metalness; lossless WebP"
+        }
+      ]
+    },
+    {
+      "id": "weathered_planks",
+      "source": "https://polyhaven.com/a/weathered_planks",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "authors": {
+        "Dario Barresi": "Processing",
+        "Dimitrios Savva": "Photography"
+      },
+      "tileMetres": [
+        2,
+        2
+      ],
+      "downloadedSources": [
+        {
+          "channel": "Diffuse",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/weathered_planks/weathered_planks_diff_2k.jpg",
+          "downloadedBytes": 2385451,
+          "downloadedSha256": "e763f1257acdfdbb31764c9ec9d480fd4efa5cc008f8b63d73a916d53d938942"
+        },
+        {
+          "channel": "nor_gl",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/weathered_planks/weathered_planks_nor_gl_2k.jpg",
+          "downloadedBytes": 3184832,
+          "downloadedSha256": "d851c42bb0dbcf21012e9ca1ac308b04bc9071a4e87118ccd79eec762fd030dc"
+        },
+        {
+          "channel": "Rough",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/weathered_planks/weathered_planks_rough_2k.jpg",
+          "downloadedBytes": 989704,
+          "downloadedSha256": "964c154545e1ac4e1cb4b2ba60960a1effa2c56c31a2c300bf78fcc499b17c52"
+        },
+        {
+          "channel": "AO",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/weathered_planks/weathered_planks_ao_2k.jpg",
+          "downloadedBytes": 2563317,
+          "downloadedSha256": "3f797b00bc63c54a45e17f8b6ffcd9a6709d29e88b51049dbda4b0430c7cc7c4"
+        }
+      ],
+      "runtimeMaps": [
+        {
+          "channel": "albedo",
+          "path": "assets/textures/blackwater/weathered_planks_diff.jpg",
+          "resolution": [
+            1024,
+            1024
+          ],
+          "bytes": 178336,
+          "sha256": "aa22b5fc207c3ceb14cd5fe1b92edf077f0fbe09d84abfed597223045888d100",
+          "transform": "Resize to 1024px; JPEG quality 88, 4:4:4"
+        },
+        {
+          "channel": "normal",
+          "path": "assets/textures/blackwater/weathered_planks_nor_gl.jpg",
+          "resolution": [
+            1024,
+            1024
+          ],
+          "bytes": 390212,
+          "sha256": "023cc7240a8cc649fdba2157f8977129c5f5a4eed916bf036c2c075dbe5e79bc",
+          "transform": "Resize to 1024px; JPEG quality 94, 4:4:4"
+        },
+        {
+          "channel": "ARM",
+          "path": "assets/textures/blackwater/weathered_planks_arm.webp",
+          "resolution": [
+            1024,
+            1024
+          ],
+          "bytes": 753784,
+          "sha256": "a159f10fd1e5e87484e1b70e76b8e05b10e5ca02e3178abaf45d73c60c9533b5",
+          "transform": "Resize AO and roughness to 1K; R=AO,G=roughness,B=0 metalness; lossless WebP"
+        }
+      ]
+    },
+    {
+      "id": "red_brick",
+      "source": "https://polyhaven.com/a/red_brick",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "authors": {
+        "Rob Tuytel": "All"
+      },
+      "tileMetres": [
+        1.4,
+        1.4
+      ],
+      "downloadedSources": [
+        {
+          "channel": "Diffuse",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/red_brick/red_brick_diff_2k.jpg",
+          "downloadedBytes": 3169072,
+          "downloadedSha256": "a1ae5ba7e63026971ceaf68ebbcf8982d9c2dadde1c99996c49b8ac1160af995"
+        },
+        {
+          "channel": "nor_gl",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/red_brick/red_brick_nor_gl_2k.jpg",
+          "downloadedBytes": 4327452,
+          "downloadedSha256": "dd2ce5b5c42f04f02fce555d53eae42503733a0a42e76ae9a18bfb9d0680da5b"
+        },
+        {
+          "channel": "Rough",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/red_brick/red_brick_rough_2k.jpg",
+          "downloadedBytes": 552848,
+          "downloadedSha256": "b8b6b882b467647162433914b3e4db16e91852a0bdf866e6bcea4a76683ea00d"
+        },
+        {
+          "channel": "AO",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/red_brick/red_brick_ao_2k.jpg",
+          "downloadedBytes": 2989135,
+          "downloadedSha256": "5527fb221bf4506a2c5eb78d0b94e442ea4ec91cfa2ae17ae93bc78e88bd05ed"
+        }
+      ],
+      "runtimeMaps": [
+        {
+          "channel": "albedo",
+          "path": "assets/textures/blackwater/red_brick_diff.jpg",
+          "resolution": [
+            2048,
+            2048
+          ],
+          "bytes": 929651,
+          "sha256": "b8d8ad5341325f43c5e8cb3de53014dea0db54538b9b5479b50d5fefaa9dba9a",
+          "transform": "JPEG quality 88,4:4:4"
+        },
+        {
+          "channel": "normal",
+          "path": "assets/textures/blackwater/red_brick_nor_gl.jpg",
+          "resolution": [
+            2048,
+            2048
+          ],
+          "bytes": 2708970,
+          "sha256": "e145e346c000ce35c71f111546260fe21461530cd489b26d30ee971892f62517",
+          "transform": "JPEG quality 94,4:4:4"
+        },
+        {
+          "channel": "ARM",
+          "path": "assets/textures/blackwater/red_brick_arm.webp",
+          "resolution": [
+            1024,
+            1024
+          ],
+          "bytes": 818836,
+          "sha256": "c84044f58fd444ec90a8d811b116d9a761f12e435c57938c3dcd299fa1b8554e",
+          "transform": "1K red=AO,green=roughness,blue=0metalness;losslessWebP"
+        }
+      ]
+    },
+    {
+      "id": "clean_asphalt",
+      "source": "https://polyhaven.com/a/clean_asphalt",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "authors": {
+        "Dimitrios Savva": "All"
+      },
+      "tileMetres": [
+        2.1,
+        2.1
+      ],
+      "downloadedSources": [
+        {
+          "channel": "Diffuse",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/clean_asphalt/clean_asphalt_diff_2k.jpg",
+          "downloadedBytes": 3314999,
+          "downloadedSha256": "9d58f263b695c268e391aa39ea2f6b30ab9f36d279715cc78593a4d43368039c"
+        },
+        {
+          "channel": "nor_gl",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/clean_asphalt/clean_asphalt_nor_gl_2k.jpg",
+          "downloadedBytes": 3923727,
+          "downloadedSha256": "ee6e217a75851a73ab0ce54501e787b63707e0cf8dfd7293989adf7d3e325162"
+        },
+        {
+          "channel": "Rough",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/clean_asphalt/clean_asphalt_rough_2k.jpg",
+          "downloadedBytes": 2898463,
+          "downloadedSha256": "3b5afbcee7e27fa8908b0e191dd7eda5d4239bbfe68f9ce0b84e4f55f708d2e7"
+        },
+        {
+          "channel": "AO",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/clean_asphalt/clean_asphalt_ao_2k.jpg",
+          "downloadedBytes": 3141137,
+          "downloadedSha256": "581a6b5a1d40b599d1ce73a9eb1125acaa5ac09cb4dbaf33c5e0b1bcfdc8dae3"
+        }
+      ],
+      "runtimeMaps": [
+        {
+          "channel": "albedo",
+          "path": "assets/textures/blackwater/clean_asphalt_diff.jpg",
+          "resolution": [
+            2048,
+            2048
+          ],
+          "bytes": 923775,
+          "sha256": "0eae15b4c95ac0d601fc9866b046daa8b115977f9edb8c8c14488b3b17ffe2c0",
+          "transform": "JPEG quality 88,4:4:4"
+        },
+        {
+          "channel": "normal",
+          "path": "assets/textures/blackwater/clean_asphalt_nor_gl.jpg",
+          "resolution": [
+            2048,
+            2048
+          ],
+          "bytes": 2244971,
+          "sha256": "f73cd3f78bdea9d8790f1c6468ac931803f38dd1595c3d04e7a8d5058897143f",
+          "transform": "JPEG quality 94,4:4:4"
+        },
+        {
+          "channel": "ARM",
+          "path": "assets/textures/blackwater/clean_asphalt_arm.webp",
+          "resolution": [
+            1024,
+            1024
+          ],
+          "bytes": 1254936,
+          "sha256": "b9e8550633c3c2011180a157f2a2ef0c98b235d2e929cfaf55a143418cde167a",
+          "transform": "1K red=AO,green=roughness,blue=0metalness;losslessWebP"
+        }
+      ]
+    }
+  ],
+  "retiredSources": [
+    {
+      "id": "worn_brick_wall",
+      "source": "https://polyhaven.com/a/worn_brick_wall",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "authors": {
+        "Amal Kumar": "All"
+      },
+      "tileMetres": [
+        2,
+        2
+      ],
+      "downloadedSources": [
+        {
+          "channel": "Diffuse",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/worn_brick_wall/worn_brick_wall_diff_2k.jpg",
+          "downloadedBytes": 3758830,
+          "downloadedSha256": "ccd7b31c4860c4f86f6c0b7bb9773932624581a77b5c65805534f61de9602a86"
+        },
+        {
+          "channel": "nor_gl",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/worn_brick_wall/worn_brick_wall_nor_gl_2k.jpg",
+          "downloadedBytes": 4313870,
+          "downloadedSha256": "7b3da38cd6717dd81ccdf4b2474d49dc62fb5f45add04146381b8fbaad887316"
+        },
+        {
+          "channel": "Rough",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/worn_brick_wall/worn_brick_wall_rough_2k.jpg",
+          "downloadedBytes": 2052365,
+          "downloadedSha256": "85505e56f7362db9eb6b367df1a8c355426c5f095a7401a0ef1c50f30e5416ea"
+        },
+        {
+          "channel": "AO",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/worn_brick_wall/worn_brick_wall_ao_2k.jpg",
+          "downloadedBytes": 2731364,
+          "downloadedSha256": "2f654c450da423391133f178292a3f4a6deb603ede9771812bf9c8d50da32df7"
+        }
+      ],
+      "runtimeMaps": [
+        {
+          "channel": "albedo",
+          "path": "assets/textures/blackwater/worn_brick_wall_diff.jpg",
+          "resolution": [
+            2048,
+            2048
+          ],
+          "bytes": 1215672,
+          "sha256": "28e64b92a9ead4d3f5deb533c0ad38952b4249f426fc0971b2cf080295462dd9",
+          "transform": "Resize to 2048px; JPEG quality 88, 4:4:4"
+        },
+        {
+          "channel": "normal",
+          "path": "assets/textures/blackwater/worn_brick_wall_nor_gl.jpg",
+          "resolution": [
+            2048,
+            2048
+          ],
+          "bytes": 2702316,
+          "sha256": "479ac51766319605bbf3c231afdd439d934fffcae63e0b10c1011d299d088ec7",
+          "transform": "Resize to 2048px; JPEG quality 94, 4:4:4"
+        },
+        {
+          "channel": "ARM",
+          "path": "assets/textures/blackwater/worn_brick_wall_arm.webp",
+          "resolution": [
+            1024,
+            1024
+          ],
+          "bytes": 1133078,
+          "sha256": "f867cd6f65623fdc9d1e570e88c09965017f42288ad6307ec59e3fed0b951184",
+          "transform": "Resize AO and roughness to 1K; R=AO,G=roughness,B=0 metalness; lossless WebP"
+        }
+      ],
+      "retiredReason": "Pale eroded brick made all facades grey; replaced by warm unpainted red brick"
+    },
+    {
+      "id": "worn_asphalt",
+      "source": "https://polyhaven.com/a/worn_asphalt",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "authors": {
+        "Amal Kumar": "All"
+      },
+      "tileMetres": [
+        2,
+        2
+      ],
+      "downloadedSources": [
+        {
+          "channel": "Diffuse",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/worn_asphalt/worn_asphalt_diff_2k.jpg",
+          "downloadedBytes": 3573942,
+          "downloadedSha256": "8313d3f8d25515d6ef0be59d461cdeb0feb484694eae385711ecf688c0afa4de"
+        },
+        {
+          "channel": "nor_gl",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/worn_asphalt/worn_asphalt_nor_gl_2k.jpg",
+          "downloadedBytes": 5863366,
+          "downloadedSha256": "114db3391e7d74c03758b06c8af2901a2c9392cf4cb37e7a8a3254a3235ce63e"
+        },
+        {
+          "channel": "Rough",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/worn_asphalt/worn_asphalt_rough_2k.jpg",
+          "downloadedBytes": 1823718,
+          "downloadedSha256": "71572c4d7f3b4f33bd45f2b25368b853101e58c85c826a7109bab851eb847a6a"
+        },
+        {
+          "channel": "AO",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/worn_asphalt/worn_asphalt_ao_2k.jpg",
+          "downloadedBytes": 4367024,
+          "downloadedSha256": "9ffc3abc0ce840ab6bfc9e19aad40d5011a02f7c2f4095742dd048ca8afa34d1"
+        }
+      ],
+      "runtimeMaps": [
+        {
+          "channel": "albedo",
+          "path": "assets/textures/blackwater/worn_asphalt_diff.jpg",
+          "resolution": [
+            2048,
+            2048
+          ],
+          "bytes": 1181887,
+          "sha256": "c065b8f1758119b49061fbce84bb5d33660663e8ab7aba9ced6f9ba87d77425a",
+          "transform": "Resize to 2048px; JPEG quality 88, 4:4:4"
+        },
+        {
+          "channel": "normal",
+          "path": "assets/textures/blackwater/worn_asphalt_nor_gl.jpg",
+          "resolution": [
+            2048,
+            2048
+          ],
+          "bytes": 3941433,
+          "sha256": "f7adee5e6b6544d30c964156409f43ecf580243ef30ef6164f29a2da525534bf",
+          "transform": "Resize to 2048px; JPEG quality 94, 4:4:4"
+        },
+        {
+          "channel": "ARM",
+          "path": "assets/textures/blackwater/worn_asphalt_arm.webp",
+          "resolution": [
+            1024,
+            1024
+          ],
+          "bytes": 1394566,
+          "sha256": "82b13aa0ddf2ff5e919d2fdb716d30612555a96794fbaff39e1c71431d1b0dcd",
+          "transform": "Resize AO and roughness to 1K; R=AO,G=roughness,B=0 metalness; lossless WebP"
+        }
+      ],
+      "retiredReason": "Orange leaf litter and brown aggregate dominated road; replaced by neutral fine asphalt"
+    }
+  ],
+  "surfaceUse": {
+    "red_brick": "Brick facades and chimneys only,1.4m tile",
+    "clean_asphalt": "Road only,2.1m tile",
+    "weathered_planks": "Bare timber boards,2m tile",
+    "worn_plaster_wall": "Explicit damagedPlaster role only,1.8m tile; never generic siding,trim or paving",
+    "authored": "Painted siding,fine plaster,limestone trim and sidewalk concrete use restrained original grain rather than large scan stains"
+  }
+}

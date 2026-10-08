@@ -6,10 +6,11 @@
 // `env` of its own primitives ({castRay, canStand, angleDiff, clamp}), which
 // avoids an import cycle. Enemies without `e.mind` keep the legacy chase code.
 //
-// States:  dormant -> wander -> investigate -> stalk <-> flank -> (attack) ->
+// States:  dormant -> wander -> notice/investigate -> stalk <-> flank -> (attack) ->
 //          recover -> stalk;  stagger interrupts anything;  emerge gates spawns.
 
 import {propSegmentClear} from './harbor-collision.js';
+import {setupZombie,noteSighting,hordeFrame,hearHorde,hordeSteering,gaitSpeed,interceptGoal,motionIntent,sensedLocation} from './zombie-behavior.js';
 export const TAU = Math.PI * 2;
 export const ingressMoveSpeed = speed => Math.max(Number(speed)||.3,.6)*1.1;
 export const hash01 = (a, b = 0) => {
@@ -20,7 +21,7 @@ export const hash01 = (a, b = 0) => {
 const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
 const clampN = (v, a, b) => Math.max(a, Math.min(b, v));
 
-export const AI_STATES = Object.freeze(['dormant', 'wander', 'investigate', 'stalk', 'flank', 'attack', 'recover', 'stagger', 'emerge']);
+export const AI_STATES = Object.freeze(['dormant', 'wander', 'notice', 'investigate', 'stalk', 'flank', 'attack', 'recover', 'stagger', 'emerge']);
 const HUNTING = new Set(['stalk', 'flank', 'attack', 'recover']);
 export const isHunting = e => !!e.mind && HUNTING.has(e.mind.state);
 
@@ -49,6 +50,13 @@ const VARIANT = {
 };
 export function tuningFor(e, profile) {
   return { ...(ROLE[profile?.role] || ROLE.rush), ...(VARIANT[e.variant] || {}) };
+}
+
+export function visionAllows(e,target,profile){
+ const tune=e.aiTune||tuningFor(e,profile),state=e.mind?.state,hunting=HUNTING.has(state);
+ const d=Math.hypot(target.x-e.x,target.y-e.y),angle=Math.atan2(target.y-e.y,target.x-e.x);
+ const range=hunting?tune.sight*1.6:state==='dormant'?tune.sight*.4:tune.sight;
+ return d<range&&(d<.9||Math.abs(wrap(angle-(e.facing??angle)-(e.look||0)*.65))<tune.fov*(hunting?.68:.5));
 }
 
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -136,6 +144,9 @@ function moveToward(env, course, e, tx, ty, speed, dt, sepX = 0, sepY = 0) {
 
 function navigate(ctx, e, goal, speed) {
   const { env, course, dt } = ctx;
+  // The shared structure authority supplies the next stair tread. Perception,
+  // search clocks and gait continue through the ordinary mind update.
+  goal=env.routeGoal?.(course,e,goal)||goal;
   const fromX = e.x, fromY = e.y;
   const nav = e.nav;
   const dGoal = Math.hypot(goal.x - e.x, goal.y - e.y);
@@ -157,15 +168,8 @@ function navigate(ctx, e, goal, speed) {
       clearLine(env, course, e.x, e.y, nav.path[1].x, nav.path[1].y, .17))) nav.path.shift();
     wp = nav.path[0];
   } else nav.path = null;
-  // Soft separation so groups fan out rather than stacking.
-  let sx = 0, sy = 0;
-  for (const o of ctx.alive) {
-    if (o === e || o.dead) continue;
-    const ox = e.x - o.x, oy = e.y - o.y, od = Math.hypot(ox, oy);
-    if (od < .36 && od > 1e-4) { const k = (.36 - od) / .36 * 1.4; sx += ox / od * k; sy += oy / od * k; }
-    else if (od <= 1e-4) { sx += Math.cos(e.id) * .5; sy += Math.sin(e.id) * .5; }
-  }
-  const moved = moveToward(env, course, e, wp.x, wp.y, speed, dt, sx, sy);
+  const separation = hordeSteering(ctx,e);
+  const moved = moveToward(env, course, e, wp.x, wp.y, speed, dt, separation.x, separation.y);
   // Stuck watchdog: intent to move but no progress for ~.8s -> force repath and sidestep.
   nav.stuckT = (nav.stuckT || 0) + dt;
   nav.stuckD = (nav.stuckD || 0) + moved;
@@ -197,22 +201,26 @@ export function createMind(e, opts = {}) {
     wakeAt: -1, emerge: opts.emerge || 0, token: false, engageT: 0, firstAttack: opts.firstAttack ?? .7,
     justAttacked: false, recover: 0, graceT: 0, flankT: 0, flankSide: hash01(e.id, 2) < .5 ? 1 : -1,
     orbitDir: hash01(e.id, 3) < .5 ? 1 : -1, orbitBeat: -1, wanderT: 0, startle: 0, glance: 0, relentless: opts.relentless ?? state === 'stalk',
+    sighting:null, observation:null, socialPending:null, wakeKnown:null,
+    notice:null, recognitionUntil:0, senses:{visible:false,heardPower:0,heardType:null,occluded:false},
   };
   e.state = e.mind.emerge > 0 ? 'emerge' : state;
   e.aware = e.mind.aware;
   e.facing = opts.facing ?? hash01(e.id, 4) * TAU;
   e.look = 0;
+  e.lookPitch = 0; e.noticeStrength = 0;
   e.spawnAnim = opts.spawnAnim || 'none';
   e.emerge = e.mind.emerge;
   e.emergeTotal = e.mind.emerge;
+  setupZombie(e,hash01);
   return e.mind;
 }
 
 export function wakeEnemy(e, at, delay = 0) {
   if (!e.mind || e.dead) return;
   e.mind.relentless = true;
-  if (delay > 0) e.mind.wakeAt = e.mind.t + delay;
-  else { e.mind.aware = 1; if (at) e.mind.lastKnown = { x: at.x, y: at.y }; }
+  if (delay > 0) {e.mind.wakeAt = e.mind.t + delay;e.mind.wakeKnown=at?sensedLocation(at):null;}
+  else { e.mind.aware = 1; if (at) e.mind.lastKnown = sensedLocation(at); }
 }
 
 // Called from damageEnemy: being shot alerts, and heavy hits stagger unless the
@@ -221,8 +229,8 @@ export function reactToHit(e, damage, source) {
   if (!e.mind || e.dead) return;
   const m = e.mind;
   m.aware = 1;
-  if (source) m.lastKnown = { x: source.x, y: source.y };
-  if (m.state === 'dormant' || m.state === 'wander' || m.state === 'investigate') { m.state = 'stalk'; m.t = 0; m.startle = .35; }
+  if (source) m.lastKnown = sensedLocation(source);
+  if (m.state === 'dormant' || m.state === 'wander' || m.state === 'notice' || m.state === 'investigate') { m.state = 'stalk'; m.notice=null; m.t = 0; m.startle = .35; }
   const tune = e.aiTune;
   const resist = tune?.stagger ?? 1;
   if (m.graceT > 0 || m.emerge > 0) return;
@@ -240,21 +248,26 @@ export function reactToHit(e, damage, source) {
 // engine and cleared by the host each frame, so keep a cursor.
 export function collectNoises(r) {
   const out = [];
-  const ev = r.events || [];
-  let cur = r._noiseCursor || 0;
-  if (cur > ev.length) cur = 0;
-  for (let i = cur; i < ev.length; i++) {
-    const spec = NOISE[ev[i].type];
-    if (!spec) continue;
-    const x = Number.isFinite(ev[i].x) ? ev[i].x : r.x, y = Number.isFinite(ev[i].y) ? ev[i].y : r.y;
-    out.push({ x, y, radius: spec.radius, loud: spec.loud, type: ev[i].type });
-  }
-  r._noiseCursor = ev.length;
-  // Sprinting / sliding footfalls are a low, continuous noise.
   for (const p of [r, r.peer]) {
     if (!p || p.health <= 0) continue;
+    const ev=p.events||[];let cur=p._noiseCursor||0;
+    // Clearing and refilling the same array can retain its old length, notably
+    // for guest events. The last consumed object makes that reset observable.
+    if(cur>ev.length||cur>0&&p._noiseLastEvent!==ev[cur-1])cur=0;
+    for(let i=cur;i<ev.length;i++){
+      const event=ev[i],spec=NOISE[event.type];if(!spec)continue;
+      const x=Number.isFinite(event.x)?event.x:p.x,y=Number.isFinite(event.y)?event.y:p.y;
+      const location=Math.hypot(x-p.x,y-p.y)<.5?sensedLocation(p):{x,y};
+      out.push({...location,x,y,radius:spec.radius,loud:spec.loud,type:event.type});
+    }
+    p._noiseCursor=ev.length;p._noiseLastEvent=ev.at(-1)||null;
     const sp = p.speed || 0;
-    if (sp > 1.9 && p.z < .08) out.push({ x: p.x, y: p.y, radius: 4.2, loud: .3, type: 'steps' });
+    const now=Number(r.time)||0;
+    if(sp>.7&&(p.z||0)<.08&&now>=(p._nextHearingStep??-Infinity)){
+      const running=sp>1.9;
+      out.push({...sensedLocation(p),radius:running?4.2:1.8,loud:running?.3:.14,type:'steps'});
+      p._nextHearingStep=now+(running?.32:.52);
+    }
   }
   return out;
 }
@@ -276,42 +289,50 @@ function perceive(ctx, e, target, d, ang, visible) {
   const m = e.mind, tune = e.aiTune, dt = ctx.dt;
   const hunting = HUNTING.has(m.state);
   const dormant = m.state === 'dormant';
-  let sensed = false;
-  const facing = e.facing ?? ang;
-  const inCone = hunting || Math.abs(wrap(ang - facing)) < tune.fov * .5;
-  const range = hunting ? tune.sight * 1.6 : dormant ? tune.sight * .4 : tune.sight;
-  if (visible && d < range && (inCone || d < 2.2)) {
+  let sensed = Number.isFinite(m.socialReceiptAt)&&ctx.time-m.socialReceiptAt<.25;
+  m.senses ||= {visible:false,heardPower:0,heardType:null,occluded:false};
+  Object.assign(m.senses,{visible,heardPower:0,heardType:null,occluded:false});
+  if (visible) {
+    const range = hunting ? tune.sight * 1.6 : dormant ? tune.sight * .4 : tune.sight;
     const noisy = clampN(.7 + Math.hypot(target.vx || 0, target.vy || 0) * .3, .6, 1.5);
     const gain = ((1 - d / range) * 2.4 + .3) * noisy * (dormant ? .5 : 1);
     m.aware = Math.min(1.2, m.aware + gain * dt);
-    m.lastKnown = { x: target.x, y: target.y };
+    m.lastKnown = sensedLocation(target);
+    const confirmed=hunting||ctx.time<(m.recognitionUntil||0)||d<=2.4&&m.aware>=1;
+    noteSighting(ctx,e,target,confirmed);
+    if(hunting)m.recognitionUntil=ctx.time+8;
     m.lostFor = 0;
     sensed = true;
-  } else if (hunting) m.lostFor += dt;
-  let heard=null,heardPower=.08;
+  } else if (hunting||m.state==='notice') m.lostFor += dt;
+  let heard=null,heardPower=.08,heardOccluded=false;
   for (const n of ctx.noises) {
     const dd = Math.hypot(n.x - e.x, n.y - e.y);
-    const los = ctx.env.castRay(ctx.course, e.x, e.y, Math.atan2(n.y - e.y, n.x - e.x)).dist > dd - .2;
+    const los = ctx.env.sensorLine?ctx.env.sensorLine(ctx.course,e,n):ctx.env.castRay(ctx.course, e.x, e.y, Math.atan2(n.y - e.y, n.x - e.x)).dist > dd - .2;
     const eff = n.radius * (los ? 1 : .55) * (dormant ? .6 : 1) * (tune.hearing || 1);
     if (dd >= eff) continue;
     const power = (1 - dd / eff) * n.loud;
     // Pick the strongest audible source, independent of event insertion order.
     if(power>heardPower || (power===heardPower&&heard&&(n.x<heard.x||n.x===heard.x&&n.y<heard.y))) {
-      heard=n;heardPower=power;
+      heard=n;heardPower=power;heardOccluded=!los;
     }
   }
   if(heard) {
     const n=heard,power=heardPower;
-    if (power > .55) { m.aware = Math.max(m.aware, 1); m.lastKnown = { x: n.x, y: n.y }; }
-    else if (power > .08) {
-      m.aware = Math.max(m.aware, .3 + power * .5);
+    Object.assign(m.senses,{heardPower:power,heardType:n.type||'noise',occluded:heardOccluded});
+    // Hearing is evidence of a location, never confirmation of a visible
+    // player. Strong sounds wake a purposeful search; sight keeps priority.
+    if (!visible) {
+      m.aware = Math.max(m.aware, .3 + Math.min(.6,power*.6));
       // A new sound elsewhere interrupts listening at the old destination.
       // Repeated sounds at the same point must not restart the search clock.
       if (m.state === 'investigate' && m.search > 0 &&
           Math.hypot(n.x - (m.noise?.x ?? e.x), n.y - (m.noise?.y ?? e.y)) > .75) {
         m.search = 0; m.t = 0; e.nav.path = null; e.nav.repath = 0;
       }
-      m.noise = { x: n.x, y: n.y, t: 0 };
+      m.noise = { ...sensedLocation(n), t: 0, power, type:n.type||'noise', occluded:heardOccluded };
+    }else if(power>.55){m.aware=Math.max(m.aware,1);}
+    if(!visible&&power>.55&&m.state==='notice'){
+      m.notice=null;enter(e,'investigate');
     }
     sensed = true;
   }
@@ -326,6 +347,7 @@ function enter(e, state) {
   if (m.state === state) return;
   m.state = state; m.t = 0;
   if (state !== 'investigate') m.search = 0;
+  if (state !== 'notice') m.notice = null;
   e.state = state;
 }
 
@@ -333,18 +355,6 @@ export function turnFacing(e, desired, rate, dt) {
   const diff = wrap(desired - e.facing);
   const step = rate * dt;
   e.facing = wrap(e.facing + clampN(diff, -step, step));
-}
-
-function alertPack(ctx, e) {
-  const pack = ctx.packs?.get(e.pack ?? 0);
-  if (!pack) return;
-  for (const o of pack.members) {
-    if (o === e || o.dead || !o.mind || isHunting(o)) continue;
-    if (Math.hypot(o.x - e.x, o.y - e.y) > 9) continue;
-    o.mind.aware = Math.max(o.mind.aware, .7);
-    o.mind.noise = { x: e.x, y: e.y, t: 0 };
-    o.mind.wakeAt = o.mind.wakeAt < 0 ? o.mind.t + .2 + hash01(o.id, 6) * .6 : o.mind.wakeAt;
-  }
 }
 
 function pickWanderDest(ctx, e) {
@@ -364,11 +374,15 @@ export function stepMind(ctx, e, target) {
   if (!e.aiTune) Object.defineProperty(e, 'aiTune', { value: tuningFor(e, profile), writable: true, enumerable: false, configurable: true });
   const tune = e.aiTune;
   const dt = ctx.dt, course = ctx.course, env = ctx.env;
+  hordeFrame(ctx);
+  if(!m.gait)setupZombie(e,hash01);
   const fromX = e.x, fromY = e.y;
   e.moving = 0;
   m.t += dt; m.graceT = Math.max(0, m.graceT - dt); m.startle = Math.max(0, m.startle - dt);
   const dx = target.x - e.x, dy = target.y - e.y, d = Math.hypot(dx, dy), ang = Math.atan2(dy, dx);
-  const visible = e.seesTarget === true;
+  // Even an alerted hunter has eyes facing one direction. Its head expands
+  // that cone; a point-blank encounter remains a physical proximity cue.
+  const visible = e.seesTarget === true && visionAllows(e,target,profile);
   const baseSpeed = e.moveSpeed || profile.speed || .3;
   const result = { attackOK: false };
 
@@ -384,28 +398,30 @@ export function stepMind(ctx, e, target) {
       const waypoint=e.ingressRoute[0],motion=navigate(ctx,e,waypoint,ingressSpeed);
       if(motion.moved>1e-5)turnFacing(e,motion.heading,tune.turn,dt);
       e.state='stalk';e.moving=motion.moved>1e-5?clampN(motion.moved/Math.max(dt,.0001)/Math.max(baseSpeed,.2),0,2):0;
+      motionIntent(e,ctx);
       e.ingressProgress=(e.ingressTotal-e.ingressRoute.length)/Math.max(1,e.ingressTotal);
       // A player pushing directly into the lane can still be fought. Do not
       // make the ingress pose an invulnerable or passive shooting gallery.
       if(d>.8||!visible)return result;
       e.ingressRoute.length=0;
     }
-    e.ingressProgress=1;m.aware=1;m.lastKnown={x:target.x,y:target.y};m.state='stalk';
+    e.ingressProgress=1;m.aware=1;if(visible){m.lastKnown=sensedLocation(target);noteSighting(ctx,e,target);}m.state='stalk';
   }
 
   // Spawn-in: fully committed, no perception; face the player as it finishes.
   if (m.emerge > 0) {
     m.emerge = Math.max(0, m.emerge - dt); e.emerge = m.emerge;
     e.state = 'emerge';
-    if (m.emerge < .35) turnFacing(e, ang, tune.turn * .6, dt);
+    if (m.emerge < .35 && visible) turnFacing(e, ang, tune.turn * .6, dt);
     if (m.emerge === 0) { m.state = m.aware >= 1 ? 'stalk' : m.state; m.t = 0; e.state = m.state; }
     return result;
   }
 
   // Delayed wake (room cascade / pack alert).
-  if (m.wakeAt >= 0 && m.t >= m.wakeAt) { m.wakeAt = -1; m.aware = Math.max(m.aware, 1); m.lastKnown ||= { x: target.x, y: target.y }; m.startle = .4; if (!HUNTING.has(m.state)) { enter(e, 'stalk'); m.engageT = 0; } }
+  if (m.wakeAt >= 0 && m.t >= m.wakeAt) { m.wakeAt = -1; m.aware = Math.max(m.aware, 1); m.lastKnown ||= m.wakeKnown; m.wakeKnown=null; m.startle = .4; if (!HUNTING.has(m.state)) { enter(e, 'stalk'); m.engageT = 0; } }
 
   const wasHunting = HUNTING.has(m.state);
+  hearHorde(ctx,e,hash01);
   perceive(ctx, e, target, d, ang, visible);
 
   // Attack bookkeeping from the engine's windup/strike flags.
@@ -417,15 +433,30 @@ export function stepMind(ctx, e, target) {
   if (e.attacking || e.strike > 0) { e.state = 'attack'; }
 
   // Escalation / de-escalation.
-  if (!HUNTING.has(m.state) && m.aware >= 1) {
+  const recentRecognition=ctx.time<(m.recognitionUntil||0)||m.sighting?.hops>0&&ctx.time-m.sighting.time<3.5;
+  const distantNotice=visible&&d>2.8&&!recentRecognition&&m.senses.heardPower<=.55;
+  if(!visible&&m.senses.heardPower>.55&&HUNTING.has(m.state)&&!e.attacking&&!(e.strike>0)){
+    m.token=false;enter(e,'investigate');e.nav.path=null;e.nav.repath=0;
+  }
+  if(!HUNTING.has(m.state)&&m.state!=='notice'&&distantNotice&&m.aware>=.14){
+    enter(e,'notice');m.dest=null;m.noise=null;m.token=false;
+    m.notice={duration:(e.locomotion==='runner'?.48:e.locomotion==='crawler'?1.0:1.15)+hash01(e.id,93)*.55};
+  }
+  const noticeReady=m.state!=='notice'||visible&&(d<=2.8||m.senses.heardPower>.55||m.t>=(m.notice?.duration??1.15));
+  if (!HUNTING.has(m.state) && m.aware >= 1 && noticeReady && (visible||!m.noise||recentRecognition)) {
     enter(e, 'stalk'); m.startle = .4; m.engageT = 0;
-    alertPack(ctx, e);
+    m.recognitionUntil=ctx.time+8;if(m.sighting)m.sighting.confirmed=true;
+  } else if(m.state==='notice'&&!visible&&m.lostFor>.6){
+    m.noise=m.lastKnown?{...m.lastKnown,t:0,power:.25,type:'lost-sight'}:null;
+    enter(e,m.noise?'investigate':'wander');
   } else if (m.state === 'dormant' && m.aware >= .3) {
     enter(e, m.noise ? 'investigate' : 'wander'); m.startle = .4;
-  } else if ((m.state === 'wander') && m.aware >= .3 && m.noise) {
+  } else if ((m.state === 'wander'||m.state==='notice') && !visible && m.aware >= .3 && m.noise) {
     enter(e, 'investigate');
   }
-  if (m.relentless && HUNTING.has(m.state)) { m.aware = Math.max(m.aware, 1); m.lostFor = Math.min(m.lostFor, 3); m.lastKnown = { x: target.x, y: target.y }; }
+  // Even committed spawns hunt a remembered observation; losing sight never
+  // refreshes it from the player's hidden current position.
+  if(HUNTING.has(m.state)&&m.state!=='recover'&&!visible&&!m.lastKnown&&!e.attacking&&!(e.strike>0)){m.token=false;enter(e,'wander');}
   if (HUNTING.has(m.state) && m.lostFor > 6.5 && m.aware < 1) {
     m.lostFor = 0; m.token = false;
     m.noise = m.lastKnown ? { ...m.lastKnown, t: 0 } : null;
@@ -435,7 +466,9 @@ export function stepMind(ctx, e, target) {
   if (hunting && !wasHunting) m.firstAttack = Math.max(m.firstAttack, .55);
   m.firstAttack = Math.max(0, m.firstAttack - dt);
 
-  let moved = 0, heading = null, lookGoal = ang;
+  const rememberedAngle = visible ? ang : m.lastKnown ? Math.atan2(m.lastKnown.y-e.y,m.lastKnown.x-e.x) : e.facing;
+  const gait=gaitSpeed(ctx,e,visible,d,hash01);
+  let moved = 0, heading = null, lookGoal = rememberedAngle;
   const fixedFace = e.attacking || e.strike > 0;
 
   switch (m.state) {
@@ -450,11 +483,18 @@ export function stepMind(ctx, e, target) {
       if (!m.dest && m.pause <= 0) m.pause = 1.5 + hash01(e.id, Math.floor(m.t)) * 2;
       if (m.dest) {
         m.wanderT = (m.wanderT || 0) + dt;
-        const res = navigate(ctx, e, m.dest, baseSpeed * .34);
+        const res = navigate(ctx, e, m.dest, baseSpeed * .34 * gait);
         moved = res.moved; heading = res.heading;
         if (Math.hypot(m.dest.x - e.x, m.dest.y - e.y) < .3 || res.blocked || m.wanderT > 30) { m.dest = null; m.pause = 1.6 + hash01(e.id, Math.floor(m.t * 3)) * 3.4; }
       }
       lookGoal = null;
+      break;
+    }
+    case 'notice': {
+      // Head recognition precedes the slow body turn. No path, burst or attack
+      // token is acquired during this distant, unsettling stillness.
+      lookGoal=rememberedAngle;
+      if(m.t>.28)heading=rememberedAngle;
       break;
     }
     case 'investigate': {
@@ -467,12 +507,12 @@ export function stepMind(ctx, e, target) {
         const phase = m.t * m.searchTempo + m.searchPhase;
         heading = phase % 1.8 < .3 ? e.facing : m.searchFacing + Math.sin(phase) * .65;
         lookGoal = null;
-        if (m.search <= 0) { m.noise = null; enter(e, 'wander'); m.dest = null; m.pause = .8; }
+        if (m.search <= 0) { m.noise = null;m.lastKnown=null;m.observation=null;m.aware=Math.min(m.aware,.25); enter(e, 'wander'); m.dest = null; m.pause = .8; }
         break;
       }
-      const res = navigate(ctx, e, goal, baseSpeed * .62);
+      const res = navigate(ctx, e, goal, baseSpeed * ((goal.power||0)>.55?.88:.62) * gait);
       moved = res.moved; heading = res.heading;
-      if (Math.hypot(goal.x - e.x, goal.y - e.y) < .5 || res.blocked || m.t > 12) { m.search = 2.2 + hash01(e.id, 9) * 1.4; m.searchFacing = e.facing; m.t = 0; }
+      if (Math.hypot(goal.x - e.x, goal.y - e.y) < .5&&!env.routeGoal?.(course,e,goal) || res.blocked || m.t > 12) { m.search = 2.2 + hash01(e.id, 9) * 1.4; m.searchFacing = e.facing; m.t = 0; }
       lookGoal = null;
       break;
     }
@@ -483,7 +523,7 @@ export function stepMind(ctx, e, target) {
       if (e.attacking || e.strike > 0) break;
       if (m.token && !(e.strike > 0)) m.token = false;
       // Back off a touch and re-read the player; ranged types keep spacing.
-      const away = Math.atan2(-dy, -dx) + m.orbitDir * .9;
+      const away = rememberedAngle + Math.PI + m.orbitDir * .9;
       moved = moveToward(env, course, e, e.x + Math.cos(away), e.y + Math.sin(away), baseSpeed * (tune.band ? .5 : .38), dt);
       heading = away;
       if (m.recover <= 0) { enter(e, 'stalk'); m.engageT = 0; }
@@ -494,13 +534,19 @@ export function stepMind(ctx, e, target) {
     case 'attack': {
       result.attackOK = false;
       if (e.attacking || e.strike > 0) { m.token = true; break; }
-      const goalPos = visible ? target : (m.lastKnown || target);
+      const goalPos = visible ? interceptGoal(ctx,e,target,clearLine) : m.lastKnown;
+      if(!goalPos)break;
       const melee = !tune.band;
       const seenByTarget = Math.abs(wrap(Math.atan2(e.y - target.y, e.x - target.x) - (target.angle ?? 0))) < .55;
-      let speed = baseSpeed * (visible ? 1.15 : 1.0);
+      let speed = baseSpeed * (visible ? 1.15 : 1.0) * gait;
       if (tune.creep && visible && seenByTarget && d > 2.4) speed *= .6;   // creeps while watched
       else if (tune.creep && visible && !seenByTarget) speed *= 1.15;       // surges when unobserved
       if (m.startle > 0) speed *= .2;
+      if(env.routeGoal?.(course,e,goalPos)){
+        const res=navigate(ctx,e,goalPos,speed);moved=res.moved;heading=res.heading;
+        if(m.token){m.token=false;if(melee)ctx.tokens.melee=Math.max(0,ctx.tokens.melee-1);else ctx.tokens.ranged=Math.max(0,ctx.tokens.ranged-1);}
+        break;
+      }
       // Token economy: only a couple of enemies commit to melee at once.
       const grabbedByOther=(target.bite?.phase==='held'||target.bite?.phase==='windup')&&target.bite.enemyId!==e.id;
       if(grabbedByOther&&melee&&m.token){m.token=false;ctx.tokens.melee=Math.max(0,ctx.tokens.melee-1);}
@@ -519,7 +565,8 @@ export function stepMind(ctx, e, target) {
           if (d > stand) {
             const wobble = tune.erratic ? Math.sin(m.t * 6 + e.id) * .5 : 0;
             const slotA = ang + wobble + (hash01(e.id, 8) - .5) * 1.3;
-            const gx = target.x - Math.cos(slotA) * stand, gy = target.y - Math.sin(slotA) * stand;
+            const intercept = d>1.8 ? goalPos : target;
+            const gx = intercept.x - Math.cos(slotA) * stand, gy = intercept.y - Math.sin(slotA) * stand;
             const res = navigate(ctx, e, { x: gx, y: gy }, speed);
             moved = res.moved; heading = res.heading;
           }
@@ -615,20 +662,28 @@ export function stepMind(ctx, e, target) {
     if (lookGoal !== null && hunting && visible && aimAtTarget) desired = lookGoal;
     else if (heading !== null && moved > 1e-5) desired = heading;
     else if (lookGoal !== null && hunting) desired = m.lastKnown ? Math.atan2(m.lastKnown.y - e.y, m.lastKnown.x - e.x) : lookGoal;
-    else if (m.startle > 0) desired = ang;
-    else if (heading !== null && m.state === 'investigate') desired = heading;
-    if (!(m.state === 'dormant')) turnFacing(e, desired, (m.startle > 0 ? tune.turn * 1.6 : tune.turn), dt);
+    else if (m.startle > 0) desired = rememberedAngle;
+    else if (heading !== null && (m.state === 'investigate'||m.state==='notice')) desired = heading;
+    if (!(m.state === 'dormant')) turnFacing(e, desired, m.state==='notice'?1.0:(m.startle > 0 ? tune.turn * 1.6 : tune.turn), dt);
   }
   // Head-look: relative glance toward the player when aware, idle drift otherwise.
   let lookTarget;
-  if (hunting || m.startle > 0) lookTarget = clampN(wrap(ang - e.facing), -1.1, 1.1);
+  if (hunting || m.state==='notice' || m.startle > 0) lookTarget = clampN(wrap(rememberedAngle - e.facing), -1.1, 1.1);
   else if (m.state === 'investigate' && m.search > 0) lookTarget = Math.sin(m.t * m.searchTempo * 2.1 + m.searchPhase) * .65;
-  else if (m.aware > .3 && d < tune.sight) lookTarget = clampN(wrap(ang - e.facing), -.9, .9) * m.aware;
+  else if (visible && m.aware > .3 && d < tune.sight) lookTarget = clampN(wrap(ang - e.facing), -.9, .9) * m.aware;
   else lookTarget = Math.sin(ctx.time * .7 + e.id * 1.7) * .35 * (m.state === 'dormant' ? .4 : 1);
   e.look += (lookTarget - e.look) * (1 - Math.exp(-6 * dt));
+  if(visible){
+    const floor=actor=>env.groundHeight?.(course,actor)??(actor.supportZ||actor.groundZ||0);
+    e.lookPitch=Math.atan2(floor(target)+(target.z||0)+.32-floor(e)-(e.z||0)-(e.locomotion==='crawler'?.17:.38),Math.max(.3,d));
+  }
+  else e.lookPitch=(e.lookPitch||0)*Math.exp(-dt*2);
+  const noticeTarget=m.state==='notice'?clampN(m.t/.5,0,1):0;
+  e.noticeStrength+=(noticeTarget-(e.noticeStrength||0))*(1-Math.exp(-dt*5));
   e.aware = m.aware;
   if (!(e.attacking || e.strike > 0)) e.state = m.state;
   e.moving = moved > 1e-5 ? clampN(moved / Math.max(1e-4, dt) / Math.max(.2, baseSpeed), 0, 2.2) : 0;
+  motionIntent(e,ctx);
   return result;
 }
 

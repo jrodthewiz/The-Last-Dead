@@ -22,7 +22,9 @@ vec3 coastalColor(vec3 p,float t,vec3 eye,float footprint){
  float warp=coastalNoise(p.xz*.085+vec2(t*.015,-t*.009))*6.;
  float rippleWeight=.35+.65*coastalNoise(p.xz*.13+vec2(-t*.025,t*.008));
  vec2 ripple=(vec2(.8,.6)*.029*cos(dot(p.xz,vec2(1.12,.84))-t*3.6+warp)+vec2(-.92,.39)*.023*cos(dot(p.xz,vec2(-1.81,.77))-t*4.2-warp*.8)+vec2(.24,-.97)*.018*cos(dot(p.xz,vec2(.65,-2.62))-t*4.7+warp*1.3))*aa*rippleWeight+(vec2(-.6,.8)*.012*cos(dot(p.xz,vec2(-2.52,3.36))-t*5.8+warp)+vec2(.98,-.2)*.008*cos(dot(p.xz,vec2(5.1,-1.04))-t*6.3-warp))*aaFine*rippleWeight;
- vec2 gradient=coastalSlope(p.xz,t)+ripple;
+ // Fade unresolved long-wave normals before they become regular horizon rows.
+ float aaLong=1.-smoothstep(3.,18.,footprint);
+ vec2 gradient=coastalSlope(p.xz,t)*aaLong+ripple;
  vec3 n=normalize(vec3(-gradient.x,1.,-gradient.y));
  vec3 v=normalize(eye-p);
  float fresnel=.0204+.9796*pow(1.-abs(dot(n,v)),5.);
@@ -42,8 +44,8 @@ vec3 coastalColor(vec3 p,float t,vec3 eye,float footprint){
  float foam=crest*smoothstep(.68,.93,foamPatch)*.09*aa;
  vec3 lit=mix(body,reflection,fresnel)+vec3(.72,.77,.69)*sun;
  vec3 foamed=mix(lit,vec3(.4,.47,.44),foam);
- float haze=1.-exp(-length(eye-p)*.00085);
- return mix(foamed,vec3(.13,.21,.22),haze*.65);
+ float haze=1.-exp(-max(0.,length(eye-p)-250.)*.0011);
+ return mix(foamed,vec3(.468,.565,.611),haze*.98);
 }`;
 
 // The restricted source deliberately uses immutable locals so both backends
@@ -60,7 +62,7 @@ export const coastalWGSL=coastalGLSL
 export function coastalSurfaceHeightAt(x,z,time){return terms.reduce((sum,q)=>sum+q.a*Math.sin(x*q.x+z*q.z-time*q.w),0);}
 
 export function makeCoastalWater(THREE,bounds={}){
- const segments=320,extent=4000;
+ const segments=320,extent=16000;
  const geometry=new THREE.PlaneGeometry(1,1,segments,segments);
  const position=geometry.attributes.position;
  // Dense 3.5m cells cover the inhabited coast; outer cells expand to horizon.

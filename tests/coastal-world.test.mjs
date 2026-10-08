@@ -43,23 +43,38 @@ function reachable(c){
   }
   return seen;
 }
-test('coastal expansion preserves harbor rooms and chapter while connecting every exploration destination',()=>{
+test('coastal expansion preserves harbor rooms and chapter while connecting ground-floor exploration destinations',()=>{
   const legacy=makeHarborCourse({lowTide:true}),c=makeHarborCourse({lowTide:true,openWorld:true});
   assert.deepEqual(c.buildings,legacy.buildings);
   assert.deepEqual(c.harborRooms,legacy.harborRooms);
   assert.deepEqual(c.lowTideStations,legacy.lowTideStations);
-  assert.equal(c.w,96);assert.equal(c.h,80);assert.ok(c.coastal.buildings.length>=70&&c.coastal.buildings.length<=100);
+  assert.equal(c.w,112);assert.equal(c.h,104);assert.ok(c.coastal.buildings.length>=70&&c.coastal.buildings.length<=100);
   const seen=reachable(c);
   for(const p of [c.vehicle,c.exit,...c.coastal.landmarks,...c.scavengerPickups,...c.weaponPickups,...c.harborSpawns,...c.harborRooms.map(r=>r.door)]){
-    assert.ok(canStand(c,p.x,p.y,.2),`clear destination ${JSON.stringify(p)}`);
-    assert.ok(seen.has(`${Math.floor(p.x)},${Math.floor(p.y)}`),`reachable destination ${JSON.stringify(p)}`);
+    const target=p.approach||p;
+    assert.ok(canStand(c,target.x,target.y,p.approach?.1:.2,p.floorZ),`clear destination ${JSON.stringify(p)}`);
+    if(p.floorZ>.15){
+      // The upstairs discovery suite walks the real stairs with explicit support
+      // heights; a flat street graph cannot certify an upper-floor journey.
+      assert.ok(c.coastal.structures.some(s=>s.id===p.roomId));continue;
+    }
+    if(p.approach||c.coastal.landmarks.includes(p)&&!seen.has(`${Math.floor(target.x)},${Math.floor(target.y)}`)){
+      // Furniture can occupy a coarse cell centre while its real approach is
+      // walkable. Verify the actual door + indoor route instead of that centre.
+      const marker={id:`test-${p.id}`,name:p.label||p.name||p.id,x:target.x,y:target.y};c.coastal.landmarks.push(marker);
+      try{const run={course:c,...c.playerSpawn,backpack:{weaponPickups:[]},coastalDestination:marker.id};
+        const nav=harborNavigation(run);assert.ok(nav,`reachable indoor destination ${p.id}`);
+        let prior=run;for(const point of nav.points){const steps=Math.max(1,Math.ceil(Math.hypot(point.x-prior.x,point.y-prior.y)/.04));
+          for(let i=0;i<=steps;i++)assert.ok(canStand(c,prior.x+(point.x-prior.x)*i/steps,prior.y+(point.y-prior.y)*i/steps,.1),`clear indoor route ${p.id}`);prior=point;}
+      }finally{c.coastal.landmarks.pop();}
+    }else assert.ok(seen.has(`${Math.floor(target.x)},${Math.floor(target.y)}`),`reachable destination ${JSON.stringify(p)}`);
   }
   assert.deepEqual(c,makeHarborCourse({lowTide:true,openWorld:true}));
 });
-test('ocean inlet and all building footprints block traversal with reciprocal walls',()=>{
+test('ocean inlet and sealed building footprints block traversal with reciprocal walls',()=>{
   const c=makeHarborCourse({openWorld:true});
   for(let y=30;y<c.h;y++)for(let x=0;x<32;x++)assert.equal(canStand(c,x+.5,y+.5,.2),false);
-  for(const b of c.coastal.buildings)assert.equal(canStand(c,b.x/4,b.z/4,.2),false);
+  for(const b of c.coastal.buildings)assert.equal(canStand(c,b.x/4,b.z/4,.2),b.enterable===true);
   assert.equal(canStand(c,c.coastal.lighthouse.x/4,c.coastal.lighthouse.z/4,.2),false);
   const tower=c.coastal.lighthouse;
   for(const {collision:b}of c.coastal.buildings)assert.ok(tower.x+tower.radius<=b.minX||tower.x-tower.radius>=b.maxX||tower.z+tower.radius<=b.minZ||tower.z-tower.radius>=b.maxZ,'lighthouse clears building footprints');

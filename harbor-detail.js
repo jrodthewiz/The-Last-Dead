@@ -1,5 +1,7 @@
+import {cloneRuntimeObject} from './runtime-clone.js';
 import * as THREE from './vendor/three.module.js';
 import {createHarborTenement} from './community-buildings.js';
+import {createUtilityPickup} from './assets/blackwater-kit/utility-pickup.js';
 import {createModel as makeFence} from './assets/thai-kit/chain-link-fence-panel.js';
 
 // Shared, metre-scaled surface detail avoids stretched UVs on large road slabs.
@@ -78,11 +80,12 @@ export function finishHarborDetail(world){
    root.add(model);old.removeFromParent();continue;
   }
   const key=i%2?'bangkok-apartment-block':'concrete-walk-up-flat-block',source=world.thaiWorld.templates.get(key);if(!source)continue;
-  const model=source.clone(true);model.name='FarBankArchitecture';world.fit(model,22,13+i%3*5,18);model.position.add(new THREE.Vector3(old.position.x,.4,old.position.z));model.traverse(o=>{if(o.isMesh)o.castShadow=false;});root.add(model);old.removeFromParent();
+  const model=cloneRuntimeObject(source);model.name='FarBankArchitecture';world.fit(model,22,13+i%3*5,18);model.position.add(new THREE.Vector3(old.position.x,.4,old.position.z));model.traverse(o=>{if(o.isMesh)o.castShadow=false;});root.add(model);old.removeFromParent();
  }
  // One source model serves parked and driven trucks; no extra factory allocation.
- const truck=world.thaiWorld.templates.get('toyota-hilux').clone(true);truck.name='DriveableThaiHilux';truck.rotation.y=Math.PI/2;world.fit(truck,5.2,2.65,2.4);truck.traverse(o=>{if(o.isMesh)o.castShadow=false;});world.vehicle.add(truck);
- world.diagnostics.detail={fencePanels:panels,fenceDrawCalls:batches.size,vehicle:'Thai Kit Hilux',backgroundBuildings:background.length};
+ if(world.course.coastal){world.utilityPickup=createUtilityPickup({lightSources:[world.blackwaterSun,world.root.getObjectByName('HarborSkyFill')]});world.vehicle.add(world.utilityPickup.root);}
+ else{const truck=cloneRuntimeObject(world.thaiWorld.templates.get('toyota-hilux'));truck.name='DriveableThaiHilux';truck.rotation.y=Math.PI/2;world.fit(truck,5.2,2.65,2.4);truck.traverse(o=>{if(o.isMesh)o.castShadow=false;});world.vehicle.add(truck);}
+ world.diagnostics.detail={fencePanels:panels,fenceDrawCalls:batches.size,vehicle:world.utilityPickup?'Original Blackwater utility pickup':'Thai Kit Hilux',pickup:world.utilityPickup?.diagnostics,backgroundBuildings:background.length};
 }
 
 export function harborMooring(world,x,z,buoy=false){

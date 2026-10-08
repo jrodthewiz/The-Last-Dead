@@ -1,7 +1,12 @@
 import {lowTideObjective,lowTideJournal,LOW_TIDE_TITLE} from './low-tide.js';
 import * as THREE from './vendor/three.module.js';
+import {mergeGeometries} from './vendor/utils/BufferGeometryUtils.js';
+import {lights} from './vendor/three.tsl.js';
+import {BlackwaterPaintedMaterial} from './blackwater-render-looks.js';
+import {groundAt} from './coastal-terrain.js';
+import {createEvacuationFolio,EVACUATION_FOLIO_SIZE} from './assets/blackwater-kit/evacuation-folio.js';
 import {harborMapSvg,harborNavigation,harborLocation} from './harbor-navigation.js';
-import {PACK_CAPACITY, WEAPON_FITTING, ensureScavengerPack} from './scavenger-pack.js';
+import {PACK_CAPACITY, SUPPLY_CAPACITY, BANDAGE_HEAL, BANDAGE_RECIPE, WEAPON_FITTING, ensureScavengerPack, workbenchAccess, supplyCount, bandageActionState} from './scavenger-pack.js';
 
 const DEFAULT_WEAPONS = ['OSSUARY', 'BREACH SHOTGUN', 'ARC LANCE', 'RELIQUARY',
   'CARRION', 'MOURNING', 'WAKE BAT', 'RIPPER'];
@@ -22,16 +27,30 @@ const SILHOUETTES = [
 ];
 const weaponIcon = index => `<svg class="pack-item-art" viewBox="0 0 94 64" aria-hidden="true"><path d="${SILHOUETTES[index]}"/></svg>`;
 
+export function bandageActionDescription(state,action) {
+  const decision=state[action];
+  if(decision.reason==='unavailable')return 'Supplies unchanged / this action is unavailable. Try again.';
+  if(decision.reason==='shared')return action==='craft'?'Crafting is unavailable in co-op. Continue solo to make bandages.':'Treatment from this pouch is unavailable in co-op.';
+  if(decision.reason==='inactive')return action==='craft'?'Crafting unavailable while downed or outside a run.':'Treatment unavailable while downed or outside a run.';
+  if(action==='use')return decision.reason==='healthy'?'Full health / treatment is not needed.':decision.reason==='empty'?'No bandages packed / make one at a repair bench.':`Ready / restores ${decision.amount} health now.`;
+  const missing=Object.entries(decision.missing).filter(([,amount])=>amount>0).map(([id,amount])=>`${amount} ${id==='cloth'?'clean cloth':'antiseptic'}`).join(' + ');
+  if(decision.reason==='workbench')return `Repair bench required${missing?` / need ${missing}`: ' / materials packed'}. Mark a bench on the field map.`;
+  if(decision.reason==='bandages-full')return 'Three bandages packed / use one before making more.';
+  if(decision.reason==='materials')return `Need ${missing}. Search marked supply cases with Q.`;
+  return 'Ready / make one bandage from the packed materials.';
+}
+
 // The caller owns pause/resume and the authoritative upgrade action. Opening
 // this panel never changes movement, weapons, or run state itself.
 export function createScavengerPackUI({getRun, onOpen = () => {}, onClose = () => {},
   onUpgrade = () => ({ok: false, reason: 'inactive'}), onEquip = () => false, weapons = DEFAULT_WEAPONS,
+  onCraft = () => ({ok:false}), onUseBandage = () => ({ok:false}), onDiscard = () => ({ok:false}),
   parent = document.body} = {}) {
   const root = document.createElement('div');
   root.className = 'scavenger-ui';
   root.innerHTML = `<button class="pack-launcher" type="button" aria-label="Open backpack (B)"
     aria-haspopup="dialog" aria-expanded="false" hidden>${packIcon}<span>PACK <kbd>B</kbd></span>
-    <output>00 / ${PACK_CAPACITY}</output></button>
+    <output>00 / ${PACK_CAPACITY}</output></button><div class="pack-world-hint" role="status" hidden></div>
     <div class="pack-overlay" hidden><section class="pack-panel" role="dialog" aria-modal="true"
       aria-labelledby="pack-title" aria-describedby="pack-context" tabindex="-1">
       <header class="pack-header"><div><span class="pack-kicker">SURVIVOR FIELD KIT</span>
@@ -41,11 +60,19 @@ export function createScavengerPackUI({getRun, onOpen = () => {}, onClose = () =
       <p id="pack-context" class="pack-context"></p><div class="pack-content"><div class="pack-gear"><div class="pack-resource"><span>SALVAGED FITTINGS</span><strong><output data-pack-scrap>00</output>
         <small>/ ${PACK_CAPACITY}</small></strong><meter min="0" max="${PACK_CAPACITY}" value="0"
         aria-label="Backpack capacity"></meter></div>
-      <p id="pack-description">Scavenge weapons. Keep what you find. Use salvaged fittings to make them hit harder.</p>
+      <p id="pack-description">Salvage weapons. Fit them for +25% damage.</p>
+      <section class="pack-supplies" aria-label="Scavenged supplies" hidden>
+        <div class="pack-inventory-heading"><span>SUPPLY POUCH</span><output data-pack-supply-count></output></div><p class="pack-treatment" data-pack-health></p>
+        <dl><div><dt>CLEAN CLOTH</dt><dd data-pack-cloth>0</dd><button type="button" data-pack-drop="cloth" aria-label="Discard one clean cloth">DROP ONE</button></div><div><dt>ANTISEPTIC</dt><dd data-pack-antiseptic>0</dd><button type="button" data-pack-drop="antiseptic" aria-label="Discard one antiseptic">DROP ONE</button></div><div><dt>BANDAGES</dt><dd data-pack-bandage>0</dd></div></dl>
+        <p>Search marked supply cases with Q. Keep materials for the next workshop.</p>
+        <div class="pack-supply-actions"><div class="pack-supply-action"><button type="button" data-pack-craft aria-describedby="pack-craft-availability">MAKE BANDAGE<span>${BANDAGE_RECIPE.cloth} CLOTH + ${BANDAGE_RECIPE.antiseptic} ANTISEPTIC / BENCH</span></button><p id="pack-craft-availability" data-pack-craft-status></p></div><div class="pack-supply-action"><button type="button" data-pack-heal aria-describedby="pack-heal-availability">USE BANDAGE<span>RESTORE UP TO ${BANDAGE_HEAL} HEALTH</span></button><p id="pack-heal-availability" data-pack-heal-status></p></div></div>
+        <p data-pack-supply-status role="status" aria-live="polite"></p>
+      </section>
       <div class="pack-inventory-heading"><span>WEAPON RACK</span><output data-pack-count></output></div>
       <div class="pack-weapons" aria-label="Choose a weapon to customize"></div>
       <div class="pack-item-detail"><div data-pack-art></div><div><span class="pack-kicker" data-pack-type></span>
       <h3 data-pack-name></h3><p data-pack-damage></p></div><button class="pack-equip" type="button">EQUIP</button></div>
+      <div class="pack-workbench" data-pack-workbench hidden><div><span class="pack-kicker">REPAIR STATION</span><strong data-pack-bench-name></strong><p data-pack-bench-hint></p></div><button type="button" data-pack-bench-route>MARK ON MAP</button></div>
       <div class="pack-fitting"><div><span class="pack-kicker">${escape(WEAPON_FITTING.name.toUpperCase())}</span>
         <strong>+25% DAMAGE</strong><p data-pack-target></p></div><button class="pack-upgrade" type="button">
         FIT WEAPON <span>${WEAPON_FITTING.cost} SCRAP</span></button></div>
@@ -77,6 +104,13 @@ export function createScavengerPackUI({getRun, onOpen = () => {}, onClose = () =
       launcher.setAttribute('aria-label', `Open backpack (B), ${pack.scrap} of ${pack.capacity} scrap`);
       launcherKey = resourceKey;
     }
+    const hint=root.querySelector('.pack-world-hint');
+    const supply=run.course.scavengerPickups?.find(p=>p.id===run.scavengerRoutePromptId&&!pack.collected.includes(p.id));
+    const weapon=run.course.weaponPickups?.find(p=>p.id===run.weaponPromptId&&!pack.weaponPickups.includes(p.id));
+    const station=run.course.coastal?.workbenches?.find(p=>p.id===run.workbenchPromptId);
+    const hintText=weapon?`Q / STASH ${weapon.weaponIndex===4?'CARRION':'MOURNING'} RIFLE · B TO EQUIP`:supply?`Q / ${supply.visualKind==='supply-case'?'SEARCH':'TAKE'} ${supply.label||'SUPPLIES'}`:station?'B / WORKBENCH · FIT WEAPON / MAKE BANDAGES':'';
+    hint.hidden=!visible||active||run.mode!=='play'||run.health<=0||!hintText;
+    if(hint.textContent!==hintText)hint.textContent=hintText;
     if (!active) return;
     if(!run.course?.harbor||view==='journal'&&!run.lowTide)view='gear';
     const title=view==='journal'?'FIELD JOURNAL':view==='map'?'FIELD MAP':'FIELD EQUIPMENT';
@@ -102,18 +136,32 @@ export function createScavengerPackUI({getRun, onOpen = () => {}, onClose = () =
     }
     for(const button of tabs.querySelectorAll('button')){const pressed=String(button.dataset.packView===view);if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);}
     if(view==='map'){
-      const key=JSON.stringify([run.course.id,run.x,run.y,run.angle,pack.weaponPickups,run.vehicle?.x,run.vehicle?.y,run.vehicle?.distance,run.course.activeInterior?.id,run.harborRooms,run.lowTide?.revision,run.coastalDestination]);
+      const key=JSON.stringify([run.course.id,run.x,run.y,run.angle,pack.weaponPickups,pack.collected,run.vehicle?.x,run.vehicle?.y,run.vehicle?.distance,run.course.activeInterior?.id,run.harborRooms,run.lowTide?.revision,run.coastalDestination]);
       if(key!==mapKey){
         const nav=harborNavigation(run);mapKey=key;
         const indoors=!!run.course.activeInterior;
-        root.querySelector('.pack-map').innerHTML=`<div>${harborMapSvg(run)}</div><div class="pack-map-notes"><span class="pack-kicker">${indoors?'ROOM PLAN':'DISTRICT MAP'}</span><h3>${escape(harborLocation(run))}</h3><p class="map-destination">${escape(nav?.target.label||'Explore the district')}<strong>${nav?`${nav.distance} m ${indoors?'away':'by street'}`:'No active route'}</strong></p><p class="pack-map-legend">${indoors?'&#9650; YOU &nbsp; &#9679; SUPPLIES &nbsp; &#9671; OBJECTIVE<br>Green marker / exit / Q':'&#9650; YOU &nbsp; &#9679; WEAPON &nbsp; &#9644; TRUCK<br>&#9647; ROOM / Q &nbsp; &#9873; FERRY LOCATION<br>Gold dashes / walking route'}</p>${indoors?'<p>Walls and solid furniture block movement. Use Q at the marked door to return outside.</p>':`${run.course.coastal?`<div class="coastal-destinations"><span class="pack-kicker">SET A WALKING ROUTE</span>${run.course.coastal.landmarks.map((p,i)=>`<button type="button" data-coast-destination="${escape(p.id)}" aria-pressed="${run.coastalDestination===p.id}">${String.fromCharCode(65+i)} / ${escape(p.name)}</button>`).join('')}<button type="button" data-coast-destination="" aria-pressed="${!run.coastalDestination}">Follow chapter objective</button></div>`:''}<ol>${run.course.buildings.map(b=>`<li>${escape(b.name)}</li>`).join('')}</ol><p>Room entrances are marked in green. The Netmakers gate faces the waterfront.</p>`}</div>`;
+        root.querySelector('.pack-map').innerHTML=`<div>${harborMapSvg(run)}</div><div class="pack-map-notes"><span class="pack-kicker">${indoors?'ROOM PLAN':'DISTRICT MAP'}</span><h3>${escape(harborLocation(run))}</h3><p class="map-destination">${escape(nav?.target.label||'Explore the district')}<strong>${nav?`${nav.distance} m ${indoors?'away':'by street'}`:'No active route'}</strong></p><p class="pack-map-legend">${indoors?'&#9650; YOU &nbsp; &#9679; SUPPLIES &nbsp; &#9671; OBJECTIVE<br>Green marker / exit / Q':'&#9650; YOU &nbsp; &#9679; WEAPON &nbsp; + SUPPLIES &nbsp; &#9644; TRUCK<br>&#9647; ROOM / Q &nbsp; &#9873; FERRY LOCATION<br>Gold dashes / walking route'}</p>${indoors?'<p>Walls and solid furniture block movement. Use Q at the marked door to return outside.</p>':`${run.course.coastal?`<div class="coastal-destinations"><span class="pack-kicker">SET A WALKING ROUTE</span>${run.course.coastal.landmarks.map((p,i)=>`<button type="button" data-coast-destination="${escape(p.id)}" aria-pressed="${run.coastalDestination===p.id}">${String.fromCharCode(65+i)} / ${escape(p.name)}</button>`).join('')}<button type="button" data-coast-destination="" aria-pressed="${!run.coastalDestination}">Follow chapter objective</button></div>`:''}<ol>${run.course.buildings.map(b=>`<li>${escape(b.name)}</li>`).join('')}</ol><p>Room entrances are marked in green. The Netmakers gate faces the waterfront.</p>`}</div>`;
       }
     }
-    const nextPanelKey = JSON.stringify([owned, selected, run.weapon, pack.weaponMods, resourceKey, canUpgrade, !!run.lowTide]);
+    const bench = workbenchAccess(run);
+    const nextPanelKey = JSON.stringify([owned, selected, run.weapon, pack.weaponMods,pack.supplies,run.health,run.mode, resourceKey, canUpgrade, !!run.lowTide, bench.available, bench.station?.id, bench.nearest?.id]);
     if (nextPanelKey === panelKey) return;
     panelKey = nextPanelKey;
     root.querySelector('[data-pack-scrap]').textContent = String(pack.scrap).padStart(2, '0');
     root.querySelector('meter').value = pack.scrap;
+    const supplies=pack.supplies,pouch=root.querySelector('.pack-supplies');
+    pouch.hidden=!run.course?.coastal&&supplyCount(supplies)===0;
+    root.querySelector('[data-pack-supply-count]').textContent=`${supplyCount(supplies)} / ${SUPPLY_CAPACITY} STORED`;
+    root.querySelector('[data-pack-health]').textContent=`LIFE ${Math.ceil(run.health)} / 100 · ${Math.min(BANDAGE_HEAL,Math.max(0,100-run.health))} RESTORABLE WITH ONE BANDAGE`;
+    for(const id of ['cloth','antiseptic','bandage'])root.querySelector(`[data-pack-${id}]`).textContent=supplies[id];
+    for(const button of root.querySelectorAll('[data-pack-drop]'))button.disabled=!canUpgrade||supplies[button.dataset.packDrop]===0;
+    root.querySelector('[data-pack-craft] span').textContent=`${BANDAGE_RECIPE.cloth} CLOTH + ${BANDAGE_RECIPE.antiseptic} ANTISEPTIC / ${bench.required?'BENCH':'FIELD KIT'}`;
+    const supplyActions=bandageActionState(run,{canManage:canUpgrade,bench});
+    for(const [action,buttonSelector,hintSelector] of [['craft','[data-pack-craft]','[data-pack-craft-status]'],['use','[data-pack-heal]','[data-pack-heal-status]']]){
+      root.querySelector(buttonSelector).disabled=!supplyActions[action].ok;
+      const hint=root.querySelector(hintSelector);hint.textContent=bandageActionDescription(supplyActions,action);hint.dataset.ready=String(supplyActions[action].ok);
+    }
+    const supplyStatus=root.querySelector('[data-pack-supply-status]');supplyStatus.textContent='';supplyStatus.dataset.state='idle';
     root.querySelector('[data-pack-count]').textContent = `${owned.length} / 8 CARRIED`;
     const key = JSON.stringify([owned, selected, run.weapon, pack.weaponMods, !!run.lowTide]);
     if (key !== renderKey) {
@@ -136,12 +184,19 @@ export function createScavengerPackUI({getRun, onOpen = () => {}, onClose = () =
     equipButton.disabled = !owned.length || run.weapon === selected;
     equipButton.textContent = run.weapon === selected && owned.length ? 'EQUIPPED' : 'EQUIP';
     root.querySelector('[data-pack-target]').textContent = !owned.length ? 'Find a weapon before fitting.' : damage != null && !fitted ? `${damage} → ${Number((damage * 1.25).toFixed(2))} DAMAGE${selected === 1 ? ' / PELLET' : ' / HIT'}` : weaponName(selected);
-    upgradeButton.disabled = !canUpgrade || fitted || pack.scrap < WEAPON_FITTING.cost || !owned.length;
+    const stationPanel=root.querySelector("[data-pack-workbench]");
+    stationPanel.hidden=!bench.required;stationPanel.dataset.available=String(bench.available);
+    root.querySelector("[data-pack-bench-name]").textContent=bench.available?bench.station?.name||'FIELD KIT':bench.nearest?.name||"FIND A REPAIR BENCH";
+    root.querySelector("[data-pack-bench-hint]").textContent=bench.available?"Bench in reach.":"Enter the workshop. Stand beside the bench.";
+    root.querySelector("[data-pack-bench-route]").hidden=bench.available||!bench.nearest;
+    upgradeButton.disabled = !canUpgrade || fitted || pack.scrap < WEAPON_FITTING.cost || !owned.length || !bench.available;
     upgradeButton.innerHTML = fitted ? 'FITTED <span>+25% DAMAGE</span>' : `FIT WEAPON <span>${WEAPON_FITTING.cost} SCRAP</span>`;
     status.dataset.state='idle';
     if (!owned.length) status.textContent = 'Find a weapon in the district to begin your loadout.';
-    else if (!canUpgrade) status.textContent = 'The host fits equipment for this shared backpack.';
+    else if (!canUpgrade) status.textContent = 'Equipment changes are unavailable during co-op. Continue solo to fit weapons.';
     else if (fitted) status.textContent = 'This weapon already has a hardened fitting.';
+    else if (!bench.available && pack.scrap < WEAPON_FITTING.cost) status.textContent = `Repair bench required / ${WEAPON_FITTING.cost - pack.scrap} more scrap needed.`;
+    else if (!bench.available) status.textContent = 'Go inside a workshop and stand at its repair bench. Press B to fit your weapon.';
     else if (pack.scrap < WEAPON_FITTING.cost) status.textContent = `Collect ${WEAPON_FITTING.cost - pack.scrap} more scrap to fit this weapon.`;
     else status.textContent = 'Ready to fit. Choose carefully: one fitting per weapon.';
   }
@@ -157,7 +212,8 @@ export function createScavengerPackUI({getRun, onOpen = () => {}, onClose = () =
     overlay.hidden = false;
     launcher.setAttribute('aria-expanded', 'true');
     render(current);
-    closeButton.focus();
+    closeButton.focus({preventScroll:true});
+    root.querySelector('.pack-content').scrollTop=0;
     return true;
   }
   function close({resume = true} = {}) {
@@ -180,6 +236,27 @@ export function createScavengerPackUI({getRun, onOpen = () => {}, onClose = () =
     if (!button) return;
     selected = Number(button.dataset.packWeapon);
     render(getRun?.() || current);
+  });
+  root.querySelector('[data-pack-bench-route]').addEventListener('click',()=>{
+    if(!current?.course?.coastal)return;
+    const station=workbenchAccess(current).nearest;if(!station)return;
+    current.coastalDestination=`bench-${station.id}`;view='map';mapKey='';render(current);root.querySelector('.pack-content').scrollTop=0;
+  });
+  for(const [selector,action,message] of [
+    ['[data-pack-craft]',onCraft,'Bandage packed. Cloth and antiseptic consumed.'],
+    ['[data-pack-heal]',onUseBandage,'Bandage used. Health restored.'],
+  ])root.querySelector(selector).addEventListener('click',()=>{
+    if(root.querySelector(selector).disabled)return;
+    const result=action();render(getRun?.()||current);
+    const line=root.querySelector('[data-pack-supply-status]');line.dataset.state=result?.ok?'success':'error';
+    const actionName=selector==='[data-pack-craft]'?'craft':'use',availability=bandageActionState(getRun?.()||current,{canManage:canUpgrade});
+    if(!result?.ok&&availability[actionName].ok)availability[actionName]={...availability[actionName],ok:false,reason:'unavailable'};
+    line.textContent=result?.ok?(actionName==='use'&&Number.isFinite(result.amount)?`Bandage used / ${result.amount} health restored.`:message):bandageActionDescription(availability,actionName);
+  });
+  for(const button of root.querySelectorAll('[data-pack-drop]'))button.addEventListener('click',()=>{
+    if(button.disabled)return;
+    const result=onDiscard(button.dataset.packDrop);render(getRun?.()||current);
+    if(result?.ok)root.querySelector('[data-pack-supply-status]').textContent='One material discarded / space freed in the pouch.';
   });
   upgradeButton.addEventListener('click', () => {
     if (upgradeButton.disabled) return;
@@ -231,40 +308,81 @@ export function createScavengerPackUI({getRun, onOpen = () => {}, onClose = () =
   };
 }
 
-// Three pooled draws: a rusty toolbox, steel hardware, and a raised amber
-// fitting mark. Marks sit above the lid; no coplanar decals or new colliders.
+// Cases share three draws. Route booklets have a separate two-material pool;
+// collecting either kind removes only its own instance. Layout owns support.
 export class ScavengerCaches {
-  constructor(parent, course) {
-    this.items = (course.scavengerPickups || []).slice(0, 12);
+  constructor(parent, course, {lightSources=null}={}) {
+    this.course=course;
+    this.items = (course.scavengerPickups || []).slice(0, 64);
+    this.caseItems = this.items.filter(item=>item.visualKind!=='route-folio');
+    this.folioItems = this.items.filter(item=>item.visualKind==='route-folio');
     this.root = new THREE.Group(); this.root.name = 'SalvagedFittingsCaches';
     this.root.userData.noBatch = true; this.root.userData.afterlifeSkip = true;
     parent.add(this.root);
-    const body = new THREE.BoxGeometry(.80, .30, .48); body.translate(0, .18, 0);
-    const hardware = new THREE.BoxGeometry(.52, .10, .09); hardware.translate(0, .37, 0);
-    const mark = new THREE.TorusGeometry(.085, .022, 6, 12); mark.rotateX(-Math.PI / 2); mark.translate(.20, .355, .10);
-    const materials = [new THREE.MeshStandardMaterial({color: 0x895536, roughness: .88, metalness: .20}),
-      new THREE.MeshStandardMaterial({color: 0xa4a59c, roughness: .52, metalness: .65}),
-      new THREE.MeshStandardMaterial({color: 0xffbf68, roughness: .65, metalness: .3,
-        emissive: 0xb36b2e, emissiveIntensity: .7})];
+    // A fitted shell, separate lid seam, hollow handle and front catches read
+    // as a carried case at standing distance. All parts remain three draws.
+    const box=(size,position)=>new THREE.BoxGeometry(...size).translate(...position);
+    const merge=parts=>{const geometry=mergeGeometries(parts);for(const part of parts)part.dispose();return geometry;};
+    const body=merge([box([.78,.225,.46],[0,.1425,0]),box([.80,.06,.48],[0,.30,0])]);
+    const fittings=[box([.794,.024,.474],[0,.265,0]),box([.35,.032,.055],[0,.399,0])];
+    for(const side of [-1,1]){
+      fittings.push(box([.036,.070,.055],[side*.155,.35,0]),box([.065,.090,.025],[side*.255,.27,.245]),box([.065,.09,.025],[side*.255,.27,-.245]));
+      for(const end of [-1,1])fittings.push(box([.05,.10,.05],[side*.365,.085,end*.22]));
+    }
+    const hardware=merge(fittings);
+    const mark=merge([box([.17,.012,.105],[.22,.337,.11]),box([.17,.075,.012],[.03,.19,.237]),box([.17,.075,.012],[.03,.19,-.237])]);
+    const descriptors=[{color:0xffffff,roughness:.88,metalness:.05},{color:0x29392e,roughness:.76,metalness:.15},{color:0xc1a367,roughness:.9,metalness:0}];
+    const materials=descriptors.map(descriptor=>{
+      if(!lightSources)return new THREE.MeshStandardMaterial(descriptor);
+      const material=new BlackwaterPaintedMaterial({color:descriptor.color});
+      material.lightsNode=lights(lightSources);return material;
+    });
     this.meshes = [body, hardware, mark].map((geometry, index) => {
-      const mesh = new THREE.InstancedMesh(geometry, materials[index], Math.max(1, this.items.length));
+      const mesh = new THREE.InstancedMesh(geometry, materials[index], Math.max(1, this.caseItems.length));
       mesh.name = ['ScrapToolCase', 'ScrapHandle', 'AmberFittingMark'][index];
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.frustumCulled = false; mesh.count = 0;
       this.root.add(mesh); return mesh;
     });
+    this.folioMeshes=[];
+    if(this.folioItems.length){
+      this.folio=createEvacuationFolio();
+      this.folioMeshes=this.folio.geometries.map((geometry,index)=>{
+        const mesh=new THREE.InstancedMesh(geometry,this.folio.materials[index],this.folioItems.length);
+        mesh.name=['FootbridgeRouteBookletPaper','FootbridgeRouteBookletInk'][index];
+        mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);mesh.frustumCulled=false;mesh.count=0;
+        mesh.receiveShadow=true;mesh.castShadow=false;this.root.add(mesh);return mesh;
+      });
+    }
     this.object = new THREE.Object3D(); this.update([]);
+    for(const mesh of this.meshes)mesh.receiveShadow=true;
   }
   update(collected = []) {
     const key = collected.join('|'); if (this.key === key) return; this.key = key;
-    const removed = new Set(collected); let count = 0;
-    for (const item of this.items) {
-      if (removed.has(item.id)) continue;
-      this.object.position.set(item.x * 4, .025, item.y * 4);
-      this.object.rotation.y = ((item.x * 11 + item.y * 7) % 7) * .11;
-      this.object.updateMatrix();
-      for (const mesh of this.meshes) mesh.setMatrixAt(count, this.object.matrix);
-      count++;
+    const removed = new Set(collected);
+    for(const [items,meshes,folio] of [[this.caseItems,this.meshes,false],[this.folioItems,this.folioMeshes,true]]){
+      let count=0;
+      for (const item of items) {
+        if (removed.has(item.id)) continue;
+        const baseY=Number.isFinite(item.visualBaseY)?item.visualBaseY:groundAt(this.course,item.x,item.y)*4+.025;
+        this.object.position.set(item.x * 4, baseY, item.y * 4);
+        this.object.rotation.set(0,Number.isFinite(item.visualYaw)?item.visualYaw:((item.x * 11 + item.y * 7) % 7) * .11,0);
+        this.object.scale.set(1,1,1);
+        if(folio&&Array.isArray(item.folioSize))this.object.scale.set(...item.folioSize.map((value,index)=>value/EVACUATION_FOLIO_SIZE[index]));
+        this.object.updateMatrix();
+        for (const mesh of meshes) mesh.setMatrixAt(count, this.object.matrix);
+        if(!folio){
+          const color=item.visualKind==='supply-case'?(item.contents.antiseptic===2?0xc8cbb6:item.contents.cloth===3?0x8eaaa0:0x586e67):0x895536;
+          meshes[0].setColorAt(count,new THREE.Color(color));
+        }
+        count++;
+      }
+      for (const mesh of meshes) { mesh.count = count; mesh.instanceMatrix.needsUpdate = true; }
+      if(!folio&&meshes[0].instanceColor)meshes[0].instanceColor.needsUpdate=true;
     }
-    for (const mesh of this.meshes) { mesh.count = count; mesh.instanceMatrix.needsUpdate = true; }
+  }
+  dispose(){
+    if(this.disposed)return;this.disposed=true;this.root.removeFromParent();
+    for(const mesh of this.meshes){mesh.geometry.dispose();mesh.material.dispose();}
+    this.folio?.dispose();
   }
 }

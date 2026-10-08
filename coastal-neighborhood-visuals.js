@@ -41,10 +41,7 @@ export function buildCoastalNeighborhood(world){
   const yaw=p.yaw||0,local=(x,z)=>({x:p.x+x*Math.cos(yaw)+z*Math.sin(yaw),z:p.z-x*Math.sin(yaw)+z*Math.cos(yaw)});
   const part=(material,x,y,z,w,h,d)=>{const q=local(x,z);cube(material,`CoastalStreet:${p.kind}`,q.x,y,q.z,w,h,d,yaw);};
   if(p.kind==='tree'){
-   emit(trunk,m.rust,'CoastalStreetTrees',p.x,1.4,p.z,.16,2.8,.16);
-   // Raised crowns preserve eye-level sight and the clear pedestrian lane.
-   for(const [i,[x,y,z,s]]of [[-.65,3.45,0,1.25],[.65,3.8,.15,1.3],[0,4.6,-.2,1.35]].entries())emit(crown,m.coastLeaves,'CoastalTreeCrowns',p.x+x,y+(index%3)*.18,p.z+z,s,.95*s,s*.9,(index*.73+i)*1.7);
-   for(const side of [-1,1])part(m.rust,side*.25,2.4,0,.13,1.1,.13);
+   // Branches and cutout leaves belong to the shared EZ-Tree forest factory.
    for(const side of [-1,1]){part(m.coastStone,side*.6,.14,0,.12,.16,1.3);part(m.coastStone,0,.14,side*.6,1.3,.16,.12);}
   }else if(p.kind==='bench'){
    for(let slat=0;slat<4;slat++)part(m.rust,0,.52,-.24+slat*.16,1.8,.075,.12);
@@ -69,6 +66,7 @@ export function buildCoastalFrontages(world){
  world._coastalFrontagesBuilt=true;
  const writer=compiler(world),m=world.materials,{cube}=writer;let frontages=0;
  for(const [index,b]of world.course.coastal.buildings.entries()){
+  if(b.kit==='blackwater')continue;
   const template=world.thaiWorld.templates.get(b.asset);if(!template)continue;
   const width=b.width,depth=b.depth;
   if(width<5||!Number.isFinite(width+depth))continue;

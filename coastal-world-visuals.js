@@ -2,17 +2,22 @@ import * as THREE from './vendor/three.module.js';
 import {harborSurface} from './harbor-detail.js';
 import {buildCoastalNeighborhood} from './coastal-neighborhood-visuals.js';
 import {createCoastalInstances} from './coastal-instancing.js';
+import {buildCapeTerrain} from './coastal-terrain-visuals.js';
+import {buildCoastalBasementEntrance} from './coastal-basement-visuals.js';
+import {buildCoastalShorelineArt} from './coastal-shoreline-art.js';
 
 // The same land rectangles, roads and lots drive the map and collision data.
 export function buildCoastalScenery(world){
  const c=world.course.coastal;if(!c)return;
  const m=world.materials;
+ world.shoreline=buildCoastalShorelineArt(world);
  m.coastGrass=new THREE.MeshStandardMaterial({color:0x686e4c,roughness:1});
  m.coastStone=new THREE.MeshStandardMaterial({color:0x59625e,roughness:.96});
  m.coastWhite=new THREE.MeshStandardMaterial({color:0xc7c3ae,roughness:.88});
  m.coastRed=new THREE.MeshStandardMaterial({color:0x713f34,roughness:.8});
  harborSurface(m.coastGrass,'grass');
- for(const p of c.land)world.box(p.x,-.20,p.z,p.width,.36,p.depth,'coastGrass','CoastalLand');
+ for(const p of [{x:224,z:60,width:448,depth:120},{x:256,z:217,width:256,depth:194}])world.box(p.x,-.20,p.z,p.width,.36,p.depth,'coastGrass','CoastalLand');
+ world.terrain=buildCapeTerrain(world);
  // Keep the original working port's paved surface and its six interiors.
  world.box(64,-.015,60,128,.09,120,'asphalt','HarborGround');
  for(const r of c.roads){
@@ -47,7 +52,7 @@ export function buildCoastalScenery(world){
   }
  }
  // Continuous sea walls make every solid coast edge visible to the player.
- const shore=[[0,0,384,0],[384,0,384,320],[384,320,128,320],[128,320,128,120],[128,120,0,120],[0,120,0,0]];
+ const shore=[[0,0,448,0],[448,0,448,416],[448,416,128,416],[128,416,128,120],[128,120,0,120],[0,120,0,0]];
  const rockGeo=new THREE.DodecahedronGeometry(1,0),rocks=[];
  let seed=20261003;const rand=()=>((seed=Math.imul(seed,1664525)+1013904223>>>0)/4294967296);
  for(const [x,z,xx,zz]of shore){
@@ -106,6 +111,7 @@ export function buildCoastalScenery(world){
  world.sign('← BLACKWATER / NETMAKERS',145,3.6,60,0,6);
  world.sign('COAST ROAD / CAPE SIGNAL →',235,3.6,116,0,6);
  buildCoastalNeighborhood(world);
+ buildCoastalBasementEntrance(world);
  // Legacy layouts retain low groundcover; generated neighborhoods use authored
  // tree courts and furniture instead of scattering shrubs through their alleys.
  const shrubs=[];

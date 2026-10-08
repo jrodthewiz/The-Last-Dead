@@ -1,12 +1,13 @@
 import * as THREE from './vendor/three.module.js';
 import {createCoastalInstances} from './coastal-instancing.js';
+import {cloneRuntimeObject} from './runtime-clone.js';
 
 // Templates are scoped to this world so normal scene teardown owns shared data.
 export class HarborThaiVisuals {
  constructor(parent,layout){
   this.root=new THREE.Group();this.root.name='ThaiKitHarbor';parent.add(this.root);
   this.disposed=false;this.templates=new Map();this.diagnostics={loaded:[],errors:[],placements:0,buildings:layout.buildings.length,props:layout.props.length,coastalDrawCalls:0};
-  const records=[...layout.buildings,...layout.props];
+  const records=[...layout.buildings,...layout.props].filter(p=>p.kit!=='blackwater');
   this.ready=Promise.all([...new Set(records.map(p=>p.asset))].map(async asset=>{
    try{
     const module=await import(`./assets/thai-kit/${asset}.js`);
@@ -18,7 +19,7 @@ export class HarborThaiVisuals {
     if(coastal.length)this.batchCoastal(template,coastal);
     for(const p of records.filter(p=>p.asset===asset)){
      if(p.coastal)continue;
-     const model=template.clone(true);model.name=p.id;
+     const model=cloneRuntimeObject(template);model.name=p.id;
      const source=new THREE.Box3().setFromObject(model),size=source.getSize(new THREE.Vector3());
      const fit=Math.min((p.fitWidth||p.width)/size.x,p.height/size.y,(p.fitDepth||p.depth)/size.z);
      if(!Number.isFinite(fit)||fit<=0)throw new Error('Invalid model bounds');

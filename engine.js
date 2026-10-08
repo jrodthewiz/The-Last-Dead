@@ -1,4 +1,5 @@
 import {createLowTide,tickLowTideInteraction,updateLowTide} from './low-tide.js';
+import {BREACH_LAUNCHER} from './weapon-attachment-config.js';
 import {harborRoomAt,roomCollision,tickHarborRoom} from './harbor-interiors.js';
 import {
   CAMPAIGN_SECTORS,
@@ -18,9 +19,13 @@ import {createHarborVehicle,tickHarborVehicle,vehicleContains} from './harbor-ve
 import {tickWeaponInventory} from './weapon-inventory.js';
 import {propCanStand,propRay} from './harbor-collision.js';
 import { encounterRoster, encounterStages, encounterAliveCap, encounterRelief, roomRecoveryPolicy } from './dungeon-encounter-design.js';
-import { createMind, stepMind, reactToHit, collectNoises, getIngressCandidates, isIngressRouteOpen, pickSpawnPoint, createPacing, updatePacing, noteAmbush, spawnAnimFor, EMERGE_TIME, wakeEnemy, findPath, isHunting, hash01, turnFacing, ingressMoveSpeed } from './enemy-ai.js';
+import { createMind, stepMind, reactToHit, collectNoises, getIngressCandidates, isIngressRouteOpen, pickSpawnPoint, createPacing, updatePacing, noteAmbush, spawnAnimFor, EMERGE_TIME, wakeEnemy, findPath, isHunting, hash01, turnFacing, ingressMoveSpeed, visionAllows } from './enemy-ai.js';
 import {installVerminEnvironment,createVerminState,makeVerminHand,makeVerminCrawl,resetVerminWorld,cancelVermin,interceptVerminInput,tickVermin} from './vermin-system.js';
 import {supportsAnatomy,traceEnemyBody,applyAnatomyDamage,anatomyMotion,beginReanimation,advanceReanimation,isThreat} from './enemy-anatomy.js';
+import {isLowZombie} from './zombie-behavior.js';
+import {coastalZombieAppearance} from './zombie-appearances.js';
+import {groundAt} from './coastal-terrain.js';
+import {actorGroundAt,supportAt,structureAt,isStructureWall,canStandStructure,resolveActorSupport,clipStructureRise,traceStructureRay,traceStructureSegment,stairWaypoint,STRUCTURE_STEP,STRUCTURE_BODY_HEIGHT} from './coastal-structures.js';
 export {nearestRat,verminTarget,useVermin,attackVermin,tickVermin,validateVerminSnapshot,validateVerminHand,validateVerminCrawl,VERMIN_TIMING,VERMIN_LIMITS} from './vermin-system.js';
 installVerminEnvironment({canStand,castRay,hurt,damageEnemy,releaseBite});
 
@@ -56,9 +61,9 @@ export function makeCourse(index=0,options={}){
  return{...courses[0],w,h,cells,blocks,index:0,sectorIndex:0,sectorId:'bloodworks',campaign:false,enemies:[],spawnPoints:CAMPAIGN_SECTORS[0].spawnPoints.map(([x,y])=>({x,y})),points:[{x:6,y:10.5},{x:6,y:1}],playerSpawn:{x:6,y:10.5,angle:-Math.PI/2},exit:{x:6,y:1},turns:[]};
 }
 export const makeCampaignCourse=index=>createCampaignCourse(index);
-function gridCastRay(m,x,y,angle,max=24){const dx=Math.cos(angle),dy=Math.sin(angle);let cx=Math.floor(x),cy=Math.floor(y),dist=0,side=0;for(let i=0;i<100;i++){if(cx<0||cy<0||cx>=m.w||cy>=m.h)return{dist:Math.max(.02,dist),side,u:0};const tx=dx>0?(cx+1-x)/dx:dx<0?(cx-x)/dx:Infinity,ty=dy>0?(cy+1-y)/dy:dy<0?(cy-y)/dy:Infinity;side=tx<ty?0:1;dist=side===0?tx:ty;const direction=side===0?(dx>0?1:3):(dy>0?2:0);if(m.cells[cy*m.w+cx][direction]||dist>max){const hit=side===0?y+dy*dist:x+dx*dist;return{dist:Math.max(.02,Math.min(dist,max)),side,u:hit-Math.floor(hit)};}if(side===0)cx+=dx>0?1:-1;else cy+=dy>0?1:-1;}return{dist:max,side,u:0};}
-export function castRay(m,x,y,angle,max=24){const room=harborRoomAt(m,x,y);if(room)return propRay(roomCollision(room),x,y,angle,max)||{dist:max,side:0,u:0};const grid=gridCastRay(m,x,y,angle,max);if(!m.obstacles?.length)return grid;const prop=propRay(m,x,y,angle,grid.dist);return prop&&prop.dist<grid.dist?prop:grid;}
-export function canStand(m,x,y,r=.075){const room=harborRoomAt(m,x,y);if(room)return x-r>=(room.x-room.width/2)/4&&x+r<=(room.x+room.width/2)/4&&y-r>=(room.z-room.depth/2)/4&&y+r<=(room.z+room.depth/2)/4&&propCanStand(roomCollision(room),x,y,r);if(m.obstacles?.length&&!propCanStand(m,x,y,r))return false;if(m.cells[Math.floor(y)*m.w+Math.floor(x)]?.every(v=>v===1))return false;if(x<r||y<r||x>m.w-r||y>m.h-r)return false;for(let cy=Math.max(0,Math.floor(y-r));cy<=Math.min(m.h-1,Math.floor(y+r));cy++)for(let cx=Math.max(0,Math.floor(x-r));cx<=Math.min(m.w-1,Math.floor(x+r));cx++){const walls=m.cells[cy*m.w+cx],segments=[[cx,cy,cx+1,cy],[cx+1,cy,cx+1,cy+1],[cx,cy+1,cx+1,cy+1],[cx,cy,cx,cy+1]];for(let d=0;d<4;d++){if(!walls[d])continue;const[a,b,c,e]=segments[d];if(Math.hypot(x-clamp(x,a,c),y-clamp(y,b,e))<r-1e-7)return false;}}return true;}
+function gridCastRay(m,x,y,angle,max=24){const dx=Math.cos(angle),dy=Math.sin(angle);let cx=Math.floor(x),cy=Math.floor(y),dist=0,side=0;for(let i=0;i<100;i++){if(cx<0||cy<0||cx>=m.w||cy>=m.h)return{dist:Math.max(.02,dist),side,u:0};const tx=dx>0?(cx+1-x)/dx:dx<0?(cx-x)/dx:Infinity,ty=dy>0?(cy+1-y)/dy:dy<0?(cy-y)/dy:Infinity;side=tx<ty?0:1;dist=side===0?tx:ty;const direction=side===0?(dx>0?1:3):(dy>0?2:0),wall=m.cells[cy*m.w+cx][direction]&&!isStructureWall(m,x+dx*dist,y+dy*dist);if(wall||dist>max){const hit=side===0?y+dy*dist:x+dx*dist;return{dist:Math.max(.02,Math.min(dist,max)),side,u:hit-Math.floor(hit)};}if(side===0)cx+=dx>0?1:-1;else cy+=dy>0?1:-1;}return{dist:max,side,u:0};}
+export function castRay(m,x,y,angle,max=24,z=undefined,slope=0){const room=harborRoomAt(m,x,y);if(room)return propRay(roomCollision(room),x,y,angle,max)||{dist:max,side:0,u:0};let hit=gridCastRay(m,x,y,angle,max);const prop=m.obstacles?.length?propRay(m,x,y,angle,hit.dist):null;if(prop&&prop.dist<hit.dist)hit=prop;const finite=traceStructureRay(m,x,y,z??supportAt(m,x,y,groundAt(m,x,y)).height+EYE,angle,slope,hit.dist);return finite&&finite.dist<hit.dist?finite:hit;}
+export function canStand(m,x,y,r=.075,feet=undefined,height=STRUCTURE_BODY_HEIGHT){const room=harborRoomAt(m,x,y);if(room)return x-r>=(room.x-room.width/2)/4&&x+r<=(room.x+room.width/2)/4&&y-r>=(room.z-room.depth/2)/4&&y+r<=(room.z+room.depth/2)/4&&propCanStand(roomCollision(room),x,y,r);if(m.obstacles?.length&&!propCanStand(m,x,y,r))return false;const support=supportAt(m,x,y,feet??groundAt(m,x,y),{radius:r});if(!canStandStructure(m,x,y,r,feet===undefined?support.height:Math.max(feet,support.height),height))return false;if(m.cells[Math.floor(y)*m.w+Math.floor(x)]?.every(v=>v===1)&&!structureAt(m,x,y))return false;if(x<r||y<r||x>m.w-r||y>m.h-r)return false;for(let cy=Math.max(0,Math.floor(y-r));cy<=Math.min(m.h-1,Math.floor(y+r));cy++)for(let cx=Math.max(0,Math.floor(x-r));cx<=Math.min(m.w-1,Math.floor(x+r));cx++){const walls=m.cells[cy*m.w+cx],segments=[[cx,cy,cx+1,cy],[cx+1,cy,cx+1,cy+1],[cx,cy+1,cx+1,cy+1],[cx,cy,cx,cy+1]];for(let d=0;d<4;d++){if(!walls[d])continue;const[a,b,c,e]=segments[d];if(isStructureWall(m,(a+c)/2,(b+e)/2))continue;if(Math.hypot(x-clamp(x,a,c),y-clamp(y,b,e))<r-1e-7)return false;}}return true;}
 
 export const viewAngle=r=>r.angle;
 
@@ -166,7 +171,7 @@ export function newRun(course, options = {}){
  const spawn=course?.playerSpawn||{x:6,y:10.5,angle:-Math.PI/2};
  const waveCount=campaign?(sector.waves?.length||CAMPAIGN_WAVE_COUNT):Math.max(1,Number(course?.waveCount)||3);
  return{
-  course,x:spawn.x,y:spawn.y,z:0,angle:spawn.angle??-Math.PI/2,pitch:0,vx:0,vy:0,vz:0,speed:0,distance:0,time:0,mode:'ready',
+  course,x:spawn.x,y:spawn.y,z:0,supportZ:null,supportId:null,structureId:null,angle:spawn.angle??-Math.PI/2,pitch:0,vx:0,vy:0,vz:0,speed:0,distance:0,time:0,mode:'ready',
   health:100,energy:100,weapon:0,ownedWeapons:course?.dungeon||course?.scavenging?[...(course.startingWeapons||[0])]:weapons.map((_,index)=>index),storyRecords:[],cooldowns:Array.from({length:weapons.length},()=>0),fireCooldown:0,shot:0,damage:0,heal:0,aim:0,slide:0,dashTime:0,punch:0,hookTime:0,hookCooldown:0,hookTarget:-1,parryTime:0,parryCooldown:0,slam:false,wallJumps:0,
   style:0,styleTotal:0,stylePending:0,styleLabel:'GET CLOSE. GET LOUD.',rank:'D',kills:0,combo:0,bestCombo:0,lastWeapon:-1,repeat:0,
   campaign,sectorIndex,sectorCount:campaign?CAMPAIGN_SECTOR_COUNT:(course?.dungeon?course.dungeonCount:1),sectorId:course?.sectorId||sector.id,sectorName:course?.name||sector.name,wave:0,waveCount,waveDelay:campaign?(sector.waves[0]?.intermission??1.2):course?.dungeon?0:1.2,
@@ -178,6 +183,7 @@ export function newRun(course, options = {}){
   vehicle:createHarborVehicle(course),harborProgress:course?.harbor?{initialized:false,ready:false}:null,
   spawnTelegraphs:[],explosions:[],projectiles:[],coins:[],coinCharges:4,coinRegen:0,altCooldown:0,respawnTime:0,
   rifleHeat:0,rifleBurst:0,rifleBurstTimer:0,rifleCharge:0,rifleCharging:false,rifleKick:0,rifleKickYaw:0,shotSequence:0,lastShotMode:'',
+  attachmentShot:0,attachmentCooldown:0,attachmentSequence:0,
   meleeActive:false,meleeProgress:1,meleeDuration:0,meleeHeavy:false,meleeResolved:false,meleeSequence:0,meleeContact:0,meleeHitStop:0,sawRev:0,sawActive:false,sawContact:0,sawTick:0,
   gore:[],blood:[],limbs:[],pools:[],tracers:[],events:[],pressed:{},nextId:1,autoRun:false,playerId:'host',campaignComplete:false,
   extraction:makeExtractionState(),extractCandidateId:null,extractions:0,extractionPoints:0,
@@ -188,7 +194,52 @@ export function newRun(course, options = {}){
 export function look(r,dx,dy){if(r.mode!=='play')return;r.angle=angleDiff(r.angle+dx*.002,0);r.pitch=clamp(r.pitch-dy*.002,-1.35,1.35);}
 export function switchWeapon(r,i){if(!Number.isInteger(i)||!weapons[i]||r.weapon===i||(r.course?.dungeon||r.course?.scavenging)&&!r.ownedWeapons?.includes(i))return false;r.weapon=i;r.shot=0;r.rifleBurst=0;r.rifleBurstTimer=0;r.rifleCharge=0;r.rifleCharging=false;r.rifleKick=0;r.rifleKickYaw=0;r.aim=0;cancelMelee(r);return true;}
 export function nextOwnedWeapon(r,step=1){const owned=r.course?.dungeon||r.course?.scavenging?r.ownedWeapons:weapons.map((_,index)=>index);if(!owned?.length)return 0;for(let offset=1;offset<=weapons.length;offset++){const index=(r.weapon+Math.sign(step||1)*offset+weapons.length*2)%weapons.length;if(owned.includes(index))return index;}return r.weapon;}
-export function eye(r){return EYE+r.z-r.slide*.18;}
+export function eye(r){return actorGroundAt(r.course,r)+EYE+r.z-r.slide*.18;}
+const enemyBase=e=>(e.groundZ||0)+(e.meleeZ||0);
+const freshEnemyBase=(r,e)=>actorGroundAt(r.course,e)+(e.meleeZ||0);
+const playerFoot=r=>actorGroundAt(r.course,r)+(r.z||0);
+function syncEnemyGround(r,e,dt=0){
+ const old=Number.isFinite(e.groundZ)?e.groundZ:groundAt(r.course,e.x,e.y),support=supportAt(r.course,e.x,e.y,old,{radius:.16});
+ if(support.structureId||e.structureId){
+  if(support.height>=old-STRUCTURE_STEP){e.groundZ=support.height;e.supportVZ=0;}
+  else if(dt>0){e.supportVZ=(e.supportVZ||0)-5.5*dt;e.groundZ=Math.max(support.height,old+e.supportVZ*dt);}
+  e.supportZ=e.groundZ;e.supportId=support.id;e.structureId=support.structureId||e.structureId;
+  if(!support.structureId&&e.groundZ<=support.height+1e-7)e.structureId=null;
+ }else e.groundZ=groundAt(r.course,e.x,e.y);
+ return e.groundZ;
+}
+function syncEnemyGrounds(r){for(const e of r.course.enemies)syncEnemyGround(r,e);}
+function actorLine(course,from,to){
+ const z=actorGroundAt(course,from)+(from.meleeZ||from.z||0)+.32,tz=actorGroundAt(course,to)+(to.meleeZ||to.z||0)+.32;
+ return pointLine(course,{x:from.x,y:from.y,z},{x:to.x,y:to.y,z:tz});
+}
+function pointLine(course,from,to){
+ if(traceStructureSegment(course,from,to))return false;
+ const distance=Math.hypot(to.x-from.x,to.y-from.y);return distance<1e-7||castRay(course,from.x,from.y,Math.atan2(to.y-from.y,to.x-from.x),distance+.1,from.z,(to.z-from.z)/distance).dist>distance-.1;
+}
+const settledFloor=(course,x,y,z)=>supportAt(course,x,y,Number.isFinite(z)?z:groundAt(course,x,y)+STRUCTURE_STEP,{stepHeight:0}).height;
+function moveLooseParticle(course,p,dt,gravity){
+ const from={x:p.x,y:p.y,z:p.z};p.vz-=gravity*dt;
+ const to={x:p.x+p.vx*dt,y:p.y+p.vy*dt,z:p.z+p.vz*dt},contact=traceStructureSegment(course,from,to);
+ if(contact){p.x=contact.x+contact.normal.x*.0005;p.y=contact.y+contact.normal.y*.0005;p.z=contact.z+contact.normal.z*.0005;if(contact.normal.z)p.vz=0;if(contact.normal.x)p.vx*=.1;if(contact.normal.y)p.vy*=.1;}
+ else{p.x=to.x;p.y=to.y;p.z=to.z;}
+ const terrain=groundAt(course,p.x,p.y);if(p.z<=terrain){p.z=terrain;p.vz=0;}
+ return contact?.normal.z>0||p.z<=terrain;
+}
+// Sample the metre-grid terrain at quarter-metre horizontal intervals and
+// refine the first contact. Flat courses retain their analytic plane path.
+export function castGroundRay(course,x,y,z,angle,slope,max=24,clearance=.01){
+ if(!course?.coastal?.terrain)return slope<0?Math.max(0,(clearance-z)/slope):Infinity;
+ const dx=Math.cos(angle),dy=Math.sin(angle),gap=d=>z+slope*d-groundAt(course,x+dx*d,y+dy*d)-clearance;
+ if(gap(0)<=0)return 0;
+ const steps=Math.max(1,Math.ceil(max/.0625));let previous=0;
+ for(let i=1;i<=steps;i++){
+  const distance=max*i/steps;
+  if(gap(distance)<=0){let a=previous,b=distance;for(let n=0;n<14;n++){const middle=(a+b)/2;if(gap(middle)>0)a=middle;else b=middle;}return b;}
+  previous=distance;
+ }
+ return Infinity;
+}
 function enemyProfile(e){
  const fallback=e.kind===3?'bellwraith':e.kind===2?'brute':e.kind===1?'caster':'stalker';
  return ENEMY_PROFILES[e.variant]||ENEMY_PROFILES[fallback];
@@ -198,7 +249,8 @@ function enemyHitRadius(e,minimum=.16){
  return Number.isFinite(radius)?Math.max(minimum,radius):minimum;
 }
 function enemyHitHeight(e,minimum=.52){
- if(e.locomotion==='crawl')return .19;
+ if(e.locomotion==='crawler'&&(e.attacking||e.strike>0||e.bitePhase==='held'))return Math.max(minimum,.52);
+ if(isLowZombie(e))return e.locomotion==='crawler'?.26:.19;
  const height=Number(ENEMY_PROFILES[e?.variant]?.hitHeight);
  return Number.isFinite(height)?Math.max(minimum,height):minimum;
 }
@@ -259,7 +311,7 @@ function beginBite(r,e){
 }
 function biteEligible(r,e,profile,distance){
  return !!e.mind?.token&&['rush','hunter'].includes(profile.role)&&!e.wounds?.arm&&!e.dead
-  &&distance<.4&&r.z<.18&&r.dashTime<=0&&r.parryTime<=0&&r.health>0
+  &&distance<.4&&r.z<.18&&Math.abs(playerFoot(r)-enemyBase(e))<.18&&r.dashTime<=0&&r.parryTime<=0&&r.health>0
   &&!biteActive(r)&&r.bite?.phase!=='terminal'&&(r.bite?.cooldown||0)<=0&&(e.biteCooldown||0)<=0;
 }
 function addBiteEscape(r,amount,source){
@@ -368,6 +420,7 @@ function extractionTarget(r){
  let best=null,bestDistance=Infinity;
  for(const e of enemies){
   if(!e||!e.dead||e.reanimate?.phase==='down'||e.extracted||e.heartRemoved)continue;
+  if(Math.abs(playerFoot(r)-freshEnemyBase(r,e))>.32)continue;
   const d=Math.hypot(e.x-r.x,e.y-r.y);
   if(d>EXTRACTION_RANGE||d>=bestDistance)continue;
   const a=Math.atan2(e.y-r.y,e.x-r.x);
@@ -382,7 +435,7 @@ function extractionTarget(r){
 }
 function extractionEvent(r,type,e,extra={}){
  const ex=r.extraction||makeExtractionState();
- const payload={type,enemyId:e?.id??ex.targetId,targetId:e?.id??ex.targetId,x:e?.x??r.x,y:e?.y??r.y,z:.32,phase:ex.phase,progress:ex.progress,
+ const payload={type,enemyId:e?.id??ex.targetId,targetId:e?.id??ex.targetId,x:e?.x??r.x,y:e?.y??r.y,z:(e?enemyBase(e):groundAt(r.course,r.x,r.y))+.32,phase:ex.phase,progress:ex.progress,
   seed:ex.seed,variation:ex.variation,gore:r.settings?.gore!==false,sequence:ex.sequence,...extra};
  r.events.push(payload);
 }
@@ -418,7 +471,7 @@ function completeExtraction(r,e){
  e.extracted=true;e.extractedAt=r.time;e.extractionPoints=points;e.extractionVariation=ex.variation;
  if(r.settings?.gore!==false){
   const world=r.world||r;
-  burst(r,e,12+ex.variation.sprayCount,{x:e.x,y:e.y,z:.19,energy:.55});
+  burst(r,e,12+ex.variation.sprayCount,{x:e.x,y:e.y,z:enemyBase(e)+.19,energy:.55});
   for(let i=0;i<3;i++)world.blood.push({id:world.nextId++,x:e.x+(extractionRoll(ex.seed,i+21)-.5)*.18,
    y:e.y+(extractionRoll(ex.seed,i+25)-.5)*.18,size:.18+extractionRoll(ex.seed,i+29)*.11,angle:extractionRoll(ex.seed,i+33)*Math.PI*2});
   world.blood=world.blood.slice(-100);
@@ -473,21 +526,23 @@ export function advanceExtraction(r,dt,input={}){
 }
 function burst(player,e,count=18,hit=null){
  const r=player.world||player,seed=e.id+(e.hits||0)*13,energy=hit?.energy||1;
+ const ground=settledFloor(r.course,e.x,e.y,hit?.z??(Number.isFinite(e.groundZ)?e.groundZ:undefined));
  for(let i=0;i<count;i++){
   const a=i*2.399+seed,spread=(.10+(i%5)*.055)*energy,jet=(i%3===0?-.28:.52)*energy;
   const directed=Number.isFinite(hit?.vx),chunk=!hit?.brutal&&count>20&&i%9===0;
-  r.gore.push({id:r.nextId++,x:hit?.x??e.x,y:hit?.y??e.y,z:hit?.z??(.15+(i%7)*.045),
+  r.gore.push({id:r.nextId++,x:hit?.x??e.x,y:hit?.y??e.y,z:hit?.z??(ground+.15+(i%7)*.045),
    vx:Math.cos(a)*spread+(directed?hit.vx*jet:0),vy:Math.sin(a)*spread+(directed?hit.vy*jet:0),
    vz:.16+(i%4)*.095+(directed?(hit.vz||0)*jet:0),life:1.1+(i%3)*.35,
      size:chunk?.025:.004+(i%4)*.002,chunk,counter:!!hit?.brutal,spin:a});
  }
  r.gore=r.gore.slice(-220);
- r.blood.push({id:r.nextId++,x:e.x,y:e.y,size:count>20?.22:.075,angle:seed});r.blood=r.blood.slice(-100);
+ r.blood.push({id:r.nextId++,x:e.x,y:e.y,z:ground,size:count>20?.22:.075,angle:seed});r.blood=r.blood.slice(-100);
 }
 // Deterministic gore rolls keep host and guest reads identical without Math.random.
 export const LIMB_KINDS=Object.freeze(['arm','leg','head','eye']);
 const limbRoll=(seed,salt)=>{let x=(seed*2654435761+(salt||0)*40503)>>>0;x^=x>>>13;return (x>>>0)/4294967296;};
 function damageEnemy(r,e,n,label='HIT',hit=null){
+ syncEnemyGround(r,e);
  const deadBefore=!!e.dead;
  if(e.extracted)return;
  e.hp-=n;e.flash=.16;e.hits=(e.hits||0)+1;
@@ -498,7 +553,7 @@ function damageEnemy(r,e,n,label='HIT',hit=null){
   // changes neither the AI stun nor F; grace-suppressed hits cannot renew it.
   if(graceBefore<=0&&e.mind?.graceT>0&&(e.stagger||0)>0)e.chestOpeningUntil=(r.world||r).time+CHEST_OPENING_GRACE;
  }
- const hx=hit?.x??e.x,hy=hit?.y??e.y,hz=hit?.z??.4;
+ const hx=hit?.x??e.x,hy=hit?.y??e.y,hz=hit?.z??enemyBase(e)+.4;
  const shotX=hx-r.x,shotY=hy-r.y,shotZ=hz-eye(r),shotLength=Math.hypot(shotX,shotY,shotZ)||1;
  burst(r,e,e.hp<=0?34:12,{x:hx,y:hy,z:hz,vx:shotX/shotLength,vy:shotY/shotLength,vz:shotZ/shotLength,energy:clamp(.65+n*.065,.7,1.8),brutal:!!hit?.brutal});
  // Gore is a presentation preference; injury and its movement penalties are
@@ -506,7 +561,7 @@ function damageEnemy(r,e,n,label='HIT',hit=null){
  // counter contacts already applied one exact wound, so skip random anatomy.
  const cut=applyAnatomyDamage(e,n,hit,(r.world||r).time,hit?.source||'bullet');
  if(cut)r.events.push({type:'enemy-sever',enemyId:e.id,part:cut.part,x:hx,y:hy,z:hz,weapon:r.weapon,cutId:cut.id});
- const d=Math.hypot(e.x-r.x,e.y-r.y,r.z);
+ const d=Math.hypot(e.x-r.x,e.y-r.y,playerFoot(r)-enemyBase(e));
  if(!deadBefore&&(!hit?.vermin||r.health>0)&&d<1.25&&castRay(r.course,r.x,r.y,Math.atan2(e.y-r.y,e.x-r.x)).dist>d-.15){r.health=Math.min(100,r.health+n*3);r.heal=.5;}
  const eventBase={x:hx,y:hy,z:hz,weapon:r.weapon,enemyId:e.id,enemyKind:e.kind,variant:e.variant||'stalker'};
  if(e.hp<=0){
@@ -520,7 +575,8 @@ function damageEnemy(r,e,n,label='HIT',hit=null){
   if(r.world)r.world.events.push({type:'kill',...eventBase});
  }else r.events.push({type:'hit',...eventBase});
 }
-const AI_ENV={castRay:(...a)=>castRay(...a),canStand:(...a)=>canStand(...a),angleDiff:(...a)=>angleDiff(...a),clamp};
+const AI_ENV={castRay:(...a)=>castRay(...a),canStand:(...a)=>canStand(...a),angleDiff:(...a)=>angleDiff(...a),clamp,
+ sensorLine:actorLine,groundHeight:actorGroundAt,routeGoal:stairWaypoint};
 function safeSpawnPoint(r, preferred=0){
  const points=Array.isArray(r.course.spawnPoints)&&r.course.spawnPoints.length?r.course.spawnPoints:[{x:2,y:2},{x:10,y:2},{x:6,y:3},{x:2,y:6},{x:10,y:6},{x:6,y:1.8},{x:1.5,y:4},{x:10.5,y:4}];
  const activeRoom=r.roomProgression?.requireEntry?currentRoom(r.roomProgression):null;
@@ -538,13 +594,16 @@ function spawnEnemy(r,item,point){
  const profile=ENEMY_PROFILES[item.variant]||enemyProfile(item);
  const sectorScale=r.course?.dungeon?1:1+(r.sectorIndex||0)*.16+(Math.max(0,r.wave-1))*.045;
  const hp=Math.max(1,Math.round(profile.hp*sectorScale));
-  const e={id:r.nextId++,x:point.x,y:point.y,z:0,hp,maxHp:hp,kind:item.kind??profile.kind,variant:item.variant||'stalker',role:item.role||profile.role,
+  const e={id:r.nextId++,x:point.x,y:point.y,z:0,groundZ:groundAt(r.course,point.x,point.y),hp,maxHp:hp,kind:item.kind??profile.kind,variant:item.variant||'stalker',role:item.role||profile.role,
    cost:item.cost||profile.cost||1,dead:false,flash:0,attack:.35+((item.order??0)%4)*.13,phase:item.order||0,moveSpeed:profile.speed,attackCooldown:profile.attack,
    windupTime:profile.windup,projectileSpeed:profile.projectileSpeed||1.05,contactDamage:profile.contactDamage||12,spawnedAt:r.time,
    encounterId:item.encounterId||null,roomId:item.roomId||null,
    elite:sectorScale>1.2,wounds:{arm:false,leg:false,eye:false},wounded:false,drip:0,hits:0,slashDir:0,slashReach:0,slashHalf:0,slashHit:true,
   pack:item.pack??(r.wave*4+Math.floor((item.order||0)/2)),slot:(item.order||0)%4,slotSign:((item.order||0)%2)?1:-1};
   e.baseMoveSpeed=e.moveSpeed;
+  const explicitAppearance=item.appearance??point.appearance;
+  if(explicitAppearance!=null)e.appearance=explicitAppearance;
+  else if(r.course?.harbor&&item.resident&&e.kind===0)e.appearance=coastalZombieAppearance(e,item.order??e.id);
   e.reanimates=item.reanimates??(e.kind===0&&(e.variant==='bloodhound'?e.id%3!==0:e.id%7===2));e.brainIntegrity=1;
  {
   const anim=point.ingressId?'none':item.spawnAnim??(item.resident?'none':spawnAnimFor(e.variant,point.kind,false));
@@ -558,7 +617,7 @@ function spawnEnemy(r,item,point){
  }
  r.course.enemies.push(e);
  if(r.director){r.director.spent+=e.cost;r.director.remainingBudget=Math.max(0,r.director.budget-r.director.spent);}
-  const event={type:'spawn',resident:e.resident,ambush:e.ambush,spawnAnim:e.spawnAnim,x:e.x,y:e.y,z:e.z,enemyId:e.id,enemyKind:e.kind,variant:e.variant,roomId:e.roomId,encounterId:e.encounterId,sectorIndex:r.sectorIndex,wave:r.wave,dungeon:!!r.course?.dungeon,
+  const event={type:'spawn',resident:e.resident,ambush:e.ambush,spawnAnim:e.spawnAnim,x:e.x,y:e.y,z:e.groundZ+e.z,enemyId:e.id,enemyKind:e.kind,variant:e.variant,roomId:e.roomId,encounterId:e.encounterId,sectorIndex:r.sectorIndex,wave:r.wave,dungeon:!!r.course?.dungeon,
    ingressId:e.ingressId||null,openingId:e.ingressOpeningId||null,facing:e.facing,stage:e.encounterStage??null};
  r.events.push(event);
  if(r.world)r.world.events.push({...event});
@@ -1141,7 +1200,12 @@ function advanceDungeonFloor(r){
  }
  r.events.push({type:'sector-transition',sectorIndex:floorIndex,sectorName:course.name,dungeon:true,floorIndex,floorCount:course.dungeonCount});
 }
-function move(r,dx,dy){const n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.04));for(let i=0;i<n;i++){const nx=r.x+dx/n,ny=r.y+dy/n;if(canTraverseRoomGates(r.course,r.roomProgression,r.x,r.y,nx,r.y)&&canStand(r.course,nx,r.y,.1)&&!vehicleContains(r.vehicle,nx,r.y,.1))r.x=nx;else r.vx=0;if(canTraverseRoomGates(r.course,r.roomProgression,r.x,r.y,r.x,ny)&&canStand(r.course,r.x,ny,.1)&&!vehicleContains(r.vehicle,r.x,ny,.1))r.y=ny;else r.vy=0;}}
+function move(r,dx,dy){const n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.04));for(let i=0;i<n;i++){
+ const nx=r.x+dx/n,ny=r.y+dy/n,height=STRUCTURE_BODY_HEIGHT-(r.slide||0)*.18;
+ const scoped=!!(r.structureId||structureAt(r.course,r.x,r.y,.1)||structureAt(r.course,nx,ny,.1));
+ if(canTraverseRoomGates(r.course,r.roomProgression,r.x,r.y,nx,r.y)&&canStand(r.course,nx,r.y,.1,scoped?playerFoot(r):undefined,height)&&!vehicleContains(r.vehicle,nx,r.y,.1)){r.x=nx;if(scoped)resolveActorSupport(r.course,r);}else r.vx=0;
+ if(canTraverseRoomGates(r.course,r.roomProgression,r.x,r.y,r.x,ny)&&canStand(r.course,r.x,ny,.1,scoped?playerFoot(r):undefined,height)&&!vehicleContains(r.vehicle,r.x,ny,.1)){r.y=ny;if(scoped)resolveActorSupport(r.course,r);}else r.vy=0;
+}}
 // Elapsed is total sequence time. Keep the strike time and full duration in
 // state so host and guest visuals can use the same timeline across phases.
 export const BRUTAL_TIMING=Object.freeze({
@@ -1157,7 +1221,7 @@ const verminBusy=r=>!!r.verminHand&&r.verminHand.phase!=='idle';
 function brutalEvent(r,type,e,extra={}){
  const b=r.brutal;
  r.events.push({type,playerId:playerId(r),enemyId:e?.id??b.enemyId,sequence:b.sequence,phase:b.phase,
-  kind:b.kind,side:b.side,elapsed:b.elapsed,contactAt:b.contactAt,extractionAt:b.extractionAt,releaseAt:b.releaseAt,duration:b.duration,x:e?.x??r.x,y:e?.y??r.y,z:.4,...extra});
+  kind:b.kind,side:b.side,elapsed:b.elapsed,contactAt:b.contactAt,extractionAt:b.extractionAt,releaseAt:b.releaseAt,duration:b.duration,x:e?.x??r.x,y:e?.y??r.y,z:(e?enemyBase(e):groundAt(r.course,r.x,r.y))+.4,...extra});
 }
 function cancelBrutal(r,reason){
  if(!brutalActive(r))return false;
@@ -1166,6 +1230,7 @@ function cancelBrutal(r,reason){
 }
 function brutalInReach(r,e,range=BRUTAL_RANGE){
  if(!e||r.z>.24||(e.meleeZ||e.z||0)>.28)return false;
+ if(Math.abs(playerFoot(r)-freshEnemyBase(r,e))>.28)return false;
  const dx=e.x-r.x,dy=e.y-r.y,d=Math.hypot(dx,dy),a=Math.atan2(dy,dx);
  return d<range&&Math.abs(angleDiff(a,r.angle))<BRUTAL_CONE
   &&castRay(r.course,r.x,r.y,a,d+.1).dist>d-.01;
@@ -1180,6 +1245,7 @@ function brutalEligible(r,e,energyCost=BRUTAL_ENERGY){
 function parryTarget(r){
  return r.course.enemies.filter(e=>{
   if(e.dead)return false;
+  if(Math.abs(playerFoot(r)-freshEnemyBase(r,e))>.65)return false;
   const dx=e.x-r.x,dy=e.y-r.y,d=Math.hypot(dx,dy),a=Math.atan2(dy,dx);
   return d<.65&&Math.abs(angleDiff(a,r.angle))<.9&&castRay(r.course,r.x,r.y,a).dist>d-.1;
  }).sort((a,b)=>Math.hypot(a.x-r.x,a.y-r.y)-Math.hypot(b.x-r.x,b.y-r.y)||a.id-b.id)[0]||null;
@@ -1193,7 +1259,7 @@ export function brutalCandidate(r){
  const stagger=r.bite?.phase==='windup'&&r.bite.enemyId===e.id?Math.max(e.stagger||0,1.1):(e.stagger||0);
  const maxHp=e.maxHp||enemyProfile(e).hp||e.hp;
  const kind=held?'rip':stagger>=.28&&e.hp<=Math.min(12,maxHp*.4)?'twist':'chop';
- const aimed=held?null:traceEnemyBody(e,{x:r.x,y:r.y,z:eye(r)},{x:Math.cos(r.angle)*Math.cos(r.pitch),y:Math.sin(r.angle)*Math.cos(r.pitch),z:Math.sin(r.pitch)},.65);
+ const aimed=held?null:traceEnemyBody(e,{x:r.x,y:r.y,z:eye(r)},{x:Math.cos(r.angle)*Math.cos(r.pitch),y:Math.sin(r.angle)*Math.cos(r.pitch),z:Math.sin(r.pitch)},.65,freshEnemyBase(r,e));
  if(aimed?.part.endsWith('Leg')||aimed?.part==='head'&&aimed.hit.fraction>.62)return null;
  // Low limb and crown aim uses the free directed slice even in grab range.
  // Chest-height aim keeps the committed close counter and its contact.
@@ -1251,7 +1317,7 @@ function applyBrutalContact(r,e){
  else e.eviscerated=true;
  e.drip=(e.drip||0)+.35;
  damageEnemy(r,e,damage,b.interrupt?'+ INTERRUPT':b.kind==='chop'?'+ ARM CHOP':b.kind==='twist'?'+ NECK TWIST':b.kind==='pierce'?'+ CHEST PIERCE':'+ GUT RIP',
-  {x:e.x,y:e.y,z:b.kind==='twist'?.5:b.kind==='rip'?.3:.4,brutal:true});
+  {x:e.x,y:e.y,z:enemyBase(e)+(b.kind==='twist'?.5:b.kind==='rip'?.3:.4),brutal:true});
  brutalEvent(r,'brutal-contact',e,{damage,lethal:!!timing.lethal,killed:e.dead,wound:{...e.brutalWound}});
 }
 // Only the authoritative world tick advances counters. tickPlayer prediction
@@ -1283,6 +1349,7 @@ function advanceBrutal(world,r,dt){
  if(b.elapsed+1e-8>=b.duration){brutalEvent(r,'brutal-complete',e);r.brutal=makeBrutalState(b.sequence);}
 }
 export function parry(r){if(r.mode!=='play'||r.health<=0||r.vehicle?.occupied||r.parryCooldown>0)return false;
+ syncEnemyGrounds(r);
  const candidate=brutalCandidate(r);
  r.parryTime=.19;r.parryCooldown=.45;r.punch=.3;const punchIndex=r.events.length;r.events.push({type:'punch',x:r.x,y:r.y,z:eye(r)});
  if(r.bite?.phase==='held'){
@@ -1315,13 +1382,14 @@ export function cancelMelee(r){
 // Contact is sampled at the strike frame, not at button-down. A committed
 // swing may cleave two nearby enemies, but each target takes one hit only.
 function meleeTargets(r,range,cone,limit){
+ syncEnemyGrounds(r);
  const height=eye(r),slope=Math.tan(r.pitch);
  return r.course.enemies.filter(e=>!e.extracted&&(!e.dead||supportsAnatomy(e))).map(e=>{
   if(r.weapon===7){const t=enemyRayTarget(e,r,r.angle,r.pitch,range+.14);return t?{e,d:t.along,a:r.angle,z:t.z,bodyHit:t.bodyHit}:null;}
   const dx=e.x-r.x,dy=e.y-r.y,d=Math.hypot(dx,dy),a=Math.atan2(dy,dx);
   return{e,d,a,z:height+d*slope};
  }).filter(t=>t&&t.d<=range+enemyHitRadius(t.e,.16)&&Math.abs(angleDiff(t.a,r.angle))<=cone
-  &&(t.bodyHit||t.z>=(t.e.meleeZ||0)-.08&&t.z<=enemyHitHeight(t.e,.52)+(t.e.meleeZ||0)+.08)
+  &&(t.bodyHit||t.z>=enemyBase(t.e)-.08&&t.z<=enemyHitHeight(t.e,.52)+enemyBase(t.e)+.08)
   &&castRay(r.course,r.x,r.y,t.a,t.d+.2).dist>t.d-.06)
  .sort((a,b)=>a.d-b.d||a.e.id-b.e.id).slice(0,limit);
 }
@@ -1339,7 +1407,7 @@ function impulseMeleeEnemy(e,angle,power,kind){
 
 function meleeImpact(r,target,damage,power,kind,heavy){
  const world=r.world||r,{e,a,z}=target,deadBefore=e.dead;
- const hit={...(target.bodyHit||{x:r.x+Math.cos(r.angle)*target.d,y:r.y+Math.sin(r.angle)*target.d,z:clamp(z,(e.meleeZ||0)+.02,enemyHitHeight(e,.52)+(e.meleeZ||0))}),source:kind==='chainsaw'?'chainsaw':'blunt',angle:r.angle,pitch:r.pitch};
+ const hit={...(target.bodyHit||{x:r.x+Math.cos(r.angle)*target.d,y:r.y+Math.sin(r.angle)*target.d,z:clamp(z,enemyBase(e)+.02,enemyHitHeight(e,.52)+enemyBase(e))}),source:kind==='chainsaw'?'chainsaw':'blunt',angle:r.angle,pitch:r.pitch};
  damageEnemy(r,e,damage*weaponDamageMultiplier(r,r.weapon),kind==='chainsaw'?'+ CARVED UP':heavy?'+ HOME RUN':'+ LIGHTS OUT',hit);
  impulseMeleeEnemy(e,a,power,kind);
  // A short local contact record feeds the existing bounded splash pool. It
@@ -1353,10 +1421,10 @@ function meleeImpact(r,target,damage,power,kind,heavy){
 
 function meleeWall(r,range,heavy=false){
  const world=r.world||r,wall=castRay(r.course,r.x,r.y,r.angle,range);
- const slope=Math.tan(r.pitch),floor=slope<0?(eye(r)-.01)/-slope:Infinity;
+ const slope=Math.tan(r.pitch),floor=castGroundRay(r.course,r.x,r.y,eye(r),r.angle,slope,range);
  const onFloor=floor<wall.dist&&floor<range,distance=onFloor?floor:wall.dist,height=eye(r)+distance*slope;
- if(distance>=range||height<0||height>1.45)return false;
  const x=r.x+Math.cos(r.angle)*distance,y=r.y+Math.sin(r.angle)*distance;
+ const ground=groundAt(r.course,x,y);if(distance>=range||height<ground||height>ground+1.45)return false;
  world.tracers.push({id:world.nextId++,x:r.x,y:r.y,z:eye(r),tx:x,ty:y,tz:height,surface:onFloor?'floor':'wall',
   normal:onFloor?{x:0,y:0,z:1}:wall.side===0?{x:-Math.sign(Math.cos(r.angle)),y:0,z:0}:{x:0,y:-Math.sign(Math.sin(r.angle)),z:0},
   ownerId:playerId(r),life:.14,duration:.14,weapon:r.weapon,hit:false,melee:true,heavy});
@@ -1410,13 +1478,15 @@ function advanceMelee(r,dt,input){
 // supply the loose-limb follow-through. Substeps prevent tunnelling at walls.
 function advanceMeleeImpulse(r,e,dt){
  if(!e.meleeHitId)return;
+ const groundBefore=syncEnemyGround(r,e),heightBefore=e.meleeZ||0,airborne=heightBefore>.001||(e.meleeVZ||0)>0;
  const vx=e.meleeVX||0,vy=e.meleeVY||0,steps=Math.max(1,Math.ceil(Math.hypot(vx,vy)*dt/.035));
  for(let i=0;i<steps;i++){
   const mx=(e.meleeVX||0)*dt/steps,my=(e.meleeVY||0)*dt/steps;
   if(canStand(r.course,e.x+mx,e.y,.16))e.x+=mx;else e.meleeVX=0;
   if(canStand(r.course,e.x,e.y+my,.16))e.y+=my;else e.meleeVY=0;
  }
- e.meleeVZ=(e.meleeVZ||0)-7.5*dt;e.meleeZ=Math.max(0,(e.meleeZ||0)+e.meleeVZ*dt);
+ const groundAfter=syncEnemyGround(r,e);
+ e.meleeVZ=(e.meleeVZ||0)-7.5*dt;e.meleeZ=Math.max(0,heightBefore+e.meleeVZ*dt+(airborne?groundBefore-groundAfter:0));
  if(e.meleeZ===0)e.meleeVZ=0;
  const drag=Math.exp(-dt*(e.dead?3.8:8));e.meleeVX*=drag;e.meleeVY*=drag;
  e.meleeYaw=clamp((e.meleeYaw||0)+(e.meleeSpinV||0)*dt,-.85,.85);e.meleeSpinV=(e.meleeSpinV||0)*Math.exp(-dt*5);
@@ -1425,13 +1495,14 @@ function advanceMeleeImpulse(r,e,dt){
 // Rifles share the authoritative hit rules and pooled tracer path. Prediction
 // only advances the local mechanism/audio state, never enemy health or effects.
 function enemyRayTarget(e,r,a,pitch,max){
+ syncEnemyGround(r,e);
  const dx=Math.cos(a),dy=Math.sin(a),ex=e.x-r.x,ey=e.y-r.y,along=ex*dx+ey*dy,slope=Math.tan(pitch),oz=eye(r);
  if(supportsAnatomy(e)){
   const c=Math.cos(pitch),body=traceEnemyBody(e,{x:r.x,y:r.y,z:oz},{x:dx*c,y:dy*c,z:Math.sin(pitch)},max/c);
   return body?{e,along:body.distance*c,side:0,z:body.hit.z,bodyHit:body.hit}:null;
  }
  const z=oz+along*slope,side=Math.abs(-ex*dy+ey*dx);
- return along>0&&along<max+.01&&side<enemyHitRadius(e,.16)&&z>=0&&z<enemyHitHeight(e,.52)?{e,along,side,z}:null;
+ return along>0&&along<max+.01&&side<enemyHitRadius(e,.16)&&z>=enemyBase(e)&&z<enemyBase(e)+enemyHitHeight(e,.52)?{e,along,side,z}:null;
 }
 function fireRifleRound(r, mode, predicted = false) {
  const w=weapons[r.weapon],world=r.world||r,charged=mode==='charged';
@@ -1450,29 +1521,29 @@ function fireRifleRound(r, mode, predicted = false) {
  if(predicted)return true;
  const spread=r.weapon===4?(mode==='burst'?.0015:.001+w.cone*(r.rifleHeat||0)):(charged?0:w.cone);
  const a=r.angle+Math.sin(r.shotSequence*2.399963)*spread;
- const oz=eye(r),slope=Math.tan(r.pitch),wallHit=castRay(r.course,r.x,r.y,a,w.range);
- const floor=slope<0?Math.max(0,(.01-oz)/slope):Infinity,max=Math.min(w.range,wallHit.dist,floor);
+ const oz=eye(r),slope=Math.tan(r.pitch),wallHit=castRay(r.course,r.x,r.y,a,w.range,oz,slope);
+ const floor=castGroundRay(r.course,r.x,r.y,oz,a,slope,Math.min(w.range,wallHit.dist)),max=Math.min(w.range,wallHit.dist,floor);
  const dx=Math.cos(a),dy=Math.sin(a);
  const targets=r.course.enemies.filter(e=>!e.extracted&&(!e.dead||supportsAnatomy(e))).map(e=>enemyRayTarget(e,r,a,r.pitch,max)).filter(Boolean)
  .sort((a,b)=>a.along-b.along||(a.e.id||0)-(b.e.id||0)).slice(0,charged?3:1);
  // Rifle rounds can shoot an ejected Breach core, but cannot inherit Arc's nuke.
  const core=world.projectiles.find(p=>{
-  if(!p.core||p.life<=0)return false;
+  if(!p.core||p.attachment||p.life<=0)return false;
   const px=p.x-r.x,py=p.y-r.y,along=px*dx+py*dy;
   return along>0&&along<Math.min(max,targets[0]?.along??max)&&Math.abs(-px*dy+py*dx)<.14&&Math.abs(p.z-(oz+along*slope))<.14;
  });
- let end=max,hit=false,scoringHit=false,surface=floor<=wallHit.dist&&floor<=w.range?'floor':wallHit.dist<w.range&&oz+slope*max<=1.45?'wall':'air';
+ let end=max,hit=false,scoringHit=false,surface=wallHit.structureId?wallHit.surface:floor<=wallHit.dist&&floor<=w.range?'floor':wallHit.dist<w.range&&oz+slope*max<=groundAt(r.course,r.x+dx*max,r.y+dy*max)+1.45?'wall':'air';
  if(core){end=(core.x-r.x)*dx+(core.y-r.y)*dy;core.life=0;core.nuke=false;explode(world,core);award(r,120,'+ CORE SHOT');surface='air';}
  else for(let i=0;i<targets.length;i++){
   scoringHit ||= !targets[i].e.dead;
-  const t=targets[i],head=t.bodyHit?t.bodyHit.part==='head':t.z>.38,damage=(charged?11:w.damage)*(head?1.5:1)*Math.pow(.82,i);
+  const t=targets[i],head=t.bodyHit?t.bodyHit.part==='head':t.z-enemyBase(t.e)>.38,damage=(charged?11:w.damage)*(head?1.5:1)*Math.pow(.82,i);
   damageEnemy(r,t.e,damage*weaponDamageMultiplier(r,r.weapon),charged?'+ THROUGH THE VEIL':head?'+ HEADSHOT':'+ ELIMINATED',{...(t.bodyHit||{x:r.x+dx*t.along,y:r.y+dy*t.along,z:t.z}),angle:a,pitch:r.pitch});
   if(charged)t.e.stagger=Math.max(t.e.stagger||0,.22);
   end=t.along;hit=true;surface='flesh';
  }
  const duration=charged?.18:r.weapon===4?.085:.13;
  world.tracers.push({id:world.nextId++,x:r.x,y:r.y,z:oz,tx:r.x+dx*end,ty:r.y+dy*end,tz:oz+slope*end,
-  surface,normal:surface==='floor'?{x:0,y:0,z:1}:wallHit.side===0?{x:-Math.sign(dx),y:0,z:0}:{x:0,y:-Math.sign(dy),z:0},
+   surface,normal:wallHit.normal??(surface==='floor'?{x:0,y:0,z:1}:wallHit.side===0?{x:-Math.sign(dx),y:0,z:0}:{x:0,y:-Math.sign(dy),z:0}),
   ownerId:playerId(r),life:duration,duration,weapon:r.weapon,hit,charged,mode,rail:false});
  if(scoringHit)award(r,charged&&targets.length>1?95:Math.max(8,38-r.repeat*5),charged&&targets.length>1?'+ THREAD THE NEEDLE':mode==='burst'?'+ CONTROLLED BURST':'+ RIFLE HIT');
  return true;
@@ -1493,6 +1564,8 @@ export function shootRifle(r, secondary=false, predicted=false) {
 }
 
 function advanceRifles(r,dt,input){
+ const focus=r.weapon<6&&input.alt&&!brutalActive(r)&&!verminBusy(r)?1:0;
+ r.aim+=(focus-r.aim)*(1-Math.exp(-dt*12));
  if(brutalActive(r)||verminBusy(r)){r.rifleBurst=0;r.rifleBurstTimer=0;r.rifleCharge=0;r.rifleCharging=false;return;}
  r.rifleHeat=Math.max(0,(r.rifleHeat||0)-dt*.36);
  r.rifleKick=Math.max(0,(r.rifleKick||0)-dt*6.8);
@@ -1508,11 +1581,33 @@ function advanceRifles(r,dt,input){
    fireRifleRound(r,'charged',!!input.predictWeapons);
   }
  }else {r.rifleCharging=false;r.rifleCharge=0;}
- const focus=r.weapon===5&&input.alt?1:r.weapon===4&&r.rifleBurst>0?.3:0;
- r.aim+=(focus-r.aim)*(1-Math.exp(-dt*12));
+}
+
+// Bare firearms use the secondary control to steady the aim. Their prototype
+// secondary attacks are not player inputs; an attachment must author that mode
+// before it can be connected here. Firing while aiming uses the primary shot.
+export function fireWeaponInput(r,input={},predicted=false){
+ if(input.attachment&&r.weapon===BREACH_LAUNCHER.weapon)return fireAttachment(r,predicted);
+ if(r.weapon>=6)return input.fire||input.alt?shootMelee(r,!!input.alt,predicted):false;
+ if(!input.fire)return false;
+ if(predicted&&r.weapon>=4)return shootRifle(r,false,true);
+ return predicted?false:shoot(r,false);
+}
+
+export function fireAttachment(r,predicted=false){
+ if(r.weapon!==BREACH_LAUNCHER.weapon||r.mode!=='play'||r.health<=0||r.vehicle?.occupied||brutalActive(r)||verminBusy(r)||(r.attachmentCooldown||0)>0)return false;
+ const world=r.world||r,cp=Math.cos(r.pitch),sp=Math.sin(r.pitch),ca=Math.cos(r.angle),sa=Math.sin(r.angle);
+ const wall=castRay(r.course,r.x,r.y,r.angle,BREACH_LAUNCHER.forward,eye(r),Math.tan(r.pitch));
+ const forward=Math.max(.005,Math.min(BREACH_LAUNCHER.forward,wall.dist-.025));
+ const origin={x:r.x+ca*cp*forward,y:r.y+sa*cp*forward,z:eye(r)+sp*forward-BREACH_LAUNCHER.drop};
+ r.attachmentCooldown=BREACH_LAUNCHER.cooldown;r.attachmentShot=1;r.attachmentSequence=(r.attachmentSequence||0)+1;
+ if(!predicted)world.projectiles.push({id:world.nextId++,kind:'grenade',weapon:1,...origin,vx:ca*cp*BREACH_LAUNCHER.speed,vy:sa*cp*BREACH_LAUNCHER.speed,vz:sp*BREACH_LAUNCHER.speed+.35,life:BREACH_LAUNCHER.life,age:0,reflected:true,core:true,attachment:true,damageMultiplier:weaponDamageMultiplier(r,1),ownerId:playerId(r)});
+ r.events.push({type:'shot',weapon:1,...origin,attachment:true,predicted});
+ return true;
 }
 
 export function shoot(r,secondary=false){if(r.mode!=='play'||r.health<=0||r.vehicle?.occupied||brutalActive(r)||verminBusy(r))return false;const world=r.world||r;
+ syncEnemyGrounds(r);
  if(r.weapon>=6)return shootMelee(r,secondary);
  if(r.weapon>=4)return shootRifle(r,secondary);
  if(secondary&&r.weapon===0){if(r.altCooldown||r.coinCharges<=0)return false;r.coinCharges--;r.altCooldown=.3;world.coins.push({id:world.nextId++,x:r.x+Math.cos(r.angle)*.2,y:r.y+Math.sin(r.angle)*.2,z:eye(r)+.03,vx:Math.cos(r.angle)*.9,vy:Math.sin(r.angle)*.9,vz:1.15,life:3});r.events.push({type:'coin',weapon:0,x:r.x,y:r.y,z:eye(r)});return true;}
@@ -1528,24 +1623,31 @@ if(r.cooldowns[r.weapon]>0)return false;
  if(secondary&&r.weapon===1){r.cooldowns[1]=.95;r.shot=1;const core={id:world.nextId++,kind:'core',weapon:1,x:r.x,y:r.y,z:eye(r),vx:Math.cos(r.angle)*Math.cos(r.pitch)*2.8,vy:Math.sin(r.angle)*Math.cos(r.pitch)*2.8,vz:Math.sin(r.pitch)*2.8+.5,life:3,reflected:true,core:true,damageMultiplier:weaponDamageMultiplier(r,1),ownerId:playerId(r)};world.projectiles.push(core);r.events.push({type:'shot',weapon:1,x:core.x,y:core.y,z:core.z,projectileId:core.id});return true;}
 const w=weapons[r.weapon];r.cooldowns[r.weapon]=w.interval*(secondary&&r.weapon===0?2:1);r.fireCooldown=r.cooldowns[r.weapon];r.shot=1;r.events.push({type:'shot',weapon:r.weapon,x:r.x,y:r.y,z:eye(r)});r.repeat=r.lastWeapon===r.weapon?r.repeat+1:0;r.lastWeapon=r.weapon;
  const pellets=r.weapon===1?9:1,pierce=r.weapon===2||(secondary&&r.weapon===0);let hits=0;
- for(let i=0;i<pellets;i++){const offset=pellets>1?(i-4)/4:0,a=r.angle+offset*w.cone,pitch=r.pitch+(pellets>1?Math.sin(i*2.4)*.075:0),wallHit=castRay(r.course,r.x,r.y,a,w.range),wall=wallHit.dist,oz=eye(r),slope=Math.tan(pitch),floor=slope<0?Math.max(0,(.01-oz)/slope):Infinity,max=Math.min(w.range,wall,floor);let end=max;
+  for(let i=0;i<pellets;i++){const offset=pellets>1?(i-4)/4:0,a=r.angle+offset*w.cone,pitch=r.pitch+(pellets>1?Math.sin(i*2.4)*.075:0),oz=eye(r),slope=Math.tan(pitch),wallHit=castRay(r.course,r.x,r.y,a,w.range,oz,slope),wall=wallHit.dist,floor=castGroundRay(r.course,r.x,r.y,oz,a,slope,Math.min(w.range,wall)),max=Math.min(w.range,wall,floor);let end=max;
  const targets=r.course.enemies.filter(e=>!e.extracted&&(!e.dead||supportsAnatomy(e))).map(e=>enemyRayTarget(e,r,a,pitch,max)).filter(Boolean).sort((a,b)=>a.along-b.along);
  const coin=r.weapon===0?world.coins.find(c=>{const dx=c.x-r.x,dy=c.y-r.y,d=dx*Math.cos(a)+dy*Math.sin(a);return d>0&&d<max&&Math.abs(-dx*Math.sin(a)+dy*Math.cos(a))<.085&&Math.abs(c.z-(oz+d*slope))<.085;}):null;
- if(coin){coin.life=0;const target=r.course.enemies.filter(e=>!e.dead&&castRay(r.course,coin.x,coin.y,Math.atan2(e.y-coin.y,e.x-coin.x)).dist>Math.hypot(e.x-coin.x,e.y-coin.y)-.1).sort((a,b)=>Math.hypot(a.x-coin.x,a.y-coin.y)-Math.hypot(b.x-coin.x,b.y-coin.y))[0];if(target){damageEnemy(r,target,9*weaponDamageMultiplier(r,0),'+ RICOCHET');award(r,180,'+ RICOCHET');world.tracers.push({id:world.nextId++,x:coin.x,y:coin.y,z:coin.z,tx:target.x,ty:target.y,tz:.4,ownerId:playerId(r),life:.22,duration:.22,weapon:0,ricochet:true,rail:true});hits++;}continue;}
- const core=world.projectiles.find(p=>{if(!p.core||p.life<=0)return false;const dx=p.x-r.x,dy=p.y-r.y,d=dx*Math.cos(a)+dy*Math.sin(a);return d>0&&d<max&&Math.abs(-dx*Math.sin(a)+dy*Math.cos(a))<.14&&Math.abs(p.z-(oz+d*slope))<.14;});if(core){core.life=0;core.nuke=r.weapon===2;if(core.nuke)core.damageMultiplier=weaponDamageMultiplier(r,2);explode(world,core);award(r,core.nuke?350:120,core.nuke?'+ CORE NUKE':'+ CORE SHOT');hits++;continue;}for(const t of targets.slice(0,pierce?100:1)){const head=t.bodyHit?t.bodyHit.part==='head':t.z>.38,wasDead=t.e.dead;damageEnemy(r,t.e,w.damage*weaponDamageMultiplier(r,r.weapon)*(head?1.5:1)*(secondary&&r.weapon===0?2:1),head?'+ HEADSHOT':'+ ELIMINATED',{...(t.bodyHit||{x:r.x+Math.cos(a)*t.along,y:r.y+Math.sin(a)*t.along,z:t.z}),angle:a,pitch});if(!wasDead)hits++;if(!pierce)end=t.along;}
- if(pellets===1||i%2===0)(r.world||r).tracers.push({id:(r.world||r).nextId++,x:r.x,y:r.y,z:oz,tx:r.x+Math.cos(a)*end,ty:r.y+Math.sin(a)*end,tz:oz+slope*end,surface:(!pierce&&targets.length)?'flesh':floor<=wall&&floor<=w.range?'floor':wall<w.range&&oz+slope*end<=1.45?'wall':'air',normal:floor<=wall&&floor<=w.range?{x:0,y:0,z:1}:wallHit.side===0?{x:-Math.sign(Math.cos(a)),y:0,z:0}:{x:0,y:-Math.sign(Math.sin(a)),z:0},ownerId:playerId(r),life:.18,duration:.18,weapon:r.weapon,hit:targets.length>0,rail:r.weapon===2});}
+ if(coin){coin.life=0;const target=r.course.enemies.filter(e=>!e.dead&&castRay(r.course,coin.x,coin.y,Math.atan2(e.y-coin.y,e.x-coin.x)).dist>Math.hypot(e.x-coin.x,e.y-coin.y)-.1).sort((a,b)=>Math.hypot(a.x-coin.x,a.y-coin.y)-Math.hypot(b.x-coin.x,b.y-coin.y))[0];if(target){damageEnemy(r,target,9*weaponDamageMultiplier(r,0),'+ RICOCHET');award(r,180,'+ RICOCHET');world.tracers.push({id:world.nextId++,x:coin.x,y:coin.y,z:coin.z,tx:target.x,ty:target.y,tz:enemyBase(target)+.4,ownerId:playerId(r),life:.22,duration:.22,weapon:0,ricochet:true,rail:true});hits++;}continue;}
+ const core=world.projectiles.find(p=>{if(!p.core||p.attachment||p.life<=0)return false;const dx=p.x-r.x,dy=p.y-r.y,d=dx*Math.cos(a)+dy*Math.sin(a);return d>0&&d<max&&Math.abs(-dx*Math.sin(a)+dy*Math.cos(a))<.14&&Math.abs(p.z-(oz+d*slope))<.14;});if(core){core.life=0;core.nuke=r.weapon===2;if(core.nuke)core.damageMultiplier=weaponDamageMultiplier(r,2);explode(world,core);award(r,core.nuke?350:120,core.nuke?'+ CORE NUKE':'+ CORE SHOT');hits++;continue;}for(const t of targets.slice(0,pierce?100:1)){const head=t.bodyHit?t.bodyHit.part==='head':t.z-enemyBase(t.e)>.38,wasDead=t.e.dead;damageEnemy(r,t.e,w.damage*weaponDamageMultiplier(r,r.weapon)*(head?1.5:1)*(secondary&&r.weapon===0?2:1),head?'+ HEADSHOT':'+ ELIMINATED',{...(t.bodyHit||{x:r.x+Math.cos(a)*t.along,y:r.y+Math.sin(a)*t.along,z:t.z}),angle:a,pitch});if(!wasDead)hits++;if(!pierce)end=t.along;}
+ if(pellets===1||i%2===0)(r.world||r).tracers.push({id:(r.world||r).nextId++,x:r.x,y:r.y,z:oz,tx:r.x+Math.cos(a)*end,ty:r.y+Math.sin(a)*end,tz:oz+slope*end,surface:(!pierce&&targets.length)?'flesh':wallHit.structureId?wallHit.surface:floor<=wall&&floor<=w.range?'floor':wall<w.range&&oz+slope*end<=groundAt(r.course,r.x+Math.cos(a)*end,r.y+Math.sin(a)*end)+1.45?'wall':'air',normal:wallHit.normal??(floor<=wall&&floor<=w.range?{x:0,y:0,z:1}:wallHit.side===0?{x:-Math.sign(Math.cos(a)),y:0,z:0}:{x:0,y:-Math.sign(Math.sin(a)),z:0}),ownerId:playerId(r),life:.18,duration:.18,weapon:r.weapon,hit:targets.length>0,rail:r.weapon===2});}
  if(hits)award(r,Math.max(8,55-r.repeat*9)*(r.weapon===1?1:1.3),r.repeat<1?'+ FRESH WEAPON':'+ HIT');return true;
 }
-export function tickPlayer(r,dt,input={}){r.journeyInteract=r.mode==='play'&&r.health>0&&!!input.interact;if(r.mode!=='play'||r.health<=0)return;dt=clamp(dt,0,.05);r.time+=dt;
+export function tickPlayer(r,dt,input={},enemyGroundsSynced=false){r.journeyInteract=r.mode==='play'&&r.health>0&&!!input.interact;if(r.mode!=='play'||r.health<=0){r.aim=0;return;}dt=clamp(dt,0,.05);r.time+=dt;
+ if(Number.isFinite(r._supportX)&&Math.hypot(r.x-r._supportX,r.y-r._supportY)>1){r.structureId=null;r.supportZ=undefined;r.supportId=null;}
+ if(r.structureId||structureAt(r.course,r.x,r.y))resolveActorSupport(r.course,r);
+ // The world tick already resolved enemies before player input. Standalone
+ // guest/peer player ticks still require their own support synchronization.
+ if(!enemyGroundsSynced)syncEnemyGrounds(r);
  if(r.lowTide&&tickLowTideInteraction(r,input))return;
  if(r.course.harbor&&tickHarborRoom(r,input,{canStand}))return;
- if(r.vehicle&&tickHarborVehicle(r,dt,input,{canStand,castRay})){cancelMelee(r);r.shot=0;return;}
+ if(r.vehicle&&tickHarborVehicle(r,dt,input,{canStand,castRay})){cancelMelee(r);r.shot=0;r.aim=0;return;}
  const harvestHeld=!!input.harvest,verminConsumes=interceptVerminInput(r,input);
  if(verminConsumes)input={...input,harvest:false,fire:false,alt:false};
  if(!input.predictWeapons)r._biteInput={effort:Math.abs(input.forward||0)+Math.abs(input.strafe||0)>.1||!!input.jump||!!input.dash};
  const heldByBite=r.bite?.phase==='held';
  for(const key of ['shot','damage','heal','punch','hookTime','hookCooldown','parryTime','parryCooldown','dashTime','altCooldown'])r[key]=Math.max(0,r[key]-dt*(key==='shot'?7:1));for(let i=0;i<weapons.length;i++)r.cooldowns[i]=Math.max(0,r.cooldowns[i]-dt);r.fireCooldown=r.cooldowns[r.weapon];
  advanceRifles(r,dt,input);
+ r.attachmentShot=Math.max(0,(r.attachmentShot||0)-dt*7);
+ r.attachmentCooldown=Math.max(0,(r.attachmentCooldown||0)-dt);
  advanceMelee(r,dt,input);
  r.angle=angleDiff(r.angle+(input.turn||0)*dt*2,0);r.pitch=clamp(r.pitch+(input.lookY||0)*dt,-1.35,1.35);r.energy=clamp(r.energy+dt*22,0,100);if(r.coinCharges<4){r.coinRegen+=dt;if(r.coinRegen>=2){r.coinCharges++;r.coinRegen=0;}}
  const jump=input.jump&&!r.pressed.jump,dash=input.dash&&!r.pressed.dash,wasAir=r.z>.001,wasSliding=r.slide>.55;r.pressed={jump:!!input.jump,dash:!!input.dash};let f=input.forward||0,s=input.strafe||0;if(r.autoRun&&f===0&&!harvestHeld)f=1;const length=Math.max(1,Math.hypot(f,s));f/=length;s/=length;const dx=Math.cos(r.angle)*f-Math.sin(r.angle)*s,dy=Math.sin(r.angle)*f+Math.cos(r.angle)*s;
@@ -1555,8 +1657,13 @@ export function tickPlayer(r,dt,input={}){r.journeyInteract=r.mode==='play'&&r.h
  r.slide+=(Number(!!input.slide&&r.z<.05)-r.slide)*(1-Math.exp(-dt*20));if(r.slide>.55&&!wasSliding)r.events.push({type:'slide',x:r.x,y:r.y,z:r.z});
  if(r.dashTime<=0){const legPenalty=Math.min(.3,['leftLeg','rightLeg'].reduce((sum,limb)=>sum+(r.playerWounds?.[limb]==='severed'?.18:r.playerWounds?.[limb]==='injured'?.12:0),0));const speed=(r.slide>.5?3.25:2.05)*(heldByBite?.2:1-legPenalty),acc=r.z>.05?5:18;if(r.slide>.5){const heading=Math.hypot(r.vx,r.vy)>.1?Math.atan2(r.vy,r.vx):r.angle;r.vx+=(Math.cos(heading)*speed-r.vx)*dt*4;r.vy+=(Math.sin(heading)*speed-r.vy)*dt*4;}else{r.vx+=(dx*speed-r.vx)*(1-Math.exp(-dt*acc));r.vy+=(dy*speed-r.vy)*(1-Math.exp(-dt*acc));}}
  if(r.hookTime>0){const target=r.course.enemies.find(e=>e.id===r.hookTarget&&!e.dead);if(target){const dx=target.x-r.x,dy=target.y-r.y,d=Math.hypot(dx,dy);if(d>.5){if(target.kind===2){r.vx=dx/d*4.2;r.vy=dy/d*4.2;r.vz=Math.max(r.vz,.35);}else{const ex=target.x-dx/d*dt*5,ey=target.y-dy/d*dt*5;if(canStand(r.course,ex,ey,.16)){target.x=ex;target.y=ey;}}}else r.hookTime=0;}else r.hookTime=0;}
- const ox=r.x,oy=r.y;move(r,r.vx*dt,r.vy*dt);r.speed=Math.hypot(r.x-ox,r.y-oy)/Math.max(dt,.0001);r.distance+=r.speed*dt;
- if(r.dashTime<=0)r.vz-=5.5*dt;r.z=Math.max(0,r.z+r.vz*dt);if(r.z===0){r.vz=0;r.wallJumps=0;if(r.slam){r.slam=false;for(const e of r.course.enemies)if(!e.dead&&Math.hypot(e.x-r.x,e.y-r.y)<1.15&&castRay(r.course,r.x,r.y,Math.atan2(e.y-r.y,e.x-r.x)).dist>Math.hypot(e.x-r.x,e.y-r.y)-.1)damageEnemy(r,e,5,'+ GROUND SLAM');r.events.push({type:'slam',x:r.x,y:r.y,z:0});}else if(wasAir)r.events.push({type:'land',x:r.x,y:r.y,z:0});}
+ const ox=r.x,oy=r.y,groundBefore=groundAt(r.course,ox,oy),airborne=wasAir||r.vz>0,structureBefore=!!(r.structureId||structureAt(r.course,ox,oy));move(r,r.vx*dt,r.vy*dt);r.speed=Math.hypot(r.x-ox,r.y-oy)/Math.max(dt,.0001);r.distance+=r.speed*dt;
+ const scoped=structureBefore||!!r.structureId,groundAfter=scoped?actorGroundAt(r.course,r):groundAt(r.course,r.x,r.y);
+ if(r.dashTime<=0)r.vz-=5.5*dt;
+ const previousFeet=groundAfter+r.z,nextFeet=previousFeet+r.vz*dt;
+ const capped=scoped?clipStructureRise(r.course,r.x,r.y,previousFeet,nextFeet,STRUCTURE_BODY_HEIGHT-r.slide*.18,.1):nextFeet;
+ if(capped<nextFeet-1e-7)r.vz=Math.min(0,r.vz);
+ r.z=Math.max(0,capped-groundAfter+(!scoped&&airborne?groundBefore-groundAfter:0));if(r.z===0){r.vz=0;r.wallJumps=0;if(r.slam){r.slam=false;for(const e of r.course.enemies)if(!e.dead&&Math.hypot(e.x-r.x,e.y-r.y,enemyBase(e)-groundAfter)<1.15&&castRay(r.course,r.x,r.y,Math.atan2(e.y-r.y,e.x-r.x)).dist>Math.hypot(e.x-r.x,e.y-r.y)-.1)damageEnemy(r,e,5,'+ GROUND SLAM');r.events.push({type:'slam',x:r.x,y:r.y,z:groundAfter});}else if(wasAir)r.events.push({type:'land',x:r.x,y:r.y,z:groundAfter});}
  // Keep extraction after movement so any actual displacement in this tick
  // cancels the committed action before it can advance or award.
  if(r.course.activeInterior&&r.z>.35){r.z=.35;r.vz=Math.min(0,r.vz);}
@@ -1585,7 +1692,7 @@ function slashArc(r,e){
  const a=e.slashDir||0,half=e.slashHalf||SLASH_ARC,reach=(e.slashReach||SLASH_REACH)*.96,segs=4;
  for(let i=0;i<segs;i++){
   const a0=a-half+2*half*(i/segs),a1=a-half+2*half*((i+1)/segs);
-  r.tracers.push({id:r.nextId++,x:e.x+Math.cos(a0)*reach,y:e.y+Math.sin(a0)*reach,z:.34,tx:e.x+Math.cos(a1)*reach,ty:e.y+Math.sin(a1)*reach,tz:.32,ownerId:'enemy',life:.16,duration:.16,weapon:-1,hit:false,slash:true,enemyId:e.id});
+  r.tracers.push({id:r.nextId++,x:e.x+Math.cos(a0)*reach,y:e.y+Math.sin(a0)*reach,z:enemyBase(e)+.34,tx:e.x+Math.cos(a1)*reach,ty:e.y+Math.sin(a1)*reach,tz:enemyBase(e)+.32,ownerId:'enemy',life:.16,duration:.16,weapon:-1,hit:false,slash:true,enemyId:e.id});
  }
  if(r.tracers.length>180)r.tracers=r.tracers.slice(-180);
 }
@@ -1593,10 +1700,10 @@ function slashArc(r,e){
 // and drip seeds. vz stays under the arena ceiling; the flight time is then
 // solved exactly so the glob still lands on the target it was thrown at.
 function throwGlob(r,e,target,a,d){
- const fromZ=.32,toZ=Math.max(.05,eye(target)-.12),t=clamp(d/(1.7*((e.projectileSpeed??enemyProfile(e).projectileSpeed??1.05)/1.05)),.45,2.2);
+ const fromZ=enemyBase(e)+.32,toZ=Math.max(groundAt(r.course,target.x,target.y)+.05,eye(target)-.12),t=clamp(d/(1.7*((e.projectileSpeed??enemyProfile(e).projectileSpeed??1.05)/1.05)),.45,2.2);
  let vz=(toZ-fromZ+.5*GLOB_GRAVITY*t*t)/t;
  vz=clamp(vz,-1.1,2.35);
- const fall=(vz+Math.sqrt(vz*vz+2*GLOB_GRAVITY*(fromZ-toZ)))/GLOB_GRAVITY;
+ const fall=Math.max(.25,(vz+Math.sqrt(Math.max(0,vz*vz+2*GLOB_GRAVITY*(fromZ-toZ))))/GLOB_GRAVITY);
  const lx=target.x+(target.vx||0)*fall*.5,ly=target.y+(target.vy||0)*fall*.5;
  const dir=Math.atan2(ly-e.y,lx-e.x),speed=clamp(Math.hypot(lx-e.x,ly-e.y)/Math.max(.3,fall),.45,2.6);
  const glob={id:r.nextId++,kind:'enemy',glob:true,x:e.x+Math.cos(a)*.24,y:e.y+Math.sin(a)*.24,z:fromZ,vx:Math.cos(dir)*speed,vy:Math.sin(dir)*speed,vz,life:GLOB_LIFE,age:0,reflected:false,enemyId:e.id,enemyKind:e.kind,variant:e.variant||'stalker',damage:clamp(Math.round((e.contactDamage??enemyProfile(e).contactDamage??12)*.7),7,15),splash:3,splashRadius:.85,wob:limbRoll(e.id,3)*6.283,wobAmp:.45+limbRoll(e.id,5)*.3,drip:0};
@@ -1604,11 +1711,11 @@ function throwGlob(r,e,target,a,d){
  return glob.id;
 }
 function splatGlob(r,p,z){
- const gx=p.x,gy=p.y,gz=clamp(z||0,0,.9);
+ const gx=p.x,gy=p.y,ground=settledFloor(r.course,gx,gy,z??p.z),gz=clamp(z??ground,ground,ground+.9);
  burst(r,{id:p.id,x:gx,y:gy},8,{x:gx,y:gy,z:gz});
- r.blood.push({id:r.nextId++,x:gx,y:gy,size:.3,angle:limbRoll(p.id,9)*6.283});r.blood=r.blood.slice(-100);
+ r.blood.push({id:r.nextId++,x:gx,y:gy,z:ground,size:.3,angle:limbRoll(p.id,9)*6.283});r.blood=r.blood.slice(-100);
  if(!Array.isArray(r.pools))r.pools=[];
- r.pools.push({id:p.id,x:gx,y:gy,z:0,life:POOL_LIFE,radius:.62,damage:POOL_DAMAGE,pulse:limbRoll(p.id,11)*.4,seed:p.id});
+ r.pools.push({id:p.id,x:gx,y:gy,z:ground,life:POOL_LIFE,radius:.62,damage:POOL_DAMAGE,pulse:limbRoll(p.id,11)*.4,seed:p.id});
  if(r.pools.length>24)r.pools=r.pools.slice(-24);
  for(const defender of [r,...(r.peer?[r.peer]:[])]){
   if(!defender||defender.health<=0||defender===p.hitPlayer)continue;
@@ -1619,14 +1726,14 @@ function splatGlob(r,p,z){
  }
  r.events.push({type:'blood',x:gx,y:gy,z:gz,enemyId:p.enemyId,variant:p.variant,splat:true,projectileId:p.id});
 }
-export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive');if(r.peer)cancelBrutal(r.peer,'inactive');return;}dt=clamp(dt,0,.05);tickPlayer(r,dt,input);updateLowTide(r,dt);
+export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive');if(r.peer)cancelBrutal(r.peer,'inactive');return;}dt=clamp(dt,0,.05);syncEnemyGrounds(r);tickPlayer(r,dt,input,true);updateLowTide(r,dt);
  for(const defender of [r,...(r.peer?[r.peer]:[])])advanceBrutal(r,defender,dt);
  for(const defender of [r,...(r.peer?[r.peer]:[])])advancePlayerBite(r,defender,dt);
  tickVermin(r,dt);
  // Hoarding packs: members share a hunt target, clump toward the pack centroid
  // and take separate slots around the player so a wave arrives as a surround
  // instead of a conga line.
- for(const e of r.course.enemies){if(advanceReanimation(e,r.time))r.events.push({type:'enemy-rise',enemyId:e.id,x:e.x,y:e.y,z:.15});if(e.reanimate?.phase==='rise'&&r.time>=e.reanimate.until)e.reanimate.phase='hunting';}
+ for(const e of r.course.enemies){if(advanceReanimation(e,r.time))r.events.push({type:'enemy-rise',enemyId:e.id,x:e.x,y:e.y,z:enemyBase(e)+.15});if(e.reanimate?.phase==='rise'&&r.time>=e.reanimate.until)e.reanimate.phase='hunting';}
  const packs=new Map();
  for(const e of r.course.enemies){
   if(e.dead)continue;
@@ -1634,15 +1741,22 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
   if(!pack){pack={key,members:[],x:0,y:0,alert:0,lastX:0,lastY:0,leader:null,leaderD:Infinity};packs.set(key,pack);}
   pack.members.push(e);pack.x+=e.x;pack.y+=e.y;
  }
+ const aiTargets=new Map();
  for(const pack of packs.values()){
   pack.x/=pack.members.length;pack.y/=pack.members.length;
   pack.alert=Math.max(0,pack.alert-dt);
   for(const e of pack.members){
-   const t=r.peer&&r.peer.health>0&&(r.health<=0||Math.hypot(r.peer.x-e.x,r.peer.y-e.y)<Math.hypot(r.x-e.x,r.y-e.y))?r.peer:r;
+   let t=r.peer&&r.peer.health>0&&(r.health<=0||Math.hypot(r.peer.x-e.x,r.peer.y-e.y)<Math.hypot(r.x-e.x,r.y-e.y))?r.peer:r;
+   const profile=enemyProfile(e);
+   const canSee=player=>player&&player.health>0&&!r.course.activeInterior&&(!e.mind||visionAllows(e,player,profile))&&actorLine(r.course,e,player);
+   let seen=!!canSee(t);
+   const other=t===r?r.peer:r;
+   // An invisible nearer co-op player cannot hide a visible farther one.
+   if(e.mind&&!seen&&canSee(other)){t=other;seen=true;}
+   aiTargets.set(e.id,t);
    const d=Math.hypot(t.x-e.x,t.y-e.y);
    // Sight lines are cast once per enemy per tick and shared with the movement
    // pass below, so the pack memory costs no extra raycasts.
-   const seen=!r.course.activeInterior&&castRay(r.course,e.x,e.y,Math.atan2(t.y-e.y,t.x-e.x)).dist>d-.1;
    e.seesTarget=seen;
    if(seen){pack.alert=2.6;pack.lastX=t.x;pack.lastY=t.y;}
    if(d<pack.leaderD){pack.leaderD=d;pack.leader=e;}
@@ -1656,17 +1770,25 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
  advanceMeleeImpulse(r,e,dt);
  e.flash=Math.max(0,e.flash-dt);e.strike=Math.max(0,(e.strike||0)-dt);e.stagger=Math.max(0,(e.stagger||0)-dt);e.biteCooldown=Math.max(0,(e.biteCooldown||0)-dt);if(e.dead)continue;const profile=enemyProfile(e);
  if([r,r.peer].some(player=>player&&biteActive(player)&&player.bite.enemyId===e.id))continue;
- const target=r.peer&&r.peer.health>0&&(r.health<=0||Math.hypot(r.peer.x-e.x,r.peer.y-e.y)<Math.hypot(r.x-e.x,r.y-e.y))?r.peer:r;
+ const target=aiTargets.get(e.id)||r;
  const dx=target.x-e.x,dy=target.y-e.y,d=Math.hypot(dx,dy),a=Math.atan2(dy,dx),visible=e.seesTarget===true;
  if(biteActive(target)&&target.bite.enemyId!==e.id&&isMeleeRole(profile.role)){e.attacking=false;e.windup=0;e.strike=0;e.slashHit=true;}
  e.attack=Math.max(0,e.attack-dt);e.phase+=dt;
  if(e.stagger>0){e.attacking=false;e.windup=0;e.slashHit=true;e.strike=0;if(e.mind){e.state='stagger';e.mind.token=false;if(e.hitDir!==undefined)e.facing=e.facing+angleDiff(e.hitDir+Math.PI,e.facing)*Math.min(1,dt*3);}continue;}
  if(e.mind&&e.state==='stagger'){e.state=e.mind.state;e.mind.t=0;}
- const pack=packs.get(e.pack??0),melee=isMeleeRole(profile.role),reach=e.locomotion==='crawl'?.40:melee?meleeReach(profile.role):13,half=meleeArc(profile.role);
+ const pack=packs.get(e.pack??0),melee=isMeleeRole(profile.role),reach=isLowZombie(e)?.40:melee?meleeReach(profile.role):13,half=meleeArc(profile.role);
+  const stairGoal=!e.mind?stairWaypoint(r.course,e,target):null;
+  if(stairGoal){
+   const heading=Math.atan2(stairGoal.y-e.y,stairGoal.x-e.x),step=Math.min((e.moveSpeed||profile.speed||.30)*dt,Math.hypot(stairGoal.x-e.x,stairGoal.y-e.y));
+   const mx=Math.cos(heading)*step,my=Math.sin(heading)*step;
+   if(canStand(r.course,e.x+mx,e.y,.16,enemyBase(e)))e.x+=mx;
+   if(canStand(r.course,e.x,e.y+my,.16,enemyBase(e)))e.y+=my;
+   syncEnemyGround(r,e,dt);e.attacking=false;e.windup=0;e.facing=heading;e.state='hunt';if(e.mind)e.mind.token=false;continue;
+  }
  let mindRes=null;
  if(e.mind){
-  aiCtx.profile=profile;aiCtx.reach=reach;mindRes=stepMind(aiCtx,e,target);
-  if(e.wounded&&(e.drip=(e.drip||0)-dt)<=0){e.drip=.55;r.blood.push({id:r.nextId++,x:e.x,y:e.y,size:.1,angle:e.id*.7});r.blood=r.blood.slice(-100);}
+  aiCtx.profile=profile;aiCtx.reach=reach;aiCtx.env=e.structureId?{...AI_ENV,canStand:(m,x,y,radius)=>canStand(m,x,y,radius,enemyBase(e)),castRay:(m,x,y,a,max)=>castRay(m,x,y,a,max,enemyBase(e)+.32)}:AI_ENV;mindRes=stepMind(aiCtx,e,target);
+  if(e.wounded&&(e.drip=(e.drip||0)-dt)<=0){e.drip=.55;r.blood.push({id:r.nextId++,x:e.x,y:e.y,z:enemyBase(e),size:.1,angle:e.id*.7});r.blood=r.blood.slice(-100);}
  }
  if(!e.mind&&!e.attacking&&(!visible||d>meleeStandoff(profile.role))){
   e.navTimer=(e.navTimer||0)-dt;let heading=a;
@@ -1689,10 +1811,12 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
   }
   const charge=visible?1.24:pack&&pack.alert>0?1.14:1;
   const sp=(e.moveSpeed||profile.speed||.30)*charge,mx=Math.cos(heading)*sp*dt,my=Math.sin(heading)*sp*dt;
-  if(canStand(r.course,e.x+mx,e.y,.16))e.x+=mx;if(canStand(r.course,e.x,e.y+my,.16))e.y+=my;
-  if(e.wounded&&(e.drip=(e.drip||0)-dt)<=0){e.drip=.55;r.blood.push({id:r.nextId++,x:e.x,y:e.y,size:.1,angle:e.id*.7});r.blood=r.blood.slice(-100);}
+  if(canStand(r.course,e.x+mx,e.y,.16,enemyBase(e)))e.x+=mx;if(canStand(r.course,e.x,e.y+my,.16,enemyBase(e)))e.y+=my;
+  if(e.wounded&&(e.drip=(e.drip||0)-dt)<=0){e.drip=.55;r.blood.push({id:r.nextId++,x:e.x,y:e.y,z:enemyBase(e),size:.1,angle:e.id*.7});r.blood=r.blood.slice(-100);}
  }
- const eligible=visible&&(melee?d<reach&&target.z<(profile.role==='anchor'?.55:.3):d<13)&&(!e.mind||e.attacking||e.attack>0||mindRes.attackOK);
+ syncEnemyGround(r,e,dt);
+ const verticalReach=profile.role==='anchor'?.55:.3,levelContact=Math.abs(playerFoot(target)-enemyBase(e))<verticalReach;
+ const eligible=visible&&(melee?d<reach&&levelContact:d<13)&&(!e.mind||e.attacking||e.attack>0||mindRes.attackOK);
  if(!eligible){e.attacking=false;e.windup=0;}
  else if(e.attack<=0){
   if(!e.attacking){
@@ -1705,7 +1829,7 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
   if(e.windup<=0){
    if(e.mind){e.mind.justAttacked=true;e.facing=e.aimAngle??a;}
    e.attacking=false;e.strike=melee?SLASH_SWING:.22;e.attack=e.attackCooldown??profile.attack??(melee?.8:1.9);
-   const event={type:'enemy-attack',x:e.x,y:e.y,z:.32,enemyId:e.id,enemyKind:e.kind,variant:e.variant||'stalker'};
+   const event={type:'enemy-attack',x:e.x,y:e.y,z:enemyBase(e)+.32,enemyId:e.id,enemyKind:e.kind,variant:e.variant||'stalker'};
    if(melee){e.slashDir=e.mind?(e.aimAngle??a):a;e.slashReach=reach;e.slashHalf=half;e.slashHit=false;event.slash=true;event.reach=reach;event.arc=half;slashArc(r,e);}
    else{event.glob=true;event.projectileId=throwGlob(r,e,target,a,d);}
    r.events.push(event);
@@ -1715,7 +1839,7 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
  // blocked by walls and cancelled the moment the enemy staggers or is parried.
  if(e.strike>0&&!e.slashHit&&e.slashDir!==undefined&&e.slashReach>0){
   const hd=Math.hypot(target.x-e.x,target.y-e.y),ha=Math.atan2(target.y-e.y,target.x-e.x);
-  if(hd<=e.slashReach&&Math.abs(angleDiff(ha,e.slashDir))<=e.slashHalf&&castRay(r.course,e.x,e.y,ha).dist>hd-.12){e.slashHit=true;hurt(target,(e.contactDamage??profile.contactDamage??12)*anatomyMotion(e).damage);}
+  if(levelContact&&hd<=e.slashReach&&Math.abs(angleDiff(ha,e.slashDir))<=e.slashHalf&&actorLine(r.course,e,target)){e.slashHit=true;hurt(target,(e.contactDamage??profile.contactDamage??12)*anatomyMotion(e).damage);}
  }
  }
  for(const p of r.projectiles){
@@ -1739,25 +1863,38 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
     p.reflected=true;p.ownerId=playerId(defender);
     const target=r.course.enemies.filter(e=>!e.dead).sort((a,b)=>Math.abs(angleDiff(Math.atan2(a.y-p.y,a.x-p.x),defender.angle))-Math.abs(angleDiff(Math.atan2(b.y-p.y,b.x-p.x),defender.angle)))[0];
     const pa=target?Math.atan2(target.y-p.y,target.x-p.x):defender.angle,pd2=target?Math.hypot(target.x-p.x,target.y-p.y):5;
-    p.vx=Math.cos(pa)*(p.kind==='rocket'?5.4:4);p.vy=Math.sin(pa)*(p.kind==='rocket'?5.4:4);p.vz=target?(.28-p.z)/(Math.max(.1,pd2))*(p.kind==='rocket'?5.4:4):Math.sin(defender.pitch)*(p.kind==='rocket'?5.4:4);
+    p.vx=Math.cos(pa)*(p.kind==='rocket'?5.4:4);p.vy=Math.sin(pa)*(p.kind==='rocket'?5.4:4);p.vz=target?(enemyBase(target)+.28-p.z)/(Math.max(.1,pd2))*(p.kind==='rocket'?5.4:4):Math.sin(defender.pitch)*(p.kind==='rocket'?5.4:4);
     defender.health=Math.min(100,defender.health+15);award(defender,200,'+ PARRY');r.events.push({type:'parry',x:defender.x,y:defender.y,z:eye(defender),weapon:defender.weapon});
    }
   }
-  if(p.life<=0)continue;
-  const steps=Math.max(1,Math.ceil(Math.hypot(p.vx,p.vy)*dt/.12));
+  if(p.life<=0){if(p.attachment)explode(r,p);continue;}
+  const steps=Math.max(1,Math.ceil(Math.hypot(p.vx,p.vy,p.vz)*dt/(r.course?.coastal?.terrain?.0625:.12)));
   let detonated=false;
   for(let stepIndex=0;stepIndex<steps;stepIndex++){
    if(p.life<=0)break;
-   const stepDt=dt/steps,travel=Math.hypot(p.vx,p.vy)*stepDt;
-   const blocked=castRay(r.course,p.x,p.y,Math.atan2(p.vy,p.vx),travel+.01).dist<=travel;
-   if(blocked){if(p.core||p.kind==='rocket')explode(r,p);else if(p.glob)splatGlob(r,p,Math.min(p.z,.5));p.life=0;detonated=true;break;}
+    const stepDt=dt/steps,travel=Math.hypot(p.vx,p.vy)*stepDt;
+    const contact=traceStructureSegment(r.course,p,{x:p.x+p.vx*stepDt,y:p.y+p.vy*stepDt,z:p.z+p.vz*stepDt});
+    if(contact){p.x=contact.x;p.y=contact.y;p.z=contact.z;if(p.core||p.kind==='rocket')explode(r,p);else if(p.glob)splatGlob(r,p,p.z);p.life=0;detonated=true;break;}
+    const blocked=castRay(r.course,p.x,p.y,Math.atan2(p.vy,p.vx),travel+.01,p.z,travel>1e-9?p.vz*stepDt/travel:0).dist<=travel;
+   if(blocked){if(p.core||p.kind==='rocket')explode(r,p);else if(p.glob)splatGlob(r,p,Math.min(p.z,groundAt(r.course,p.x,p.y)+.5));p.life=0;detonated=true;break;}
+   const oldX=p.x,oldY=p.y,oldZ=p.z;
    p.x+=p.vx*stepDt;p.y+=p.vy*stepDt;p.z+=p.vz*stepDt;
-   if(p.z<0||p.z>1.5){if(p.core||p.kind==='rocket')explode(r,p);else if(p.glob)splatGlob(r,p,clamp(p.z,0,.9));p.life=0;detonated=true;break;}
+   const ground=groundAt(r.course,p.x,p.y),ceiling=r.course?.coastal?.terrain&&!r.course.activeInterior?Infinity:ground+1.5;
+   if(p.z<ground||p.z>ceiling){
+    if(p.z<ground){
+     if(r.course?.coastal?.terrain&&oldZ>=groundAt(r.course,oldX,oldY)){
+      let a=0,b=1;for(let n=0;n<14;n++){const t=(a+b)/2,x=oldX+p.vx*stepDt*t,y=oldY+p.vy*stepDt*t;if(oldZ+p.vz*stepDt*t>groundAt(r.course,x,y))a=t;else b=t;}
+      p.x=oldX+p.vx*stepDt*b;p.y=oldY+p.vy*stepDt*b;
+     }
+     p.z=groundAt(r.course,p.x,p.y);
+    }
+    if(p.core||p.kind==='rocket')explode(r,p);else if(p.glob)splatGlob(r,p,p.z);p.life=0;detonated=true;break;
+   }
    if(p.kind==='rocket'){
-    const enemy=r.course.enemies.find(e=>!e.dead&&Math.hypot(e.x-p.x,e.y-p.y)<enemyHitRadius(e,.2)&&p.z<enemyHitHeight(e,.65));
+    const enemy=r.course.enemies.find(e=>!e.dead&&Math.hypot(e.x-p.x,e.y-p.y)<enemyHitRadius(e,.2)&&p.z>=enemyBase(e)&&p.z<enemyBase(e)+enemyHitHeight(e,.65));
     if(enemy){explode(r,p);p.life=0;detonated=true;break;}
    }else if(p.reflected){
-    const enemy=r.course.enemies.find(e=>!e.dead&&Math.hypot(e.x-p.x,e.y-p.y)<enemyHitRadius(e,.22)&&p.z<enemyHitHeight(e,.6));
+    const enemy=r.course.enemies.find(e=>!e.dead&&Math.hypot(e.x-p.x,e.y-p.y)<enemyHitRadius(e,.22)&&p.z>=enemyBase(e)&&p.z<enemyBase(e)+enemyHitHeight(e,.6));
     if(enemy){if(p.core)explode(r,p);else{if(p.glob)splatGlob(r,p,p.z);damageEnemy(r,enemy,14,'+ RETURN TO SENDER',{x:p.x,y:p.y,z:p.z});}p.life=0;break;}
    }else{
     // A glob is a fat body, not a pinprick: slightly more forgiving to connect
@@ -1767,18 +1904,18 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
    }
   }
   if(detonated)continue;
- } for(const c of r.coins){c.life-=dt;c.vz-=1.4*dt;c.x+=c.vx*dt;c.y+=c.vy*dt;c.z+=c.vz*dt;if(c.z<0)c.life=0;}r.coins=r.coins.filter(c=>c.life>0);
-  r.projectiles=r.projectiles.filter(p=>p.life>0);for(const x of (r.explosions||[]))x.life-=dt;r.explosions=(r.explosions||[]).filter(x=>x.life>0);for(const p of r.gore){p.life-=dt;if(p.z>0){p.vz-=3*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z=Math.max(0,p.z+p.vz*dt);}}r.gore=r.gore.filter(p=>p.life>0);for(const t of r.tracers)t.life-=dt;r.tracers=r.tracers.filter(t=>t.life>0);
+ } for(const c of r.coins){c.life-=dt;c.vz-=1.4*dt;c.x+=c.vx*dt;c.y+=c.vy*dt;c.z+=c.vz*dt;if(c.z<groundAt(r.course,c.x,c.y))c.life=0;}r.coins=r.coins.filter(c=>c.life>0);
+  r.projectiles=r.projectiles.filter(p=>p.life>0);for(const x of (r.explosions||[]))x.life-=dt;r.explosions=(r.explosions||[]).filter(x=>x.life>0);for(const p of r.gore){p.life-=dt;const ground=settledFloor(r.course,p.x,p.y,p.z);if(p.z>ground+1e-7)moveLooseParticle(r.course,p,dt,3);else p.z=ground;}r.gore=r.gore.filter(p=>p.life>0);for(const t of r.tracers)t.life-=dt;r.tracers=r.tracers.filter(t=>t.life>0);
  // Detached limbs keep tumbling, land, and then stay where they fell: the arena
  // accumulates evidence of the fight instead of cleaning itself up.
  for(const l of r.limbs){
   l.spin+=(l.rest?.2:2.4)*dt;l.angle=l.spin;
-  if(l.rest){l.settle=Math.min(1,(l.settle||0)+dt*2.2);continue;}
-  l.life-=dt;l.vz-=7.5*dt;l.x+=l.vx*dt;l.y+=l.vy*dt;l.z+=l.vz*dt;
-  if(l.z<=0){l.z=0;l.rest=true;l.vz=0;l.vx*=.2;l.vy*=.2;
+  if(l.rest){l.z=settledFloor(r.course,l.x,l.y,l.z);l.settle=Math.min(1,(l.settle||0)+dt*2.2);continue;}
+  l.life-=dt;const landed=moveLooseParticle(r.course,l,dt,7.5);
+  const ground=settledFloor(r.course,l.x,l.y,l.z);if(landed||l.z<=ground){l.z=ground;l.rest=true;l.vz=0;l.vx*=.2;l.vy*=.2;
    if(l.kind==='head'||l.kind==='eye')r.blood.push({id:r.nextId++,x:l.x,y:l.y,size:l.kind==='head'?.2:.14,angle:l.spin});
    else r.blood.push({id:r.nextId++,x:l.x,y:l.y,size:.13,angle:l.spin});}
-  if(l.life<=0)l.rest=true;
+  if(l.life<=0){l.rest=true;l.z=ground;l.vz=0;}
  }
  r.limbs=r.limbs.slice(-64);
  // Glob pools: short-lived blood slicks that keep punishing a held position.
@@ -1786,11 +1923,11 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
  // pulse re-checks the wall between pool and player.
  if(Array.isArray(r.pools)&&r.pools.length){
   for(const pool of r.pools){
-   pool.life-=dt;pool.pulse=(pool.pulse||0)+dt;
+   pool.z=settledFloor(r.course,pool.x,pool.y,pool.z);pool.life-=dt;pool.pulse=(pool.pulse||0)+dt;
    if(pool.pulse<POOL_INTERVAL)continue;
    pool.pulse-=POOL_INTERVAL;
    for(const defender of [r,...(r.peer?[r.peer]:[])]){
-    if(!defender||defender.health<=0||defender.z>.34)continue;
+    if(!defender||defender.health<=0||Math.abs(playerFoot(defender)-pool.z)>.34)continue;
     const dx=defender.x-pool.x,dy=defender.y-pool.y,dd=Math.hypot(dx,dy);
     if(dd>pool.radius)continue;
     if(castRay(r.course,pool.x,pool.y,Math.atan2(dy,dx)).dist<=dd-.1)continue;
@@ -1802,7 +1939,7 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
  // Residue settles only a little; a pin-sized drip must never grow into a
  // room-wide disk. Age also drives the renderer's wet-to-dry response.
  for(const b of r.blood){
-  b.baseSize??=b.size||.12;b.age=(b.age||0)+dt;
+  b.z=settledFloor(r.course,b.x,b.y,b.z);b.baseSize??=b.size||.12;b.age=(b.age||0)+dt;
   b.size=b.baseSize*(1+.16*(1-Math.exp(-b.age*1.3)));
  }
  r.style=Math.max(0,r.style-dt*35);r.rank=r.style>1400?'SSS':r.style>1100?'SS':r.style>800?'S':r.style>550?'A':r.style>300?'B':r.style>120?'C':'D';
@@ -1810,9 +1947,15 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
   const progress=r.harborProgress;
   if(!progress.initialized){
    progress.initialized=true;
-   for(const [order,point] of (r.course.harborSpawns||[]).entries())spawnEnemy(r,{variant:point.variant||'stalker',resident:true,mindState:'wander',order,spawnAnim:'none'},point);
+   const harborVariants=['stalker','bloodhound','stalker','skitter'];
+   for(const [order,point] of (r.course.harborSpawns||[]).entries())spawnEnemy(r,{variant:point.variant||harborVariants[order%harborVariants.length],appearance:point.appearance,resident:true,mindState:'wander',order,spawnAnim:'none'},point);
   }
-  if(!r.vehicle?.occupied&&!r.course.activeInterior){tickWeaponInventory(r,{castRay});tickScavengerPack(r,{castRay});}
+  const lootInteract=!!input.interact&&!r.scavengerInteractHeld,peerLootInteract=!!r.peer?.journeyInteract&&!r.peer?.scavengerInteractHeld;
+  r.scavengerInteractHeld=!!input.interact;if(r.peer)r.peer.scavengerInteractHeld=!!r.peer.journeyInteract;
+  if(!r.vehicle?.occupied&&!r.course.activeInterior){
+   const consumed=tickWeaponInventory(r,{castRay,interact:lootInteract,peerInteract:peerLootInteract});
+   tickScavengerPack(r,{interact:lootInteract&&!consumed.has(r),peerInteract:peerLootInteract&&!consumed.has(r.peer)});
+  }
   progress.ready=(r.backpack.weaponPickups?.length||0)>=3&&(r.vehicle?.distance||0)>=8;
   if(!r.lowTide&&progress.ready&&!r.vehicle?.occupied&&Math.hypot(r.x-r.course.exit.x,r.y-r.course.exit.y)<.65){r.mode='win';r.events.push({type:'win',x:r.x,y:r.y,z:eye(r)});}
  }else if(r.campaign){
@@ -1820,7 +1963,7 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
   updateRoomProgression(r,dt);
   checkCampaignExit(r);
   }else if(r.course?.dungeon){
-   if(r.course.extended)tickScavengerPack(r,{castRay});
+   if(r.course.extended)tickScavengerPack(r,{interact:!!input.interact,peerInteract:!!r.peer?.journeyInteract});
    updateDungeonProgression(r);
    updateDungeonEncounter(r,dt);
    const journeySequence=r.journey?.eventSeq;
@@ -1829,7 +1972,9 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
    if(r.journey?.eventSeq!==journeySequence)dungeonNavigation(r,true);
    if(r.dungeonProgression.exitReady&&(Math.hypot(r.x-r.course.exit.x,r.y-r.course.exit.y)<.6||(r.peer&&Math.hypot(r.peer.x-r.course.exit.x,r.peer.y-r.course.exit.y)<.6))){
     if(r.course.dungeonIndex+1<r.course.dungeonCount)advanceDungeonFloor(r);
-    else{r.mode='win';r.campaignComplete=true;r.dungeonProgression.floorsCleared=r.course.dungeonCount-r.dungeonProgression.startIndex;r.events.push({type:'win',floorIndex:r.course.dungeonIndex,floorCount:r.course.dungeonCount,x:r.x,y:r.y,z:eye(r)});}
+    else if(r.course.basementPortal){
+     if(!r.campaignComplete){r.campaignComplete=true;r.dungeonProgression.floorsCleared=r.course.dungeonCount-r.dungeonProgression.startIndex;r.events.push({type:'basement-cleared',x:r.x,y:r.y,z:eye(r)});}
+    }else{r.mode='win';r.campaignComplete=true;r.dungeonProgression.floorsCleared=r.course.dungeonCount-r.dungeonProgression.startIndex;r.events.push({type:'win',floorIndex:r.course.dungeonIndex,floorCount:r.course.dungeonCount,x:r.x,y:r.y,z:eye(r)});}
    }
   }else if(!r.course.enemies.some(isThreat)){
   if(r.wave<r.waveCount){r.waveDelay-=dt;if(r.waveDelay<=0){spawnWave(r);r.waveDelay=2;}}
@@ -1847,18 +1992,20 @@ function explode(r,p){
  const owner=p.ownerId==='peer'?r.peer:p.ownerId==='host'?r:null;
  const attacker=owner||r;
  for(const e of r.course.enemies){
-  const d=Math.hypot(e.x-p.x,e.y-p.y);
-  if(isThreat(e)&&d<radius&&castRay(r.course,p.x,p.y,Math.atan2(e.y-p.y,e.x-p.x)).dist>d-.1){
+  syncEnemyGround(r,e);
+  const horizontal=Math.hypot(e.x-p.x,e.y-p.y),d=r.course?.coastal?.terrain?Math.hypot(horizontal,enemyBase(e)+.28-p.z):horizontal;
+   if(isThreat(e)&&d<radius&&pointLine(r.course,p,{x:e.x,y:e.y,z:enemyBase(e)+.28})){
    const falloff=Math.max(.12,1-d/radius);
-   damageEnemy(attacker,e,Math.max(2,baseDamage*falloff),rocket?'+ RIFT BLAST':p.nuke?'+ CORE NUKE':'+ CORE BLAST',{x:p.x,y:p.y,z:p.z});
-   const dx=e.x-p.x,dy=e.y-p.y,len=Math.max(.1,d);
+   damageEnemy(attacker,e,Math.max(2,baseDamage*falloff),rocket?'+ RIFT BLAST':p.attachment?'+ GRENADE BLAST':p.nuke?'+ CORE NUKE':'+ CORE BLAST',{x:p.x,y:p.y,z:p.z});
+   const dx=e.x-p.x,dy=e.y-p.y,len=Math.max(.1,horizontal);
    e.x+=dx/len*(rocket?falloff*.22:0);e.y+=dy/len*(rocket?falloff*.22:0);
+   syncEnemyGround(r,e);
   }
  }
  if(rocket&&p.selfBoost&&owner&&owner.health>0){
-  const dx=owner.x-p.x,dy=owner.y-p.y,d=Math.hypot(dx,dy);
-  if(d<radius){
-   const len=Math.max(.1,d),boost=Math.max(.35,1-d/radius);
+  const dx=owner.x-p.x,dy=owner.y-p.y,horizontal=Math.hypot(dx,dy),d=r.course?.coastal?.terrain?Math.hypot(horizontal,playerFoot(owner)-p.z):horizontal;
+   if(d<radius&&pointLine(r.course,p,{x:owner.x,y:owner.y,z:playerFoot(owner)+.12})){
+   const len=Math.max(.1,horizontal),boost=Math.max(.35,1-d/radius);
    owner.vx+=dx/len*(p.knockback||4.8)*boost;owner.vy+=dy/len*(p.knockback||4.8)*boost;owner.vz=Math.max(owner.vz,.8+(p.knockback||4.8)*.7*boost);
    owner.events.push({type:'rocket-jump',weapon:3,x:p.x,y:p.y,z:p.z,projectileId:p.id});
   }

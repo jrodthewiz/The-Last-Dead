@@ -1,4 +1,5 @@
 import {attachLowTide} from './low-tide.js';
+import {attachIslandBasement} from './island-basement-layout.js';
 import {makeHarborRooms} from './harbor-interiors.js';
 import {makeHarborThaiLayout} from './harbor-thai-layout.js';
 import {attachCoastalWorld} from './coastal-world-layout.js';
@@ -43,5 +44,5 @@ export function makeHarborCourse(base = {}) {
   if(course.lowTide){course.harborRooms[1].name='COLD STORAGE / BAY 02';course.harborRooms[3].name='NETMAKERS SAFEHOUSE';}
   attachLowTide(course);
   if(base.openWorld)attachCoastalWorld(course);
-  return course;
+  return attachIslandBasement(course);
 }

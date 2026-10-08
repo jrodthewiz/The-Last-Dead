@@ -32,6 +32,8 @@ export function portHarborWater(source){
  const t=reference('value','float',source.uniforms.time);
  if(source.userData.coastalWater){
   material.name='CoastalWaterWGSL';
+  // Coastal optics owns its distance haze, matched to the graphic sky horizon.
+  material.fog=false;
   material.positionNode=positionLocal.add(vec3(0,coast.coastalHeight({p:positionLocal.xz,t}),0));
   material.colorNode=coast.coastalFragment({p:positionWorld,t,eye:cameraPosition});
   return material;

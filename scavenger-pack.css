@@ -9,8 +9,11 @@
 .pack-launcher output { color: #d2b58d; font-variant-numeric: tabular-nums; font-size: 10px; }
 .pack-launcher kbd { border: 1px solid #75644f; padding: 0 3px; margin-left: 3px; font: inherit; }
 .pack-launcher:hover, .pack-launcher:active { background: #352a20; }
-/* Keep the pack clear of the vitals, arsenal and recording strip. */
-.pack-launcher { left: auto; right: max(18px, env(safe-area-inset-right)); top: max(68px, calc(64px + env(safe-area-inset-top))); bottom: auto; transform: none; }
+/* Reserve the upper-right combat grade and feed even before the first hit. */
+.pack-launcher { left: auto; right: max(18px, env(safe-area-inset-right)); top: max(168px, calc(164px + env(safe-area-inset-top))); bottom: auto; transform: none; }
+@media (min-width:701px) and (max-height:520px) {
+ .pack-launcher { right: max(238px, calc(234px + env(safe-area-inset-right))); top: max(24px, calc(20px + env(safe-area-inset-top))); }
+}
 .pack-overlay { position: fixed; z-index: 650; inset: 0; display: grid; place-items: center; overflow-y: auto; padding: max(18px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left)); background: rgba(4,5,5,.84); }
 .pack-panel { width: min(680px, 100%); max-height: 100%; overflow-y: auto; background: #141412; border: 1px solid #66513a; border-top: 3px solid #c9985a; padding: clamp(18px, 3vw, 30px); box-shadow: 0 22px 80px #000a; }
 .pack-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 22px; }
@@ -155,3 +158,16 @@ body:has(.pack-overlay:not([hidden])) #ui .pause-screen{visibility:hidden}
 .coastal-destinations button{min-height:44px;padding:9px 12px;text-align:left;color:#d9d6c1;background:#1b2c26;border:1px solid #4f6554;font:inherit;font-size:12px;cursor:pointer}
 .coastal-destinations button:hover,.coastal-destinations button[aria-pressed="true"]{border-color:#e7bc76;background:#394336;color:#ffe0a9}
 .coastal-destinations button:focus-visible{outline:2px solid #ffd18a;outline-offset:2px}
+
+/* Repair stations use the field kit's paper, ink and warning palette. */
+.pack-supplies{border-block:1px solid #596957;padding:12px 0;margin:14px 0}.pack-supplies[hidden]{display:none}.pack-supplies dl{display:flex;gap:18px;margin:10px 0}.pack-supplies dl>div{flex:1;border-left:2px solid #839a80;padding-left:9px}.pack-supplies dt{font-size:10px;color:#bec8b5;letter-spacing:.06em}.pack-supplies dd{margin:4px 0 0;color:#eee2bf;font:700 23px Georgia,serif;font-variant-numeric:tabular-nums}.pack-supplies p{font-size:12px;line-height:1.5;color:#c1c6b5;margin:8px 0}.pack-supply-actions{display:flex;gap:8px}.pack-supply-actions button{flex:1;min-height:48px;padding:10px;border:1px solid #839a80;background:#23332b;color:#eee2bf;font:700 11px system-ui;text-align:left;cursor:pointer}.pack-supply-actions button span{display:block;font-size:9px;font-weight:400;margin-top:5px;color:#c1c6b5;line-height:1.4}.pack-supply-actions button:disabled{opacity:.5;cursor:default}.pack-supply-actions button:focus-visible{outline:2px solid #efd29b;outline-offset:3px}.pack-supplies [data-state=success]{color:#c1dfb8}.pack-supplies [data-state=error]{color:#f4bb94}@media(max-width:520px){.pack-supply-actions{flex-direction:column}.pack-supplies dl{gap:8px}.pack-supplies dt{font-size:9px}}
+.pack-workbench{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:14px 0;padding:14px;border:1px solid #86744f;background:#272c27}.pack-workbench[hidden]{display:none}.pack-workbench strong{display:block;color:#efdfa9;font:700 17px Georgia,serif;margin:4px 0}.pack-workbench p{margin:4px 0;color:#c5c1b0;font-size:13px;line-height:1.4}.pack-workbench[data-available="true"]{border-left:4px solid #93b781}.pack-workbench button{flex-shrink:0;border:1px solid #a88b55;background:#181e1c;color:#efdfa9;padding:10px;font:700 11px system-ui;cursor:pointer}.pack-workbench button:focus-visible{outline:2px solid #efdfa9;outline-offset:3px}@media(max-width:520px){.pack-workbench{align-items:flex-start;flex-direction:column}.pack-workbench button{width:100%}}
+.pack-supplies dl button{margin-top:7px;min-height:32px;padding:5px 7px;border:1px solid #63715f;background:transparent;color:#c7c8b6;font:10px system-ui;cursor:pointer}.pack-supplies dl button:disabled{opacity:.4;cursor:default}.pack-supplies dl button:focus-visible{outline:2px solid #efd29b;outline-offset:2px}
+.pack-supplies .pack-treatment{color:#dcc99c;font:10px/1.5 Consolas,monospace;letter-spacing:.03em;margin:4px 0 10px}
+.pack-world-hint{position:fixed;z-index:34;left:50%;bottom:24%;transform:translateX(-50%);max-width:calc(100vw - 36px);padding:9px 14px;border:1px solid #a69768;background:#111a13e8;color:#eee2bf;font:600 12px/1.5 Consolas,monospace;letter-spacing:.05em;text-align:center;text-transform:uppercase;pointer-events:none}
+
+/* Treatment decisions stay beside their action, even when the button is disabled. */
+.pack-supply-action{flex:1;min-width:0}.pack-supply-action>button{width:100%}
+.pack-supplies .pack-supply-action>p{margin:8px 0 0;padding-left:8px;border-left:2px solid #8d7550;color:#d9cdb6;font-size:12px;line-height:1.45}
+.pack-supplies .pack-supply-action>p[data-ready="true"]{border-color:#93b781;color:#cad8bc}
+@media(max-width:480px){.pack-supply-actions{flex-direction:column}.pack-supply-action{flex:auto}}

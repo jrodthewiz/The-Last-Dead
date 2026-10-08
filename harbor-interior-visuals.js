@@ -1,3 +1,4 @@
+import {cloneRuntimeObject} from './runtime-clone.js';
 import {harborRoomSupplies} from './harbor-interiors.js';
 import * as THREE from './vendor/three.module.js';
 import {createModel as makeTable} from './assets/thai-kit/folding-laminate-trestle-table.js';
@@ -16,7 +17,7 @@ export class HarborInteriorVisuals{
   const plaster=new THREE.MeshStandardMaterial({color:0x9b9d8e,roughness:.94}),trim=new THREE.MeshStandardMaterial({color:0x435553,roughness:.72,metalness:.3});
   const slab=new THREE.BoxGeometry(1,1,1);
   const box=(g,x,y,z,w,h,d,material,name)=>{const m=new THREE.Mesh(slab,material);m.name=name;m.position.set(x,y,z);m.scale.set(w,h,d);m.receiveShadow=true;g.add(m);return m;};
-  const place=(group,source,x,z,w,h,d,yaw=0)=>{const model=source.clone(true);model.rotation.y=yaw;world.fit(model,w,h,d);model.position.add(new THREE.Vector3(x,.14,z));group.add(model);return model;};
+  const place=(group,source,x,z,w,h,d,yaw=0)=>{const model=cloneRuntimeObject(source);model.rotation.y=yaw;world.fit(model,w,h,d);model.position.add(new THREE.Vector3(x,.14,z));group.add(model);return model;};
   for(const [i,r]of world.course.harborRooms.entries()){
    const accents=[0x526c70,0x647b78,0x8b7756,0x68735a,0x927446,0x536d78];
    const accent=new THREE.MeshStandardMaterial({color:accents[i],roughness:.86});

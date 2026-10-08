@@ -4,8 +4,73 @@ import {harborRoomSupplies} from './harbor-interiors.js';
 // Street routes use the same reciprocal cell walls as movement; no straight
 // objective arrows through closed lots. Cache by cell and objective changes.
 import {propSegmentClear} from './harbor-collision.js';
+import {canStand} from './engine.js';
 const cache=new WeakMap();
 const coastEdges=new WeakMap();
+const interiorLabels=new WeakMap();
+const interiorPaths=new WeakMap();
+function walkingSegmentClear(c,a,z){
+ const steps=Math.max(1,Math.ceil(Math.hypot(z.x-a.x,z.y-a.y)/.04));
+ for(let i=0;i<=steps;i++)if(!canStand(c,a.x+(z.x-a.x)*i/steps,a.y+(z.y-a.y)*i/steps,.1))return false;
+ return true;
+}
+function interiorPath(c,from,to,b){
+ const step=.125,pad=1,halfX=(Math.abs(Math.cos(b.yaw))*b.width+Math.abs(Math.sin(b.yaw))*b.depth)/8;
+ const halfY=(Math.abs(Math.sin(b.yaw))*b.width+Math.abs(Math.cos(b.yaw))*b.depth)/8;
+ const minX=b.x/4-halfX-pad,minY=b.z/4-halfY-pad;
+ const w=Math.ceil((halfX*2+pad*2)/step)+1,h=Math.ceil((halfY*2+pad*2)/step)+1;
+ const point=n=>({x:minX+(n%w)*step,y:minY+Math.floor(n/w)*step});
+ const index=p=>Math.round((p.y-minY)/step)*w+Math.round((p.x-minX)/step);
+ const start=index(from),goal=index(to);
+ const clear=(a,z)=>walkingSegmentClear(c,a,z);
+ if(start<0||goal<0||start>=w*h||goal>=w*h||!clear(from,point(start))||!clear(point(goal),to))return null;
+ let saved=interiorPaths.get(c);if(!saved){saved=new Map();interiorPaths.set(c,saved);}
+ const key=`${b.id}:${start}:${goal}`;
+ let route=saved.get(key);
+ if(!route){
+   const parent=new Int32Array(w*h).fill(-1),walk=new Int8Array(w*h),queue=[start];parent[start]=start;
+   const open=n=>{if(!walk[n])walk[n]=canStand(c,point(n).x,point(n).y,.1)?1:-1;return walk[n]===1;};
+   for(let i=0;i<queue.length&&parent[goal]===-1;i++){
+     const n=queue[i],x=n%w,y=Math.floor(n/w);
+     for(const [dx,dy]of [[1,0],[-1,0],[0,1],[0,-1]]){
+       const xx=x+dx,yy=y+dy,j=yy*w+xx;
+       if(xx<0||yy<0||xx>=w||yy>=h||parent[j]!==-1||!open(j)||!clear(point(n),point(j)))continue;
+       parent[j]=n;queue.push(j);
+     }
+   }
+   if(parent[goal]===-1)return null;
+   route=[];for(let n=goal;n!==start;n=parent[n])route.push(point(n));route.reverse();route.unshift(point(start));route.push(to);
+   if(saved.size>=128)saved.clear();saved.set(key,route);
+ }
+ // Pull the string through open floor space while preserving corners around
+ // chairs/partitions. Every shortened segment uses the movement authority.
+ const result=[];let prior=from,i=0;
+ while(i<route.length){let next=i;for(let j=i;j<route.length;j++){if(!clear(prior,route[j]))break;next=j;}result.push(route[next]);prior=route[next];i=next+1;}
+ return result;
+}
+function navigationResult(run,target,points){
+ while(points.length>1&&Math.hypot(points[0].x-run.x,points[0].y-run.y)<.25&&walkingSegmentClear(run.course,run,points[1]))points.shift();
+ const point=points[0];if(!point)return null;
+ let distance=0,previous=run;for(const p of points){distance+=Math.hypot(p.x-previous.x,p.y-previous.y);previous=p;}
+ return{target,points,distance:Math.round(distance*4),bearing:Math.atan2(point.y-run.y,point.x-run.x)-run.angle};
+}
+export function coastalInteriorAt(run){
+ const c=run?.course,buildings=c?.coastal?.blackwaterSlice?.buildings;
+ if(!buildings||!Number.isFinite(run.x)||!Number.isFinite(run.y))return null;
+ let saved=interiorLabels.get(c);
+ if(!saved||saved.buildings!==buildings){
+  saved={buildings,records:buildings.filter(b=>b.enterable).map(b=>{const cos=Math.cos(b.yaw||0),sin=Math.sin(b.yaw||0),halfX=b.width/2-.30;
+   const minZ=-b.depth/2+.35,maxZ=b.depth/2-(b.kind==='house'?1.95:.35);
+   const extentX=Math.abs(cos)*b.width/2+Math.abs(sin)*b.depth/2,extentZ=Math.abs(sin)*b.width/2+Math.abs(cos)*b.depth/2;
+   return {building:b,cos,sin,halfX,minZ,maxZ,bounds:[b.x-extentX,b.x+extentX,b.z-extentZ,b.z+extentZ]};})};interiorLabels.set(c,saved);
+ }
+ const x=run.x*4,z=run.y*4;
+ for(const p of saved.records){const [minX,maxX,minZ,maxZ]=p.bounds;if(x<minX||x>maxX||z<minZ||z>maxZ)continue;
+  const dx=x-p.building.x,dz=z-p.building.z,lx=dx*p.cos-dz*p.sin,lz=dx*p.sin+dz*p.cos;
+  if(Math.abs(lx)<p.halfX&&lz>p.minZ&&lz<p.maxZ)return p.building;
+ }
+ return null;
+}
 function streetSegmentClear(c,n,j,d,op,start,x,y,xx,yy){
  if(!c.coastal||n===start)return propSegmentClear(c,x,y,xx,yy);
  let cached=coastEdges.get(c);
@@ -15,6 +80,7 @@ function streetSegmentClear(c,n,j,d,op,start,x,y,xx,yy){
 }
 export function harborLocation(run){
  if(run.course.activeInterior)return run.course.activeInterior.name;
+ const interior=coastalInteriorAt(run);if(interior)return interior.label;
  const {x,y}=run,q=run.course.buildings.find(b=>b.yard)?.yard;
  if(run.course.coastal&&(x>=32||y>=30)){const d=run.course.coastal.districts.find(d=>x*4>=d.minX&&x*4<d.maxX&&y*4>=d.minZ&&y*4<d.maxZ);return d?.name||'COAST ROAD';}
  const passage=run.course.buildings.find(b=>b.passage)?.passage;
@@ -30,8 +96,14 @@ export function harborNavigation(run){
  const count=run.backpack?.weaponPickups?.length||0;
  const destination=coastalTarget(run);
  const missionTarget=destination?{...destination,label:destination.name}:lowTideTarget(run);
- const targets=missionTarget?[missionTarget]:count<3?(c.weaponPickups||[]).filter(p=>!run.backpack?.weaponPickups?.includes(p.id)):
+ const targets=missionTarget?[missionTarget]:count<3?(c.weaponPickups||[]).filter(p=>!run.backpack?.weaponPickups?.includes(p.id)).map(p=>({...p,...p.approach})):
   (run.vehicle?.distance||0)<8?[{...run.vehicle,id:'truck',label:run.vehicle?.occupied?'Drive 32 m along Dock Road':'Dock truck'}]:[{...c.exit,id:'ferry',label:'Ferry extraction'}];
+ const targetBuilding=targets.length===1?coastalInteriorAt({course:c,...targets[0]}):null;
+ if(targetBuilding&&coastalInteriorAt(run)?.id===targetBuilding.id){
+   const points=interiorPath(c,run,targets[0],targetBuilding);return points?navigationResult(run,targets[0],points):null;
+ }
+ const interior=targetBuilding&&c.coastal.blackwaterSlice.interiors.find(p=>p.id===targetBuilding.id);
+ const planningTargets=interior?[interior.route.frontApproach,interior.route.rearApproach].filter(Boolean).map((p,i)=>({x:p.x/4,y:p.z/4,id:`${targets[0].id}:door-${i}`})):targets;
  const sx=Math.floor(run.x),sy=Math.floor(run.y),start=sy*c.w+sx;
  const key=`${start}/${targets.map(t=>`${t.id}:${t.label}:${t.x.toFixed(1)},${t.y.toFixed(1)}`).join('|')}`;
  let saved=cache.get(c);
@@ -47,18 +119,18 @@ export function harborNavigation(run){
    }
   }
   let best=null;
-  for(const target of targets){
+  for(const target of planningTargets){
    let n=Math.floor(target.y)*c.w+Math.floor(target.x);if(parent[n]===-1)continue;
    const cells=[];while(n!==start){cells.push(n);n=parent[n];}cells.reverse();
-   if(!best||cells.length<best.cells.length)best={target,cells};
+   const inside=targetBuilding?interiorPath(c,target,targets[0],targetBuilding):null;
+   if(targetBuilding&&!inside)continue;
+   if(!best||cells.length<best.cells.length)best={target:targetBuilding?targets[0]:target,cells,tail:inside?[target,...inside]:[target]};
   }
   saved={key,...best};cache.set(c,saved);
  }
  if(!saved.target)return null;
- const points=[...saved.cells.map(n=>({x:n%c.w+.5,y:Math.floor(n/c.w)+.5})),{x:saved.target.x,y:saved.target.y}];
- while(points.length>1&&Math.hypot(points[0].x-run.x,points[0].y-run.y)<.25)points.shift();
- const point=points[0];let distance=0,previous=run;for(const p of points){distance+=Math.hypot(p.x-previous.x,p.y-previous.y);previous=p;}
- return {target:saved.target,points,distance:Math.round(distance*4),bearing:Math.atan2(point.y-run.y,point.x-run.x)-run.angle};
+ const points=[...saved.cells.map(n=>({x:n%c.w+.5,y:Math.floor(n/c.w)+.5})),...saved.tail.map(p=>({x:p.x,y:p.y}))];
+ return navigationResult(run,saved.target,points);
 }
 export function harborMapSvg(run){
  if(run.course.activeInterior){

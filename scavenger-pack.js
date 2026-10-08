@@ -1,9 +1,25 @@
 // Run-scoped scavenging: one light resource and one fitting per owned weapon.
 // Positions use gameplay cells, like keys and healing supplies (1 cell = 4 m).
+import {groundAt} from './coastal-terrain.js';
+import {actorGroundAt,isStructureWall,traceStructureSegment} from './coastal-structures.js';
+import {coastalLootBlocked} from './coastal-scavenging.js';
+
 export const PACK_CAPACITY = 12;
 export const SCRAP_PER_CACHE = 4;
 export const MAX_SCAVENGER_CACHES = 12;
 export const MAX_PICKUP_HISTORY = 128;
+export const SUPPLY_CAPACITY = 12;
+export const BANDAGE_RECIPE = Object.freeze({cloth:2,antiseptic:1});
+export const BANDAGE_HEAL = 35;
+export const supplyCount = supplies => ['cloth','antiseptic','bandage'].reduce((n,id)=>n+(supplies?.[id]||0),0);
+const boundedSupplies = value => {
+  const result={cloth:0,antiseptic:0,bandage:0};let left=SUPPLY_CAPACITY;
+  for(const id of Object.keys(result)){
+    const n=Number(value?.[id]);result[id]=Number.isFinite(n)?Math.max(0,Math.min(left,Math.floor(n),id==='bandage'?3:SUPPLY_CAPACITY)):0;
+    left-=result[id];
+  }
+  return result;
+};
 export const WEAPON_FITTING = Object.freeze({
   id: 'hardened-fitting', name: 'Hardened fitting', cost: 8, damageMultiplier: 1.25,
 });
@@ -26,6 +42,7 @@ export function validateBackpack(value) {
     collected,
     weaponPickups:[...new Set((Array.isArray(source.weaponPickups)?source.weaponPickups:[]).filter(validId))].slice(-MAX_PICKUP_HISTORY),
     weaponMods,
+    supplies:boundedSupplies(source.supplies),
   };
 }
 
@@ -33,6 +50,7 @@ export const createScavengerPack = validateBackpack;
 
 export function ensureScavengerPack(run) {
   if (!run.backpack) run.backpack = createScavengerPack();
+  if (!run.backpack.supplies) run.backpack.supplies=boundedSupplies();
   return run.backpack;
 }
 
@@ -123,11 +141,49 @@ function pickupLineClear(course, from, to) {
     const nx = Math.floor(from.x + dx * step / steps), ny = Math.floor(from.y + dy * step / steps);
     const cell = course.cells?.[y * course.w + x];
     if (!cell) return false;
-    if (nx !== x && cell[nx > x ? 1 : 3]) return false;
-    if (ny !== y && cell[ny > y ? 2 : 0]) return false;
+    if (nx !== x && cell[nx > x ? 1 : 3]) {
+      const edgeX=dx>0?x+1:x,t=(edgeX-from.x)/dx;
+      if(!isStructureWall(course,edgeX,from.y+dy*t))return false;
+    }
+    if (ny !== y && cell[ny > y ? 2 : 0]) {
+      const edgeY=dy>0?y+1:y,t=(edgeY-from.y)/dy;
+      if(!isStructureWall(course,from.x+dx*t,edgeY))return false;
+    }
     x = nx; y = ny;
   }
   return true;
+}
+
+export function pickupReachable(run,course,item,reach=.55) {
+  if(run.mode!=='play'||run.health<=0||!finite(run.x)||!finite(run.y)
+    ||!finite(item.x)||!finite(item.y)||Math.hypot(run.x-item.x,run.y-item.y)>reach)return false;
+  const authored=finite(item.floorZ)&&finite(item.itemZ),terrain=!!course?.coastal?.terrain;
+  // Old dungeon records have no vertical authoring. Retain their established
+  // jump rule; coastal records use the actor's actual support and eye instead.
+  if(!authored&&!terrain)return !(run.z>.3)&&pickupLineClear(course,run,item);
+  const floor=actorGroundAt(course,run),itemFloor=authored?item.floorZ:groundAt(course,item.x,item.y);
+  const floorTolerance=finite(item.reachFloorTolerance)&&item.reachFloorTolerance>0?Math.min(.15,item.reachFloorTolerance):.075;
+  // A carried jump does not change the floor the player is reaching from.
+  // Continuous terrain is one support even when the nearby ground slopes.
+  if((authored||run.structureId)&&Math.abs(floor-itemFloor)>floorTolerance)return false;
+  const target={x:item.x,y:item.y,z:authored?item.itemZ:itemFloor+.05};
+  const from={x:run.x,y:run.y,z:floor+.4+(run.z||0)-(run.slide||0)*.18};
+  if(!finite(from.z)||Math.hypot(target.x-from.x,target.y-from.y,target.z-from.z)>.75)return false;
+  return pickupLineClear(course,run,item)&&!traceStructureSegment(course,from,target)&&!coastalLootBlocked(course,from,target);
+}
+
+function pickupEvent(run,world,course,item,type) {
+  const destination=course?.coastal?.landmarks?.find(p=>p.id===item.destinationId);
+  const event={type,pickupId:item.id,playerId:run.playerId||(run===world?'host':'peer'),
+    x:item.x,y:item.y,z:finite(item.itemZ)?item.itemZ:groundAt(course,item.x,item.y)+.05};
+  if(typeof item.discoveryLabel==='string')event.discoveryLabel=item.discoveryLabel.slice(0,120);
+  if(type==='scavenger-search-prompt')event.label=String(item.label||'Supply case').slice(0,120);
+  if(type==='scavenger-route'||type==='scavenger-route-prompt'){
+    event.label=String(item.label||'Cape footbridge route').slice(0,120);
+    event.destinationId=item.destinationId;
+    if(destination)event.destinationName=destination.name;
+  }
+  return event;
 }
 
 export function collectScavengerPickup(run, pickupId) {
@@ -136,41 +192,112 @@ export function collectScavengerPickup(run, pickupId) {
   if (run !== world) run.backpack = pack;
   const item = attachScavengerPickups(course).find(pickup => pickup.id === pickupId);
   if (!item || pack.collected.includes(item.id)) return { ok: false, reason: 'collected' };
-  if (run.mode !== 'play' || run.health <= 0 || run.z > .3 || !finite(run.x) || !finite(run.y)
-    || Math.hypot(run.x - item.x, run.y - item.y) > .55 || !pickupLineClear(course, run, item)) {
+  if (!pickupReachable(run,course,item)) {
     return { ok: false, reason: 'out-of-reach' };
   }
-  const amount = Math.max(1, Math.min(SCRAP_PER_CACHE, Math.floor(Number(item.amount) || SCRAP_PER_CACHE)));
+  const route=item.visualKind==='route-folio'&&item.destinationId==='forest';
+  const supply=item.visualKind==='supply-case';
+  const contents=supply?boundedSupplies(item.contents):null;
+  if(supply&&supplyCount(pack.supplies)+supplyCount(contents)>SUPPLY_CAPACITY)return{ok:false,reason:'supplies-full'};
+  const amount = route||supply?0:Math.max(1, Math.min(SCRAP_PER_CACHE, Math.floor(Number(item.amount) || SCRAP_PER_CACHE)));
   if (pack.scrap + amount > pack.capacity) return { ok: false, reason: 'full' };
   pack.scrap += amount;
+  if(supply)for(const id of Object.keys(contents))pack.supplies[id]+=contents[id];
   pack.collected.push(item.id);
   if (pack.collected.length > MAX_PICKUP_HISTORY) pack.collected.splice(0, pack.collected.length - MAX_PICKUP_HISTORY);
-  const event = { type: 'scavenger-scrap', pickupId: item.id, amount, total: pack.scrap,
-    playerId: run.playerId || (run === world ? 'host' : 'peer'), x: item.x, y: item.y, z: .05 };
+  if(route)run.coastalDestination=item.destinationId;
+  const event = {...pickupEvent(run,world,course,item,route?'scavenger-route':supply?'scavenger-supplies':'scavenger-scrap'),amount,total:pack.scrap,...(supply?{contents,label:item.label}:{})};
   world.events?.push(event);
   return { ok: true, amount, event };
 }
 
-export function tickScavengerPack(run) {
+export function tickScavengerPack(run,{interact=false,peerInteract=run?.peer?.journeyInteract}={}) {
   if ((!run?.course?.dungeon&&!run?.course?.scavenging) || run.mode !== 'play') return;
   const pack = ensureScavengerPack(run);
   if (run.peer) run.peer.backpack = pack;
   const pickups = attachScavengerPickups(run.course);
   for (const player of [run, ...(run.peer ? [run.peer] : [])]) {
-    let blockedId = null;
-    if (player.health <= 0 || player.z > .3) {player.scavengerBlockedId=null;continue;}
+    let blockedId = null,promptId=null,usedInteract=false;
+    if (player.health <= 0) {player.scavengerBlockedId=null;player.scavengerRoutePromptId=null;continue;}
     for (const item of pickups) {
       if (pack.collected.includes(item.id) || Math.hypot(player.x - item.x, player.y - item.y) > .55) continue;
+      if(item.requiresInteract){
+        if(!pickupReachable(player,run.course,item))continue;
+        promptId=item.id;
+        if(player.scavengerRoutePromptId!==promptId)run.events?.push(pickupEvent(player,run,run.course,item,item.visualKind==='supply-case'?'scavenger-search-prompt':'scavenger-route-prompt'));
+        if(usedInteract||!(player===run?interact:peerInteract))continue;
+        usedInteract=true;
+      }
       const result=collectScavengerPickup(player, item.id);
-      if(result.reason==='full') {
+      if(['full','supplies-full'].includes(result.reason)&&!blockedId) {
         blockedId=item.id;
-        if(player.scavengerBlockedId!==blockedId)run.events?.push({type:'scavenger-full',pickupId:item.id,
+        if(player.scavengerBlockedId!==blockedId)run.events?.push({type:result.reason==='supplies-full'?'scavenger-supplies-full':'scavenger-full',pickupId:item.id,
           playerId:player.playerId||(player===run?'host':'peer')});
-        break;
       }
     }
+    const station=workbenchAccess(player).station;
+    if(station&&player.workbenchPromptId!==station.id)run.events?.push({type:'workbench-prompt',playerId:player.playerId||(player===run?'host':'peer'),stationId:station.id,name:station.name});
+    player.workbenchPromptId=station?.id||null;
     player.scavengerBlockedId=blockedId;
+    player.scavengerRoutePromptId=promptId;
   }
+}
+
+// Read the same supply gates used by the commands. Session authority stays
+// with the caller; connected clients may display, but cannot mutate, the kit.
+export function bandageActionState(run,{canManage=true,bench=workbenchAccess(run)}={}) {
+  const supplies=ensureScavengerPack(run.world||run).supplies;
+  const inactive=!['play','pause'].includes(run.mode)||run.health<=0;
+  const missing={cloth:Math.max(0,BANDAGE_RECIPE.cloth-supplies.cloth),antiseptic:Math.max(0,BANDAGE_RECIPE.antiseptic-supplies.antiseptic)};
+  const craftReason=!canManage?'shared':inactive?'inactive':!bench.available?'workbench':supplies.bandage>=3?'bandages-full':missing.cloth||missing.antiseptic?'materials':null;
+  const useReason=!canManage?'shared':inactive||!finite(run.health)?'inactive':run.health>=100?'healthy':supplies.bandage<1?'empty':null;
+  return {craft:{ok:craftReason===null,reason:craftReason,missing},use:{ok:useReason===null,reason:useReason,amount:useReason===null?Math.min(BANDAGE_HEAL,100-run.health):0}};
+}
+
+export function craftBandage(run) {
+  if(!['play','pause'].includes(run.mode)||run.health<=0)return{ok:false,reason:'inactive'};
+  const world=run.world||run,pack=ensureScavengerPack(world),s=pack.supplies;
+  const state=bandageActionState(run);if(!state.craft.ok)return{ok:false,reason:state.craft.reason};
+  s.cloth-=BANDAGE_RECIPE.cloth;s.antiseptic-=BANDAGE_RECIPE.antiseptic;s.bandage++;
+  world.events?.push({type:'scavenger-crafted',playerId:run.playerId||'host'});
+  return{ok:true};
+}
+
+export function useBandage(run) {
+  if(!['play','pause'].includes(run.mode)||!finite(run.health)||run.health<=0)return{ok:false,reason:'inactive'};
+  const world=run.world||run,pack=ensureScavengerPack(world);
+  const state=bandageActionState(run);if(!state.use.ok)return{ok:false,reason:state.use.reason};
+  const amount=state.use.amount;
+  pack.supplies.bandage--;run.health+=amount;run.heal=.5;
+  world.events?.push({type:'scavenger-bandage',playerId:run.playerId||'host',amount});
+  return{ok:true,amount};
+}
+
+export function discardSupply(run,id) {
+  if(!['play','pause'].includes(run.mode)||run.health<=0)return{ok:false,reason:'inactive'};
+  if(!['cloth','antiseptic'].includes(id))return{ok:false,reason:'invalid'};
+  const pack=ensureScavengerPack(run.world||run);
+  if(pack.supplies[id]<1)return{ok:false,reason:'empty'};
+  pack.supplies[id]--;return{ok:true};
+}
+
+export function workbenchAccess(run) {
+  const course = (run.world || run).course || run.course;
+  if (!course?.coastal) return {required:false, available:true, station:null, nearest:null};
+  if(!finite(run.x)||!finite(run.y)||!finite(run.z??0))return {required:true,available:false,station:null,nearest:null};
+  const stations = course.coastal.workbenches || [];
+  let nearest = null, distance = Infinity;
+  for (const station of stations) {
+    const d = Math.hypot(run.x-station.x, run.y-station.y);
+    if (d < distance) {nearest=station; distance=d;}
+    if (d > station.reach || Math.abs(actorGroundAt(course,run)-station.floorZ) > .075
+      || (run.z || 0) > .15 || !pickupLineClear(course,run,station)) continue;
+    const from={x:run.x,y:run.y,z:actorGroundAt(course,run)+.4+(run.z||0)};
+    if (!traceStructureSegment(course,from,{x:station.x,y:station.y,z:station.itemZ})) {
+      return {required:true,available:true,station,nearest:station,distance:d};
+    }
+  }
+  return {required:true,available:false,station:null,nearest,distance};
 }
 
 export function upgradeWeapon(run, weaponIndex = run.weapon) {
@@ -181,6 +308,7 @@ export function upgradeWeapon(run, weaponIndex = run.weapon) {
   if (!['play', 'pause'].includes(run.mode) || run.health <= 0) return { ok: false, reason: 'inactive' };
   if (pack.weaponMods[weaponIndex]) return { ok: false, reason: 'already-fitted' };
   if (pack.scrap < WEAPON_FITTING.cost) return { ok: false, reason: 'scrap' };
+  if (!workbenchAccess(run).available) return { ok: false, reason: 'workbench' };
   pack.scrap -= WEAPON_FITTING.cost;
   pack.weaponMods[weaponIndex] = WEAPON_FITTING.id;
   const event = { type: 'scavenger-upgrade', weaponIndex, cost: WEAPON_FITTING.cost,

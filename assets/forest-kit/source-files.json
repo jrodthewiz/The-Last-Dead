@@ -1,0 +1,86 @@
+[
+  {
+    "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/LICENSE",
+    "path": "LICENSE.ez-tree.txt",
+    "sha256": "20e4afadfb10c67952b3d73cd2982d21d165ab4ae82b0dd9e4d6f2166ee349b6",
+    "bytes": 1073
+  },
+  {
+    "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/app/public/textures/LICENSE.md",
+    "path": "LICENSE.textures.md",
+    "sha256": "c4c67cf955536e61d9ac3fdf13830114edcd4c19c9aa0356ed0862cedf64140a",
+    "bytes": 1378
+  },
+  {
+    "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/package.json",
+    "path": "upstream-package.json",
+    "sha256": "48f5ddc8af8ee19b1ee6d2ff7047a3a42575aa13e5f721bd871506e161a90131",
+    "bytes": 1411
+  },
+  {
+    "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/tree.js",
+    "path": "ez-tree/tree.js",
+    "sha256": "a1b7bd933cb2078e9373c9c853c620be8a3edc84a9edda6a4073c8ad2a31f934",
+    "bytes": 40609
+  },
+  {
+    "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/rng.js",
+    "path": "ez-tree/rng.js",
+    "sha256": "e4f2bfff79a0a6af3f909f106876e9208be1bb88cc7f7d1541a6858cbaa0c3c8",
+    "bytes": 586
+  },
+  {
+    "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/branch.js",
+    "path": "ez-tree/branch.js",
+    "sha256": "f71a5e0df6b74ae521942f1722e5a0dd17707add05f12691da96231fdeff8571",
+    "bytes": 787
+  },
+  {
+    "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/options.js",
+    "path": "ez-tree/options.js",
+    "sha256": "092e20ee9073d7402e2fa04d570c17ff150276b5f8c941b3da629edf4ecfe0b9",
+    "bytes": 5186
+  },
+  {
+    "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/enums.js",
+    "path": "ez-tree/enums.js",
+    "sha256": "d83df789447a421baaecfd18cc8187bf3f80f6cf6e7ba7866812ed527f104092",
+    "bytes": 151
+  },
+  {
+    "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/presets/ash_medium.json",
+    "path": "presets/ash_medium.json",
+    "sha256": "4fbda008f54a1421c67bdff3022d64aba1d497253bc45dc7f186e3a4f78a9edd",
+    "bytes": 1414
+  },
+  {
+    "source": "https://raw.githubusercontent.com/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/presets/pine_medium.json",
+    "path": "presets/pine_medium.json",
+    "sha256": "001254eff844a6d41aff3c409b78effe2a2995c8dd7a21ae301b1e7fb9da0118",
+    "bytes": 1408
+  },
+  {
+    "source": "https://media.githubusercontent.com/media/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/app/public/textures/leaves/ash.png",
+    "path": "textures/ash.png",
+    "sha256": "5ec987db3829a839856c32c79b18a33a78f209e911cad55c65abfb77f30e2d29",
+    "bytes": 181423
+  },
+  {
+    "source": "https://media.githubusercontent.com/media/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/app/public/textures/leaves/pine.png",
+    "path": "textures/pine.png",
+    "sha256": "88be36a2387554ac4b7c7d1549eae454a37ad896e8e33a7d6ae5956bd169ab08",
+    "bytes": 303684
+  },
+  {
+    "source": "https://media.githubusercontent.com/media/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/app/public/textures/bark/Bark001_1K-JPG/Bark001_1K-JPG_Color.jpg",
+    "path": "textures/bark-color.jpg",
+    "sha256": "2a7e8c742aa0110057d7a3ff0e8ec193c26ef23b77bc778fb9258c0e41b29474",
+    "bytes": 831490
+  },
+  {
+    "source": "https://media.githubusercontent.com/media/dgreenheck/ez-tree/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/app/public/textures/bark/Bark001_1K-JPG/Bark001_1K-JPG_NormalGL.jpg",
+    "path": "textures/bark-normalgl.jpg",
+    "sha256": "d7a275aa573a701d8814d7378abd8ea227f651ae6da33f8c57a6b862419e621e",
+    "bytes": 1270807
+  }
+]
