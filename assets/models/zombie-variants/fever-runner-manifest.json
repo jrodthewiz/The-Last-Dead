@@ -1,0 +1,222 @@
+{
+  "id": "fever-runner",
+  "label": "Fever Runner",
+  "provider": "Meshy",
+  "model": "meshy-7.1",
+  "taskIds": {
+    "preview": "01a1084a-cc20-75ac-818c-84c7cc565cf4",
+    "refine": "01a1084e-63eb-76f4-b974-7640876ea5a4",
+    "retexture": "01a10859-5a5c-7433-b61a-38e77e57742f",
+    "rig": "01a1085c-67f3-75fa-927a-9e89b8eaf39a"
+  },
+  "credits": 45,
+  "sourceBytes": 12423920,
+  "bytes": 5977964,
+  "sha256": "1df86f804d90f17133f1b12b10e363115873e22960a02cb141d939d741dca39f",
+  "before": {
+    "triangles": 20812,
+    "meshes": 1,
+    "materials": 1,
+    "textures": 3,
+    "skins": 1,
+    "joints": [
+      [
+        "Hips",
+        "Spine02",
+        "Spine01",
+        "Spine",
+        "neck",
+        "Head",
+        "head_end",
+        "headfront",
+        "LeftShoulder",
+        "LeftArm",
+        "LeftForeArm",
+        "LeftHand",
+        "RightShoulder",
+        "RightArm",
+        "RightForeArm",
+        "RightHand",
+        "LeftUpLeg",
+        "LeftLeg",
+        "LeftFoot",
+        "LeftToeBase",
+        "RightUpLeg",
+        "RightLeg",
+        "RightFoot",
+        "RightToeBase",
+        "Jaw",
+        "LeftGrip",
+        "RightGrip"
+      ]
+    ],
+    "clips": [
+      {
+        "name": "AshWitness_Idle",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Shuffle",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Chase",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_AttackLunge",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_HitRecoil",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Collapse",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Run",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Crawl",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_CrawlIdle",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Contort",
+        "channels": 81
+      }
+    ],
+    "positions": [
+      "db1d1569a5b0c3cda6f2d93850b1496277354e6e9c25f2772e2505f7cc83c52b"
+    ],
+    "weights": [
+      "a4bb8b77b9ce7fab0175a758bc1c1683ad3b0936e77216f17c6dba5dc57bc728"
+    ]
+  },
+  "after": {
+    "triangles": 20812,
+    "meshes": 1,
+    "materials": 1,
+    "textures": 3,
+    "skins": 1,
+    "joints": [
+      [
+        "Hips",
+        "Spine02",
+        "Spine01",
+        "Spine",
+        "neck",
+        "Head",
+        "head_end",
+        "headfront",
+        "LeftShoulder",
+        "LeftArm",
+        "LeftForeArm",
+        "LeftHand",
+        "RightShoulder",
+        "RightArm",
+        "RightForeArm",
+        "RightHand",
+        "LeftUpLeg",
+        "LeftLeg",
+        "LeftFoot",
+        "LeftToeBase",
+        "RightUpLeg",
+        "RightLeg",
+        "RightFoot",
+        "RightToeBase",
+        "Jaw",
+        "LeftGrip",
+        "RightGrip"
+      ]
+    ],
+    "clips": [
+      {
+        "name": "AshWitness_Idle",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Shuffle",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Chase",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_AttackLunge",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_HitRecoil",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Collapse",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Run",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Crawl",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_CrawlIdle",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Contort",
+        "channels": 81
+      }
+    ],
+    "positions": [
+      "db1d1569a5b0c3cda6f2d93850b1496277354e6e9c25f2772e2505f7cc83c52b"
+    ],
+    "weights": [
+      "a4bb8b77b9ce7fab0175a758bc1c1683ad3b0936e77216f17c6dba5dc57bc728"
+    ]
+  },
+  "textures": [
+    {
+      "name": "Image_2",
+      "mime": "image/webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 1059842
+    },
+    {
+      "name": "Image_0",
+      "mime": "image/webp",
+      "width": 2048,
+      "height": 2048,
+      "bytes": 1063770
+    },
+    {
+      "name": "Image_1",
+      "mime": "image/webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 668006
+    }
+  ],
+  "packing": {
+    "baseColor": "2K WebP quality92",
+    "normalAndORM": "1K lossless WebP",
+    "geometrySimplification": false,
+    "animationResampling": false,
+    "controlsAndSocketsPreserved": true
+  },
+  "motionSource": "Ten locally fitted Ash Witness v07 animations; exact0.375s combat contact time",
+  "rawArchive": ".art-source/zombie-variants-meshy/fever-runner",
+  "runtimeNeedsProvider": false,
+  "runtimeNeedsBlender": false
+}

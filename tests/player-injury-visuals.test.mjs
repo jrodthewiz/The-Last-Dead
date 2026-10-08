@@ -22,6 +22,14 @@ function renderer() {
   return {scene,camera,cameraRig,weaponRig,weaponGroups:[],_survivors:{local:body,viewSleeves:0},_enemyVisuals:new Map(),settings:{gore:true,reducedMotion:false}};
 }
 
+test('wound binding keeps live metadata textures without exporting their images',()=>{
+ const r=renderer(),body=r._survivors.local.userData.body,source=body.material,texture=new THREE.Texture();
+ texture.toJSON=()=>{throw Error('wound binding must not encode runtime images');};source.userData.cleanMap=texture;
+ const visuals=new PlayerInjuryVisuals(r);visuals.bind();
+ assert.notEqual(body.material,source);assert.equal(body.material.userData.cleanMap,texture);assert.equal(source.userData.cleanMap,texture);
+ visuals.dispose();
+});
+
 test('anatomical partition preserves original survivor triangles and UV coordinates',()=>{
   const body=survivor(),regions=meshAnatomyRegions(body.userData.body),fragments=createAnatomyFragments(body);
   assert.deepEqual([...regions],[1,1,1,2,2,2,0,0,0]);

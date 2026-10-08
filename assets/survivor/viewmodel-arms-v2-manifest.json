@@ -1,0 +1,102 @@
+{
+  "version": 2,
+  "asset": "assets\\survivor\\viewmodel-arms-v2.glb",
+  "sha256": "beba75aa9a173532af038c67c286fde96e1149275e4fe0a496a31cdd86f23fcf",
+  "bytes": 3869952,
+  "source_hashes": {
+    ".art-source\\viewmodel-arms-v1\\Viewmodel_Arms_v1.blend": "d99affa39d9858f4184ef9b35e60681470f2a0be2f2b5f039287b80866353172",
+    "assets\\survivor\\viewmodel-arms-v1.glb": "754871fa53ebddc9b9bfb5d59120b33592288895cde2f9b4f2dc752e9472708e",
+    "assets\\survivor\\tld-survivor-v02.glb": "f3c9b277985435845d0848f9fc9ca32fa92da9f695c911f7ea48eacff712db03"
+  },
+  "authoring": ".art-source\\viewmodel-arms-v2\\The_Last_Dead_Clean_First_Person_Arms_v2.blend",
+  "source_blend_inspected": ".art-source\\viewmodel-arms-v1\\Viewmodel_Arms_v1.blend",
+  "source_blend_opened": ".art-source\\viewmodel-arms-v2\\The_Last_Dead_Clean_First_Person_Arms_v2.blend",
+  "export_mode": "saved-master-only",
+  "sourcing": "Existing Meshy interaction atlas + Blender authored garment, hands and shared leather gloves; no provider generation",
+  "coordinate_system": "glTF Y-up, metres; forward -Z",
+  "textures": 3,
+  "materials": 3,
+  "meshes": 27,
+  "triangles": 54636,
+  "contract": {
+    "forearm_length": 0.34,
+    "upper_length": 0.4,
+    "hand_wrist": [
+      0,
+      -0.075,
+      0.015
+    ],
+    "grip": [
+      0,
+      0,
+      0
+    ],
+    "trigger_pivot": "RightTriggerFinger",
+    "fingers_per_hand": 5,
+    "ordinary_hand_texture_resolution": [
+      1024,
+      1024
+    ]
+  },
+  "interaction_skin": "Every interaction POSITION/NORMAL/UV/JOINTS/WEIGHTS/index/bind accessor, bone transform and source image copied from v1 without re-export",
+  "changes": [
+    "Draped slate canvas garment, short warm wrist, integral cuff and elbow folds",
+    "Softened glove dorsal surface; retained thumb and grip digits, authored bent right index trigger reach",
+    "Reduced oversampled ordinary hand topology and 1024 maps",
+    "Full dark leather gloves across palms, fingers, thumbs and reinforcement plates; shared normal/roughness, integrated dorsal pads and seam/wear zones"
+  ],
+  "full_leather_gloves": {
+    "checkpoint": ".art-source\\viewmodel-arms-v2\\Accepted_Bare_Fingertip_v2.blend",
+    "checkpoint_sha256": "eae1ee62b42c890a1e35f9a033db3e09c740e3ba40e5f6ad037e191b302aeb05",
+    "authoring": ".art-source\\viewmodel-arms-v2\\The_Last_Dead_Clean_First_Person_Arms_v2.blend",
+    "shared_material": "TLD_Full_Worn_Leather_Gloves_v2",
+    "authored_objects": [
+      "GripIndex_Left",
+      "NailIndex_Left",
+      "GripMiddle_Left",
+      "NailMiddle_Left",
+      "GripRing_Left",
+      "NailRing_Left",
+      "GripLittle_Left",
+      "NailLittle_Left",
+      "GripThumb_Left",
+      "NailThumb_Left",
+      "GripPalm_Left",
+      "GripIndex_Right",
+      "NailIndex_Right",
+      "GripMiddle_Right",
+      "NailMiddle_Right",
+      "GripRing_Right",
+      "NailRing_Right",
+      "GripLittle_Right",
+      "NailLittle_Right",
+      "GripThumb_Right",
+      "NailThumb_Right",
+      "GripPalm_Right"
+    ],
+    "mesh_count_added": 0,
+    "max_dorsal_padding_metres": 0.0016,
+    "pivots_preserved": true,
+    "textures": "Reused common normal/roughness; no per-digit maps or skin atlas input",
+    "blender": "2.93.0"
+  },
+  "right_index_trigger_reach": {
+    "mcp": [
+      0.032,
+      0.043,
+      -0.016
+    ],
+    "tip": [
+      -0.065,
+      0.059,
+      -0.002
+    ],
+    "pivot_name": "RightTriggerFinger",
+    "glove_and_other_four_digit_pivots_retained": true
+  },
+  "limitations": [
+    "Held hands remain rigid authored surfaces with explicit finger pivots, not a newly anatomically skinned hand rig.",
+    "Actual game camera, aim and cadence are controlled by runtime; Blender defines surfaces and joint contracts.",
+    "Surface/contract tests cannot certify professional art quality or real VR support."
+  ]
+}

@@ -5,14 +5,20 @@ import {GLTFLoader} from '../vendor/loaders/GLTFLoader.js';
 import {Renderer} from '../renderer.js';
 import {installForegroundArms,fitForegroundArms} from '../assets/survivor/foreground-arms.js';
 import {WEAPON_HANDLING} from '../weapon-presentation.js';
+import {FIRST_PERSON_HOLD_POSES} from '../assets/survivor/viewmodel-hold-poses.js';
 globalThis.self=globalThis;
 globalThis.createImageBitmap=async()=>({width:1,height:1,close(){}});
-const raw=await readFile(new URL('../assets/survivor/viewmodel-arms-v1.glb',import.meta.url));
+const revision2=process.argv.includes('--v2');
+const raw=await readFile(new URL(`../assets/survivor/viewmodel-arms-${revision2?'v2':'v1'}.glb`,import.meta.url));
 const asset=await new GLTFLoader().parseAsync(raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.byteLength),'');
-const r=Object.create(Renderer.prototype);r.materials={};r.camera=new T.PerspectiveCamera(110,16/9,.025,200);
+const r=Object.create(Renderer.prototype);r.materials={};r.camera=new T.PerspectiveCamera(revision2?75:110,16/9,.025,200);
 r.weaponRig=new T.Group();r.camera.add(r.weaponRig);
 r.weaponGroups=[r._makePulseRevolver(),r._makeBreachShotgun(),r._makeArcLance(),r._makeReliquaryAsset(),r._makeRifle('carrion',4),r._makeRifle('mourning',5),r._makeMelee('bat',6),r._makeMelee('chainsaw',7)];
-for(const [i,g] of r.weaponGroups.entries()){g.scale.setScalar(.64);g.position.x=[.3,.31,.29,.31,.34,.34,.32,.32][i];r.weaponRig.add(g);}
+for(const [i,g] of r.weaponGroups.entries()){
+ if(revision2){const pose=FIRST_PERSON_HOLD_POSES[i];g.position.set(...pose.position);g.rotation.set(...pose.rotation);g.scale.setScalar(pose.scale);}
+ else{g.scale.setScalar(.64);g.position.x=[.3,.31,.29,.31,.34,.34,.32,.32][i];}
+ r.weaponRig.add(g);
+}
 installForegroundArms(r,asset.scene);
 const weapons=r.weaponGroups.map((g,i)=>{
  fitForegroundArms(g);g.updateWorldMatrix(true,true);const meshes=[],v=new T.Vector3();
@@ -20,9 +26,9 @@ const weapons=r.weaponGroups.map((g,i)=>{
   const a=o.geometry.attributes.position,positions=[];
   for(let n=0;n<a.count;n++){v.fromBufferAttribute(a,n).applyMatrix4(o.matrixWorld);positions.push(...v.toArray().map(x=>+x.toFixed(6)));}
   const mat=Array.isArray(o.material)?o.material[0]:o.material;
-  meshes.push({name:o.name||'Surface',positions,indices:o.geometry.index?Array.from(o.geometry.index.array):Array.from({length:a.count},(_,n)=>n),color:mat.color?.toArray()||[.2,.2,.2]});
- });return {profile:WEAPON_HANDLING[i],meshes};
+  meshes.push({name:o.name||'Surface',positions,indices:o.geometry.index?Array.from(o.geometry.index.array):Array.from({length:a.count},(_,n)=>n),color:mat.color?.toArray()||[.2,.2,.2],vertexColors:o.geometry.attributes.color?Array.from(o.geometry.attributes.color.array):null});
+ });return {profile:WEAPON_HANDLING[i],meshes,groupTransform:{position:g.position.toArray(),rotation:g.rotation.toArray().slice(0,3),scale:g.scale.x}};
 });
-const dir=new URL('../.art-source/viewmodel-motion/',import.meta.url);await mkdir(dir,{recursive:true});
+const dir=new URL(`../.art-source/${revision2?'viewmodel-motion-v2':'viewmodel-motion'}/`,import.meta.url);await mkdir(dir,{recursive:true});
 await writeFile(new URL('reference.json',dir),JSON.stringify({weapons}));
 console.log('Exported eight fitted weapon/arm references for Blender.');

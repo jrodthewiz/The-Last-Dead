@@ -5,6 +5,8 @@ import { createReliquary } from './weapon-reliquary.js';
 import { createRifle } from './weapon-rifles.js';
 import { createMeleeWeapon } from './weapon-melee.js';
 import { batchStaticWorld } from './world-polish.js';
+import {BlackwaterPaintedMaterial} from './blackwater-render-looks.js';
+import {lights} from './vendor/three.tsl.js';
 
 // The floor pickup uses the equipped weapon's authored form, displayed on a
 // salvage rack with a visible rarity marker above it and a ring at its feet.
@@ -25,7 +27,7 @@ const signal = color => new THREE.MeshStandardMaterial({
   color, metalness: .22, roughness: .38, emissive: color, emissiveIntensity: .8,
 });
 
-export function buildDungeonWeaponLoot(worldRoot, course) {
+export function buildDungeonWeaponLoot(worldRoot, course, {lightSources=null}={}) {
   if (!course?.dungeon) return [];
   const items = [];
   for (const loot of course.loot || []) {
@@ -36,6 +38,36 @@ export function buildDungeonWeaponLoot(worldRoot, course) {
     root.name = `StoryWeaponFind_${loot.id}`;
     root.userData.noBatch = true;
     root.position.set(loot.x * 4, 0, loot.y * 4);
+    if(loot.displayKind==='stowed'){
+      root.name=`StowedWeapon_${loot.id}`;
+      root.position.y=loot.visualBaseY;
+      root.rotation.y=loot.visualYaw||0;
+      const carrier=new THREE.Group(),model=factory();
+      if(lightSources){
+        // World finds share the coast's light owners. Viewmodel keys must not
+        // bleach an inspectable gun lying on its workshop or cottage deck.
+        const materials=new Map();
+        const painted=source=>{
+          if(!source?.isMeshStandardMaterial)return source;
+          if(!materials.has(source)){
+            const material=new BlackwaterPaintedMaterial({color:source.color,map:source.map,emissive:source.emissive,emissiveIntensity:source.emissiveIntensity});
+            material.lightsNode=lights(lightSources);material.name=source.name;materials.set(source,material);
+          }
+          return materials.get(source);
+        };
+        model.traverse(o=>{if(o.isMesh)o.material=Array.isArray(o.material)?o.material.map(painted):painted(o.material);});
+        for(const source of materials.keys())source.dispose();
+      }
+      model.rotation.set(0,Math.PI/2,Math.PI/2);
+      batchStaticWorld(model);model.updateMatrixWorld(true);
+      const bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());
+      const scale=1.75/Math.max(size.x,size.z,.1);
+      const normalized=new THREE.Group();normalized.scale.setScalar(scale);
+      const center=bounds.getCenter(new THREE.Vector3());
+      normalized.position.set(-center.x*scale,-bounds.min.y*scale+.018,-center.z*scale);
+      normalized.add(model);carrier.add(normalized);root.add(carrier);worldRoot.add(root);
+      items.push({...loot,root,carrier,light:null});continue;
+    }
     // Exterior finds stay human-sized; cathedral display racks keep their scale.
     if(course.harbor)root.scale.setScalar(.5);
     const dark = metal(), inner = recess(), bright = signal(color);
@@ -115,9 +147,10 @@ export function updateDungeonWeaponLoot(items, collected, timeMs, reducedMotion 
     const visible = !found.includes(item.id);
     if (item.root.visible !== visible) item.root.visible = visible;
     if (!visible) {
-      if (item.light.intensity !== 0) item.light.intensity = 0;
+      if (item.light&&item.light.intensity !== 0) item.light.intensity = 0;
       continue;
     }
+    if(item.displayKind==='stowed')continue;
     const phase = timeMs * .001 + item.weaponIndex * .8;
     item.carrier.position.y = reducedMotion ? 1.46 : 1.46 + Math.sin(phase * 1.45) * .055;
     const dx = viewer ? viewer.x - item.root.position.x : 1;

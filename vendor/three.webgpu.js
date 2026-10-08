@@ -7,6 +7,7 @@ import { Color, Vector2, Vector3, Vector4, Matrix2, Matrix3, Matrix4, error, Eve
 export { AdditiveAnimationBlendMode, AnimationAction, AnimationClip, AnimationLoader, AnimationMixer, AnimationObjectGroup, AnimationUtils, ArcCurve, ArrowHelper, AttachedBindMode, Audio, AudioAnalyser, AudioContext, AudioListener, AudioLoader, AxesHelper, BasicDepthPacking, BatchedMesh, BezierInterpolant, Bone, BooleanKeyframeTrack, Box2, Box3, Box3Helper, BoxHelper, BufferGeometryLoader, Cache, Camera, CameraHelper, CanvasTexture, CapsuleGeometry, CatmullRomCurve3, CircleGeometry, Clock, ColorKeyframeTrack, CompressedArrayTexture, CompressedCubeTexture, CompressedTexture, CompressedTextureLoader, ConeGeometry, ConstantAlphaFactor, ConstantColorFactor, Controls, CubeTextureLoader, CubicBezierCurve, CubicBezierCurve3, CubicInterpolant, CullFaceFrontBack, Curve, CurvePath, CustomToneMapping, Cylindrical, Data3DTexture, DataTextureLoader, DataUtils, DefaultLoadingManager, DetachedBindMode, DirectionalLightHelper, DiscreteInterpolant, DodecahedronGeometry, DynamicCopyUsage, DynamicReadUsage, EdgesGeometry, EllipseCurve, Euler, ExternalTexture, ExtrudeGeometry, Fog, FogExp2, GLBufferAttribute, GLSL1, GLSL3, GridHelper, HTMLTexture, HemisphereLightHelper, IcosahedronGeometry, ImageBitmapLoader, ImageLoader, ImageUtils, InstancedBufferGeometry, InstancedMesh, Int16BufferAttribute, Int32BufferAttribute, Int8BufferAttribute, Interpolant, InterpolateBezier, InterpolateDiscrete, InterpolateLinear, InterpolateSmooth, InterpolationSamplingMode, InterpolationSamplingType, KeyframeTrack, LOD, LatheGeometry, Layers, Light, Line, Line3, LineCurve, LineCurve3, LineLoop, LineSegments, LinearInterpolant, LinearMipMapNearestFilter, LoaderUtils, LoadingManager, LoopOnce, LoopPingPong, LoopRepeat, MOUSE, MeshDepthMaterial, MeshDistanceMaterial, NearestMipMapLinearFilter, NearestMipMapNearestFilter, NormalAnimationBlendMode, NumberKeyframeTrack, OctahedronGeometry, OneMinusConstantAlphaFactor, OneMinusConstantColorFactor, Path, PlaneHelper, PointLightHelper, Points, PolarGridHelper, PolyhedronGeometry, PositionalAudio, PropertyBinding, PropertyMixer, QuadraticBezierCurve, QuadraticBezierCurve3, QuaternionKeyframeTrack, QuaternionLinearInterpolant, RGBADepthPacking, RGBDepthPacking, RGB_BPTC_SIGNED_Format, RGB_BPTC_UNSIGNED_Format, RGDepthPacking, RawShaderMaterial, Ray, Raycaster, RenderTarget3D, RingGeometry, ShaderMaterial, Shape, ShapeGeometry, ShapePath, ShapeUtils, Skeleton, SkeletonHelper, SkinnedMesh, Source, Spherical, SphericalHarmonics3, SplineCurve, SpotLightHelper, Sprite, StaticCopyUsage, StaticReadUsage, StereoCamera, StreamCopyUsage, StreamDrawUsage, StreamReadUsage, StringKeyframeTrack, TOUCH, TetrahedronGeometry, TextureLoader, TextureUtils, Timer, TorusGeometry, TorusKnotGeometry, Triangle, TriangleFanDrawMode, TriangleStripDrawMode, TrianglesDrawMode, TubeGeometry, Uint8BufferAttribute, Uint8ClampedBufferAttribute, Uniform, UniformsGroup, VectorKeyframeTrack, VideoFrameTexture, VideoTexture, WebGL3DRenderTarget, WebGLArrayRenderTarget, WebGLRenderTarget, WireframeGeometry, WrapAroundEnding, ZeroCurvatureEnding, ZeroSlopeEnding, getConsoleFunction, setConsoleFunction } from './three.core.js';
 
 import { createCompilationBudget } from './compilation-budget.js';
+import { createCompilationPipelineQueue } from './compilation-pipeline-queue.js';
 
 const refreshUniforms = [
 	'alphaMap',
@@ -125,7 +126,9 @@ class NodeMaterialObserver {
 		 *
 		 * @type {boolean}
 		 */
-		this.hasAnimation = builder.object.isSkinnedMesh === true;
+		// Coastal shader state is shared across bins; refresh each draw's named
+		// attributes and uniforms even after another bin refreshed this render ID.
+		this.hasAnimation = builder.object.isSkinnedMesh === true || ( builder.object.userData.coastalInstanceCapacity !== undefined && builder.geometry.hasAttribute( 'coastalMatrix0' ) );
 
 		/**
 		 * A list of all possible material uniforms
@@ -17899,7 +17902,9 @@ class InstanceNode extends Node {
 
 		if ( instanceColor && instanceColorNode === null ) {
 
-			if ( isStorageColor ) {
+			if ( builder.object.userData.coastalInstanceCapacity !== undefined && builder.geometry.hasAttribute( 'coastalInstanceColor' ) ) {
+				instanceColorNode = attribute( 'coastalInstanceColor', 'vec3' );
+			} else if ( isStorageColor ) {
 
 				instanceColorNode = storage( instanceColor, 'vec3', Math.max( instanceColor.count, 1 ) ).element( instanceIndex );
 
@@ -18026,6 +18031,10 @@ class InstanceNode extends Node {
 	 * @return {Node} The instance matrix node.
 	 */
 	_createInstanceMatrixNode( assignBuffer, builder ) {
+
+		if ( assignBuffer && builder.object.userData.coastalInstanceCapacity !== undefined && builder.geometry.hasAttribute( 'coastalMatrix0' ) ) {
+			return mat4( attribute( 'coastalMatrix0', 'vec4' ), attribute( 'coastalMatrix1', 'vec4' ), attribute( 'coastalMatrix2', 'vec4' ), attribute( 'coastalMatrix3', 'vec4' ) );
+		}
 
 		let instanceMatrixNode;
 
@@ -30180,7 +30189,8 @@ class RenderObject {
 
 		}
 
-		if ( object.isInstancedMesh || object.count > 1 || Array.isArray( object.morphTargetInfluences ) ) {
+		const coastalAttributes = object.userData.coastalInstanceCapacity !== undefined && object.geometry.hasAttribute( 'coastalMatrix0' );
+		if ( ( ( object.isInstancedMesh || object.count > 1 ) && ! coastalAttributes ) || Array.isArray( object.morphTargetInfluences ) ) {
 
 			// TODO: https://github.com/mrdoob/three.js/pull/29066#issuecomment-2269400850
 
@@ -33760,7 +33770,11 @@ class Textures extends DataMap {
 
 		if ( texture.isFramebufferTexture ) {
 
-			const renderTarget = this.renderer.getRenderTarget();
+			// Bind-group preparation may allocate this before the first copy.
+			// Forward the same target used for its type so HDR copies do not
+			// inherit the preferred canvas BGRA format from a missing option.
+			const renderTarget = options.renderTarget === undefined ? this.renderer.getRenderTarget() : options.renderTarget;
+			options.renderTarget = renderTarget;
 
 			if ( renderTarget ) {
 
@@ -52664,7 +52678,7 @@ class NodeBuilder {
 	async buildAsync() {
 
 		this.prebuild();
-		const yieldCompilation = createCompilationBudget( yieldToMain );
+		const yieldCompilation = createCompilationBudget( yieldToMain, undefined, this.renderer.compilationBudgetMs || 8 );
 
 		// setup() -> stage 1: create possible new nodes and/or return an output reference node
 		// analyze()   -> stage 2: analyze nodes to possible optimization and validation
@@ -58627,7 +58641,7 @@ class Renderer {
 	 * @param {?Scene} targetScene - If the first argument is a 3D object, this parameter must represent the scene the 3D object is going to be added.
 	 * @return {Promise} A Promise that resolves when the compile has been finished.
 	 */
-	async compileAsync( scene, camera, targetScene = null ) {
+	async compileAsync( scene, camera, targetScene = null, onProgress = null ) {
 
 		if ( this._isDeviceLost === true ) return;
 
@@ -58775,18 +58789,22 @@ class Renderer {
 
 		// Process compilation sequentially, yielding after bounded time slices.
 		// Cached objects do not each need a separate scheduler round trip.
-		const yieldCompilation = createCompilationBudget( yieldToMain );
+		const yieldCompilation = createCompilationBudget( yieldToMain, undefined, this.compilationBudgetMs || 8 );
+		let compiledCount = 0, progressAt = performance.now();
+		onProgress?.( 0, compilationPromises.length );
 
+		const pipelineQueue = createCompilationPipelineQueue( this.compilationConcurrency || 8 );
+		try {
 		for ( const item of compilationPromises ) {
 
 			const renderObject = this._objects.get( item.object, item.material, item.scene, item.camera, item.lightsNode, item.renderContext, item.clippingContext, item.passId );
 			renderObject.drawRange = item.object.geometry.drawRange;
 			renderObject.group = item.group;
 
-			this._geometries.updateForRender( renderObject );
-
-			// Use async node building to yield to main thread
+			// Geometry attribute discovery requests node state. Build it first so
+			// discovery cannot silently take the synchronous shader-build path.
 			await this._nodes.getForRenderAsync( renderObject );
+			this._geometries.updateForRender( renderObject );
 
 			this._nodes.updateBefore( renderObject );
 			this._nodes.updateForRender( renderObject );
@@ -58795,18 +58813,25 @@ class Renderer {
 			// Wait for pipeline creation
 			const pipelinePromises = [];
 			this._pipelines.getForRender( renderObject, pipelinePromises );
-			if ( pipelinePromises.length > 0 ) {
-
-				await Promise.all( pipelinePromises );
-
-			}
+			await pipelineQueue.submit( pipelinePromises );
 
 			this._nodes.updateAfter( renderObject );
 
 			// Keep loading UI responsive without yielding per cached object.
 			await yieldCompilation();
+			compiledCount ++;
+			if ( compiledCount < compilationPromises.length && performance.now() - progressAt >= 250 ) {
+				onProgress?.( compiledCount, compilationPromises.length );
+				progressAt = performance.now();
+			}
 
 		}
+		await pipelineQueue.finish();
+		} catch ( error ) {
+			await pipelineQueue.finish().catch( () => {} );
+			throw error;
+		}
+		onProgress?.( compilationPromises.length, compilationPromises.length );
 
 	}
 
@@ -79024,26 +79049,15 @@ class WebGPUPipelineUtils {
 
 		} else {
 
-			const p = new Promise( async ( resolve /*, reject*/ ) => {
-
-				try {
-
-					pipelineData.pipeline = await device.createRenderPipelineAsync( pipelineDescriptor );
-
-				} catch ( err ) { }
-
-				const errorScope = await device.popErrorScope();
-
-				if ( errorScope !== null ) {
-
-					pipelineData.error = true;
-
-					error( errorScope.message );
-
-				}
-
-				resolve();
-
+			// Pop the validation scope in submission order before awaiting the GPU.
+			const compilation = device.createRenderPipelineAsync( pipelineDescriptor );
+			const validation = device.popErrorScope();
+			const p = Promise.all( [ compilation, validation ] ).then( ( [ pipeline, scopeError ] ) => {
+				if ( scopeError !== null ) throw new Error( scopeError.message );
+				pipelineData.pipeline = pipeline;
+			} ).catch( ( err ) => {
+				pipelineData.error = true;
+				throw err;
 			} );
 
 			promises.push( p );

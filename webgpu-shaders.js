@@ -5,6 +5,12 @@ import {Transpiler,GLSLDecoder,TSLEncoder} from './vendor/glsl-to-tsl.js';
 // Legacy absent UV attributes read as zero; preserve that for untextured caps.
 export const geometryUv=TSL.Fn(builder=>builder.geometry.hasAttribute('uv')?TSL.uv():TSL.vec2(0))();
 
+export function instanceMatrixNode(builder) {
+  return builder.geometry.hasAttribute('coastalMatrix0')
+    ?TSL.mat4(...[0,1,2,3].map(column=>TSL.attribute(`coastalMatrix${column}`,'vec4')))
+    :TSL.storage(builder.object.instanceMatrix,'mat4',Math.max(builder.object.instanceMatrix.count,1)).element(TSL.instanceIndex);
+}
+
 // Port the authored GLSL arithmetic through Three's official GLSL -> TSL
 // transpiler. This runs once per custom material, never in the frame loop.
 // Unsupported constructs throw; a failed port must not become an invisible effect.
@@ -29,6 +35,9 @@ export function shaderCompiler(source,renderer) {
     // GLSL vec3 also carries THREE.Color. TSL needs the color uniform type
     // to upload r/g/b instead of reading nonexistent x/y/z components.
     js=js.replace(/reference\( 'value', 'vec3', uniforms\[ '([^']+)' \] \)/g,(match,name)=>source.uniforms[name]?.value?.isColor?match.replace("'vec3'","'color'"):match);
+    // Only actor cuts opt in. Resolve their values from each draw's material,
+    // so a cached builder never retains another zombie's mutable wound data.
+    js=js.replace(/reference\( 'value', '(\w+)', uniforms\[ '([^']+)' \] \)/g,(match,type,name)=>source.materialUniformNodes?.[name]?`materialUniformNodes['${name}']`:match);
     js=js.replace(/reference\( 'value', 'texture', uniforms\[ '([^']+)' \] \)/g,(_,name)=>{
       samplerNodes[name] ||= TSL.texture(source.uniforms[name].value || new GPU.Texture()).onRenderUpdate(()=>source.uniforms[name].value);
       return `samplerNodes['${name}']`;
@@ -39,10 +48,10 @@ export function shaderCompiler(source,renderer) {
     js=js.replace(/\}, \{ [^{}]*'(?:texture|sampler2D)'[^{}]*\} \)/g,"} )");
     js=js.replace(/\buv\b/g,'authoredUv');
     js=js.replace(/varying\( (\w+)\(\), '([^']+)' \)/g,(_,type,name)=>`(varyingNodes['${name}'] ||= TSL.varying(TSL.${type}(), '${name}'))`);
-    const instanceMatrix=code.includes('instanceMatrix')?TSL.Fn(builder=>TSL.storage(builder.object.instanceMatrix,'mat4',Math.max(builder.object.instanceMatrix.count,1)).element(TSL.instanceIndex))():TSL.mat4();
+    const instanceMatrix=code.includes('instanceMatrix')?TSL.Fn(instanceMatrixNode)():TSL.mat4();
     js=js.replace(/const \{([^}]+)\} = TSL;/,(_,names)=>'const {'+names.split(',').filter(n=>n.trim()!=='authoredUv').join(',')+'} = TSL;');
     js=js.replace(/= (position|authoredUv|baseColor|baseRoughness|baseNormal|baseMetalness|baseOutgoing)(\.[xyzwrgba]{1,4})?(?=[,;])/g,(_,value,swizzle='')=>`= ${value}${swizzle}.toVar()`);
-    const bindings={...attributes,instanceMatrix,tldTone:c=>TSL.toneMapping(GPU.ACESFilmicToneMapping,TSL.reference('toneMappingExposure','float',renderer),c),tldEncode:c=>TSL.workingToColorSpace(c,GPU.SRGBColorSpace),position:TSL.positionGeometry,authoredUv:source.uniforms.tScene?geometryUv.flipY():geometryUv,normal:TSL.normalGeometry,modelMatrix:TSL.modelWorldMatrix,modelViewMatrix:TSL.modelViewMatrix,viewMatrix:TSL.cameraViewMatrix,projectionMatrix:TSL.cameraProjectionMatrix,cameraPosition:TSL.cameraPosition,...extra};
+    const bindings={...attributes,materialUniformNodes:source.materialUniformNodes||{},instanceMatrix,tldTone:c=>TSL.toneMapping(GPU.ACESFilmicToneMapping,TSL.reference('toneMappingExposure','float',renderer),c),tldEncode:c=>TSL.workingToColorSpace(c,GPU.SRGBColorSpace),position:TSL.positionGeometry,authoredUv:source.uniforms.tScene?geometryUv.flipY():geometryUv,normal:TSL.normalGeometry,modelMatrix:TSL.modelWorldMatrix,modelViewMatrix:TSL.modelViewMatrix,viewMatrix:TSL.cameraViewMatrix,projectionMatrix:TSL.cameraProjectionMatrix,cameraPosition:TSL.cameraPosition,...extra};
     // Input is exclusively our bundled shader source, not player/remote code.
     return new Function('TSL','uniforms','varyingNodes','samplerNodes',...Object.keys(bindings),`return (${js.trim().replace(/;$/,'')})(TSL,uniforms).main();`)(TSL,source.uniforms,varyingNodes,samplerNodes,...Object.values(bindings));
   };

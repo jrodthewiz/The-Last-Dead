@@ -38,6 +38,7 @@ export class WeaponPresentation {
     this.lastShot = finite(run.shot); this.sequence = finite(run.shotSequence);
     this.lookX = this.lookY = this.sideLag = this.forwardLag = this.move = 0;
     this.shotAge = this.landAge = 10; this.shotStrength = 0; this.shotSide = 1;
+    this.attachmentAge=10;this.attachmentSequence=finite(run.attachmentSequence);
     this.landStrength = 0; this.airborne = finite(run.z) > .015; this.fallSpeed = 0;
     this.equipAge = draw ? 0 : WEAPON_HANDLING[weapon].equip;
     this.elapsed = 0;
@@ -82,6 +83,9 @@ export class WeaponPresentation {
       this.shotSide = Math.sin((sequence || this.elapsed * 11) * 2.399963) * .7 + .3;
     } else this.shotAge += dt;
     this.lastShot = shot; this.sequence = sequence;
+    if(!reset&&weapon===1&&finite(run.attachmentSequence)>this.attachmentSequence)this.attachmentAge=0;
+    else this.attachmentAge+=dt;
+    this.attachmentSequence=finite(run.attachmentSequence);
     if (finite(run.z) > .015) this.airborne = true;
     if (this.airborne) this.fallSpeed = Math.min(this.fallSpeed, finite(run.vz));
     if (!reset && this.airborne && finite(run.z) <= .001) {
@@ -105,17 +109,19 @@ export class WeaponPresentation {
     const lower = clamp(finite(run.dashTime) / .18, 0, 1) * .055 + clamp(finite(run.slide), 0, 1) * .025;
     const punch = clamp(finite(run.punch), 0, 1);
     const p = this.pose.position, r = this.pose.rotation;
-    p.x = .02 - aim * .10 + walkPose[0] * bob - this.lookX * .008 * steady * motion - dragSide * .007 * motion;
+    p.x = .02 + walkPose[0] * bob - this.lookX * .008 * steady * motion - dragSide * .007 * steady * motion;
     p.x += drawPose[0]*drawScale;
     p.y = -.012 + walkPose[1] * bob + breath + landPose[1]*this.landStrength*motion - lower * motion
       + drawPose[1]*drawScale + firePose[1]*this.shotStrength*recoilScale;
-    p.z = kick * profile.kick * recoilScale + dragForward * .010 * motion - punch * .045 + drawPose[2]*drawScale
+    p.z = kick * profile.kick * recoilScale + dragForward * .010 * steady * motion - punch * .045 + drawPose[2]*drawScale
       + landPose[2]*this.landStrength*motion;
-    r.x = firePose[3]*this.shotStrength*recoilScale - this.lookY * .020 * steady * motion + dragForward * .014 * motion
+    r.x = firePose[3]*this.shotStrength*recoilScale - this.lookY * .020 * steady * motion + dragForward * .014 * steady * motion
       + landPose[3]*this.landStrength*motion + punch * .1 + drawPose[3]*drawScale;
-    r.y = -aim * .02 + this.lookX * .018 * steady * motion + firePose[4]*this.shotStrength*this.shotSide*recoilScale + drawPose[4]*drawScale;
-    r.z = walkPose[5] * bob - this.lookX * .011 * steady * motion - dragSide * .016 * motion
+    r.y = this.lookX * .018 * steady * motion + firePose[4]*this.shotStrength*this.shotSide*recoilScale + drawPose[4]*drawScale;
+    r.z = walkPose[5] * bob - this.lookX * .011 * steady * motion - dragSide * .016 * steady * motion
       + firePose[5]*this.shotStrength*recoilScale + drawPose[5]*drawScale + landPose[5]*this.landStrength*motion;
+    const attachment = weapon===1 ? clamp(finite(run.attachmentShot),0,1)**2 : 0;
+    p.z += attachment*.065*recoilScale; r.x += attachment*.06*recoilScale;
     this.pose.trigger = weapon < 6 && this.shotAge < .6 ? Math.exp(-this.shotAge * 24) : 0;
     this.pose.recoil = kick; this.pose.equip = equip; this.pose.landing = land;
     this.pose.lookLag = Math.hypot(this.lookX, this.lookY);

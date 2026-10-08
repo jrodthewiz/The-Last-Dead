@@ -1,3 +1,5 @@
+import {cloneRuntimeMaterial} from './runtime-clone.js';
+import {buildBasementReturn} from './island-basement-visuals.js';
 import {applyWeaponGrime} from './weapon-grime.js';
 import {updateSurvivors,prepareSurvivors,disposeSurvivors} from './assets/survivor/survivor-runtime.js';
 import {installViewmodelDepthBoundary} from './assets/survivor/viewmodel-depth.js';
@@ -11,23 +13,31 @@ import {ScavengerCaches} from './scavenger-pack-ui.js';
 import {districtPanelSkin,districtPanelTint,isAnnexWall} from './district-materials.js';
 import {installOssuaryFitting,updateOssuaryFitting} from './scavenger-fitting.js';
 import {HarborWorld,HARBOR_PALETTE} from './harbor-visuals.js';
+import {prepareCoastalInstances} from './coastal-instancing.js';
 import {castRay} from './engine.js';
+import {groundAt} from './coastal-terrain.js';
+import {actorGroundAt} from './coastal-structures.js';
 import {JourneyVisuals} from './journey-visuals.js';
 import {buildCathedralKit,batchStaticWorld} from './world-polish.js';
 import {finalizeStaticWorld} from './world-static.js';
 import {roomMaterialsReady} from './room-materials.js';
 import {TransmissionRegion} from './transmission-region.js';
-import {BodycamPass} from './bodycam-pass.js';
-import {BodycamMotion} from './bodycam-motion.js';
+import {FirstPersonPass} from './first-person-pass.js';
+import {FirstPersonMotion} from './first-person-motion.js';
+import {FIRST_PERSON_HOLD_POSES} from './assets/survivor/viewmodel-hold-poses.js';
+import {WeaponAim,WEAPON_AIM} from './weapon-aim.js';
 import {batchStaticWeaponMeshes} from './weapon-batching.js';
 import {installBoundedLightEvaluation} from './bounded-lighting.js';
 import {AfterlifeLighting,afterlifeTheme} from './afterlife-lighting.js';
 import {AfterlifeAtmosphere} from './afterlife-atmosphere.js';
 import {applyAfterlifeSurfaces} from './afterlife-surfaces.js';
+import {applyBlackwaterActorStyle} from './blackwater-actor-style.js';
+import {applyBlackwaterWeaponStyle} from './blackwater-weapon-style.js';
 import {buildAfterlifeMapDesign} from './world-afterlife-design.js';
 import {createAfterlifeWheelchair, createAfterlifeMourningCabinet} from './afterlife-props.js';
 import {createAfterlifeEnemy,animateAfterlifeEnemy} from './npc-afterlife.js';
 import {loadAfterlifeModel,createAfterlifeModel,animateAfterlifeModel} from './npc-afterlife-model.js';
+import {ZombieAppearanceLibrary,GENERATED_ZOMBIE_APPEARANCES,ASH_WITNESS_APPEARANCE,zombieEnemyPoolKey} from './zombie-appearances.js';
 import {HorrorScares} from './horror-scares-game.js';
 import {HorrorEncounterVisuals} from './horror-encounter-visuals.js';
 import {HorrorCuffVisuals} from './horror-cuff-visuals.js';
@@ -40,6 +50,7 @@ import {createWarden,animateWarden} from './npc-warden.js';
 import {enemyFxBegin,enemyFxEnd} from './enemy-fx.js';
 import {createOssuary,animateOssuary} from './weapon-ossuary.js';
 import {createBreach,animateBreach} from './weapon-breach.js';
+import {animateBreachAttachment} from './weapon-occult-redesign.js';
 import {createArc,animateArc} from './weapon-arc.js';
 import {createRifle,animateRifle} from './weapon-rifles.js';
 import {RifleCasings} from './weapon-casings.js';
@@ -47,6 +58,7 @@ import {WeaponPresentation} from './weapon-presentation.js';
 import {createMeleeWeapon,animateMeleeWeapon} from './weapon-melee.js';
 import {alignViewmodelArmToGrip} from './assets/survivor/viewmodel-arms.js';
 import {fitForegroundArms} from './assets/survivor/foreground-arms.js';
+import {updateFPSArms} from './assets/survivor/fps-arms.js';
 import {createSurvivorViewArm} from './assets/survivor/player-survivor.js';
 import {CombatVFX} from './combat-vfx.js';
 import {ExtractionVFX} from './extraction-vfx.js';
@@ -55,7 +67,7 @@ import {BrutalCombatVisuals} from './brutal-combat-visuals.js';
 import {VerminVisuals} from './vermin-visuals.js';
 import {applyBiteArticulation,articulationDiagnostics} from './character-articulation.js';
 import {MenuCinematic} from './menu-cinematic.js';
-import {ProjectileWakes} from './secondary-vfx.js';
+import {ProjectileWakes,coreVisualScale} from './secondary-vfx.js';
 import {fluidDropGeometry,coreCanisterGeometry,ricochetCoinGeometry,OrdnanceDetails} from './combat-detail-v2.js';
 import {createBloodResiduePool,bloodAtlasReady,disposeBloodAtlas} from './blood-surface.js';
 
@@ -153,9 +165,15 @@ function contactShadowTexture() {
 }
 
 export function disposeObject(root, forceShared = false) {
+  // Restore source surfaces before collecting them. Adapter disposal can
+  // remove owned children, so do it outside the resource traversal.
+  const actorStyles=[];
+  root?.traverse?.(obj=>{if(obj.userData.blackwaterActorStyle)actorStyles.push(obj.userData.blackwaterActorStyle);});
+  for(const style of actorStyles)style.dispose();
   const geometries = new Set();
   const materials = new Set();
   const skeletons = new Set();
+  const textures = new Set();
   root?.traverse?.(obj => {
     if(obj.isInstancedMesh)obj.dispose();
     if (obj.geometry) geometries.add(obj.geometry);
@@ -174,9 +192,10 @@ export function disposeObject(root, forceShared = false) {
   geometries.forEach(g => {if(forceShared||!g.userData?.sharedAsset)g.dispose?.();});
   materials.forEach(m => {
     if (!forceShared && m.userData?.sharedLibrary) return;
-    for(const key of ['map','normalMap','roughnessMap','bumpMap','emissiveMap']){const texture=m[key];if(texture&&(forceShared||!texture.userData?.sharedAsset))texture.dispose?.();}
+    for(const value of Object.values(m))if(value?.isTexture&&(forceShared||!value.userData?.sharedAsset))textures.add(value);
     m.dispose?.();
   });
+  textures.forEach(texture=>texture.dispose?.());
 }
 
 function lineGeometry(maxLines) {
@@ -251,7 +270,7 @@ export class Renderer {
       this.renderer.shadowMap.needsUpdate = true;
       this.renderer.shadowMap.type = THREE.PCFShadowMap;
       this.renderer.setPixelRatio(1);
-      this.bodycam = new BodycamPass(this.renderer);
+      this.bodycam = new FirstPersonPass(this.renderer);
     } catch (error) {
       // Keep the renderer object inspectable in headless smoke tests. A
       // native renderer initialization failures are reported by the entrypoint.
@@ -277,8 +296,10 @@ export class Renderer {
     this.verminVisuals = new VerminVisuals(this);
     this.horrorCuff = new HorrorCuffVisuals(this);
     this._survivorReady=prepareSurvivors(this).then(()=>{
+      if(this._isDisposed)return;
       this._afterlifeClips = Object.values(this._survivors?.peer?.userData.actions || {}).map(action=>action.getClip());
       this.playerInjuryVisuals.bind();
+      this.blackwaterWeaponStyle=applyBlackwaterWeaponStyle(this.weaponRig,{renderer:this.renderer,lightSources:[this.viewmodelFill,this.viewmodelKey,this.viewmodelRim],inkPixels:2.5,enabled:!!this._course?.coastal?.blackwaterSlice});
     });
     this._wardenStatus='loading';
     this.wardenTemplate=null;
@@ -288,10 +309,8 @@ export class Renderer {
     const legacyWardenLoaded=loadGltf('./assets/models/evil-warden.glb').then(warden=>{
       if(warden){markSharedGltf(warden.scene);this.wardenTemplate=warden.scene;this.wardenClips=warden.animations||[];}
     });
-    const bloodworksWardenLoaded=loadGltf('./assets/models/bloodworks-warden.glb').then(warden=>{
-      if(warden){markSharedGltf(warden.scene);this.bloodworksWardenTemplate=warden.scene;this.bloodworksWardenClips=warden.animations||[];}
-    });
-    this._wardenReady=Promise.all([legacyWardenLoaded,bloodworksWardenLoaded]).then(()=>{
+    this._bloodworksWardenReady=null;
+    this._wardenReady=legacyWardenLoaded.then(()=>{
       this._wardenStatus=this.wardenTemplate||this.bloodworksWardenTemplate?'ready':'fallback';
     });
     this._ashWitnessAsset = null;
@@ -301,6 +320,10 @@ export class Renderer {
       if (this._isDisposed) { disposeObject(asset.template, true); return; }
       this._ashWitnessAsset = asset;
     }).catch(error => { this._ashWitnessError = String(error?.message || error); });
+    this._zombieAppearanceLibrary=new ZombieAppearanceLibrary(
+      url=>loadAfterlifeModel(new GLTFLoader(),url),
+      asset=>disposeObject(asset.template,true),
+    );
     this.resize();
   }
 
@@ -530,13 +553,15 @@ export class Renderer {
     this.projectileHostile = new THREE.InstancedMesh(projectileGeo, this.materials.red, MAX_PROJECTILES);
     this.projectileReflected = new THREE.InstancedMesh(projectileGeo, this.materials.cyan, MAX_PROJECTILES);
     this.projectileCore = new THREE.InstancedMesh(projectileCoreGeo, new THREE.MeshStandardMaterial({color:0x6c655a,roughness:.4,metalness:.72}), MAX_PROJECTILES);
+    this.projectileGrenades = new THREE.InstancedMesh(projectileCoreGeo,new THREE.MeshStandardMaterial({color:0x786e55,roughness:.55,metalness:.65}),MAX_PROJECTILES);
+    this.projectileGrenades.name='LauncherGrenades';this.projectileGrenades.count=0;this.projectileGrenades.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.projectileHostile.name = 'HostileProjectiles';
     this.projectileReflected.name = 'ReflectedProjectiles';
     this.projectileCore.name = 'CoreProjectiles';
     this.projectileHostile.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.projectileReflected.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.projectileCore.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    this.combatRoot.add(this.projectileHostile, this.projectileReflected, this.projectileCore);
+    this.combatRoot.add(this.projectileHostile, this.projectileReflected, this.projectileCore,this.projectileGrenades);
     this.projectileWakes=new ProjectileWakes(this.combatRoot,MAX_PROJECTILES);
     this.ordnanceDetails=new OrdnanceDetails(this.combatRoot,MAX_PROJECTILES);
 
@@ -591,9 +616,9 @@ export class Renderer {
     this.weaponGroups = [this._makePulseRevolver(), this._makeBreachShotgun(), this._makeArcLance(), this._makeReliquaryAsset(), this._makeRifle('carrion',4), this._makeRifle('mourning',5), this._makeMelee('bat',6), this._makeMelee('chainsaw',7)];
     installOssuaryFitting(this.weaponGroups[0]);
     this.weaponGroups.forEach((group, index) => {
-      // Slightly larger hero framing lets the authored micro-detail read in
-      // the FPS view without occluding the reticle or target corridor.
-      group.scale.setScalar(0.64);
+      const hold=FIRST_PERSON_HOLD_POSES[index];
+      group.position.fromArray(hold.position);group.rotation.fromArray(hold.rotation);
+      group.scale.setScalar(hold.scale);
       group.visible = index === 0;
       // Viewmodels use the room's reflected light without world-shadow occlusion.
       // Their close camera placement should not cast oversized shadows into the arena.
@@ -611,12 +636,16 @@ export class Renderer {
     viewKey.name = 'ViewmodelWarmKey';
     viewKey.position.set(-1.4, 2.1, 1.8);
     viewKey.layers.set(1);
-    this.weaponRig.add(viewKey);
+    this.viewmodelKey=viewKey;
+    viewKey.target.name='ViewmodelWarmKeyTarget';
+    this.weaponRig.add(viewKey,viewKey.target);
     const viewRim = new THREE.DirectionalLight(0x8fbccc, .5);
     viewRim.name = 'ViewmodelCoolRim';
     viewRim.position.set(1.3, .9, -.8);
     viewRim.layers.set(1);
-    this.weaponRig.add(viewRim);
+    this.viewmodelRim=viewRim;
+    viewRim.target.name='ViewmodelCoolRimTarget';
+    this.weaponRig.add(viewRim,viewRim.target);
     this.muzzleFlash = new THREE.Group();
     this.muzzleFlash.name = 'MuzzleFlash';
     this.muzzleFlash.layers.set(1);
@@ -677,7 +706,7 @@ export class Renderer {
       const materials = Array.isArray(node.material) ? node.material : [node.material];
       node.material = materials.map(material => {
         if (!material) return material;
-        const foreground = material.clone();
+        const foreground = cloneRuntimeMaterial(material);
         // The viewmodel is a deliberate foreground pass; all authored arm
         // surfaces remain visible while the weapon still self-occludes inside
         // its own group. This avoids the sleeve disappearing behind the
@@ -900,7 +929,11 @@ export class Renderer {
       dropRotation:this.horrorScares.drop?.group.rotation.y,
     }:null;
     this.afterlifeAtmosphere?.dispose();
-    this.harborWorld?.dispose();this.harborWorld=null;
+    const retiredHarbor=this.harborWorld;this.harborWorld=null;
+    // Blackwater owns its generated buffers/materials. Keep them alive for
+    // an outgoing compile poll, just like the retired world below.
+    if(this._warmupPromise)this._warmupPromise.then(()=>retiredHarbor?.dispose(),()=>retiredHarbor?.dispose());
+    else retiredHarbor?.dispose();
     this.horrorEncounters?.dispose();
     this.journeyVisuals?.release();
     this.horrorCuff?.reset();
@@ -941,8 +974,10 @@ export class Renderer {
       this.afterlifeMapDesign=null;this.journeyVisuals=null;this._exit=null;this._dungeonPickups=[];
       this._storyEvidence=[];this._dungeonSupplies=null;this._dungeonWallInstances=[];
       this.harborWorld=new HarborWorld(this.worldRoot,course);
-      this._storyWeaponLoot=buildDungeonWeaponLoot(this.worldRoot,{...course,dungeon:true,loot:course.weaponPickups});
-      this._scavengerCaches=new ScavengerCaches(this.worldRoot,course);
+      const lootLightSources=course.coastal?[this.harborWorld.blackwaterSun,this.harborWorld.root.getObjectByName('HarborSkyFill')].filter(Boolean):null;
+      if(lootLightSources)this.harborWorld.blackwater.root.traverse(o=>{if(o.isLight)lootLightSources.push(o);});
+      this._storyWeaponLoot=buildDungeonWeaponLoot(this.worldRoot,{...course,dungeon:true,loot:course.weaponPickups},{lightSources:lootLightSources});
+      this._scavengerCaches=new ScavengerCaches(this.worldRoot,course,{lightSources:lootLightSources});
       this.scene.background.set(HARBOR_PALETTE.background);this.scene.fog.color.set(HARBOR_PALETTE.fog);
       this.scene.fog.near=HARBOR_PALETTE.fogNear;this.scene.fog.far=HARBOR_PALETTE.fogFar;
       if(course.coastal){this.scene.fog.near=160;this.scene.fog.far=700;}
@@ -969,6 +1004,7 @@ export class Renderer {
       },
     });
     this._dungeonPickups=this._buildDungeonPickups(course);
+    buildBasementReturn(this.worldRoot,course);
     this._storyWeaponLoot=buildDungeonWeaponLoot(this.worldRoot,course);
     this._dungeonSupplies=new DungeonSupplies(this.worldRoot,course);
     this._scavengerCaches=new ScavengerCaches(this.worldRoot,course);
@@ -1637,19 +1673,39 @@ export class Renderer {
     return group;
   }
 
+  _syncBlackwaterActorStyle(root,enemy,{prepare=false}={}) {
+    const world=this.harborWorld,slice=this._course?.coastal?.blackwaterSlice,bounds=slice?.coastBounds||slice?.bounds;
+    let style=root.userData.blackwaterActorStyle;
+    if(!world?.blackwaterGraphic||!bounds){style?.setEnabled(false);return style;}
+    const x=enemy.x*CELL,z=enemy.y*CELL;
+    const inside=prepare||(x>=bounds.minX&&x<=bounds.maxX&&z>=bounds.minZ&&z<=bounds.maxZ);
+    if(!style&&inside){
+      const sources=[world.blackwaterSun,world.root.getObjectByName('HarborSkyFill')];
+      world.blackwater.root.traverse(object=>{if(object.isLight)sources.push(object);});
+      const palette=root.userData.afterlife?.appearancePalette;
+      style=applyBlackwaterActorStyle(root,{kind:enemy.kind,lightSources:sources.filter(Boolean),...(palette?{palette,textureDetail:.32,preserveAtlasColors:!!root.userData.afterlife.preserveAtlasColors}:{})});
+      root.userData.blackwaterActorStyle=style;
+    }
+    style?.setEnabled(inside&&this._blackwaterActorStyleEnabled!==false);
+    if(inside&&(prepare||root.visible))style?.syncState?.();
+    return style;
+  }
+
   _enemySource(enemy) {
-      const useAshWitness = enemy.kind === 0 && this._ashWitnessAsset;
+      const requestedAppearance=enemy.appearance||ASH_WITNESS_APPEARANCE;
+      const zombieAsset=enemy.kind===0?(this._zombieAppearanceLibrary?.get(requestedAppearance)||this._ashWitnessAsset):null;
+      const useAshWitness = !!zombieAsset;
       const useAfterlife = useAshWitness || (enemy.kind < 2 && this._survivors?.status === 'ready' && this._afterlifeClips?.length);
       const wantsBloodworksWarden = enemy.kind === 2 && BLOODWORKS_WARDEN_VARIANTS.has(enemy.variant);
       const useBloodworksWarden = wantsBloodworksWarden && this.bloodworksWardenTemplate;
-      const template = useAshWitness ? this._ashWitnessAsset.template : useAfterlife ? this._survivors.template : useBloodworksWarden ? this.bloodworksWardenTemplate : this.wardenTemplate;
+      const template = useAshWitness ? zombieAsset.template : useAfterlife ? this._survivors.template : useBloodworksWarden ? this.bloodworksWardenTemplate : this.wardenTemplate;
       const clips = useBloodworksWarden ? this.bloodworksWardenClips : this.wardenClips;
       const useWarden = !useAfterlife && !!template && enemy.kind >= 0 && enemy.kind < 3;
-      const makeActor = () => useAshWitness ? createAfterlifeModel(this._ashWitnessAsset, enemy.kind, (enemy.id * 1.618) % TAU) : useAfterlife
+      const makeActor = () => useAshWitness ? createAfterlifeModel(zombieAsset, enemy.kind, (enemy.id * 1.618) % TAU) : useAfterlife
         ? createAfterlifeEnemy(template, this._afterlifeClips, enemy.kind, enemy.variant, (enemy.id * 1.618) % TAU)
         : useWarden ? createWarden(template,clips,enemy.kind,enemy.variant)
         : enemy.kind === 3 ? createBellwraith({ variant: enemy.variant, phase: enemy.phase || 0 }) : this._makeEnemy(enemy.kind, enemy.variant);
-      return { useAfterlife, useWarden, template, makeActor };
+      return { useAfterlife, useWarden, template, makeActor,appearance:zombieAsset?.appearance||ASH_WITNESS_APPEARANCE,requestedAppearance,poolKey:zombieEnemyPoolKey(enemy) };
   }
 
   async _prepareDungeonEnemies(course) {
@@ -1660,7 +1716,7 @@ export class Renderer {
     for (const point of (course.waveSpawns || []).flat()) {
       const profile = ENEMY_PROFILES[point.variant] || ENEMY_PROFILES.stalker;
       const enemy = { ...point, id: id++, kind: profile.kind };
-      const key = `${enemy.kind}:${enemy.variant || ''}`;
+      const key = zombieEnemyPoolKey(enemy);
       const entries = this._preparedEnemyVisuals.get(key) || [];
       if(entries.length>=3||preparedCount>=24)continue;
       const { useAfterlife, useWarden, template, makeActor } = this._enemySource(enemy);
@@ -1685,14 +1741,18 @@ export class Renderer {
     this._reportPreparation('Preparing coastal inhabitants');
     const current=()=>this.renderer===renderer&&this._course===course&&this.worldRoot===worldRoot;
     try{
-      // The bounded harbor encounter uses these three actual runtime profiles.
-      // Keep the actors in the existing consumable pool, rather than disposing
-      // throwaway representatives and recreating their GPU resources in play.
-      for(const [kind,variant]of [[0,'stalker'],[1,'caster'],[2,'brute']]){
+      // Keep one representative of each body and the legacy ranged/heavy
+      // profiles in the consumable pool. Their first visible draw stays inside
+      // loading, and the generated crawler is prepared in its low idle pose.
+      const profiles=[[0,'stalker'],[1,'caster'],[2,'brute']];
+      if(this._zombieAppearanceLibrary)profiles.push(...GENERATED_ZOMBIE_APPEARANCES.map((descriptor,i)=>[0,['stalker','bloodhound','skitter'][i],descriptor.id]));
+      for(const [kind,variant,appearance]of profiles){
         if(!current())return;
-        const key=`${kind}:${variant}`,pool=this._preparedEnemyVisuals.get(key)||[];
+        const enemy={id:kind+1,kind,variant,appearance},key=zombieEnemyPoolKey(enemy),pool=this._preparedEnemyVisuals.get(key)||[];
         let entry=pool[0];
-        if(!entry){const source=this._enemySource({id:kind+1,kind,variant});const root=source.makeActor();root.visible=false;disableShadowCasting(root);worldRoot.add(root);entry={root,template:source.useAfterlife||source.useWarden?source.template:null};pool.push(entry);this._preparedEnemyVisuals.set(key,pool);}
+        if(!entry){const source=this._enemySource(enemy);const root=source.makeActor();root.visible=false;disableShadowCasting(root);worldRoot.add(root);entry={root,template:source.useAfterlife||source.useWarden?source.template:null};pool.push(entry);this._preparedEnemyVisuals.set(key,pool);}
+        if(entry.root.userData.afterlifeModel&&variant==='skitter')animateAfterlifeModel(entry.root,{...enemy,locomotion:'crawler',dead:false,hp:5,attack:99},0,kind+1);
+        this._syncBlackwaterActorStyle(entry.root,{kind},{prepare:true});
         entries.push(entry);
         await new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,0)));
       }
@@ -1724,17 +1784,19 @@ export class Renderer {
       if(!entry&&distance>=15){crowd.culled++;continue;}
       const { useAfterlife, useWarden, template, makeActor } = this._enemySource(enemy);
       if (!entry) {
-        const prepared = this._preparedEnemyVisuals?.get(`${enemy.kind}:${enemy.variant || ''}`)?.shift();
-        entry = { ...(prepared || { root: makeActor(), template: useAfterlife || useWarden ? template : null }), seed: (enemy.id * 1.618) % TAU, variant: enemy.variant || '' };
+        const prepared = this._preparedEnemyVisuals?.get(zombieEnemyPoolKey(enemy))?.shift();
+        entry = { ...(prepared || { root: makeActor(), template: useAfterlife || useWarden ? template : null }), seed: (enemy.id * 1.618) % TAU, variant: enemy.variant || '',requestedAppearance:enemy.appearance||ASH_WITNESS_APPEARANCE };
         entry.root.visible = true;
         this._enemyVisuals.set(enemy.id, entry);
         disableShadowCasting(entry.root);
         this.worldRoot.add(entry.root);
       }
       if((useAfterlife||useWarden)&&entry.template!==template){this.worldRoot.remove(entry.root);disposeObject(entry.root);entry.root=makeActor();disableShadowCasting(entry.root);entry.template=template;this.worldRoot.add(entry.root);}
+      entry.requestedAppearance=enemy.appearance||ASH_WITNESS_APPEARANCE;
       alive.add(enemy.id);
       const root = entry.root;
       root.visible=distance<15;
+      this._syncBlackwaterActorStyle(root,enemy);
       // Physics owns culled and frozen corpses too. A hidden collapse mixer
       // must never move their source pivot before the player returns.
       if(enemy.dead&&this.brutalCombatVisuals?.physics?.has(root)&&!this.brutalCombatVisuals.physics.isHeld(root)){
@@ -1755,14 +1817,15 @@ export class Renderer {
       // Nearby combat always updates at render rate. Distant actors retain
       // their pose between 30Hz ticks; geometry and texture data stay shared.
       const interval=distance>7&&!enemy.dead&&!enemy.attacking&&!enemy.strike&&!enemy.flash?32:0;
-      if(interval&&now-(entry.lastPoseAt||0)<interval){root.position.x=worldX(enemy.x);root.position.z=worldZ(enemy.y);crowd.staggered++;continue;}
+      if(interval&&now-(entry.lastPoseAt||0)<interval){root.position.x=worldX(enemy.x);root.position.z=worldZ(enemy.y);root.position.y=(actorGroundAt(run.course,enemy)+(enemy.meleeZ||0))*CELL;crowd.staggered++;continue;}
       entry.lastPoseAt=now;crowd.animated++;
-      if(root.userData.afterlifeModel){root.position.set(worldX(enemy.x),(enemy.meleeZ||0)*CELL,worldZ(enemy.y));if(!enemy.dead){root.rotation.y=-(enemy.facing??Math.atan2(run.y-enemy.y,run.x-enemy.x))-Math.PI/2;delete root.userData.meleeDeathYaw;}else if(enemy.meleeHitId){root.userData.meleeDeathYaw??=root.rotation.y;root.rotation.y=root.userData.meleeDeathYaw+(enemy.meleeYaw||0);}enemyFxBegin(root);animateAfterlifeModel(root,enemy,now,entry.seed);enemyFxEnd(root,enemy,run,now);continue;}
-      if(root.userData.afterlife){root.position.set(worldX(enemy.x),0,worldZ(enemy.y));if(!enemy.dead)root.rotation.y=-(enemy.facing??Math.atan2(run.y-enemy.y,run.x-enemy.x))-Math.PI/2;enemyFxBegin(root);animateAfterlifeEnemy(root,enemy,now,entry.seed);enemyFxEnd(root,enemy,run,now);continue;}
-      if(root.userData.warden){root.position.set(worldX(enemy.x),0,worldZ(enemy.y));if(!enemy.dead)root.rotation.y=-(enemy.facing??Math.atan2(run.y-enemy.y,run.x-enemy.x))-Math.PI/2;enemyFxBegin(root);animateWarden(root,enemy,now,entry.seed);enemyFxEnd(root,enemy,run,now,root.userData.warden?.modelScale??1);continue;}
+      const ground=actorGroundAt(run.course,enemy)*CELL;
+      if(root.userData.afterlifeModel){root.position.set(worldX(enemy.x),ground+(enemy.meleeZ||0)*CELL,worldZ(enemy.y));if(!enemy.dead){root.rotation.y=-(enemy.facing??Math.atan2(run.y-enemy.y,run.x-enemy.x))-Math.PI/2;delete root.userData.meleeDeathYaw;}else if(enemy.meleeHitId){root.userData.meleeDeathYaw??=root.rotation.y;root.rotation.y=root.userData.meleeDeathYaw+(enemy.meleeYaw||0);}enemyFxBegin(root);animateAfterlifeModel(root,enemy,now,entry.seed);enemyFxEnd(root,enemy,run,now);continue;}
+      if(root.userData.afterlife){root.position.set(worldX(enemy.x),ground,worldZ(enemy.y));if(!enemy.dead)root.rotation.y=-(enemy.facing??Math.atan2(run.y-enemy.y,run.x-enemy.x))-Math.PI/2;enemyFxBegin(root);animateAfterlifeEnemy(root,enemy,now,entry.seed);enemyFxEnd(root,enemy,run,now);continue;}
+      if(root.userData.warden){root.position.set(worldX(enemy.x),ground,worldZ(enemy.y));if(!enemy.dead)root.rotation.y=-(enemy.facing??Math.atan2(run.y-enemy.y,run.x-enemy.x))-Math.PI/2;enemyFxBegin(root);animateWarden(root,enemy,now,entry.seed);enemyFxEnd(root,enemy,run,now,root.userData.warden?.modelScale??1);continue;}
        if (root.userData.bellwraith) {
           const floorOffset = root.userData.bellwraith?.floorOffset ?? 0.22;
-          root.position.set(worldX(enemy.x), floorOffset, worldZ(enemy.y));
+          root.position.set(worldX(enemy.x), ground+floorOffset, worldZ(enemy.y));
           if (!enemy.dead) root.rotation.y = Math.PI / 2 - (enemy.facing ?? Math.atan2(run.y - enemy.y, run.x - enemy.x));
           enemyFxBegin(root); animateBellwraith(root, enemy, now, entry.seed); enemyFxEnd(root, enemy, run, now);
           continue;
@@ -1774,7 +1837,7 @@ export class Renderer {
       root.visible = true;
       const phase = (enemy.phase || 0) + now * 0.0018 + entry.seed;
       const bob = enemy.kind === 3 ? 0.22 + Math.sin(phase * 2.15) * 0.14 : enemy.kind === 1 ? Math.sin(phase * 2.4) * 0.11 : Math.abs(Math.sin(phase * 3.1)) * 0.025;
-      root.position.set(worldX(enemy.x), bob, worldZ(enemy.y));
+      root.position.set(worldX(enemy.x), ground+bob, worldZ(enemy.y));
       const toward = enemy.facing ?? Math.atan2(run.y - enemy.y, run.x - enemy.x);
       root.rotation.y = -toward - Math.PI / 2;
       const parts = root.userData.parts;
@@ -1861,7 +1924,7 @@ export class Renderer {
     }
     const p = this._peer;
     p.root.visible = true;
-    p.root.position.set(worldX(peer.x || 0), (peer.z || 0) * CELL, worldZ(peer.y || 0));
+    p.root.position.set(worldX(peer.x || 0), (actorGroundAt(run.course,peer)+(peer.z || 0)) * CELL, worldZ(peer.y || 0));
     p.root.rotation.y = -(peer.angle || 0) - Math.PI / 2;
     p.ring.rotation.z = now * 0.0016;
     const stride = Math.sin(now * 0.012) * 0.18;
@@ -1935,7 +1998,7 @@ export class Renderer {
         quat.setFromEuler(rotation.set(-Math.PI / 2, 0, b.angle || 0));
         const stainSize=(b.size || 0.15)*CELL;
         scale.set(stainSize*1.65,stainSize*(1.1+Math.sin(b.angle||0)*.16),1);
-        matrix.compose(position.set(worldX(b.x), 0.026+(blood%5)*.0005, worldZ(b.y)), quat, scale);
+        matrix.compose(position.set(worldX(b.x), (Number.isFinite(b.z)?b.z:groundAt(run.course,b.x,b.y))*CELL+0.026+(blood%5)*.0005, worldZ(b.y)), quat, scale);
         this.bloodPools.geometry.attributes.bloodState.setXY(blood, (b.baseSize??b.size)<.14?3:Math.abs(b.id||blood)%3, Math.min(1,(b.age||0)/38));
         this.bloodPools.setMatrixAt(blood++, matrix);
       }
@@ -1948,10 +2011,14 @@ export class Renderer {
     this.bloodPools.instanceMatrix.needsUpdate = true;
     this.bloodPools.geometry.attributes.bloodState.needsUpdate = true;
 
-    const hostile = this._hostileProjectiles ||= [], reflected = this._reflectedProjectiles ||= [], core = this._coreProjectiles ||= [];
-    hostile.length = reflected.length = core.length = 0;
+    const hostile = this._hostileProjectiles ||= [], reflected = this._reflectedProjectiles ||= [], core = this._coreProjectiles ||= [],grenades=this._grenadeProjectiles ||= [];
+    hostile.length = reflected.length = core.length = grenades.length = 0;
+    const projectileCamera=this._projectileCamera ||= new THREE.Vector3();
+    this.camera.getWorldPosition(projectileCamera);
     for (const p of run.projectiles || []) {
-      if (p.kind==='rocket') continue;
+      if (p.kind==='rocket'||p.life<=0) continue;
+      if(p.attachment){grenades.push(p);continue;}
+      if(p.core&&coreVisualScale(p,projectileCamera)===0)continue;
       if (p.core) core.push(p);
       else if (p.reflected) reflected.push(p);
       else hostile.push(p);
@@ -1961,8 +2028,19 @@ export class Renderer {
       for (const p of arr) {
         if (i >= MAX_PROJECTILES) break;
         quat.setFromEuler(rotation.set((now * 0.006 + i) % TAU, now * 0.004, now * 0.005));
-        scale.setScalar(size * (p.core ? 1 + Math.sin(now * 0.01 + i) * 0.12 : 1));
-        matrix.compose(position.set(worldX(p.x), (p.z || 0) * CELL, worldZ(p.y)), quat, scale);
+        scale.setScalar(p.attachment?size:p.core?coreVisualScale(p,projectileCamera):size);
+        position.set(worldX(p.x), (p.z || 0) * CELL, worldZ(p.y));
+        if(p.attachment){
+          const velocity=this._grenadeVelocity ||= new THREE.Vector3(),up=this._grenadeUp ||= new THREE.Vector3(0,1,0);
+          velocity.set(p.vx,p.vz,p.vy).normalize();quat.setFromUnitVectors(up,velocity);
+          // The close viewmodel is rendered separately from world collision.
+          // Ease its visible launch into the authoritative trajectory once it
+          // clears the attached muzzle, without moving the simulated projectile.
+          if(p.ownerId===(run.playerId||'host')&&this._attachmentLaunchOrigin&&(p.age||0)<.12){
+            const t=clamp((p.age||0)/.12,0,1);position.lerp(this._attachmentLaunchOrigin,1-t*t*(3-2*t));
+          }
+        }
+        matrix.compose(position, quat, scale);
         mesh.setMatrixAt(i++, matrix);
       }
       mesh.count = i;
@@ -1971,16 +2049,19 @@ export class Renderer {
     };
     updateProjectiles(hostile, this.projectileHostile, 1);
     updateProjectiles(reflected, this.projectileReflected, 1.05);
-    updateProjectiles(core, this.projectileCore, 1.2);
+    updateProjectiles(core, this.projectileCore);
+    updateProjectiles(grenades,this.projectileGrenades,.2);
     this.ordnanceDetails.update(this.projectileCore);
-    this.projectileWakes.update(run.projectiles,this.settings.reducedMotion);
+    this.projectileWakes.update(run.projectiles,this.settings.reducedMotion,projectileCamera);
 
     const pGeo = this.projectileTrails.geometry;
     const lineStart = this._combatLineStart ||= new THREE.Vector3();
     const lineEnd = this._combatLineEnd ||= new THREE.Vector3();
     let pi = 0;
-    while (pi < Math.min(MAX_PROJECTILES, hostile.length + core.length)) {
-      const p = pi < hostile.length ? hostile[pi] : core[pi - hostile.length];
+    // Cores already have a bounded wake. A second line from their eye-level
+    // launch point would run back through the camera during the first frames.
+    while (pi < Math.min(MAX_PROJECTILES, hostile.length)) {
+      const p = hostile[pi];
       const a = lineStart.set(worldX(p.x), (p.z || 0) * CELL, worldZ(p.y));
       const trailAge=Math.min(.12,p.age||0);
       const b = lineEnd.set(worldX(p.x - (p.vx || 0) * trailAge), ((p.z || 0) - (p.vz || 0) * trailAge) * CELL, worldZ(p.y - (p.vy || 0) * trailAge));
@@ -2060,11 +2141,11 @@ export class Renderer {
     const extracting = (run.extraction?.targetId != null && ['draw', 'incise', 'rip'].includes(run.extraction.phase)) ||
       (run.extraction?.completedAt > 0 && run.time - run.extraction.completedAt < .8);
     this._extractionLean = damp(this._extractionLean || 0, extracting ? (this.settings.reducedMotion ? .45 : 1) : 0, 9, dt);
-    const eye = (0.4 + (run.z || 0) - (run.slide || 0) * 0.18) * CELL;
+    const eye = (actorGroundAt(run.course,run)+0.4 + (run.z || 0) - (run.slide || 0) * 0.18) * CELL;
     const target = this._cameraTarget ||= new THREE.Vector3();
-    this.bodycamMotion ||= new BodycamMotion();
+    this.bodycamMotion ||= new FirstPersonMotion();
     const mount = this.bodycamMotion.update(run, dt, {
-      enabled: this.settings.bodycam !== false && !!this.renderer,
+      enabled: !!this.renderer,
       reducedMotion: this.settings.reducedMotion || this._systemReducedMotion,
       now,
     });
@@ -2101,10 +2182,9 @@ export class Renderer {
     const shake=this.settings.reducedMotion?0:((run.damage||0)*.012+(run.punch||0)*.008+(run.meleeContact||0)*.035+rifleKick*.002);
     this.camera.rotation.z=Math.cos(now*.035)*shake+mount.roll;
     const dash = clamp((run.dashTime || 0) / 0.18, 0, 1);
-    const aim = clamp(run.aim || 0, 0, 1);
-    const bodyLens = this.settings.bodycam !== false && this.renderer;
+    const aim = run.weapon < 6 ? clamp(run.aim || 0, 0, 1) : 0;
     const motionScale = this.settings.reducedMotion || this._systemReducedMotion ? 0 : 1;
-    const targetFov = (bodyLens ? 110 : 92) + dash * (bodyLens ? 5 : 12) * motionScale - aim * 14 - this._extractionLean * 38 + clamp((run.speed || 0) - 1.3, 0, 2) * (bodyLens ? .8 : 2) * motionScale + rifleKick * .65 * motionScale;
+    const targetFov = 75 + dash * 6 * motionScale - aim * (WEAPON_AIM[run.weapon]?.zoom||0) - this._extractionLean * 24 + clamp((run.speed || 0) - 1.3, 0, 2) * 2 * motionScale + rifleKick * .35 * motionScale;
     this.camera.fov = damp(this.camera.fov, targetFov, 12, dt);
     this.camera.updateProjectionMatrix();
 
@@ -2118,6 +2198,7 @@ export class Renderer {
     const weapon = clamp(run.weapon || 0, 0, this.weaponGroups.length - 1);
     updateOssuaryFitting(this.weaponGroups[0],run);
     for(let i=0;i<6;i++){
+      if(this.weaponGroups[i].userData.authoredFPS)continue;
       const finger=this.weaponGroups[i].userData.viewArms?.rightArm?.userData.triggerFinger;
       if(finger){finger.rotation.x=-(i===weapon?handling.trigger:0)*.22;finger.rotation.z=-(i===weapon?handling.trigger:0)*.08;}
     }
@@ -2126,9 +2207,18 @@ export class Renderer {
     this.viewmodelFill.intensity = weapon >= 4 ? 1.05 : .42;
     const brutal=run.brutal&&run.brutal.phase!=='idle'&&run.brutal.phase!=='cancelled';
     this.weaponGroups.forEach((group, index) => { group.visible = !run.vehicle?.occupied && !extracting && !brutal && index === weapon; });
-    this.weaponGroups.forEach((group,i)=>{group.position.x=[.3,.31,.29,.31,.34,.34,.32,.32][i]*Math.min(1,this.camera.aspect/.9);});
+    this.weaponGroups.forEach((group,i)=>{group.position.x=FIRST_PERSON_HOLD_POSES[i].position[0]*Math.min(1,this.camera.aspect/.9);});
+    this.weaponAim ||= new WeaponAim();
+    this.weaponAim.apply(this.weaponRig,this.weaponGroups[weapon],weapon,aim*handling.equip);
     animateOssuary(this.weaponGroups[0],weapon===0?shot:0,now*.001,dt);
     animateBreach(this.weaponGroups[1].userData.model,now*.001,weapon===1?shot:0,dt);
+    animateBreachAttachment(this.weaponGroups[1].userData.model,weapon===1?run.attachmentShot:0,run.attachmentCooldown);
+    if(this._attachmentRun!==run){this._attachmentRun=run;this._attachmentSequence=0;this._attachmentLaunchOrigin=null;}
+    if(weapon===1&&(run.attachmentSequence||0)>this._attachmentSequence){
+      this._attachmentLaunchOrigin ||= new THREE.Vector3();
+      this.weaponGroups[1].userData.model.userData.attachmentMuzzle.getWorldPosition(this._attachmentLaunchOrigin);
+    }
+    this._attachmentSequence=run.attachmentSequence||0;
     animateArc(this.weaponGroups[2].userData.model,now*.001,weapon===2?shot:0,dt);
     this.weaponGroups[weapon]?.userData.animate?.(now * 0.001, shot);
     if (weapon === 3) animateReliquary(this.weaponGroups[3], shot, now * 0.001, dt);
@@ -2163,6 +2253,7 @@ export class Renderer {
       animateMeleeWeapon(this.weaponGroups[i].userData.model,meleeFrame,now*.001,dt);
       if(weapon===i)this._fitMeleeArms(this.weaponGroups[i]);
     }
+    updateFPSArms(this.weaponGroups[weapon],run,this.weaponPresentation,dt);
     if (weapon < 6) fitForegroundArms(this.weaponGroups[weapon]);
     const muzzle = this.weaponGroups[weapon]?.userData?.muzzle;
     if (muzzle) {
@@ -2204,6 +2295,8 @@ export class Renderer {
   // Every scene draw goes through the body-camera resolve so shader programs
   // compiled during warmup match the ones used in play.
   _renderScene(nowMs = (typeof performance !== 'undefined' ? performance.now() : 0)) {
+    this.blackwaterWeaponStyle?.setEnabled(!!this._course?.coastal?.blackwaterSlice&&this._blackwaterWeaponStyleEnabled!==false);
+    this.blackwaterWeaponStyle?.syncState();
     // Map/door changes still use the legacy global invalidation flag. Native
     // WebGPU only consumes per-light flags, so translate it once per change.
     if(this.renderer.isWebGPURenderer&&this.renderer.shadowMap.needsUpdate){
@@ -2232,12 +2325,10 @@ export class Renderer {
       this.canvas.width = Math.floor(width * dpr);
       this.canvas.height = Math.floor(height * dpr);
     }
-    // Keep resize/reflow consistent with the authored close-camera framing.
-    // The rig-only readability fill and articulated hands are composed for the
-    // 0.64 scale; dropping back to .55 here made a window resize silently undo
-    // the intended silhouette/hand read.
-    this.weaponGroups?.forEach(group=>{
-      group.scale.setScalar(width<600?.4:.64);
+    // Resize uses the same per-weapon presentation scale as initial assembly.
+    // Foreground hands/limbs retain their independent metric size when fitted.
+    this.weaponGroups?.forEach((group,index)=>{
+      group.scale.setScalar((FIRST_PERSON_HOLD_POSES[index]?.scale??.56)*(width<600?5/7:1));
       group.traverse(node=>{if(node.name.startsWith('MeshySleeve_')){const widthScale = width < 600 ? .78 : 1;node.scale.set(widthScale,1,widthScale);}});
     });
     this.camera.aspect = width / height;
@@ -2257,6 +2348,14 @@ export class Renderer {
     this.onPreparationProgress?.(stage);
   }
 
+  _loadBloodworksWarden() {
+    return this._bloodworksWardenReady ||= loadGltf('./assets/models/bloodworks-warden.glb').then(warden=>{
+      if(!warden)return;
+      if(this._isDisposed){disposeObject(warden.scene,true);return;}
+      markSharedGltf(warden.scene);this.bloodworksWardenTemplate=warden.scene;this.bloodworksWardenClips=warden.animations||[];this._wardenStatus='ready';
+    });
+  }
+
   async _prepareWeaponResources(course,run=null) {
     this._reportPreparation('Loading the world and its inhabitants');
     // Texture callbacks can change shader features. Wait until their final
@@ -2265,13 +2364,21 @@ export class Renderer {
     for (const group of this.weaponGroups) group.traverse(object => {
       if (object.userData.resourcesReady) weaponResources.push(object.userData.resourcesReady);
     });
-    await Promise.all([this.harborWorld?.ready,this._materialsReady, this._wardenReady, this._survivorReady, this._ashWitnessReady, this.brutalCombatVisuals.ready, this.verminVisuals.ready, this.extractionVFX?.cutaways?.ready, roomMaterialsReady(), bloodAtlasReady(), ...weaponResources]);
+    // Coastal encounters use the legacy brute, not the 32 MB dungeon warden.
+    // Load the dungeon template on the first mode that actually needs it.
+    const wardens=course.coastal?this._wardenReady:Promise.all([this._wardenReady,this._loadBloodworksWarden()]);
+    await Promise.all([this.harborWorld?.ready,this._materialsReady, wardens, this._survivorReady, this._ashWitnessReady, this._zombieAppearanceLibrary?.ready, this.brutalCombatVisuals.ready, this.verminVisuals.ready, this.extractionVFX?.cutaways?.ready, roomMaterialsReady(), bloodAtlasReady(), ...weaponResources]);
     // Loaded survivor bodies and sleeves replace their fallback meshes. Run
     // their visual binding once before compiling so wound hooks/materials
     // cannot first appear on the first playable frame. Preparation already
     // owns this course and _weaponsPrepared is false, so render cannot restart
     // preparation or draw the unfinished scene.
     if(this._course!==course)return;
+    if(course.coastal){
+      this.scene.traverse(object=>{if(object.isInstancedMesh&&!object.userData.blackwaterWeaponInk)prepareCoastalInstances(object);});
+      // Live silhouette children borrow the freshly prepared source views.
+      this.blackwaterWeaponStyle?.syncState();
+    }
     if(run?.course===course)this.render(run);
     this.verminVisuals.setupArm();
     const renderer = this.renderer;
@@ -2321,6 +2428,7 @@ export class Renderer {
     if(!this._bellWarmups){warmBellwraithVariants();this._bellWarmups=['bellwraith','echo','rustBell','ivoryBell'].map(variant=>{const actor=createBellwraith({variant});actor.visible=false;this.scene.add(actor);return actor;});}
     if(this._survivors?.status==='ready'&&!this._afterlifeWarmups){
       this._afterlifeWarmups=[0,1].map(kind=>{const actor=kind===0&&this._ashWitnessAsset?createAfterlifeModel(this._ashWitnessAsset,kind):createAfterlifeEnemy(this._survivors.template,this._afterlifeClips,kind);actor.visible=false;disableShadowCasting(actor);this.scene.add(actor);return actor;});
+      for(const descriptor of GENERATED_ZOMBIE_APPEARANCES){const asset=this._zombieAppearanceLibrary?.get(descriptor.id);if(!asset)continue;const actor=createAfterlifeModel(asset,0);actor.visible=false;disableShadowCasting(actor);this.scene.add(actor);this._afterlifeWarmups.push(actor);}
     }
     for(const actor of this._afterlifeWarmups||[])if(actor.userData.afterlifeModel)this.brutalCombatVisuals.physics.prepare?.(actor);
     // compileAsync alone leaves the first surgery draw's driver pipeline cold.
@@ -2463,6 +2571,7 @@ export class Renderer {
         restores.push(()=>{body.visible=visible;for(const [object,culled]of culling)object.frustumCulled=culled;});
       }
       const extraction=await this.extractionVFX?.prepareWarmup?.();if(extraction)restores.push(extraction);
+      const finisher=this.brutalCombatVisuals.prepareWarmup?.(this._afterlifeWarmups);if(finisher)restores.push(finisher);
       const vermin=this.verminVisuals.prepareWarmup?.();if(vermin)restores.push(vermin);
       if(!restores.length||this.renderer!==renderer||this._course!==course)return;
       this.bodycam._ensureTarget();renderer.setRenderTarget(this.bodycam.target);
@@ -2484,7 +2593,9 @@ export class Renderer {
       object.shadow.autoUpdate=false;object.shadow.needsUpdate=false;
     }});
     try{
-      const compilation=renderer.compileAsync(this.scene,this.camera),lost=renderer.backend?.device?.lost;
+      const stage=this._preparationStage||'Preparing graphics',course=this._course;let reported=-1;
+      const progress=(done,total)=>{if(this.renderer!==renderer||this._course!==course||!total)return;const percent=Math.floor(done/total*20)*5;if(percent!==reported){reported=percent;this._reportPreparation(`${stage} · ${percent}%`);}};
+      const compilation=renderer.compileAsync(this.scene,this.camera,null,progress),lost=renderer.backend?.device?.lost;
       if(lost)await Promise.race([compilation,lost.then(()=>{throw new Error('Graphics device lost during preparation. Reload the game to recover.');})]);
       else await compilation;
     }
@@ -2546,6 +2657,10 @@ export class Renderer {
   renderMenu(run, nowMs) {
     if (!this.renderer) return;
     if (this._warmupCourse !== run.course) this.render(run, nowMs);
+    // Keep the last title frame while Start prepares the game. Rendering the
+    // animated skinned title on every compiler yield competes for both the
+    // main thread and GPU; the loading overlay still paints normally.
+    if(this._beginPending&&!this._weaponsPrepared)return;
     this.menuCinematic ||= new MenuCinematic({ materials: this.materials, environment: this.scene.environment });
     this.menuCinematic.active = true;
     this.menuCinematic.setAsset(this._ashWitnessAsset);
@@ -2593,7 +2708,6 @@ export class Renderer {
       this.camera.position.set(0,0,Math.max(.45,Math.min(2.3,back-.18))*4);
       this.camera.rotation.set(-.32,0,0);this.camera.fov=78;this.camera.updateProjectionMatrix();
     }
-    this.harborWorld?.update(nowMs*.001,run.vehicle,run);
     if(!this.freeCamera)this.playerInjuryVisuals.applyCamera(run,nowMs);
     if(this.freeCamera){
       const view=this.freeCamera;
@@ -2603,6 +2717,15 @@ export class Renderer {
       this.camera.rotation.set(view.pitch,0,0);
       this.camera.fov=75;this.camera.updateProjectionMatrix();
     }
+    // Foliage LOD/frustum tests must use the final camera, including flight.
+    // At map-inspection heights, keep the far cape readable through sea haze.
+    if(run.course.coastal&&this.scene.fog){
+      const altitude=this.freeCamera?Math.max(0,this.freeCamera.y-20):0;
+      this.scene.fog.near=160+Math.min(640,altitude*2);
+      this.scene.fog.far=700+Math.min(1400,altitude*4);
+    }
+    if(this.harborWorld)this.camera.updateWorldMatrix(true,false);
+    this.harborWorld?.update(nowMs*.001,run.vehicle,run,this.camera);
     this.afterlifeMapDesign?.update?.(run, nowMs, this.settings.reducedMotion);
     this.journeyVisuals?.update(run,nowMs,this.settings.reducedMotion||this._systemReducedMotion);
     this.afterlifeLighting.update(this.camera, this.renderer, nowMs, this.settings.reducedMotion);
@@ -2703,7 +2826,9 @@ export class Renderer {
       afterlifeMapDesign: this.afterlifeMapDesign?.diagnostics,
       crowd: this._crowdDiagnostics,
       afterlifeEnemies: [...this._enemyVisuals.values()].filter(e=>e.root.userData.afterlife).length,
-      ashWitness: { loaded: !!this._ashWitnessAsset, error: this._ashWitnessError, instances: [...this._enemyVisuals.values()].filter(e=>e.root.userData.afterlifeModel).length, clips: this._ashWitnessAsset?.clips.map(clip => clip.name) || [],articulation:[...this._enemyVisuals.values()].filter(e=>e.root.userData.afterlifeModel).slice(0,3).map(e=>articulationDiagnostics(e.root.userData.afterlife.articulation)) },
+      ashWitness: { loaded: !!this._ashWitnessAsset, error: this._ashWitnessError, instances: [...this._enemyVisuals.values()].filter(e=>e.root.userData.afterlife?.appearance===ASH_WITNESS_APPEARANCE).length, clips: this._ashWitnessAsset?.clips.map(clip => clip.name) || [],articulation:[...this._enemyVisuals.values()].filter(e=>e.root.userData.afterlife?.appearance===ASH_WITNESS_APPEARANCE).slice(0,3).map(e=>articulationDiagnostics(e.root.userData.afterlife.articulation)) },
+      zombieAppearances: this._zombieAppearanceLibrary?.diagnostics([...this._enemyVisuals.values()])||[],
+      zombieAppearanceFallbacks: [...this._enemyVisuals.entries()].filter(([,entry])=>entry.requestedAppearance&&entry.requestedAppearance!==(entry.root.userData.afterlife?.appearance||ASH_WITNESS_APPEARANCE)).map(([id,entry])=>({enemyId:id,requested:entry.requestedAppearance,actual:entry.root.userData.afterlife?.appearance||ASH_WITNESS_APPEARANCE})),
       transmissionCoverage: this._transmissionRegion?.coverage ?? 1,
       weaponBatch: this._weaponBatch,
       survivor: {status:this._survivors?.status||'pending',source:this._survivors?.local?.userData?.source||'procedural-fallback',viewSleeves:this._survivors?.viewSleeves||0,error:this._survivors?.error||null},
@@ -2761,6 +2886,7 @@ export class Renderer {
     this.horrorEncounters?.dispose();
     this.verminVisuals?.dispose();
     if (this.worldRoot) this.worldRoot.userData.afterlifeSurfaceDisposed = true;
+    this.blackwaterWeaponStyle?.dispose();
     disposeSurvivors(this);
     if (this.worldRoot) disposeObject(this.worldRoot);
     if (this.combatRoot) disposeObject(this.combatRoot);
@@ -2774,6 +2900,7 @@ export class Renderer {
     if(this._bloodworksWardenWarmup){this._bloodworksWardenWarmup.removeFromParent();disposeObject(this._bloodworksWardenWarmup);}
     for(const actor of this._bellWarmups||[]){actor.removeFromParent();disposeObject(actor);}
     for(const actor of this._afterlifeWarmups||[]){actor.removeFromParent();disposeObject(actor);}
+    this._zombieAppearanceLibrary?.dispose();
     if(this._ashWitnessAsset)disposeObject(this._ashWitnessAsset.template,true);
     if(this.wardenTemplate)disposeObject(this.wardenTemplate,true);
     if(this.bloodworksWardenTemplate)disposeObject(this.bloodworksWardenTemplate,true);

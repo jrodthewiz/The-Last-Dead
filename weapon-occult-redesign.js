@@ -1,5 +1,7 @@
 import * as THREE from './vendor/three.module.js';
 import {applyWeaponMaterialProfile, tagWeaponMechanism} from './weapon-materials.js';
+import {createShoulderStock} from './weapon-stock-geometry.js';
+import {BREACH_LAUNCHER} from './weapon-attachment-config.js';
 
 // The viewmodel is authored around the player's hand: +Y is up and -Z is the
 // firing direction. These forms spend the budget on silhouette, bevels, and
@@ -304,6 +306,7 @@ export function buildOssuaryRedesign() {
     wood: 0x705241, brass: 0x89724f, black: 0x171b1d,
   });
   const receiver = part('receiver', root, parts);
+  receiver.scale.set(.82,.90,1);
   // The cylinder has a real open frame now: a compact rear lockwork housing,
   // lower cradle and continuous top strap, rather than a block through its axis.
   add(receiver, profile([[-.13, -.18], [.13, -.18], [.16, -.07], [.145, .095], [.07, .15], [-.07, .15], [-.145, .095], [-.16, -.07]], .25, .014), materials.steel, [0, 0, .15], [0, 0, 0], [1, 1, 1], 'receiver-shell');
@@ -402,7 +405,7 @@ export function buildOssuaryRedesign() {
   addTube(guard, [[0, -.03, -.04], [0, -.2, -.04], [0, -.29, .06], [0, -.2, .18]], [.018, .022, .022, .015], materials.edge, 10, 'trigger-guard');
   const trigger = part('trigger', guard, parts);
   tagWeaponMechanism(trigger, 'trigger-blade', 'y');
-  add(trigger, new THREE.CapsuleGeometry(.018, .09, 6, 10), materials.brass, [0, -.14, -.04], [Math.PI / 2, 0, 0], [1, 1, 1], 'trigger-blade');
+  add(trigger, new THREE.CapsuleGeometry(.018, .09, 6, 10), materials.brass, [0, -.14, .056], [Math.PI / 2, 0, 0], [1, 1, 1], 'trigger-blade');
   const sockets = commonSockets(root, recoilCarriage, [0, .035, -1.23], [0, .035, -1.25], [0, -.27, .1], null);
   const fx = addMuzzleFx(muzzleHousing, materials, .36);
   sockets.muzzleFlash = fx.muzzleFlash;
@@ -483,6 +486,7 @@ export function buildBreachRedesign() {
   const parts = {};
   const materials = commonMaterials(basePalette('breach'));
   const receiver = part('receiver', root, parts);
+  receiver.scale.set(.48,.45,.60);
   add(receiver, profile([[-.22, -.16], [-.2, .13], [-.11, .2], [.11, .2], [.2, .13], [.22, -.16], [.13, -.21], [-.13, -.21]], .46, .03), materials.steel, [0, .01, .01], [0, 0, 0], [1, 1, 1], 'receiver-shell');
   add(receiver, profile([[-.17, -.11], [-.15, .11], [-.07, .15], [.07, .15], [.15, .11], [.17, -.11], [.09, -.15], [-.09, -.15]], .032, .008), materials.edge, [0, .01, .255], [0, 0, 0], [1, 1, 1], 'receiver-face-plate');
   add(receiver, profile([[-.11, -.07], [.11, -.07], [.12, .07], [.06, .11], [-.06, .11], [-.12, .07]], .014, .003), materials.black, [0, .03, .278], [0, 0, 0], [1, 1, 1], 'receiver-inset');
@@ -492,17 +496,19 @@ export function buildBreachRedesign() {
   }
   const recoilCarriage = part('recoil-carriage', root, parts);
   const barrels = part('twin-barrels', recoilCarriage, parts);
+  recoilCarriage.scale.set(.65,.55,1);
   tagWeaponMechanism(barrels, 'twin-pressure-barrels', 'z');
   for (const side of [-1, 1]) {
-    add(barrels, new THREE.CylinderGeometry(.13, .17, .98, 30), materials.steel, [side * .135, .06, -.58], [Math.PI / 2, 0, 0], [1, 1, 1], `barrel-${side}`);
-    add(barrels, new THREE.CylinderGeometry(.086, .092, 1.0, 24, 1, true), materials.black, [side * .135, .06, -.58], [Math.PI / 2, 0, 0], [1, 1, 1], `bore-${side}`);
-    addRing(barrels, .17, .018, [side * .135, .06, -.25], materials.edge, `barrel-collar-${side}`);
-    addRing(barrels, .18, .022, [side * .135, .06, -.98], materials.brass, `muzzle-band-${side}`);
-    add(barrels, new THREE.CircleGeometry(.084, 24), materials.black, [side * .135, .06, -1.09], [0, Math.PI, 0], [1, 1, 1], `muzzle-bore-${side}`);
+    add(barrels, new THREE.CylinderGeometry(.054, .060, .98, 30), materials.steel, [side * .079, .06, -.58], [Math.PI / 2, 0, 0], [1, 1, 1], `barrel-${side}`);
+    add(barrels, new THREE.CylinderGeometry(.038, .039, 1.0, 24, 1, true), materials.black, [side * .079, .06, -.58], [Math.PI / 2, 0, 0], [1, 1, 1], `bore-${side}`);
+    addRing(barrels, .064, .010, [side * .079, .06, -.25], materials.edge, `barrel-collar-${side}`);
+    addRing(barrels, .066, .012, [side * .079, .06, -.98], materials.brass, `muzzle-band-${side}`);
+    add(barrels, new THREE.CircleGeometry(.037, 24), materials.black, [side * .079, .06, -1.09], [0, Math.PI, 0], [1, 1, 1], `muzzle-bore-${side}`);
   }
-  add(barrels, profile([[-.29, -.028], [.29, -.028], [.23, .05], [-.23, .05]], .055, .01), materials.edge, [0, .225, -.54], [0, 0, 0], [1, 1, 1], 'barrel-top-rib');
-  addTube(barrels, [[-.28, -.03, -.84], [-.18, .17, -.6], [0, .2, -.45], [.18, .17, -.6], [.28, -.03, -.84]], .018, materials.panel, 10, 'barrel-under-rib');
+  add(barrels, profile([[-.15, -.028], [.15, -.028], [.11, .05], [-.11, .05]], .055, .01), materials.edge, [0, .12, -.54], [0, 0, 0], [1, 1, 1], 'barrel-top-rib');
+  addTube(barrels, [[-.14, -.03, -.84], [-.09, .12, -.6], [0, .15, -.45], [.09, .12, -.6], [.14, -.03, -.84]], .014, materials.panel, 10, 'barrel-under-rib');
   const breechBlock = part('breech-block', recoilCarriage, parts);
+  breechBlock.scale.x=.75;
   tagWeaponMechanism(breechBlock, 'break-action-breech', 'z');
   add(breechBlock, profile([[-.24, -.12], [-.22, .12], [-.13, .17], [.13, .17], [.22, .12], [.24, -.12], [.13, -.17], [-.13, -.17]], .11, .018, [[0, 0, .08, .065]]), materials.edge, [0, .08, -.16], [0, 0, 0], [1, 1, 1], 'breech-frame');
   add(breechBlock, profile([[-.14, -.07], [.14, -.07], [.14, .08], [-.14, .08]], .018, .004), materials.black, [0, .08, -.105], [0, 0, 0], [1, 1, 1], 'breech-cavity');
@@ -517,6 +523,7 @@ export function buildBreachRedesign() {
     knurl.rotation.x = Math.PI / 2;
   }
   const ribcage = part('ribcage', recoilCarriage, parts);
+  ribcage.scale.x=.65;
   for (const side of [-1, 1]) {
     addTube(ribcage, [[side * .16, .17, -.26], [side * .25, .1, -.5], [side * .22, -.04, -.82]], [.026, .038, .023], materials.bone, 12, `rib-${side}`);
     addTube(ribcage, [[side * .18, .16, -.34], [side * .28, .09, -.59], [side * .24, -.03, -.88]], [.018, .025, .015], materials.edge, 10, `pressure-rail-${side}`);
@@ -525,26 +532,76 @@ export function buildBreachRedesign() {
   addTube(extractors, [[-.13, .02, -.27], [-.19, .04, -.17], [-.16, .12, -.1]], [.026, .031, .016], materials.edge, 10, 'extractor-left');
   addTube(extractors, [[.13, .02, -.27], [.19, .04, -.17], [.16, .12, -.1]], [.026, .031, .016], materials.edge, 10, 'extractor-right');
   const stock = part('stock', root, parts);
-  add(stock, profile([[-.17, -.16], [.17, -.16], [.15, .12], [.09, .2], [-.09, .2], [-.15, .12]], .3, .026), materials.wood, [0, -.01, .34], [.12, 0, 0], [1, 1, 1], 'wood-stock');
+  add(stock, createShoulderStock([[.13,0,.047,.045],[.23,-.01,.039,.043],[.34,-.035,.044,.064],[.50,-.075,.051,.096],[.64,-.11,.055,.111],[.67,-.11,.055,.110]]), materials.wood, [0,0,0], [0,0,0], [1,1,1], 'wood-stock');
+  add(stock, createShoulderStock([[.67,-.11,.056,.111],[.69,-.11,.056,.111]]), materials.black, [0,0,0], [0,0,0], [1,1,1], 'stock-butt-pad');
+  addTube(stock,[[0,.025,.16],[0,.033,.29],[0,.038,.39]],.014,materials.edge,10,'stock-tang');
   const grip = part('grip', root, parts);
   grip.position.set(0, -.18, .08);
   grip.rotation.x = .18;
   add(grip, profile([[-.105, .08], [.105, .08], [.12, -.08], [.09, -.4], [.02, -.45], [-.09, -.39], [-.12, -.08]], .24, .025), materials.wood, [0, 0, 0], [0, 0, 0], [1, 1, 1], 'wood-grip');
   addGripWraps(grip, materials, .11, .1, 7);
+  const gripSaddle=part('grip-saddle',root,parts);
+  addTube(gripSaddle,[[0,-.135,.08],[0,-.075,.08]],.029,materials.panel,12,'receiver-grip-tang');
+  const guard=part('trigger-guard',root,parts);
+  addTube(guard,[[0,-.12,.065],[0,-.235,.025],[0,-.235,-.075],[0,-.12,-.075]],.011,materials.edge,12,'breach-trigger-guard');
+  const trigger=part('trigger',guard,parts);
+  add(trigger,new THREE.CapsuleGeometry(.012,.060,6,12),materials.brass,[0,-.157,.020],[0,0,-.12],[1,1,1],'breach-trigger-blade');
   const supportGrip = part('support-grip', root, parts);
-  supportGrip.position.set(-.16, -.25, -.47);
-  supportGrip.rotation.x = -.12;
-  add(supportGrip, profile([[-.075, .08], [.075, .08], [.085, -.18], [.06, -.26], [-.06, -.26], [-.085, -.18]], .18, .018), materials.wood, [0, 0, 0], [0, 0, 0], [1, 1, 1], 'support-wood');
+  supportGrip.position.set(0, -.065, -.62);
+  supportGrip.rotation.x = Math.PI/2;
+  add(supportGrip, profile([[-.075,.12],[.075,.12],[.085,.06],[.085,-.23],[.06,-.28],[-.06,-.28],[-.085,-.23],[-.085,.06]], .18, .018), materials.wood, [0, 0, 0], [0, 0, 0], [1, 1, 1], 'support-wood');
+  const supportMount=part('support-grip-mount',root,parts);
+  addTube(supportMount,[[0,-.02,-.57],[0,.005,-.57]],.022,materials.panel,12,'foregrip-barrel-mount');
   const muzzleHousing = part('muzzle-housing', recoilCarriage, parts);
-  add(muzzleHousing, profile([[-.31, -.12], [.31, -.12], [.29, .1], [.19, .16], [-.19, .16], [-.29, .1]], .18, .02), materials.edge, [0, .06, -1.05], [0, 0, 0], [1, 1, 1], 'muzzle-bridge');
+  add(muzzleHousing, profile([[-.16, -.045], [.16, -.045], [.15, .095], [.10, .135], [-.10, .135], [-.15, .095]], .10, .012), materials.edge, [0, .06, -1.05], [0, 0, 0], [1, 1, 1], 'muzzle-bridge');
   const sockets = commonSockets(root, recoilCarriage, [0, .06, -1.14], [0, .06, -1.17], [0, -.25, .08], [-.16, -.25, -.47]);
+  const launcher = part('underbarrel-launcher',root,parts);
+  // Offset the lower rail slightly so the fitted chamber stays visible beside
+  // the main receiver when the gun is braced, rather than hidden by the stock.
+  launcher.position.x=.17;
+  tagWeaponMechanism(launcher,'breach-underbarrel-launcher','z');
+  for(const z of [-.80,-1.06]){
+    add(launcher,new THREE.BoxGeometry(.15,.07,.045),materials.panel,[0,-.08,z],[0,0,0],[1,1,1],`launcher-mount-${z}`);
+    for(const side of [-1,1])add(launcher,new THREE.CylinderGeometry(.016,.016,.025,10),materials.brass,[side*.084,-.08,z],[0,0,Math.PI/2],[1,1,1],`launcher-mount-pin-${side}-${z}`);
+    add(launcher,new THREE.BoxGeometry(.19,.028,.045),materials.panel,[-.09,-.045,z],[0,0,0],[1,1,1],`launcher-rail-bridge-${z}`);
+  }
+  const launcherCarriage=part('launcher-carriage',launcher,parts);
+  add(launcherCarriage,new THREE.CylinderGeometry(.065,.072,.36,20,1,true),materials.steel,[0,-.14,-.97],[Math.PI/2,0,0],[1,1,1],'launcher-barrel');
+  add(launcherCarriage,new THREE.CylinderGeometry(.047,.047,.37,16,1,true),materials.black,[0,-.14,-.97],[Math.PI/2,0,0],[1,1,1],'launcher-bore');
+  add(launcherCarriage,new THREE.TorusGeometry(.061,.009,5,20),materials.edge,[0,-.14,-1.157],[0,0,0],[1,1,1],'launcher-muzzle-collar');
+  add(launcherCarriage,new THREE.CylinderGeometry(.074,.074,.035,16),materials.brass,[0,-.14,-.82],[Math.PI/2,0,0],[1,1,1],'launcher-chamber-band');
+  const launcherLever=part('launcher-cocking-lever',launcher,parts);
+  add(launcherLever,new THREE.BoxGeometry(.10,.025,.035),materials.brass,[.10,-.14,-.80],[0,0,0],[1,1,1],'launcher-lever');
+  const attachmentMuzzle=new THREE.Object3D();attachmentMuzzle.name='attachmentMuzzle';attachmentMuzzle.position.fromArray(BREACH_LAUNCHER.muzzle);launcherCarriage.add(attachmentMuzzle);
+  sockets.attachmentMuzzle=attachmentMuzzle;
   sockets.supportGrip = supportGrip;
   const fx = addMuzzleFx(muzzleHousing, materials, .42);
   sockets.muzzleFlash = fx.muzzleFlash;
-  const meta = {kind: 'breach', parts, sockets, materials, recoilCarriage, barrels, breechBlock, extractors, pressureValve, ribcage, recoil: 0, flash: 0, heat: 0, pressurePulse: 0, lastShot: 0, shotFx: fx};
+  const meta = {kind: 'breach', parts, sockets, materials, recoilCarriage, barrels, breechBlock, extractors, pressureValve, ribcage, trigger, launcherCarriage, launcherLever, recoil: 0, flash: 0, heat: 0, pressurePulse: 0, lastShot: 0, shotFx: fx};
   finish(root, 'breach', parts, materials, sockets, {type: 'capsule', size: [.62, .96, 1.8]});
+  for(const surface of Object.values(materials))if(surface.isMeshStandardMaterial)surface.userData.authoredHeroSurface=true;
+  materials.wood.map=null;materials.wood.normalMap=null;materials.wood.roughness=.63;
+  root.traverse(mesh=>{
+    if(!mesh.isMesh||mesh.material!==materials.wood)return;
+    const p=mesh.geometry.attributes.position,colors=[];
+    for(let i=0;i<p.count;i++){
+      const grain=Math.sin(p.getX(i)*510+Math.sin(p.getZ(i)*9)*1.7)+.35*Math.sin(p.getX(i)*1270+p.getZ(i)*5);
+      const value=.88+.07*grain;colors.push(value,value,value);
+    }
+    mesh.geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));mesh.material.vertexColors=true;
+  });
   root.userData.breach = meta;
+  root.userData.attachmentMuzzle=attachmentMuzzle;
   return root;
+}
+
+export function animateBreachAttachment(root,shot=0,cooldown=0){
+  const meta=root?.userData?.breach;if(!meta)return;
+  const kick=Math.max(0,Math.min(1,shot));
+  const cycle=Math.max(0,Math.min(1,1-cooldown/BREACH_LAUNCHER.cooldown));
+  const reload=cooldown>0?Math.sin(Math.PI*cycle)**2:0;
+  meta.launcherCarriage.position.z=kick*.09+reload*.035;
+  meta.launcherLever.rotation.z=-reload*.45;
 }
 
 export function animateBreachRedesign(root, time = 0, shot = 0, dt = .016) {
@@ -562,11 +619,12 @@ export function animateBreachRedesign(root, time = 0, shot = 0, dt = .016) {
   meta.recoilCarriage.rotation.x = meta.recoil * -.022;
   meta.breechBlock.position.z = -meta.recoil * .12;
   meta.breechBlock.rotation.x = -meta.recoil * .12;
+  meta.trigger.rotation.x = -meta.recoil * .07;
   meta.extractors.position.z = -meta.recoil * .08;
   meta.barrels.rotation.z = Math.sin(time * 1.8) * .004 + meta.pressurePulse * .014;
   meta.pressureValve.position.y = meta.pressurePulse * .022;
   meta.pressureValve.rotation.z = Math.sin(time * 4.5) * meta.pressurePulse * .035 + meta.pressurePulse * .07;
-  meta.ribcage.scale.set(1 + meta.pressurePulse * .035, 1 + meta.pressurePulse * .022, 1);
+  meta.ribcage.scale.set(.65 * (1 + meta.pressurePulse * .035), 1 + meta.pressurePulse * .022, 1);
   meta.materials.glow.emissiveIntensity = .14 + meta.heat * 2.2 + meta.flash * 4.2;
   meta.materials.heat.emissiveIntensity = .16 + meta.heat * 2.8 + meta.flash * 3.8;
   meta.shotFx.muzzleFlash.visible = meta.flash > .012;
@@ -638,6 +696,9 @@ export function buildArcRedesign() {
   supportGrip.position.set(-.06, -.31, -.55);
   supportGrip.rotation.x = -.12;
   add(supportGrip, profile([[-.07, .06], [.07, .06], [.075, -.2], [.04, -.28], [-.06, -.23], [-.08, -.08]], .16, .017), materials.wood, [0, 0, 0], [0, 0, 0], [1, 1, 1], 'support-grip-body');
+  const gripMount=part('grip-mount',root,parts);
+  add(gripMount,profile([[-.048,-.16],[.048,-.16],[.065,.10],[-.065,.10]],.13,.012),materials.panel,[0,0,.08],[0,0,0],[1,1,1],'rear-grip-saddle');
+  addTube(gripMount,[[-.06,-.285,-.55],[-.06,.05,-.55]],.030,materials.edge,12,'forward-grip-strut');
   const sockets = commonSockets(root, recoil, [0, .1, -1.31], [0, .1, -1.34], [0, -.26, .08], [-.06, -.31, -.55]);
   sockets.supportGrip = supportGrip;
   const fx = addMuzzleFx(emitter, materials, .4);
@@ -689,6 +750,7 @@ export function buildReliquaryRedesign() {
   const parts = {};
   const materials = commonMaterials(basePalette('reliquary'));
   const receiver = part('receiver', root, parts);
+  receiver.scale.set(.70,.78,1);
   // A lathed octagonal pressure chamber carries the silhouette; the face
   // plate is separate so the aperture remains visible in the first-person view.
   addLathe(receiver, [[.17, -.32], [.23, -.27], [.285, -.16], [.3, .07], [.27, .2], [.2, .3], [.16, .34]], 10, materials.steel, [0, .04, -.08], 'octagonal-chamber');
@@ -700,6 +762,9 @@ export function buildReliquaryRedesign() {
   }
   for (const z of [-.28, -.12, .08, .24]) addRing(receiver, .29, .014, [0, .04, z], materials.edge, `chamber-band-${z}`);
   const recoilCarriage = part('recoil-carriage', root, parts);
+  // Keep the barrel, shutter hinges, core and rib supports on the resized
+  // chamber envelope; narrowing only the chamber leaves hardware floating.
+  recoilCarriage.scale.set(.70,.78,1);
   const barrel = part('barrel', recoilCarriage, parts);
   add(barrel, new THREE.CylinderGeometry(.14, .205, .68, 20), materials.steel, [0, .04, -.66], [Math.PI / 2, 0, 0], [1, 1, 1], 'tapered-barrel');
   add(barrel, new THREE.CylinderGeometry(.082, .108, .72, 16, 1, true), materials.black, [0, .04, -.66], [Math.PI / 2, 0, 0], [1, 1, 1], 'barrel-bore');
@@ -743,6 +808,8 @@ export function buildReliquaryRedesign() {
   supportGrip.position.set(-.17, -.29, -.55);
   supportGrip.rotation.x = -.12;
   add(supportGrip, profile([[-.08, .06], [.08, .06], [.095, -.2], [.055, -.29], [-.07, -.24], [-.09, -.07]], .19, .018), materials.wood, [0, 0, 0], [0, 0, 0], [1, 1, 1], 'support-grip');
+  const supportMount=part('support-grip-mount',root,parts);
+  addTube(supportMount,[[-.17,-.253,-.55],[-.17,-.10,-.55],[-.10,-.06,-.55]],[.028,.024,.020],materials.panel,10,'foregrip-chamber-mount');
   const sockets = commonSockets(root, recoilCarriage, [0, .04, -1.23], [0, .04, -1.26], [0, -.26, .12], [-.17, -.29, -.55]);
   sockets.supportGrip = supportGrip;
   const fx = addMuzzleFx(muzzleBrake, materials, .46);

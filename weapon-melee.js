@@ -252,15 +252,18 @@ function createBat() {
   const body = part('bat-body', root, parts);
   // The origin lives between the hands; the barrel leans into -Z so it stays
   // out of the reticle at rest while retaining a large, readable strike arc.
-  add(body, new THREE.CylinderGeometry(.16, .082, .78, 18), materials.wood, [0, .015, -.35], [Math.PI / 2, 0, 0], [1, 1, 1], 'hardwood-barrel');
-  add(body, new THREE.SphereGeometry(.16, 16, 10), materials.wood, [0, .015, -.73], [0, 0, 0], [.98, .98, .62], 'splintered-bat-head');
-  add(body, new THREE.CylinderGeometry(.145, .145, .04, 18), materials.edge, [0, .015, -.86], [Math.PI / 2, 0, 0], [1, 1, 1], 'steel-impact-cap');
-  add(body, new THREE.CylinderGeometry(.12, .12, .022, 16), materials.black, [0, .015, -.884], [Math.PI / 2, 0, 0], [1, 1, 1], 'impact-face');
+  // With +PI/2 rotation the cylinder's top is the handle end (+Z).
+  // The previous radii made a broad cone over the hands instead of a bat.
+  add(body, new THREE.CylinderGeometry(.052, .105, .80, 24), materials.wood, [0, .015, -.35], [Math.PI / 2, 0, 0], [1, 1, 1], 'hardwood-barrel');
+  add(body, new THREE.SphereGeometry(.112, 16, 10), materials.wood, [0, .015, -.745], [0, 0, 0], [.98, .98, 1], 'splintered-bat-head');
+  add(body, new THREE.CylinderGeometry(.108, .108, .04, 18), materials.edge, [0, .015, -.86], [Math.PI / 2, 0, 0], [1, 1, 1], 'steel-impact-cap');
+  add(body, new THREE.CylinderGeometry(.093, .093, .022, 16), materials.black, [0, .015, -.884], [Math.PI / 2, 0, 0], [1, 1, 1], 'impact-face');
 
   const ferrule = part('bat-metal-bands', root, parts, 'bat-band-flex', 'z');
   for (const [index, z] of [-.08, -.53, -.72].entries()) {
-    add(ferrule, new THREE.TorusGeometry(index === 2 ? .154 : .128, .014 + index * .002, 7, 20), materials.edge, [0, .015, z], [0, 0, 0], [1, 1, 1], `steel-band-${index}`);
-    add(ferrule, new THREE.TorusGeometry(index === 2 ? .142 : .116, .006, 6, 16), materials.brass, [0, .015, z + .012], [0, 0, 0], [1, 1, 1], `band-inset-${index}`);
+    const radius=[.060,.094,.112][index];
+    add(ferrule, new THREE.TorusGeometry(radius, .006 + index * .002, 7, 20), materials.edge, [0, .015, z], [0, 0, 0], [1, 1, 1], `steel-band-${index}`);
+    add(ferrule, new THREE.TorusGeometry(radius-.006, .004, 6, 16), materials.brass, [0, .015, z + .012], [0, 0, 0], [1, 1, 1], `band-inset-${index}`);
   }
 
   const handle = part('bat-handle', root, parts);
@@ -276,11 +279,14 @@ function createBat() {
     [.058, .11, .022, -.34], [-.07, .075, -.018, -.48], [.052, -.01, .02, -.62],
     [-.045, .08, -.018, -.75], [.09, .04, -.012, -.19],
   ].entries()) {
-    add(damage, new THREE.BoxGeometry(.018, .105, .012), materials.danger, [p[0], p[1], p[3]], [0, .08, p[2]], [1, 1, 1], `wood-gouge-${i}`);
+    const radius=THREE.MathUtils.lerp(.052,.105,THREE.MathUtils.clamp((.05-p[3])/.80,0,1))+.002;
+    const angle=Math.atan2(p[1]-.015,p[0]);
+    add(damage, new THREE.BoxGeometry(.009, .005, .100), materials.danger, [Math.cos(angle)*radius, .015+Math.sin(angle)*radius, p[3]], [0, 0, angle-Math.PI/2], [1, 1, 1], `wood-gouge-${i}`);
   }
   const rivets = part('bat-rivets', ferrule, parts);
-  for (const z of [-.08, -.53, -.72]) for (const side of [-1, 1]) {
-    add(rivets, new THREE.SphereGeometry(.018, 8, 5), materials.brass, [side * .096, .094, z], [0, 0, 0], [1, .8, 1], `band-rivet-${z}-${side}`);
+  for (const [i,z] of [-.08, -.53, -.72].entries()) for (const side of [-1, 1]) {
+    const radius=[.060,.094,.112][i];
+    add(rivets, new THREE.SphereGeometry(.012, 8, 5), materials.brass, [side * radius*.70, .015+radius*.70, z], [0, 0, 0], [1, .8, 1], `band-rivet-${z}-${side}`);
   }
 
   const swingPivot = part('bat-swing-pivot', root, parts, 'bat-swing-pivot', 'y');
@@ -294,7 +300,7 @@ function createBat() {
 
   const sockets = {
     grip: socket(root, 'grip', [0, -.055, .31]),
-    supportGrip: socket(root, 'supportGrip', [0, -.055, .055]),
+    supportGrip: socket(root, 'supportGrip', [0, -.055, .09]),
     impactTip: socket(root, 'impactTip', [0, .015, -.91]),
     projectileOrigin: socket(root, 'projectileOrigin', [0, .015, -.91]),
     inspect: socket(root, 'inspect', [0, .1, -.25]),

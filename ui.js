@@ -1,4 +1,5 @@
 import {lowTideObjective,lowTidePrompt,lowTideJournal,LOW_TIDE_TITLE} from './low-tide.js';
+import {basementPrompt} from './island-basement.js';
 import {harborRoomPrompt} from './harbor-interiors.js';
 import {journeyPrompt,journeyTransmission} from './journey-presentation.js';
 import {harborNavigation,harborLocation} from './harbor-navigation.js';
@@ -23,12 +24,12 @@ const DEFAULT_PREFS = Object.freeze({
 
 const WEAPON_NAMES = ['OSSUARY', 'BREACH SHOTGUN', 'ARC LANCE', 'RELIQUARY', 'CARRION RIFLE', 'MOURNING RIFLE', 'WAKE BAT', 'RIPPER CHAINSAW'];
 const WEAPON_HINTS = [
-  'COIN RICOCHET',
-  'WIDE SPREAD',
+  'PRECISION FIRE',
+  'WIDE SPREAD / UNDERBARREL',
   'RAIL PIERCE',
   'ROCKET FUSE',
-  'BURST HEAT',
-  'CHARGE PIERCE',
+  'AUTOMATIC FIRE',
+  'PRECISION SHOT',
   'HEAVY SWING',
   'REV + CUT',
 ];
@@ -345,6 +346,14 @@ export class UI {
     };
     this.root.addEventListener('pointerover', hover);
     this.root.addEventListener('focusin', hover);
+    this.root.addEventListener('keydown', event => {
+      const drawer=this.root.querySelector('.settings-drawer.is-open');
+      if(event.key!=='Tab'||!drawer)return;
+      const controls=[...drawer.querySelectorAll('button:not(:disabled),input:not(:disabled)')];
+      const first=controls[0],last=controls.at(-1);
+      if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
+      else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
+    });
     this.root.addEventListener('click', (event) => {
       const target = event.target.closest('[data-action]');
       if (!target || !this.root.contains(target)) return;
@@ -477,15 +486,19 @@ export class UI {
   _setSettingsOpen(open) {
     const drawer = this.root.querySelector('.settings-drawer');
     if (!drawer) return;
+    if(open&&!drawer.classList.contains('is-open'))this._settingsReturnFocus=this.root.contains(document.activeElement)?document.activeElement:this.root.querySelector('.screen button');
     drawer.classList.toggle('is-open', open);
     drawer.setAttribute('aria-hidden', String(!open));
+    drawer.inert=!open;
+    this.root.querySelectorAll('.screen').forEach(screen=>{screen.inert=open;});
     this.root.dataset.settingsOpen=String(open);
     if (open) drawer.querySelector('input, button')?.focus();
+    else if(this._settingsReturnFocus?.isConnected)this._settingsReturnFocus.focus();
   }
 
-  escape(){if(this.root.querySelector('.settings-drawer.is-open')){this._setSettingsOpen(false);this.root.querySelector('.screen button')?.focus();return true;}return false;}
+  escape(){if(this.root.querySelector('.settings-drawer.is-open')){this._setSettingsOpen(false);return true;}return false;}
 
-  setInputDevice(device){this.inputDevice=device==='gamepad'?'gamepad':'keyboard';this.root.dataset.inputDevice=this.inputDevice;}
+  setInputDevice(device){this.inputDevice=device==='gamepad'?'gamepad':'keyboard';this.root.dataset.inputDevice=this.inputDevice;const key=this.root.querySelector('[data-resume-key]');if(key)key.textContent=this.inputDevice==='gamepad'?'START':'ESC';}
 
   gamepadNavigate(action){
     if(action==='cancel'){
@@ -531,7 +544,7 @@ export class UI {
     }
     const delta=action==='up'||action==='left'?-1:1;
     const index=focused<0?0:(focused+delta+controls.length)%controls.length;
-    controls[index].focus({preventScroll:true});return true;
+    controls[index].focus({preventScroll:true});if(settings)controls[index].scrollIntoView({block:'nearest',inline:'nearest'});return true;
   }
 
   _updatePref(name, value) {
@@ -588,7 +601,7 @@ export class UI {
 
   _settingsMarkup() {
     const audioSlider = (name, title, description) => `<div class="setting-row"><div class="setting-copy"><strong>${title}</strong><span>${description}</span></div><output class="setting-value" data-setting-value="${name}">${Math.round(Number(this.prefs[name]) * 100)}%</output><input type="range" min="0" max="1" step="0.01" value="${esc(this.prefs[name])}" data-setting="${name}" aria-label="${title}" /></div>`;
-    return `<aside class="settings-drawer" aria-hidden="true" aria-label="Settings">
+    return `<aside class="settings-drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Settings" inert>
       <div class="settings-heading"><h2>Settings</h2><button class="icon-button" type="button" data-action="close-settings" aria-label="Close settings">x</button></div>
       <p class="settings-note">Audio changes apply immediately and save on this device.</p>
       <div class="setting-section-title">Audio mix</div>
@@ -602,7 +615,7 @@ export class UI {
       <div class="setting-row"><div class="setting-copy"><strong>Look sensitivity</strong></div><output class="setting-value" data-setting-value="sensitivity">${Number(this.prefs.sensitivity).toFixed(2)}x</output><input type="range" min="0.25" max="2" step="0.05" value="${esc(this.prefs.sensitivity)}" data-setting="sensitivity" aria-label="Look sensitivity" /></div>
       <label class="setting-row"><span class="setting-copy"><strong>Reduced motion</strong></span><span class="toggle"><input type="checkbox" data-setting="reducedMotion" ${this.prefs.reducedMotion ? 'checked' : ''} /><span class="toggle-track"></span></span></label>
       <label class="setting-row"><span class="setting-copy"><strong>Gore effects</strong></span><span class="toggle"><input type="checkbox" data-setting="gore" ${this.prefs.gore ? 'checked' : ''} /><span class="toggle-track"></span></span></label>
-      <label class="setting-row"><span class="setting-copy"><strong>Body-cam lens</strong></span><span class="toggle"><input type="checkbox" data-setting="bodycam" ${this.prefs.bodycam ? 'checked' : ''} /><span class="toggle-track"></span></span></label>
+      <label class="setting-row"><span class="setting-copy"><strong>Adaptive exposure</strong></span><span class="toggle"><input type="checkbox" data-setting="bodycam" ${this.prefs.bodycam ? 'checked' : ''} /><span class="toggle-track"></span></span></label>
       <label class="setting-row"><span class="setting-copy"><strong>Auto-run</strong></span><span class="toggle"><input type="checkbox" data-setting="autoRun" ${this.prefs.autoRun ? 'checked' : ''} /><span class="toggle-track"></span></span></label>
 
     </aside>`;
@@ -615,7 +628,7 @@ export class UI {
      <div class="cinema-frame" aria-hidden="true"><span>BLACKWATER</span><span>NO ONE LEAVES ALONE</span></div>
      <div class="menu-shell"><div class="menu-copy"><div class="brand-lockup"><p class="menu-eyebrow">SOMETHING REMEMBERS YOU.</p><h1 class="brand-title"><span>THE LAST</span><em>DEAD</em></h1><p class="menu-whisper">NO FURTHER TRANSFERS.</p></div></div>
      <nav class="menu-actions" aria-label="Main menu"><button class="primary-button start-button" type="button" data-action="start"><span class="menu-choice">PLAY CAMPAIGN<small>BLACKWATER / OPEN WORLD</small></span><span class="menu-enter-arrow" aria-hidden="true">⟶</span></button>
-      ${this.devEnabled?'<button class="menu-link dev-mode-button" type="button" data-dev-inspect><span>DEV MODE — FLY AROUND</span><kbd>F2</kbd></button>':''}
+      ${this.devEnabled?'<button class="menu-link dev-mode-button" type="button" data-dev-inspect><span>FREE CAMERA <small>DEV</small></span><kbd class="game-key">F2</kbd></button>':''}
           <div class="coop-access"><button class="coop-toggle" type="button" data-action="coop-toggle" aria-expanded="false" aria-controls="coop-form"><span><b>CO-OP</b></span><i data-coop-icon>+</i></button>
                         <div class="coop-panel" id="coop-form" data-coop-panel hidden aria-label="Co-op connection">
               <div class="network-panel">
@@ -628,8 +641,8 @@ export class UI {
           </div>
 
       <button class="menu-link" type="button" data-action="settings">SETTINGS</button>
-      <button class="menu-link" type="button" data-action="guide" aria-expanded="false">CONTROLS</button>
-  <div class="field-guide" hidden><h2>Controls</h2><div class="guide-controls"><b>WASD</b><span>Move / aim</span><b>SPACE / SHIFT</b><span>Jump / dash</span><b>CTRL / F / E</b><span>Slide / parry / tether</span><b>F CLOSE UP</b><span>Chop an arm; twist a weakened, staggered target's neck. During a bite, parry twice to rip free.</span><b>V / R3 CLOSE UP</b><span>Pierce a wounded, staggered target's chest, pull the heart, then release the body (15 energy)</span><b>G / X (TAP)</b><span>Look down to grab a nearby rat; tap again to throw</span><b>F / RB + RAT</b><span>Feed a held rat into a close zombie; aim down for its stomach</span><b>HOLD Q / VIEW</b><span>Operate chapter machinery; keep moving and fighting</span><b>HOLD G</b><span>Drain a corpse, then remove its heart to bank points</span><b>1 2 3 4 5 6 7 8</b><span>Switch weapons</span><b>R</b><span>Weapon status · weapons replenish automatically; no reload needed</span><b>ESC</b><span>Pause / resume · restart from the pause menu</span><b>ENTER AFTER A RUN</b><span>Retry after death or completion</span><b>RIGHT CLICK</b><span>Alternate fire / hold to charge Mourning</span><b>L / R STICK</b><span>Move / look · standard-mapped controller</span><b>RT / LT</b><span>Fire / alternate fire</span><b>RB / LB</b><span>Parry, counter or bite escape / tether</span><b>A / B / L3</b><span>Jump / hold slide / dash</span><b>HOLD X</b><span>Extract a corpse and bank points</span><b>Y / D-PAD</b><span>Cycle weapons</span><b>START</b><span>Pause / resume · menus: stick or D-pad, A confirm, B back</span></div></div>
+      <button class="menu-link" type="button" data-action="guide" aria-expanded="false"><span class="guide-open-label">CONTROLS</span><span class="guide-close-label">Close controls</span></button>
+  <div class="field-guide" hidden aria-labelledby="field-guide-title"><header class="guide-heading"><small>BLACKWATER / FIELD MANUAL</small><h2 id="field-guide-title">Controls</h2></header><div class="guide-sections"><section class="guide-section"><h3><small>01</small>Movement & weapons</h3><div class="guide-controls"><b>WASD</b><span>Move / aim</span><b>SPACE / SHIFT</b><span>Jump / dash</span><b>CTRL / F / E</b><span>Slide / parry / tether</span><b>RIGHT CLICK</b><span>Aim / steady firearm · heavy strike with melee</span><b>1 2 3 4 5 6 7 8</b><span>Switch weapons</span><b>R</b><span>Weapon status · weapons replenish automatically; no reload needed</span><b>C / MIDDLE CLICK</b><span>Breach underbarrel grenade launcher</span><b>ESC</b><span>Pause / resume · restart from the pause menu</span><b>ENTER AFTER A RUN</b><span>Retry after death or completion</span></div></section><section class="guide-section"><h3><small>02</small>Close combat & extraction</h3><div class="guide-controls"><b>F CLOSE UP</b><span>Chop an arm; twist a weakened, staggered target's neck. During a bite, parry twice to rip free.</span><b>V / R3 CLOSE UP</b><span>Pierce a wounded, staggered target's chest, pull the heart, then release the body (15 energy)</span><b>G / X (TAP)</b><span>Look down to grab a nearby rat; tap again to throw</span><b>F / RB + RAT</b><span>Feed a held rat into a close zombie; aim down for its stomach</span><b>HOLD Q / VIEW</b><span>Operate chapter machinery; keep moving and fighting</span><b>HOLD G</b><span>Drain a corpse, then remove its heart to bank points</span></div></section><section class="guide-section"><h3><small>03</small>Standard controller</h3><div class="guide-controls"><b>L / R STICK</b><span>Move / look · standard-mapped controller</span><b>RT / LT</b><span>Fire / aim · LT with melee: heavy strike</span><b>RB / LB</b><span>Parry, counter or bite escape / tether</span><b>A / B / L3</b><span>Jump / hold slide / dash</span><b>HOLD X</b><span>Extract a corpse and bank points</span><b>Y / D-PAD</b><span>Cycle weapons</span><b>LT + RB</b><span>Breach underbarrel launcher while aiming</span><b>START</b><span>Pause / resume · menus: stick or D-pad, A confirm, B back</span></div></section></div></div>
      </nav></div><div class="cinema-footer" aria-hidden="true"><span>KEEP BREATHING.</span><span>DON'T LOOK AWAY.</span></div>
     </section>${this._settingsMarkup()}`;
     this._applyPrefs();this._syncCoopControls();queueMicrotask(()=>this.root.querySelector('.start-button')?.focus({preventScroll:true}));return this;
@@ -647,7 +660,7 @@ export class UI {
       ? records.map(record=>`<article class="record-entry"><span>${String(record.floorIndex+1).padStart(2,'0')} / ${esc(record.floorName)} · ${record.kind==='key'?'KEY RECORD':'FOUND EVIDENCE'}</span><strong>${esc(record.title)}</strong><p>${esc(record.text)}</p></article>`).join('')
       : '<p class="records-empty">No records recovered yet. Check side rooms and sealed caches as you descend.</p>';
     this.root.insertAdjacentHTML('afterbegin', `<section class="screen pause-screen${story?' is-story':''}" aria-label="Paused">
-      <div class="pause-backdrop"></div><div class="pause-layout"><div class="pause-card"><span class="kicker">THE LAST DEAD / PAUSED</span><h2>${this.run?.lowTide?'SIGNAL<br><em>PAUSED.</em>':'STILL<br><em>BREATHING.</em>'}</h2><p class="pause-copy">${this.run?.lowTide?(this.run.lowTide.shelter?'Your checkpoint is at Netmakers. Open B / Journal to review recovered records.':'Claim Netmakers safehouse to secure your first checkpoint. Open B / Field Map to find your way.'):story?'Follow the signal through receiving, isolation, burial and the bells to stop further transfers. Side-room records reveal what happened along the way.':'The arena is waiting. Pick a line, find a target, and keep your momentum when the signal returns.'}</p><div class="pause-actions"><button class="primary-button" type="button" data-action="resume">RESUME</button>${story?`<button class="secondary-button" type="button" data-action="records" aria-controls="story-records" aria-expanded="false">RECORDS ${records.length} / ${total}</button>`:''}<button class="secondary-button" type="button" data-action="restart">${this.run?.lowTide?(this.run.lowTide.shelter?'RETURN TO CHECKPOINT':'RESTART FROM DOCKS'):'RESTART RUN'}</button><button class="secondary-button" type="button" data-action="settings">Settings</button>${this.devEnabled?'<button class="secondary-button" type="button" data-dev-inspect>FLY MODE / F2</button>':''}<button class="text-button" type="button" data-action="menu">RETURN TO TITLE</button></div></div>${story?`<aside class="records-archive" id="story-records" aria-label="Recovered records" hidden><span class="kicker">RECOVERED EVIDENCE / ${records.length} OF ${total}</span><h3>THE DESCENT<br><em>REMEMBERS.</em></h3><div class="records-list">${journeyArchive}${archive}</div></aside>`:''}</div>
+      <div class="pause-backdrop"></div><div class="pause-layout"><div class="pause-card"><span class="kicker">THE LAST DEAD / PAUSED</span><h2>${this.run?.lowTide?'SIGNAL<br><em>PAUSED.</em>':'STILL<br><em>BREATHING.</em>'}</h2><p class="pause-copy">${this.run?.lowTide?(this.run.lowTide.shelter?'Your checkpoint is at Netmakers. Open B / Journal to review recovered records.':'Claim Netmakers safehouse to secure your first checkpoint. Open B / Field Map to find your way.'):story?'Follow the signal through receiving, isolation, burial and the bells to stop further transfers. Side-room records reveal what happened along the way.':'The arena is waiting. Pick a line, find a target, and keep your momentum when the signal returns.'}</p><div class="pause-actions"><button class="primary-button" type="button" data-action="resume"><span>RESUME</span><kbd class="game-key" data-resume-key>${this.inputDevice==='gamepad'?'START':'ESC'}</kbd></button>${story?`<button class="secondary-button" type="button" data-action="records" aria-controls="story-records" aria-expanded="false">RECORDS ${records.length} / ${total}</button>`:''}<button class="secondary-button" type="button" data-action="restart">${this.run?.lowTide?(this.run.lowTide.shelter?'RETURN TO CHECKPOINT':'RESTART FROM DOCKS'):'RESTART RUN'}</button><button class="secondary-button" type="button" data-action="settings">SETTINGS</button>${this.devEnabled?'<button class="secondary-button" type="button" data-dev-inspect><span>FREE CAMERA</span><kbd class="game-key">F2</kbd></button>':''}<button class="text-button" type="button" data-action="menu">RETURN TO TITLE</button></div></div>${story?`<aside class="records-archive" id="story-records" aria-label="Recovered records" hidden><span class="kicker">RECOVERED EVIDENCE / ${records.length} OF ${total}</span><h3>THE DESCENT<br><em>REMEMBERS.</em></h3><div class="records-list">${journeyArchive}${archive}</div></aside>`:''}</div>
     </section>${this._settingsMarkup()}`);
     this._applyPrefs();
     return this;
@@ -775,13 +788,13 @@ export class UI {
       <aside class="bite-prompt" data-bite-prompt role="status" aria-live="polite" hidden><span class="bite-kicker" data-hud="bite-kicker">CLOSE CONTACT</span><strong data-hud="bite-label">BREAK THE GRIP</strong><span class="bite-instruction" data-hud="bite-instruction">${this.inputDevice==='gamepad'?'RB':'F'} PARRY / MOVE / KEEP FIRING</span><span class="bite-meter" aria-hidden="true"><i data-hud="bite-fill"></i></span></aside>
       <aside class="journey-prompt" data-journey-prompt hidden><strong data-hud="journey-action"></strong><span class="journey-meter"><i data-hud="journey-fill"></i></span></aside>
       <div class="extraction-prompt" data-extraction-prompt hidden><span class="extraction-kicker">CORPSE EXTRACTION</span><strong data-hud="extraction-label">HOLD ${this.inputDevice==='gamepad'?'X':'G'} / DRAIN BODY</strong><span class="extraction-meter"><i data-hud="extraction-fill"></i></span></div>
-      <div class="hud-bottom"><div class="hud-bottom-left"><div class="vitals"><div class="vitals-line"><svg class="blood-mark" viewBox="0 0 40 60" aria-hidden="true"><path d="M20 0C18 15 2 30 2 40a18 18 0 0 0 36 0C38 29 23 15 20 0Z"/><path class="blood-cut" d="M7 41L24 23L17 42L31 35L18 56"/></svg><strong data-hud="health" aria-label="Health">100</strong><span class="vital-caption">VITALS</span></div><div class="meter health-meter"><i class="health-trail" data-hud="health-trail"></i><i class="health-fill" data-hud="health-fill"></i></div><span class="wound-status" data-hud="wounds" hidden></span><span class="critical-label">FEED OR DIE</span></div><div class="dash-cluster"><div class="dash-pips"><i class="dash-pip" data-dash="0"></i><i class="dash-pip" data-dash="1"></i><i class="dash-pip" data-dash="2"></i></div><span>DASH</span></div></div>
-       <div class="hud-bottom-right"><div class="weapon-card"><div class="weapon-line"><span class="weapon-slot" data-hud="weapon-slot">01</span><strong class="weapon-name" data-hud="weapon">OSSUARY</strong></div><span class="weapon-hint" data-hud="weapon-hint">BONEFORGED // COIN RICOCHET</span><span class="arsenal-count" data-hud="arsenal-count">FULL ARSENAL</span><div class="weapon-rack">${WEAPON_NAMES.map((name,i)=>`<button type="button" data-action="equip" data-weapon="${i}" data-weapon-slot="${i}" aria-label="Equip ${name}">${weaponSigil(i)}<span>${i+1}</span></button>`).join('')}</div><span class="weapon-foot"><span data-hud="weapon-resource">COIN x4</span><span data-hud="cooldown-label">READY</span></span><div class="rifle-meter" data-rifle-meter-wrap hidden><i data-hud="rifle-meter"></i></div><div class="cooldown"><i data-hud="cooldown"></i></div></div></div></div>
+      <div class="hud-bottom"><div class="hud-bottom-left"><div class="vitals"><div class="vitals-line"><span class="life-dial" aria-hidden="true"><svg class="life-sigil" viewBox="0 0 96 96"><circle class="life-rim" cx="48" cy="48" r="44"/><circle class="life-track" cx="48" cy="48" r="35"/><circle class="life-arc" cx="48" cy="48" r="35" pathLength="100"/><path class="life-skull" d="M34 44c-2-11 3-19 14-19s16 8 14 19l-5 7v10H39V51Z"/><path class="life-cut" d="m37 38 8 3-3 7-7-3Zm22 0-8 3 3 7 7-3ZM48 45l-4 8h8M43 56v5m10-5v5"/><path class="life-tide" d="M29 66q6-4 12 0t13 0 13 0M35 71q6-4 12 0t13 0"/></svg></span><strong data-hud="health" aria-label="Health">100</strong><span class="vital-caption">LIFE</span></div><div class="meter health-meter"><i class="health-trail" data-hud="health-trail"></i><i class="health-fill" data-hud="health-fill"></i></div><span class="wound-status" data-hud="wounds" hidden></span><span class="critical-label">FEED OR DIE</span></div><div class="dash-cluster"><div class="dash-pips"><i class="dash-pip" data-dash="0"></i><i class="dash-pip" data-dash="1"></i><i class="dash-pip" data-dash="2"></i></div><span>DASH</span></div></div>
+       <div class="hud-bottom-right"><div class="weapon-card"><div class="weapon-line"><span class="weapon-slot" data-hud="weapon-slot">01</span><strong class="weapon-name" data-hud="weapon">OSSUARY</strong></div><span class="weapon-hint" data-hud="weapon-hint">PRECISION FIRE</span><span class="arsenal-count" data-hud="arsenal-count">FULL ARSENAL</span><div class="weapon-rack">${WEAPON_NAMES.map((name,i)=>`<button type="button" data-action="equip" data-weapon="${i}" data-weapon-slot="${i}" aria-label="Equip ${name}">${weaponSigil(i)}<span>${i+1}</span></button>`).join('')}</div><span class="weapon-foot"><span data-hud="weapon-resource">RMB / AIM</span><span data-hud="cooldown-label">READY</span></span><div class="rifle-meter" data-rifle-meter-wrap hidden><i data-hud="rifle-meter"></i></div><div class="cooldown"><i data-hud="cooldown"></i></div></div></div></div>
     </div>`;
   }
 
   _touchMarkup() {
-    return `<div class="touch-layer" aria-label="Touch controls" hidden><div class="touch-look" data-touch-look="true" aria-label="Drag to look"></div><div class="touch-cluster touch-left"><button class="touch-button dash" type="button" data-action="dash" aria-label="Dash">DASH</button><button class="touch-button forward" type="button" data-action="forward" aria-label="Move forward">UP</button><button class="touch-button left" type="button" data-action="left" aria-label="Strafe left">LEFT</button><button class="touch-button back" type="button" data-action="back" aria-label="Move backward">DOWN</button><button class="touch-button right" type="button" data-action="right" aria-label="Strafe right">RIGHT</button><button class="touch-button slide" type="button" data-action="slide" aria-label="Slide or slam">SLAM</button></div><button class="touch-operate" type="button" data-action="interact" aria-label="Hold to operate chapter machinery" hidden>HOLD<br>OPERATE</button><button class="touch-extract" type="button" data-action="harvest" aria-label="Hold to extract blood and heart" hidden>HOLD<br>EXTRACT</button><div class="touch-cluster touch-right"><button class="touch-button weapon" type="button" data-action="weapon" aria-label="Switch weapon">WEAP</button><button class="touch-button hook" type="button" data-action="hook" aria-label="Tether or pull">HOOK</button><button class="touch-button alt" type="button" data-action="alt" aria-label="Alternate fire">ALT</button><button class="touch-button parry" type="button" data-action="parry" aria-label="Punch or parry">PARRY</button><button class="touch-button fire" type="button" data-action="fire" aria-label="Fire">FIRE</button><button class="touch-button jump" type="button" data-action="jump" aria-label="Jump">JUMP</button></div></div>`;
+    return `<div class="touch-layer" aria-label="Touch controls" hidden><div class="touch-look" data-touch-look="true" aria-label="Drag to look"></div><div class="touch-cluster touch-left"><button class="touch-button dash" type="button" data-action="dash" aria-label="Dash">DASH</button><button class="touch-button forward" type="button" data-action="forward" aria-label="Move forward">UP</button><button class="touch-button left" type="button" data-action="left" aria-label="Strafe left">LEFT</button><button class="touch-button back" type="button" data-action="back" aria-label="Move backward">DOWN</button><button class="touch-button right" type="button" data-action="right" aria-label="Strafe right">RIGHT</button><button class="touch-button slide" type="button" data-action="slide" aria-label="Slide or slam">SLAM</button></div><button class="touch-operate" type="button" data-action="interact" aria-label="Hold to operate chapter machinery" hidden>HOLD<br>OPERATE</button><button class="touch-extract" type="button" data-action="harvest" aria-label="Hold to extract blood and heart" hidden>HOLD<br>EXTRACT</button><button class="touch-attachment" type="button" data-action="attachment" aria-label="Fire underbarrel grenade launcher" hidden>GRENADE</button><div class="touch-cluster touch-right"><button class="touch-button weapon" type="button" data-action="weapon" aria-label="Switch weapon">WEAP</button><button class="touch-button hook" type="button" data-action="hook" aria-label="Tether or pull">HOOK</button><button class="touch-button alt" type="button" data-action="alt" aria-label="Aim firearm or heavy melee strike">AIM</button><button class="touch-button parry" type="button" data-action="parry" aria-label="Punch or parry">PARRY</button><button class="touch-button fire" type="button" data-action="fire" aria-label="Fire">FIRE</button><button class="touch-button jump" type="button" data-action="jump" aria-label="Jump">JUMP</button></div></div>`;
   }
 
   _updateRoomRoute(progression) {
@@ -841,6 +854,7 @@ export class UI {
     if (touch) touch.hidden = this.screen!=='play';
     const progression = roomProgression(run);
     const health = clamp(run.health, 0, 100);
+    if(hud._lifeHealth!==health){hud._lifeHealth=health;hud.style.setProperty('--life',String(health));}
     const energy = clamp(run.energy, 0, 100);
     const style = clamp(run.style, 0, 1800);
     const waveCount = progression.waveCount;
@@ -888,7 +902,7 @@ export class UI {
         if(biteInstruction)biteInstruction.hidden=!target&&hand.phase!=='held';
         this._setHud('bite-fill','',hand.phase==='held'?Math.min(100,(hand.holdAge||0)/8*100):rat?0:clamp((hand.elapsed||0)/(hand.duration||1),0,1)*100);
       }else if(counterActive||candidate){
-        const kind=counterActive?counter.kind:candidate.kind,labels={chop:'CHOP THE ARM',twist:'TWIST THE NECK',rip:'RIP FREE',pierce:counter?.phase==='extract'?'TAKE THE HEART':counter?.phase==='recover'?'RELEASE THE BODY':'PIERCE THE CHEST'};
+        const kind=counterActive?counter.kind:candidate.kind,labels={chop:'CHOP THE ARM',twist:'TWIST THE NECK',rip:'RIP FREE',pierce:counter?.phase==='extract'?'TAKE THE HEART':counter?.phase==='recover'?'RELEASE THE BODY':'SPEAR THE BODY'};
         const input=this.inputDevice==='gamepad'?(kind==='pierce'?'R3':'RB'):(kind==='pierce'?'V':'F');
         this._setHud('bite-kicker',counterActive?'CLOSE CONTACT':'COUNTER OPENING');
         this._setHud('bite-label',counterActive?labels[kind]:`${input} / ${labels[kind]}`);
@@ -942,35 +956,27 @@ export class UI {
     this._setHud('arsenal-count',run.course?.dungeon||run.course?.scavenging?`ARSENAL ${run.ownedWeapons?.length||1} / ${WEAPON_NAMES.length}`:'FULL ARSENAL');
     this.root.querySelectorAll('[data-weapon-slot]').forEach(node=>{const index=Number(node.dataset.weaponSlot),owned=!(run.course?.dungeon||run.course?.scavenging)||run.ownedWeapons?.includes(index);node.classList.toggle('is-equipped',index===weapon);node.classList.toggle('is-locked',!owned);node.disabled=!owned;node.setAttribute('aria-pressed',String(index===weapon));node.setAttribute('aria-label',`${owned?'Equip':'Undiscovered'} ${WEAPON_NAMES[index]}`);});
     this._setHud('weapon-hint', WEAPON_HINTS[weapon]);
-    const coins = clamp(run.coinCharges, 0, 4);
-    const altCooldown = Math.max(0, Number(run.altCooldown || 0));
     const rifleHeat = clamp(run.rifleHeat, 0, 1) * 100;
-    const rifleCharge = clamp(run.rifleCharge, 0, 1) * 100;
-    const rifleBurst = clamp(Math.floor(Number(run.rifleBurst) || 0), 0, 2);
-    const rifleResource = weapon === 6
+    const touchAttachment=this.root.querySelector('.touch-attachment');if(touchAttachment)touchAttachment.hidden=weapon!==1;
+    const rifleResource = weapon === 1 ? ((run.attachmentCooldown||0)>.01 ? `GRENADE ${fmt(run.attachmentCooldown,1)}s` : this.inputDevice==='gamepad'?'LT + RB / GRENADE':'C / GRENADE') : weapon === 6
       ? (run.meleeActive ? (run.meleeProgress < .4 ? (run.meleeHeavy ? 'HEAVY SWING' : 'SWING') : 'RECOVERING') : 'ALT / HEAVY STRIKE')
       : weapon === 7 ? (run.meleeActive ? 'SHOVE' : run.sawContact > 0 ? 'CUTTING' : run.sawActive ? `REV ${fmt(run.sawRev * 100)}%` : 'HOLD FIRE / REV')
       : weapon === 4
-      ? `HEAT ${fmt(rifleHeat)}%${rifleBurst > 0 ? ` / BURST ${rifleBurst}` : ''}`
-      : weapon === 5
-        ? (run.rifleCharging && rifleCharge > 0.01 ? `CHARGE ${fmt(rifleCharge)}%` : cooldown > 0.01 ? 'RECOVERING' : 'HOLD ALT / PIERCE x3')
-        : weapon === 0 ? `COIN x${Math.floor(coins)}`
-          : weapon === 1 ? (altCooldown > 0 ? `CORE ${fmt(altCooldown, 1)}s` : 'CORE READY')
-            : weapon === 2 ? 'RAIL PIERCE' : 'BURST READY';
-    this._setHud('weapon-resource', this.inputDevice==='gamepad'?rifleResource.replace(/\bALT\b/g,'LT').replace(/\bFIRE\b/g,'RT'):rifleResource);
-    const cooldownLabel = weapon === 7 && !run.meleeActive ? (run.sawActive ? 'RUNNING' : 'IDLE') : weapon === 5 && run.rifleCharging
-      ? 'CHARGING'
+      ? `HEAT ${fmt(rifleHeat)}%`
+      : run.aim > .1 ? 'AIMING' : 'RMB / AIM';
+    this._setHud('weapon-resource', this.inputDevice==='gamepad'?rifleResource.replace(/\bALT\b|\bRMB\b/g,'LT').replace(/\bFIRE\b/g,'RT'):rifleResource);
+    const cooldownLabel = weapon === 7 && !run.meleeActive ? (run.sawActive ? 'RUNNING' : 'IDLE')
       : cooldown > 0.01 ? `${fmt(cooldown, 2)}s` : 'READY';
     this._setHud('cooldown-label', cooldownLabel);
     const cooldownNode=this.root.querySelector('[data-hud="cooldown-label"]');
     if(cooldownNode)cooldownNode.hidden=['READY','IDLE','CHARGING'].includes(cooldownLabel);
     this._setHud('cooldown', '', maxCooldown ? (1 - cooldown / maxCooldown) * 100 : 100);
     const rifleMeter = this.root.querySelector('[data-rifle-meter-wrap]');
-    rifleMeter?.toggleAttribute('hidden', weapon < 4 || weapon === 6);
+    rifleMeter?.toggleAttribute('hidden', weapon !== 4 && weapon !== 7);
     rifleMeter?.classList.toggle('is-heat', weapon === 4);
     rifleMeter?.classList.toggle('is-charge', weapon === 5);
     rifleMeter?.classList.toggle('is-saw', weapon === 7);
-    this._setHud('rifle-meter', '', weapon === 7 ? clamp(run.sawRev,0,1)*100 : weapon === 4 ? rifleHeat : rifleCharge);
+    this._setHud('rifle-meter', '', weapon === 7 ? clamp(run.sawRev,0,1)*100 : weapon === 4 ? rifleHeat : 0);
     this._setHud('network', network || 'OFFLINE');
     const networkNode=this.root.querySelector('[data-hud="network"]');
     if(networkNode)networkNode.hidden=!network||['SOLO','OFFLINE'].includes(network);
@@ -1058,6 +1064,11 @@ export class UI {
         if(transmission){transmission.hidden=!(run.lowTideNotice&&run.time<run.lowTideNotice.until);if(!transmission.hidden){this._setHud('journey-source',run.lowTideNotice.title);this._setHud('journey-text',run.lowTide.answered?run.lowTideNotice.text:'Record filed / B to read in your journal');}}
       }
       if(run.coastalDestination&&nav&&!run.course.activeInterior){this._setHud('objective',`EXPLORE / ${nav.target.label.toUpperCase()}`);this._setHud('objective-sub','B · FIELD MAP / CHOOSE A DESTINATION');this._setHud('route-label',nav.distance<6?'DESTINATION REACHED':`${nav.distance} M / COAST ROAD`);}
+    }
+    const stairPrompt=basementPrompt(run,this.inputDevice);
+    if(stairPrompt){
+      if(chapterNode){chapterNode.hidden=false;this._setHud('journey-action',stairPrompt.text);this._setHud('journey-fill','',0);}
+      if(touchOperate){touchOperate.hidden=false;touchOperate.textContent='STAIRS';touchOperate.setAttribute('aria-label','Use Customs service stairs');}
     }
     return this;
   }

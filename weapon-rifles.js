@@ -1,5 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import { applyWeaponMaterialProfile, tagWeaponMechanism } from './weapon-materials.js';
+import {createShoulderStock} from './weapon-stock-geometry.js';
 
 // First-person rifle kit.  The local frame is shared with the occult weapon
 // family: +Y is up, +Z is the player's face, and -Z is the firing direction.
@@ -292,6 +293,7 @@ function buildCarrion() {
   const materials = commonMaterials('carrion');
 
   const receiver = part('receiver', root, parts);
+  receiver.scale.set(.70,.86,1);
   // A narrow folded receiver carries the eye forward through one connected
   // silhouette. Broad rear-facing silver plates used to dominate the FPS view.
   add(receiver, profile([[-.17, -.13], [-.17, .09], [-.11, .15], [.11, .15], [.17, .09], [.17, -.13], [.11, -.17], [-.11, -.17]], .59, .012), materials.steel, [0, .02, -.015], [0, 0, 0], [1, 1, 1], 'receiver-shell');
@@ -322,6 +324,7 @@ function buildCarrion() {
   const barrel = part('barrel-shroud', recoilCarriage, parts, 'carrion-barrel-shroud');
   add(barrel, new THREE.CylinderGeometry(.063, .075, .82, 16), materials.steel, [0, .04, -.55], [Math.PI / 2, 0, 0], [1, 1, 1], 'short-barrel');
   const handguard = part('stamped-handguard', root, parts);
+  handguard.scale.set(.48,.50,1);
   add(handguard, profile([[-.14, -.09], [-.14, .045], [-.09, .09], [.09, .09], [.14, .045], [.14, -.09], [.085, -.135], [-.085, -.135]], .44, .012), materials.wood, [0, -.045, -.515], [0, 0, 0], [1, 1, 1], 'handguard-shell');
   for (const z of [-.294, -.738]) {
     add(handguard, profile([[-.147, -.091], [-.147, .045], [-.095, .096], [.095, .096], [.147, .045], [.147, -.091], [.089, -.141], [-.089, -.141]], .022, .004), materials.panel, [0, -.045, z], [0, 0, 0], [1, 1, 1], `handguard-retaining-band-${z}`);
@@ -342,6 +345,8 @@ function buildCarrion() {
   ring(muzzle, .084, .005, [0, .04, -.91], materials.edge, 'muzzle-band');
 
   const magazine = part('curved-magazine', root, parts);
+  magazine.position.z=-.23;
+  magazine.scale.set(.72,.82,1);
   // A curved stamped body gives Carrion its compact, forward-driving profile.
   add(magazine, profile([[-.1, .12], [.1, .12], [.12, -.04], [.1, -.17], [.04, -.28], [-.045, -.36], [-.13, -.33], [-.16, -.23], [-.13, -.1]], .2, .022), materials.panel, [0, -.27, .16], [0, 0, 0], [1, 1, 1], 'magazine-shell');
   add(magazine, profile([[-.065, .07], [.065, .07], [.075, -.04], [.05, -.17], [-.025, -.27], [-.09, -.25], [-.105, -.15], [-.08, -.03]], .018, .004), materials.black, [0, -.27, .115], [0, 0, 0], [1, 1, 1], 'magazine-inset');
@@ -357,9 +362,10 @@ function buildCarrion() {
   const guard = part('trigger-guard', root, parts);
   tube(guard, [[0, -.01, .02], [0, -.2, .02], [0, -.27, .1], [0, -.18, .22]], [.016, .022, .021, .014], materials.edge, 9, 'trigger-guard-rail');
   const trigger = part('trigger', guard, parts, 'carrion-trigger');
-  add(trigger, new THREE.CapsuleGeometry(.016, .085, 5, 8), materials.brass, [0, -.13, .04], [Math.PI / 2, 0, 0], [1, 1, 1], 'trigger-blade');
+  add(trigger, new THREE.CapsuleGeometry(.016, .085, 5, 8), materials.brass, [0, -.13, .12], [Math.PI / 2, 0, 0], [1, 1, 1], 'trigger-blade');
 
   const rearBrace = part('rear-brace', root, parts);
+  rearBrace.scale.set(.62,.72,1);
   add(rearBrace, profile([[-.092, -.105], [.092, -.105], [.105, .04], [.07, .085], [-.07, .085], [-.105, .04]], .27, .01), materials.wood, [0, -.01, .424], [0, 0, 0], [1, 1, 1], 'stock-neck');
   add(rearBrace, profile([[-.11, -.125], [.11, -.125], [.11, .08], [.07, .11], [-.07, .11], [-.11, .08]], .042, .01), materials.black, [0, -.035, .572], [0, 0, 0], [1, 1, 1], 'brace-butt');
   add(rearBrace, profile([[-.086, -.015], [.086, -.015], [.075, .025], [-.075, .025]], .18, .007), materials.black, [0, .087, .405], [0, 0, 0], [1, 1, 1], 'stock-cheek-pad');
@@ -387,7 +393,7 @@ function buildCarrion() {
     muzzle: socket(barrel, 'muzzle', [0, .04, -1.125]),
     projectileOrigin: socket(barrel, 'projectileOrigin', [0, .04, -1.14]),
     grip: socket(root, 'grip', [0, -.27, .22]),
-    supportGrip: socket(root, 'supportGrip', [-.12, -.27, -.46]),
+    supportGrip: socket(root, 'supportGrip', [0, -.035, -.515]),
     heat: socket(barrel, 'heat', [0, .08, -.58]),
     // The shell port lives on the camera-side receiver, just behind the
     // bolt.  Keep this as a dedicated socket so the renderer can place a
@@ -406,7 +412,7 @@ function buildMourning() {
   const materials = commonMaterials('mourning');
 
   const chassis = part('chassis', root, parts);
-  chassis.scale.set(.9, .92, 1);
+  chassis.scale.set(.63, .78, 1);
   add(chassis, profile([[-.22, -.16], [-.2, .12], [-.1, .2], [.12, .19], [.2, .11], [.21, -.15], [.11, -.21], [-.14, -.2]], .56, .028), materials.steel, [0, .02, .02], [0, 0, 0], [1, 1, 1], 'long-receiver');
   add(chassis, profile([[-.17, -.1], [-.15, .11], [-.07, .15], [.09, .14], [.15, .08], [.15, -.1], [.07, -.14], [-.1, -.13]], .028, .006), materials.edge, [0, .035, .31], [0, 0, 0], [1, 1, 1], 'receiver-face');
   add(chassis, profile([[-.11, -.06], [.11, -.06], [.11, .06], [.06, .1], [-.07, .1], [-.12, .05]], .014, .003), materials.black, [0, .04, .33], [0, 0, 0], [1, 1, 1], 'receiver-inset');
@@ -427,12 +433,10 @@ function buildMourning() {
   add(chargingLever, new THREE.SphereGeometry(.043, 10, 7), materials.edge, [.105, 0, 0], [0, 0, 0], [1.15, .85, 1], 'charging-knob');
 
   const stock = part('wood-stock', root, parts);
-  // The long stock remains substantial, but its near-camera shoulder mass is
-  // narrowed enough for the wood grain and cheek-rest edge to read separately.
-  stock.scale.set(.86, .84, 1);
-  add(stock, profile([[-.19, -.16], [.18, -.16], [.18, .04], [.13, .16], [.02, .2], [-.12, .17], [-.2, .08]], .72, .03), materials.wood, [0, -.01, .35], [.09, 0, 0], [1, 1, 1], 'wood-chassis');
-  add(stock, profile([[-.17, -.06], [.17, -.06], [.15, .07], [.08, .13], [-.09, .13], [-.16, .07]], .03, .005), materials.panel, [0, .04, .715], [.09, 0, 0], [1, 1, 1], 'stock-cheek-overlay');
+  add(stock, createShoulderStock([[.07,0,.060,.055],[.18,-.01,.067,.065],[.35,-.055,.080,.095],[.58,-.09,.090,.125],[.70,-.09,.090,.125]]), materials.wood, [0,0,0], [0,0,0], [1,1,1], 'wood-chassis');
+  add(stock, createShoulderStock([[.70,-.09,.092,.127],[.725,-.09,.092,.127]]), materials.panel, [0,0,0], [0,0,0], [1,1,1], 'stock-cheek-overlay');
   const cheekRest = part('cheek-rest', stock, parts);
+  cheekRest.scale.set(.58,.65,1);
   add(cheekRest, profile([[-.14, -.03], [.14, -.03], [.12, .08], [.04, .12], [-.1, .1], [-.15, .05]], .18, .016), materials.wood, [0, .2, .08], [0, 0, 0], [1, 1, 1], 'substantial-cheek-rest');
   add(cheekRest, new THREE.BoxGeometry(.16, .018, .14), materials.edge, [0, .21, .17], [0, 0, 0], [1, 1, 1], 'cheek-rest-edge');
 
@@ -447,6 +451,8 @@ function buildMourning() {
   ring(muzzle, .17, .015, [0, .05, -1.34], materials.brass, 'marksman-muzzle-band');
 
   const magazine = part('box-magazine', root, parts);
+  magazine.position.z=-.24;
+  magazine.scale.set(.78,.82,1);
   add(magazine, profile([[-.09, .08], [.09, .08], [.1, -.24], [.05, -.31], [-.08, -.27], [-.11, -.12]], .22, .022), materials.panel, [0, -.25, .14], [0, 0, 0], [1, 1, 1], 'box-mag-shell');
   add(magazine, profile([[-.06, .05], [.06, .05], [.065, -.2], [-.05, -.23], [-.07, -.1]], .018, .004), materials.black, [0, -.25, .11], [0, 0, 0], [1, 1, 1], 'box-mag-inset');
   for (let i = 0; i < 3; i++) add(magazine, new THREE.BoxGeometry(.15, .012, .015), materials.edge, [0, -.1 - i * .07, .125], [0, 0, 0], [1, 1, 1], `box-mag-rib-${i}`);
@@ -460,6 +466,8 @@ function buildMourning() {
   supportGrip.position.set(-.13, -.25, -.65);
   supportGrip.rotation.x = -.12;
   add(supportGrip, profile([[-.08, .07], [.08, .07], [.095, -.22], [.055, -.3], [-.07, -.24], [-.09, -.07]], .19, .018), materials.wood, [0, 0, 0], [0, 0, 0], [1, 1, 1], 'wood-support-grip');
+  const supportMount=part('support-grip-mount',root,parts);
+  tube(supportMount,[[-.13,-.22,-.65],[-.13,-.10,-.65],[-.06,-.06,-.65]],[.025,.023,.020],materials.panel,10,'foregrip-barrel-mount');
 
   const optic = part('open-optic', root, parts);
   tagWeaponMechanism(optic, 'mourning-open-optic', 'z');
@@ -468,7 +476,8 @@ function buildMourning() {
   for (const z of [.16, -.12, -.42]) {
     add(optic, new THREE.BoxGeometry(.24, .025, .035), materials.brass, [0, .33, z], [0, 0, 0], [1, 1, 1], `optic-crossbar-${z}`);
   }
-  add(optic, new THREE.TorusGeometry(.088, .012, 7, 16), materials.edge, [0, .34, -.46], [Math.PI / 2, 0, 0], [1, 1, 1], 'optic-aperture');
+  // Face the bore and clear the crossbars so the opening can be aimed through.
+  add(optic, new THREE.TorusGeometry(.088, .012, 7, 16), materials.edge, [0, .39, -.46], [0, 0, 0], [1, 1, 1], 'optic-aperture');
   const chargeIndicator = part('charge-indicator', root, parts, 'mourning-charge-indicator');
   add(chargeIndicator, new THREE.BoxGeometry(.018, .025, .18), materials.black, [.145, .29, -.28], [0, 0, 0], [1, 1, 1], 'charge-window');
   const chargeBar = add(chargeIndicator, new THREE.BoxGeometry(.012, .014, .15), materials.heat, [.145, .292, -.28], [0, 0, 0], [1, 1, 1], 'charge-bar');
@@ -477,7 +486,7 @@ function buildMourning() {
   const guard = part('trigger-guard', root, parts);
   tube(guard, [[0, -.01, .02], [0, -.2, .02], [0, -.28, .1], [0, -.18, .23]], [.016, .022, .021, .014], materials.edge, 9, 'trigger-guard-rail');
   const trigger = part('trigger', guard, parts, 'mourning-trigger');
-  add(trigger, new THREE.CapsuleGeometry(.016, .09, 5, 8), materials.brass, [0, -.13, .04], [Math.PI / 2, 0, 0], [1, 1, 1], 'trigger-blade');
+  add(trigger, new THREE.CapsuleGeometry(.016, .09, 5, 8), materials.brass, [0, -.13, .14], [Math.PI / 2, 0, 0], [1, 1, 1], 'trigger-blade');
 
   const sockets = {
     muzzle: socket(barrel, 'muzzle', [0, .05, -1.44]),

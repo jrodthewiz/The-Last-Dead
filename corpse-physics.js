@@ -1,10 +1,27 @@
 import * as THREE from './vendor/three.module.js';
 import * as CANNON from './vendor/cannon-es.js';
+import {groundAt,capeNaturalHeight,capeStreamZ,capeStreamLevel,CAPE_TERRAIN} from './coastal-terrain.js';
 
 // Local cosmetic physics only. Gameplay positions, hits and authority stay in
 // engine.js. The visible imported skeleton is retained; none of these proxies
 // are rendered. cannon-es 0.20.0 is bundled with its MIT license.
 export const CORPSE_PHYSICS_LIMITS=Object.freeze({ragdolls:4,drops:12,tissueChains:2,tissuePoints:32,timestep:1/60,maxVelocity:8,maxTissueVelocity:4,maxTissueSupportAcceleration:55,maxAngularVelocity:12,wallThickness:.24,wallHeight:3.2});
+// Cannon's SAP visits static/static pairs before rejecting their masks. Here
+// only awake non-static bodies can contribute a pair. Query them against all
+// supports using Cannon's exact filter and bounding-volume tests, without
+// dropping distant supports or reducing collision detail.
+export class CorpseBroadphase extends CANNON.Broadphase {
+  collisionPairs(world,p1,p2){
+    const bodies=world.bodies,active=[];
+    for(let i=0;i<bodies.length;i++)if(bodies[i].type!==CANNON.Body.STATIC&&bodies[i].sleepState!==CANNON.Body.SLEEPING)active.push(i);
+    const activeIndices=new Set(active);
+    for(const i of active)for(let j=0;j<bodies.length;j++){
+      if(i===j||j>i&&activeIndices.has(j))continue;
+      const a=bodies[Math.min(i,j)],b=bodies[Math.max(i,j)];
+      if(this.needBroadphaseCollision(a,b))this.intersectionTest(a,b,p1,p2);
+    }
+  }
+}
 // Source geometry is shared by imported clones. Values live in each source
 // bone's local frame, never in a particular corpse's posed world frame.
 const skinEnvelopeCache=new Map(),MAX_ENVELOPE_CACHE=64;
@@ -88,15 +105,20 @@ export class CorpsePhysics{
   constructor({maxRagdolls=4,maxDrops=12,maxTissueChains=2,lifetime=18}={}){
     this.maxRagdolls=clamp(Math.floor(maxRagdolls),1,12);this.maxDrops=clamp(Math.floor(maxDrops),1,32);this.lifetime=lifetime;
     this.maxTissueChains=clamp(Math.floor(Number.isFinite(maxTissueChains)?maxTissueChains:2),1,CORPSE_PHYSICS_LIMITS.tissueChains);
-    this.rigs=new Map();this.frozen=new Map();this.drops=new Map();this.tissueChains=new Map();this.statics=[];this.lastTime=null;this.accumulator=0;this.nextId=1;this.course=null;this.disposed=false;
+    this.rigs=new Map();this.frozen=new Map();this.drops=new Map();this.tissueChains=new Map();this.statics=[];this.groundBodies=[];this.structureBodies=[];this.structureSupports=[];this.structureBounds=[];this.structureDiagnostics=null;this.terrainDiagnostics=null;this.supportHistory=new WeakMap();this.supportSnapshots=[];this.lastTime=null;this.accumulator=0;this.nextId=1;this.course=null;this.disposed=false;
     this.world=new CANNON.World({gravity:new CANNON.Vec3(0,-9.81,0),allowSleep:true,quatNormalizeSkip:0,quatNormalizeFast:false});
-    this.world.broadphase=new CANNON.SAPBroadphase(this.world);this.world.solver.iterations=12;this.world.solver.tolerance=1e-7;
+    // The coastal world contains thousands of static support colliders. A
+    // dense pair matrix clears O(bodies²) entries on every corpse step, even
+    // though only a few dynamic bodies touch them. Keep exact active pairs.
+    this.world.collisionMatrix=new CANNON.ObjectCollisionMatrix();
+    this.world.collisionMatrixPrevious=new CANNON.ObjectCollisionMatrix();
+    this.world.broadphase=new CorpseBroadphase();this.world.solver.iterations=12;this.world.solver.tolerance=1e-7;
     // Average coplanar box contacts into one friction pair. Four support
     // points retain their normal constraints without eight redundant tangents.
     this.world.narrowphase.enableFrictionReduction=true;
     const contact=this.world.defaultContactMaterial;contact.friction=.68;contact.restitution=.035;
     contact.contactEquationStiffness=3e7;contact.contactEquationRelaxation=4;contact.frictionEquationStiffness=1e7;contact.frictionEquationRelaxation=4;
-    this.steps=0;this.culledRagdolls=0;this.culledDrops=0;this.culledTissueChains=0;this.clampedFrames=0;
+    this.steps=0;this.culledRagdolls=0;this.culledDrops=0;this.culledTissueChains=0;this.clampedFrames=0;this.terrainSweepCorrections=0;this.structureSweepCorrections=0;
   }
   has(root){return this.rigs.has(root)||this.frozen.has(root);}
   get(root){return this.rigs.get(root)||this.frozen.get(root)||null;}
@@ -108,19 +130,27 @@ export class CorpsePhysics{
   syncCourseWalls(course){
     if(this.disposed)return false;
     if(course!==this.course){this.rebuild(course);return true;}
-    if((course?.dungeonRevision??0)===this.courseRevision)return false;
+    if((course?.dungeonRevision??0)===this.courseRevision&&course?.coastal?.structures===this.structureSource)return false;
     this._buildCourseStatics(course);return true;
   }
   _buildCourseStatics(course){
-    for(const body of this.statics)this.world.removeBody(body);this.statics=[];this.course=course;this.courseRevision=course?.dungeonRevision??0;
+    for(const body of this.statics)this.world.removeBody(body);this.statics=[];this.groundBodies=[];this.structureBodies=[];this.structureSupports=[];this.structureBounds=[];this.structureDiagnostics=null;this.terrainDiagnostics=null;this.course=course;this.courseRevision=course?.dungeonRevision??0;this.structureSource=course?.coastal?.structures;
     const width=Math.max(1,course?.w||12),depth=Math.max(1,course?.h||12);
-    // The gameplay ground is a flat half-space. A plane avoids expensive
-    // box-box clipping against a map-sized convex hull at every limb contact
-    // and cannot be tunneled through by a fast downward cosmetic drop.
-    const ground=new CANNON.Body({mass:0,type:CANNON.Body.STATIC,shape:new CANNON.Plane(),collisionFilterGroup:STATIC,collisionFilterMask:RAGDOLL|DROP|TISSUE});
-    ground.quaternion.setFromEuler(-Math.PI/2,0,0);this.world.addBody(ground);this.statics.push(ground);
-    const horizontal=new Map(),vertical=new Map();
-    const add=(map,line,offset)=>{if(!map.has(line))map.set(line,new Set());map.get(line).add(offset);};
+    if(course?.coastal?.terrain)this._buildTerrainGround(width*4,depth*4);
+    else{
+      // Flat courses retain their inexpensive infinite support plane.
+      const ground=new CANNON.Body({mass:0,type:CANNON.Body.STATIC,shape:new CANNON.Plane(),collisionFilterGroup:STATIC,collisionFilterMask:RAGDOLL|DROP|TISSUE});
+      ground.quaternion.setFromEuler(-Math.PI/2,0,0);this.world.addBody(ground);this.statics.push(ground);this.groundBodies.push(ground);
+    }
+    this._buildStructureStatics(this.structureSource);
+    const horizontal=new Map(),vertical=new Map(),skipped=new Set();
+    const add=(map,line,offset)=>{
+      const horizontalAxis=map===horizontal;
+      if(this.structureBounds.some(b=>horizontalAxis?line>=b.minY-1e-7&&line<=b.maxY+1e-7&&offset>=b.minX-1e-7&&offset+1<=b.maxX+1e-7:line>=b.minX-1e-7&&line<=b.maxX+1e-7&&offset>=b.minY-1e-7&&offset+1<=b.maxY+1e-7)){
+        skipped.add(`${horizontalAxis?'h':'v'}:${line}:${offset}`);return;
+      }
+      if(!map.has(line))map.set(line,new Set());map.get(line).add(offset);
+    };
     for(let z=0;z<depth;z++)for(let x=0;x<width;x++){
       const walls=course?.cells?.[z*width+x];if(!walls)continue;
       if(walls[0])add(horizontal,z,x);if(walls[2])add(horizontal,z+1,x);
@@ -137,8 +167,75 @@ export class CorpsePhysics{
       for(let i=1;i<sorted.length;i++){if(sorted[i]!==previous+1){emit(previous);start=sorted[i];}previous=sorted[i];}if(start!==undefined)emit(previous);
     }};
     merge(horizontal,true);merge(vertical,false);
+    if(this.structureDiagnostics)this.structureDiagnostics.skippedCourseWallSegments=skipped.size;
   }
-  _staticBox(position,half){const body=new CANNON.Body({mass:0,type:CANNON.Body.STATIC,position:cv(position),shape:new CANNON.Box(cv(half)),collisionFilterGroup:STATIC,collisionFilterMask:RAGDOLL|DROP|TISSUE});this.world.addBody(body);this.statics.push(body);}
+  groundHeightAt(x,z){return groundAt(this.course,x/4,z/4)*4;}
+  _buildStructureStatics(structures){
+    if(!Array.isArray(structures)||!structures.length)return;
+    let rejectedSolids=0;
+    for(const structure of structures){
+      const bounds=structure?.bounds;
+      if(!bounds||![bounds.minX,bounds.maxX,bounds.minY,bounds.maxY].every(Number.isFinite)||bounds.minX>=bounds.maxX||bounds.minY>=bounds.maxY||!Array.isArray(structure.solids))continue;
+      let built=0;
+      for(const solid of structure.solids){
+        const values=[solid.minX,solid.maxX,solid.minY,solid.maxY,solid.minZ,solid.maxZ];
+        if(!values.every(Number.isFinite)||solid.minX>=solid.maxX||solid.minY>=solid.maxY||solid.minZ>=solid.maxZ){rejectedSolids++;continue;}
+        // Course X/Y are horizontal, course Z is height; Cannon/Three are
+        // metre-scaled Y-up. Convert the shared finite box exactly once.
+        const minX=solid.minX*4,maxX=solid.maxX*4,minZ=solid.minY*4,maxZ=solid.maxY*4,bottom=solid.minZ*4,top=solid.maxZ*4;
+        const body=this._staticBox(new THREE.Vector3((minX+maxX)/2,(bottom+top)/2,(minZ+maxZ)/2),new THREE.Vector3((maxX-minX)/2,(top-bottom)/2,(maxZ-minZ)/2));
+        body.userData={structureId:structure.id,solidId:solid.id,kind:solid.kind,support:!!solid.support};this.structureBodies.push(body);built++;
+        if(solid.support){this.structureSupports.push({minX,maxX,minZ,maxZ,top,body});this.groundBodies.push(body);}
+      }
+      // A rejected/empty replacement must not remove its legacy walls.
+      if(built)this.structureBounds.push({...bounds});
+    }
+    this.structureDiagnostics={structures:this.structureBounds.length,solids:this.structureBodies.length,supports:this.structureSupports.length,rejectedSolids,skippedCourseWallSegments:0};
+  }
+  _crossedStructureSupport(previous,x,z,bottom){
+    let floor=-Infinity;
+    for(const surface of this.structureSupports){
+      // The previous *bottom*, rather than the top/centre, identifies which
+      // side of a slab owned the body. Ceiling occupants cannot be lifted up.
+      if(surface.top>previous.bottom+.003||bottom>=surface.top||surface.top<=floor||x<surface.minX||x>surface.maxX||z<surface.minZ||z>surface.maxZ)continue;
+      const fall=previous.bottom-bottom,t=fall>1e-9?clamp((previous.bottom-surface.top)/fall,0,1):0;
+      const crossX=previous.x+(x-previous.x)*t,crossZ=previous.z+(z-previous.z)*t;
+      if(crossX>=surface.minX&&crossX<=surface.maxX&&crossZ>=surface.minZ&&crossZ<=surface.maxZ)floor=surface.top;
+    }
+    return floor;
+  }
+  _terrainHeightfield(x,z,width,depth,spacing,sample){
+    const nx=Math.round(width/spacing),nz=Math.round(depth/spacing),data=Array.from({length:nz+1},(_,iz)=>Float64Array.from({length:nx+1},(_,ix)=>sample(x+ix*spacing,z+iz*spacing)));
+    const shape=new CANNON.Heightfield(data,{elementSize:spacing});
+    const body=new CANNON.Body({mass:0,type:CANNON.Body.STATIC,shape,position:new CANNON.Vec3(x,0,z),collisionFilterGroup:STATIC,collisionFilterMask:RAGDOLL|DROP|TISSUE});
+    // Cannon is z-up. Local x -> world z, local y -> world x, local z ->
+    // world y swaps horizontal axes without reversing either sample order.
+    // Both heightfields therefore split each metre cell at u+v=1. A simple
+    // -pi/2 rotation plus reversed z samples would use the wrong diagonal.
+    body.quaternion.set(-.5,-.5,-.5,.5);body.userData={ground:'heightfield',spacing,x,z,width,depth};
+    this.world.addBody(body);this.statics.push(body);this.groundBodies.push(body);return body;
+  }
+  _buildTerrainGround(width,depth){
+    this._terrainHeightfield(0,0,width,depth,1,capeNaturalHeight);
+    let samples=(width+1)*(depth+1),triangles=width*depth*2,bridgeCount=0;
+    for(const bx of CAPE_TERRAIN.bridges){
+      const z=capeStreamZ(bx),deck=capeStreamLevel(bx)+.65;
+      if(bx-2.15<0||bx+2.15>width||z-11<0||z+11>depth)continue;
+      // The authoritative bridge edge is abrupt at +/-2.15m. A combined
+      // 1m raster would raise a false strip outside the deck over the ford.
+      // Keep the precise rectangular deck and rasterize only its two short,
+      // smooth approaches at 10cm spacing. Walking under bridges is unsupported.
+      const bridge=this._staticBox(new THREE.Vector3(bx,deck-.12,z),new THREE.Vector3(2.15,.12,5.3));
+      bridge.userData={ground:'bridge-deck',x:bx,z,width:4.3,depth:10.6};this.groundBodies.push(bridge);bridgeCount++;
+      const insideHeight=(x,z)=>this.groundHeightAt(clamp(x,bx-2.15+1e-7,bx+2.15-1e-7),z);
+      this._terrainHeightfield(bx-2.15,z-11,4.3,5.7,.1,insideHeight);
+      this._terrainHeightfield(bx-2.15,z+5.3,4.3,5.7,.1,insideHeight);
+      samples+=2*58*44;triangles+=2*57*43*2;
+    }
+    this.terrainDiagnostics={spacing:1,approachSpacing:.1,width,depth,samples,triangles,bridgeCount,heightfieldBodies:1+bridgeCount*2,
+      naturalTriangleError:0,approachHeightTolerance:.003,sampleBytes:samples*8};
+  }
+  _staticBox(position,half){const body=new CANNON.Body({mass:0,type:CANNON.Body.STATIC,position:cv(position),shape:new CANNON.Box(cv(half)),collisionFilterGroup:STATIC,collisionFilterMask:RAGDOLL|DROP|TISSUE});this.world.addBody(body);this.statics.push(body);return body;}
   ensureRagdoll(root,enemy,{held=false,impulse=null,velocity=null}={}){
     if(this.disposed||!root)return null;
     const previous=this.get(root);
@@ -448,12 +545,46 @@ export class CorpsePhysics{
     for(let pass=0;pass<8;pass++){for(let i=0;i<lengths.length;i++)bound(i);for(let i=lengths.length-1;i>=0;i--)bound(i);}
     for(const body of bodies){
       limitVector(body.velocity,CORPSE_PHYSICS_LIMITS.maxTissueVelocity);
-      // Keep tiny sphere proxies above the same flat half-space even if a
-      // length correction after contacts nudges one under its support plane.
-      if(body.type===CANNON.Body.DYNAMIC&&this.statics.length&&body.position.y<handle.radius*.9){body.position.y=handle.radius*.9;if(body.velocity.y<0)body.velocity.y=0;body.aabbNeedsUpdate=true;}
+      // A constraint correction may pull a tiny sphere through its support.
+      // Preserve terrain fallback, but accept an indoor top only from the
+      // particle's previous side and actual swept crossing of that floor piece.
+      const previous=this.supportHistory.get(body),bottom=body.position.y-handle.radius*.9;
+      const structureFloor=previous?this._crossedStructureSupport(previous,body.position.x,body.position.z,bottom):-Infinity;
+      const floor=Math.max(this.groundHeightAt(body.position.x,body.position.z),structureFloor)+handle.radius*.9;
+      if(body.type===CANNON.Body.DYNAMIC&&this.statics.length&&body.position.y<floor){body.position.y=floor;if(body.velocity.y<0)body.velocity.y=0;body.aabbNeedsUpdate=true;}
     }
   }
   removeDrop(handle){if(!handle||handle.removed)return false;this._syncDrop(handle);this.world.removeBody(handle.body);this.drops.delete(handle.id);handle.removed=true;return true;}
+  _captureTerrainSupport(){
+    const previous=this.supportSnapshots;previous.length=0;
+    if(!this.terrainDiagnostics&&!this.structureSupports.length)return null;
+    for(const body of this.world.bodies){
+      if(body.type!==CANNON.Body.DYNAMIC||body.sleepState===CANNON.Body.SLEEPING&&body.collisionFilterGroup!==TISSUE||body.collisionFilterGroup===TISSUE&&!this.structureSupports.length)continue;
+      body.updateAABB();
+      let snapshot=this.supportHistory.get(body);
+      if(!snapshot){snapshot={body};this.supportHistory.set(body,snapshot);}
+      snapshot.x=body.position.x;snapshot.z=body.position.z;snapshot.bottom=body.aabb.lowerBound.y;snapshot.top=body.aabb.upperBound.y;
+      snapshot.terrain=body.collisionFilterGroup!==TISSUE&&!!this.terrainDiagnostics&&snapshot.top>=this.groundHeightAt(snapshot.x,snapshot.z)-.001;previous.push(snapshot);
+    }
+    return previous;
+  }
+  _sweepTerrainSupport(previous){
+    if(!previous)return;
+    for(const snapshot of previous){
+      const body=snapshot.body;if(body.sleepState===CANNON.Body.SLEEPING)continue;
+      body.updateAABB();const terrainFloor=snapshot.terrain?this.groundHeightAt(body.position.x,body.position.z):-Infinity;
+      const structureFloor=this._crossedStructureSupport(snapshot,body.position.x,body.position.z,body.aabb.lowerBound.y);
+      const floor=Math.max(body.aabb.upperBound.y<terrainFloor-.001?terrainFloor:-Infinity,body.aabb.upperBound.y<structureFloor-.001?structureFloor:-Infinity);
+      // Cannon's heightfield contact uses triangle top faces. A thin proxy can
+      // cross entirely below one between 60Hz steps (8m/s moves 13cm). Only
+      // repair that complete swept crossing, not normal resting penetration.
+      // Subsequent native contacts retain slope friction and joint ownership.
+      if(!Number.isFinite(floor))continue;
+      body.position.y+=floor-body.aabb.lowerBound.y+.001;
+      if(body.velocity.y<0)body.velocity.y=0;body.aabbNeedsUpdate=true;
+      if(floor===structureFloor)this.structureSweepCorrections++;else this.terrainSweepCorrections++;
+    }
+  }
   removeRagdoll(root,{restore=true}={}){
     const state=this.get(root);if(!state)return false;
     if(!state.frozen){for(const constraint of state.constraints)this.world.removeConstraint(constraint);for(const node of state.nodes)this.world.removeBody(node.body);}
@@ -486,7 +617,8 @@ export class CorpsePhysics{
           limitVector(body.velocity,CORPSE_PHYSICS_LIMITS.maxTissueVelocity);body.angularVelocity.set(0,0,0);
         }
       }
-      this.world.step(step);this.accumulator=Math.max(0,this.accumulator-step);this.steps++;
+      const terrainSupport=this._captureTerrainSupport();
+      this.world.step(step);this._sweepTerrainSupport(terrainSupport);this.accumulator=Math.max(0,this.accumulator-step);this.steps++;
       for(const handle of this.tissueChains.values())this._boundTissueChain(handle);
     }
     for(const state of [...this.rigs.values()])if(!state.held&&time-state.born>this.lifetime)this._freeze(state);
@@ -505,13 +637,14 @@ export class CorpsePhysics{
   }
   reset(){
     for(const handle of [...this.tissueChains.values()])this.removeTissueChain(handle);for(const handle of [...this.drops.values()])this.removeDrop(handle);for(const root of [...this.rigs.keys(),...this.frozen.keys()])this.removeRagdoll(root);
-    this.lastTime=null;this.accumulator=0;this.world.time=0;this.world.stepnumber=0;this.world.accumulator=0;this.steps=0;this.culledRagdolls=0;this.culledDrops=0;this.culledTissueChains=0;this.clampedFrames=0;
+    this.lastTime=null;this.accumulator=0;this.world.time=0;this.world.stepnumber=0;this.world.accumulator=0;this.steps=0;this.culledRagdolls=0;this.culledDrops=0;this.culledTissueChains=0;this.clampedFrames=0;this.terrainSweepCorrections=0;this.structureSweepCorrections=0;this.supportSnapshots.length=0;this.supportHistory=new WeakMap();
   }
-  dispose(){if(this.disposed)return;this.reset();for(const body of this.statics)this.world.removeBody(body);this.statics=[];this.course=null;this.disposed=true;}
+  dispose(){if(this.disposed)return;this.reset();for(const body of this.statics)this.world.removeBody(body);this.statics=[];this.groundBodies=[];this.structureBodies=[];this.structureSupports=[];this.structureBounds=[];this.structureDiagnostics=null;this.structureSource=null;this.terrainDiagnostics=null;this.course=null;this.disposed=true;}
   diagnostics(){return{engine:'cannon-es-0.20.0',timestep:CORPSE_PHYSICS_LIMITS.timestep,ragdolls:this.rigs.size,frozen:this.frozen.size,held:[...this.rigs.values()].filter(s=>s.held).length,drops:this.drops.size,
     tissueChains:this.tissueChains.size,tissueBodies:[...this.tissueChains.values()].reduce((n,h)=>n+h.bodies.length,0),tissueConstraints:[...this.tissueChains.values()].reduce((n,h)=>n+h.constraints.length,0),maxTissueChains:this.maxTissueChains,culledTissueChains:this.culledTissueChains,
     tissueSupportedParticles:[...this.tissueChains.values()].reduce((n,h)=>n+(h.supportPoints?h.bodies.filter((b,i)=>i>0&&b.type===CANNON.Body.DYNAMIC&&tissueSupportWeight(h,i)>0).length:0),0),maxTissueSupportAcceleration:CORPSE_PHYSICS_LIMITS.maxTissueSupportAcceleration,
     tissueCompliantGuides:[...this.tissueChains.values()].filter(h=>h.pull&&h.pullCompliance).length,
     bodies:this.world.bodies.length,dynamicBodies:this.world.bodies.filter(b=>b.type===CANNON.Body.DYNAMIC).length,constraints:this.world.constraints.length,staticColliders:this.statics.length,sleeping:this.world.bodies.filter(b=>b.sleepState===CANNON.Body.SLEEPING).length,
-    steps:this.steps,maxRagdolls:this.maxRagdolls,maxDrops:this.maxDrops,culledRagdolls:this.culledRagdolls,culledDrops:this.culledDrops,clampedFrames:this.clampedFrames,preparedSkinGeometries:skinEnvelopeCache.size,solverIterations:this.world.solver.iterations,frictionReduction:this.world.narrowphase.enableFrictionReduction,ccd:'60 Hz fixed steps, 8 m/s speed clamp; no full CCD',collisionScope:'flat floor and course wall segments; cosmetic bodies only'};}
+    terrain:this.terrainDiagnostics?{...this.terrainDiagnostics}:null,structure:this.structureDiagnostics?{...this.structureDiagnostics}:null,groundColliders:this.groundBodies.length,terrainSweepCorrections:this.terrainSweepCorrections,structureSweepCorrections:this.structureSweepCorrections,
+    steps:this.steps,maxRagdolls:this.maxRagdolls,maxDrops:this.maxDrops,culledRagdolls:this.culledRagdolls,culledDrops:this.culledDrops,clampedFrames:this.clampedFrames,preparedSkinGeometries:skinEnvelopeCache.size,solverIterations:this.world.solver.iterations,frictionReduction:this.world.narrowphase.enableFrictionReduction,ccd:this.structureSupports.length?'60 Hz native contacts plus previous-side terrain/structure swept support; 8 m/s speed clamp; no general CCD':this.terrainDiagnostics?'60 Hz native contacts plus terrain-only swept support; 8 m/s speed clamp; no general CCD':'60 Hz fixed steps, 8 m/s speed clamp; no full CCD',collisionScope:(this.terrainDiagnostics?'1m cape terrain, exact bridge decks, 0.1m approaches and course wall segments; cosmetic bodies only; no under-bridge traversal':'flat floor and course wall segments; cosmetic bodies only')+(this.structureBodies.length?'; shared finite coastal structure slabs, stairs, furniture, walls and rails':'')};}
 }

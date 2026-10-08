@@ -2,6 +2,8 @@ import * as THREE from '../../vendor/three.module.js';
 import {loadGlb} from '../load-glb.js';
 import {clone as cloneSkeleton} from '../../vendor/utils/SkeletonUtils.js';
 import {FOREGROUND_ARM_URL,installForegroundArms} from './foreground-arms.js';
+import {FPS_ARM_URL,installFPSArms} from './fps-arms.js';
+import {groundAt} from '../../coastal-terrain.js';
 
 export const SURVIVOR_MODEL_URL = new URL('./tld-survivor-v02.glb', import.meta.url).href;
 const clamp=THREE.MathUtils.clamp;
@@ -65,7 +67,8 @@ export function animateMeshySurvivor(actor,run,dt,camera=null) {
   for(const p of state.basePose){p.position.copy(p.bone.position);p.rotation.copy(p.bone.quaternion);p.scale.copy(p.bone.scale);}
   state.animation=slide>.25?'Slide':air?'Jump':moving<.1?'Idle_Relaxed':running>.5?'Run_Forward':'Walk_Forward';
   const yaw=-(run.angle||0)-Math.PI/2,back=state.firstPerson?.46-slide*.04:0;
-  actor.position.set(run.x*4+Math.sin(yaw)*back,(run.z||0)*4,run.y*4+Math.cos(yaw)*back);actor.rotation.set(0,yaw,0);
+  const feet=(groundAt(run.course,run.x,run.y)+(run.z||0))*4;
+  actor.position.set(run.x*4+Math.sin(yaw)*back,feet,run.y*4+Math.cos(yaw)*back);actor.rotation.set(0,yaw,0);
   actor.updateMatrixWorld(true);actor.getWorldQuaternion(state.actorRotation);
   if(slide>0) {
     bones.Hips.position.y-=slide*46;
@@ -78,7 +81,7 @@ export function animateMeshySurvivor(actor,run,dt,camera=null) {
   actor.updateMatrixWorld(true);state.body.skeleton.update();
   let floor=Infinity;
   for(const index of state.soleSamples){state.body.getVertexPosition(index,state.point);state.point.applyMatrix4(state.body.matrixWorld);floor=Math.min(floor,state.point.y);}
-  if(Number.isFinite(floor))actor.position.y+=(run.z||0)*4-floor;
+  if(Number.isFinite(floor))actor.position.y+=feet-floor;
   actor.updateMatrixWorld(true);
 }
 
@@ -112,6 +115,11 @@ export async function loadMeshySurvivors(renderer,state) {
       try{state.viewSleeves=installMeshyViewSleeves(renderer,arms.scene);}
       catch(error){releaseMeshyAsset(arms.scene);throw error;}
       state.armTemplate=arms.scene;state.armStatus='ready';
+      const fps=await loadGlb(FPS_ARM_URL);
+      if(state.disposed){releaseMeshyAsset(fps.scene);return;}
+      try{state.viewSleeves=installFPSArms(renderer,fps);}
+      catch(error){releaseMeshyAsset(fps.scene);throw error;}
+      state.fpsTemplate=fps.scene;state.fpsRigRevision=3;
     }catch(error){state.armStatus='fallback';state.armError=String(error?.message||error);}
   } catch(error) {state.status='fallback';state.error=String(error?.message||error);}
 }

@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import * as TSL from './vendor/three.tsl.js';
-import {shaderCompiler,geometryUv} from './webgpu-shaders.js';
+import {shaderCompiler,geometryUv,instanceMatrixNode} from './webgpu-shaders.js';
 
 const vertexSections=['uv_vertex','begin_vertex','skinning_vertex','project_vertex'];
 const fragmentSections=['clipping_planes_fragment','map_fragment','color_fragment','alphatest_fragment','roughnessmap_fragment','metalnessmap_fragment','normal_fragment_maps','lights_fragment_begin','lights_fragment_end','aomap_fragment','opaque_fragment'];
@@ -21,19 +21,31 @@ function preprocess(code,defines){
 
 // Replay only this game's authored hook edits onto explicit TSL material stages.
 // Three continues to own skinning, PBR, shadows and environment lighting.
-export function portMaterialHooks(source,material,renderer){
+export function portMaterialHooks(source,material,renderer,{baseColorNode=null}={}){
  if(source.onBeforeCompile===THREE.Material.prototype.onBeforeCompile)return;
  const shader={uniforms:{},vertexShader:`#include <common>\nvoid main(){${vertexSections.map(section).join('')}}`,fragmentShader:`#include <common>\n${section("lights_physical_pars_fragment")}\nvoid main(){${fragmentSections.map(section).join('')}}`};
  source.onBeforeCompile.call(source,shader,renderer);
+ // A positionNode's custom varying can be built before native skinning.
+ // Cut inputs use native stage IO directly; a cut alone must not install
+ // a positionNode that can cache and reapply the unskinned position.
+ const skinnedBodyCut=!!shader.uniforms.uBrutalKind;
+ if(skinnedBodyCut){
+  shader.vertexShader=shader.vertexShader.replace(/varying vec3 vBrutal(?:World|Membership);/g,'').replace(/vBrutalMembership=brutalMembership;/g,'').replace(/vBrutalWorld=\(modelMatrix\*vec4\(transformed,1\.\)\)\.xyz;/g,'');
+  shader.fragmentShader=shader.fragmentShader.replace(/varying vec3 vBrutal(?:World|Membership);/g,'');
+ }
  const definitions={USE_MAP:!!source.map,USE_COLOR:!!source.vertexColors,FLAT_SHADED:!!source.flatShading,DOUBLE_SIDED:source.side===THREE.DoubleSide,USE_INSTANCING:false};
  const clean=code=>preprocess(strip(code),definitions);
  const prefix=clean(shader.fragmentShader.split('void main')[0].replace(/\/\/tld:lights_physical_pars_fragment:start[\s\S]*?\/\/tld:lights_physical_pars_fragment:end/g,''));
  const vertexPrefix=clean(shader.vertexShader.split('void main')[0]);
  const bodies=Object.fromEntries(fragmentSections.map(name=>[name,name==='lights_fragment_begin'?'':clean(content(shader.fragmentShader,name))]));
  const safePrefix=prefix;
- const adapter={uniforms:shader.uniforms,name:source.name||source.customProgramCacheKey()};
+ const materialUniforms=skinnedBodyCut?source.userData.brutalCutUniforms:null;
+ if(materialUniforms)material.userData.brutalCutUniforms=materialUniforms;
+ const materialUniformNodes=Object.fromEntries(Object.keys(materialUniforms||{}).map(name=>[name,TSL.materialReference(`userData.brutalCutUniforms.${name}.value`,shader.uniforms[name].value.isVector3?'vec3':shader.uniforms[name].value.isVector2?'vec2':'float')]));
+ const adapter={uniforms:shader.uniforms,materialUniformNodes,name:source.name||source.customProgramCacheKey()};
  const compile=shaderCompiler(adapter,renderer);
- const bindings={baseColor:content(shader.fragmentShader,'map_fragment').includes('#include <map_fragment>')?TSL.materialColor:TSL.vec4(TSL.reference('color','color',source),1),vMapUv:geometryUv,vColor:TSL.attribute('color','vec3'),vNormal:TSL.normalView,vViewPosition:TSL.positionView.negate(),gl_FrontFacing:TSL.frontFacing,geometryNormal:TSL.normalView,baseMetalness:TSL.materialMetalness,baseRoughness:TSL.materialRoughness,baseNormal:TSL.normalView,transformed:TSL.positionLocal,map:source.map?TSL.texture(source.map):null,texture2DGradEXT:(image,uv,dx,dy)=>image.sample(uv).grad(dx,dy)};
+ const bindings={baseColor:baseColorNode||(content(shader.fragmentShader,'map_fragment').includes('#include <map_fragment>')?TSL.materialColor:TSL.vec4(TSL.reference('color','color',source),1)),vMapUv:geometryUv,vColor:TSL.attribute('color','vec3'),vNormal:TSL.normalView,vViewPosition:TSL.positionView.negate(),gl_FrontFacing:TSL.frontFacing,geometryNormal:TSL.normalView,baseMetalness:TSL.materialMetalness,baseRoughness:TSL.materialRoughness,baseNormal:TSL.normalView,transformed:TSL.positionLocal,map:source.map?TSL.texture(source.map):null,texture2DGradEXT:(image,uv,dx,dy)=>image.sample(uv).grad(dx,dy)};
+ if(skinnedBodyCut){bindings.vBrutalWorld=TSL.positionWorld;bindings.vBrutalMembership=TSL.attribute('brutalMembership','vec3');}
  const vertexCode=vertexSections.map(name=>clean(content(shader.vertexShader,name))).join('\n');
  if(vertexCode.trim()){
   const code=`${vertexPrefix}\nvoid main(){${vertexCode}\ngl_Position=vec4(transformed,1.);}`;
@@ -43,7 +55,7 @@ export function portMaterialHooks(source,material,renderer){
    material.positionNode=TSL.Fn(builder=>{
     const delta=local.sub(TSL.positionGeometry);
     if(!builder.object.isInstancedMesh)return TSL.positionLocal.add(delta);
-    const matrix=TSL.storage(builder.object.instanceMatrix,'mat4',Math.max(builder.object.instanceMatrix.count,1)).element(TSL.instanceIndex);
+    const matrix=instanceMatrixNode(builder);
     return TSL.positionLocal.add(matrix.mul(TSL.vec4(delta,0)).xyz);
    })();
   }else material.positionNode=compile(code,'vertex',bindings).xyz;
@@ -61,7 +73,7 @@ export function portMaterialHooks(source,material,renderer){
  if(bodies.opaque_fragment.trim())material.outputNode=make(bodies.roughnessmap_fragment.replace(/float roughnessFactor\s*=/g,'roughnessFactor=')+'\n'+bodies.normal_fragment_maps+'\nvec3 outgoingLight=baseOutgoing;\n'+bodies.opaque_fragment,'vec4(outgoingLight,1.)',{baseOutgoing:TSL.output.rgb});
  if(source.userData.harvestTissueAtlas)material.vertexColors=false;
  const lightCode=bodies.lights_fragment_end+'\n'+bodies.aomap_fragment;
- const incident=shader.uniforms.uHarvestIncidentLimit;
+ const incident=shader.uniforms.uHarvestIncidentLimit||shader.uniforms.uBodyIncidentLimit;
  if(lightCode.trim()||incident){
   const original=material.setupLightingModel;
   material.setupLightingModel=function(builder){
@@ -76,4 +88,5 @@ export function portMaterialHooks(source,material,renderer){
   material.setupLights=function(builder){const node=original.call(this,builder);return node?builder.renderer.lighting.createNode(node.getLights().filter(light=>!light.isSpotLight)):node;};
  }
  renderer.migration.hooks.push(source.name||source.customProgramCacheKey());
+ return {materialUniformNodes};
 }

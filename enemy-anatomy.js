@@ -7,7 +7,8 @@ const threshold={leftArm:4.5,rightArm:4.5,leftLeg:5.3,rightLeg:5.3,head:8,torso:
 const posedBodies=new WeakMap();
 // Optional rig-derived capsule positions. This read-only collision input is
 // cosmetic-pose data; all hit decisions, tissue state and revival stay here.
-export function setEnemyBodyPose(enemy,segments){posedBodies.set(enemy,{x:enemy.x,y:enemy.y,segments});}
+const bodyBase=e=>(e.groundZ||0)+(e.meleeZ||0);
+export function setEnemyBodyPose(enemy,segments){posedBodies.set(enemy,{x:enemy.x,y:enemy.y,baseZ:bodyBase(enemy),segments});}
 const dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0),sub=(a,b)=>a.map((v,i)=>v-b[i]);
 const length=v=>Math.sqrt(dot(v,v));
 const normal=v=>{const d=length(v)||1;return v.map(x=>x/d);};
@@ -25,7 +26,7 @@ export function anatomyMotion(e){
 // A small articulated capsule set makes the gap between the legs and removed
 // distal sections pass-through. These are gameplay proxies, never visible limbs.
 function bodySegments(e){
- const out=[],crawl=e.locomotion==='crawl'||e.dead,lean=crawl?-1.25:0;
+ const out=[],crawl=e.locomotion==='crawl'||e.dead,natural=e.locomotion==='crawler'&&!e.dead&&!(e.strike>0)&&e.bitePhase!=='held',lean=crawl?-1.25:0;
  const transform=p=>[p[0],p[1]*Math.cos(lean)-p[2]*Math.sin(lean)+(crawl?.025:0),p[1]*Math.sin(lean)+p[2]*Math.cos(lean)];
  const add=(part,path,radius)=>{
   if(part==='head'&&(e.neckBroken||e.wounds?.head&&!partCut(e,'head')))return;
@@ -36,11 +37,13 @@ function bodySegments(e){
    out.push({part,a:transform(path[i]),b:transform(mix(path[i],path[i+1],clamp((remain-start)/(end-start),0,1))),start,end:Math.min(end,remain),radius});
   }
  };
- add('torso',[[0,.25,0],[0,.355,0]],.060);
- add('head',[[0,.395,0],[0,.445,-.006]],.038);
+ // Natural crawlers plant four limbs under a horizontal torso. The authored
+ // head sits around .6-.85 metres; injury crawl retains its full-body collapse.
+ add('torso',natural?[[0,.140,.045],[0,.150,-.070]]:[[0,.25,0],[0,.355,0]],.060);
+ add('head',natural?[[0,.165,-.125],[0,.210,-.160]]:[[0,.395,0],[0,.445,-.006]],.038);
  for(const [side,sign]of [['left',1],['right',-1]]){
-  add(side+'Arm',[[sign*.049,.359,0],[sign*.073,.290,-.013],[sign*.064,.217,-.027]],.024);
-  add(side+'Leg',[[sign*.027,.245,0],[sign*.034,.135,0],[sign*.043,.022,-.012]],.026);
+  add(side+'Arm',natural?[[sign*.049,.150,-.070],[sign*.073,.100,-.115],[sign*.064,.035,-.180]]:[[sign*.049,.359,0],[sign*.073,.290,-.013],[sign*.064,.217,-.027]],.024);
+  add(side+'Leg',natural?[[sign*.027,.140,.045],[sign*.070,.080,.135],[sign*.043,.025,.210]]:[[sign*.027,.245,0],[sign*.034,.135,0],[sign*.043,.022,-.012]],.026);
  }
  return out;
 }
@@ -52,17 +55,19 @@ function capsuleHit(o,d,a,b,r){
  if(h>=0&&Math.abs(A)>1e-12){const v=(-B-Math.sqrt(h))/A,y=baoa+v*bard;if(v>=0&&y>0&&y<baba)t=Math.min(t,v);}
  return t;
 }
-export function traceEnemyBody(e,origin,direction,max=Infinity){
+// A read-only selector can supply freshly sampled ground without changing the
+// cached gameplay state or losing the original enemy's rig-derived capsules.
+export function traceEnemyBody(e,origin,direction,max=Infinity,baseZ=bodyBase(e)){
  if(!supportsAnatomy(e))return null;
  const posed=posedBodies.get(e);
  if(posed){
-  const o=[origin.x,origin.z,origin.y],d=normal([direction.x,direction.z,direction.y]),shift=[e.x-posed.x,0,e.y-posed.y];let best=null;
+  const o=[origin.x,origin.z,origin.y],d=normal([direction.x,direction.z,direction.y]),shift=[e.x-posed.x,baseZ-posed.baseZ,e.y-posed.y];let best=null;
   for(const segment of posed.segments){const a=segment.a.map((v,i)=>v+shift[i]),b=segment.b.map((v,i)=>v+shift[i]),t=capsuleHit(o,d,a,b,segment.radius);if(t<=max&&(!best||t<best.distance)){const axis=sub(b,a),p=o.map((v,i)=>v+d[i]*t),along=clamp(dot(sub(p,a),axis)/(dot(axis,axis)||1),0,1);best={part:segment.part,distance:t,fraction:segment.start+(segment.end-segment.start)*along};}}
   if(best)best.hit={x:origin.x+direction.x*best.distance,y:origin.y+direction.y*best.distance,z:origin.z+direction.z*best.distance,part:best.part,fraction:best.fraction};
   return best;
  }
  const facing=e.facing??Math.atan2(origin.y-e.y,origin.x-e.x),sx=-Math.sin(facing),sy=Math.cos(facing),fx=Math.cos(facing),fy=Math.sin(facing);
- const dx=origin.x-e.x,dy=origin.y-e.y,o=[dx*sx+dy*sy,origin.z-(e.meleeZ||0),-(dx*fx+dy*fy)];
+ const dx=origin.x-e.x,dy=origin.y-e.y,o=[dx*sx+dy*sy,origin.z-baseZ,-(dx*fx+dy*fy)];
  const d=normal([direction.x*sx+direction.y*sy,direction.z,-(direction.x*fx+direction.y*fy)]);
  let result=null;
  for(const segment of bodySegments(e)){
@@ -77,7 +82,7 @@ export function traceEnemyBody(e,origin,direction,max=Infinity){
 }
 export function locateBodyPart(e,hit){
  if(hit?.part&&BODY_PARTS[hit.part]!==undefined)return hit.part;
- const facing=e.facing??0,dx=(hit?.x??e.x)-e.x,dy=(hit?.y??e.y)-e.y,lateral=-dx*Math.sin(facing)+dy*Math.cos(facing),z=(hit?.z??.32)-(e.meleeZ||0),side=lateral>=0?'left':'right';
+ const facing=e.facing??0,dx=(hit?.x??e.x)-e.x,dy=(hit?.y??e.y)-e.y,lateral=-dx*Math.sin(facing)+dy*Math.cos(facing),z=(hit?.z??bodyBase(e)+.32)-bodyBase(e),side=lateral>=0?'left':'right';
  return z>=.385?'head':z<.235?side+'Leg':Math.abs(lateral)>.05?side+'Arm':'torso';
 }
 export function applyAnatomyDamage(e,amount,hit,time=0,source='bullet'){
@@ -85,7 +90,7 @@ export function applyAnatomyDamage(e,amount,hit,time=0,source='bullet'){
  const part=locateBodyPart(e,hit),previous=partCut(e,part);
  if(!previous&&part.endsWith('Arm')&&missingArm(e,part.startsWith('left')?'left':'right'))return null;
  if(part==='head'){
-  const peripheral=Number.isFinite(hit.fraction)?hit.fraction>.62:hit.z-(e.meleeZ||0)>.426&&!e.dead;
+  const peripheral=Number.isFinite(hit.fraction)?hit.fraction>.62:hit.z-bodyBase(e)>.426&&!e.dead;
   e.brainIntegrity=Math.max(0,(e.brainIntegrity??1)-amount*(source==='blunt'?.015:peripheral?.035:.10));
   if(e.brainIntegrity<=.001)e.hp=Math.min(0,e.hp);
  }
@@ -97,7 +102,7 @@ export function applyAnatomyDamage(e,amount,hit,time=0,source='bullet'){
  const finishHead=part==='head'&&(e.brainIntegrity??1)<=.001&&!e.neckBroken&&(!previous||previous.fraction>.051);
  const budgetExhausted=a.cuts.length>=ANATOMY_LIMITS.cutsPerEnemy&&(!finishHead||a.cuts.length>=ANATOMY_LIMITS.cutsPerEnemy+ANATOMY_LIMITS.brainFinishReserve);
  if(a.damage[part]<threshold[part]||part==='torso'&&!cutting||budgetExhausted)return null;
- const z=(hit.z-(e.meleeZ||0));let fraction=Number.isFinite(hit.fraction)?clamp(hit.fraction,.05,.88):part.endsWith('Leg')?clamp((.245-z)/.223,.08,.86):part.endsWith('Arm')?clamp((.359-z)/.142,.05,.88):part==='head'?clamp((z-.39)/.065,.05,.8):clamp((z-.26)/.13,.03,.9);
+ const z=hit.z-bodyBase(e);let fraction=Number.isFinite(hit.fraction)?clamp(hit.fraction,.05,.88):part.endsWith('Leg')?clamp((.245-z)/.223,.08,.86):part.endsWith('Arm')?clamp((.359-z)/.142,.05,.88):part==='head'?clamp((z-.39)/.065,.05,.8):clamp((z-.26)/.13,.03,.9);
  if(part==='head'&&(e.brainIntegrity??1)<=.001)fraction=.05;
  const facing=e.facing??0,angle=hit.angle??facing,pitch=hit.pitch||0;
  const tilt=normal([Math.sin(angle-facing)*.45,Math.cos(pitch),-Math.sin(pitch)*.65]);

@@ -1,0 +1,67 @@
+{
+  "source": "assets\\models\\afterlife-ash-witness-motion-v06.glb",
+  "sourceSha256": "c0ccf66c9bcbc9486e0677afaccaf0a3ddfb8517da23a634f22140e930aaeee4",
+  "output": "assets\\models\\afterlife-ash-witness-motion-v07.glb",
+  "outputSha256": "8bd6bfed843879ae190fa8da3e69466998289a727634cdfdfe1d708f5e30b4e0",
+  "bytes": 4193928,
+  "addedBytes": 467800,
+  "originalSixClipsSkinTexturesAndBindExact": true,
+  "clips": [
+    {
+      "name": "AshWitness_Run",
+      "duration": 0.9,
+      "strideMeters": 1.8,
+      "samples": 55,
+      "tracks": 72
+    },
+    {
+      "name": "AshWitness_Crawl",
+      "duration": 1.4,
+      "strideMeters": 0.72,
+      "samples": 85,
+      "tracks": 72
+    },
+    {
+      "name": "AshWitness_CrawlIdle",
+      "duration": 2.4,
+      "strideMeters": 0.72,
+      "samples": 145,
+      "tracks": 72
+    },
+    {
+      "name": "AshWitness_Contort",
+      "duration": 1.8,
+      "strideMeters": 0.72,
+      "samples": 109,
+      "tracks": 72
+    }
+  ],
+  "blender": "2.93.0",
+  "blend": ".art-source\\zombie-horde-v07\\zombie-motion-v07.blend",
+  "renders": [
+    "Run-0.png",
+    "Run-25.png",
+    "Run-50.png",
+    "Run-75.png",
+    "Crawl-0.png",
+    "Crawl-25.png",
+    "Crawl-50.png",
+    "Crawl-75.png",
+    "CrawlIdle-0.png",
+    "CrawlIdle-25.png",
+    "CrawlIdle-50.png",
+    "CrawlIdle-75.png",
+    "Contort-0.png",
+    "Contort-25.png",
+    "Contort-50.png",
+    "Contort-75.png"
+  ],
+  "runtimeNeedsBlender": false,
+  "geometrySource": "Existing Meshy Ash Witness / preserved v05 weighted jaw-grip rig",
+  "motionSource": "Locally authored analytical two-bone IK, baked in Blender; no third-party motion redistributed",
+  "freeSourcesReviewed": [
+    "https://quaternius.com/packs/universalanimationlibrary.html",
+    "https://quaternius.com/packs/animatedzombie.html",
+    "https://www.rokoko.com/resources/rokoko-mocap-12-free-zombie-animations"
+  ]
+}

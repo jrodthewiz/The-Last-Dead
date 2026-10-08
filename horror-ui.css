@@ -218,16 +218,14 @@
 #ui .run-clock{top:0;white-space:nowrap}
 #ui .hud-kills{padding-left:12px;border-left:1px solid #6e3a344d;color:#e05a50;font:700 8px/1 Arial,sans-serif;letter-spacing:.16em;text-shadow:0 1px 6px #000}
 
-/* Restrained body-camera treatment: a transparent scanline and edge falloff
-   give the play view a recorded feel while leaving the sightline untouched. */
+/* Clear first-person presentation: the world pass owns the image. */
 body.playing #ui[data-screen="play"]::before{
- opacity:.065;
- background-image:repeating-linear-gradient(to bottom,rgba(238,227,203,.09) 0 1px,transparent 1px 5px),linear-gradient(90deg,rgba(83,164,164,.045),transparent 22%,transparent 78%,rgba(214,77,61,.045));
- background-size:100% 5px,100% 100%;
- animation:bodycam-roll 11s steps(12,end) infinite;
+ opacity:0;
+ background:none;
+ animation:none;
 }
 body.playing #ui[data-screen="play"]::after{
- background:radial-gradient(ellipse at center,transparent 53%,rgba(0,0,0,.42) 100%),linear-gradient(90deg,rgba(79,126,133,.035),transparent 18%,transparent 82%,rgba(179,53,47,.035));
+ background:none;
 }
 @keyframes bodycam-roll{0%,100%{opacity:.06;transform:translate3d(0,0,0)}50%{opacity:.085;transform:translate3d(0,1px,0)}}
 body.playing #ui[data-screen="play"][data-reduced-motion="true"]::before{animation:none}
@@ -237,8 +235,8 @@ body.playing #ui[data-screen="play"][data-reduced-motion="true"]::before{animati
  #ui .run-clock{display:flex;top:0;left:50%;transform:translateX(-50%)}
  #ui .run-clock [data-hud="run-clock"],#ui .run-clock [data-hud="network"],#ui .run-clock [data-hud="fps"]{display:none}
  #ui .hud-kills{padding-left:0;border-left:0;font-size:7px;letter-spacing:.14em}
- body.playing #ui[data-screen="play"]::before{opacity:.045;background-size:100% 6px,100% 100%;animation:none}
- body.playing #ui[data-screen="play"]::after{background:radial-gradient(ellipse at center,transparent 52%,rgba(0,0,0,.34) 100%)}
+ body.playing #ui[data-screen="play"]::before{opacity:0;background:none;animation:none}
+ body.playing #ui[data-screen="play"]::after{background:none}
 }
 @media(pointer:coarse){body.playing #ui[data-screen="play"]::before{animation:none}}
 
@@ -384,6 +382,11 @@ body:has(#ui[data-reduced-motion="true"]) #bodycam-hud .bc-rec i{animation:none}
  #ui .hud-bottom{inset:auto 22px 20px}
  #ui .bite-prompt{left:22px;bottom:190px}
  #ui .extraction-prompt{bottom:88px}
+}
+/* Short landscape has one left-hand instruction lane; contact takes priority. */
+@media(min-width:701px) and (max-height:520px){
+ #ui .hud:has([data-bite-prompt]:not([hidden])) .objective{visibility:hidden}
+ #ui .bite-prompt{left:22px;top:16px;bottom:auto}
 }
 
 /* Leave a dedicated status row above the two rows of touch actions. */

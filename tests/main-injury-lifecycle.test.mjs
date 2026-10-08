@@ -64,14 +64,14 @@ test('guest hears host firearm cues once and rejects the local prediction echo',
 
 test('host collects final injury cues and sends terminal state in the same simulation frame',()=>{
   for(const mode of ['dead','win']){
-    const sent=[],run={mode:'play',health:8,weapon:0,cooldowns:[0],bite:{phase:'idle'}};
+    const sent=[],run={course:{},mode:'play',health:8,weapon:0,cooldowns:[0],bite:{phase:'idle'}};
     const context=vm.createContext({run,screen:'play',last:1000,frames:0,fpsClock:0,fps:60,acc:0,netClock:0,hudClock:0,fatalBiteUntil:0,
       horrorManual:false,updatePresence(){},updateWorldAudio(){},inspector:{active:false},session:{connected:true,role:'host',send:m=>sent.push(m)},pulses:new Set(),settings:{},
       updateGamepad(){},updateInspector(){},intent:()=>({}),shoot(){},tick:()=>{run.mode=mode;if(mode==='dead')run.bite.phase='terminal';},
       processEvents:()=>{context.netEvents.push({type:'bite-terminal',seq:1});},netEvents:[],
       snapshot:()=>({mode:run.mode,audioEvents:[...context.netEvents]}),
       resetInput(){},document:{exitPointerLock(){}},audio:{pause(){},setScene(){}},ui:{finish(){},hud(){}},
-      renderer:{render(){},renderMenu(){}},requestAnimationFrame(){}
+      packUI:{open:false,update(){}},renderer:{render(){},renderMenu(){}},requestAnimationFrame(){}
     });
     vm.runInContext(frameSource,context);context.frame(1010);
     const first=sent.find(m=>m.t==='snapshot');
@@ -81,11 +81,11 @@ test('host collects final injury cues and sends terminal state in the same simul
 });
 
 test('a downed guest cannot predict shot or parry sounds, and revival restores both',()=>{
-  const played=[],run={mode:'play',health:0,weapon:0,cooldowns:[0],bite:{phase:'terminal'}};
+  const played=[],run={course:{},mode:'play',health:0,weapon:0,cooldowns:[0],bite:{phase:'terminal'}};
   const context=vm.createContext({run,screen:'play',last:1000,frames:0,fpsClock:0,fps:60,acc:0,netClock:0,hudClock:0,fatalBiteUntil:0,parrySequence:0,
     horrorManual:false,updatePresence(){},updateWorldAudio(){},inspector:{active:false},session:{connected:true,role:'guest',send(){}},pulses:new Set(),settings:{},weapons:[{interval:.4}],
     updateGamepad(){},updateInspector(){},intent:()=>({fire:true}),tickPlayer(){},processEvents(){},parry(){},
-    audio:{play:type=>played.push(type)},ui:{hud(){}},renderer:{render(){},renderMenu(){}},requestAnimationFrame(){}
+    audio:{play:type=>played.push(type)},ui:{hud(){}},packUI:{open:false,update(){}},renderer:{render(){},renderMenu(){}},requestAnimationFrame(){}
   });
   const punchSource=main.split('\n').find(line=>line.startsWith('function punch('));
   vm.runInContext(frameSource+'\n'+punchSource,context);
@@ -107,7 +107,7 @@ test('host consumes a remote chest sequence once before held fire and preserves 
   updateGamepad(){},updateInspector(){},intent:()=>({}),
   processEvents(){events.push(...run.events,...peer.events);run.events=[];peer.events=[];},snapshot:()=>({}),
   resetInput(){},document:{exitPointerLock(){}},audio:{pause(){},setScene(){}},ui:{finish(){},hud(){},toast(){}},
-  renderer:{render(){},renderMenu(){}},requestAnimationFrame(){}
+  packUI:{open:false,update(){}},renderer:{render(){},renderMenu(){}},requestAnimationFrame(){}
  });
  const receiveSource=main.slice(main.indexOf('function receive('),main.indexOf('function intent('));
  vm.runInContext(receiveSource+'\n'+frameSource,context);
