@@ -50,7 +50,23 @@ try{
     assert(Math.hypot(moved.pose.x-state.pose.x,moved.pose.z-state.pose.z)>.05,'free camera moves');
     assert.equal(moved.health,state.health,'inspection freezes gameplay');
     await page.screenshot({path:`${output}/${map}.png`});
-    report.maps.push({map,readyMs,...state});
+    const timing=async()=>page.evaluate(async()=>{
+      for(let i=0;i<20;i++)await new Promise(requestAnimationFrame);
+      const intervals=[];let last=performance.now();
+      for(let i=0;i<120;i++){const now=await new Promise(requestAnimationFrame);intervals.push(now-last);last=now;}
+      intervals.sort((a,b)=>a-b);const renderer=window.__DEAD_ARRIVAL__.renderer;
+      return{medianMs:intervals[60],p95Ms:intervals[114],maxMs:intervals.at(-1),forest:renderer.harborWorld?.forest?.diagnostics()};
+    });
+    const views=[{name:'spawn',...await timing()}];
+    if(map==='island'){
+      await page.locator('[data-dev-overview]').click();
+      assert((await page.evaluate(()=>window.__DEAD_ARRIVAL__.inspector.pose.y))>300);
+      views.push({name:'full-map',...await timing()});
+      await page.screenshot({path:`${output}/island-overview.png`});
+      await page.keyboard.down('w');views.push({name:'aerial-flight',...await timing()});await page.keyboard.up('w');
+      await page.locator('[data-dev-reset]').click();
+    }
+    report.maps.push({map,readyMs,...state,views});console.log(JSON.stringify({map,views:views.map(({name,medianMs,p95Ms})=>({name,medianMs,p95Ms}))}));
   }
   await page.keyboard.press('F2');
   await page.waitForFunction(()=>!window.__DEAD_ARRIVAL__.inspector.active);

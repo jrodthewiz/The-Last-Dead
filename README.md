@@ -23,6 +23,8 @@ The launcher reuses this project's existing server and refuses to replace anothe
 
 **Dev Mode** is directly beneath Play Campaign on localhost (or with `?dev=1` on the live site). Choose **Open World** to inspect Blackwater Island or **The Last Dead** to inspect the connected dungeon. Each choice loads directly into free camera; the camera panel also lets you switch maps. Direct links are `?dev=1&inspect=1&world=island` and `?dev=1&inspect=1`. **Current Map / F2** inspects the current campaign world with simulation frozen: WASD flies, E/Space rises, Q/Ctrl descends, Shift boosts, and the mouse wheel changes speed. Click the scene to capture mouse look; Tab releases it; F2 returns to the player. Free camera is also available from pause.
 
+Use **Full Map / M** in island free camera for an overview of the entire coast, town, forest and river. **Reset View / R** returns to the entry view. Flight uses the world's existing instanced vegetation and distant crown meshes; high camera views select those distant crowns even when directly above a tree.
+
 ## Controls
 
 | Input | Action |

@@ -335,9 +335,12 @@ export function createForestVegetation({ placements = [], materials = {}, lightS
         // Keep close off-screen trees for grounded sun shadows; distant pools
         // contain only camera-visible crowns. Culling includes the full crown.
         if (!enabled || (hasCamera && (distance - tree.sphere.radius > cullDistance || (distance > lodDistances[1] && !frustum.intersectsSphere(tree.sphere))))) { tree.lod = -1; current.culledTrees++; continue; }
-        let lod = distance >= lodDistances[2] ? 2 : distance >= lodDistances[1] ? 1 : 0;
-        if (tree.lod >= 0 && tree.lod < 2 && distance < lodDistances[tree.lod + 1] * 1.06 && lod > tree.lod) lod = tree.lod;
-        if (tree.lod > 0 && distance > lodDistances[tree.lod] * .94 && lod < tree.lod) lod = tree.lod;
+        // Above the canopy, use distant crowns even directly over a tree.
+        // Ground-level LOD and the woodland visibility boundaries stay exact.
+        const lodDistance = hasCamera ? Math.hypot(distance, Math.max(0, cameraPosition.y - (tree.y + tree.height))) : distance;
+        let lod = lodDistance >= lodDistances[2] ? 2 : lodDistance >= lodDistances[1] ? 1 : 0;
+        if (tree.lod >= 0 && tree.lod < 2 && lodDistance < lodDistances[tree.lod + 1] * 1.06 && lod > tree.lod) lod = tree.lod;
+        if (tree.lod > 0 && lodDistance > lodDistances[tree.lod] * .94 && lod < tree.lod) lod = tree.lod;
         tree.lod = lod; const slot = counts[lod]++, pair = bucket.levels[lod];
         // Tree transforms/tints are immutable. Rechecking visibility or changing
         // the active count does not require rewriting a retained pool slot.

@@ -109,9 +109,10 @@
 .dev-camera-eyebrow { display:block; color:var(--game-ui-muted); font:600 9px/1.4 var(--game-ui-detail); letter-spacing:.2em; }
 .dev-camera-heading h2 { margin:7px 0 10px; font:normal 34px/1 var(--game-ui-action); letter-spacing:.05em; }
 .dev-camera-maps { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; pointer-events:auto; }
-.dev-camera-maps a { padding:7px 9px; color:var(--game-ui-muted); border:1px solid #b3beb640; text-decoration:none; font:10px/1.3 var(--game-ui-detail); }
+.dev-camera-maps a,.dev-camera-maps button { padding:7px 9px; color:var(--game-ui-muted); background:transparent; border:1px solid #b3beb640; text-decoration:none; font:10px/1.3 var(--game-ui-detail); cursor:pointer; }
+.dev-camera-maps kbd { margin-left:5px; font:inherit; }
 .dev-camera-maps a[aria-current="page"] { color:var(--game-ui-paper); border-color:var(--game-ui-signal); }
-.dev-camera-maps a:hover,.dev-camera-maps a:focus-visible { color:var(--game-ui-paper); outline:1px solid var(--game-ui-signal); }
+.dev-camera-maps a:hover,.dev-camera-maps a:focus-visible,.dev-camera-maps button:hover,.dev-camera-maps button:focus-visible { color:var(--game-ui-paper); outline:1px solid var(--game-ui-signal); }
 .dev-camera-status { display:flex; align-items:center; gap:8px; color:var(--game-ui-signal); font:600 9px/1.4 var(--game-ui-detail); letter-spacing:.13em; }
 .dev-camera-status i { width:7px; height:9px; border-left:2px solid currentColor; border-right:2px solid currentColor; }
 .dev-camera-dock { position:absolute; left:0; right:0; bottom:0; padding:32px max(32px,env(safe-area-inset-right,0px)) max(20px,env(safe-area-inset-bottom,0px)) max(32px,env(safe-area-inset-left,0px)); background:linear-gradient(0deg,#050b0beb,#050b0bb8 60%,transparent); }

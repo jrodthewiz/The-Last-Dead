@@ -180,7 +180,10 @@ function updateInspector(dt){
  }
  inspectorPanel?.update({active:inspector.active&&screen==='play',pose:inspector.pose,speed:inspector.speed,pointerLocked:document.pointerLockElement===canvas,course:run.course});
 }
-document.addEventListener('click',event=>{if(event.target.closest('[data-dev-inspect]'))requestInspector({enter:screen==='pause'});if(inspector.active&&event.target.closest('[data-dev-capture]')){document.activeElement?.blur();if(document.pointerLockElement===canvas){resetInput();document.exitPointerLock?.();}else pointerLock();}if(inspector.active&&event.target.closest('[data-dev-reset]')){inspector.reset();renderer.freeCamera=inspector.pose;}});
+function inspectFullMap(){
+ if(inspector.active&&screen==='play'&&inspector.overview(run.course,renderer.camera.aspect)){resetInput();renderer.freeCamera=inspector.pose;}
+}
+document.addEventListener('click',event=>{if(event.target.closest('[data-dev-inspect]'))requestInspector({enter:screen==='pause'});if(event.target.closest('[data-dev-overview]'))inspectFullMap();if(inspector.active&&event.target.closest('[data-dev-capture]')){document.activeElement?.blur();if(document.pointerLockElement===canvas){resetInput();document.exitPointerLock?.();}else pointerLock();}if(inspector.active&&event.target.closest('[data-dev-reset]')){inspector.reset();renderer.freeCamera=inspector.pose;}});
 // Capture developer inputs before the game's weapon/ability shortcuts.
 addEventListener('keydown',event=>{
  if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;
@@ -191,6 +194,7 @@ addEventListener('keydown',event=>{
  event.preventDefault();event.stopImmediatePropagation();keys.add(event.code);
  if(event.code==='KeyH'&&!event.repeat)inspectorPanel?.toggleHelp();
  if(event.code==='KeyR'&&!event.repeat)inspector.reset();
+ if(event.code==='KeyM'&&!event.repeat)inspectFullMap();
 },true);
 addEventListener('mousemove',event=>{if(inspector.active&&screen==='play'&&document.pointerLockElement===canvas){event.stopImmediatePropagation();inspector.look(event.movementX*settings.sensitivity,event.movementY*settings.sensitivity);}},true);
 canvas.addEventListener('wheel',event=>{if(inspector.active&&screen==='play'){event.preventDefault();event.stopImmediatePropagation();inspector.changeSpeed(event.deltaY<0?1:-1);}},{capture:true,passive:false});

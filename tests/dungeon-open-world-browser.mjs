@@ -6,8 +6,9 @@ import {startServer} from '../server.mjs';
 import {guardBackgroundInput,backgroundInputState} from '../tests/background-input-guard.mjs';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_PATH||'playwright');
 const shortRoute=process.env.DUNGEON_SHORT_ROUTE==='1';
-const output=resolve('output/playwright/dungeon-open-world');await mkdir(output,{recursive:true});
-const server=await startServer({root:resolve('dist'),port:0});
+const output=resolve(process.env.DUNGEON_OUTPUT||'output/playwright/dungeon-open-world');await mkdir(output,{recursive:true});
+const server=process.env.DUNGEON_URL?null:await startServer({root:resolve('dist'),port:0});
+const gameUrl=process.env.DUNGEON_URL||`http://127.0.0.1:${server.port}/`;
 const report={scope:'Built game; fresh Play Campaign and real E/Q stair interactions in an owned headless browser. Controlled poses and floor-ready state for backtracking; no combat-completion claim.',errors:[],httpErrors:[],views:[],areas:[]};
 let browser,page,progressTimer;
 const save=()=>writeFile(`${output}/report.json`,JSON.stringify(report,null,2));
@@ -28,7 +29,7 @@ try{
   };
  });
  page.on('pageerror',e=>report.errors.push(String(e)));page.on('console',m=>{if(m.type()==='error'){report.errors.push(m.text());console.log('GPU ERROR',m.text());}});page.on('response',r=>{if(r.status()>=400)report.httpErrors.push({url:r.url(),status:r.status()});});
- await page.goto(`http://127.0.0.1:${server.port}/?debug=1&horrorqa=1&worldSeed=7317`);
+ await page.goto(`${gameUrl}?debug=1&horrorqa=1&worldSeed=7317`);
  await page.waitForFunction(()=>window.__DEAD_ARRIVAL__,null,{timeout:90000});
  await page.locator('[data-action="start"]').click();
  await page.waitForFunction(()=>window.__DEAD_ARRIVAL__.screen==='play',null,{timeout:480000});
@@ -65,4 +66,4 @@ try{
  report.inputSafety=await backgroundInputState(page);assert.deepEqual(report.inputSafety.attempts,{pointerLock:0,fullscreen:0,keyboardLock:0});
  if(process.env.DUNGEON_GPU_PROBE==='1')report.gpuBuffers=await page.evaluate(()=>window.__QA_GPU_BUFFERS__.filter(r=>r.destroyed));assert.deepEqual(report.errors,[]);assert.deepEqual(report.httpErrors,[]);report.passed=true;console.log('Dungeon/world browser journey passed');await save();
  }catch(e){report.failure=String(e.stack||e);try{report.loading=await page.evaluate(()=>{const q=window.__DEAD_ARRIVAL__;return {screen:q.screen,stage:q.renderer._preparationStage,history:q.renderer._preparationHistory};});await page.screenshot({path:`${output}/failure.png`});}catch{}await save();throw e;}
-finally{clearInterval(progressTimer);await browser?.close();await new Promise(resolve=>server.server.close(resolve));}
+finally{clearInterval(progressTimer);await browser?.close();if(server){server.server.closeAllConnections?.();await new Promise(resolve=>server.server.close(resolve));}}

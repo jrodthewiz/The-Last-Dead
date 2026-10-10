@@ -96,6 +96,17 @@ test('far crown volumes retain overhead coverage without new draw pools or losin
   } finally {forest.dispose();}
 });
 
+test('high inspection cameras retain woodland using distant crowns even directly above the trees',()=>{
+ const p=placement('aerial-tree'),forest=createForestVegetation({placements:[p],loadTextures:false,cullDistance:900});
+ try{
+  const camera=new THREE.PerspectiveCamera(75,1,.1,2400);
+  camera.position.set(p.x,300,p.z);camera.lookAt(p.x,0,p.z);forest.update(camera,1,true);
+  const stats=forest.diagnostics();assert.equal(stats.visibleTrees,1);assert.deepEqual(stats.lodTrees,[0,0,1]);
+  camera.position.set(p.x+2,1.7,p.z);camera.lookAt(p.x,5,p.z);forest.update(camera,2,true);
+  assert.deepEqual(forest.diagnostics().lodTrees,[1,0,0]);
+ }finally{forest.dispose();}
+});
+
 test('seeded placements reuse templates and keep exact world ground contact inside trunk proxies', () => {
   const placements = [placement('one'), placement('two', { x: 197, y: 1.75, z: 273, height: 24, yaw: .8, collisionRadius: .4 }), placement('three', { x: 214, height: 8 })];
   const a = createForestVegetation({ placements, loadTextures: false }), b = createForestVegetation({ placements, loadTextures: false });

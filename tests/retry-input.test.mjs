@@ -13,7 +13,7 @@ function fixture(screen='play'){
  const context=vm.createContext({screen,document,run,inspector:{active:false},packUI:{isOpen:false},keys:new Set(),pulses:new Set(),
   ui:{toast:message=>messages.push(message),escape:()=>false,root:{dataset:{}}},
   restart:()=>{context.retries=(context.retries||0)+1;},pause:()=>{context.screen='pause';},resume:()=>{context.screen='play';},
-  addEventListener:(_,listener)=>{context.listener=listener;},switchWeapon(){},requestVermin(){},punch(){},requestChest(){},grapple(){},hookSequence:0,session:null});
+  addEventListener:(_,listener)=>{context.listener=listener;},getActiveVehicle:()=>null,switchWeapon(){},requestVermin(){},punch(){},requestChest(){},grapple(){},hookSequence:0,session:null});
  vm.runInContext(handler,context);
  const press=(code,repeat=false)=>{const event={code,repeat,preventDefault(){this.prevented=true;}};context.listener(event);return event;};
  return{context,run,course,document,messages,press};

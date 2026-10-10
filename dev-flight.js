@@ -10,6 +10,15 @@ export class DevFlight {
   }
   leave() { this.active = false; }
   reset() { if (this.origin) this.pose = { ...this.origin }; }
+  overview(course, aspect = 1) {
+    if (!course?.coastal || !Number.isFinite(aspect) || aspect <= 0) return false;
+    const width = course.w * 4, depth = course.h * 4;
+    if (!(width > 0 && depth > 0)) return false;
+    // Match free camera's vertical FOV and fit either viewport orientation.
+    const height = Math.max(depth, width / aspect) / (2 * Math.tan(75 * Math.PI / 360)) * 1.15 + 24;
+    this.pose = { x: width / 2, y: height, z: depth / 2, angle: Math.PI / 2, pitch: -Math.PI / 2 + .01 };
+    return true;
+  }
   look(dx, dy) {
     this.pose.angle += dx * .002;
     this.pose.pitch = Math.max(-Math.PI / 2 + .01, Math.min(Math.PI / 2 - .01, this.pose.pitch - dy * .002));
