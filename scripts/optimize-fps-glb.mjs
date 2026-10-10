@@ -17,9 +17,10 @@ for(const clip of doc.animations){
 }
 const live=new Set();for(const m of doc.meshes)for(const p of m.primitives){Object.values(p.attributes).forEach(i=>live.add(i));if(p.indices!==undefined)live.add(p.indices);for(const t of p.targets||[])Object.values(t).forEach(i=>live.add(i));}
 for(const skin of doc.skins)live.add(skin.inverseBindMatrices);for(const clip of doc.animations)for(const s of clip.samplers){live.add(s.input);live.add(s.output);}
-const accessorIndices=[...live].sort((a,b)=>a-b),accessorMap=new Map(accessorIndices.map((v,i)=>[v,i])),viewIndices=[...new Set(accessorIndices.map(i=>doc.accessors[i].bufferView))].sort((a,b)=>a-b),viewMap=new Map(viewIndices.map((v,i)=>[v,i]));
+const accessorIndices=[...live].sort((a,b)=>a-b),accessorMap=new Map(accessorIndices.map((v,i)=>[v,i])),viewIndices=[...new Set([...accessorIndices.map(i=>doc.accessors[i].bufferView),...(doc.images||[]).map(image=>image.bufferView).filter(i=>i!==undefined)])].sort((a,b)=>a-b),viewMap=new Map(viewIndices.map((v,i)=>[v,i]));
 const chunks=[];let length=0;doc.bufferViews=viewIndices.map(i=>{const v=doc.bufferViews[i],b=binary.subarray(v.byteOffset||0,(v.byteOffset||0)+v.byteLength);if(length%4){const pad=Buffer.alloc(4-length%4);chunks.push(pad);length+=pad.length;}const result={...v,byteOffset:length,buffer:0};chunks.push(b);length+=b.length;return result;});
 doc.accessors=accessorIndices.map(i=>({...doc.accessors[i],bufferView:viewMap.get(doc.accessors[i].bufferView)}));
+for(const image of doc.images||[])if(image.bufferView!==undefined)image.bufferView=viewMap.get(image.bufferView);
 for(const m of doc.meshes)for(const p of m.primitives){for(const k of Object.keys(p.attributes))p.attributes[k]=accessorMap.get(p.attributes[k]);if(p.indices!==undefined)p.indices=accessorMap.get(p.indices);for(const t of p.targets||[])for(const k of Object.keys(t))t[k]=accessorMap.get(t[k]);}
 for(const skin of doc.skins)skin.inverseBindMatrices=accessorMap.get(skin.inverseBindMatrices);for(const clip of doc.animations)for(const s of clip.samplers){s.input=accessorMap.get(s.input);s.output=accessorMap.get(s.output);}
 if(length%4){chunks.push(Buffer.alloc(4-length%4));length+=4-length%4;}doc.buffers=[{byteLength:length}];let encoded=Buffer.from(JSON.stringify(doc));if(encoded.length%4)encoded=Buffer.concat([encoded,Buffer.alloc(4-encoded.length%4,32)]);

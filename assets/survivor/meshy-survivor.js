@@ -2,7 +2,7 @@ import * as THREE from '../../vendor/three.module.js';
 import {loadGlb} from '../load-glb.js';
 import {clone as cloneSkeleton} from '../../vendor/utils/SkeletonUtils.js';
 import {FOREGROUND_ARM_URL,installForegroundArms} from './foreground-arms.js';
-import {FPS_ARM_URL,installFPSArms} from './fps-arms.js';
+import {FPS_ARM_URL,FPS_ARM_REVISION,installFPSArms} from './fps-arms.js';
 import {groundAt} from '../../coastal-terrain.js';
 
 export const SURVIVOR_MODEL_URL = new URL('./tld-survivor-v02.glb', import.meta.url).href;
@@ -119,7 +119,7 @@ export async function loadMeshySurvivors(renderer,state) {
       if(state.disposed){releaseMeshyAsset(fps.scene);return;}
       try{state.viewSleeves=installFPSArms(renderer,fps);}
       catch(error){releaseMeshyAsset(fps.scene);throw error;}
-      state.fpsTemplate=fps.scene;state.fpsRigRevision=3;
+      state.fpsTemplate=fps.scene;state.fpsRigRevision=FPS_ARM_REVISION;
     }catch(error){state.armStatus='fallback';state.armError=String(error?.message||error);}
   } catch(error) {state.status='fallback';state.error=String(error?.message||error);}
 }

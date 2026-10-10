@@ -1,0 +1,17 @@
+# City life and transport pass
+
+The player explores an abandoned coastal town, searches buildings for useful supplies, and chooses between quieter walking routes and faster transport while infected residents notice and pursue them. Keep the existing Customs basement, mission progression, equipment, and source game identity.
+
+The first loop is to see a reachable supply marker, choose whether to approach a nearby resident or cross to another building, collect withQ, then reach a usable car. Cars provide enter/drive/reverse/brake/exit. A utility helicopter provides enter, rotor startup, takeoff, flight, controlled approach, landing and grounded exit. Items disappear when collected and change the backpack. Recognition, body/head turning and pursuit need visible real animation, including injured and runner variants. Death and normal restart remain the failure/retry path.
+
+Street enrichment follows actual addresses and activity: refuse, repairs, evacuation remnants, broken vehicles and vegetation occupying sheltered sidewalk pockets. Keep entrances, road lanes, basements and carried support contacts usable. Seeded interior loot varies across worlds and supports explicit replay seeds. Markers and prompts identify real collectable items with wall and range checks; no lights per item.
+
+Canonical simulation uses engine x/y in four-metre cells and visual worldX/Z in metres; worldY is up. Vehicle models use local+X forward/+Y up/+Z right. Flight altitude is metres above the world datum. Proposed motion is collision-resolved before committing state; meshes and cameras read committed state. Car resolution observes other canonical vehicles; zombie horde communications use a frame-start spatial snapshot. Existing terrain and building/forest authority supply ground and aerial constraints.
+
+The vehicle pass extends the existing fixed-step arcade controller and swept primitive checks. It provides GTA-style entering, driving and flying controls; it does not introduce a general rigid-body traffic simulator. Preserve the original quest truck and its mission counter separately from other active vehicles. Mutable fleet state belongs to a run; frozen static obstacle indexes and cached course layouts remain intact.
+
+Current exclusive owners: zombie_city owns population/AI/animation plus engine spawn and enemy-update hunks; scene_performance owns car/flight/collision/model/maritime modules; canopy_polish owns street layout/visuals, burnt-car kit, interior loot and pickup visuals. Root owns shared engine integration outside enemy hunks, main controls/snapshots/events, chase cameras, HUD, world attachment, build and native verification. Workers must accommodate shared edits.
+
+Verify real-key pickup, removal and full-pack behavior; roaming→recognition→turn→pursuit, injured walking and blocked sight; car enter/drive/steer/reverse/brake/exit and restart; helicopter startup/takeoff/flight/land/exit, blocked airborne exit and recovery. Capture actual gameplay, contacts and silhouettes in nativeWebGPU, plus compile/load errors and measured submission/resource/AI-operation counts. Do not infer gameplayFPS or physicalGPU memory from static counters. Any additional animation purchase requires a specific asset need and the user's approval.
+
+The earlier court candidate's independent art score is8.4375 with mechanical acceptance still pending the corrected native walking fixture. The requested8.5 remains open and is not awarded for feature count or passing tests.

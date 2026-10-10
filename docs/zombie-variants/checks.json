@@ -1,0 +1,46 @@
+{
+  "verifiedAt": "2026-10-04T19:51:44.610Z",
+  "regression": {
+    "command": "node --test --test-isolation=none enemy-ai.test.mjs engine.test.mjs tests/zombie-appearances.test.mjs tests/zombie-horde.test.mjs tests/zombie-motion-v07.test.mjs tests/zombie-asset-v07.test.mjs tests/enemy-animation-quality.test.mjs tests/character-rig-v05.test.mjs tests/harbor-navigation.test.mjs tests/coastal-corpse-ground.test.mjs",
+    "passed": 96,
+    "failed": 0,
+    "log": "output/zombie-variants-regression-tests.log"
+  },
+  "integration": {
+    "command": "node --test --test-isolation=none tests/loading-preparation.test.mjs tests/enemy-anatomy.test.mjs tests/enemy-cut-preview.test.mjs tests/corpse-physics.test.mjs tests/afterlife-enemy.test.mjs tests/blackwater-actor-style.test.mjs tests/blackwater-actor-integration.test.mjs tests/runtime-clone.test.mjs",
+    "passed": 55,
+    "failed": 0,
+    "log": "output/zombie-variants-integration-tests.log"
+  },
+  "finalColoredAtlasCorrection": {
+    "command": "node --test --test-isolation=none tests/blackwater-actor-style.test.mjs tests/blackwater-actor-integration.test.mjs tests/zombie-appearances.test.mjs tests/loading-preparation.test.mjs",
+    "passed": 33,
+    "failed": 0,
+    "evidence": "Integrator tool receipt, exit 0, duration 1869.0702ms; no saved log",
+    "diagnosticOnlySubsetPassed": 18
+  },
+  "packedAssets": {
+    "passed": 6,
+    "failed": 0,
+    "receipt": "docs/zombie-variants/packed-runtime-validation.json",
+    "log": "output/zombie-variant-packed-assets-tests.log"
+  },
+  "productionBuild": {
+    "command": "node build.mjs",
+    "result": "PASS",
+    "log": "output/zombie-variants-build.log"
+  },
+  "finalBrowser": {
+    "result": "PASS",
+    "source": "output/playwright/zombie-variants/source-final/report.json",
+    "production": "output/playwright/zombie-variants/production-final/report.json",
+    "comparison": "output/playwright/zombie-variants/production-final/verification.json",
+    "testedRuntimeModulesStillMatch": true,
+    "consolePageHttpAndRequestFailures": 0,
+    "nativeBrowserIsolation": true,
+    "naturalResidents": 8,
+    "generatedIdentities": 3,
+    "originalIdentity": "ash-witness",
+    "priorDeviceLossDiagnostic": "output/playwright/zombie-variants/production/report.json"
+  }
+}

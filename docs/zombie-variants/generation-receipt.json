@@ -1,0 +1,100 @@
+{
+  "verifiedAt": "2026-10-04T19:36:00.699Z",
+  "provider": "Meshy",
+  "credentialSource": "Read-only Dogfight/.env",
+  "authorization": "User requested a few new Meshy zombie variations using their account",
+  "generatedCharacters": 3,
+  "providerAnimationJobs": 0,
+  "consumedCredits": 115,
+  "costEvidence": "Meshy task consumed_credits fields; no signed model URLs or credential values copied",
+  "sourceAndProductionAssetDigestsMatch": true,
+  "variants": [
+    {
+      "id": "drowned-dockworker",
+      "stages": [
+        {
+          "stage": "preview",
+          "taskId": "01a10849-9f4c-7517-b273-dfc37efc24f5",
+          "status": "SUCCEEDED",
+          "consumedCredits": 20
+        },
+        {
+          "stage": "refine",
+          "taskId": "01a1084e-4ab4-75be-89e6-0b0defdd2d61",
+          "status": "SUCCEEDED",
+          "consumedCredits": 10
+        },
+        {
+          "stage": "rig",
+          "taskId": "01a10855-66af-72dc-b502-2463da13be24",
+          "status": "SUCCEEDED",
+          "consumedCredits": 5
+        }
+      ],
+      "credits": 35,
+      "bytes": 6142224,
+      "sha256": "203db1296f824b9b3fd55c2ed60a3e18428c51a29e509565f0bc83bdf9e355cf",
+      "triangles": 20771
+    },
+    {
+      "id": "fever-runner",
+      "stages": [
+        {
+          "stage": "preview",
+          "taskId": "01a1084a-cc20-75ac-818c-84c7cc565cf4",
+          "status": "SUCCEEDED",
+          "consumedCredits": 20
+        },
+        {
+          "stage": "refine",
+          "taskId": "01a1084e-63eb-76f4-b974-7640876ea5a4",
+          "status": "SUCCEEDED",
+          "consumedCredits": 10
+        },
+        {
+          "stage": "retexture",
+          "taskId": "01a10859-5a5c-7433-b61a-38e77e57742f",
+          "status": "SUCCEEDED",
+          "consumedCredits": 10
+        },
+        {
+          "stage": "rig",
+          "taskId": "01a1085c-67f3-75fa-927a-9e89b8eaf39a",
+          "status": "SUCCEEDED",
+          "consumedCredits": 5
+        }
+      ],
+      "credits": 45,
+      "bytes": 5977964,
+      "sha256": "1df86f804d90f17133f1b12b10e363115873e22960a02cb141d939d741dca39f",
+      "triangles": 20812
+    },
+    {
+      "id": "crooked-crawler",
+      "stages": [
+        {
+          "stage": "preview",
+          "taskId": "01a1084a-e53f-7636-973d-7fb85f4475c3",
+          "status": "SUCCEEDED",
+          "consumedCredits": 20
+        },
+        {
+          "stage": "refine",
+          "taskId": "01a1084e-7b8b-7550-9200-e56b2d09d2bb",
+          "status": "SUCCEEDED",
+          "consumedCredits": 10
+        },
+        {
+          "stage": "rig",
+          "taskId": "01a10855-c400-7633-bd40-7ab97b516a21",
+          "status": "SUCCEEDED",
+          "consumedCredits": 5
+        }
+      ],
+      "credits": 35,
+      "bytes": 6091588,
+      "sha256": "1555d0af772e36e583dfeb778ad8e7cb927862f298668afc43873a72f4074b1a",
+      "triangles": 20759
+    }
+  ]
+}

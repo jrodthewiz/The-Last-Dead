@@ -1,0 +1,34 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
+import * as THREE from '../vendor/three.module.js';
+import {makeHarborCourse} from '../output/qa-runtime/island-environment-v86/harbor-course.js';
+import {makeCoastalCityLife as priorCity} from '../output/qa-runtime/island-environment-v86/coastal-city-life-layout.js';
+import {makeCoastalCityLife,burntEstateGutterSiteClear,cityLifeSiteClear} from '../coastal-city-life-layout.js';
+import {buildCoastalCityLife} from '../coastal-city-life-visuals.js';import {capeGroundHeight} from '../coastal-terrain.js';import {canStand} from '../engine.js';
+const course=makeHarborCourse({openWorld:true,cityLootSeed:7317}),clean={...course,obstacles:course.obstacles.filter(p=>!p.id?.startsWith('city-life-'))},options={seed:7317,extraExclusions:[{minX:85,maxX:108,minZ:100,maxZ:119}]},data=makeCoastalCityLife(clean,options),
+ community=data.communities.find(c=>c.story==='burnt-estate-failed-drain'),own=data.parts.filter(p=>p.community===community?.id),owner=course.coastal.maritime.cars.find(p=>p.id==='street-main-16-resident'),report={scope:'CPU prepared fixture; no native score/FPS claim',census:data.diagnostics,community,seedSweep:[]};
+function envelope(p){const c=Math.abs(Math.cos(p.yaw)),s=Math.abs(Math.sin(p.yaw));return{hx:(p.width*c+p.depth*s)/2,hz:(p.width*s+p.depth*c)/2};}
+test('tenth scene preserves all original nine communities, ordered parts and colliders across five seeds',()=>{
+ for(const seed of[1,71003,7317,8319,17031]){const opts={...options,seed},old=priorCity(clean,opts),next=makeCoastalCityLife(clean,opts),n=next.communities.find(c=>c.story==='burnt-estate-failed-drain');assert(n);assert.equal(next.communities.length,10);assert.deepEqual(next.communities.slice(0,9),old.communities);assert.deepEqual(next.parts.filter(p=>p.community!==n.id),old.parts);assert.deepEqual(next.obstacles,old.obstacles);assert.deepEqual(makeCoastalCityLife(clean,{...opts,burntDrain:false}),old);assert(next.diagnostics.grass<=640&&next.diagnostics.props<=152);assert.equal(n.grass,96);assert.equal(n.props,16);report.seedSweep.push({seed,...next.diagnostics});}
+ assert.equal(data.diagnostics.grass,639);assert.equal(data.diagnostics.props,148);assert.deepEqual(community.catches.map(c=>c.grass),[52,28,16]);
+});
+test('every full rotated part envelope occupies actual supported gutter outside car, sidewalk and drive strip',()=>{
+ for(const p of own){const {hx,hz}=envelope(p);assert(p.x-hx>=179.8&&p.x+hx<=184.2&&p.z-hz>=61.70&&p.z+hz<=61.95);assert(p.z-hz>owner.bounds.maxZ);assert(p.z+hz<62);assert(p.z-hz>59.135);assert(burntEstateGutterSiteClear(clean,owner,p.x,p.z,p.width,p.depth,p.yaw,options));const base=p.shape==='grass'?p.y:p.y-p.height/2;assert(Math.abs(base-Math.max(.135,capeGroundHeight(p.x,p.z)))<1e-9);}
+ const world={...clean,obstacles:[...clean.obstacles,...data.obstacles]},samples=[];for(let x=178;x<=186;x+=.25)for(const z of[55,56,57,62.5,63,63.5]){const before=canStand(course,x/4,z/4,.16),after=canStand(world,x/4,z/4,.16);assert.equal(after,before);samples.push({x,z,clear:after});}report.routeSamples=samples.length;
+});
+test('precise owner cosmetic exemption retains all other collision, door, vehicle and explicit exclusion guards',()=>{
+ const p=own.find(p=>p.shape==='grass');assert(p);assert.equal(cityLifeSiteClear(clean,p.x,p.z,Math.hypot(p.width,p.depth)/2),false,'ordinary car safety margin remains strict');
+ assert.equal(burntEstateGutterSiteClear(clean,{...owner,x:owner.x+.01},p.x,p.z,p.width,p.depth,p.yaw),false);assert.equal(burntEstateGutterSiteClear(clean,{...owner,id:'another-car'},p.x,p.z,p.width,p.depth,p.yaw),false);
+ assert.equal(burntEstateGutterSiteClear(clean,owner,p.x,61.9,1,1,0),false);assert.equal(burntEstateGutterSiteClear(clean,owner,p.x,p.z,p.width,p.depth,p.yaw,{extraExclusions:[{minX:179,maxX:185,minZ:61,maxZ:63}]}),false);
+ const other={id:'retained-other-car',bounds:{minX:p.x-.1,maxX:p.x+.1,minZ:p.z-.1,maxZ:p.z+.1}},c={...clean,coastal:{...clean.coastal,maritime:{...clean.coastal.maritime,cars:[...clean.coastal.maritime.cars,other]}}};assert.equal(burntEstateGutterSiteClear(c,owner,p.x,p.z,p.width,p.depth,p.yaw),false);
+ const obstacle={id:'retained-wall',minX:(p.x-.1)/4,maxX:(p.x+.1)/4,minY:(p.z-.1)/4,maxY:(p.z+.1)/4};assert.equal(burntEstateGutterSiteClear({...clean,obstacles:[...clean.obstacles,obstacle]},owner,p.x,p.z,p.width,p.depth,p.yaw),false);
+ assert.equal(burntEstateGutterSiteClear({...clean,obstacles:[...clean.obstacles,{...obstacle,id:owner.id}]},owner,p.x,p.z,p.width,p.depth,p.yaw),false,'same ID cannot exempt a noncanonical solid proxy');
+ const portal={route:{frontApproach:{x:p.x,z:p.z}}},doorCourse={...clean,coastal:{...clean.coastal,blackwaterSlice:{...clean.coastal.blackwaterSlice,interiors:[...clean.coastal.blackwaterSlice.interiors,portal]}}};assert.equal(burntEstateGutterSiteClear(doorCourse,owner,p.x,p.z,p.width,p.depth,p.yaw),false);
+});
+test('actual green96 instances share existing templates and stationary bin buffers with bounded extra geometry',()=>{
+ const unitBox=new THREE.BoxGeometry(1,1,1),green=new THREE.MeshBasicMaterial({color:0x686e4c}),materials={foliage:green};for(const k of['wood','dark','paper','rust','fabric'])materials[k]=new THREE.MeshBasicMaterial();
+ const art=buildCoastalCityLife({course:{...clean,coastal:{...clean.coastal,cityLife:data}},unitBox,materials}),before=buildCoastalCityLife({course:{...clean,coastal:{...clean.coastal,cityLife:priorCity(clean,options)}},unitBox,materials}),matrix=new THREE.Matrix4();
+ assert.equal(art.diagnostics.ownedGeometries,7);assert.equal(art.diagnostics.newMaterials,0);let matched=0;
+ for(const mesh of art.root.children.filter(m=>m.material===green))for(let i=0;i<mesh.count;i++){mesh.getMatrixAt(i,matrix);if(own.some(p=>p.shape==='grass'&&Math.abs(matrix.elements[12]-p.x)<1e-4&&Math.abs(matrix.elements[14]-p.z)<1e-4)){assert([...matrix.elements].every(Number.isFinite));assert(Math.abs(matrix.elements[13]-.135)<1e-6);matched++;}}assert.equal(matched,96);assert(green.color.g>green.color.r&&green.color.g>green.color.b);
+ const versions=art.root.children.map(m=>m.instanceMatrix.version);art.root.updateMatrixWorld(true);assert.deepEqual(art.root.children.map(m=>m.instanceMatrix.version),versions);assert(art.diagnostics.bins-before.diagnostics.bins<=3);report.visual={...art.diagnostics,additionalBins:art.diagnostics.bins-before.diagnostics.bins,greenInstances:matched};let borrowedDisposed=0;unitBox.addEventListener('dispose',()=>borrowedDisposed++);art.dispose();before.dispose();assert.equal(borrowedDisposed,0);unitBox.dispose();for(const m of Object.values(materials))m.dispose();
+});
+test('save actual bounded CPU census only',()=>fs.writeFileSync('output/island-burnt-estate-gutter-census.json',JSON.stringify(report,null,2)+'\n'));

@@ -1,3 +1,4 @@
+import {DEV_MAPS,devMapHref} from './dev-map-routes.js';
 // Presentation only: flight, pointer lock, and the frozen simulation belong to main.js.
 export class DevFlightUI {
   constructor() {
@@ -9,6 +10,7 @@ export class DevFlightUI {
       <header class="dev-camera-heading">
         <span class="dev-camera-eyebrow">DEVELOPER / WORLD INSPECTION</span>
         <h2>FREE CAMERA</h2>
+        <nav class="dev-camera-maps" aria-label="Development maps">${DEV_MAPS.map(map=>`<a href="${devMapHref(map.id).replaceAll('&','&amp;')}" data-dev-map="${map.id}">${map.name}</a>`).join('')}</nav>
         <span class="dev-camera-status"><i aria-hidden="true"></i>SIMULATION PAUSED</span>
       </header>
       <div class="dev-camera-dock">
@@ -37,6 +39,7 @@ export class DevFlightUI {
         </div>
       </div>`;
     this.outputs = Object.fromEntries(['x', 'y', 'z', 'speed'].map(key => [key, this.element.querySelector(`[data-camera-${key}]`)]));
+    this.mapLinks = [...this.element.querySelectorAll('[data-dev-map]')];
     this.help = this.element.querySelector('.dev-camera-help');
     this.helpButton = this.element.querySelector('[data-dev-help]');
     this.lookButton = this.element.querySelector('[data-dev-capture]');
@@ -50,9 +53,14 @@ export class DevFlightUI {
     this.helpButton.setAttribute('aria-expanded', String(!this.help.hidden));
   }
 
-  update({ active, pose, speed, pointerLocked }) {
+  update({ active, pose, speed, pointerLocked, course }) {
     this.element.hidden = !active;
     if (!active) return;
+    const map = course?.coastal ? 'island' : course?.dungeon ? 'descent' : null;
+    for(const link of this.mapLinks) {
+      if(link.dataset.devMap===map)link.setAttribute('aria-current','page');
+      else link.removeAttribute('aria-current');
+    }
     for (const key of ['x', 'y', 'z', 'speed']) {
       const text = key === 'speed' ? speed.toFixed(0) : pose[key].toFixed(1);
       if (this.outputs[key].textContent !== text) this.outputs[key].textContent = text;

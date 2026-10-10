@@ -6,7 +6,8 @@ export function createHarborVehicle(course) {
 
 export function vehicleContains(vehicle,x,y,padding=0) {
   if(!vehicle)return false;
-  const dx=x-vehicle.x,dy=y-vehicle.y,c=Math.cos(vehicle.angle),s=Math.sin(vehicle.angle);
+  if(vehicle.collisionFrameAngle!==vehicle.angle){vehicle.collisionFrameAngle=vehicle.angle;vehicle.collisionCos=Math.cos(vehicle.angle);vehicle.collisionSin=Math.sin(vehicle.angle);}
+  const dx=x-vehicle.x,dy=y-vehicle.y,c=vehicle.collisionCos,s=vehicle.collisionSin;
   return Math.abs(dx*c+dy*s)<(vehicle.halfLength||.65)+padding &&
     Math.abs(-dx*s+dy*c)<(vehicle.halfWidth||.3)+padding;
 }
@@ -19,8 +20,9 @@ export function vehicleCanStand(course,v,x,y,angle,canStand) {
   return true;
 }
 
-export function tickHarborVehicle(run,dt,input,{canStand,castRay}) {
-  const v=run.vehicle;if(!v)return false;
+export function tickHarborVehicle(run,dt,input,environment){return tickGroundVehicle(run,run.vehicle,dt,input,environment);}
+export function tickGroundVehicle(run,v,dt,input,{canStand,castRay,groundAt}) {
+  if(!v)return false;
   dt=Math.max(0,Math.min(.05,dt));
   const pressed=!!input.interact&&!v.interactHeld;v.interactHeld=!!input.interact;
   if(pressed&&run.health>0) {
@@ -59,6 +61,7 @@ export function tickHarborVehicle(run,dt,input,{canStand,castRay}) {
     if(!vehicleCanStand(run.course,v,x,y,angle,canStand)){v.speed=0;break;}
     travelled+=Math.hypot(x-v.x,y-v.y);v.x=x;v.y=y;v.angle=Math.atan2(Math.sin(angle),Math.cos(angle));
   }
+  v.steering=steer*.48;v.wheelAngle=(v.wheelAngle||0)+travelled*4/.43;v.groundM=groundAt?groundAt(v.x,v.y)*4:0;
   v.distance+=travelled;run.distance+=travelled;
   Object.assign(run,{x:v.x,y:v.y,z:0,angle:v.angle,pitch:0,vx:0,vy:0,vz:0,speed:Math.abs(v.speed),slide:0});
   return true;

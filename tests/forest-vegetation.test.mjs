@@ -205,7 +205,7 @@ test('empty forests allocate nothing and invalid placement/distance inputs fail 
   assert.throws(() => createForestVegetation({ placements: [placement('bad', { species: 'sphere' })] }), /Invalid forest placement/);
   assert.throws(() => createForestVegetation({ lodDistances: [0, 80, 35] }), /LOD distances/);
   assert.throws(() => createForestVegetation({ cullDistance: NaN }), /distance limits/);
-  assert.throws(() => createForestVegetation({ placements: Array.from({ length: 513 }, (_, index) => placement(`limit-${index}`)) }), /at most 512/);
+  assert.throws(() => createForestVegetation({ placements: Array.from({ length: 563 }, (_, index) => placement(`limit-${index}`)) }), /at most 562/);
 });
 
 test('bundled texture and vendor hashes match the pinned provenance manifest', () => {

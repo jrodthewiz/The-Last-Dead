@@ -1,0 +1,36 @@
+{
+  "checkedAt": "2026-10-04T18:59:38.512Z",
+  "credential": "MESHY_API_KEY=SET",
+  "credentialSource": "Dogfight/.env",
+  "creditBalance": 3328,
+  "plannedBatch": [
+    {
+      "id": "drowned-dockworker",
+      "label": "Drowned Dockworker",
+      "motion": "shambler",
+      "height": 1.86
+    },
+    {
+      "id": "fever-runner",
+      "label": "Fever Runner",
+      "motion": "runner",
+      "height": 1.86
+    },
+    {
+      "id": "crooked-crawler",
+      "label": "Crooked Crawler",
+      "motion": "crawler",
+      "height": 1.86
+    }
+  ],
+  "estimatedTotalCredits": 105,
+  "model": "meshy-7.1",
+  "facesPerCharacter": 20000,
+  "textureResolution": "2k",
+  "docs": [
+    "https://docs.meshy.ai/en/api/text-to-3d",
+    "https://docs.meshy.ai/en/api/rigging",
+    "https://docs.meshy.ai/en/api/pricing",
+    "https://docs.meshy.ai/en/api/balance"
+  ]
+}

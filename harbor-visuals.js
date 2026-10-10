@@ -1,3 +1,6 @@
+import {buildCoastalCityLife} from './coastal-city-life-visuals.js';
+import {makeUtilityHelicopter} from './assets/blackwater-kit/utility-helicopter.js';
+import {createHarborHelicopter} from './harbor-helicopter.js';
 import {LowTideVisuals} from './low-tide-visuals.js';
 import {HarborInteriorVisuals} from './harbor-interior-visuals.js';
 import {HarborThaiVisuals} from './harbor-thai-visuals.js';
@@ -12,8 +15,10 @@ import {createBlackwaterGraphicSky,BLACKWATER_LOOKS} from './blackwater-render-l
 import {createForestVegetation} from './forest-vegetation.js';
 import {buildCoastalMaritime} from './coastal-maritime-visuals.js';
 import {createCoastalUnderstory} from './coastal-understory.js';
-import {instanceHarborStaticDetails,isStaticHarborDetail} from './harbor-static-details.js';
+import {instanceHarborStaticDetails,isStaticHarborDetail,isFixedHarborDetail} from './harbor-static-details.js';
 import {createHarborShadowCoverage} from './harbor-shadow-coverage.js';
+import {alignCoastalDaylight} from './coastal-daylight-profile.js';
+import {buildHarborServiceFrontages} from './harbor-service-frontages.js';
 
 export const HARBOR_PALETTE={background:0x728f97,fog:0x728f97,fogNear:80,fogFar:280,exposure:1.25};
 const waveSource=`
@@ -48,7 +53,7 @@ export class HarborWorld {
   if(this.blackwater){
    // Explicit TSL sunlight keeps authored value groups independent of the
    // viewmodel keys. Its local shadow region follows coastal exploration.
-   const sun=new THREE.DirectionalLight(graphic.sunColor,graphic.sun);sun.name='BlackwaterGraphicSun';sun.position.set(155,52,15);sun.target.position.set(185,0,56);sun.layers.set(2);sun.castShadow=true;
+   const sun=new THREE.DirectionalLight(graphic.sunColor,graphic.sun);sun.name='BlackwaterGraphicSun';sun.position.set(155,52,15);sun.target.position.set(185,0,56);alignCoastalDaylight(sun);sun.layers.set(2);sun.castShadow=true;
    sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-60,right:60,top:60,bottom:-60,near:1,far:180});sun.shadow.bias=-.00015;sun.shadow.normalBias=.035;sun.shadow.autoUpdate=false;sun.shadow.needsUpdate=true;
    this.blackwaterSun=sun;this.root.add(sun,sun.target);this.blackwaterShadowCoverage=createHarborShadowCoverage(sun);
    const practicals=[];this.blackwater.root.traverse(o=>{if(o.isLight){o.layers.set(2);practicals.push(o);}});
@@ -57,13 +62,16 @@ export class HarborWorld {
   }
   this.shoreline?.setLighting([this.blackwaterSun,hemi].filter(Boolean));
   if(course.coastal?.forestPlacements){
-   const sun=new THREE.DirectionalLight(graphic?.sunColor||0xffdbad,graphic?.sun||2);sun.name='CapeForestSun';sun.layers.set(2);sun.position.set(310,80,302);sun.target.position.set(340,0,350);sun.castShadow=true;
+   const sun=new THREE.DirectionalLight(graphic?.sunColor||0xffdbad,graphic?.sun||2);sun.name='CapeForestSun';sun.layers.set(2);sun.position.set(310,80,302);sun.target.position.set(340,0,350);alignCoastalDaylight(sun);sun.castShadow=true;
    sun.shadow.mapSize.set(1536,1536);Object.assign(sun.shadow.camera,{left:-48,right:48,top:48,bottom:-48,near:1,far:180});sun.shadow.bias=-.00018;sun.shadow.normalBias=.045;sun.shadow.autoUpdate=false;sun.shadow.needsUpdate=true;
    this.forestSun=sun;this.root.add(sun,sun.target);this.forestShadowCoverage=createHarborShadowCoverage(sun);
    this.forest=createForestVegetation({placements:course.coastal.forestPlacements,lightSources:[sun,hemi],palette:{bark:'#706b5d',deciduous:'#6d896b',conifer:'#41695e'},lodDistances:[0,28,65],cullDistance:900,shadowDistance:35});this.root.add(this.forest.root);this.terrain?.setLighting([sun,hemi]);
   }
   if(course.coastal?.understoryPlacements){this.understory=createCoastalUnderstory({placements:course.coastal.understoryPlacements,lightSources:[this.forestSun||this.blackwaterSun,hemi]});this.root.add(this.understory.root);this.diagnostics.understory=this.understory.diagnostics;}
   this.maritime=buildCoastalMaritime(this,{lightSources:[this.blackwaterSun||this.forestSun,hemi].filter(Boolean)});
+  if(course.coastal){this.cityLife=buildCoastalCityLife(this);this.root.add(this.cityLife.root);this.diagnostics.cityLife=this.cityLife.diagnostics;this.helicopter=makeUtilityHelicopter({lightSources:[this.blackwaterSun||this.forestSun,hemi]});this.root.add(this.helicopter.root);this.helicopter.updatePose(createHarborHelicopter());this.diagnostics.helicopter=this.helicopter.diagnostics;
+   for(const side of [-1,1]){this.box(96+side*8,.15,112,.12,.02,14,'stripe','HelipadBoundary');this.box(96,.15,112+side*7,16,.02,.12,'stripe','HelipadBoundary');this.box(96+side*1.5,.15,112,.22,.02,4,'stripe','HelipadH');}this.box(96,.15,112,3,.02,.22,'stripe','HelipadH');}
+
   this.water=course.coastal?makeCoastalWater(THREE,course.water):this.makeWater(course.water);this.root.add(this.water);
   if(course.coastal)this.diagnostics.water=this.water.userData.waterDiagnostics;
   // Working-harbor scale cues live beyond the collision shore.
@@ -79,7 +87,7 @@ export class HarborWorld {
   const pending=[];
   if(this.forest)pending.push(this.forest.ready.then(()=>{this.diagnostics.forest=this.forest.diagnostics();}));
   this.thaiWorld=new HarborThaiVisuals(this.root,course.thaiLayout);
-  pending.push(this.thaiWorld.ready.then(d=>{this.diagnostics.thai=d;this.diagnostics.loaded.push(...d.loaded);this.diagnostics.errors.push(...d.errors);if(!d.errors.length){buildCoastalFrontages(this);finishHarborDetail(this);this.interiors=new HarborInteriorVisuals(this);if(course.lowTide)this.lowTideVisuals=new LowTideVisuals(this);}}));
+  pending.push(this.thaiWorld.ready.then(d=>{this.diagnostics.thai=d;this.diagnostics.loaded.push(...d.loaded);this.diagnostics.errors.push(...d.errors);if(!d.errors.length){buildCoastalFrontages(this);finishHarborDetail(this);this.serviceFrontages=buildHarborServiceFrontages(this);this.interiors=new HarborInteriorVisuals(this);if(course.lowTide)this.lowTideVisuals=new LowTideVisuals(this);}}));
   for(const b of course.buildings){
    if(b.passage){this.buildPowerCut(b);continue;}
    if(b.yard){this.buildServiceYard(b);continue;}
@@ -100,7 +108,7 @@ export class HarborWorld {
   for(const side of [-1,1])this.box(ex+side*2,.15,ez,.16,.015,4,'signal','FerryExtractionPaint');
   this.box(ex,.15,ez+2,4,.015,.16,'signal','FerryExtractionPaint');
   this.sign('FERRY / EVACUATION POINT',ex,3,ez+2.4,0,8);
-  this.ready=Promise.all(pending).then(()=>{if(this.blackwaterSun){this.staticDetails=instanceHarborStaticDetails(this.root,{eligible:o=>isStaticHarborDetail(o,this)});this.diagnostics.staticDetails=this.staticDetails.diagnostics;this.coastalGraphic=applyBlackwaterCoastalSurfaces(this.root,this.materials,{lightSources:[this.forestSun||this.blackwaterSun,hemi]});this.diagnostics.coastalArtDirection=this.coastalGraphic.diagnostics;this.blackwaterSun.shadow.needsUpdate=true;}return this.diagnostics;});
+  this.ready=Promise.all(pending).then(()=>{if(this.blackwaterSun){this.staticDetails=instanceHarborStaticDetails(this.root,{eligible:o=>isStaticHarborDetail(o,this),mergeEligible:o=>isFixedHarborDetail(o,this)});this.diagnostics.staticDetails=this.staticDetails.diagnostics;this.coastalGraphic=applyBlackwaterCoastalSurfaces(this.root,this.materials,{lightSources:[this.forestSun||this.blackwaterSun,hemi]});this.diagnostics.coastalArtDirection=this.coastalGraphic.diagnostics;this.blackwaterSun.shadow.needsUpdate=true;}return this.diagnostics;});
  }
  box(x,y,z,w,h,d,material,name){const m=new THREE.Mesh(this.unitBox,this.materials[material]);m.name=name;m.position.set(x,y,z);m.scale.set(w,h,d);m.receiveShadow=true;this.root.add(m);return m;}
  buildPowerCut(b){
@@ -183,6 +191,8 @@ export class HarborWorld {
   }
   this.blackwaterShadowCoverage?.update(x,0,z,wide?640:120);
   this.water.material.uniforms.time.value=Number.isFinite(time)?time:0;
+  this.maritime?.update(time,run?.vehicleFleet);if(run?.vehicleFleet?.helicopter)this.helicopter?.updatePose(run.vehicleFleet.helicopter);
+  if(run?.vehicleFleet&&this._fleetShadowRevision!==run.vehicleFleet.revision&&(!Number.isFinite(this._fleetShadowTime)||time-this._fleetShadowTime>=1/30||time<this._fleetShadowTime)){this._fleetShadowRevision=run.vehicleFleet.revision;this._fleetShadowTime=time;if(this.blackwaterSun)this.blackwaterSun.shadow.needsUpdate=true;if(this.forestSun)this.forestSun.shadow.needsUpdate=true;}
   this.terrain?.update(time,camera);if(camera)this.understory?.update(camera,time);
   this.utilityPickup?.update(vehicle);
   if(camera&&this.forest){
@@ -192,5 +202,5 @@ export class HarborWorld {
   if(vehicle){this.vehicle.position.set(vehicle.x*4,0,vehicle.y*4);this.vehicle.rotation.y=-vehicle.angle;}
  }
  release(root){const seen=new Set();root.traverse(o=>{if(o.geometry&&!seen.has(o.geometry)){seen.add(o.geometry);o.geometry.dispose();}for(const m of Array.isArray(o.material)?o.material:o.material?[o.material]:[]){if(seen.has(m))continue;seen.add(m);for(const value of Object.values(m))if(value?.isTexture&&!seen.has(value)){seen.add(value);value.dispose();}m.dispose();}});}
- dispose(){if(this.disposed)return;this.disposed=true;this.maritime?.dispose();this.shoreline?.dispose();this.coastalGraphic?.dispose();this.staticDetails?.dispose();this.utilityPickup?.dispose();this.understory?.dispose();this.forest?.dispose();this.terrain?.dispose();this.forestSun?.dispose();this.blackwaterGraphic?.dispose();this.blackwaterSun?.dispose();this.graphicSky?.dispose();this.blackwater?.dispose();this.thaiWorld?.dispose();}
+ dispose(){if(this.disposed)return;this.disposed=true;this.maritime?.dispose();this.cityLife?.dispose();this.helicopter?.dispose();this.portFrontage?.dispose();this.townDetails?.dispose();this.serviceFrontages?.dispose();this.shoreline?.dispose();this.coastalGraphic?.dispose();this.staticDetails?.dispose();this.utilityPickup?.dispose();this.understory?.dispose();this.forest?.dispose();this.terrain?.dispose();this.forestSun?.dispose();this.blackwaterGraphic?.dispose();this.blackwaterSun?.dispose();this.graphicSky?.dispose();this.blackwater?.dispose();this.thaiWorld?.dispose();}
 }

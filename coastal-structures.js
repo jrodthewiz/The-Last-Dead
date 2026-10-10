@@ -26,9 +26,11 @@ export function actorGroundAt(course,actor){
  return groundAt(course,actor.x,actor.y);
 }
 
-export function supportAt(course,x,y,feet,{stepHeight=STRUCTURE_STEP,radius=0,minimum=-Infinity,ceiling=Infinity}={}){
+export function supportAt(course,x,y,feet,{stepHeight=STRUCTURE_STEP,radius=0,minimum=-Infinity,ceiling=Infinity,terrainFeet=false}={}){
  let result={height:groundAt(course,x,y),id:'terrain',structureId:null};
- const limit=Math.min(feet+stepHeight,ceiling);
+ // The engine's nullish feet fallback is this same terrain sample. Keep
+ // direct callers' undefined/NaN behavior unless they explicitly opt in.
+ const limit=Math.min((terrainFeet&&feet==null?result.height:feet)+stepHeight,ceiling);
  for(const structure of course?.coastal?.structures||[]){
   if(!inside(structure.bounds,x,y,radius))continue;
   for(const solid of structure.solids)if(solid.support&&solid.maxZ<=limit+EPS&&solid.maxZ>=minimum-EPS&&solid.maxZ>result.height-EPS&&overlap(solid,x,y,0))result={height:solid.maxZ,id:solid.id,structureId:structure.id};

@@ -1,0 +1,16 @@
+{
+  "variant": "crooked-crawler",
+  "stage": "preview",
+  "id": "01a1084a-e53f-7636-973d-7fb85f4475c3",
+  "status": "SUCCEEDED",
+  "progress": 100,
+  "consumedCredits": 20,
+  "taskError": null,
+  "resultKeys": [],
+  "hasGLB": true,
+  "asset": {
+    "file": ".art-source/zombie-variants-meshy/crooked-crawler/preview.glb",
+    "bytes": 814796,
+    "sha256": "8a0fdee9a81c9e549322ee857c1ff12a6b62392b18071881f06009569c2172ec"
+  }
+}

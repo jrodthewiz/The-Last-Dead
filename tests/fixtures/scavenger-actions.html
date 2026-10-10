@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="data:,"><title>Field kit action preview · The Last Dead</title>
+<link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/horror-ui.css"><link rel="stylesheet" href="/scavenger-pack.css">
+<style>body{margin:0;background:#101512;color:#eee9dc;font:14px Segoe UI,Arial,sans-serif}.fixture-tools{position:fixed;z-index:900;top:8px;left:12px;right:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#141714;padding:8px;border:1px solid #66513a}.fixture-tools label{display:flex;align-items:center;gap:8px}.fixture-tools select,.fixture-tools button{min-height:44px;background:#263128;color:#eee9dc;border:1px solid #8d7550;padding:8px}.fixture-tools small{color:#c5bba6}.pack-overlay{padding-top:100px}.fixture-state{font-size:12px;color:#c5bba6}.fixture-state[role=status]{min-width:200px}</style>
+</head><body>
+<aside class="fixture-tools" aria-label="Local field kit preview"><label>Kit state<select id="state"><option value="ready">At bench / ready</option><option value="missing">At bench / missing materials</option><option value="away">Away from bench / treatment ready</option><option value="full">Three bandages / full health</option><option value="shared">Co-op / actions unavailable</option><option value="legacy">Legacy / bench-free</option></select></label><button id="reopen" type="button">Open field kit</button><small>LOCAL UI PREVIEW · actual kit and commands · no world or renderer</small><output class="fixture-state" id="summary" role="status"></output></aside>
+<script type="module">
+import {createScavengerPackUI} from '/scavenger-pack-ui.js';
+import {createScavengerPack,craftBandage,useBandage,upgradeWeapon,discardSupply} from '/scavenger-pack.js';
+let run,canManage=true;
+const summary=document.querySelector('#summary');
+const report=()=>{summary.textContent=`Life ${run.health} · bandages ${run.backpack.supplies.bandage} · weapon ${run.weapon+1}`;};
+const action=fn=>{if(!canManage)return{ok:false,reason:'inactive'};const result=fn(run);report();return result;};
+const kit=createScavengerPackUI({getRun:()=>run,onOpen:()=>{run.mode='pause';},onClose:()=>{run.mode='play';},onCraft:()=>action(craftBandage),onUseBandage:()=>action(useBandage),onDiscard:id=>action(r=>discardSupply(r,id)),onUpgrade:index=>action(r=>upgradeWeapon(r,index)),onEquip:index=>{if(!canManage||!run.ownedWeapons.includes(index))return false;run.weapon=index;report();return true;}});
+function selectState(){
+ const id=document.querySelector('#state').value;canManage=id!=='shared';
+ run={mode:'play',health:id==='full'?100:70,x:id==='away'?3:1.5,y:1.5,z:0,weapon:6,ownedWeapons:[0,6,7],events:[],backpack:createScavengerPack({scrap:12,supplies:id==='missing'?{cloth:1,antiseptic:0,bandage:0}:id==='full'?{cloth:2,antiseptic:1,bandage:3}:{cloth:4,antiseptic:2,bandage:1}}),course:{id:'kit-preview',w:4,h:4,cells:Array.from({length:16},()=>[0,0,0,0]),coastal:id==='legacy'?undefined:{workbenches:[{id:'bench',name:'Laundry workbench',x:1.5,y:1.5,floorZ:0,itemZ:.4,reach:.6}]}}};
+ kit.update(run,{visible:true,canUpgrade:canManage});if(!kit.isOpen)kit.open();report();
+}
+document.querySelector('#state').addEventListener('change',selectState);
+document.querySelector('#reopen').addEventListener('click',()=>kit.open());selectState();
+</script></body></html>

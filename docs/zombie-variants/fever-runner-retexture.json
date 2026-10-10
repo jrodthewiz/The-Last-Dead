@@ -1,0 +1,16 @@
+{
+  "variant": "fever-runner",
+  "stage": "retexture",
+  "id": "01a10859-5a5c-7433-b61a-38e77e57742f",
+  "status": "SUCCEEDED",
+  "progress": 100,
+  "consumedCredits": 10,
+  "taskError": null,
+  "resultKeys": [],
+  "hasGLB": true,
+  "asset": {
+    "file": ".art-source/zombie-variants-meshy/fever-runner/retexture.glb",
+    "bytes": 8373052,
+    "sha256": "c9ed6d53ba14c1a834137d3bebc70b26867f5c33051e0d420101c1ecad107721"
+  }
+}

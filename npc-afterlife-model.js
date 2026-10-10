@@ -227,6 +227,9 @@ export function createAfterlifeModel(asset,kind=0,seed=0){
     controls:[['neck',.35],['Head',.65]].map(([name,weight])=>({bone:model.getObjectByName(name),weight,rest:new THREE.Quaternion()})).filter(c=>c.bone),
     world:new THREE.Quaternion(),parent:new THREE.Quaternion(),delta:new THREE.Quaternion(),rotation:new THREE.Quaternion(),
     axisUp:new THREE.Vector3(0,1,0),axisRight:new THREE.Vector3(),axisForward:new THREE.Vector3(),rootRotation:new THREE.Quaternion()},
+  injuredGait:{applied:false,amount:0,
+    controls:[['Spine2',.45],['LeftArm',1],['RightArm',-.3]].map(([name,weight])=>({bone:model.getObjectByName(name),weight,rest:new THREE.Quaternion()})).filter(c=>c.bone),
+    world:new THREE.Quaternion(),parent:new THREE.Quaternion(),delta:new THREE.Quaternion(),axis:new THREE.Vector3(),rootRotation:new THREE.Quaternion()},
   sourceHeight:size.y, normalization:scale,
   idleAction:actions.idle||null, shuffleAction:actions.shuffle||null,
   chaseAction:actions.chase||null, chaseBlend:0, gaitPhase:actorPhase(seed,23), gaitDirection:1, turnMotion:0, facingYaw:null,idlePhase,idleRate,
@@ -367,6 +370,31 @@ function restoreAttention(state){
  attention.applied=false;
 }
 
+function restoreInjuredGait(state){
+ const gait=state.injuredGait;if(!gait?.applied)return;
+ for(const c of gait.controls)c.bone.quaternion.copy(c.rest);
+ gait.applied=false;
+}
+function applyInjuredGait(root,state,enemy){
+ const gait=state.injuredGait;
+ const locked=enemy.dead||enemy.attacking||enemy.strike>0||enemy.stagger>0||state.attackActive||state.hitActive||['windup','held','terminal'].includes(enemy.bitePhase);
+ gait.amount=0;
+ // Shuffle foot placement remains authored. A restrained uneven shoulder
+ // carry gives injured upright residents a distinct silhouette without
+ // rotating pelvis/legs, editing imported clips or moving grounded feet.
+ if(locked||enemy.locomotion!=='injured'||state.motionClass!=='shambler'||state.motion<.02)return;
+ gait.amount=.055+.035*Math.sin(state.gaitPhase*Math.PI*2);
+ root.updateWorldMatrix(true,true);root.getWorldQuaternion(gait.rootRotation);
+ gait.axis.set(0,0,-1).applyQuaternion(gait.rootRotation);
+ for(const c of gait.controls){
+  c.rest.copy(c.bone.quaternion);c.bone.getWorldQuaternion(gait.world);
+  gait.delta.setFromAxisAngle(gait.axis,gait.amount*c.weight);gait.world.premultiply(gait.delta);
+  c.bone.parent.getWorldQuaternion(gait.parent).invert();c.bone.quaternion.copy(gait.parent.multiply(gait.world)).normalize();
+  c.bone.updateWorldMatrix(false,true);
+ }
+ gait.applied=true;
+}
+
 function applyAttention(root,state,enemy,dt){
  const a=state.attention;
  const locked=enemy.dead||enemy.attacking||enemy.strike>0||enemy.stagger>0||state.attackActive||state.hitActive||['windup','held','terminal'].includes(enemy.bitePhase);
@@ -396,6 +424,7 @@ export function animateAfterlifeModel(root,enemy={},now=0,seed=0){
  const state=root?.userData?.afterlife;
  if(!state)return false;
  restoreAttention(state);
+ restoreInjuredGait(state);
  // A low corpse begins from the pose that actually died. Restoring the mixer's
  // previous target first also keeps this short bridge stable at paused times.
  const bridge=state.crawlDeathBridge;
@@ -606,6 +635,7 @@ export function animateAfterlifeModel(root,enemy={},now=0,seed=0){
  if(state.attackActive&&state.attackAction&&state.attackAction.time>=state.attackAction.getClip().duration-.001&&!warning&&strike<=0)stopOneShot(state,'attack');
  if(state.attackActive&&state.attackCancelledAt!==null&&now-state.attackCancelledAt>=120)stopOneShot(state,'attack');
   if(state.hitActive&&state.hitAction&&state.hitAction.time>=state.hitAction.getClip().duration-.001)stopOneShot(state,'hit');
+ applyInjuredGait(root,state,enemy);
  applyAttention(root,state,enemy,dt);
  return true;
 }
@@ -614,6 +644,7 @@ export function disposeAfterlifeModel(root){
  const state=root?.userData?.afterlife;
  if(!state)return;
  restoreAttention(state);
+ restoreInjuredGait(state);
  restoreCharacterArticulation(state.articulation);
  if(state.crawlDeathBridge?.applied)for(const p of state.crawlDeathBridge.bones){p.bone.position.copy(p.targetPosition);p.bone.quaternion.copy(p.targetQuaternion);}
  state.mixer?.stopAllAction();

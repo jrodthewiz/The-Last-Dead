@@ -1,4 +1,5 @@
 import * as THREE from './vendor/three.module.js';
+import {BundleGroup} from './vendor/three.webgpu.js';
 import {mergeGeometries} from './vendor/utils/BufferGeometryUtils.js';
 
 const INTERIOR_SLOTS=new Set(['furnitureWood','interiorWood','interiorTile','rug','fabric']);
@@ -28,7 +29,7 @@ function exclusionReason(object,modelRoot){
 
 // Static architecture only. Models remain the owners of source buffers,
 // materials, semantic roots and gameplay plans. This helper owns merged buffers.
-export function createBlackwaterBuildingBatches(root,models,{chunkSize=48,downtownBuildingIds=[],maxVertices=256000}={}){
+export function createBlackwaterBuildingBatches(root,models,{chunkSize=48,downtownBuildingIds=[],maxVertices=256000,nativeBundles=false}={}){
  if(!Number.isFinite(chunkSize)||chunkSize<=0)throw new RangeError('Building chunkSize must be positive');
  if(!Number.isSafeInteger(maxVertices)||maxVertices<3)throw new RangeError('Building maxVertices must be a positive triangle-capable integer');
  root.updateWorldMatrix(true,true);
@@ -89,6 +90,9 @@ export function createBlackwaterBuildingBatches(root,models,{chunkSize=48,downto
   mesh.layers.mask=group.layers;mesh.renderOrder=group.renderOrder;mesh.castShadow=group.castShadow;mesh.receiveShadow=group.receiveShadow;mesh.frustumCulled=group.frustumCulled;
   mesh.userData.blackwaterBuildingBatch=true;mesh.userData.blackwaterSlot=group.slot;mesh.userData.sourceBuildingIds=ids;
   mesh.userData.downtownBuildingIds=ids.filter(id=>downtownIds.has(id));mesh.userData.blackwaterChunk=group.chunk;
+  // Local transforms are baked into merged vertices. Keep parent/world
+  // propagation live, but avoid recomposing immutable identity leaves per draw.
+  mesh.updateMatrix();mesh.matrixAutoUpdate=false;
   batchRoot.add(mesh);meshes.push(mesh);
   const record={chunk:group.chunk,category:group.category,slots,buildingIds:ids,sourceDraws:group.pieces.length,vertices:geometry.attributes.position.count,triangles:fullTriangleCount(geometry),bounds:{min:geometry.boundingBox.min.toArray(),max:geometry.boundingBox.max.toArray()}};
   records.push(record);
@@ -101,8 +105,40 @@ export function createBlackwaterBuildingBatches(root,models,{chunkSize=48,downto
   bounds:bounds.isEmpty()?null:{min:bounds.min.toArray(),max:bounds.max.toArray()},
   chunks:[...chunks.values()].map(c=>({key:c.key,draws:c.draws,triangles:c.triangles,buildingIds:[...c.buildingIds],bounds:{min:c.bounds.min.toArray(),max:c.bounds.max.toArray()}})),batches:records,
   ownership:'owns merged geometry only; borrows exact model material identities; models retain source buffers and collision plans'};
- let disposed=false;
- return{root:batchRoot,meshes,diagnostics,dispose(){
+ // Commands cache only immutable opaque merged leaves. Transparent sorting,
+ // dynamic source attachments and all lights remain outside this group.
+ const opaqueBundle=nativeBundles?new BundleGroup():null;
+ const bundled=opaqueBundle?meshes.filter(m=>!Array.isArray(m.material)&&!m.material.transparent&&!m.material.transmission):[];
+ if(opaqueBundle){opaqueBundle.name='BlackwaterOpaqueCommands';opaqueBundle.userData.noBatch=true;for(const mesh of bundled)opaqueBundle.add(mesh);batchRoot.add(opaqueBundle);}
+ const selected=new Uint8Array(bundled.length),frustum=new THREE.Frustum(),projection=new THREE.Matrix4(),depthPoint=new THREE.Vector4(),depths=new Map(),ordered=[...bundled],visibleMembers=new Set(),commandOrder=[];
+ const bundleDiagnostics={enabled:!!opaqueBundle,opaqueMeshes:bundled.length,invalidations:0,visibleMeshes:0,invalidationReasons:{first:0,membership:0,visibleOrder:0,shadow:0},invalidationReasonScope:'Nonexclusive causes; multiple causes can accompany one invalidation.',counterScope:'Native raw draw counters exclude cached bundle replay commands; retained geometry is not removed.'};
+ let disposed=false,firstBundle=true;
+ function prepareRenderBundles(camera,shadowRefresh=false){
+  if(disposed||!opaqueBundle)return;
+  camera.updateWorldMatrix(true,false);batchRoot.updateWorldMatrix(true,true);
+  projection.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);
+  frustum.setFromProjectionMatrix(projection,camera.coordinateSystem,camera.reversedDepth);
+  let dirty=firstBundle||shadowRefresh,visible=0,membershipChanged=false,commandChanged=false;visibleMembers.clear();
+  for(let i=0;i<bundled.length;i++){
+   const mesh=bundled[i],next=Number(mesh.visible&&mesh.layers.test(camera.layers)&&(!mesh.frustumCulled||frustum.intersectsObject(mesh)));
+   if(selected[i]!==next){selected[i]=next;dirty=true;membershipChanged=true;}visible+=next;if(next)visibleMembers.add(mesh);
+   depthPoint.copy(mesh.geometry.boundingSphere.center).applyMatrix4(mesh.matrixWorld).applyMatrix4(projection);depths.set(mesh,depthPoint.z);
+  }
+  // Native bundle render lists are not sorted by the vendor renderer. Retain
+  // its opaque renderOrder/clip-depth/id ordering before commands are recorded.
+  // A changed command order must invalidate even with identical membership.
+  ordered.sort((a,b)=>a.renderOrder-b.renderOrder||depths.get(a)-depths.get(b)||a.id-b.id);
+  // Off-screen leaves emit no main-camera commands. Their depth crossings do
+  // not invalidate a cache whose visible command sequence remains identical.
+  let commandIndex=0;
+  for(const mesh of ordered)if(visibleMembers.has(mesh)){if(commandOrder[commandIndex]!==mesh)commandChanged=true;commandIndex++;}
+  if(commandOrder.length!==commandIndex)commandChanged=true;
+  dirty=dirty||commandChanged;
+  if(ordered.some((mesh,i)=>opaqueBundle.children[i]!==mesh))opaqueBundle.children.splice(0,opaqueBundle.children.length,...ordered);
+  if(dirty){commandOrder.length=0;for(const mesh of ordered)if(visibleMembers.has(mesh))commandOrder.push(mesh);}
+  if(dirty){opaqueBundle.needsUpdate=true;bundleDiagnostics.invalidations++;const reasons=bundleDiagnostics.invalidationReasons;reasons.first+=Number(firstBundle);reasons.membership+=Number(membershipChanged);reasons.visibleOrder+=Number(commandChanged);reasons.shadow+=Number(shadowRefresh);}firstBundle=false;bundleDiagnostics.visibleMeshes=visible;
+ }
+ return{root:batchRoot,meshes,diagnostics,bundleDiagnostics,prepareRenderBundles,dispose(){
   if(disposed)return;disposed=true;
   batchRoot.removeFromParent();for(const geometry of ownedGeometries)geometry.dispose();
   for(const state of states)state.object.visible=state.visible;

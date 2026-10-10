@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "blender": "2.93.0",
+  "authoring": ".art-source\\body-spear-v1\\Body_Spear_v1.blend",
+  "motion": "assets\\animations\\body-spear-v1.js",
+  "motionBytes": 305327,
+  "anatomy": "assets\\models\\body-spear-anatomy-v1.glb",
+  "anatomyBytes": 689416,
+  "bodies": [
+    {
+      "body": "ash-witness",
+      "sourceSha256": "8bd6bfed843879ae190fa8da3e69466998289a727634cdfdfe1d708f5e30b4e0",
+      "boneTracks": 23,
+      "samples": 91
+    },
+    {
+      "body": "drowned-dockworker",
+      "sourceSha256": "203db1296f824b9b3fd55c2ed60a3e18428c51a29e509565f0bc83bdf9e355cf",
+      "boneTracks": 23,
+      "samples": 91
+    },
+    {
+      "body": "fever-runner",
+      "sourceSha256": "1df86f804d90f17133f1b12b10e363115873e22960a02cb141d939d741dca39f",
+      "boneTracks": 23,
+      "samples": 91
+    },
+    {
+      "body": "crooked-crawler",
+      "sourceSha256": "1555d0af772e36e583dfeb778ad8e7cb927862f298668afc43873a72f4074b1a",
+      "boneTracks": 23,
+      "samples": 91
+    }
+  ],
+  "contactSeconds": 0.24,
+  "extractionSeconds": 0.68,
+  "releaseSeconds": 0.95,
+  "reference": "https://www.youtube.com/watch?v=DqAagh50JaI",
+  "sourceCharactersUnchanged": true,
+  "runtimeNeedsBlender": false
+}

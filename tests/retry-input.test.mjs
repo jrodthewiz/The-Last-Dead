@@ -10,7 +10,7 @@ const handler=main.slice(start,main.indexOf("addEventListener('keyup'",start));
 function fixture(screen='play'){
  const messages=[],run={health:63,kills:12},course={id:'third-floor'},document={activeElement:{tagName:'BODY'}};
  run.course=course;
- const context=vm.createContext({screen,document,run,packUI:{isOpen:false},keys:new Set(),pulses:new Set(),
+ const context=vm.createContext({screen,document,run,inspector:{active:false},packUI:{isOpen:false},keys:new Set(),pulses:new Set(),
   ui:{toast:message=>messages.push(message),escape:()=>false,root:{dataset:{}}},
   restart:()=>{context.retries=(context.retries||0)+1;},pause:()=>{context.screen='pause';},resume:()=>{context.screen='play';},
   addEventListener:(_,listener)=>{context.listener=listener;},switchWeapon(){},requestVermin(){},punch(){},requestChest(){},grapple(){},hookSequence:0,session:null});
@@ -51,4 +51,11 @@ test('Escape retains pause/resume and closing settings takes priority',()=>{
  const {context,press}=fixture();press('Escape');assert.equal(context.screen,'pause');
  press('Escape');assert.equal(context.screen,'play');context.ui.escape=()=>true;
  press('Escape');assert.equal(context.screen,'play');
+});
+
+test('focused camera buttons do not send flight or weapon actions through the gameplay listener',()=>{
+ const {context,document,press,messages}=fixture();context.inspector.active=true;document.activeElement={tagName:'BUTTON'};
+ press('Space');press('KeyR');press('KeyE');
+ assert.equal(context.keys.size,0);assert.equal(context.pulses.size,0);assert.deepEqual(messages,[]);
+ press('Escape');assert.equal(context.screen,'pause');
 });

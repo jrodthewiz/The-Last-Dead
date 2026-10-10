@@ -1,15 +1,21 @@
 // Roof-scale forms are authored above the existing sealed ceiling. Their
 // silhouette belongs to the district; none adds a ground collision or portal.
-function quad(w,slot,p,role){
- w.triangle(slot,[p[0],p[1],p[2]],role);
- w.triangle(slot,[p[0],p[2],p[3]],role);
+function quad(w,slot,p,role,type=0){
+ let frame=null;
+ if(type){
+  const edge=p[1].map((v,i)=>v-p[0][i]),length=Math.hypot(...edge),along=edge.map(v=>v/length);
+  const rise=p[2].map((v,i)=>(v+p[3][i]-p[0][i]-p[1][i])/2),run=Math.hypot(...rise);
+  frame={type,eave:p[0],along,up:rise.map(v=>v/run),run};
+ }
+ w.triangle(slot,[p[0],p[1],p[2]],role,frame);
+ w.triangle(slot,[p[0],p[2],p[3]],role,frame);
 }
-function hip(w,{x=0,z=0,y,width,depth,rise,slot='roofSlate',role='hipped-roof',top=.28}){
+function hip(w,{x=0,z=0,y,width,depth,rise,slot='roofSlate',role='hipped-roof',top=.28,type=0}){
  const a=width/2,b=depth/2,ta=a*top,tb=b*top;
- quad(w,slot,[[x-a,y,z+b],[x+a,y,z+b],[x+ta,y+rise,z+tb],[x-ta,y+rise,z+tb]],role);
- quad(w,slot,[[x+a,y,z+b],[x+a,y,z-b],[x+ta,y+rise,z-tb],[x+ta,y+rise,z+tb]],role);
- quad(w,slot,[[x+a,y,z-b],[x-a,y,z-b],[x-ta,y+rise,z-tb],[x+ta,y+rise,z-tb]],role);
- quad(w,slot,[[x-a,y,z-b],[x-a,y,z+b],[x-ta,y+rise,z+tb],[x-ta,y+rise,z-tb]],role);
+ quad(w,slot,[[x-a,y,z+b],[x+a,y,z+b],[x+ta,y+rise,z+tb],[x-ta,y+rise,z+tb]],role,type);
+ quad(w,slot,[[x+a,y,z+b],[x+a,y,z-b],[x+ta,y+rise,z-tb],[x+ta,y+rise,z+tb]],role,type);
+ quad(w,slot,[[x+a,y,z-b],[x-a,y,z-b],[x-ta,y+rise,z-tb],[x+ta,y+rise,z-tb]],role,type);
+ quad(w,slot,[[x-a,y,z-b],[x-a,y,z+b],[x-ta,y+rise,z+tb],[x-ta,y+rise,z-tb]],role,type);
  w.box(slot,[x,y+rise,z],[ta*2,.12,tb*2],[0,0,0],role+'-cap');
 }
 function dormers(w,s,width,depth,y,rise){
@@ -21,6 +27,29 @@ function dormers(w,s,width,depth,y,rise){
   w.box('wood',[x,y+rise*.59,z+.704],[.06,.88,.045],[0,0,0],'mansard-dormer-mullion');
   hip(w,{x,z,y:y+rise*.58+.75,width:1.68,depth:1.56,rise:.64,slot:'roofSlate',role:'dormer-hip',top:.12});
  }
+}
+function mansardAttic(w,t,y){
+ const z=t.z+t.depth*.39;
+ // The cheek begins inside the actual steep lower roof slope, while the
+ // glazing and little hip clear its front surface. Dormers remain below the
+ // main flat ridge and are paired over the facade's bearing window order.
+ for(const x of [t.x-t.width*.24,t.x+t.width*.24]){
+  const cy=y+2.35;
+  for(const sign of [-1,1])w.box('pale',[x+sign*.735,cy,z],[.18,1.50,1.28],[0,0,0],'mansard-attic-bearing-cheeks');
+  for(const sign of [-1,1])w.box('pale',[x,cy+sign*.66,z],[1.47,.18,1.28],[0,0,0],'mansard-attic-window-head-sill');
+  w.box('pale',[x,cy,z-.55],[1.29,1.50,.18],[0,0,0],'mansard-attic-rear-room-wall');
+  w.box('dark',[x,cy,z+.32],[1.30,1.19,.05],[0,0,0],'mansard-attic-window-reveal');
+  w.box('glass',[x,cy,z+.53],[1.08,1.02,.04],[0,0,0],'mansard-attic-window-glazing');
+  w.box('wood',[x,cy,z+.59],[.09,1.12,.08],[0,0,0],'mansard-attic-window-mullion');
+  hip(w,{x,z,y:cy+.76,width:1.88,depth:1.49,rise:.56,slot:'roof',role:'mansard-attic-dormer-hip',top:.08});
+  w.box('metal',[x,y+1.62,z+.53],[1.85,.10,.47],[0,0,0],'mansard-attic-lead-apron');
+ }
+ // One compact party-wall stack intersects the back roof plane. Its shaft
+ // starts within the occupied top storey, and the cap provides a real mouth.
+ const x=t.x-t.width*.31,back=t.z-t.depth*.29;
+ w.box('brick',[x,y+3.0,back],[1.12,3.8,1.35],[0,0,0],'mansard-wall-borne-chimney');
+ w.box('masonry',[x,y+4.97,back],[1.34,.18,1.56],[0,0,0],'mansard-chimney-cap');
+ w.box('dark',[x,y+5.07,back],[.74,.035,1.02],[0,0,0],'mansard-chimney-mouth');
 }
 function clockTower(w,s){
  const p=civicSkylinePlan(s),{x,z,base,tiers}=p;
@@ -123,7 +152,7 @@ function hangarLoft(w,s,roof){
  // rather than a small pavilion placed on another generic flat box.
  for(const [side,span,center]of [[-1,half+ridge,(-half+ridge)/2],[1,half-ridge,(half+ridge)/2]]){
   const angle=Math.atan2(rise,span);
-  w.box('roofZinc',[center,y+rise/2,0],[Math.hypot(span,rise),.19,d],[0,0,-side*angle],'works-hangar-roof-slope');
+  w.box('roofZinc',[center,y+rise/2,0],[Math.hypot(span,rise),.19,d],[0,0,-side*angle],'works-hangar-roof-slope',{type:roof==='hangar-monitor'?1.25:1,eave:[side*Math.hypot(span,rise)/2,0,-d/2],along:[0,0,1],up:[-side,0,0],run:Math.hypot(span,rise),topOnly:true});
   // Three broad standing seams provide scale without a field of tiny details.
   for(const z of [-d*.30,0,d*.30])w.box('metal',[center,y+rise/2+.105,z],[Math.hypot(span,rise),.065,.075],[0,0,-side*angle],'works-hangar-standing-seam');
  }
@@ -144,8 +173,28 @@ function hangarLoft(w,s,roof){
 }
 export function compileDistrictSkyline(w,plan){
  const s=plan.settings,a=plan.anatomy;
+ if(plan.upperMassPlan){
+  const p=plan.upperMassPlan,t=p.top;
+  if(['pitched','mansard','compact-hip'].includes(p.roof))hip(w,{x:t.x,z:t.z,y:s.height+.04,width:t.width-.30,depth:t.depth-.30,rise:p.roof==='mansard'?3.8:p.roof==='compact-hip'?2.4:p.profile==='oldtown-gable'?3.6:3.1,slot:'roof',role:p.roof==='mansard'?'district-long-mansard-roof':p.roof==='compact-hip'?'district-stucco-hip-roof':'district-broad-hip-roof',top:p.roof==='mansard'?.54:.08,type:2});
+  if(p.roof==='mansard')mansardAttic(w,t,s.height+.04);
+  return;
+ }
  if(a.family==='cottage'||plan.focalCollapse)return;
  if(s.label==='EVACUATION OFFICE'){clockTower(w,s);return;}
+ if(['merchant-gable','laundry-gable'].includes(a.roof)){
+  const y=s.height+.48,half=(s.width-.6)/2,d=s.depth-.6,rise=a.roof==='laundry-gable'?3.2:4.4,angle=Math.atan2(rise,half);
+  for(const side of [-1,1])w.box('roof',[side*half/2,y+rise/2,0],[Math.hypot(half,rise),.18,d],[0,0,-side*angle],'oldtown-long-gable-roof');
+  for(const z of [-d/2,d/2]){
+   const points=[[-half,y,z],[half,y,z],[0,y+rise,z]];
+   w.triangle(a.roof==='laundry-gable'?'render':'brick',z>0?points:points.reverse(),'oldtown-bearing-gable-end');
+   for(const side of [-1,1])w.cylinder('pale',[side*half,y,z],[0,y+rise,z],.12,'oldtown-gable-bargeboard');
+   w.box('dark',[0,y+rise*.34,z+(z>0?.025:-.025)],[2.3,1.25,.04],[0,0,0],'oldtown-gable-window-reveal');
+   w.box('glass',[0,y+rise*.34,z+(z>0?.05:-.05)],[2.08,1.05,.04],[0,0,0],'oldtown-gable-window-glazing');
+   w.box('pale',[0,y+rise*.34,z+(z>0?.09:-.09)],[.12,1.25,.14],[0,0,0],'oldtown-gable-window-mullion');
+  }
+  w.box('metal',[0,y+rise+.09,0],[.20,.16,d+.10],[0,0,0],'oldtown-gable-ridge');
+  return;
+ }
  if(a.roof.startsWith('civic-neighbor-')){
   // Neighbours reuse their existing slate-dark roof slot; the height/hip
   // contrast adds civic hierarchy without another spatial material batch.

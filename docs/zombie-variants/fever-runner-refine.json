@@ -1,0 +1,16 @@
+{
+  "variant": "fever-runner",
+  "stage": "refine",
+  "id": "01a1084e-63eb-76f4-b974-7640876ea5a4",
+  "status": "SUCCEEDED",
+  "progress": 100,
+  "consumedCredits": 10,
+  "taskError": null,
+  "resultKeys": [],
+  "hasGLB": true,
+  "asset": {
+    "file": ".art-source/zombie-variants-meshy/fever-runner/refine.glb",
+    "bytes": 9134468,
+    "sha256": "577ceaa99305bf70ce08f5064aaf9d3fc2b1c8bebbd37a111690e362d13b74ae"
+  }
+}

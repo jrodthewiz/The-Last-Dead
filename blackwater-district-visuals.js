@@ -9,32 +9,53 @@ import {buildBlackwaterPracticals} from './assets/blackwater-kit/practicals.js';
 import {createBlackwaterBuildingBatches} from './blackwater-building-batches.js';
 import {shareBlackwaterOwnedMaterials} from './blackwater-material-sharing.js';
 
+// The failed checkpoint transfer keeps its original footprint and four cases.
+// Two remained together; one was set down sideways and one dropped apart.
+export const BLACKWATER_CHECKPOINT_CASE_POSES=Object.freeze([
+ Object.freeze({x:-.63,z:.04,width:.47,height:.43,depth:.28,yaw:-.18,roll:0}),
+ Object.freeze({x:-.10,z:.12,width:.43,height:.38,depth:.27,yaw:.08,roll:0}),
+ Object.freeze({x:.50,z:.07,width:.46,height:.40,depth:.28,yaw:-.25,roll:0,pitch:Math.PI/2}),
+ Object.freeze({x:.28,z:-.30,width:.42,height:.35,depth:.25,yaw:.35,roll:0}),
+]);
+
 // Custom Vibe3D authoring sources: the district owns placement; factories own
 // model anatomy. Street repetitions share material/geometry in spatial batches.
-export function buildBlackwaterDistrict(parent,slice){
+export function buildBlackwaterDistrict(parent,slice,{buildingChunkSize=48,nativeBundles=true,failedClosure=true,failedTransfer=true,groundCornerJoin=true}={}){
  const root=new THREE.Group();root.name='BlackwaterMainStreet';parent.add(root);
  const materials=createBlackwaterMaterials(),models=[];
  for(const [index,b]of slice.buildings.entries()){
-  const model=createModel({kind:b.kind,width:b.width,depth:b.depth,height:b.height,
-   seed:b.seed??1400+index,enterable:!!b.enterable,doorOffset:b.doorOffset??2,label:b.label,materials});
+  const model=createModel({kind:b.kind,width:b.width,depth:b.depth,height:b.height,districtProfile:b.districtProfile,
+   seed:b.seed??1400+index,enterable:!!b.enterable,doorOffset:b.doorOffset??2,label:b.label,materials,failedClosure:failedClosure&&b.id==='coast-lot-3-0-1-0',groundCornerJoin});
   model.root.position.set(b.x,b.y??.13,b.z);model.root.rotation.y=b.yaw||0;
   model.root.name=b.id;model.root.userData.blackwaterPlacement=b.id;root.add(model.root);models.push(model);
  }
  const sharing=shareBlackwaterOwnedMaterials(models);
- const buildingBatches=createBlackwaterBuildingBatches(root,models,{chunkSize:48});
- const street=buildStreetProps(root,slice.props,materials);
+ const buildingBatches=createBlackwaterBuildingBatches(root,models,{chunkSize:buildingChunkSize,nativeBundles});
+ const street=buildStreetProps(root,slice.props,materials,{failedTransfer});
  const dressing=buildBlackwaterDressing(root,slice,materials);
  const interiorStory=buildBlackwaterInteriorStory(root,slice,materials);
  const practicals=buildBlackwaterPracticals(root,slice,materials);
- const diagnostics={version:1,buildings:models.length,houses:slice.buildings.filter(b=>b.kind==='house').length,
+ // Scope graph selection to these existing identities, only after all actual
+ // source, merged and dressing consumers prove the named physical schema.
+ const roofPlaneBytes={source:0,merged:0,dressing:0};let roofPlaneConsumers=0;
+ root.traverse(object=>{
+  if(!object.isMesh||(object.material!==materials.roof&&object.material!==materials.roofZinc))return;
+  const plane=object.geometry?.getAttribute('roofPlane');
+  if(!plane||plane.itemSize!==4||plane.count!==object.geometry.attributes.position.count)throw new Error('District roof consumer lacks roofPlane: '+object.name);
+  roofPlaneConsumers++;
+  const owner=object.userData.blackwaterDressing?'dressing':object.userData.blackwaterBuildingBatch?'merged':'source';
+  roofPlaneBytes[owner]+=plane.array.byteLength;
+ });
+ for(const material of [materials.roof,materials.roofZinc])material.userData.blackwaterRoofPlane=true;
+ const diagnostics={roofPlane:{encoding:'0 legacy;1 zinc;1.25 zinc monitor seat;2 residential',consumers:roofPlaneConsumers,bytes:roofPlaneBytes},version:1,buildings:models.length,houses:slice.buildings.filter(b=>b.kind==='house').length,
   enterable:slice.buildings.filter(b=>b.enterable).map(b=>b.id),models:models.map((m,i)=>({id:slice.buildings[i].id,...m.diagnostics})),street,dressing:{triangles:dressing.triangles,drawCalls:dressing.drawCalls,moduleCounts:dressing.moduleCounts},
   source:'Original Blackwater kit; Vibe3D createModel/parts/ownership contract',materials:Object.keys(materials).length,interiorStory:interiorStory.diagnostics,practicals:practicals.diagnostics,buildingBatches:buildingBatches.diagnostics,materialSharing:sharing.diagnostics};
  let disposed=false;
- return{root,models,materials,diagnostics,dispose(){if(disposed)return;disposed=true;buildingBatches.dispose();sharing.restore();for(const m of models)m.dispose();street.dispose();dressing.dispose();interiorStory.dispose();practicals.dispose();
+ return{root,models,materials,diagnostics,bundleDiagnostics:buildingBatches.bundleDiagnostics,prepareRenderBundles:buildingBatches.prepareRenderBundles,dispose(){if(disposed)return;disposed=true;buildingBatches.dispose();sharing.restore();for(const m of models)m.dispose();street.dispose();dressing.dispose();interiorStory.dispose();practicals.dispose();
   materials.dispose();root.removeFromParent();}};
 }
 
-function buildStreetProps(parent,props,materials){
+function buildStreetProps(parent,props,materials,{failedTransfer=true}={}){
  const box=new THREE.BoxGeometry(1,1,1),cylinder=new THREE.CylinderGeometry(1,1,1,10),rubble=new THREE.DodecahedronGeometry(1,0);
  const caseShape=new THREE.Shape();caseShape.moveTo(-.39,-.47);caseShape.lineTo(.39,-.47);caseShape.quadraticCurveTo(.47,-.47,.47,-.39);caseShape.lineTo(.47,.39);caseShape.quadraticCurveTo(.47,.47,.39,.47);caseShape.lineTo(-.39,.47);caseShape.quadraticCurveTo(-.47,.47,-.47,.39);caseShape.lineTo(-.47,-.39);caseShape.quadraticCurveTo(-.47,-.47,-.39,-.47);
  const caseGeometry=new THREE.ExtrudeGeometry(caseShape,{depth:.94,steps:1,bevelEnabled:true,bevelSize:.03,bevelThickness:.03,bevelSegments:1,curveSegments:4});caseGeometry.translate(0,0,-.47);
@@ -58,12 +79,27 @@ function buildStreetProps(parent,props,materials){
    for(let i=0;i<16;i++)emit(rubble,m(i%3?'masonry':'brick'),'Evacuation:broken-masonry',(random()-.5)*p.width,.12+random()*.12,(random()-.5)*p.depth,.08+random()*.22,.05+random()*.12,.09+random()*.25,[random(),random()*6,random()]);
    for(let i=0;i<3;i++)cube('wood','Evacuation:split-timber',(random()-.5)*p.width,.12,(random()-.5)*p.depth,.10,.055,1+random(),[0,random()*5,.03]);
   }else if(p.kind==='luggage'){
+   if(failedTransfer&&p.id==='blackwater-checkpoint-bags'){
+    const propBase=base.clone(),casePose=new THREE.Object3D();
+    for(const [i,a]of BLACKWATER_CHECKPOINT_CASE_POSES.entries()){
+     const pitch=a.pitch||0,halfHeight=(Math.abs(Math.cos(pitch))*(Math.abs(Math.cos(a.roll))*a.height+Math.abs(Math.sin(a.roll))*a.width)+Math.abs(Math.sin(pitch))*a.depth)*.53;
+     casePose.position.set(a.x,halfHeight+.018,a.z);casePose.rotation.set(pitch,a.yaw,a.roll,'YXZ');casePose.updateMatrix();base.copy(propBase).multiply(casePose.matrix);
+     emit(caseGeometry,caseMaterials[i%2],'Evacuation:rounded-case',0,0,0,a.width,a.height,a.depth);
+     cube('metal','Evacuation:case-handle',0,a.height/2+.018,0,.19,.035,.025);
+     for(const side of [-1,1])cube('dark','Evacuation:case-binding',side*a.width*.28,0,0,.025,a.height*1.025,a.depth*1.05);
+     for(const side of [-1,1])cube('rust','Evacuation:case-clasp',side*a.width*.26,a.height*.23,a.depth/2+.01,.035,.05,.025);
+     // The departure tag remains attached to the dropped case, not road clutter.
+     if(i===2)cube('pale','Evacuation:attached-case-tag',.055,a.height/2+.036,0,.13,.006,.09,[0,.08,0]);
+    }
+    base.copy(propBase);
+   }else{
    for(let i=0;i<4;i++){
     const x=(i%2-.5)*.63,z=(Math.floor(i/2)-.5)*.47;
     emit(caseGeometry,caseMaterials[i%2],'Evacuation:rounded-case',x,.25,z,.47,.43,.28,[0,(i-1.5)*.15,0]);
     cube('metal','Evacuation:case-handle',x,.48,z,.19,.035,.025);
     for(const side of [-1,1])cube('dark','Evacuation:case-binding',x+side*.13,.25,z,.025,.44,.295,[0,(i-1.5)*.15,0]);
     for(const side of [-1,1])cube('rust','Evacuation:case-clasp',x+side*.12,.35,z+.15,.035,.05,.035);
+   }
    }
   }else if(p.kind==='fence'){
    for(const x of [-p.width/2,p.width/2])cube('wood','Garden:post',x,.65,0,.11,1.3,.11);

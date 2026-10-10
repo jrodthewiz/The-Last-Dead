@@ -1,3 +1,4 @@
+import {courtSubtractRect} from './coastal-court-lane.js';
 import * as THREE from './vendor/three.module.js';
 import {harborSurface} from './harbor-detail.js';
 import {buildCoastalNeighborhood} from './coastal-neighborhood-visuals.js';
@@ -5,6 +6,18 @@ import {createCoastalInstances} from './coastal-instancing.js';
 import {buildCapeTerrain} from './coastal-terrain-visuals.js';
 import {buildCoastalBasementEntrance} from './coastal-basement-visuals.js';
 import {buildCoastalShorelineArt} from './coastal-shoreline-art.js';
+import {buildCoastalPortFrontage} from './coastal-port-frontage.js';
+import {buildCoastalTownDetails} from './coastal-town-details.js';
+import {buildCoastalWorldPolish} from './coastal-world-polish.js';
+
+// Leave the sheltered grove bank uncapped so its authoritative lee hollow
+// can descend below the old flat lawn. Road support remains in the west slab.
+export const COASTAL_LEVEL_LAND=Object.freeze([
+ {x:192,z:60,width:384,depth:120},
+ {x:251,z:217,width:246,depth:194},
+ {x:379,z:184,width:10,depth:128},
+ {x:379,z:297,width:10,depth:34},
+].map(Object.freeze));
 
 // The same land rectangles, roads and lots drive the map and collision data.
 export function buildCoastalScenery(world){
@@ -16,7 +29,9 @@ export function buildCoastalScenery(world){
  m.coastWhite=new THREE.MeshStandardMaterial({color:0xc7c3ae,roughness:.88});
  m.coastRed=new THREE.MeshStandardMaterial({color:0x713f34,roughness:.8});
  harborSurface(m.coastGrass,'grass');
- for(const p of [{x:224,z:60,width:448,depth:120},{x:256,z:217,width:256,depth:194}])world.box(p.x,-.20,p.z,p.width,.36,p.depth,'coastGrass','CoastalLand');
+ // The eastern natural margin has its own authoritative one-metre terrain.
+ // End the flat town slab here so it cannot cap the new peat hollows.
+ for(const p of COASTAL_LEVEL_LAND){const pieces=c.courtLane?courtSubtractRect({minX:p.x-p.width/2,maxX:p.x+p.width/2,minZ:p.z-p.depth/2,maxZ:p.z+p.depth/2},c.courtLane.domain):[{minX:p.x-p.width/2,maxX:p.x+p.width/2,minZ:p.z-p.depth/2,maxZ:p.z+p.depth/2}];for(const r of pieces)world.box((r.minX+r.maxX)/2,-.20,(r.minZ+r.maxZ)/2,r.maxX-r.minX,.36,r.maxZ-r.minZ,'coastGrass','CoastalLand');}
  world.terrain=buildCapeTerrain(world);
  // Keep the original working port's paved surface and its six interiors.
  world.box(64,-.015,60,128,.09,120,'asphalt','HarborGround');
@@ -44,15 +59,17 @@ export function buildCoastalScenery(world){
   world.box(232+lane,.108,z+side*8.6,.65,.014,2.4,'coastWhite','CoastalCrosswalk');
  }
  for(const b of c.buildings){
-  world.box(b.x,.035,b.z,b.width+1.8,.20,b.depth+1.8,'concrete','CoastalBuildingApron');
+  const apron={minX:b.x-(b.width+1.8)/2,maxX:b.x+(b.width+1.8)/2,minZ:b.z-(b.depth+1.8)/2,maxZ:b.z+(b.depth+1.8)/2};
+  for(const p of c.courtLane?courtSubtractRect(apron,c.courtLane.domain):[apron])world.box((p.minX+p.maxX)/2,.035,(p.minZ+p.maxZ)/2,p.maxX-p.minX,.20,p.maxZ-p.minZ,'concrete','CoastalBuildingApron');
   const road=c.roads.filter(r=>r.width>r.depth&&Math.abs(b.x-r.x)<r.width/2).sort((a,r)=>Math.abs(a.z-b.z)-Math.abs(r.z-b.z))[0];
   if(road){
    const side=Math.sign(road.z-b.z),start=b.z+side*(b.depth/2+.9),end=road.z-side*(road.depth/2+2.2),length=Math.abs(end-start);
    if(length>.2&&length<24)world.box(b.x,.055,(start+end)/2,2.4,.12,length,'concrete','CoastalEntranceWalk');
   }
  }
- // Continuous sea walls make every solid coast edge visible to the player.
- const shore=[[0,0,448,0],[448,0,448,416],[448,416,128,416],[128,416,128,120],[128,120,0,120],[0,120,0,0]];
+ // Engineered walls belong to the working port. Natural cape edges read as
+ // exposed turf and eroded stone rather than a fenced rectangular park.
+ const shore=[[0,0,128,0],[128,120,0,120],[0,120,0,0]];
  const rockGeo=new THREE.DodecahedronGeometry(1,0),rocks=[];
  let seed=20261003;const rand=()=>((seed=Math.imul(seed,1664525)+1013904223>>>0)/4294967296);
  for(const [x,z,xx,zz]of shore){
@@ -126,6 +143,9 @@ export function buildCoastalScenery(world){
  }
  buildSky(world);
  batchCoastalSlabs(world);
+ world.portFrontage=buildCoastalPortFrontage(world);
+ world.townDetails=buildCoastalTownDetails(world);
+ world.worldPolish=buildCoastalWorldPolish(world);
  world.diagnostics.coastal={width:c.width,depth:c.depth,districts:c.districts.length,buildings:c.buildings.length,landmarks:c.landmarks.length,coast:'L-shaped peninsula with sea walls and open water on every outer side'};
 }
 

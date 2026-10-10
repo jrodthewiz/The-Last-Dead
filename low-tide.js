@@ -51,7 +51,7 @@ export function lowTideTarget(run) {
 }
 export function lowTidePrompt(run) {
   const s=run.lowTide,room=run.course.activeInterior;
-  if(!s||!room||run.vehicle?.occupied||run.z>.3)return null;
+  if(!s||!room||(run.activeVehicle?.occupied||run.vehicle?.occupied)||run.z>.3)return null;
   const p=run.course.lowTideStations.find(p=>p.roomId===room.id&&Math.hypot(p.x-run.x,p.y-run.y)<.48);
   if(!p)return null;
   let label,enabled=true;

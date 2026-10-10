@@ -22,6 +22,45 @@ Artistic disagreement alone cannot establish a software bug. A build pass cannot
 
 Run the full council when explicitly asked. Otherwise select the few critics that can falsify the current claim. Keep competing ideas visible; reconcile with the creator's intended experience and tested consequences, never a majority vote. Review authorization does not authorize automatic gameplay changes, deployment or publishing. Preserve the existing game tab and port 5200 server.
 
+## Visual acceptance: scrutiny before completion
+
+The user rejected the first-person presentation as unprofessional after the
+October 4 arm/hand iterations. Mechanical fixes and a better previous/current
+comparison do not establish the requested professional craft bar.
+
+- Inspect the final raw rendered views, including an ordinary gameplay-sized
+  view and a neutral material view. Identify the weakest visible foreground
+  form. Source descriptions, screenshots of references alone, test counts,
+  asset provenance and successful builds cannot establish visual acceptance.
+- Give separate mechanical and artistic verdicts. A correct grip socket does
+  not establish finger contact, opposed thumb anatomy, a credible palm, cloth
+  construction, silhouette, material response or motion quality.
+- Identify at least the strongest three concrete visual blockers when the
+  claim fails. Each needs an identifiable current image or source location,
+  the strongest defense, a smallest corrective experiment and an explicit
+  criterion that would change the verdict. Do not manufacture three defects
+  when the available evidence supports fewer; record the missing evidence.
+- Use professional references for construction and visual relationships.
+  Different pose/FOV/lighting does not support physical pixel ratios. Painted
+  or stylized art can pass; inconsistent anatomy, generic blocks, unsupported
+  hardware and indiscriminate detail remain defects within that style.
+- Review one representative weapon and both hands to a publishable standard
+  before propagating another generic polish pass across all eight weapons.
+  Reject the representative while any confirmed anatomy, silhouette,
+  construction or material blocker remains. A rejected experiment should be
+  replaced or revised, rather than defended by sunk effort or passing tests.
+- Label isolated model renders, sampled motion frames and actual full-game
+  evidence separately. Samples do not establish continuous animation quality;
+  failed full-game QA stays unverified. An artistic approval must not imply a
+  runtime, input or performance approval that was not earned.
+- State the remaining gap directly. Do not self-certify professional parity,
+  turn relative improvement into completion, or decide quality by critic vote.
+  The user retains the visual acceptance decision.
+
+These requirements apply to review briefs that read this contract. Saved role
+files alone do not prove these instructions were loaded; the calling agent
+must provide them explicitly when necessary.
+
 ## Inherited council
 
 | Profile name | Concern retained |

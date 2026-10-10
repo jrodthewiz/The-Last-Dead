@@ -247,6 +247,9 @@ function extraDetails(group, kind) {
     // Rocket chamber: bolted armour bands, fuse ports and a stepped rear-sight lug.
     for (const z of [-.28, .24]) for (let i = 0; i < 8; i++) {
       const a = i / 8 * Math.PI * 2 + Math.PI / 8;
+      // The rear underside belongs to the grip mount and the player's palm.
+      // Leave that occupied patch free of protruding chamber fasteners.
+      if(z===.24&&Math.cos(a)<-.7)continue;
       slotScrews(group, [[Math.sin(a) * .3, .04 + Math.cos(a) * .3, z]], worn, dark, 'y', .016);
     }
     for (const side of [-1, 1]) {

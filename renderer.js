@@ -1,4 +1,6 @@
+import {getActiveVehicle} from './harbor-vehicle-fleet.js';
 import {cloneRuntimeMaterial} from './runtime-clone.js';
+import {alignCoastalDaylight} from './coastal-daylight-profile.js';
 import {buildBasementReturn} from './island-basement-visuals.js';
 import {applyWeaponGrime} from './weapon-grime.js';
 import {updateSurvivors,prepareSurvivors,disposeSurvivors} from './assets/survivor/survivor-runtime.js';
@@ -164,7 +166,17 @@ function contactShadowTexture() {
   return texture;
 }
 
-export function disposeObject(root, forceShared = false) {
+export function disposeObject(root, forceShared = false, retainedRoot = null, deferredGeometry = null) {
+  // Native buffers belong to attributes, which a geometry view or cloned actor
+  // can borrow without inheriting the source's sharedAsset flag. An outgoing
+  // area must not dispose buffers still referenced by the player or new area.
+  const liveGeometry=new Set(),liveAttributes=new Set(),liveMaterials=new Set(),liveTextures=new Set(),liveSkeletons=new Set();
+  const attributeKey=a=>a?.isInterleavedBufferAttribute?a.data:a;
+  retainedRoot?.traverse?.(obj=>{
+    if(obj.geometry){liveGeometry.add(obj.geometry);if(obj.geometry.index)liveAttributes.add(attributeKey(obj.geometry.index));for(const a of Object.values(obj.geometry.attributes))liveAttributes.add(attributeKey(a));}
+    if(obj.skeleton)liveSkeletons.add(obj.skeleton);
+    for(const m of (Array.isArray(obj.material)?obj.material:[obj.material]).filter(Boolean)){liveMaterials.add(m);for(const value of Object.values(m))if(value?.isTexture)liveTextures.add(value);}
+  });
   // Restore source surfaces before collecting them. Adapter disposal can
   // remove owned children, so do it outside the resource traversal.
   const actorStyles=[];
@@ -188,14 +200,18 @@ export function disposeObject(root, forceShared = false) {
       else materials.add(obj.material);
     }
   });
-  skeletons.forEach(skeleton => skeleton.dispose?.());
-  geometries.forEach(g => {if(forceShared||!g.userData?.sharedAsset)g.dispose?.();});
+  skeletons.forEach(skeleton => {if(!liveSkeletons.has(skeleton))skeleton.dispose?.();});
+  geometries.forEach(g => {
+    const borrowed=liveGeometry.has(g)||[g.index,...Object.values(g.attributes)].filter(Boolean).some(a=>liveAttributes.has(attributeKey(a)));
+    if(borrowed){if(!liveGeometry.has(g))deferredGeometry?.add(g);return;}
+    if(forceShared||!g.userData?.sharedAsset)g.dispose?.();
+  });
   materials.forEach(m => {
-    if (!forceShared && m.userData?.sharedLibrary) return;
+    if (liveMaterials.has(m)||!forceShared && m.userData?.sharedLibrary) return;
     for(const value of Object.values(m))if(value?.isTexture&&(forceShared||!value.userData?.sharedAsset))textures.add(value);
     m.dispose?.();
   });
-  textures.forEach(texture=>texture.dispose?.());
+  textures.forEach(texture=>{if(!liveTextures.has(texture))texture.dispose?.();});
 }
 
 function lineGeometry(maxLines) {
@@ -259,6 +275,10 @@ export class Renderer {
     if(!backend?.backend?.isWebGPUBackend)throw new Error('The Last Dead requires an initialized native WebGPU renderer.');
     try {
       this.renderer = backend;
+      // Native driver compilation is memory intensive on the full island.
+      // Bound concurrent jobs so hidden effect preparation cannot exhaust the
+      // graphics process while the exterior's pipelines are resident.
+      this.renderer.compilationConcurrency = 2;
       this.renderer.outputColorSpace = THREE.SRGBColorSpace;
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
       this.renderer.toneMappingExposure = 1.12;
@@ -945,9 +965,9 @@ export class Renderer {
       // room's resources alive until its shader poll finishes, even on restart.
       if(this._warmupPromise){
         this._retiredWorlds ||= new Set();this._retiredWorlds.add(retired);
-        const release=()=>{if(this._retiredWorlds.delete(retired))disposeObject(retired);};
+        const release=()=>{if(this._retiredWorlds.delete(retired))disposeObject(retired,false,this.scene,this._deferredWorldGeometry ||= new Set());};
         this._warmupPromise.then(release,release);
-      }else disposeObject(retired);
+      }else disposeObject(retired,false,this.scene,this._deferredWorldGeometry ||= new Set());
     }
     this._enemyVisuals.clear();
     this._preparedEnemyVisuals = new Map();
@@ -964,6 +984,7 @@ export class Renderer {
     const shadowCenterZ = Number.isFinite(spawn?.y) ? worldZ(spawn.y) : depth * .5;
     this._worldKeyLight.target.position.set(shadowCenterX, 0, shadowCenterZ);
     this._worldKeyLight.position.set(shadowCenterX, 32, shadowCenterZ - 44);
+    if(course.coastal)alignCoastalDaylight(this._worldKeyLight);
     this._worldKeyLight.target.updateMatrixWorld(true);
     this._worldKeyLight.updateMatrixWorld(true);
     this._worldKeyLight.shadow.camera.updateProjectionMatrix();
@@ -1762,7 +1783,7 @@ export class Renderer {
         const state=saved.at(-1);root.traverse(object=>{if(object.isMesh){state.culling.push([object,object.frustumCulled]);object.frustumCulled=false;}});
         this.camera.updateWorldMatrix(true,false);this.camera.localToWorld(root.position.set((i-1)*2,-1.65,-6));worldRoot.worldToLocal(root.position);root.visible=true;root.updateMatrixWorld(true);
       }
-      this.bodycam._ensureTarget();renderer.setRenderTarget(this.bodycam.target);
+      this.bodycam._ensureTarget();renderer.setRenderTarget(this.settings?.bodycam===false?previous:this.bodycam.target);
       await this._compilePreparedScene(renderer);
       if(!current())return;
       renderer.setRenderTarget(previous);this._renderScene();await renderer.backend.device.queue.onSubmittedWorkDone();
@@ -2206,7 +2227,7 @@ export class Renderer {
     // in unlit rooms. This existing light is restricted to the viewmodel layer.
     this.viewmodelFill.intensity = weapon >= 4 ? 1.05 : .42;
     const brutal=run.brutal&&run.brutal.phase!=='idle'&&run.brutal.phase!=='cancelled';
-    this.weaponGroups.forEach((group, index) => { group.visible = !run.vehicle?.occupied && !extracting && !brutal && index === weapon; });
+    this.weaponGroups.forEach((group, index) => { group.visible = !getActiveVehicle(run)?.occupied && !extracting && !brutal && index === weapon; });
     this.weaponGroups.forEach((group,i)=>{group.position.x=FIRST_PERSON_HOLD_POSES[i].position[0]*Math.min(1,this.camera.aspect/.9);});
     this.weaponAim ||= new WeaponAim();
     this.weaponAim.apply(this.weaponRig,this.weaponGroups[weapon],weapon,aim*handling.equip);
@@ -2303,6 +2324,7 @@ export class Renderer {
       this.scene.traverse(object=>{if(object.isLight&&object.castShadow)object.shadow.needsUpdate=true;});
       this.renderer.shadowMap.needsUpdate=false;
     }
+    this.harborWorld?.blackwater?.prepareRenderBundles?.(this.camera,!!(this.harborWorld.blackwaterSun?.shadow.needsUpdate||this.harborWorld.forestSun?.shadow.needsUpdate));
     const pass = this.bodycam;
     if (pass) {
       pass.enabled = this.settings.bodycam !== false;
@@ -2374,8 +2396,11 @@ export class Renderer {
     // owns this course and _weaponsPrepared is false, so render cannot restart
     // preparation or draw the unfinished scene.
     if(this._course!==course)return;
+    // The descent also has large wall/detail and effect batches. Use the same
+    // capacity-independent matrix attributes as the coast; otherwise the new
+    // underground entry recompiles huge count-specific shader uniform arrays.
+    this.scene.traverse(object=>{if(object.isInstancedMesh&&!object.userData.blackwaterWeaponInk)prepareCoastalInstances(object);});
     if(course.coastal){
-      this.scene.traverse(object=>{if(object.isInstancedMesh&&!object.userData.blackwaterWeaponInk)prepareCoastalInstances(object);});
       // Live silhouette children borrow the freshly prepared source views.
       this.blackwaterWeaponStyle?.syncState();
     }
@@ -2383,6 +2408,10 @@ export class Renderer {
     this.verminVisuals.setupArm();
     const renderer = this.renderer;
     if (!renderer || this._course !== course) return;
+    if(this.settings?.bodycam!==false){
+      await this.bodycam.prepare?.((...args)=>this._compilePreparedScene(...args),stage=>this._reportPreparation(stage));
+      if(this.renderer!==renderer||this._course!==course)return;
+    }
     if(course.coastal){
       // Prepare the exterior in every direction, not just the spawn view.
       // Otherwise turning or walking to another street compiles cold materials.
@@ -2390,7 +2419,7 @@ export class Renderer {
       const previousTarget=renderer.getRenderTarget(),culling=[];
       this.scene.traverseVisible(object=>{if(object.isMesh||object.isLine||object.isPoints){culling.push([object,object.frustumCulled]);object.frustumCulled=false;}});
       try{
-        this.bodycam._ensureTarget();renderer.setRenderTarget(this.bodycam.target);
+        this.bodycam._ensureTarget();renderer.setRenderTarget(this.settings?.bodycam===false?previousTarget:this.bodycam.target);
         await this._compilePreparedScene(renderer);
         renderer.setRenderTarget(previousTarget);
         for(const [object,culled]of culling)object.frustumCulled=culled;
@@ -2447,19 +2476,7 @@ export class Renderer {
       anatomyPreparation.group.traverse(object => { if (object.isMesh) { object.frustumCulled = false; object.castShadow = false; } });
       this.scene.add(anatomyPreparation.group);
     }
-    this._reportPreparation('Preparing the lighting');
     const previousTarget = renderer.getRenderTarget();
-    try {
-      // Compile the actual HDR target once; it owns the game's world pass.
-      this.bodycam._ensureTarget();
-      renderer.setRenderTarget(this.bodycam.target);
-      await renderer.compileAsync(this.scene,this.camera);
-    } catch (error) {
-      releaseAnatomy();
-      throw error;
-    } finally {
-      renderer.setRenderTarget(previousTarget);
-    }
     if (this.renderer !== renderer || this._course !== course) { releaseAnatomy(); return; }
     this._reportPreparation('Getting your equipment ready');
     // Allow the loading UI to paint before the final GPU uploads.
@@ -2469,8 +2486,13 @@ export class Renderer {
     // buffers. Upload one gun per browser frame behind the loading overlay.
     // Later floors reuse the equipment buffers and only need a world upload.
     const visibility = this.weaponGroups.map(group => group.visible);
+    // A descent starts with its actual inventory. Preparing every gun in the
+    // game held both menu actions behind equipment the player cannot equip.
+    const equipment=course.dungeon&&run
+      ? [...new Set([...(run.ownedWeapons||[]),run.weapon??0])].filter(index=>this.weaponGroups[index])
+      : this._equipmentUploaded?[run?.weapon??0]:this.weaponGroups.map((_,index)=>index);
     const hiddenResources = [];
-    for (const group of [...this.weaponGroups, this.muzzleFlash]) group.traverse(object => {
+    for (const group of [...equipment.map(index=>this.weaponGroups[index]), this.muzzleFlash]) group.traverse(object => {
       if (object === group || object.isLight) return;
       hiddenResources.push([object, object.visible, object.frustumCulled]);
       object.visible = true;
@@ -2512,14 +2534,27 @@ export class Renderer {
         object.visible = visible; object.frustumCulled = culled;
       }
     };
+    let equipmentComplete=false;
     try {
-      const weaponCount=this._equipmentUploaded?1:this.weaponGroups.length;
-      for (let weapon = 0; weapon < weaponCount; weapon++) {
+      // Compile the same resources the upload sweep will draw. Compiling only
+      // the spawn view first left hidden guns, actors and offscreen rooms to
+      // compile synchronously in render(), freezing the loading screen.
+      this.weaponGroups.forEach((group,index) => { group.visible = equipment.includes(index); });
+      this._reportPreparation('Preparing the lighting and equipment');
+      this.bodycam._ensureTarget();
+      renderer.setRenderTarget(this.settings?.bodycam===false?previousTarget:this.bodycam.target);
+      await this._compilePreparedScene(renderer);
+      renderer.setRenderTarget(previousTarget);
+      if(this.renderer!==renderer||this._course!==course)return;
+      // compileAsync has uploaded the offscreen geometry and bindings. Restore
+      // world visibility before a real draw so shadow maps use normal culling.
+      restoreWorld();
+      for (let slot = 0; slot < equipment.length; slot++) {
+        const weapon=equipment[slot];
         if(this.renderer!==renderer||this._course!==course)return;
-        this._reportPreparation('Preparing equipment '+(weapon+1)+' / '+weaponCount);
+        this._reportPreparation('Preparing equipment '+(slot+1)+' / '+equipment.length);
         this.weaponGroups.forEach((group, i) => { group.visible = i === weapon; });
         this._renderScene();
-        if (weapon === 0) restoreWorld();
         await new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,0)));
       }
       if(this.renderer!==renderer||this._course!==course)return;
@@ -2528,8 +2563,10 @@ export class Renderer {
         if(this.renderer!==renderer||this._course!==course)return;
         anatomy.warmupCourse = course;
       }
-      this._equipmentUploaded=true;
+      if(equipment.length===this.weaponGroups.length)this._equipmentUploaded=true;
+      equipmentComplete=true;
     } finally {
+      renderer.setRenderTarget(previousTarget);
       releaseAnatomy();
       restoreWorld();
       this.rifleCasings.mesh.count=0;
@@ -2544,7 +2581,7 @@ export class Renderer {
       for(const actor of this._bellWarmups||[])actor.visible=false;
       for(const actor of this._afterlifeWarmups||[])actor.visible=false;
       this.weaponGroups.forEach((group, i) => { group.visible = visibility[i]; });
-      if(this.renderer===renderer&&this._course===course){
+      if(equipmentComplete&&this.renderer===renderer&&this._course===course){
         if (this.menuCinematic?.active) this.menuCinematic.render(renderer);
         else this._renderScene();
       }
@@ -2574,7 +2611,10 @@ export class Renderer {
       const finisher=this.brutalCombatVisuals.prepareWarmup?.(this._afterlifeWarmups);if(finisher)restores.push(finisher);
       const vermin=this.verminVisuals.prepareWarmup?.();if(vermin)restores.push(vermin);
       if(!restores.length||this.renderer!==renderer||this._course!==course)return;
-      this.bodycam._ensureTarget();renderer.setRenderTarget(this.bodycam.target);
+      // Warmup creates anatomy samples and effect pools after the initial
+      // traversal. Give those late batches the same bounded shader layout.
+      this.scene.traverse(object=>{if(object.isInstancedMesh&&!object.userData.blackwaterWeaponInk)prepareCoastalInstances(object);});
+      this.bodycam._ensureTarget();renderer.setRenderTarget(this.settings?.bodycam===false?previous:this.bodycam.target);
       await this._compilePreparedScene(renderer);
       renderer.setRenderTarget(previous);
       if(this.renderer!==renderer||this._course!==course)return;
@@ -2583,19 +2623,19 @@ export class Renderer {
     }finally{renderer.setRenderTarget(previous);for(const restore of restores.reverse())restore();}
   }
 
-  async _compilePreparedScene(renderer){
+  async _compilePreparedScene(renderer,scene=this.scene,camera=this.camera){
     // Native shader preparation invokes updateBefore nodes, including shadows.
     // Keep shadow rendering out of that pass: culling may be disabled to warm
     // materials in every direction, which must not expand each shadow draw.
     const shadows=[];
-    this.scene.traverse(object=>{if(object.isLight&&object.castShadow&&object.shadow){
+    scene.traverse(object=>{if(object.isLight&&object.castShadow&&object.shadow){
       shadows.push([object.shadow,object.shadow.autoUpdate,object.shadow.needsUpdate]);
       object.shadow.autoUpdate=false;object.shadow.needsUpdate=false;
     }});
     try{
       const stage=this._preparationStage||'Preparing graphics',course=this._course;let reported=-1;
       const progress=(done,total)=>{if(this.renderer!==renderer||this._course!==course||!total)return;const percent=Math.floor(done/total*20)*5;if(percent!==reported){reported=percent;this._reportPreparation(`${stage} · ${percent}%`);}};
-      const compilation=renderer.compileAsync(this.scene,this.camera,null,progress),lost=renderer.backend?.device?.lost;
+      const compilation=renderer.compileAsync(scene,camera,null,progress),lost=renderer.backend?.device?.lost;
       if(lost)await Promise.race([compilation,lost.then(()=>{throw new Error('Graphics device lost during preparation. Reload the game to recover.');})]);
       else await compilation;
     }
@@ -2633,7 +2673,7 @@ export class Renderer {
         this.camera.position.set(definition.spawn.x*CELL,1.65,definition.spawn.y*CELL);
         this.camera.quaternion.identity();this.camera.scale.set(1,1,1);this.camera.layers.enable(0);
         this.camera.lookAt(definition.x,1.65,definition.z);this.camera.updateMatrixWorld(true);
-        renderer.setRenderTarget(this.bodycam.target);
+        renderer.setRenderTarget(this.settings?.bodycam===false?previous:this.bodycam.target);
         await this._compilePreparedScene(renderer);
         if(!current())return;
         renderer.setRenderTarget(previous);this._renderScene();
@@ -2702,10 +2742,10 @@ export class Renderer {
     this.verminVisuals.beginFrame();
     this.playerInjuryVisuals.beginFrame();
     this._updateCamera(run, nowMs);
-    if(run.vehicle?.occupied){
-      const v=run.vehicle,back=castRay(run.course,v.x,v.y,v.angle+Math.PI,2.5).dist;
-      this.cameraRig.position.set(v.x*4,5.2,v.y*4);this.cameraRig.rotation.set(0,-v.angle-Math.PI/2,0);
-      this.camera.position.set(0,0,Math.max(.45,Math.min(2.3,back-.18))*4);
+    if(getActiveVehicle(run)?.occupied){
+      const v=getActiveVehicle(run),height=(v.type==='helicopter'?v.altitudeM:(v.groundM||0)),back=run.vehiclePhysics?run.vehiclePhysics.ray(v.x,v.y,v.angle+Math.PI,v.type==='helicopter'?4:2.5,(height+5.2)/4,0,v.id).dist:castRay(run.course,v.x,v.y,v.angle+Math.PI,2.5).dist;
+      this.cameraRig.position.set(v.x*4,height+5.2,v.y*4);this.cameraRig.rotation.set(0,-v.angle-Math.PI/2,0);
+      this.camera.position.set(0,0,Math.max(.45,Math.min(v.type==='helicopter'?3.8:2.3,back-.18))*4);
       this.camera.rotation.set(-.32,0,0);this.camera.fov=78;this.camera.updateProjectionMatrix();
     }
     if(!this.freeCamera)this.playerInjuryVisuals.applyCamera(run,nowMs);
@@ -2785,7 +2825,7 @@ export class Renderer {
       if(this._transmissionScene!==this.worldRoot){this._transmissionRegion.refresh(this.scene);this._transmissionScene=this.worldRoot;}
       this._transmissionRegion.begin(this.camera);
       const inspectionHidden=[];
-      if(this.freeCamera||run.vehicle?.occupied){
+      if(this.freeCamera||getActiveVehicle(run)?.occupied){
         // Preserve viewmodel lights: hiding their parent would recompile shaders.
         this.weaponRig.traverse(object=>{if(object.isMesh||object.isLine||object.isPoints){inspectionHidden.push([object,object.visible]);object.visible=false;}});
         if(this._survivors?.local){inspectionHidden.push([this._survivors.local,this._survivors.local.visible]);this._survivors.local.visible=false;}
@@ -2893,6 +2933,8 @@ export class Renderer {
     this.extractionVFX?.dispose();
     this.brutalCombatVisuals?.dispose();
     if (this.weaponRig) disposeObject(this.weaponRig);
+    for(const geometry of this._deferredWorldGeometry||[])geometry.dispose();
+    this._deferredWorldGeometry?.clear();
     this.materials && Object.values(this.materials).forEach(m => m.dispose?.());
     this.materials.afterlifeWood.map?.dispose();
     this.materials.wornSteel.map?.dispose();

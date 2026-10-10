@@ -2,6 +2,7 @@
 import * as THREE from '/vendor/three.module.js';
 import {createBloodSurfaceMaterial,bloodAtlasReady} from '/blood-surface.js';
 import {createWebGPUBackend} from '/webgpu-backend.js';
+import {prepareCoastalInstances} from '/coastal-instancing.js';
 const renderer=new URLSearchParams(location.search).get('renderer')==='webgl'?new THREE.WebGLRenderer({canvas:document.querySelector('canvas'),antialias:true}):await createWebGPUBackend(document.querySelector('canvas'));renderer.setSize(800,600);const scene=new THREE.Scene();scene.background=new THREE.Color(0x5d6660);scene.add(new THREE.HemisphereLight(0xffffff,0x888888,2));const light=new THREE.DirectionalLight(0xffffff,2);light.position.set(2,4,5);scene.add(light);const camera=new THREE.PerspectiveCamera(55,4/3,.1,30);camera.position.set(0,0,6);
 for(let i=0;i<4;i++){const m=createBloodSurfaceMaterial({variant:i,dry:i/3});const mesh=new THREE.Mesh(new THREE.PlaneGeometry(1.5,1.5),m);mesh.position.set((i%2-.5)*2,(Math.floor(i/2)-.5)*2,0);scene.add(mesh);}
 const {createHarvestTissueMaterial}=await import('/extraction-tissue-materials.js');
@@ -21,6 +22,6 @@ if(new URLSearchParams(location.search).has('atmosphere')){
  camera.position.copy(p).add(new THREE.Vector3(0,0,5));camera.lookAt(p);
  window.hideAtmosphere=()=>{atmosphere.root.visible=false;renderer.render(scene,camera);};
 }
-await bloodAtlasReady();renderer.render(scene,camera);window.qaReady=true;window.preview={renderer,scene,camera};window.advanceEffects=()=>{injury.uniforms.b.value.x=1;impacts.update(.065,camera);renderer.render(scene,camera);};
+await bloodAtlasReady();if(renderer.backend?.isWebGPUBackend)scene.traverse(object=>{if(object.isInstancedMesh)prepareCoastalInstances(object);});renderer.render(scene,camera);window.qaReady=true;window.preview={renderer,scene,camera};window.advanceEffects=()=>{injury.uniforms.b.value.x=1;impacts.update(.065,camera);renderer.render(scene,camera);};
 </script></body></html>
 

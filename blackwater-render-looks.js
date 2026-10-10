@@ -1,7 +1,9 @@
 import * as THREE from './vendor/three.module.js';
+import {COASTAL_DAYLIGHT} from './coastal-daylight-profile.js';
 import {MeshToonNodeMaterial,MeshStandardNodeMaterial,MeshBasicNodeMaterial,LightingModel} from './vendor/three.webgpu.js';
-import {positionLocal,normalLocal,positionWorld,positionView,normalWorld,normalView,diffuseColor,cameraPosition,cameraProjectionMatrix,screenSize,uniform,color,mix,float,vec2,vec3,texture,mx_noise_float,normalMap} from './vendor/three.tsl.js';
+import {positionLocal,normalLocal,positionWorld,positionView,normalWorld,normalView,diffuseColor,cameraPosition,cameraProjectionMatrix,screenSize,uniform,color,mix,float,vec2,vec3,texture,mx_noise_float,normalMap,attribute,Fn,If} from './vendor/three.tsl.js';
 import {createBlackwaterStreetSurface} from './blackwater-street-surfaces.js';
+import {capeResidentialCoastFields,capeWindwardHeathFields,capeGroveCourtFields} from './coastal-terrain-fields.js';
 
 // Rendering study only: the original materials remain borrowed and recoverable.
 // All three looks use the same geometry, seed, camera and sun direction.
@@ -32,33 +34,50 @@ const makeBands=makeBlackwaterBands;
 
 // The city/woodland verge follows the same metre-space ribbon as its plants.
 // A few broad soil breaks interrupt it; neither terrain nor movement changes.
-export function coastalMeadowTint(){
+export function coastalMeadowTint({organicCover=0}={}){
  const x=positionWorld.x,z=positionWorld.z;
  const center=float(389).add(z.sub(128).mul(.025).sin().mul(4)).add(z.mul(.061).sin().mul(1.7));
  const width=float(11).add(z.mul(.047).sin().mul(2));
  const ribbon=float(1).sub(x.sub(center).abs().smoothstep(width.mul(.35),width));
  const ends=z.smoothstep(124,140).mul(float(1).sub(z.smoothstep(310,328)));
- const patches=mx_noise_float(positionWorld.mul(vec3(.085,0,.060)),.5,.5).smoothstep(-.35,.3);
+ const patches=mx_noise_float(positionWorld.mul(vec3(.085,0,.060)),.5,0).smoothstep(-.35,.3);
  const inland=ribbon.mul(ends).mul(float(.28).add(patches.mul(.72)));
- let coastal=float(0);
- for(const [cx,cz,rx,rz] of [[412,20,20,16],[424,45,21,15],[407,76,19,17],[429,101,18,13]]){
-  const distance=x.sub(cx).div(rx).pow(2).add(z.sub(cz).div(rz).pow(2));
-  const edge=distance.add(mx_noise_float(positionWorld.mul(vec3(.11,0,.11)),.18,.5));
-  coastal=coastal.max(float(1).sub(edge.smoothstep(.25,1.2)));
- }
- coastal=coastal.mul(x.smoothstep(384,396)).mul(z.smoothstep(2,10));
- return mix(mix(vec3(1),vec3(1.22,1.14,.87),inland),vec3(1.95,1.58,1.12),coastal);
+ const ops={add:(a,b)=>float(a).add(b),sub:(a,b)=>float(a).sub(b),mul:(a,b)=>float(a).mul(b),div:(a,b)=>float(a).div(b),
+  max:(a,b)=>float(a).max(b),sin:a=>float(a).sin(),abs:a=>float(a).abs(),smooth:(a,b,v)=>float(v).smoothstep(a,b)};
+ const coast=capeResidentialCoastFields(x,z,ops);
+ let tint=mix(vec3(1),vec3(1.22,1.14,.87),inland);
+ // Rooted organic terrain retains its own cool duff/moss response. The warm
+ // salt wash belongs to exposed mineral ground, rather than the whole coast.
+ const exposureWash=coast.domain.mul(float(.35).add(coast.exposure.mul(.4))).mul(float(1).sub(float(organicCover).clamp(0,1).mul(.9)));
+ tint=mix(tint,vec3(1.38,1.24,.94),exposureWash);
+ tint=mix(tint,vec3(.78,.87,.70),coast.scrub.mul(.92));
+ tint=mix(tint,vec3(1.83,1.60,1.17),coast.trace);
+ tint=mix(tint,vec3(1.49,1.47,1.39),coast.bedrock);
+ const windward=capeWindwardHeathFields(x,z,ops);
+ // The same authored habitat owns rooted growth and its darker peat base.
+ // Salt-exposed skirts are ochre; sheltered hearts stay cool and organic.
+ const heath=mix(vec3(.65,.76,.61),vec3(.91,.83,.62),windward.exposure);
+ tint=mix(tint,heath,windward.cover.mul(.78));
+ const courtTint=Fn(()=>{
+  const out=vec3(1).toVar();
+  If(x.greaterThan(340).and(x.lessThan(410)).and(z.greaterThan(250)).and(z.lessThan(282)),()=>{
+   const court=capeGroveCourtFields(x,z,ops);
+   out.assign(mix(vec3(1),vec3(.77,.83,.71),court.cover.mul(float(.52).add(court.shelter.mul(.25)))));
+  });
+  return out;
+ })();
+ return tint.mul(courtTint).mul(float(1).add(patches.sub(.5).mul(coast.domain).mul(.12)));
 }
 
 // Graphic construction detail, in metres. The same named field owns the
 // visible mark and its diagnostic; derivative attenuation removes subpixel
 // joints rather than making a distant façade shimmer. A's three light bands
 // remain unchanged. These are deliberately matte printed surfaces, not PBR.
-function graphicSurface(role,tint){
+function graphicSurface(role,tint,roofPlaneEnabled=false){
  const street=createBlackwaterStreetSurface(role,tint);
  if(street)return street;
  if(role==='ground')return {color:color(tint).mul(coastalMeadowTint()),
-  metadata:{coordinates:'world XZ metres',channels:'residential coastal scrub lobes / inland meadow ribbon',extent:[384,448,2,120]}};
+  metadata:{coordinates:'world XZ metres',channels:'shared exposure, lee scrub, paving-connected worn traces and mineral lenses / inland meadow ribbon',extent:[384,448,0,120]}};
  const joint=(coordinate,width)=>{
   const phase=coordinate.fract(),footprint=coordinate.fwidth().max(.0005);
   const edge=phase.min(float(1).sub(phase));
@@ -67,22 +86,59 @@ function graphicSurface(role,tint){
  };
  if(role==='brick'){
   const along=mix(positionWorld.z,positionWorld.x,normalWorld.z.abs().smoothstep(.45,.55));
-  const courses=positionWorld.y.div(.24),heads=along.div(.52).add(courses.floor().mod(2).mul(.5));
+  // Historic common brick: 215 × 65 mm plus a 10 mm lime joint. These
+  // physical courses stay small at street height; distant units filter away.
+  const courses=positionWorld.y.div(.075),heads=along.div(.225).add(courses.floor().mod(2).mul(.5));
   const vertical=float(1).sub(normalWorld.y.abs().smoothstep(.6,.9));
-  const structure=joint(courses,.020).max(joint(heads,.013)).mul(vertical);
+  const structure=joint(courses,.0667).max(joint(heads,.0222)).mul(vertical);
   // Two broad gravity-aligned streak fields, confined to the lower masonry.
   const streak=along.mul(.73).sin().add(along.mul(2.11).sin().mul(.28)).smoothstep(.55,1.04);
   const wear=streak.mul(float(1).sub(positionWorld.y.smoothstep(.5,5.0))).mul(vertical);
-  return{color:color(tint).mul(float(1).sub(structure.mul(.48)).sub(wear.mul(.18))),structure,wear,
-   metadata:{coordinates:'world metres / dominant vertical face',brick:[.52,.24],mortarMetres:[.0068,.0048],filter:'fwidth joints fade at 0.18..0.5 cells per pixel',channels:'matte graphic albedo; unchanged toon lighting'}};
+  const brickTone=mx_noise_float(vec3(heads.floor().mul(.67),courses.floor().mul(.87),normalWorld.z.abs()),.5,.5).mul(.15);
+  const salt=mx_noise_float(vec3(along.mul(.12),positionWorld.y.mul(.20),0),.5,0).smoothstep(.02,.36).mul(vertical);
+  const runoff=along.mul(.43).sin().add(along.mul(1.27).sin().mul(.4)).smoothstep(.38,1.13)
+   .mul(positionWorld.y.smoothstep(1.2,7)).mul(vertical);
+  const fired=color(tint).mul(float(.95).add(brickTone).sub(wear.mul(.18)).sub(runoff.mul(.12)))
+   .add(color('#aca68d').mul(salt.mul(.09)));
+  const lime=color('#979487').mul(float(.92).sub(wear.mul(.16)).sub(runoff.mul(.10)));
+  return{color:mix(fired,lime,structure.mul(.78)),structure,wear,
+   metadata:{coordinates:'world metres / dominant vertical face',brick:[.225,.075],mortarMetres:[.010,.010],filter:'fwidth joints fade at 0.18..0.5 cells per pixel',channels:'fired brick and lime mortar / damp and salt; unchanged toon lighting'}};
+ }
+ if(role==='render'||role==='pale'||role==='masonry'){
+  const along=mix(positionWorld.z,positionWorld.x,normalWorld.z.abs().smoothstep(.45,.55));
+  const vertical=float(1).sub(normalWorld.y.abs().smoothstep(.6,.9));
+  const broad=mx_noise_float(vec3(along.mul(.16),positionWorld.y.mul(.24),0),.5,0);
+  const damp=along.mul(.71).sin().add(along.mul(2.33).sin().mul(.32)).smoothstep(.47,1.13)
+   .mul(float(1).sub(positionWorld.y.smoothstep(.4,4.8))).mul(vertical);
+  const wear=broad.smoothstep(.12,.42).mul(vertical);
+  return{color:color(tint).mul(float(.94).add(broad.mul(.12)).sub(damp.mul(.16))).add(color('#8b917c').mul(wear.mul(.04))),wear,
+   metadata:{coordinates:'world metres / vertical construction',channels:'broad plaster ageing, rising damp, mineral surface; matte graphic lighting'}};
  }
  if(role.startsWith('roof')){
   const width=role==='roofZinc'?1.25:.65;
   const structure=joint(positionWorld.x.div(width),.008)
    .mul(normalWorld.y.abs().smoothstep(.2,.75));
   const wear=mx_noise_float(positionWorld.mul(vec3(.045,.02,.045)),.5,.5).clamp(0,1);
-  return{color:color(tint).mul(float(.84).add(wear.mul(.19)).sub(structure.mul(.18))),structure,wear,
+  const legacy=color(tint).mul(float(.84).add(wear.mul(.19)).sub(structure.mul(.18)));
+  if(!roofPlaneEnabled)return{color:legacy,structure,wear,
    metadata:{coordinates:'world metres',channels:'broad roof weathering / derivative-filtered standing seams',filter:'fwidth seam attenuation'}};
+  const plane=attribute('roofPlane','vec4'),along=plane.x,uphill=plane.y,run=plane.z.max(.001),kind=plane.w;
+  const finish=Fn(()=>{
+   // Materialize derivative expressions on this stack before varying branches.
+   const footprint=uphill.fwidth().max(.0005).toVar(),drain=float(1).sub(uphill.smoothstep(0,float(1.4).add(footprint)));
+   const seatDistance=run.sub(uphill),seat=float(1).sub(seatDistance.smoothstep(0,float(.6).add(footprint)));
+   const hasSeat=kind.sub(1).mul(4).clamp(0,1);
+   const middle=uphill.smoothstep(1.4,float(2.2).add(footprint)).mul(float(1).sub(uphill.div(run).smoothstep(.72,.94)));
+   const zincSeams=joint(along.div(1.25),.008).toVar(),slateCourses=joint(uphill.div(.32),.012).toVar();
+   const zinc=color(tint).mul(float(.84).add(wear.mul(.19))).mul(float(1).sub(drain.mul(.15)).sub(seat.mul(hasSeat).mul(.05)).add(middle.mul(.05))).mul(float(1).sub(zincSeams.mul(.12)));
+   const slate=color(tint).mul(float(.84).add(wear.mul(.19))).mul(float(1).sub(drain.mul(.08))).mul(float(1).sub(slateCourses.mul(.10)));
+   const out=legacy.toVar();
+   If(kind.greaterThan(.5).and(kind.lessThan(1.5)),()=>out.assign(zinc));
+   If(kind.greaterThan(1.5),()=>out.assign(slate));
+   return out;
+  })();
+  return{color:finish,structure,wear,
+   metadata:{coordinates:'owned roofPlane physical metres before placement yaw',encoding:'0 legacy;1 zinc;1.25 proven monitor seat;2 residential',eaveBand:1.4,seatBand:.6,zincDrainMax:.15,zincSeatMax:.05,zincCleanMax:.05,residentialDrainMax:.08,channels:'eave-anchored drainage / zinc downhill seams / residential cross-slope slate courses',filter:'unconditional fwidth before varying type selection'}};
  }
  if(role==='interiorWood'){
   const planks=positionWorld.x.div(.36),ends=positionWorld.z.div(2.4).add(planks.floor().mod(3).div(3));
@@ -109,34 +165,56 @@ export class BlackwaterPaintedMaterial extends MeshToonNodeMaterial {
 // instead of restarting on individual rocks. Vertex colors still own turf,
 // exposed mineral and tidal zones; no textures or additional draws are needed.
 export function configureCoastalRockMaterial(material){
- const bed=positionWorld.y.add(positionWorld.x.mul(.14)).add(positionWorld.z.mul(.065))
-  .add(mx_noise_float(positionWorld.mul(.055),.4,.5));
- const cycle=bed.div(.9),phase=cycle.fract(),footprint=cycle.fwidth().max(.0005);
- const edge=phase.min(float(1).sub(phase));
- const joints=float(1).sub(edge.smoothstep(.025,float(.025).add(footprint)))
-  .mul(float(1).sub(footprint.smoothstep(.15,.48)))
-  .mul(float(1).sub(normalWorld.y.abs().smoothstep(.5,.95)));
- const grain=mx_noise_float(positionWorld.mul(3),.5,.5);
- const mineral=mx_noise_float(positionWorld.mul(vec3(.06,.11,.06)),.5,.5);
- const brokenBeds=mx_noise_float(positionWorld.mul(vec3(.18,.055,.18)),.5,.5).smoothstep(-.12,.20);
+ const exposure=attribute('geologicalExposure','vec4');
+ const face=exposure.x,cleavage=exposure.y,talus=exposure.z,cap=exposure.w;
+ const strike=positionWorld.x.mul(.94).add(positionWorld.z.mul(.342));
+ const cross=positionWorld.z.mul(.94).sub(positionWorld.x.mul(.342));
+ const bed=positionWorld.y.sub(positionWorld.x.mul(.145)).add(positionWorld.z.mul(.048));
+ // Long mineral fibres follow the inclined cleavage direction. Do not outline
+ // a noise zero contour: its closed loops looked like worms on every face.
+ const cleavageGrain=mx_noise_float(vec3(strike.mul(.045),bed.mul(5.1),cross.mul(.11)),.5,0);
+ const footprint=cleavageGrain.fwidth().max(.0005);
+ const lamination=cleavageGrain.mul(float(1).sub(footprint.smoothstep(.08,.32))).mul(face);
+ const grain=mx_noise_float(positionWorld.mul(3.6),.5,0);
+ const fine=mx_noise_float(positionWorld.mul(15),.5,0);
+ const mineral=mx_noise_float(positionWorld.mul(vec3(.35,.6,.35)),.5,0);
  const wet=float(1).sub(positionWorld.y.smoothstep(-.6,1.4));
- material.colorNode=color('#ffffff').mul(float(.96).add(grain.mul(.10)).add(mineral.mul(.16))
-  .sub(joints.mul(brokenBeds).mul(.23))).mul(float(1).sub(wet.mul(.22)));
- material.userData.coastalRockField={coordinates:'world metres',beddingMetres:.9,
-  beddingDirection:[.14,1,.065],filter:'fwidth bedding fades at .15..48 cells per pixel',
-  channels:'shared mineral albedo, directional bedding, wet base; vertex zones retained'};
+ const runoff=cleavage.mul(float(.4).add(mx_noise_float(vec3(strike.mul(.6),bed.mul(.12),cross.mul(.6)),.5,0))).max(0);
+ material.colorNode=color('#ffffff').mul(float(.99).add(grain.mul(.14)).add(fine.mul(.055)).add(mineral.mul(.10))
+  .add(lamination.mul(.10)).sub(runoff.mul(.18))).mul(float(1).sub(wet.mul(.25)))
+  .mul(mix(vec3(1),vec3(.88,.94,.80),cap.mul(.12)));
+ if(material.isMeshStandardNodeMaterial){
+  material.roughnessNode=float(.88).add(grain.mul(.10)).add(talus.mul(.07)).sub(wet.mul(.24)).clamp(.6,.98);
+  material.normalNode=null;
+ }
+ material.userData.coastalRockField={coordinates:'world metres',noisePivot:0,normalBasis:'geometry; no UV tangent map',beddingMetres:[3.8,6.1],aperiodicBedding:true,
+  semanticAttribute:'geologicalExposure: actual bearing face, cleavage depth, talus, sheltered cap',
+  beddingDirection:[-.145,1,.048],filter:'fwidth fine cleavage fades at .08..32 field units per pixel',
+  channels:'physical slab ends, inclined mineral fibres, localized runoff, tidal wetness, talus roughness and cap soil'};
  return material;
 }
+
 export function makeBlackwaterGraphicMaterial(source,bands){
- const role=materialRole(source),mat=new BlackwaterPaintedMaterial({gradientMap:bands});
+ const role=materialRole(source),mat=['glass','asphalt'].includes(role)?new MeshStandardNodeMaterial({roughness:role==='glass'?.34:.87,metalness:0}):new BlackwaterPaintedMaterial({gradientMap:bands});
  mat.name=`look-cartoon-${role}`;mat.userData.lookRole=role;mat.color.copy(source.color);
  if(PALETTE[role])mat.color.set(PALETTE[role]);
  if(role==='house')mat.color.set(['#779aa7','#ab9a7c','#748f7d'][Number(source.name.slice(-1))||0]);
  mat.side=source.side;mat.transparent=source.transparent;mat.opacity=source.opacity;
  mat.map=role==='sign'?source.map:null;mat.emissive.copy(source.emissive);mat.emissiveIntensity=source.emissiveIntensity;
- const surface=graphicSurface(role,mat.color);
+ if(role==='glass'){
+  const view=cameraPosition.sub(positionWorld).normalize(),reflected=view.negate().reflect(normalWorld);
+  const fresnel=float(1).sub(normalWorld.dot(view).abs()).pow(5);
+  const sky=mix(color('#657e8b'),color('#b5c5ca'),float(1).sub(reflected.y.abs().smoothstep(.04,.75)));
+  const film=mx_noise_float(positionWorld.mul(vec3(4.2,.18,4.2)),.5,0).smoothstep(.05,.32);
+  mat.colorNode=color('#263d44').mul(float(1).sub(film.mul(.17)));
+  mat.emissiveNode=sky.mul(float(.08).add(fresnel.mul(.32))).mul(float(1).sub(film.mul(.27)));
+  mat.roughnessNode=float(.28).add(film.mul(.18));
+  mat.userData.reflectionScope='analytic coastal sky Fresnel; retained matte dirt film; no scene reflection';
+ }
+ const surface=graphicSurface(role,mat.color,!!source.userData.blackwaterRoofPlane);
  if(surface){
   mat.colorNode=surface.color;mat.blackwaterSurfaceNodes=surface;mat.userData.graphicSurface=surface.metadata;
+  if(role==='asphalt'){mat.roughnessNode=surface.roughness;mat.emissiveNode=surface.reflection;mat.userData.reflectionScope='bounded analytic coastal sky tint on actual damp road shoulders; no scene reflection';}
   if(surface.setDebug){
    const setDebug=surface.setDebug;let diagnostic=false;
    surface.setDebug=(name='final')=>{
@@ -152,16 +230,23 @@ export function makeBlackwaterGraphicMaterial(source,bands){
 export function createBlackwaterGraphicSky(radius=1900){
  const material=new MeshBasicNodeMaterial({side:THREE.BackSide,depthWrite:false,fog:false});
  const direction=positionWorld.sub(cameraPosition).normalize(),altitude=direction.y.max(0).mul(2.1).clamp(0,1).pow(.65);
- const lobe=(z,y,w,h)=>float(1).sub(vec2(direction.z.sub(z).div(w),direction.y.sub(y).div(h)).length().smoothstep(.88,1));
+ const [hx,hz]=COASTAL_DAYLIGHT.horizontal;
+ const aligned=vec3(direction.x.mul(-hz).add(direction.z.mul(hx)),direction.y,direction.x.mul(hx).add(direction.z.mul(hz))).toVar();
+ const shear=mx_noise_float(aligned.mul(vec3(8,17,8)),.025,0);
+ const edge=mx_noise_float(aligned.mul(vec3(22,38,22)),.014,0);
+ const lobe=(z,y,w,h)=>float(1).sub(vec2(aligned.z.sub(z).div(w),direction.y.sub(y).add(shear).add(edge).div(h)).length().smoothstep(.67,1.15));
  const a=lobe(-.65,.26,.23,.035).max(lobe(-.73,.29,.105,.065)).max(lobe(-.54,.29,.12,.055));
  const b=lobe(-.09,.34,.27,.035).max(lobe(-.17,.365,.14,.065)).max(lobe(.02,.36,.13,.055));
  const c=lobe(.48,.19,.26,.028).max(lobe(.41,.22,.13,.055)).max(lobe(.57,.21,.10,.04));
- const banks=mx_noise_float(direction.mul(vec3(5.2,2.7,5.2)),.55,.5)
-  .add(mx_noise_float(direction.mul(vec3(13,5,13)),.16)).smoothstep(.50,.78);
- const cloud=banks.max(a.max(b).max(c).mul(.6)).mul(direction.y.smoothstep(.015,.18))
+ const banks=mx_noise_float(aligned.mul(vec3(5.2,2.7,5.2)),.55,.5)
+  .add(mx_noise_float(aligned.mul(vec3(13,5,13)),.16)).smoothstep(.10,.39);
+ const cloud=banks.mul(.54).max(a.max(b).max(c).mul(.68)).mul(direction.y.smoothstep(.015,.18))
   .mul(float(1).sub(direction.y.smoothstep(.5,.9))).mul(.62);
  const preset=BLACKWATER_LOOKS.cartoon;
- material.colorNode=mix(mix(color(preset.horizon),color(preset.sky),altitude),color('#d5dde0'),cloud);
+ const cloudLight=mix(color('#7d929e'),color('#d5dde0'),direction.y.smoothstep(.10,.35));
+ const opening=direction.dot(vec3(...COASTAL_DAYLIGHT.direction)).smoothstep(.60,.96).mul(COASTAL_DAYLIGHT.skyOpening);
+ material.colorNode=mix(mix(mix(color(preset.horizon),color(preset.sky),altitude),cloudLight,opening),cloudLight,cloud.mul(float(1).sub(opening.mul(1.5))));
+ material.userData.coastalSky={identity:'wind-sheared maritime cloud banks',extraTextures:0,extraPasses:0};
  const geometry=new THREE.SphereGeometry(radius,24,12),root=new THREE.Mesh(geometry,material);root.name='BlackwaterGraphicSky';root.frustumCulled=false;root.renderOrder=-1000;
  root.layers.set(1);root.userData.noBatch=true;let disposed=false;
  return{root,dispose(){if(disposed)return;disposed=true;root.removeFromParent();geometry.dispose();material.dispose();}};
@@ -198,7 +283,7 @@ function skyEnvironment(){
 export function createBlackwaterLookStudy({renderer,scene,subject,camera,sun,fill}){
  const records=[],materials=new Set(),generatedTextures=new Set(),variants=new Map(),outlines=[];
  const original={environment:scene.environment,environmentIntensity:scene.environmentIntensity,background:scene.background.clone(),fog:scene.fog.clone(),sunColor:sun.color.clone(),sunIntensity:sun.intensity,fillColor:fill.color.clone(),groundColor:fill.groundColor.clone(),fillIntensity:fill.intensity,toneMapping:renderer.toneMapping,exposure:renderer.toneMappingExposure};
- scene.traverse(object=>{if(object.isMesh){records.push({object,material:object.material});for(const m of Array.isArray(object.material)?object.material:[object.material])if(m?.isMeshStandardMaterial)materials.add(m);}});
+ scene.traverse(object=>{if(object.isMesh){records.push({object,material:object.material});for(const m of Array.isArray(object.material)?object.material:[object.material])if(m?.isMeshStandardMaterial&&!m.userData.nativeTerrainPBR)materials.add(m);}});
  const environment=skyEnvironment();generatedTextures.add(environment);
  const top=uniform(new THREE.Color()),bottom=uniform(new THREE.Color()),inkWidth=uniform(2.2),graphicSky=uniform(0);
  const skyMaterial=new MeshBasicNodeMaterial({side:THREE.BackSide,depthWrite:false,fog:false});
@@ -218,7 +303,7 @@ export function createBlackwaterLookStudy({renderer,scene,subject,camera,sun,fil
  const ink=new MeshBasicNodeMaterial({color:'#16222c',side:THREE.BackSide,depthWrite:false});
  const worldPixel=positionView.z.abs().mul(2).div(screenSize.y).div(cameraProjectionMatrix.element(1).element(1));
  ink.positionNode=positionLocal.add(normalLocal.mul(inkWidth.mul(worldPixel)));
- const candidates=[];subject.root.traverse(object=>{if(object.isMesh)candidates.push(object);});
+ const candidates=[];subject.root.traverse(object=>{if(object.isMesh&&!(Array.isArray(object.material)?object.material:[object.material]).some(m=>m?.userData.nativeTerrainPBR))candidates.push(object);});
  for(const mesh of candidates){
   const outline=mesh.clone(false);outline.material=ink;outline.name='BlackwaterLookInk';outline.castShadow=false;outline.receiveShadow=false;outline.visible=false;outline.userData.lookOutline=true;
   outline.layers.set(1);mesh.parent.add(outline);outlines.push(outline);

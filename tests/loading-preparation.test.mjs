@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three.module.js';
 import {Renderer} from '../renderer.js';
+import {BodycamPass} from '../bodycam-pass.js';
 
 function fixture(){
   const course={dungeon:true,waveSpawns:[Array.from({length:30},(_,i)=>({variant:['stalker','fixture-a','fixture-b','fixture-c','fixture-d','fixture-e','fixture-f','fixture-g','fixture-h','fixture-i'][i%10]}))]};
@@ -93,6 +94,112 @@ test('open coast prepares the visible scene without uploading every campaign wea
   }
 });
 
+test('dungeon equipment and concealed world resources compile before their first upload draw',async()=>{
+  const {r,course,calls,world}=warmupFixture(),previous=globalThis.requestAnimationFrame;
+  const target={};let activeTarget=target,compiled=false;
+  r.renderer.getRenderTarget=()=>activeTarget;r.renderer.setRenderTarget=value=>{activeTarget=value;};
+  r.renderer.compileAsync=async()=>{
+    assert.equal(calls.length,0,'no synchronous cold draw before compilation');
+    assert.equal(activeTarget,r.bodycam.target,'compile the actual HDR output');
+    assert.equal(world.visible,true);assert.equal(world.frustumCulled,false);
+    for(const group of r.weaponGroups){assert.equal(group.visible,true);assert.equal(group.children[0].visible,true);assert.equal(group.children[0].frustumCulled,false);}
+    compiled=true;
+  };
+  const draw=r._renderScene;r._renderScene=function(){assert.equal(compiled,true);assert.equal(world.visible,false);assert.equal(world.frustumCulled,true,'real draws restore world culling before shadow rendering');draw.call(this);};
+  globalThis.requestAnimationFrame=cb=>setImmediate(cb);
+  try{await r._prepareWeaponResources(course);assert.equal(activeTarget,target);assert.equal(r._weaponsPrepared,true);}
+  finally{globalThis.requestAnimationFrame=previous;}
+});
+
+test('a rejected equipment pipeline restores resources without drawing or marking the map ready',async()=>{
+  const {r,course,calls,world}=warmupFixture(),previous=globalThis.requestAnimationFrame;
+  let target='screen';r.renderer.getRenderTarget=()=>target;r.renderer.setRenderTarget=value=>{target=value;};
+  r.renderer.compileAsync=async()=>{throw Error('equipment pipeline rejected');};
+  globalThis.requestAnimationFrame=cb=>setImmediate(cb);
+  try{
+    await assert.rejects(r._prepareWeaponResources(course),/equipment pipeline rejected/);
+    assert.deepEqual(calls,[]);assert.equal(target,'screen');assert.equal(world.visible,false);assert.equal(world.frustumCulled,true);
+    r.weaponGroups.forEach((group,i)=>{assert.equal(group.visible,i===4);assert.equal(group.children[0].visible,false);assert.equal(group.children[0].frustumCulled,true);});
+    assert.equal(r._equipmentUploaded,undefined);assert.equal(r._weaponsPrepared,undefined);
+  }finally{globalThis.requestAnimationFrame=previous;}
+});
+
+test('a dungeon prepares its current inventory instead of every unavailable gun',async()=>{
+  const {r,course,calls}=warmupFixture(),previous=globalThis.requestAnimationFrame;course.dungeon=true;r.render=()=>{};
+  r.renderer.compileAsync=async()=>{assert.deepEqual(r.weaponGroups.map((group,index)=>group.visible?index:null).filter(index=>index!==null),[0,5]);};
+  globalThis.requestAnimationFrame=cb=>setImmediate(cb);
+  try{
+    await r._prepareWeaponResources(course,{course,weapon:5,ownedWeapons:[0,5]});
+    assert.deepEqual(calls,[0,5,4]);assert.equal(r._weaponsPrepared,true);
+    assert.equal(r._equipmentUploaded,undefined,'a partial inventory never marks the full eight-gun cache uploaded');
+  }finally{globalThis.requestAnimationFrame=previous;}
+});
+
+test('disabled adaptive exposure prepares the direct output used by gameplay',async()=>{
+  for(const coastal of [false,true]){
+    const {r,course}=warmupFixture(),previous=globalThis.requestAnimationFrame;
+    if(coastal)course.coastal={};r.settings={bodycam:false};let target=null;
+    r.renderer.getRenderTarget=()=>target;r.renderer.setRenderTarget=value=>{target=value;};
+    r.renderer.compileAsync=async()=>{assert.equal(target,null,'no HDR target when rendering directly to the canvas');};
+    globalThis.requestAnimationFrame=cb=>setImmediate(cb);
+    try{await r._prepareWeaponResources(course);assert.equal(r._weaponsPrepared,true);}
+    finally{globalThis.requestAnimationFrame=previous;}
+  }
+});
+
+test('underground batches use capacity-independent shader attributes and retain live matrix uploads',async()=>{
+  const {r,course}=warmupFixture(),previous=globalThis.requestAnimationFrame;
+  const geometry=new THREE.BoxGeometry(),material=new THREE.MeshBasicMaterial(),batch=new THREE.InstancedMesh(geometry,material,612);
+  r.scene.add(batch);
+  r.renderer.compileAsync=async()=>{assert.equal(batch.geometry.hasAttribute('coastalMatrix0'),true);assert.equal(batch.count,612);};
+  globalThis.requestAnimationFrame=cb=>setImmediate(cb);
+  try{
+    await r._prepareWeaponResources(course);
+    batch.setMatrixAt(0,new THREE.Matrix4().makeTranslation(7,2,3));batch.instanceMatrix.needsUpdate=true;
+    const matrices=batch.geometry.getAttribute('coastalMatrix0').data;assert.equal(matrices.array,batch.instanceMatrix.array);assert.equal(matrices.array[12],7);assert.equal(matrices.version,1);
+  }finally{globalThis.requestAnimationFrame=previous;batch.dispose();geometry.dispose();material.dispose();}
+});
+
+test('camera preparation warms the real exposure and output targets without advancing exposure state',async()=>{
+  for(const fail of [false,true]){
+    let target='screen',calls=0;
+    const renderer={toneMapping:THREE.ACESFilmicToneMapping,capabilities:{maxSamples:4},getDrawingBufferSize:size=>size.set(1280,800),getRenderTarget:()=>target,setRenderTarget:value=>{target=value;}};
+    const pass=new BodycamPass(renderer);
+    try{
+      const compile=async (native,scene,camera)=>{
+        calls++;assert.equal(native,renderer);assert.equal(scene,pass.scene);assert.equal(camera,pass.camera);
+        if(calls===1){assert.equal(target,pass.exposureTargets[1]);assert.equal(pass.quad.material,pass.exposureMaterial);}
+        else{assert.equal(target,'screen');assert.equal(renderer.toneMapping,THREE.NoToneMapping);assert.equal(pass.quad.material,pass.material);if(fail)throw Error('camera pipeline failed');}
+      };
+      if(fail)await assert.rejects(pass.prepare(compile),/camera pipeline failed/);
+      else{await pass.prepare(compile);await pass.prepare(compile);}
+      assert.equal(calls,2);assert.equal(target,'screen');assert.equal(renderer.toneMapping,THREE.ACESFilmicToneMapping);
+      assert.equal(pass.quad.material,pass.material);assert.equal(pass.exposureIndex,0);assert.equal(pass._resetExposure,true);
+      assert.equal(pass.exposureMaterial.uniforms.tPrev.value,null);assert.equal(pass.material.uniforms.tExposure.value,null);
+      assert.equal(pass._prepared,fail?undefined:true);
+    }finally{pass.dispose();}
+  }
+});
+
+test('coastal startup skips the dungeon-only warden; a dungeon transition awaits it',async()=>{
+  const {r,course}=warmupFixture(),previous=globalThis.requestAnimationFrame;
+  let loads=0;r._loadBloodworksWarden=()=>{loads++;return Promise.resolve();};
+  globalThis.requestAnimationFrame=cb=>setImmediate(cb);
+  try{
+    course.coastal={};await r._prepareWeaponResources(course);assert.equal(loads,0);
+    r._course={dungeon:false};await r._prepareWeaponResources(r._course);assert.equal(loads,1);
+  }finally{globalThis.requestAnimationFrame=previous;}
+});
+
+test('Start keeps the title frame still during preparation and resumes it when ready',()=>{
+ const {r,course}=warmupFixture();let draws=0,updates=0;
+ r._warmupCourse=course;r._beginPending=true;r._weaponsPrepared=false;
+ r.menuCinematic={setAsset(){},update(){updates++;},render(){draws++;},actors:[]};r.canvas={dataset:{}};r.settings={};
+ r.render=()=>{throw Error('the pending course is already preparing');};
+ r.renderMenu({course},0);assert.equal(draws,0);assert.equal(updates,0);
+ r._weaponsPrepared=true;r.renderMenu({course},100);assert.equal(draws,1);assert.equal(updates,1);
+});
+
 test('loaded visual bindings refresh once before compilation without restarting preparation or drawing',async()=>{
  const {r,course}=warmupFixture(),previous=globalThis.requestAnimationFrame;course.coastal={};
  const run={course},events=[];let preparationCalls=0,ready=false;
@@ -168,6 +275,21 @@ test('interaction preparation includes the player body hidden by the ready menu 
  const {r,course}=warmupFixture(),body=new THREE.Group(),mesh=new THREE.Mesh(new THREE.BoxGeometry(),new THREE.MeshBasicMaterial());body.add(mesh);body.visible=false;r._survivors={local:body};r.scene.add(body);
  r.renderer.compileAsync=async()=>{assert.equal(body.visible,true);assert.equal(mesh.frustumCulled,false);};
  await r._prepareInteractionResources(course);assert.equal(body.visible,false);assert.equal(mesh.frustumCulled,true);mesh.geometry.dispose();mesh.material.dispose();
+});
+
+test('interaction pools created during warmup receive capacity-independent instance attributes before compilation',async()=>{
+ const {r,course}=warmupFixture();let pool;
+ r.extractionVFX={async prepareWarmup(){
+   pool=new THREE.InstancedMesh(new THREE.BoxGeometry(),new THREE.MeshStandardMaterial(),73);
+   pool.count=1;r.scene.add(pool);return()=>{pool.visible=false;};
+ }};
+ r.renderer.compileAsync=async()=>{
+   assert.equal(pool.userData.coastalInstanceCapacity,73);
+   for(let i=0;i<4;i++)assert(pool.geometry.hasAttribute(`coastalMatrix${i}`));
+   assert.equal(pool.count,1);
+ };
+ await r._prepareInteractionResources(course);assert.equal(pool.visible,false);
+ pool.geometry.dispose();pool.material.dispose();pool.dispose();
 });
 
 test('anatomy pipelines draw during preparation, release their temporary scene and invalidate on cancellation',async()=>{

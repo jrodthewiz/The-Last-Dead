@@ -108,17 +108,17 @@ test('owned material sharing preserves different maps, hooks, Cartesian values, 
  for(const mesh of meshes)mesh.geometry.dispose();mapA.map.dispose();mapB.map.dispose();for(const material of sourceMaterials)material.dispose();
 });
 
-test('all94 static models retain geometry and collision while32/48/64m chunks reduce source submissions',t=>{
+test('all94 static models retain geometry and collision while32/48/64/96m chunks reduce source submissions',t=>{
  const slice=makeBlackwaterDistrict(makeCoastalNeighborhoods()),materials=createBlackwaterMaterials(),root=new THREE.Group(),models=[],measurements=[];
  for(const [i,b]of slice.buildings.entries()){const model=createModel({...b,seed:1400+i,materials});model.root.position.set(b.x,.13,b.z);model.root.rotation.y=b.yaw;model.root.userData.blackwaterPlacement=b.id;root.add(model.root);models.push(model);}
  const plans=JSON.stringify(models.map(m=>m.colliders)),originals=[];for(const model of models)model.root.traverse(o=>{if(o.isMesh)originals.push([o,o.material]);});
  const sharing=shareBlackwaterOwnedMaterials(models);assert.equal(sharing.diagnostics.aliasedSlots,197);assert.equal(sharing.diagnostics.sharedOwnedVariants,8);
  try{
-  for(const chunkSize of [32,48,64]){
+  for(const chunkSize of [32,48,64,96]){
    const helper=createBlackwaterBuildingBatches(root,models,{chunkSize,downtownBuildingIds:slice.downtownBuildingIds});
    try{
-    const d=helper.diagnostics;assert.equal(d.sourceDraws,1283);assert.equal(d.protectedDraws,0);assert.ok(d.triangles<2100000,'whole-coast source geometry retains the shared 2.1M triangle budget');assert.equal(d.mergedTriangles,d.triangles);assert.ok(d.batchedDraws<d.sourceDraws*.65);
-    assert.ok(d.batchedDraws<=({32:762,48:484,64:358})[chunkSize]+32,'entrance surfaces and three district roof materials stay within thirty-two extra spatial batches');if(chunkSize===48)assert.ok(d.batchedDraws<d.sourceDraws*.40);
+    const d=helper.diagnostics;assert.equal(d.sourceDraws,1273);assert.equal(d.protectedDraws,0);assert.ok(d.triangles<2100000,'whole-coast source geometry retains the shared 2.1M triangle budget');assert.equal(d.mergedTriangles,d.triangles);assert.ok(d.batchedDraws<d.sourceDraws*.65);
+    assert.ok(d.batchedDraws<=({32:762,48:484,64:358,96:288})[chunkSize]+32,'entrance surfaces and three district roof materials stay within thirty-two extra spatial batches');if(chunkSize===48)assert.ok(d.batchedDraws<d.sourceDraws*.40);
     assert.ok(d.batches.every(b=>b.vertices<=256000));assert.equal(JSON.stringify(models.map(m=>m.colliders)),plans);
     const cameras=[['downtown',[219,1.75,62],[196,2.7,46]],['apartments',[250,1.75,6],[250,2,17]],['works',[166,1.75,118],[164,2.3,130]],['cape',[158,1.75,238],[158,2.3,252]]];
     root.updateMatrixWorld(true);const views={};

@@ -1,6 +1,50 @@
 import {createBuildingPlan} from './assets/blackwater-kit/architecture.js';
+import {canStandStructure,supportAt} from './coastal-structures.js';
+import {groundAt} from './coastal-terrain.js';
 
 export const MAX_COASTAL_SUPPLY_CASES = 24;
+export const MAX_INTERIOR_CITY_LOOT=72;
+const cityLootHash=(text,seed)=>{let h=seed>>>0;for(const c of text)h=Math.imul(h^c.charCodeAt(0),16777619);return(h>>>0)/4294967296;};
+// This append is independent of the historical supply-case population. The
+// explicit seed changes support selection and contents, never old pickup IDs.
+export function attachInteriorCityLoot(course,seed){
+ if(!Number.isSafeInteger(seed))throw new TypeError('Interior loot requires an explicit integer world seed');
+ if(course.scavengerPickups.some(p=>p.cityLoot))throw new Error('Interior city loot may only be attached once');
+ const coast=course.coastal,candidates=[];
+ if(!coast)return [];
+ for(const b of coast.blackwaterSlice.buildings){
+  if(!b.enterable)continue;
+  const plan=createBuildingPlan(b),c=Math.cos(b.yaw||0),s=Math.sin(b.yaw||0);
+  const transform=(x,z)=>({x:(b.x+x*c+z*s)/4,y:(b.z-x*s+z*c)/4});
+  for(const f of plan.furniture){
+   if(f.lootSurface||!['counter','sewing-table','desk','table'].includes(f.type)||f.size[0]<1.2||f.size[2]<.7)continue;
+   if(course.scavengerPickups.some(p=>p.roomId===b.id&&p.supportId===f.id))continue;
+   const [fx,fy,fz]=f.position,[W,H,D]=f.size,id=`${b.id}:city-loot:${f.id}`;
+   const sideOrder=cityLootHash(id,seed)>.5?[1,-1]:[-1,1];let placement;
+   for(const side of sideOrder)for(const offset of [-W/2+.46,W/2-.46]){
+    const approach=transform(fx+offset,fz+side*(D/2+.96));
+    if(!clearApproach(course,approach)||!canStandStructure(course,approach.x,approach.y,.16,supportAt(course,approach.x,approach.y,groundAt(course,approach.x,approach.y),{radius:.16}).height))continue;
+    // The compiled tabletop is at floor .08+H, and counter caps add .0485.
+    const target=transform(fx+offset,fz+side*(D/2-.26)),top=(b.y||0)+.08+H+(f.type==='counter'?.0485:0);
+    // Furniture collision authority tests the actual eye-to-case ray as well.
+    if(coastalLootBlocked(course,{...approach,z:((b.y||0)+1.68)/4},{...target,z:(top+.16)/4}))continue;
+    placement={...target,approach,top};break;
+   }
+   if(!placement)continue;
+   const scrap=['workshop','hardware','warehouse','mechanic-home'].includes(plan.purpose.id)&&cityLootHash(id,seed+91)<.6;
+   const medical=['clinic','pharmacy'].includes(plan.purpose.id),cloth=cityLootHash(id,seed+37)<.5;
+   const contents=medical?{cloth:1,antiseptic:2}:cloth?{cloth:2}:{cloth:1,antiseptic:1};
+   candidates.push({rank:cityLootHash(id,seed+271),item:{id,cityLoot:true,worldSeed:seed,roomId:b.id,supportId:f.id,x:placement.x,y:placement.y,
+    floorZ:((b.y||0)+.08)/4,itemZ:(placement.top+.16)/4,visualBaseY:placement.top,visualYaw:b.yaw||0,
+    visualKind:scrap?'scrap-cache':'supply-case',requiresInteract:true,...(scrap?{amount:2}:{contents}),
+    label:scrap?'Salvaged fittings':medical?'First-aid supplies':cloth?'Clean cloth bundle':'Household supplies',discoveryLabel:b.label,
+    story:'Supplies left on the last usable work surface.',approach:placement.approach}});
+  }
+ }
+ candidates.sort((a,b)=>a.rank-b.rank||a.item.id.localeCompare(b.item.id));
+ const items=candidates.slice(0,MAX_INTERIOR_CITY_LOOT).map(p=>p.item);course.scavengerPickups.push(...items);
+ coast.cityLoot={seed,added:items.length,eligible:candidates.length,ceiling:MAX_INTERIOR_CITY_LOOT};return items;
+}
 function clearApproach(course,p) {
   const radius=.16,x=Math.floor(p.x),y=Math.floor(p.y),cell=course.cells[y*course.w+x];
   if(!cell||cell.every(n=>n===1))return false;

@@ -8,7 +8,7 @@ import {guardBackgroundInput,backgroundInputState} from './background-input-guar
 import {FIRST_PERSON_HOLD_POSES} from '../assets/survivor/viewmodel-hold-poses.js';
 import {verifyFPSInputJourney} from './fps-arms-input-journey.mjs';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_PATH||'playwright');
-const output=process.env.FP_CAPTURE_OUTPUT||'output/playwright/fps-arms-v3-game';await mkdir(output,{recursive:true});
+const output=process.env.FP_CAPTURE_OUTPUT||'output/playwright/fps-arms-v5-game';await mkdir(output,{recursive:true});
 const root=resolve(process.env.FP_CAPTURE_ROOT||'.'),server=await startServer({root,port:0,spaFallback:false});let browser,context;
 const viewport={width:Number(process.env.FP_CAPTURE_WIDTH||1280),height:Number(process.env.FP_CAPTURE_HEIGHT||800)};
 const weapons=process.env.FP_CAPTURE_WEAPONS?process.env.FP_CAPTURE_WEAPONS.split(',').map(Number):[0,1,2,3,4,5,6,7];
@@ -20,7 +20,7 @@ assert(weapons.length&&weapons.every(i=>Number.isInteger(i)&&i>=0&&i<8));
 assert(Object.values(viewport).every(n=>Number.isInteger(n)&&n>=320&&n<=2560));
 const report={scope:`Actual native game in isolated browser/server; real Start and selected weapon keys (${weapons.join(',')}), representative rendered bone playback with seven still checkpoints${captureBody?', controlled look-down standing/walking/slide views':''}. Controlled animation clocks pause for screenshots. No mobile/performance certification.`,selectedWeapons:weapons,captureBody,recordVideo,root,viewport,errors:[],httpErrors:[],views:[],body:[],sourceHashes:{}};
 await writeFile(output+'/owned-process.json',JSON.stringify({nodePid:process.pid,port:server.port,root},null,2));
-for(const file of ['renderer.js','assets/survivor/fps-arms.js','assets/survivor/fps-arms-v3.glb','assets/survivor/fps-arms-v3-manifest.json','assets/survivor/viewmodel-hold-poses.js','assets/survivor/meshy-survivor.js','assets/survivor/tld-survivor-v02.glb','weapon-occult-redesign.js','blackwater-weapon-style.js'])report.sourceHashes[file]=createHash('sha256').update(await readFile(resolve(root,file))).digest('hex');
+for(const file of ['renderer.js','assets/survivor/fps-arms.js','assets/survivor/fps-arms-v5.glb','assets/survivor/fps-arms-v5-manifest.json','assets/survivor/viewmodel-hold-poses.js','assets/survivor/meshy-survivor.js','assets/survivor/tld-survivor-v02.glb','weapon-occult-redesign.js','weapon-detail-pass.js','blackwater-weapon-style.js'])report.sourceHashes[file]=createHash('sha256').update(await readFile(resolve(root,file))).digest('hex');
 try{
  browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH,args:['--enable-unsafe-webgpu']});
  report.browserVersion=browser.version();
@@ -61,7 +61,7 @@ try{
  await page.goto(`http://127.0.0.1:${server.port}/?debug=1&horrorqa=1`);
  await page.locator('[data-action="start"]').click({timeout:180000});console.log('Actual game Start pressed');
  await page.waitForFunction(()=>window.__DEAD_ARRIVAL__?.screen==='play',null,{timeout:180000});
- await page.waitForFunction(()=>window.__DEAD_ARRIVAL__?.renderer._survivors?.fpsRigRevision===3,null,{timeout:60000});
+ await page.waitForFunction(()=>window.__DEAD_ARRIVAL__?.renderer._survivors?.fpsRigRevision===5,null,{timeout:60000});
  report.gpu=await page.evaluate(()=>{const b=window.__DEAD_ARRIVAL__.renderer.renderer.backend,i=b.adapter?.info??b.device?.adapterInfo;return{nativeWebGPU:b.isWebGPUBackend,adapterInfo:i?{vendor:i.vendor,architecture:i.architecture,device:i.device,description:i.description}:null};});
  assert.equal(report.gpu.nativeWebGPU,true);
  await page.evaluate(()=>{window.__HORROR_QA__.setManual(true);const q=window.__DEAD_ARRIVAL__;Object.assign(q.run,{x:206/4,y:56/4,z:0,angle:Math.PI,pitch:-.025,vx:0,vy:0,vz:0,speed:0,slide:0,aim:0,shot:0,damage:0,ownedWeapons:[0,1,2,3,4,5,6,7]});
@@ -89,13 +89,13 @@ try{
  for(const weapon of weapons){
   await page.keyboard.press(String(weapon+1));await render();
   const row=await page.evaluate(async weapon=>{const q=window.__DEAD_ARRIVAL__,{fpsGripDiagnostics}=await import('/assets/survivor/fps-arms.js');return {weapon,selected:q.run.weapon,screen:q.screen,rigRevision:q.renderer._survivors.fpsRigRevision,...fpsGripDiagnostics(q.renderer.weaponGroups[weapon])};},weapon);
-  assert.equal(row.selected,weapon);assert.equal(row.rigRevision,3);for(const a of row.arms){assert(a.gap<1e-5);assert(a.rotationGap<1e-5);assert(a.wristDegrees<=a.wristLimitDegrees+.005);assert(Math.abs(a.forearmMetres-.30464)<1e-5);assert(Math.abs(a.upperMetres-.3584)<1e-5);}report.views.push(row);
+  assert.equal(row.selected,weapon);assert.equal(row.rigRevision,5);for(const a of row.arms){assert(a.gap<1e-5);assert(a.rotationGap<1e-5);assert(a.wristDegrees<=a.wristLimitDegrees+.005);assert(Math.abs(a.forearmMetres-.30464)<1e-5);assert(Math.abs(a.upperMetres-.3584)<1e-5);}report.views.push(row);
   await page.screenshot({path:`${output}/hold-${weapon}.png`,timeout:60000});console.log('Actual FPS hold',weapon);
   await neutral(`hold-${weapon}`);
   if(![1,6,7].includes(weapon))continue;
   // A complete native rendered action, driven by the same run/presentation
   // events as gameplay. Explicitly controlled, not claimed as real mouse fire.
-  await page.evaluate(({weapon,name})=>{const q=window.__DEAD_ARRIVAL__,clock=window.__FPS_RENDER_QA__;clock.now+=1000/60;q.run.shot=0;q.run.meleeActive=false;clock.draw(q.run,clock.now);const bone=q.renderer.weaponGroups[weapon].userData.authoredFPS.rig.getObjectByName(`FPS_${name}_right_Index0`);window.__FPS_ACTION_QA__={weapon,bone,start:bone.quaternion.clone(),nextFrame:0,origin:clock.now+1000/60,maxGap:0,jointTravel:0,baseRigDepth:q.renderer.weaponRig.position.z,maxRecoilDepth:0,peakShotStrength:0};},{weapon,name:FIRST_PERSON_HOLD_POSES[weapon].name});
+  await page.evaluate(({weapon,name})=>{const q=window.__DEAD_ARRIVAL__,clock=window.__FPS_RENDER_QA__;clock.now+=1000/60;q.run.shot=0;q.run.meleeActive=false;clock.draw(q.run,clock.now);const bone=q.renderer.weaponGroups[weapon].userData.authoredFPS.rig.getObjectByName(`FPS_${name}_right_${weapon===1?'Index2':'Index0'}`);window.__FPS_ACTION_QA__={weapon,bone,start:bone.quaternion.clone(),nextFrame:0,origin:clock.now+1000/60,maxGap:0,jointTravel:0,baseRigDepth:q.renderer.weaponRig.position.z,maxRecoilDepth:0,peakShotStrength:0};},{weapon,name:FIRST_PERSON_HOLD_POSES[weapon].name});
   let action;const stillCheckpoints=[0,3,8,16,35,60,90];
   if(frameSequence)await mkdir(`${output}/frames/${weapon}`,{recursive:true});
   const checkpoints=frameSequence?Array.from({length:91},(_,i)=>i).filter(i=>i%2===0||stillCheckpoints.includes(i)):stillCheckpoints;
@@ -116,6 +116,36 @@ try{
  if(process.env.FP_CAPTURE_INPUT==='1'){
   report.inputJourney=await verifyFPSInputJourney(page,output);
   report.scope+=' Also exercises real keyboard movement/switching and pointer input on the production FIRE/AIM controls, temporarily exposed on desktop, through the installed game skill client. Simulation and rendering use a controlled clock; enemies omitted during this bounded input journey.';
+ }
+ if(process.env.FP_CAPTURE_CONTINUOUS==='1'){
+  report.continuous=[];
+  for(const weapon of [1,6,7].filter(i=>weapons.includes(i))){
+   await page.keyboard.press(String(weapon+1));await render(30);
+   const row=await page.evaluate(async weapon=>{
+    const q=window.__DEAD_ARRIVAL__,clock=window.__FPS_RENDER_QA__,{fpsGripDiagnostics}=await import('/assets/survivor/fps-arms.js');
+    const start=performance.now(),origin=clock.now,state=q.renderer.weaponGroups[weapon].userData.authoredFPS;
+    const previous=new Map(state.sampled.map(({bone})=>[bone,bone.quaternion.clone()]));
+    const worldPrevious=new Map(state.sampled.map(({bone})=>[bone,{rotation:bone.getWorldQuaternion(bone.quaternion.clone()),position:bone.getWorldPosition(bone.position.clone())}]));
+    let frames=0,maxGap=0,maxJointStep=0,last=start,maxFrameMs=0,worstJointStep=null,maxWorldJointStep=0,maxWorldJointDisplacement=0,worstWorldJointStep=null;
+    await new Promise(resolve=>{const tick=now=>{
+     const t=(now-start)/1000,attack=t>=2&&t<3;
+     q.run.speed=t>=1&&t<2?1.5:0;q.run.distance=(q.run.distance||0)+q.run.speed*Math.min(.05,(now-last)/1000);
+     q.run.shot=weapon===1&&attack?Math.max(0,1-(t-2)*7):0;
+     q.run.meleeActive=weapon>=6&&attack;q.run.meleeProgress=Math.max(0,Math.min(1,t-2));q.run.meleeHeavy=true;
+     if(attack&&!tick.attacked){tick.attacked=true;if(weapon===1)q.run.shotSequence=(q.run.shotSequence||0)+1;else q.run.meleeSequence=(q.run.meleeSequence||0)+1;}
+     clock.now=origin+now-start;clock.draw(q.run,clock.now);
+     for(const {bone}of state.sampled){const pose=previous.get(bone);const step=pose.angleTo(bone.quaternion);if(step>maxJointStep){maxJointStep=step;worstJointStep={bone:bone.name,time:t,previousTime:(last-start)/1000,previousQuaternion:pose.toArray(),quaternion:bone.quaternion.toArray()};}pose.copy(bone.quaternion);const oldWorld=worldPrevious.get(bone),rotation=bone.getWorldQuaternion(bone.quaternion.clone()),position=bone.getWorldPosition(bone.position.clone()),worldStep=oldWorld.rotation.angleTo(rotation);if(worldStep>maxWorldJointStep){maxWorldJointStep=worldStep;worstWorldJointStep={bone:bone.name,time:t,previousTime:(last-start)/1000,frameMs:now-last};}maxWorldJointDisplacement=Math.max(maxWorldJointDisplacement,oldWorld.position.distanceTo(position));oldWorld.rotation.copy(rotation);oldWorld.position.copy(position);}
+     for(const arm of fpsGripDiagnostics(q.renderer.weaponGroups[weapon]).arms)maxGap=Math.max(maxGap,arm.gap);
+     maxFrameMs=Math.max(maxFrameMs,now-last);last=now;frames++;
+     if(t<4)requestAnimationFrame(tick);else resolve();
+    };requestAnimationFrame(tick);});
+    q.run.speed=0;q.run.shot=0;q.run.meleeActive=false;
+    await q.renderer.renderer.backend.device.queue.onSubmittedWorkDone();
+    return{weapon,frames,pageStartMs:start,pageEndMs:last,durationSeconds:(last-start)/1000,maxFrameMs,maxGap,maxJointStep,worstJointStep,maxWorldJointStep,maxWorldJointDisplacement,worstWorldJointStep};
+   },weapon);
+   assert(row.frames>30&&row.maxGap<1e-5);assert(Number.isFinite(row.maxJointStep));report.continuous.push(row);
+  }
+  report.scope+=' Includes uninterrupted requestAnimationFrame production rendering of idle, gait, attack and recovery for shotgun/bat/saw, with controlled run fields and wall-clock video; frame timing is recorded rather than certified.';
  }
  await page.keyboard.press('2');
  for(const state of captureBody?['standing','walking','slide']:[]){

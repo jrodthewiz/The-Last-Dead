@@ -14,14 +14,14 @@ import {coastalMapSvg,coastalTarget} from '../coastal-world-map.js';
 import {harborNavigation} from '../harbor-navigation.js';
 import {lowTideSnapshot,restoreLowTide} from '../low-tide-save.js';
 
-const course=makeHarborCourse({openWorld:true,lowTide:true});
-const cases=course.scavengerPickups.filter(p=>p.visualKind==='supply-case');
+const course=makeHarborCourse({openWorld:true,lowTide:true,cityLootSeed:7317});
+const cases=course.scavengerPickups.filter(p=>p.visualKind==='supply-case'&&!p.cityLoot);
 const setup=p=>({course,mode:'play',health:60,...p.approach,z:0,weapon:0,ownedWeapons:[0],
   backpack:createScavengerPack(),events:[]});
 
 test('supply stops and rifles are deterministic supported finds with walkable, reachable approaches',()=>{
   assert.ok(cases.length>=15&&cases.length<=MAX_COASTAL_SUPPLY_CASES);
-  assert.deepEqual(course,makeHarborCourse({openWorld:true,lowTide:true}));
+  assert.deepEqual(course,makeHarborCourse({openWorld:true,lowTide:true,cityLootSeed:7317}));
   assert.equal(new Set(cases.map(p=>p.id)).size,cases.length);
   for(const p of [...cases,...course.weaponPickups.filter(p=>p.displayKind==='stowed')]){
     assert.ok(canStand(course,p.approach.x,p.approach.y,.2),p.id);

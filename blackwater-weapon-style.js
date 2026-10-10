@@ -41,6 +41,7 @@ class PaintedWeaponMaterial extends MeshToonNodeMaterial {setupLightingModel(){r
 
 function roleOf(source,mesh){
  const explicit=String(source.userData?.weaponSurface?.kind||source.userData?.surfaceRole||source.userData?.lookRole||'');
+ if(['authored-glove','authored-canvas'].includes(explicit))return explicit;
  const name=`${explicit} ${source.name||''} ${mesh.name||''}`;
  if(/Full_Worn_Leather_Gloves/i.test(name))return'authored-glove';
  if(/Graphic_Canvas|ViewSleeve|UpperSleeve/i.test(name))return'authored-canvas';

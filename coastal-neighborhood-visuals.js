@@ -1,3 +1,4 @@
+import {courtSubtractRect} from './coastal-court-lane.js';
 import * as THREE from './vendor/three.module.js';
 import {createCoastalInstances} from './coastal-instancing.js';
 
@@ -29,7 +30,12 @@ export function buildCoastalNeighborhood(world){
  const m=world.materials,writer=compiler(world),{cube,emit,trunk,crown}=writer;
  m.coastLeaves ||=new THREE.MeshStandardMaterial({color:0x526c43,roughness:.95});
  const alleys=neighborhood.alleys||[];
- const rectangles=[...alleys,...(neighborhood.courtyards||[]).filter(court=>!alleys.some(alley=>Math.abs(court.x-alley.x)+court.width/2<=alley.width/2&&Math.abs(court.z-alley.z)+court.depth/2<=alley.depth/2))];
+ let rectangles=[...alleys,...(neighborhood.courtyards||[]).filter(court=>!alleys.some(alley=>Math.abs(court.x-alley.x)+court.width/2<=alley.width/2&&Math.abs(court.z-alley.z)+court.depth/2<=alley.depth/2))];
+ const lane=world.course.coastal.courtLane;
+ if(lane){const domain=lane.domain;rectangles=rectangles.flatMap(a=>courtSubtractRect({minX:a.x-a.width/2,maxX:a.x+a.width/2,minZ:a.z-a.depth/2,maxZ:a.z+a.depth/2},domain).map(r=>({...a,x:(r.minX+r.maxX)/2,z:(r.minZ+r.maxZ)/2,width:r.maxX-r.minX,depth:r.maxZ-r.minZ})));
+  // Exact disjoint route union; existing road surfaces retain ownership at crossings.
+  let emitted=[];for(const r of lane.access){let pieces=[r];for(const old of [...emitted,...rectangles.map(a=>({minX:a.x-a.width/2,maxX:a.x+a.width/2,minZ:a.z-a.depth/2,maxZ:a.z+a.depth/2}))])pieces=pieces.flatMap(p=>courtSubtractRect(p,old));for(const road of world.course.coastal.roads)pieces=pieces.flatMap(p=>courtSubtractRect(p,{minX:road.x-road.width/2-2.4,maxX:road.x+road.width/2+2.4,minZ:road.z-road.depth/2-2.4,maxZ:road.z+road.depth/2+2.4}));emitted.push(...pieces);}rectangles.push(...emitted.map(r=>({x:(r.minX+r.maxX)/2,z:(r.minZ+r.maxZ)/2,width:r.maxX-r.minX,depth:r.maxZ-r.minZ})));
+ }
  for(const area of rectangles){
   cube(m.concrete,'CoastalCourtyardPaving',area.x,.028,area.z,area.width,.08,area.depth);
   // Joints and a darker service strip give the courts a human-scale rhythm.
@@ -39,8 +45,9 @@ export function buildCoastalNeighborhood(world){
  const props=neighborhood.props||[];
  for(const [index,p]of props.entries()){
   const yaw=p.yaw||0,local=(x,z)=>({x:p.x+x*Math.cos(yaw)+z*Math.sin(yaw),z:p.z-x*Math.sin(yaw)+z*Math.cos(yaw)});
-  const part=(material,x,y,z,w,h,d)=>{const q=local(x,z);cube(material,`CoastalStreet:${p.kind}`,q.x,y,q.z,w,h,d,yaw);};
+  const part=(material,x,y,z,w,h,d)=>{const q=local(x,z);cube(material,`CoastalStreet:${p.kind}`,q.x,y+(p.baseY||0),q.z,w,h,d,yaw);};
   if(p.kind==='tree'){
+   if(p.naturalSoil)continue;
    // Branches and cutout leaves belong to the shared EZ-Tree forest factory.
    for(const side of [-1,1]){part(m.coastStone,side*.6,.14,0,.12,.16,1.3);part(m.coastStone,0,.14,side*.6,1.3,.16,.12);}
   }else if(p.kind==='bench'){

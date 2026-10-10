@@ -10,13 +10,14 @@ import {installFPSArms,sampleFPSClip,fpsGripDiagnostics,updateFPSArms} from '../
 import {FIRST_PERSON_HOLD_POSES} from '../assets/survivor/viewmodel-hold-poses.js';
 import {animateMeleeWeapon} from '../weapon-melee.js';
 import {WeaponAim} from '../weapon-aim.js';
+import {applyBlackwaterWeaponStyle} from '../blackwater-weapon-style.js';
 import {sampleViewmodelClip} from '../assets/survivor/viewmodel-motion.js';
 const digest=b=>createHash('sha256').update(b).digest('hex');
 let fps,r,hashes;
 test.before(async()=>{
  globalThis.self=globalThis;globalThis.createImageBitmap=async()=>({width:1,height:1,close(){}});
  const load=async file=>{const b=readFileSync(new URL('../assets/survivor/'+file,import.meta.url));return new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),'');};
- const old=await load('viewmodel-arms-v2.glb');fps=await load('fps-arms-v3.glb');
+ const old=await load('viewmodel-arms-v2.glb');fps=await load('fps-arms-v5.glb');
  hashes=new Map();fps.scene.traverse(o=>{if(o.isMesh)hashes.set(o.geometry,digest(Buffer.from(o.geometry.attributes.position.array.buffer)));});
  r=Object.create(Renderer.prototype);r.materials={};r.camera=new T.PerspectiveCamera(75,16/10,.025,220);r.weaponRig=new T.Group();r.camera.add(r.weaponRig);
  r.weaponGroups=[r._makePulseRevolver(),r._makeBreachShotgun(),r._makeArcLance(),r._makeReliquaryAsset(),r._makeRifle('carrion',4),r._makeRifle('mourning',5),r._makeMelee('bat',6),r._makeMelee('chainsaw',7)];
@@ -25,12 +26,44 @@ test.before(async()=>{
 });
 test('real Blender export supplies eight weighted FPS rigs and independent joint animation',()=>{
  assert.equal(fps.animations.length,32);
- const g=r.weaponGroups[1],s=g.userData.authoredFPS,bone=s.rig.getObjectByName('FPS_breach_right_Index0');
+ const g=r.weaponGroups[1],s=g.userData.authoredFPS,bone=s.rig.getObjectByName('FPS_breach_right_Index2');
  sampleFPSClip(g,'fire',0);const rest=bone.quaternion.clone();const mesh=s.rig.getObjectByName('FPSGlove_breach_right'),points=[];
  for(let i=0;i<mesh.geometry.attributes.position.count;i+=25)points.push([i,mesh.getVertexPosition(i,new T.Vector3()).clone()]);
  sampleFPSClip(g,'fire',.06);assert(rest.angleTo(bone.quaternion)>.03,'independent finger performance must play');
  assert(points.some(([i,p])=>p.distanceTo(mesh.getVertexPosition(i,new T.Vector3()))>.0005),'bone tracks must actually deform the exported hand');
  assert.equal(g.userData.foregroundArmFits,undefined);assert(fitForegroundArms(g));
+});
+
+test('each exported structural glove is connected after welding UV and normal seams',()=>{
+ const selected=(process.env.FP_ARM_TOPOLOGY_WEAPONS||'0,1,2,3,4,5,6,7').split(',').map(Number);
+ for(const weapon of selected){const state=r.weaponGroups[weapon].userData.authoredFPS;
+  for(const arm of state.arms){const mesh=state.rig.getObjectByName(`FPSGlove_${state.name}_${arm.side}`),p=mesh.geometry.attributes.position,map=new Map(),ids=[],parents=[];
+   for(let i=0;i<p.count;i++){const key=[p.getX(i),p.getY(i),p.getZ(i)].map(v=>Math.round(v*100000)).join(',');if(!map.has(key)){map.set(key,parents.length);parents.push(parents.length);}ids.push(map.get(key));}
+   const root=i=>{while(parents[i]!==i){parents[i]=parents[parents[i]];i=parents[i];}return i;};
+   const indices=mesh.geometry.index,count=indices?.count||p.count;
+   for(let i=0;i<count;i+=3){const triangle=[0,1,2].map(j=>ids[indices?indices.getX(i+j):i+j]);const a=root(triangle[0]);for(const b of triangle.slice(1))parents[root(b)]=a;}
+   const sizes=new Map();for(let i=0;i<parents.length;i++){const id=root(i);sizes.set(id,(sizes.get(id)||0)+1);}
+   const components=[...sizes.values()].sort((a,b)=>b-a),structural=components.filter(n=>n>64);
+   assert.equal(structural.length,1,`${state.name}/${arm.side}: detached skin component sizes ${components.slice(0,8)}`);
+   assert(components[0]/parents.length>.85,'all anatomical volumes must join one glove; only tiny sewn stitches may be separate');
+   assert.equal(mesh.userData.structural_shell_components,1);
+  }
+ }
+});
+
+test('optimized hero materials retain their embedded normal and roughness images',()=>{
+ const raw=readFileSync(new URL('../assets/survivor/fps-arms-v5.glb',import.meta.url));
+ const jsonLength=raw.readUInt32LE(12),document=JSON.parse(raw.subarray(20,20+jsonLength)),binary=raw.subarray(28+jsonLength);
+ assert.equal(document.materials.length,2);
+ for(const material of document.materials){assert(material.normalTexture);assert(material.pbrMetallicRoughness.metallicRoughnessTexture);}
+ assert(document.images.length>=4);
+ for(const image of document.images){
+  const view=document.bufferViews[image.bufferView];assert(view.byteOffset+view.byteLength<=binary.length);
+  assert.equal(binary.subarray(view.byteOffset,view.byteOffset+8).toString('hex'),'89504e470d0a1a0a','optimizer must retain each complete embedded PNG');
+ }
+ const manifest=JSON.parse(readFileSync(new URL('../assets/survivor/fps-arms-v5-manifest.json',import.meta.url)));
+ assert.equal(manifest.sha256,digest(raw));
+ assert.equal(manifest.version,5);
 });
 
 test('installation rejects incomplete, duplicate and invalid-duration named actions before modifying weapon groups',()=>{
@@ -170,7 +203,7 @@ test('both hand frames stay seated through complete aim transitions and attachme
 
 test('completed exported fire and strike actions replay their actual finger deformation without an idle phase',()=>{
  for(const [weapon,phase,time]of [[1,'fire',.06],[6,'strike',.12],[7,'strike',.12]]){
-  const g=r.weaponGroups[weapon],s=g.userData.authoredFPS,bone=s.rig.getObjectByName(`FPS_${s.name}_right_Index0`),mesh=s.rig.getObjectByName(`FPSGlove_${s.name}_right`);
+  const g=r.weaponGroups[weapon],s=g.userData.authoredFPS,bone=s.rig.getObjectByName(`FPS_${s.name}_right_${phase==='fire'?'Index2':'Index0'}`),mesh=s.rig.getObjectByName(`FPSGlove_${s.name}_right`);
   sampleFPSClip(g,phase,0);const rest=bone.quaternion.clone(),points=[];
   for(let i=0;i<mesh.geometry.attributes.position.count;i+=25)points.push([i,mesh.getVertexPosition(i,new T.Vector3()).clone()]);
   let expected;
@@ -218,7 +251,39 @@ test('left/right injury roots own separate surfaces, FPS skeletons are isolated 
   g.userData.authoredFPS.rig.traverse(o=>{if(o.isSkinnedMesh){assert(o.skeleton.bones.every(b=>b&&b.name.startsWith('FPS_')));assert(o.geometry.attributes.skinWeight);assert(o.geometry.attributes.uv);}});
  }
  for(const [g,h]of hashes)assert.equal(digest(Buffer.from(g.attributes.position.array.buffer)),h);
- const manifest=JSON.parse(readFileSync(new URL('../assets/survivor/fps-arms-v3-manifest.json',import.meta.url)));
+ const manifest=JSON.parse(readFileSync(new URL('../assets/survivor/fps-arms-v5-manifest.json',import.meta.url)));
  for(const [path,h]of Object.entries(manifest.protected_source_hashes))assert.equal(digest(readFileSync(new URL('../'+path.replaceAll('\\','/'),import.meta.url))),h);
  const body=readFileSync(new URL('../assets/survivor/meshy-survivor.js',import.meta.url),'utf8');assert(body.includes('head.visible=arms.visible=!firstPerson'));assert(body.includes('TLD_Local_Torso_Legs'));
+});
+
+test('gait transition blends the authored pose while both wrists retain contact',()=>{
+ const group=r.weaponGroups[1],state=group.userData.authoredFPS;
+ r.weaponRig.position.set(0,0,0);r.weaponRig.quaternion.identity();
+ sampleFPSClip(group,'idle',0);
+ const finger=state.rig.getObjectByName('FPS_breach_right_Little0'),rest=finger.quaternion.clone();
+ sampleFPSClip(group,'walk',.25);const gait=finger.quaternion.clone();
+ assert(rest.angleTo(gait)>.005);
+ sampleFPSClip(group,'idle',0);
+ const run={speed:1,distance:.25/1.1},presentation={pose:{phase:'hold'},shotAge:10,equipAge:1};
+ updateFPSArms(group,run,presentation,1/60);
+ assert(rest.angleTo(finger.quaternion)<1e-6,'first transition frame retains the previous authored pose');
+ for(let i=0;i<4;i++)updateFPSArms(group,run,presentation,1/60);
+ assert(rest.angleTo(finger.quaternion)>0&&finger.quaternion.angleTo(gait)>0,'middle frame interpolates the two actual joint poses');
+ for(const arm of fpsGripDiagnostics(group).arms)assert(arm.gap<1e-5&&arm.rotationGap<1e-6);
+ for(let i=0;i<5;i++)updateFPSArms(group,run,presentation,1/60);
+ assert(finger.quaternion.angleTo(gait)<1e-6,'the transition reaches the authored gait pose');
+});
+
+test('native weapon style retains authored glove and canvas roles and embedded surface maps',()=>{
+ const originals=[];r.weaponRig.traverse(mesh=>{if(!mesh.userData.authoredFPSMesh)return;originals.push({mesh,material:mesh.material});});
+ const style=applyBlackwaterWeaponStyle(r.weaponRig);
+ try{
+  assert.equal(originals.length,30);
+  for(const {mesh,material}of originals){
+   assert.equal(mesh.material.userData.weaponStyleRole,mesh.name.startsWith('FPSGlove_')?'authored-glove':'authored-canvas');
+   assert.equal(mesh.material.vertexColors,true);
+   assert.equal(mesh.material.normalMap,material.normalMap);assert(material.normalMap);
+   assert.equal(mesh.material.roughnessMap,material.roughnessMap);assert(material.roughnessMap);
+  }
+ }finally{style.dispose();}
 });

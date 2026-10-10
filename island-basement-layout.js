@@ -1,4 +1,4 @@
-export const ISLAND_BASEMENT_STAIR=Object.freeze({id:'customs-service-stair',x:10.5,y:7,angle:Math.PI,radius:1.1,label:'CUSTOMS / BELOW GROUND'});
+export const ISLAND_BASEMENT_STAIR=Object.freeze({id:'customs-service-stair',x:10.5,y:7,angle:Math.PI,arrivalAngle:Math.PI/2,arrivalOffset:Object.freeze([.35,0]),radius:1.1,label:'CUSTOMS / BELOW GROUND'});
 export function attachIslandBasement(course) {
   if(!course?.harbor||!course.coastal)return course;
   course.basementPortal={...ISLAND_BASEMENT_STAIR,destination:'basement'};
@@ -11,6 +11,6 @@ export function attachIslandBasement(course) {
   return course;
 }
 export function attachBasementReturn(course) {
-  if(course?.dungeon)course.basementPortal={id:'customs-return-stair',...course.playerSpawn,radius:1.1,destination:'island',label:'STAIRS / BLACKWATER ISLAND'};
+  if(course?.dungeon)course.basementPortal={id:'customs-return-stair',...course.playerSpawn,radius:1.1,destination:course.undergroundCampaign&&course.dungeonIndex>0?'upper-floor':'island',label:course.undergroundCampaign&&course.dungeonIndex>0?'LIFT / UPPER BASEMENT':'STAIRS / BLACKWATER ISLAND'};
   return course;
 }

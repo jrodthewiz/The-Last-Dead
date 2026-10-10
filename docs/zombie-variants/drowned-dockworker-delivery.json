@@ -1,0 +1,222 @@
+{
+  "id": "drowned-dockworker",
+  "label": "Drowned Dockworker",
+  "provider": "Meshy",
+  "model": "meshy-7.1",
+  "taskIds": {
+    "preview": "01a10849-9f4c-7517-b273-dfc37efc24f5",
+    "refine": "01a1084e-4ab4-75be-89e6-0b0defdd2d61",
+    "retexture": null,
+    "rig": "01a10855-66af-72dc-b502-2463da13be24"
+  },
+  "credits": 35,
+  "sourceBytes": 12969776,
+  "bytes": 6142224,
+  "sha256": "203db1296f824b9b3fd55c2ed60a3e18428c51a29e509565f0bc83bdf9e355cf",
+  "before": {
+    "triangles": 20771,
+    "meshes": 1,
+    "materials": 1,
+    "textures": 3,
+    "skins": 1,
+    "joints": [
+      [
+        "Hips",
+        "Spine02",
+        "Spine01",
+        "Spine",
+        "neck",
+        "Head",
+        "head_end",
+        "headfront",
+        "LeftShoulder",
+        "LeftArm",
+        "LeftForeArm",
+        "LeftHand",
+        "RightShoulder",
+        "RightArm",
+        "RightForeArm",
+        "RightHand",
+        "LeftUpLeg",
+        "LeftLeg",
+        "LeftFoot",
+        "LeftToeBase",
+        "RightUpLeg",
+        "RightLeg",
+        "RightFoot",
+        "RightToeBase",
+        "Jaw",
+        "LeftGrip",
+        "RightGrip"
+      ]
+    ],
+    "clips": [
+      {
+        "name": "AshWitness_Idle",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Shuffle",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Chase",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_AttackLunge",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_HitRecoil",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Collapse",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Run",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Crawl",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_CrawlIdle",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Contort",
+        "channels": 81
+      }
+    ],
+    "positions": [
+      "0c3ba8bae722fa0ac3757f1231e67f23eef68b16334a71210550482c1979e474"
+    ],
+    "weights": [
+      "0aab2e35bc20639ef5721cac18a154696feda3c96d9165c5285d4e40b071f536"
+    ]
+  },
+  "after": {
+    "triangles": 20771,
+    "meshes": 1,
+    "materials": 1,
+    "textures": 3,
+    "skins": 1,
+    "joints": [
+      [
+        "Hips",
+        "Spine02",
+        "Spine01",
+        "Spine",
+        "neck",
+        "Head",
+        "head_end",
+        "headfront",
+        "LeftShoulder",
+        "LeftArm",
+        "LeftForeArm",
+        "LeftHand",
+        "RightShoulder",
+        "RightArm",
+        "RightForeArm",
+        "RightHand",
+        "LeftUpLeg",
+        "LeftLeg",
+        "LeftFoot",
+        "LeftToeBase",
+        "RightUpLeg",
+        "RightLeg",
+        "RightFoot",
+        "RightToeBase",
+        "Jaw",
+        "LeftGrip",
+        "RightGrip"
+      ]
+    ],
+    "clips": [
+      {
+        "name": "AshWitness_Idle",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Shuffle",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Chase",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_AttackLunge",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_HitRecoil",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Collapse",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Run",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Crawl",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_CrawlIdle",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Contort",
+        "channels": 81
+      }
+    ],
+    "positions": [
+      "0c3ba8bae722fa0ac3757f1231e67f23eef68b16334a71210550482c1979e474"
+    ],
+    "weights": [
+      "0aab2e35bc20639ef5721cac18a154696feda3c96d9165c5285d4e40b071f536"
+    ]
+  },
+  "textures": [
+    {
+      "name": "Image_2",
+      "mime": "image/webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 1132866
+    },
+    {
+      "name": "Image_0",
+      "mime": "image/webp",
+      "width": 2048,
+      "height": 2048,
+      "bytes": 1281908
+    },
+    {
+      "name": "Image_1",
+      "mime": "image/webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 768962
+    }
+  ],
+  "packing": {
+    "baseColor": "2K WebP quality92",
+    "normalAndORM": "1K lossless WebP",
+    "geometrySimplification": false,
+    "animationResampling": false,
+    "controlsAndSocketsPreserved": true
+  },
+  "motionSource": "Ten locally fitted Ash Witness v07 animations; exact0.375s combat contact time",
+  "rawArchive": ".art-source/zombie-variants-meshy/drowned-dockworker",
+  "runtimeNeedsProvider": false,
+  "runtimeNeedsBlender": false
+}

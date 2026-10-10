@@ -30,8 +30,20 @@ export function makeBlackwaterDistrict(neighborhoods) {
     let spec=definitions.get(p.id);
     if(!spec){
       if(p.zone==='coastal-park')spec={label:p.name,kind:'house',height:6.4};
-      else if(p.zone==='industrial')spec={label:`${p.name} / ${p.asset.includes('clinic')?'CLINIC':index%3===0?'WAREHOUSE':'WORKSHOP'}`,kind:'shop',height:p.height};
-      else spec={label:`${p.name} / APARTMENTS`,kind:'corner',height:p.height};
+      else if(p.zone==='industrial'){
+        const landmark=[49,55,58,67].includes(Number(p.name.match(/\d+/)?.[0])),clinic=p.asset.includes('clinic');
+        spec={label:`${p.name} / ${clinic?'CLINIC':index%3===0?'WAREHOUSE':'WORKSHOP'}`,kind:'shop',height:landmark?p.height:clinic?(p.x<280?9:12):(p.z<170?7.5:9),districtProfile:'works-bearing-hall'};
+      }else{
+        // Low waterfront shoulders frame one denser inland ridge. These are
+        // address-based relationships, rather than independently random heights.
+        const inland=p.z>48,central=p.x>=278&&p.x<320;
+        const height=p.x<240?12:central?(inland?18:24):p.x<278?(inland?15:12):(inland?12:9);
+        let districtProfile=p.x<240?'oldtown-gable':central?'terraced-court':p.x<278?'corner-step':'low-gable';
+        const address=Number(p.name.match(/\d+/)?.[0]);
+        if([11,19,32,40,43].includes(address))districtProfile='brick-mansard';
+        if([10,18,31,33,38,42].includes(address))districtProfile='stucco-bay';
+        spec={label:`${p.name} / APARTMENTS`,kind:'corner',height:districtProfile==='stucco-bay'?Math.min(15,height):height,districtProfile};
+      }
     }
     return{...p,...spec,name:definitions.has(p.id)?spec.label:p.name,kit:'blackwater',enterable:true,doorOffset:p.id===SHOP_ID?2:p.width%8===0?-2:0};
   });

@@ -310,10 +310,12 @@ export function createScavengerPackUI({getRun, onOpen = () => {}, onClose = () =
 
 // Cases share three draws. Route booklets have a separate two-material pool;
 // collecting either kind removes only its own instance. Layout owns support.
+export const MAX_RENDERED_SCAVENGER_CACHES=256;
 export class ScavengerCaches {
   constructor(parent, course, {lightSources=null}={}) {
     this.course=course;
-    this.items = (course.scavengerPickups || []).slice(0, 64);
+    this.items = [...(course.scavengerPickups || [])];
+    if(this.items.length>MAX_RENDERED_SCAVENGER_CACHES)throw new RangeError('Scavenger cache population exceeds bounded renderer capacity');
     this.caseItems = this.items.filter(item=>item.visualKind!=='route-folio');
     this.folioItems = this.items.filter(item=>item.visualKind==='route-folio');
     this.root = new THREE.Group(); this.root.name = 'SalvagedFittingsCaches';
@@ -330,7 +332,10 @@ export class ScavengerCaches {
       for(const end of [-1,1])fittings.push(box([.05,.10,.05],[side*.365,.085,end*.22]));
     }
     const hardware=merge(fittings);
-    const mark=merge([box([.17,.012,.105],[.22,.337,.11]),box([.17,.075,.012],[.03,.19,.237]),box([.17,.075,.012],[.03,.19,-.237])]);
+    // The stationary open diamond shares the existing amber instance draw.
+    const indicator=[];
+    for(const side of [-1,1])for(const end of [-1,1])indicator.push(new THREE.BoxGeometry(.15,.025,.025).rotateZ(side*end*Math.PI/4).translate(side*.053,.61+end*.053,0));
+    const mark=merge([box([.17,.012,.105],[.22,.337,.11]),box([.17,.075,.012],[.03,.19,.237]),box([.17,.075,.012],[.03,.19,-.237]),...indicator]);
     const descriptors=[{color:0xffffff,roughness:.88,metalness:.05},{color:0x29392e,roughness:.76,metalness:.15},{color:0xc1a367,roughness:.9,metalness:0}];
     const materials=descriptors.map(descriptor=>{
       if(!lightSources)return new THREE.MeshStandardMaterial(descriptor);
@@ -382,7 +387,8 @@ export class ScavengerCaches {
   }
   dispose(){
     if(this.disposed)return;this.disposed=true;this.root.removeFromParent();
-    for(const mesh of this.meshes){mesh.geometry.dispose();mesh.material.dispose();}
+    for(const mesh of this.meshes){mesh.dispose();mesh.geometry.dispose();mesh.material.dispose();}
+    for(const mesh of this.folioMeshes)mesh.dispose();
     this.folio?.dispose();
   }
 }

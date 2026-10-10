@@ -1,15 +1,20 @@
+import {makeCourtLanePlan,applyCourtLanePlan,courtLaneSoilAt,courtLaneCanopyAt} from './coastal-court-lane.js';
 // Authored coastal expansion. Metres describe visuals; four-metre cells remain
 // the sole building/shore collision authority. Legacy harbor rooms stay intact.
 import {makeCoastalNeighborhoods} from './coastal-neighborhood-layout.js';
 import {makeBlackwaterDistrict,blackwaterObstacle,openBlackwaterShop} from './blackwater-district-layout.js';
 import {architectureColliders,createBuildingPlan} from './assets/blackwater-kit/architecture.js';
 import {getCottageDiscovery,isAuthoredCottage} from './assets/blackwater-kit/cottage-authored.js';
-import {CAPE_TERRAIN,capeStreamZ,makeCapeForestPlacements} from './coastal-terrain.js';
+import {CAPE_TERRAIN,CAPE_ROADS,capeStreamZ,makeCapeForestPlacements,capeGroundHeight} from './coastal-terrain.js';
 import {serializeStructure} from './coastal-structures.js';
 import {makeCoastalWorkbenches} from './coastal-workbenches.js';
-import {makeCoastalUnderstory} from './coastal-understory-layout.js';
+import {makeCoastalUnderstory,appendCapeGroveCourt,appendCoastalSaltwoodTransect,makeCourtLaneUnderstory} from './coastal-understory-layout.js';
 import {makeCoastalMaritime} from './coastal-maritime-layout.js';
-import {attachCoastalScavenging} from './coastal-scavenging.js';
+import {makeCapeWoodlandGround} from './coastal-woodland-ground.js';
+import {makeCoastalTownDetails} from './coastal-town-details.js';
+import {attachCoastalScavenging,attachInteriorCityLoot} from './coastal-scavenging.js';
+import {makeCoastalCityLife} from './coastal-city-life-layout.js';
+import {makeCoastalWorldPolish} from './coastal-world-polish.js';
 export function attachCoastalWorld(course) {
   const oldW=course.w,oldH=course.h,oldCells=course.cells,w=112,h=104;
   const cells=Array.from({length:w*h},()=>[0,0,0,0]);
@@ -63,7 +68,7 @@ export function attachCoastalWorld(course) {
     for(const offset of [4.4,-4.4,8.8,-8.8]){p.x=original+offset;if(!blocksPortal())break;}
   }
   for(const p of neighborhoods.lots)add(p.id,p.name,p.asset,p.x,p.z,p.width,p.depth,p.height,p.zone,p.yaw,
-    p.kit?{kit:p.kit,kind:p.kind,label:p.label,enterable:p.enterable,doorOffset:p.doorOffset}:{});
+    p.kit?{kit:p.kit,kind:p.kind,label:p.label,enterable:p.enterable,doorOffset:p.doorOffset,districtProfile:p.districtProfile}:{});
   blackwaterSlice.buildings=buildings.filter(p=>p.kit==='blackwater');
   delete blackwaterSlice.lots;
   const authoredPlans=new Map();
@@ -110,11 +115,7 @@ export function attachCoastalWorld(course) {
   }
   for(const p of blackwaterSlice.props)if(p.solid)course.obstacles.push(blackwaterObstacle(p));
   for(const p of neighborhoods.props)course.obstacles.push({id:p.id,minX:(p.x-p.width/2)/4,maxX:(p.x+p.width/2)/4,minY:(p.z-p.depth/2)/4,maxY:(p.z+p.depth/2)/4});
-  const roads=[
-    {x:192,z:56,width:384,depth:12},{x:192,z:112,width:384,depth:12},
-    ...[176,232,304].map(z=>({x:256,z,width:256,depth:12})),
-    ...[144,232,368].map(x=>({x,z:160,width:12,depth:320})),
-  ];
+  const roads=CAPE_ROADS.map(road=>({...road}));
   const districts=[
     {id:'harbor',name:'QUARANTINE HARBOR',minX:0,maxX:128,minZ:0,maxZ:120,x:64,z:56},
     {id:'residential',name:'SALTWIND RESIDENTIAL',minX:128,maxX:384,minZ:0,maxZ:120,x:232,z:56},
@@ -152,6 +153,12 @@ export function attachCoastalWorld(course) {
   course.coastal.forestPlacements=makeCapeForestPlacements(neighborhoods,buildings,roads);
   course.coastal.workbenches=makeCoastalWorkbenches(blackwaterSlice.buildings);
   course.coastal.understoryPlacements=makeCoastalUnderstory(course.coastal);
+  const groveCourt=appendCapeGroveCourt(course.coastal);
+  course.coastal.forestPlacements.push(...groveCourt.trees);
+  course.coastal.understoryPlacements.push(...groveCourt.plants);
+  const saltwood=appendCoastalSaltwoodTransect(course.coastal);
+  course.coastal.forestPlacements.push(...saltwood.trees);
+  course.coastal.understoryPlacements.push(...saltwood.plants);
   // A visible shop destination gives fittings a home without moving any table.
   const hardware=course.coastal.workbenches.find(s=>s.name==='HARBOR HARDWARE');
   if(hardware)landmarks.push({id:'hardware-bench',name:'Harbor Hardware / repair bench',...hardware.approach});
@@ -163,7 +170,27 @@ export function attachCoastalWorld(course) {
   for(const x of CAPE_TERRAIN.bridges)for(const side of [-1,1])course.obstacles.push({id:`cape-bridge-${x}-rail-${side}`,minX:(x+side*2.05-.08)/4,maxX:(x+side*2.05+.08)/4,minY:(capeStreamZ(x)-5.3)/4,maxY:(capeStreamZ(x)+5.3)/4});
   for(const p of course.coastal.forestPlacements)if(p.id.startsWith('cape-forest-'))course.obstacles.push({id:p.id,minX:(p.x-p.collisionRadius)/4,maxX:(p.x+p.collisionRadius)/4,minY:(p.z-p.collisionRadius)/4,maxY:(p.z+p.collisionRadius)/4});
   attachCoastalScavenging(course);
+  course.coastal.woodlandGround=makeCapeWoodlandGround(course.coastal);
+  course.obstacles.push(...course.coastal.woodlandGround.map(p=>p.obstacle));
+  // Historical forest/plants/solid ground are finalized before this local overlay.
+  const courtLane=makeCourtLanePlan(course.coastal);applyCourtLanePlan(course.coastal,courtLane);
+  const courtPlants=makeCourtLaneUnderstory(course.coastal.understoryPlacements,{trees:courtLane.trees,communities:courtLane.communities,clearCircle:(x,z,r)=>courtLaneSoilAt(courtLane,x,z,r),sampleCommunity:(id,x,z)=>courtLaneCanopyAt(courtLane,x,z,id),groundHeight:capeGroundHeight});
+  course.coastal.understoryPlacements=courtPlants.plants;course.coastal.courtLaneUnderstory= courtPlants.census;
+  const changed=new Set([...courtLane.trees.filter(t=>t.id.startsWith('coast-tree-')).map(t=>t.id),courtLane.relocation.id,...courtLane.benches.map(b=>b.id),...courtLane.retiredBenchIds]);
+  course.obstacles=course.obstacles.filter(o=>!changed.has(o.id));
+  for(const t of [...courtLane.trees,courtLane.relocation])course.obstacles.push({id:t.id,minX:(t.x-t.collisionRadius)/4,maxX:(t.x+t.collisionRadius)/4,minY:(t.z-t.collisionRadius)/4,maxY:(t.z+t.collisionRadius)/4});
+  for(const p of courtLane.benches){const original=neighborhoods.props.find(q=>q.id===p.id);course.obstacles.push({id:p.id,minX:(p.x-original.width/2)/4,maxX:(p.x+original.width/2)/4,minY:(p.z-original.depth/2)/4,maxY:(p.z+original.depth/2)/4});}
+
   course.coastal.maritime=makeCoastalMaritime(course);
   for(const p of course.coastal.maritime.cars){const b=p.bounds;course.obstacles.push({id:p.id,minX:b.minX/4,maxX:b.maxX/4,minY:b.minZ/4,maxY:b.maxZ/4});}
+  course.coastal.townDetails=makeCoastalTownDetails(course.coastal);
+  course.obstacles.push(...course.coastal.townDetails.obstacles);
+  course.coastal.helicopterPad={x:96,z:112,minX:88,maxX:104,minZ:104,maxZ:119,groundM:0};
+  course.coastal.cityLootSeed=Number.isInteger(course.cityLootSeed)?course.cityLootSeed>>>0:Math.floor(Math.random()*0x100000000);
+  course.coastal.cityLife=makeCoastalCityLife(course,{seed:course.coastal.cityLootSeed,extraExclusions:[{minX:85,maxX:108,minZ:100,maxZ:119}]});
+  course.obstacles.push(...course.coastal.cityLife.obstacles);
+  attachInteriorCityLoot(course,course.coastal.cityLootSeed);
+  course.coastal.polish=makeCoastalWorldPolish(course);
+  course.obstacles.push(...course.coastal.polish.obstacles);
   return course;
 }

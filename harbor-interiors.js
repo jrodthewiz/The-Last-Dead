@@ -1,4 +1,5 @@
 import {vehicleContains} from './harbor-vehicle.js';
+import {makeHarborRoomDetails} from './harbor-room-details.js';
 // Door-linked interiors preserve the exterior simulation and inventory in place.
 export function makeHarborRooms(course){
  return course.buildings.map((b,i)=>{
@@ -13,13 +14,14 @@ export function makeHarborRooms(course){
   for(let j=0;j<2+i%2;j++)solid(room.x-room.width/2+1+j*.85,room.z-room.depth/2+1,.65,.65);
   solid(room.cache.x*4,room.cache.y*4,.75,.8);
   if(room.width>=10&&room.depth>=8){solid(room.x+room.width/2-1.7,room.z+1.5,2.2,1.4);solid(room.x+room.width/2-1.7,room.z+2.7,.65,.65);}
+  room.details=makeHarborRoomDetails(room,i);room.obstacles.push(...room.details.obstacles);
   return room;
  });
 }
 export function harborRoomSupplies(run,id){const collected=run.harborRooms?.[id];return Math.max(0,2-(collected===true?2:Number(collected)||0));}
 export function harborRoomAt(course,x,y){const r=course.activeInterior;return r&&x>=(r.x-r.width/2)/4&&x<=(r.x+r.width/2)/4&&y>=(r.z-r.depth/2)/4&&y<=(r.z+r.depth/2)/4?r:null;}
 export function harborRoomPrompt(run){
- if(!run.course?.harbor||run.vehicle?.occupied)return null;
+ if(!run.course?.harbor||(run.activeVehicle?.occupied||run.vehicle?.occupied))return null;
  const r=run.course.activeInterior;
  if(r){
   if(Math.hypot(run.x-r.exit.x,run.y-r.exit.y)<.65)return {kind:'exit',room:r,label:'Q · RETURN TO HARBOR'};
@@ -35,7 +37,7 @@ export function roomCollision(room){
 }
 export function tickHarborRoom(run,input,env={}){
  const pressed=!!input.interact&&!run.roomInteractHeld;run.roomInteractHeld=!!input.interact;
- if(!pressed||run.vehicle?.occupied||run.z>.3)return false;
+ if(!pressed||(run.activeVehicle?.occupied||run.vehicle?.occupied)||run.z>.3)return false;
  const action=harborRoomPrompt(run);if(!action)return false;
  const room=action.room;
  if(action.kind==='search'){

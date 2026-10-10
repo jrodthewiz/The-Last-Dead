@@ -320,11 +320,13 @@ export function createStaticServer({ root = DEFAULT_ROOT, spaFallback = true } =
         return;
       }
       const type = contentType(file.filePath);
-      const isHtml = type.startsWith('text/html');
+      // Runtime modules and styles have stable filenames. Revalidate them on
+      // reload so a deployment cannot mix cached code with its new modules.
+      const isRuntimeText = ['.html','.js','.mjs','.css','.json'].includes(path.extname(file.filePath).toLowerCase());
       response.writeHead(200, {
         'Content-Type': type,
         'Content-Length': file.stat.size,
-        'Cache-Control': builtRoot ? (isHtml ? 'no-cache' : 'public, max-age=3600') : 'no-store',
+        'Cache-Control': builtRoot ? (isRuntimeText ? 'no-cache' : 'public, max-age=3600') : 'no-store',
         'X-Content-Type-Options': 'nosniff',
         'Referrer-Policy': 'same-origin',
       });

@@ -6,6 +6,7 @@ import {canStand,newRun,tick} from '../engine.js';
 import {createBuildingPlan} from '../assets/blackwater-kit/architecture.js';
 import {makeCoastalUnderstory,understoryClear} from '../coastal-understory-layout.js';
 import {capeGroundHeight,capePathMask} from '../coastal-terrain.js';
+import {capeTrailCentreDistance} from '../coastal-terrain-fields.js';
 import {createCoastalUnderstory} from '../coastal-understory.js';
 import {ScavengerCaches} from '../scavenger-pack-ui.js';
 import {createUtilityPickup} from '../assets/blackwater-kit/utility-pickup.js';
@@ -47,15 +48,16 @@ test('legacy fitting remains available and station discovery only fires on enter
 });
 test('overgrowth covers all four zones with seeded roots and clear roads, portals and paths',()=>{
   const c=course(),p=c.coastal.understoryPlacements;
-  assert.deepEqual(p,makeCoastalUnderstory(c.coastal));assert.ok(p.length>2000&&p.length<=2600);
+  assert.deepEqual(p.filter(p=>!p.courtExpansion),makeCoastalUnderstory(c.coastal));assert.equal(p.filter(p=>!p.habitatExpansion).length,2433);assert.equal(p.filter(p=>!p.coastalExpansion&&!p.courtExpansion).length,3114,'old woodland expansion survives coastal and courtyard growth');
   assert.deepEqual(new Set(p.map(p=>p.zone)),new Set(['building-verge','forest-floor','river-bank','eastern-slope']));
   assert.ok(p.some(p=>p.z>390));assert.ok(p.some(p=>p.x>425));
-  for(const plant of p){assert.ok(understoryClear(c.coastal,plant.x,plant.z),plant.id);assert.ok(capePathMask(plant.x,plant.z)<=.025);
+  for(const plant of p){assert.ok(understoryClear(c.coastal,plant.x,plant.z,{softShoulder:!!plant.softShoulder}),plant.id);
+    if(plant.softShoulder)assert.ok(capeTrailCentreDistance(plant.x,plant.z)>=2.05,'intentional low shoulder authoring keeps central route');else assert.ok(capePathMask(plant.x,plant.z)<=.025);
     const ground=capeGroundHeight(plant.x,plant.z);assert.ok(Math.abs(plant.y-(plant.zone==='building-verge'?Math.max(ground,.135):ground))<1e-8);}
 });
-test('understory shares two geometry/material resources, culls and releases each once',()=>{
+test('understory shares three geometries and two materials, culls and releases each once',()=>{
   const c=course(),art=createCoastalUnderstory({placements:c.coastal.understoryPlacements}),camera=new THREE.PerspectiveCamera();
-  assert.equal(art.diagnostics.sharedGeometries,2);assert.equal(art.diagnostics.materials,2);assert.equal(art.diagnostics.addedShadowMaps,0);
+  assert.equal(art.diagnostics.sharedGeometries,3);assert.equal(art.diagnostics.materials,2);assert.equal(art.diagnostics.addedShadowMaps,0);
   const resources=new Set();art.root.traverse(o=>{if(o.isMesh){assert.equal(o.castShadow,false);o.geometry.computeBoundingBox();assert.equal(o.geometry.boundingBox.min.y,0,'actual plant spine starts at ground');resources.add(o.geometry);resources.add(o.material);}});
   const counts=new Map();for(const r of resources)r.addEventListener('dispose',()=>counts.set(r,(counts.get(r)||0)+1));
   camera.position.set(214,1.6,26);art.update(camera,3);assert.ok(art.diagnostics.visibleBatches>0&&art.diagnostics.visibleBatches<art.diagnostics.batches);

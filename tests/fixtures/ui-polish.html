@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="data:,"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/horror-ui.css"><link rel="stylesheet" href="/menu-cinematic.css"><link rel="stylesheet" href="/scavenger-pack.css"><link rel="stylesheet" href="/game-interface.css">
+<style>body{background:#263230 center/cover no-repeat}#ui{position:fixed;inset:0}</style></head><body><div id="ui"></div><script type="module">
+import {UI} from '/ui.js';
+import {makeHarborCourse} from '/harbor-course.js';
+import {newRun,weapons} from '/engine.js';
+import {createScavengerPackUI} from '/scavenger-pack-ui.js';
+const run=newRun(makeHarborCourse({lowTide:true}));run.mode='play';run.ownedWeapons=[0,1,4,5,6];run.weapon=4;
+const calls={start:0,resume:0,restart:0,settings:0,equip:0};
+const ui=new UI({onStart:()=>calls.start++,onResume:()=>calls.resume++,onRestart:()=>calls.restart++,onSettings:()=>calls.settings++,onWeapon:index=>{run.weapon=index;calls.equip++;ui.hud(run);}});
+const pack=createScavengerPackUI({getRun:()=>run,weapons,onEquip:index=>{run.weapon=index;calls.equip++;return true;}});
+function show(state){
+  pack.close({resume:false});pack.update(run,{visible:false});ui.menu();ui.play();run.health=100;run.mode='play';
+  for(const key of ['shelter','manifest','identified','battery','fuel','powered','answered'])run.lowTide[key]=false;
+  run.lowTide.revision++;
+  ui.hud(run,{network:'SOLO',fps:60});document.body.classList.add('playing');
+  if(['menu','controls','coop'].includes(state)){ui.menu();document.body.classList.remove('playing');if(state==='controls')document.querySelector('[data-action="guide"]').click();if(state==='coop')document.querySelector('[data-action="coop-toggle"]').click();}
+  if(state==='pause'||state==='settings'){ui.pause();if(state==='settings')ui._setSettingsOpen(true);}
+  if(state==='critical'){run.health=18;ui.hud(run);}
+  if(['gear','journal','map'].includes(state)){
+    for(const key of ['shelter','manifest','identified','battery','fuel','powered','answered'])run.lowTide[key]=true;
+    run.lowTide.revision++;ui.hud(run);pack.update(run,{visible:true});pack.open();
+    document.querySelector(`[data-pack-view="${state}"]`)?.click();
+  }
+  if(state==='hud')pack.update(run,{visible:true});
+  if(state==='hud-complete'){for(const key of ['shelter','manifest','identified','battery','fuel','powered','answered'])run.lowTide[key]=true;ui.hud(run);pack.update(run,{visible:true});}
+  if(state==='recovery'){run.lowTide.shelter=true;run.health=0;run.mode='dead';ui.finish(run,false);}
+  if(state==='loading')ui.loading('Preparing Blackwater / compiling world materials');
+}
+window.interfacePolishQA={ui,pack,run,calls,show};show('hud');window.qaReady=true;
+</script></body></html>

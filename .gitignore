@@ -17,6 +17,8 @@ node_modules/
 
 # Local diagnostics, browser profiles, and Blender recovery copies.
 .codex-temp/
+# Generated reports and copied QA runtimes stay local. Existing tracked evidence remains tracked.
+output/
 output/playwright/
 output/ai-2027-race-film/
 .cua-native-repair.ps1

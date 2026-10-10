@@ -12,6 +12,22 @@
 import {propSegmentClear} from './harbor-collision.js';
 import {setupZombie,noteSighting,hordeFrame,hearHorde,hordeSteering,gaitSpeed,interceptGoal,motionIntent,sensedLocation} from './zombie-behavior.js';
 export const TAU = Math.PI * 2;
+export function advanceEnemyAICursor(run,count){
+ const start=(run.enemyAICursor||0)%Math.max(1,count);
+ run.enemyAICursor=count?(start+4)%count:0;
+ return start;
+}
+export function enemyNavigationFrame(run,count){
+ const limited=!!run.course.coastal&&count>=48;
+ if(!limited)return{start:advanceEnemyAICursor(run,count),budget:4};
+ const window=Math.floor((run.time+1e-9)*10),enemies=run.course.enemies;
+ const used=enemies.reduce((n,e)=>n+(e.mind?.navBudgetWindow===window?e.mind.navBudgetSearches||0:0),0);
+ return{start:(run.enemyAICursor||0)%Math.max(1,count),budget:Math.max(0,4-used),window,
+  noteSearch(e){
+   e.mind.navBudgetSearches=e.mind.navBudgetWindow===window?(e.mind.navBudgetSearches||0)+1:1;e.mind.navBudgetWindow=window;
+   const index=enemies.indexOf(e);if(index>=0)run.enemyAICursor=(index+1)%count;
+  }};
+}
 export const ingressMoveSpeed = speed => Math.max(Number(speed)||.3,.6)*1.1;
 export const hash01 = (a, b = 0) => {
   let h = (Math.imul((a | 0) + 1, 374761393) ^ Math.imul((b | 0) + 7, 668265263)) >>> 0;
@@ -154,16 +170,18 @@ function navigate(ctx, e, goal, speed) {
   if (dGoal > .25 && !clearLine(env, course, e.x, e.y, goal.x, goal.y, .17)) {
     nav.repath -= dt;
     const goalMoved = !nav.goal || Math.hypot(nav.goal.x - goal.x, nav.goal.y - goal.y) > 1.4;
-    if (!nav.path || nav.repath <= 0 || goalMoved) {
-      if (ctx.navBudget > 0 || !nav.path) {
+    if ((nav.path ? nav.repath <= 0 : !nav.failed || nav.repath <= 0) || goalMoved) {
+      if (ctx.navBudget > 0) {
         ctx.navBudget--;
+        ctx.navSearches=(ctx.navSearches||0)+1;
+        ctx.noteNavSearch?.(e);
         nav.path = findPath(env, course, e, goal);
         nav.goal = { x: goal.x, y: goal.y };
         nav.repath = .55 + hash01(e.id, 31) * .45;
         nav.failed = !nav.path;
       }
     }
-    if (!nav.path || !nav.path.length) return { moved: 0, blocked: true };
+    if (!nav.path || !nav.path.length) return { moved: 0, blocked: !!nav.failed };
     while (nav.path.length > 1 && (Math.hypot(nav.path[0].x - e.x, nav.path[0].y - e.y) < .28 ||
       clearLine(env, course, e.x, e.y, nav.path[1].x, nav.path[1].y, .17))) nav.path.shift();
     wp = nav.path[0];
@@ -360,9 +378,9 @@ export function turnFacing(e, desired, rate, dt) {
 function pickWanderDest(ctx, e) {
   const m = e.mind;
   for (let i = 0; i < 6; i++) {
-    const a = hash01(e.id, Math.floor(m.t * 10) + i * 17) * TAU, r = 1 + hash01(e.id, i + 50) * 2.2;
+    const a = hash01(e.id, Math.floor(m.t * 10) + i * 17) * TAU, r = e.roamRadius ? e.roamRadius*(.35+hash01(e.id,i+50)*.65) : 1 + hash01(e.id, i + 50) * 2.2;
     const p = { x: m.home.x + Math.cos(a) * r, y: m.home.y + Math.sin(a) * r };
-    if (ctx.env.canStand(ctx.course, p.x, p.y, .2) && Math.floor(p.x) >= 0 &&
+    if ((!e.roamBounds||p.x>=e.roamBounds.minX&&p.x<=e.roamBounds.maxX&&p.y>=e.roamBounds.minY&&p.y<=e.roamBounds.maxY) && ctx.env.canStand(ctx.course, p.x, p.y, .2) && Math.floor(p.x) >= 0 &&
       clearLine(ctx.env, ctx.course, e.x, e.y, p.x, p.y, .18)) return p;
   }
   return null;

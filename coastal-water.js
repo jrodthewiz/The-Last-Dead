@@ -1,5 +1,6 @@
 // Shared authored wave field for the WebGL and native WebGPU paths.
 // Body absorption estimates depth; reflection is analytic sky, not scene capture.
+import {COASTAL_DAYLIGHT_GLSL} from './coastal-daylight-profile.js';
 export const coastalWaves=[
   [0.94,0.32,0.32,34],[-0.42,0.91,0.19,21],[0.78,-0.52,0.11,13],
 ];
@@ -21,7 +22,7 @@ vec3 coastalColor(vec3 p,float t,vec3 eye,float footprint){
  float aaFine=1.-smoothstep(.035,.42,footprint);
  float warp=coastalNoise(p.xz*.085+vec2(t*.015,-t*.009))*6.;
  float rippleWeight=.35+.65*coastalNoise(p.xz*.13+vec2(-t*.025,t*.008));
- vec2 ripple=(vec2(.8,.6)*.029*cos(dot(p.xz,vec2(1.12,.84))-t*3.6+warp)+vec2(-.92,.39)*.023*cos(dot(p.xz,vec2(-1.81,.77))-t*4.2-warp*.8)+vec2(.24,-.97)*.018*cos(dot(p.xz,vec2(.65,-2.62))-t*4.7+warp*1.3))*aa*rippleWeight+(vec2(-.6,.8)*.012*cos(dot(p.xz,vec2(-2.52,3.36))-t*5.8+warp)+vec2(.98,-.2)*.008*cos(dot(p.xz,vec2(5.1,-1.04))-t*6.3-warp))*aaFine*rippleWeight;
+ vec2 ripple=(vec2(.8,.6)*.062*cos(dot(p.xz,vec2(1.12,.84))-t*3.6+warp)+vec2(-.92,.39)*.049*cos(dot(p.xz,vec2(-1.81,.77))-t*4.2-warp*.8)+vec2(.24,-.97)*.038*cos(dot(p.xz,vec2(.65,-2.62))-t*4.7+warp*1.3))*aa*rippleWeight+(vec2(-.6,.8)*.019*cos(dot(p.xz,vec2(-2.52,3.36))-t*5.8+warp)+vec2(.98,-.2)*.013*cos(dot(p.xz,vec2(5.1,-1.04))-t*6.3-warp))*aaFine*rippleWeight;
  // Fade unresolved long-wave normals before they become regular horizon rows.
  float aaLong=1.-smoothstep(3.,18.,footprint);
  vec2 gradient=coastalSlope(p.xz,t)*aaLong+ripple;
@@ -36,7 +37,7 @@ vec3 coastalColor(vec3 p,float t,vec3 eye,float footprint){
  float path=5./max(.25,abs(v.y));
  vec3 transmission=exp(-vec3(.22,.065,.045)*path);
  vec3 body=vec3(.006,.036,.039)+vec3(.035,.09,.08)*transmission;
- vec3 sunDirection=normalize(vec3(-.5,.4,-.6));
+ vec3 sunDirection=normalize(vec3(${COASTAL_DAYLIGHT_GLSL}));
  float sunDot=max(dot(r,sunDirection),0.);
  float sun=pow(sunDot,150.)*.23+pow(sunDot,22.)*.022;
  float crest=smoothstep(.37,.55,coastalHeight(p.xz,t));

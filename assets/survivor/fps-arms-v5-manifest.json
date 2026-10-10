@@ -1,0 +1,249 @@
+{
+  "version": 5,
+  "asset": "assets\\survivor\\fps-arms-v5.glb",
+  "authoring": ".art-source\\fps-arms-v5\\The_Last_Dead_FPS_Arms_v5.blend",
+  "sha256": "e438e0709c12c84cda58bc622b5a50e24d8588d19e760798916be7276402a7a3",
+  "bytes": 17118204,
+  "blender": "2.93.0",
+  "protected_source_hashes": {
+    "assets\\survivor\\fps-arms-v3.glb": "c5021b051215171bbd9a8ff70071bd51c8b2899b7817688c46814cd74da0c6f7",
+    "assets\\survivor\\viewmodel-arms-v2.glb": "beba75aa9a173532af038c67c286fde96e1149275e4fe0a496a31cdd86f23fcf",
+    "assets\\survivor\\tld-survivor-v02.glb": "f3c9b277985435845d0848f9fc9ca32fa92da9f695c911f7ea48eacff712db03"
+  },
+  "rigs": [
+    {
+      "weapon": "ossuary",
+      "arms": 1,
+      "bones": 19
+    },
+    {
+      "weapon": "breach",
+      "arms": 2,
+      "bones": 38
+    },
+    {
+      "weapon": "arc",
+      "arms": 2,
+      "bones": 38
+    },
+    {
+      "weapon": "reliquary",
+      "arms": 2,
+      "bones": 38
+    },
+    {
+      "weapon": "carrion",
+      "arms": 2,
+      "bones": 38
+    },
+    {
+      "weapon": "mourning",
+      "arms": 2,
+      "bones": 38
+    },
+    {
+      "weapon": "bat",
+      "arms": 2,
+      "bones": 38
+    },
+    {
+      "weapon": "chainsaw",
+      "arms": 2,
+      "bones": 38
+    }
+  ],
+  "construction": "Original palm/digits/thumb web, quad sleeve panels, anatomical finger axes, blended joint weights, elbow cloth helper",
+  "actions": [
+    "arc/draw",
+    "arc/fire",
+    "arc/idle",
+    "arc/walk",
+    "bat/draw",
+    "bat/idle",
+    "bat/strike",
+    "bat/walk",
+    "breach/draw",
+    "breach/fire",
+    "breach/idle",
+    "breach/walk",
+    "carrion/draw",
+    "carrion/fire",
+    "carrion/idle",
+    "carrion/walk",
+    "chainsaw/draw",
+    "chainsaw/idle",
+    "chainsaw/strike",
+    "chainsaw/walk",
+    "mourning/draw",
+    "mourning/fire",
+    "mourning/idle",
+    "mourning/walk",
+    "ossuary/draw",
+    "ossuary/fire",
+    "ossuary/idle",
+    "ossuary/walk",
+    "reliquary/draw",
+    "reliquary/fire",
+    "reliquary/idle",
+    "reliquary/walk"
+  ],
+  "acceptance": "Independent vision gate passed for repaired mechanical defects across all 15 hands; professional artistic quality remains a risk, and obscured trigger-tip seating is unverified.",
+  "sourceSha256": "7d3478bd74899d50cd9ed9740de962d40f483f8949e21f2ca058ed3724a96d55",
+  "losslessExportCleanup": {
+    "removedBindConstantTracks": 2400,
+    "animatedChannels": [
+      {
+        "name": "ossuary/draw",
+        "channels": 17
+      },
+      {
+        "name": "ossuary/fire",
+        "channels": 17
+      },
+      {
+        "name": "ossuary/idle",
+        "channels": 17
+      },
+      {
+        "name": "ossuary/walk",
+        "channels": 17
+      },
+      {
+        "name": "breach/draw",
+        "channels": 34
+      },
+      {
+        "name": "breach/fire",
+        "channels": 34
+      },
+      {
+        "name": "breach/idle",
+        "channels": 34
+      },
+      {
+        "name": "breach/walk",
+        "channels": 34
+      },
+      {
+        "name": "arc/draw",
+        "channels": 34
+      },
+      {
+        "name": "arc/fire",
+        "channels": 34
+      },
+      {
+        "name": "arc/idle",
+        "channels": 34
+      },
+      {
+        "name": "arc/walk",
+        "channels": 34
+      },
+      {
+        "name": "reliquary/draw",
+        "channels": 34
+      },
+      {
+        "name": "reliquary/fire",
+        "channels": 34
+      },
+      {
+        "name": "reliquary/idle",
+        "channels": 34
+      },
+      {
+        "name": "reliquary/walk",
+        "channels": 34
+      },
+      {
+        "name": "carrion/draw",
+        "channels": 34
+      },
+      {
+        "name": "carrion/fire",
+        "channels": 34
+      },
+      {
+        "name": "carrion/idle",
+        "channels": 34
+      },
+      {
+        "name": "carrion/walk",
+        "channels": 34
+      },
+      {
+        "name": "mourning/draw",
+        "channels": 34
+      },
+      {
+        "name": "mourning/fire",
+        "channels": 34
+      },
+      {
+        "name": "mourning/idle",
+        "channels": 34
+      },
+      {
+        "name": "mourning/walk",
+        "channels": 34
+      },
+      {
+        "name": "bat/draw",
+        "channels": 34
+      },
+      {
+        "name": "bat/idle",
+        "channels": 34
+      },
+      {
+        "name": "bat/strike",
+        "channels": 34
+      },
+      {
+        "name": "bat/walk",
+        "channels": 34
+      },
+      {
+        "name": "chainsaw/draw",
+        "channels": 34
+      },
+      {
+        "name": "chainsaw/idle",
+        "channels": 34
+      },
+      {
+        "name": "chainsaw/strike",
+        "channels": 34
+      },
+      {
+        "name": "chainsaw/walk",
+        "channels": 34
+      }
+    ],
+    "beforeBytes": 19840520,
+    "afterBytes": 17118204
+  },
+  "triangles": 426488,
+  "verification": {
+    "focusedTests": 29,
+    "testReport": "output/fps-arms-v5-final-tests.txt",
+    "angles": "output/playwright/fps-arms-v5-final-angles/report.json",
+    "angleCaptureCount": 645,
+    "nativeGame": "output/playwright/fps-arms-v5-final-native/report.json",
+    "reliquaryHardwareSupplement": "output/playwright/fps-arms-v5-final-reliquary-hardware/report.json",
+    "reliquaryNativeSupplement": "output/playwright/fps-arms-v5-final-reliquary-native/report.json",
+    "denseContact": "output/fps-arms-v5-contact-final-dense.json",
+    "reliquaryFastenerAudit": "output/fps-arms-v5-reliquary-fastener-fixed-audit.json",
+    "maximumMeasuredGripInteriorMillimetres": 3.3575423917534626,
+    "scope": "All eight weapon holds, all15 hands/six anatomical views; representative draw/fire/strike samples; continuous native shotgun/bat/chainsaw sequences and body poses. Reliquary supplement supersedes its hardware views before screw correction. Small concealed grip compression remains; not a zero-collision or professional-craft certificate. Scoped startup, not whole-world/mobile performance certification."
+  },
+  "visionReview": "docs/survivor/fps-arms-v5-repair-review.md",
+  "historicalRejectedReview": "docs/survivor/fps-arms-v5-vision-review.md",
+  "repairSourceSha256": "7d3478bd74899d50cd9ed9740de962d40f483f8949e21f2ca058ed3724a96d55",
+  "runtimeSourceHashes": {
+    "assets/survivor/fps-arms.js": "1032b74c49ee0aa381fa525dd6ddc3bb325858e8531316d43b403cbcef1458c1",
+    "blackwater-weapon-style.js": "1a4d4e858bc1b9d305223b342cda46f6062429ccb06c94de4949962c9ebe8714",
+    "weapon-detail-pass.js": "533af500573cc988c699a0cf6b63a3d92eb2242f5b450958f3b805d41024908a"
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "verifiedAt": "2026-10-04T19:54:02.044Z",
+  "url": "http://127.0.0.1:5200/",
+  "result": "PASS",
+  "scope": "Existing canonical live server serves exact final asset and integration module bytes; native gameplay is verified separately in browser receipts",
+  "assets": [
+    {
+      "id": "drowned-dockworker",
+      "status": 200,
+      "sha256": "203db1296f824b9b3fd55c2ed60a3e18428c51a29e509565f0bc83bdf9e355cf",
+      "bytes": 6142224
+    },
+    {
+      "id": "fever-runner",
+      "status": 200,
+      "sha256": "1df86f804d90f17133f1b12b10e363115873e22960a02cb141d939d741dca39f",
+      "bytes": 5977964
+    },
+    {
+      "id": "crooked-crawler",
+      "status": 200,
+      "sha256": "1555d0af772e36e583dfeb778ad8e7cb927862f298668afc43873a72f4074b1a",
+      "bytes": 6091588
+    }
+  ],
+  "modules": [
+    {
+      "file": "zombie-appearances.js",
+      "status": 200,
+      "sha256": "c881d8f2f50cd1d5d7ecb494a82dc8a3ce73a6918a150302aa20249e26ded645"
+    },
+    {
+      "file": "engine.js",
+      "status": 200,
+      "sha256": "2cfe68c42c0ea6a9305481cfc64327bf66c1e581f41f7fb7374cbbb8091312a6"
+    },
+    {
+      "file": "renderer.js",
+      "status": 200,
+      "sha256": "0ed30c06ce98eb24347765a67cda8a4f688cd772037fa312850857bbac07b848"
+    },
+    {
+      "file": "npc-afterlife-model.js",
+      "status": 200,
+      "sha256": "a9be0471ccb4bac99dae56890694414577d2a435510becdf209deb7f11421c92"
+    },
+    {
+      "file": "brutal-combat-visuals.js",
+      "status": 200,
+      "sha256": "bff80d2dc37bd522a7349f6dffb7884d68e6696487df8cc2e4d05590e03f2cb0"
+    },
+    {
+      "file": "blackwater-actor-style.js",
+      "status": 200,
+      "sha256": "fd6e5c86eaae9abf1fe0af38c75e0186278f2c1cc5dbfb11f83fa41709661a7e"
+    },
+    {
+      "file": "zombie-behavior.js",
+      "status": 200,
+      "sha256": "7c68c354cb7e617fe4cbb8324fa0301294eeeebb53cdf9cdeacb36392124f146"
+    },
+    {
+      "file": "character-articulation.js",
+      "status": 200,
+      "sha256": "705590948e8fdc33dd6a417206087d7c44d82926a9d319cfb8ecab1014d73085"
+    }
+  ],
+  "sourceAndProductionModulesMatch": true,
+  "authoredColoredAtlasModeIncluded": true,
+  "browserSourceReceipt": "output/playwright/zombie-variants/source-final/report.json",
+  "browserProductionReceipt": "output/playwright/zombie-variants/production-final/report.json"
+}

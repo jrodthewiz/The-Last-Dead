@@ -7,7 +7,9 @@ const env={canStand,castRay};
 
 function actor(course,from,target,{variant='stalker',hz=60}={}){
  const enemy={id:50,...from,variant,moveSpeed:.72,dead:false};
- createMind(enemy,{state:'stalk',firstAttack:0});
+ // These are committed portal approaches, authored facing into their lane.
+ // Random facing formerly passed only because hunting had all-around vision.
+ createMind(enemy,{state:'stalk',firstAttack:0,facing:Math.atan2(target.y-from.y,target.x-from.x)});
  const ctx={env,course,dt:1/hz,time:0,noises:[],alive:[enemy],navBudget:4,
   profile:{role:variant==='bloodhound'?'hunter':'rush',speed:.72},reach:.7,
   tokens:{melee:3,maxMelee:3,ranged:0,maxRanged:2}};

@@ -15,7 +15,7 @@ export const FOREST_LOD_DETAILS = Object.freeze([
 const SPECIES = ['deciduous', 'conifer'];
 const SEEDS = { deciduous: [36330, 36349, 36381], conifer: [13977, 14003, 14059] };
 const DEFAULT_PALETTE = Object.freeze({ bark: '#866643', deciduous: '#92ad4a', conifer: '#3e826d' });
-const MAX_TREES = 512;
+const MAX_TREES = 562;
 const TAU = Math.PI * 2;
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 const geometryTriangles = geometry => geometry.index.count / 3;
@@ -97,44 +97,77 @@ function removeCollapsedTriangles(geometry) {
   return removed;
 }
 
-function distantCrown(skeleton, originalHeight, seed) {
-  // Preserve the grown skeleton's lobed silhouette rather than substituting a
-  // single sphere or a vertical billboard. Coarse spatial clusters retain the
-  // species' actual branching spread and remain legible from above.
-  const centers = skeleton.leaves.map(leaf => new THREE.Vector3(0, leaf.size * .5, 0).applyEuler(leaf.orientation).add(leaf.origin).multiplyScalar(1 / originalHeight));
-  let cell = .12, bins;
-  do {
-    bins = new Map();
-    for (const p of centers) {
-      const key = `${Math.floor(p.x / cell)}/${Math.floor(p.y / cell)}/${Math.floor(p.z / cell)}`;
-      if (!bins.has(key)) bins.set(key, { center: new THREE.Vector3(), count: 0 });
-      const bin = bins.get(key); bin.center.add(p); bin.count++;
+function distantCrown(skeleton, originalHeight, seed, species) {
+  const positions=[],uvs=[],indices=[],centers=skeleton.leaves.map(leaf=>new THREE.Vector3(0,leaf.size*.5,0).applyEuler(leaf.orientation).add(leaf.origin).multiplyScalar(1/originalHeight));
+  const vertex=(x,y,z,u,v)=>{positions.push(x,clamp(y,.045,1),z);uvs.push(u,v);return positions.length/3-1;};
+  const join=(a,b,n)=>{for(let i=0;i<n;i++){const j=(i+1)%n;indices.push(a+i,b+i,a+j,a+j,b+i,b+j);}};
+  const sectionPoint=(branch,t)=>{const f=t*(branch.sections.length-1),i=Math.min(branch.sections.length-2,Math.floor(f));return branch.sections[i].origin.clone().lerp(branch.sections[i+1].origin,f-i).multiplyScalar(1/originalHeight);};
+  let crownLobes=0;
+  if(species==='conifer') {
+    // Every foliage bough follows a real woody branch, from its trunk junction
+    // to its drooping tip. Adjacent boughs have natural staggered heights; no
+    // independent leaf-centroid discs can float above the branching skeleton.
+    const branches=skeleton.branches.slice(1).sort((a,b)=>a.sections[0].origin.y-b.sections[0].origin.y),count=Math.min(46,branches.length);
+    for(let i=0;i<count;i++) {
+      const branch=branches[Math.round(i*(branches.length-1)/Math.max(1,count-1))],first=sectionPoint(branch,0),last=sectionPoint(branch,1);
+      const direction=last.clone().sub(first),length=direction.length(),angle=Math.atan2(direction.z,direction.x),sx=-Math.sin(angle),sz=Math.cos(angle);
+      const jitter=hash(seed+'/bough/'+i)/4294967296,width=Math.max(.012,length*(.10+jitter*.025));
+      const start=positions.length/3;
+      for(let j=0;j<5;j++) {
+        const t=j/4,p=sectionPoint(branch,t),w=width*(.15+.85*Math.sin(t*Math.PI))*(1+(j%2?-.16:.12));
+        vertex(p.x+sx*w,p.y-w*.23,p.z+sz*w,0,t);
+        vertex(p.x,p.y+w*.48,p.z,.5,t);
+        vertex(p.x-sx*w,p.y-w*.23,p.z-sz*w,1,t);
+        vertex(p.x,p.y-w*.52,p.z,.5,t);
+      }
+      for(let j=0;j<4;j++)join(start+j*4,start+(j+1)*4,4);
+      indices.push(start,start+1,start+2,start,start+2,start+3);
+      const tip=start+16;indices.push(tip,tip+2,tip+1,tip,tip+3,tip+2);
     }
-    if (bins.size > 64) cell *= 1.08;
-  } while (bins.size > 64);
-  const lobe = new THREE.IcosahedronGeometry(1, 0), lp = lobe.attributes.position, ln = lobe.attributes.normal;
-  const positions = [], normals = [], uvs = [], indices = [];
-  for (const [key, bin] of bins) {
-    const c = bin.center.divideScalar(bin.count), jitter = hash(`${seed}/${key}`) / 4294967296;
-    const r = cell * (.62 + jitter * .12), offset = positions.length / 3;
-    for (let i = 0; i < lp.count; i++) {
-      positions.push(c.x + lp.getX(i) * r, clamp(c.y + lp.getY(i) * r * .87, .045, 1), c.z + lp.getZ(i) * r);
-      normals.push(ln.getX(i), ln.getY(i), ln.getZ(i));
-      // Sample the same leaf texture for tonal variation. Coverage is owned by
-      // this volume, so texture minification cannot erase a distant crown.
-      uvs.push((lp.getX(i) + 1) * .5, (lp.getY(i) + 1) * .5);
-      indices.push(offset + i);
+    // A narrow needle-bearing central leader joins the bough roots and closes
+    // the upper silhouette. Its shape follows the same grown trunk sections.
+    const trunk=skeleton.branches[0],start=positions.length/3,rings=8,sides=8;
+    for(let j=0;j<rings;j++) {
+      const t=.18+j/(rings-1)*.82,p=sectionPoint(trunk,t),r=.002+.023*Math.pow(1-t,.7);
+      for(let i=0;i<sides;i++){const a=i*TAU/sides;vertex(p.x+Math.cos(a)*r,p.y,p.z+Math.sin(a)*r,i/sides,t);}
     }
+    for(let j=0;j<rings-1;j++)join(start+j*sides,start+(j+1)*sides,sides);
+    crownLobes=count;
+  } else {
+    // A single joined canopy envelope follows actual leaf occupancy by height
+    // and azimuth. Unequal lobes reshape the whole crown rather than layering
+    // repeated isolated beans around the trunk.
+    const minY=Math.min(...centers.map(p=>p.y)),maxY=Math.max(...centers.map(p=>p.y)),rings=14,sides=24,start=positions.length/3;
+    const rows=[];
+    for(let j=0;j<rings;j++) {
+      const t=j/(rings-1),y=minY+(maxY-minY)*t;
+      let slice=centers.filter(p=>Math.abs(p.y-y)<.060);if(!slice.length)slice=centers;
+      const cx=slice.reduce((n,p)=>n+p.x,0)/slice.length,cz=slice.reduce((n,p)=>n+p.z,0)/slice.length;
+      const bins=Array.from({length:sides},()=>[]),all=[];
+      for(const p of slice){const x=p.x-cx,z=p.z-cz,r=Math.hypot(x,z),a=(Math.atan2(z,x)+TAU)%TAU;bins[Math.floor(a/TAU*sides)].push(r);all.push(r);}
+      all.sort((a,b)=>a-b);const fallback=all[Math.floor((all.length-1)*.88)];
+      const radii=bins.map(values=>{if(!values.length)return fallback*.72;values.sort((a,b)=>a-b);return values[Math.floor((values.length-1)*.90)];});
+      rows.push({cx,cz,y,radii});
+    }
+    for(let j=0;j<rings;j++) {
+      const row=rows[j],t=j/(rings-1),end=j===0||j===rings-1;
+      for(let i=0;i<sides;i++) {
+        const a=i*TAU/sides,radius=row.radii[i]*.62+row.radii[(i+sides-1)%sides]*.19+row.radii[(i+1)%sides]*.19;
+        const jitter=hash(seed+'/envelope/'+j+'/'+i)/4294967296;
+        const r=Math.max(.006,radius*(end ? .20 : .96)*(1+(jitter-.5)*.12));
+        vertex(row.cx+Math.cos(a)*r,row.y+Math.sin(a*3+j*.73)*.006,row.cz+Math.sin(a)*r,i/sides,t);
+      }
+    }
+    for(let j=0;j<rings-1;j++)join(start+j*sides,start+(j+1)*sides,sides);
+    for(const [j,reverse]of [[0,false],[rings-1,true]]) {
+      const row=rows[j],cap=vertex(row.cx,row.y,row.cz,.5,j/(rings-1)),ring=start+j*sides;
+      for(let i=0;i<sides;i++){const next=(i+1)%sides;indices.push(cap,ring+(reverse?next:i),ring+(reverse?i:next));}
+    }
+    crownLobes=sides;
   }
-  lobe.dispose();
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  g.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-  g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-  g.setIndex(indices); g.userData.crownLobes = bins.size;
-  return g;
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));g.setIndex(indices);g.computeVertexNormals();
+  g.userData={crownLobes,crownProfile:species==='conifer'?'connected-drooping-boughs':'joined-leaf-occupancy-envelope'};return g;
 }
-
 function buildTemplate(species, templateIndex, resources) {
   const options = new TreeOptions(); options.copy(species === 'deciduous' ? ASH_MEDIUM : PINE_MEDIUM);
   options.seed = SEEDS[species][templateIndex];
@@ -151,7 +184,7 @@ function buildTemplate(species, templateIndex, resources) {
   // Near and middle leaves retain the pinned cutout-card geometry. Only the
   // far pool receives opaque cluster envelopes; no extra materials or draws.
   levels[2].leaves.dispose();
-  levels[2].leaves = distantCrown(generator.skeleton, originalHeight, options.seed);
+  levels[2].leaves = distantCrown(generator.skeleton, originalHeight, options.seed, species);
   let removedTriangles = 0;
   for (let lod = 0; lod < levels.length; lod++) for (const [part, geometry] of Object.entries(levels[lod])) {
     if (part !== 'leaves' || lod !== 2) geometry.scale(1 / originalHeight, 1 / originalHeight, 1 / originalHeight);

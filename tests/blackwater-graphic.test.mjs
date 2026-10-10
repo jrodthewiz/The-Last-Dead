@@ -5,6 +5,24 @@ import {applyBlackwaterGraphicStyle} from '../blackwater-graphic-style.js';
 import {buildBlackwaterDistrict} from '../blackwater-district-visuals.js';
 import {makeHarborCourse} from '../harbor-course.js';
 import {readFileSync} from 'node:fs';
+import {MeshStandardNodeMaterial} from '../vendor/three.webgpu.js';
+import {float} from '../vendor/three.tsl.js';
+import {applyBlackwaterCoastalSurfaces} from '../blackwater-graphic-style.js';
+import {createBlackwaterLookStudy} from '../blackwater-render-looks.js';
+
+test('authored native ground retains its material graph and ownership across graphic and look adapters',()=>{
+ const scene=new THREE.Scene();scene.background=new THREE.Color('#80969b');scene.fog=new THREE.Fog('#80969b',80,280);
+ const root=new THREE.Group();scene.add(root);const geometry=new THREE.PlaneGeometry(4,4),material=new MeshStandardNodeMaterial();
+ material.userData.nativeTerrainPBR=true;material.colorNode=float(.7);material.roughnessNode=float(.9);const graph=material.colorNode;
+ const mesh=new THREE.Mesh(geometry,material);root.add(mesh);const sun=new THREE.DirectionalLight(),fill=new THREE.HemisphereLight(),camera=new THREE.PerspectiveCamera();
+ let released=0;material.addEventListener('dispose',()=>released++);
+ const style=applyBlackwaterGraphicStyle(root);assert.equal(style.diagnostics.materialVariants,0);assert.equal(style.diagnostics.inkTriangles,0);
+ const coast=applyBlackwaterCoastalSurfaces(root,{coastGrass:material});assert.equal(coast.diagnostics.materialVariants,0);
+ const renderer={toneMapping:THREE.NoToneMapping,toneMappingExposure:1};const study=createBlackwaterLookStudy({renderer,scene,subject:{root},camera,sun,fill});
+ for(const id of ['cartoon','illustrated','realism','baseline']){study.select(id);assert.equal(mesh.material,material);assert.equal(mesh.material.colorNode,graph);assert.equal(study.diagnostics().materialVariants,0);}
+ study.dispose();study.dispose();coast.dispose();style.dispose();assert.equal(released,0);assert.equal(mesh.material,material);
+ geometry.dispose();material.dispose();assert.equal(released,1);
+});
 
 test('graphic adapter bakes nonuniform scale and instancing into bounded ink and restores borrowed materials',()=>{
  const root=new THREE.Group(),source=new THREE.MeshStandardMaterial({color:'#67898f'}),geometry=new THREE.BoxGeometry(1,1,1);

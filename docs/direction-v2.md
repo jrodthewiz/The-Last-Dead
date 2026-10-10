@@ -1,6 +1,6 @@
 # The Last Dead — direction prompt v2
 
-Upgrade the existing playable horror FPS into a fast, oppressive dungeon descent. Preserve its body-camera identity, grounded worn firearms and captured creature animation. Take inspiration from Left 4 Dead's forward momentum, readable horde pressure and short relief beats, while retaining The Last Dead's own setting and mechanics.
+Upgrade the existing playable horror FPS into a fast, oppressive journey through Blackwater and its dungeon descent. The current visual direction is aggressive graphic horror: bold painted colours, cel-shaded planes, comic ink and readable low-poly silhouettes with modern rendering and animation. Use a clean eye-level first-person view, Blender-authored gloves and weapon grips, and captured creature animation. This direction supersedes the earlier body-camera recording treatment. Take inspiration from Left 4 Dead's forward momentum, readable horde pressure and short relief beats, while retaining The Last Dead's own setting and mechanics.
 
 The player loop is: recognize the next destination, push through a living space, fight an escalating pack, grab a useful recovery or weapon reward, and move deeper. Every required room must earn its place through an encounter, route transition, landmark, reward or narrative reveal. Side rooms must offer a clear risk/reward. Avoid mandatory empty-room tours, arbitrary visit ordering and repeated long waits.
 

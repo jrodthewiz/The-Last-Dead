@@ -1,0 +1,222 @@
+{
+  "id": "crooked-crawler",
+  "label": "Crooked Crawler",
+  "provider": "Meshy",
+  "model": "meshy-7.1",
+  "taskIds": {
+    "preview": "01a1084a-e53f-7636-973d-7fb85f4475c3",
+    "refine": "01a1084e-7b8b-7550-9200-e56b2d09d2bb",
+    "retexture": null,
+    "rig": "01a10855-c400-7633-bd40-7ab97b516a21"
+  },
+  "credits": 35,
+  "sourceBytes": 12745612,
+  "bytes": 6091588,
+  "sha256": "1555d0af772e36e583dfeb778ad8e7cb927862f298668afc43873a72f4074b1a",
+  "before": {
+    "triangles": 20759,
+    "meshes": 1,
+    "materials": 1,
+    "textures": 3,
+    "skins": 1,
+    "joints": [
+      [
+        "Hips",
+        "Spine02",
+        "Spine01",
+        "Spine",
+        "neck",
+        "Head",
+        "head_end",
+        "headfront",
+        "LeftShoulder",
+        "LeftArm",
+        "LeftForeArm",
+        "LeftHand",
+        "RightShoulder",
+        "RightArm",
+        "RightForeArm",
+        "RightHand",
+        "LeftUpLeg",
+        "LeftLeg",
+        "LeftFoot",
+        "LeftToeBase",
+        "RightUpLeg",
+        "RightLeg",
+        "RightFoot",
+        "RightToeBase",
+        "Jaw",
+        "LeftGrip",
+        "RightGrip"
+      ]
+    ],
+    "clips": [
+      {
+        "name": "AshWitness_Idle",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Shuffle",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Chase",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_AttackLunge",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_HitRecoil",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Collapse",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Run",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Crawl",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_CrawlIdle",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Contort",
+        "channels": 81
+      }
+    ],
+    "positions": [
+      "0350aef3db464b8fe544cd09c14cd7ba4e5ff193aa7caf6e7ee24ebda8788a8a"
+    ],
+    "weights": [
+      "26159dac051bfdd261d8b1b72076fc3112761cf46ca42780ad0edc0dc77109f1"
+    ]
+  },
+  "after": {
+    "triangles": 20759,
+    "meshes": 1,
+    "materials": 1,
+    "textures": 3,
+    "skins": 1,
+    "joints": [
+      [
+        "Hips",
+        "Spine02",
+        "Spine01",
+        "Spine",
+        "neck",
+        "Head",
+        "head_end",
+        "headfront",
+        "LeftShoulder",
+        "LeftArm",
+        "LeftForeArm",
+        "LeftHand",
+        "RightShoulder",
+        "RightArm",
+        "RightForeArm",
+        "RightHand",
+        "LeftUpLeg",
+        "LeftLeg",
+        "LeftFoot",
+        "LeftToeBase",
+        "RightUpLeg",
+        "RightLeg",
+        "RightFoot",
+        "RightToeBase",
+        "Jaw",
+        "LeftGrip",
+        "RightGrip"
+      ]
+    ],
+    "clips": [
+      {
+        "name": "AshWitness_Idle",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Shuffle",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Chase",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_AttackLunge",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_HitRecoil",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Collapse",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Run",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Crawl",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_CrawlIdle",
+        "channels": 81
+      },
+      {
+        "name": "AshWitness_Contort",
+        "channels": 81
+      }
+    ],
+    "positions": [
+      "0350aef3db464b8fe544cd09c14cd7ba4e5ff193aa7caf6e7ee24ebda8788a8a"
+    ],
+    "weights": [
+      "26159dac051bfdd261d8b1b72076fc3112761cf46ca42780ad0edc0dc77109f1"
+    ]
+  },
+  "textures": [
+    {
+      "name": "Image_2",
+      "mime": "image/webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 1235594
+    },
+    {
+      "name": "Image_0",
+      "mime": "image/webp",
+      "width": 2048,
+      "height": 2048,
+      "bytes": 1335166
+    },
+    {
+      "name": "Image_1",
+      "mime": "image/webp",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 684836
+    }
+  ],
+  "packing": {
+    "baseColor": "2K WebP quality92",
+    "normalAndORM": "1K lossless WebP",
+    "geometrySimplification": false,
+    "animationResampling": false,
+    "controlsAndSocketsPreserved": true
+  },
+  "motionSource": "Ten locally fitted Ash Witness v07 animations; exact0.375s combat contact time",
+  "rawArchive": ".art-source/zombie-variants-meshy/crooked-crawler",
+  "runtimeNeedsProvider": false,
+  "runtimeNeedsBlender": false
+}

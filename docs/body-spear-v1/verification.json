@@ -1,0 +1,355 @@
+{
+  "date": "2026-10-05T08:30:10.684Z",
+  "status": "PASS",
+  "tests": {
+    "passed": 110,
+    "failed": 0,
+    "log": "output/body-spear-final-tests.log"
+  },
+  "build": {
+    "status": "PASS",
+    "log": "output/body-spear-build.log"
+  },
+  "url": "http://127.0.0.1:5200/",
+  "files": [
+    {
+      "file": "body-spear-visuals.js",
+      "bytes": 11012,
+      "sha256": "0f9fe0537c8b78f3fbd57c8c9d106a6b2869ad3fba9a65a851dd9b3b80b8a1ea",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 11012
+    },
+    {
+      "file": "brutal-combat-visuals.js",
+      "bytes": 58218,
+      "sha256": "3339c87e7ca417d68d1e9cff686e20441ef971b75303c50254a74cef4f3c9ae0",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 58218
+    },
+    {
+      "file": "chest-finisher-visuals.js",
+      "bytes": 11680,
+      "sha256": "be20d456a1d54eef964a77fc444d37090eba5d4875b810fdf5a611c2165305a1",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 11680
+    },
+    {
+      "file": "hand-grip-rig.js",
+      "bytes": 13180,
+      "sha256": "f88b87c7ed4bf66b686791b73c3479c0c62e27be404b8308ef211823d2e4d3ab",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 13180
+    },
+    {
+      "file": "corpse-physics.js",
+      "bytes": 54972,
+      "sha256": "eb6082a36586828a099ca41ae18d399c5a4c782d4eb73892d68f2b14ca269601",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 54972
+    },
+    {
+      "file": "blackwater-actor-style.js",
+      "bytes": 16180,
+      "sha256": "700880edbfc30b17d4366dd738f3388f9ca84b3ebe6aaa8e92ff8d31167da413",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 16180
+    },
+    {
+      "file": "renderer.js",
+      "bytes": 173001,
+      "sha256": "dfae1324a28cd32e8f2bd7b298b10855205415f8c1f232c25a7d897c61fb689c",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 173001
+    },
+    {
+      "file": "webgpu-material-hooks.js",
+      "bytes": 8127,
+      "sha256": "eed6a30324c2777774a7279f182b20ad81ca7a92fd7182b3cf6e9ff318a7f53f",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 8127
+    },
+    {
+      "file": "webgpu-shaders.js",
+      "bytes": 5980,
+      "sha256": "886a70f051383943e6ccee67dbe6c5422c344dc8718820f25fd24b3e1b0f62b9",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 5980
+    },
+    {
+      "file": "ui.js",
+      "bytes": 86529,
+      "sha256": "03a6a789abd2c6cdd05a3639e56c83dd56ed75d4841db6a61daf8109b1c62867",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 86529
+    },
+    {
+      "file": "assets/animations/body-spear-v1.js",
+      "bytes": 305327,
+      "sha256": "c33a0792d90fc8835d64712d6fabaa7c104bc7b29e08dd28286773f8ef4be8b7",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 305327
+    },
+    {
+      "file": "assets/models/body-spear-anatomy-v1.glb",
+      "bytes": 689416,
+      "sha256": "0ecbdb322a644246cf1bdcb3ca5ac5bb5ad24a9d423d881add889995e2dc671b",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 689416
+    },
+    {
+      "file": "engine.js",
+      "bytes": 147443,
+      "sha256": "084da4c1f8e3fa7ce98b8688718c8605886633772d2cc902b2c60f45ac7688e8",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 147443
+    },
+    {
+      "file": "enemy-ai.js",
+      "bytes": 47204,
+      "sha256": "742e241898f476a38b4473da20c8ed19af2893bbdd4a7b9162a9e03fb7b4db54",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 47204
+    },
+    {
+      "file": "zombie-behavior.js",
+      "bytes": 8410,
+      "sha256": "c39a582c75615aa30ca8118243d7631dfb0d2a60855422f119dd8739cbc51a51",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 8410
+    },
+    {
+      "file": "npc-afterlife-model.js",
+      "bytes": 39225,
+      "sha256": "1a4f9978520812a9553dff0e46f03c71eca31ee7956a18130f1cdcaf43078e6e",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 39225
+    },
+    {
+      "file": "character-articulation.js",
+      "bytes": 8133,
+      "sha256": "5d490aa45199ac71ee4ffcd44268f2365ead8664edb288e916abc5430a895361",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 8133
+    },
+    {
+      "file": "assets/models/afterlife-ash-witness-motion-v07.glb",
+      "bytes": 4193928,
+      "sha256": "8bd6bfed843879ae190fa8da3e69466998289a727634cdfdfe1d708f5e30b4e0",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 4193928
+    },
+    {
+      "file": "assets/models/zombie-variants/drowned-dockworker.glb",
+      "bytes": 6142224,
+      "sha256": "203db1296f824b9b3fd55c2ed60a3e18428c51a29e509565f0bc83bdf9e355cf",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 6142224
+    },
+    {
+      "file": "assets/models/zombie-variants/fever-runner.glb",
+      "bytes": 5977964,
+      "sha256": "1df86f804d90f17133f1b12b10e363115873e22960a02cb141d939d741dca39f",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 5977964
+    },
+    {
+      "file": "assets/models/zombie-variants/crooked-crawler.glb",
+      "bytes": 6091588,
+      "sha256": "1555d0af772e36e583dfeb778ad8e7cb927862f298668afc43873a72f4074b1a",
+      "packagedMatch": true,
+      "httpStatus": 200,
+      "servedBytes": 6091588
+    }
+  ],
+  "reference": "https://www.youtube.com/watch?v=DqAagh50JaI",
+  "offlineContactStudy": {
+    "path": "docs/body-spear-v1/contact-study.png",
+    "bytes": 3175906,
+    "gameScreenshot": false
+  },
+  "generationCreditsUsedThisPass": 0,
+  "sourceCharactersUnchanged": true,
+  "focusedDesktopQA": {
+    "status": "PASS",
+    "report": "output/playwright/body-spear/report.json",
+    "views": 15,
+    "checks": [
+      "ash-witness: real V, impact, withdrawal, hand contact",
+      "ash-witness: GPU source opening and oblique inner-wall readback",
+      "drowned-dockworker: real V, impact, withdrawal, hand contact",
+      "drowned-dockworker: GPU source opening and oblique inner-wall readback",
+      "fever-runner: real V, impact, withdrawal, hand contact",
+      "fever-runner: GPU source opening and oblique inner-wall readback",
+      "crooked-crawler: real V, impact, withdrawal, hand contact",
+      "crooked-crawler: GPU source opening and oblique inner-wall readback",
+      "completion restores idle",
+      "gore off preserves damage and hides both wounds, organ and spray",
+      "standard controller R3 input route (synthetic device)",
+      "host serialization → guest receive/render with active remote finisher"
+    ],
+    "physicalControllerTested": false,
+    "liveP2PTested": false
+  },
+  "gpuPerformanceVerified": false,
+  "finalOwnedRecheck": {
+    "passed": 9,
+    "failed": 0,
+    "log": "output/body-spear-parity-final.log",
+    "reason": "actual rig, deforming surface, contact, tissue, particle, sleeve stretch and serialized peer floor checks"
+  },
+  "contactPhysics": {
+    "passed": 26,
+    "failed": 0,
+    "log": "output/zombie-contact-physics-tests.log",
+    "reason": "sparse contacts match the original solver; awake-body broadphase retains native pairs and world supports"
+  },
+  "frameTimeProfile": {
+    "status": "PROFILED",
+    "report": "output/playwright/zombie-live-quality/profile-final.json",
+    "errors": [],
+    "measurements": [
+      {
+        "name": "ordinary-scene",
+        "interval": {
+          "samples": 67,
+          "medianMs": 50,
+          "p95Ms": 83.30000000000291,
+          "maxMs": 249.90000000000146,
+          "meanMs": 60.42238805970154
+        },
+        "cpu": {
+          "samples": 67,
+          "medianMs": 48,
+          "p95Ms": 68.30000001192093,
+          "maxMs": 78.59999999403954,
+          "meanMs": 50.110447761727805
+        },
+        "physics": {
+          "samples": 68,
+          "medianMs": 0,
+          "p95Ms": 0,
+          "maxMs": 0.10000000894069672,
+          "meanMs": 0.004411764662055408
+        }
+      },
+      {
+        "name": "four-zombies-active",
+        "interval": {
+          "samples": 63,
+          "medianMs": 66.59999999999854,
+          "p95Ms": 83.5,
+          "maxMs": 100,
+          "meanMs": 63.992063492063494
+        },
+        "cpu": {
+          "samples": 63,
+          "medianMs": 54.29999999701977,
+          "p95Ms": 77,
+          "maxMs": 85.09999999403954,
+          "meanMs": 54.55396825335328
+        },
+        "physics": {
+          "samples": 64,
+          "medianMs": 0,
+          "p95Ms": 0,
+          "maxMs": 0.09999999403953552,
+          "meanMs": 0.003124999813735485
+        }
+      },
+      {
+        "name": "first-spear",
+        "interval": {
+          "samples": 2,
+          "medianMs": 1449.4000000000015,
+          "p95Ms": 1449.4000000000015,
+          "maxMs": 1449.4000000000015,
+          "meanMs": 1132.8499999999985
+        },
+        "cpu": {
+          "samples": 2,
+          "medianMs": 1376.5999999940395,
+          "p95Ms": 1376.5999999940395,
+          "maxMs": 1376.5999999940395,
+          "meanMs": 732.3999999985099
+        },
+        "physics": {
+          "samples": 3,
+          "medianMs": 38.3999999910593,
+          "p95Ms": 122.8999999910593,
+          "maxMs": 122.8999999910593,
+          "meanMs": 56.7666666607062
+        },
+        "surfaceFit": {
+          "samples": 8,
+          "medianMs": 0.10000000894069672,
+          "p95Ms": 166.79999999701977,
+          "maxMs": 166.79999999701977,
+          "meanMs": 20.900000002235174
+        }
+      },
+      {
+        "name": "second-spear",
+        "interval": {
+          "samples": 12,
+          "medianMs": 83.30000000000291,
+          "p95Ms": 832.9000000000015,
+          "maxMs": 832.9000000000015,
+          "meanMs": 213.79166666666666
+        },
+        "cpu": {
+          "samples": 12,
+          "medianMs": 52.29999999701977,
+          "p95Ms": 812.6000000089407,
+          "maxMs": 812.6000000089407,
+          "meanMs": 127.25
+        },
+        "physics": {
+          "samples": 13,
+          "medianMs": 18.400000005960464,
+          "p95Ms": 42.29999999701977,
+          "maxMs": 42.29999999701977,
+          "meanMs": 19.607692307004562
+        },
+        "surfaceFit": {
+          "samples": 27,
+          "medianMs": 0,
+          "p95Ms": 176.70000000298023,
+          "maxMs": 178.70000000298023,
+          "meanMs": 13.185185185185185
+        }
+      }
+    ],
+    "performanceTargetMet": false
+  },
+  "liveTransportProbe": {
+    "status": "PASS",
+    "report": "output/playwright/zombie-live-quality/rtc-probe.json",
+    "gameplaySessionTested": false
+  },
+  "liveCombatParity": {
+    "status": "FAIL",
+    "report": "output/playwright/zombie-live-quality/coop-final.json",
+    "liveP2PTested": false,
+    "sequentialNativeVisualChecks": true
+  }
+}

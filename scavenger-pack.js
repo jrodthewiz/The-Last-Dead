@@ -224,7 +224,7 @@ export function tickScavengerPack(run,{interact=false,peerInteract=run?.peer?.jo
       if(item.requiresInteract){
         if(!pickupReachable(player,run.course,item))continue;
         promptId=item.id;
-        if(player.scavengerRoutePromptId!==promptId)run.events?.push(pickupEvent(player,run,run.course,item,item.visualKind==='supply-case'?'scavenger-search-prompt':'scavenger-route-prompt'));
+        if(player.scavengerRoutePromptId!==promptId)run.events?.push(pickupEvent(player,run,run.course,item,item.visualKind==='route-folio'?'scavenger-route-prompt':'scavenger-search-prompt'));
         if(usedInteract||!(player===run?interact:peerInteract))continue;
         usedInteract=true;
       }

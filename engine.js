@@ -16,6 +16,7 @@ import { makeDungeonCourse, setDungeonOpeningOpen } from './playground/map/dunge
 import { createJourney, updateJourney, journeyComplete } from './campaign-journey.js';
 import {attachScavengerPickups,createScavengerPack,tickScavengerPack,weaponDamageMultiplier} from './scavenger-pack.js';
 import {createHarborVehicle,tickHarborVehicle,vehicleContains} from './harbor-vehicle.js';
+import {createVehicleFleet,createVehiclePhysicsContext,getActiveVehicle,tickVehicleFleet} from './harbor-vehicle-fleet.js';
 import {tickWeaponInventory} from './weapon-inventory.js';
 import {propCanStand,propRay} from './harbor-collision.js';
 import { encounterRoster, encounterStages, encounterAliveCap, encounterRelief, roomRecoveryPolicy } from './dungeon-encounter-design.js';
@@ -24,6 +25,8 @@ import {installVerminEnvironment,createVerminState,makeVerminHand,makeVerminCraw
 import {supportsAnatomy,traceEnemyBody,applyAnatomyDamage,anatomyMotion,beginReanimation,advanceReanimation,isThreat} from './enemy-anatomy.js';
 import {isLowZombie} from './zombie-behavior.js';
 import {coastalZombieAppearance} from './zombie-appearances.js';
+import {attachCoastalZombiePopulation} from './coastal-zombie-population.js';
+import {enemyNavigationFrame} from './enemy-ai.js';
 import {groundAt} from './coastal-terrain.js';
 import {actorGroundAt,supportAt,structureAt,isStructureWall,canStandStructure,resolveActorSupport,clipStructureRise,traceStructureRay,traceStructureSegment,stairWaypoint,STRUCTURE_STEP,STRUCTURE_BODY_HEIGHT} from './coastal-structures.js';
 export {nearestRat,verminTarget,useVermin,attackVermin,tickVermin,validateVerminSnapshot,validateVerminHand,validateVerminCrawl,VERMIN_TIMING,VERMIN_LIMITS} from './vermin-system.js';
@@ -62,8 +65,8 @@ export function makeCourse(index=0,options={}){
 }
 export const makeCampaignCourse=index=>createCampaignCourse(index);
 function gridCastRay(m,x,y,angle,max=24){const dx=Math.cos(angle),dy=Math.sin(angle);let cx=Math.floor(x),cy=Math.floor(y),dist=0,side=0;for(let i=0;i<100;i++){if(cx<0||cy<0||cx>=m.w||cy>=m.h)return{dist:Math.max(.02,dist),side,u:0};const tx=dx>0?(cx+1-x)/dx:dx<0?(cx-x)/dx:Infinity,ty=dy>0?(cy+1-y)/dy:dy<0?(cy-y)/dy:Infinity;side=tx<ty?0:1;dist=side===0?tx:ty;const direction=side===0?(dx>0?1:3):(dy>0?2:0),wall=m.cells[cy*m.w+cx][direction]&&!isStructureWall(m,x+dx*dist,y+dy*dist);if(wall||dist>max){const hit=side===0?y+dy*dist:x+dx*dist;return{dist:Math.max(.02,Math.min(dist,max)),side,u:hit-Math.floor(hit)};}if(side===0)cx+=dx>0?1:-1;else cy+=dy>0?1:-1;}return{dist:max,side,u:0};}
-export function castRay(m,x,y,angle,max=24,z=undefined,slope=0){const room=harborRoomAt(m,x,y);if(room)return propRay(roomCollision(room),x,y,angle,max)||{dist:max,side:0,u:0};let hit=gridCastRay(m,x,y,angle,max);const prop=m.obstacles?.length?propRay(m,x,y,angle,hit.dist):null;if(prop&&prop.dist<hit.dist)hit=prop;const finite=traceStructureRay(m,x,y,z??supportAt(m,x,y,groundAt(m,x,y)).height+EYE,angle,slope,hit.dist);return finite&&finite.dist<hit.dist?finite:hit;}
-export function canStand(m,x,y,r=.075,feet=undefined,height=STRUCTURE_BODY_HEIGHT){const room=harborRoomAt(m,x,y);if(room)return x-r>=(room.x-room.width/2)/4&&x+r<=(room.x+room.width/2)/4&&y-r>=(room.z-room.depth/2)/4&&y+r<=(room.z+room.depth/2)/4&&propCanStand(roomCollision(room),x,y,r);if(m.obstacles?.length&&!propCanStand(m,x,y,r))return false;const support=supportAt(m,x,y,feet??groundAt(m,x,y),{radius:r});if(!canStandStructure(m,x,y,r,feet===undefined?support.height:Math.max(feet,support.height),height))return false;if(m.cells[Math.floor(y)*m.w+Math.floor(x)]?.every(v=>v===1)&&!structureAt(m,x,y))return false;if(x<r||y<r||x>m.w-r||y>m.h-r)return false;for(let cy=Math.max(0,Math.floor(y-r));cy<=Math.min(m.h-1,Math.floor(y+r));cy++)for(let cx=Math.max(0,Math.floor(x-r));cx<=Math.min(m.w-1,Math.floor(x+r));cx++){const walls=m.cells[cy*m.w+cx],segments=[[cx,cy,cx+1,cy],[cx+1,cy,cx+1,cy+1],[cx,cy+1,cx+1,cy+1],[cx,cy,cx,cy+1]];for(let d=0;d<4;d++){if(!walls[d])continue;const[a,b,c,e]=segments[d];if(isStructureWall(m,(a+c)/2,(b+e)/2))continue;if(Math.hypot(x-clamp(x,a,c),y-clamp(y,b,e))<r-1e-7)return false;}}return true;}
+export function castRay(m,x,y,angle,max=24,z=undefined,slope=0){if(m.vehiclePhysics)return m.vehiclePhysics.ray(x,y,angle,max,z,slope);const room=harborRoomAt(m,x,y);if(room)return propRay(roomCollision(room),x,y,angle,max)||{dist:max,side:0,u:0};let hit=gridCastRay(m,x,y,angle,max);const prop=m.obstacles?.length?propRay(m,x,y,angle,hit.dist):null;if(prop&&prop.dist<hit.dist)hit=prop;const finite=traceStructureRay(m,x,y,z??supportAt(m,x,y,groundAt(m,x,y)).height+EYE,angle,slope,hit.dist);return finite&&finite.dist<hit.dist?finite:hit;}
+export function canStand(m,x,y,r=.075,feet=undefined,height=STRUCTURE_BODY_HEIGHT){if(m.vehiclePhysics)return m.vehiclePhysics.stand(x,y,r,feet,height);const room=harborRoomAt(m,x,y);if(room)return x-r>=(room.x-room.width/2)/4&&x+r<=(room.x+room.width/2)/4&&y-r>=(room.z-room.depth/2)/4&&y+r<=(room.z+room.depth/2)/4&&propCanStand(roomCollision(room),x,y,r);if(m.obstacles?.length&&!propCanStand(m,x,y,r))return false;const support=supportAt(m,x,y,feet,{radius:r,terrainFeet:true});if(!canStandStructure(m,x,y,r,feet===undefined?support.height:Math.max(feet,support.height),height))return false;if(m.cells[Math.floor(y)*m.w+Math.floor(x)]?.every(v=>v===1)&&!structureAt(m,x,y))return false;if(x<r||y<r||x>m.w-r||y>m.h-r)return false;for(let cy=Math.max(0,Math.floor(y-r));cy<=Math.min(m.h-1,Math.floor(y+r));cy++)for(let cx=Math.max(0,Math.floor(x-r));cx<=Math.min(m.w-1,Math.floor(x+r));cx++){const walls=m.cells[cy*m.w+cx];if(!walls[0]&&!walls[1]&&!walls[2]&&!walls[3])continue;const segments=[[cx,cy,cx+1,cy],[cx+1,cy,cx+1,cy+1],[cx,cy+1,cx+1,cy+1],[cx,cy,cx,cy+1]];for(let d=0;d<4;d++){if(!walls[d])continue;const[a,b,c,e]=segments[d];if(isStructureWall(m,(a+c)/2,(b+e)/2))continue;if(Math.hypot(x-clamp(x,a,c),y-clamp(y,b,e))<r-1e-7)return false;}}return true;}
 
 export const viewAngle=r=>r.angle;
 
@@ -170,7 +173,7 @@ export function newRun(course, options = {}){
  const sector=getSector(sectorIndex);
  const spawn=course?.playerSpawn||{x:6,y:10.5,angle:-Math.PI/2};
  const waveCount=campaign?(sector.waves?.length||CAMPAIGN_WAVE_COUNT):Math.max(1,Number(course?.waveCount)||3);
- return{
+ const run={
   course,x:spawn.x,y:spawn.y,z:0,supportZ:null,supportId:null,structureId:null,angle:spawn.angle??-Math.PI/2,pitch:0,vx:0,vy:0,vz:0,speed:0,distance:0,time:0,mode:'ready',
   health:100,energy:100,weapon:0,ownedWeapons:course?.dungeon||course?.scavenging?[...(course.startingWeapons||[0])]:weapons.map((_,index)=>index),storyRecords:[],cooldowns:Array.from({length:weapons.length},()=>0),fireCooldown:0,shot:0,damage:0,heal:0,aim:0,slide:0,dashTime:0,punch:0,hookTime:0,hookCooldown:0,hookTarget:-1,parryTime:0,parryCooldown:0,slam:false,wallJumps:0,
   style:0,styleTotal:0,stylePending:0,styleLabel:'GET CLOSE. GET LOUD.',rank:'D',kills:0,combo:0,bestCombo:0,lastWeapon:-1,repeat:0,
@@ -190,6 +193,8 @@ export function newRun(course, options = {}){
   bite:makeBiteState(),playerWounds:makePlayerWounds(),brutal:makeBrutalState(),
   vermin:createVerminState(course),verminHand:makeVerminHand(),verminCrawl:makeVerminCrawl(),_verminCourse:course,
  };
+ if(course.coastal){run.sourceCourse=course;run.vehicleFleet=createVehicleFleet(course,run.vehicle);run.vehiclePhysics=createVehiclePhysicsContext(course,run.vehicleFleet,{canStand,castRay,groundAt});run.course=run.vehiclePhysics.facade;}
+ return run;
 }
 export function look(r,dx,dy){if(r.mode!=='play')return;r.angle=angleDiff(r.angle+dx*.002,0);r.pitch=clamp(r.pitch-dy*.002,-1.35,1.35);}
 export function switchWeapon(r,i){if(!Number.isInteger(i)||!weapons[i]||r.weapon===i||(r.course?.dungeon||r.course?.scavenging)&&!r.ownedWeapons?.includes(i))return false;r.weapon=i;r.shot=0;r.rifleBurst=0;r.rifleBurstTimer=0;r.rifleCharge=0;r.rifleCharging=false;r.rifleKick=0;r.rifleKickYaw=0;r.aim=0;cancelMelee(r);return true;}
@@ -601,6 +606,11 @@ function spawnEnemy(r,item,point){
    elite:sectorScale>1.2,wounds:{arm:false,leg:false,eye:false},wounded:false,drip:0,hits:0,slashDir:0,slashReach:0,slashHalf:0,slashHit:true,
   pack:item.pack??(r.wave*4+Math.floor((item.order||0)/2)),slot:(item.order||0)%4,slotSign:((item.order||0)%2)?1:-1};
   e.baseMoveSpeed=e.moveSpeed;
+  if(item.locomotion)e.locomotion=item.locomotion;
+  if(item.roamRadius)e.roamRadius=item.roamRadius;
+  if(item.roamBounds)e.roamBounds={...item.roamBounds};
+  if(item.region)e.populationRegion=item.region;
+  if(item.id)e.populationId=item.id;
   const explicitAppearance=item.appearance??point.appearance;
   if(explicitAppearance!=null)e.appearance=explicitAppearance;
   else if(r.course?.harbor&&item.resident&&e.kind===0)e.appearance=coastalZombieAppearance(e,item.order??e.id);
@@ -1253,7 +1263,7 @@ function parryTarget(r){
 // UI readiness derives from the same pure selector used by the F action.
 // A near-complete struggle always escapes, even when the counter is unavailable.
 export function brutalCandidate(r){
- if(r.mode!=='play'||r.health<=0||r.vehicle?.occupied||r.parryCooldown>0||brutalActive(r))return null;
+ if(r.mode!=='play'||r.health<=0||getActiveVehicle(r)?.occupied||r.parryCooldown>0||brutalActive(r))return null;
  const held=r.bite?.phase==='held',e=held?r.course.enemies.find(e=>e.id===r.bite.enemyId):parryTarget(r);
  if(!brutalEligible(r,e)||held&&r.bite.escape<.35)return null;
  const stagger=r.bite?.phase==='windup'&&r.bite.enemyId===e.id?Math.max(e.stagger||0,1.1):(e.stagger||0);
@@ -1282,7 +1292,7 @@ export function chestCandidate(r){
  return{enemyId:e.id,kind:'pierce',side:'right'};
 }
 export function chestFinisher(r){
- if(r.vehicle?.occupied)return false;
+ if(getActiveVehicle(r)?.occupied)return false;
  const candidate=chestCandidate(r);
  return !!candidate&&beginBrutal(r,r.course.enemies.find(e=>e.id===candidate.enemyId),candidate.kind,candidate.side);
 }
@@ -1348,7 +1358,7 @@ function advanceBrutal(world,r,dt){
  }else if(b.phase==='contact'&&b.elapsed+1e-8>=b.contactAt+timing.contact){b.phase='recover';brutalEvent(r,'brutal-recover',e);}
  if(b.elapsed+1e-8>=b.duration){brutalEvent(r,'brutal-complete',e);r.brutal=makeBrutalState(b.sequence);}
 }
-export function parry(r){if(r.mode!=='play'||r.health<=0||r.vehicle?.occupied||r.parryCooldown>0)return false;
+export function parry(r){if(r.mode!=='play'||r.health<=0||getActiveVehicle(r)?.occupied||r.parryCooldown>0)return false;
  syncEnemyGrounds(r);
  const candidate=brutalCandidate(r);
  r.parryTime=.19;r.parryCooldown=.45;r.punch=.3;const punchIndex=r.events.length;r.events.push({type:'punch',x:r.x,y:r.y,z:eye(r)});
@@ -1433,7 +1443,7 @@ function meleeWall(r,range,heavy=false){
 }
 
 export function shootMelee(r,secondary=false,predicted=false){
- if(r.mode!=='play'||r.health<=0||r.vehicle?.occupied||brutalActive(r)||verminBusy(r)||r.weapon<6||r.weapon>7)return false;
+ if(r.mode!=='play'||r.health<=0||getActiveVehicle(r)?.occupied||brutalActive(r)||verminBusy(r)||r.weapon<6||r.weapon>7)return false;
  if(r.weapon===7&&!secondary)return false; // Held cutting is stepped below.
  if(r.meleeActive||r.cooldowns[r.weapon]>0)return false;
  r.meleeActive=true;r.meleeProgress=0;r.meleeResolved=false;r.meleeHeavy=secondary;
@@ -1550,7 +1560,7 @@ function fireRifleRound(r, mode, predicted = false) {
 }
 
 export function shootRifle(r, secondary=false, predicted=false) {
- if(r.mode!=='play'||r.health<=0||r.vehicle?.occupied||brutalActive(r)||verminBusy(r)||(r.weapon!==4&&r.weapon!==5))return false;
+ if(r.mode!=='play'||r.health<=0||getActiveVehicle(r)?.occupied||brutalActive(r)||verminBusy(r)||(r.weapon!==4&&r.weapon!==5))return false;
  if(r.cooldowns[r.weapon]>0||r.rifleBurst>0)return false;
  if(r.weapon===5&&secondary){
   if(!r.rifleCharging){r.rifleCharging=true;r.rifleCharge=0;r.events.push({type:'rifle-charge',weapon:5,x:r.x,y:r.y,z:eye(r),predicted});}
@@ -1595,7 +1605,7 @@ export function fireWeaponInput(r,input={},predicted=false){
 }
 
 export function fireAttachment(r,predicted=false){
- if(r.weapon!==BREACH_LAUNCHER.weapon||r.mode!=='play'||r.health<=0||r.vehicle?.occupied||brutalActive(r)||verminBusy(r)||(r.attachmentCooldown||0)>0)return false;
+ if(r.weapon!==BREACH_LAUNCHER.weapon||r.mode!=='play'||r.health<=0||getActiveVehicle(r)?.occupied||brutalActive(r)||verminBusy(r)||(r.attachmentCooldown||0)>0)return false;
  const world=r.world||r,cp=Math.cos(r.pitch),sp=Math.sin(r.pitch),ca=Math.cos(r.angle),sa=Math.sin(r.angle);
  const wall=castRay(r.course,r.x,r.y,r.angle,BREACH_LAUNCHER.forward,eye(r),Math.tan(r.pitch));
  const forward=Math.max(.005,Math.min(BREACH_LAUNCHER.forward,wall.dist-.025));
@@ -1606,7 +1616,7 @@ export function fireAttachment(r,predicted=false){
  return true;
 }
 
-export function shoot(r,secondary=false){if(r.mode!=='play'||r.health<=0||r.vehicle?.occupied||brutalActive(r)||verminBusy(r))return false;const world=r.world||r;
+export function shoot(r,secondary=false){if(r.mode!=='play'||r.health<=0||getActiveVehicle(r)?.occupied||brutalActive(r)||verminBusy(r))return false;const world=r.world||r;
  syncEnemyGrounds(r);
  if(r.weapon>=6)return shootMelee(r,secondary);
  if(r.weapon>=4)return shootRifle(r,secondary);
@@ -1637,9 +1647,10 @@ export function tickPlayer(r,dt,input={},enemyGroundsSynced=false){r.journeyInte
  // The world tick already resolved enemies before player input. Standalone
  // guest/peer player ticks still require their own support synchronization.
  if(!enemyGroundsSynced)syncEnemyGrounds(r);
+ if(r.vehicleFleet&&getActiveVehicle(r)?.occupied&&tickVehicleFleet(r,dt,input)){cancelMelee(r);r.shot=0;r.aim=0;return;}
  if(r.lowTide&&tickLowTideInteraction(r,input))return;
  if(r.course.harbor&&tickHarborRoom(r,input,{canStand}))return;
- if(r.vehicle&&tickHarborVehicle(r,dt,input,{canStand,castRay})){cancelMelee(r);r.shot=0;r.aim=0;return;}
+ if(r.vehicleFleet?tickVehicleFleet(r,dt,input):r.vehicle&&tickHarborVehicle(r,dt,input,{canStand,castRay})){cancelMelee(r);r.shot=0;r.aim=0;return;}
  const harvestHeld=!!input.harvest,verminConsumes=interceptVerminInput(r,input);
  if(verminConsumes)input={...input,harvest:false,fire:false,alt:false};
  if(!input.predictWeapons)r._biteInput={effort:Math.abs(input.forward||0)+Math.abs(input.strafe||0)>.1||!!input.jump||!!input.dash};
@@ -1763,9 +1774,14 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
   }
  }
  const aiAlive=r.course.enemies.filter(en=>!en.dead);
- const aiCtx={env:AI_ENV,course:r.course,dt,time:r.time,noises:aiAlive.some(en=>en.mind)?collectNoises(r):[],packs,alive:aiAlive,navBudget:4,profile:null,reach:0,tokens:{melee:0,ranged:0,maxMelee:aiAlive.length>=5?3:2,maxRanged:2}};
+ const enemyCount=r.course.enemies.length,navFrame=enemyNavigationFrame(r,enemyCount);
+ const aiCtx={env:AI_ENV,course:r.course,dt,time:r.time,noises:aiAlive.some(en=>en.mind)?collectNoises(r):[],packs,alive:aiAlive,navBudget:navFrame.budget,noteNavSearch:navFrame.noteSearch,navSearches:0,profile:null,reach:0,tokens:{melee:0,ranged:0,maxMelee:aiAlive.length>=5?3:2,maxRanged:2}};
  for(const en of aiAlive)if(en.mind?.token){if(isMeleeRole(enemyProfile(en).role))aiCtx.tokens.melee++;else aiCtx.tokens.ranged++;}
- for(const e of r.course.enemies){
+ // All actors continue sensing and moving; only search priority rotates.
+ const aiStart=navFrame.start;
+ r.enemyAIDiagnostics={navSearches:0,navLimit:4,navWindow:navFrame.window,navAvailable:navFrame.budget,start:aiStart,alive:aiAlive.length};
+ for(let enemyOffset=0;enemyOffset<enemyCount;enemyOffset++){
+ const e=r.course.enemies[(aiStart+enemyOffset)%enemyCount];
  if(r.lowTide&&r.course.activeInterior){e.attacking=false;e.windup=0;continue;}
  advanceMeleeImpulse(r,e,dt);
  e.flash=Math.max(0,e.flash-dt);e.strike=Math.max(0,(e.strike||0)-dt);e.stagger=Math.max(0,(e.stagger||0)-dt);e.biteCooldown=Math.max(0,(e.biteCooldown||0)-dt);if(e.dead)continue;const profile=enemyProfile(e);
@@ -1788,6 +1804,7 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
  let mindRes=null;
  if(e.mind){
   aiCtx.profile=profile;aiCtx.reach=reach;aiCtx.env=e.structureId?{...AI_ENV,canStand:(m,x,y,radius)=>canStand(m,x,y,radius,enemyBase(e)),castRay:(m,x,y,a,max)=>castRay(m,x,y,a,max,enemyBase(e)+.32)}:AI_ENV;mindRes=stepMind(aiCtx,e,target);
+  r.enemyAIDiagnostics.navSearches=aiCtx.navSearches;r.enemyAIDiagnostics.horde=aiCtx.horde?.operations;
   if(e.wounded&&(e.drip=(e.drip||0)-dt)<=0){e.drip=.55;r.blood.push({id:r.nextId++,x:e.x,y:e.y,z:enemyBase(e),size:.1,angle:e.id*.7});r.blood=r.blood.slice(-100);}
  }
  if(!e.mind&&!e.attacking&&(!visible||d>meleeStandoff(profile.role))){
@@ -1949,15 +1966,16 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
    progress.initialized=true;
    const harborVariants=['stalker','bloodhound','stalker','skitter'];
    for(const [order,point] of (r.course.harborSpawns||[]).entries())spawnEnemy(r,{variant:point.variant||harborVariants[order%harborVariants.length],appearance:point.appearance,resident:true,mindState:'wander',order,spawnAnim:'none'},point);
+   attachCoastalZombiePopulation(r,spawnEnemy,canStand);
   }
   const lootInteract=!!input.interact&&!r.scavengerInteractHeld,peerLootInteract=!!r.peer?.journeyInteract&&!r.peer?.scavengerInteractHeld;
   r.scavengerInteractHeld=!!input.interact;if(r.peer)r.peer.scavengerInteractHeld=!!r.peer.journeyInteract;
-  if(!r.vehicle?.occupied&&!r.course.activeInterior){
+  if(!getActiveVehicle(r)?.occupied&&!r.course.activeInterior){
    const consumed=tickWeaponInventory(r,{castRay,interact:lootInteract,peerInteract:peerLootInteract});
    tickScavengerPack(r,{interact:lootInteract&&!consumed.has(r),peerInteract:peerLootInteract&&!consumed.has(r.peer)});
   }
   progress.ready=(r.backpack.weaponPickups?.length||0)>=3&&(r.vehicle?.distance||0)>=8;
-  if(!r.lowTide&&progress.ready&&!r.vehicle?.occupied&&Math.hypot(r.x-r.course.exit.x,r.y-r.course.exit.y)<.65){r.mode='win';r.events.push({type:'win',x:r.x,y:r.y,z:eye(r)});}
+  if(!r.lowTide&&progress.ready&&!getActiveVehicle(r)?.occupied&&Math.hypot(r.x-r.course.exit.x,r.y-r.course.exit.y)<.65){r.mode='win';r.events.push({type:'win',x:r.x,y:r.y,z:eye(r)});}
  }else if(r.campaign){
   updateCampaignDirector(r,dt);
   updateRoomProgression(r,dt);
@@ -1971,7 +1989,7 @@ export function tick(r,dt,input={}){if(r.mode!=='play'){cancelBrutal(r,'inactive
    r.dungeonProgression.exitReady=r.dungeonProgression.combatReady&&journeyComplete(r);
    if(r.journey?.eventSeq!==journeySequence)dungeonNavigation(r,true);
    if(r.dungeonProgression.exitReady&&(Math.hypot(r.x-r.course.exit.x,r.y-r.course.exit.y)<.6||(r.peer&&Math.hypot(r.peer.x-r.course.exit.x,r.peer.y-r.course.exit.y)<.6))){
-    if(r.course.dungeonIndex+1<r.course.dungeonCount)advanceDungeonFloor(r);
+    if(r.course.dungeonIndex+1<r.course.dungeonCount){if(!r.course.undergroundCampaign)advanceDungeonFloor(r);}
     else if(r.course.basementPortal){
      if(!r.campaignComplete){r.campaignComplete=true;r.dungeonProgression.floorsCleared=r.course.dungeonCount-r.dungeonProgression.startIndex;r.events.push({type:'basement-cleared',x:r.x,y:r.y,z:eye(r)});}
     }else{r.mode='win';r.campaignComplete=true;r.dungeonProgression.floorsCleared=r.course.dungeonCount-r.dungeonProgression.startIndex;r.events.push({type:'win',floorIndex:r.course.dungeonIndex,floorCount:r.course.dungeonCount,x:r.x,y:r.y,z:eye(r)});}
@@ -2016,4 +2034,4 @@ function explode(r,p){
  burst(r,{id:p.id,x:p.x,y:p.y,z:p.z},rocket?48:24,{x:p.x,y:p.y,z:p.z});
  r.events.push({type:'explosion',weapon:rocket?3:(p.weapon||1),x:p.x,y:p.y,z:p.z,radius,projectileId:p.id});
 }
-export function grapple(r){if(r.mode!=='play'||r.health<=0||r.vehicle?.occupied||r.hookCooldown>0)return false;const target=r.course.enemies.filter(e=>!e.dead).map(e=>({e,d:Math.hypot(e.x-r.x,e.y-r.y),a:Math.atan2(e.y-r.y,e.x-r.x)})).filter(t=>t.d<7&&Math.abs(angleDiff(t.a,r.angle))<.3&&castRay(r.course,r.x,r.y,t.a).dist>t.d-.1).sort((a,b)=>a.d-b.d)[0];if(!target)return false;r.hookTarget=target.e.id;r.hookTime=.65;r.hookCooldown=1;award(r,35,'+ TETHER');r.events.push({type:'hook'});return true;}
+export function grapple(r){if(r.mode!=='play'||r.health<=0||getActiveVehicle(r)?.occupied||r.hookCooldown>0)return false;const target=r.course.enemies.filter(e=>!e.dead).map(e=>({e,d:Math.hypot(e.x-r.x,e.y-r.y),a:Math.atan2(e.y-r.y,e.x-r.x)})).filter(t=>t.d<7&&Math.abs(angleDiff(t.a,r.angle))<.3&&castRay(r.course,r.x,r.y,t.a).dist>t.d-.1).sort((a,b)=>a.d-b.d)[0];if(!target)return false;r.hookTarget=target.e.id;r.hookTime=.65;r.hookCooldown=1;award(r,35,'+ TETHER');r.events.push({type:'hook'});return true;}

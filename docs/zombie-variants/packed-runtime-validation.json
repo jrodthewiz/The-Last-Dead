@@ -1,0 +1,594 @@
+{
+  "stage": "final-packed-assets",
+  "testFile": "tests/zombie-variant-assets.test.mjs",
+  "log": "output/zombie-variant-packed-assets-tests.log",
+  "tests": 6,
+  "passed": 6,
+  "failed": 0,
+  "geometryPreservation": "Paid source POSITION/NORMAL/TEXCOORD_0 accessor hashes exactly match delivered geometry",
+  "variants": {
+    "drowned-dockworker": {
+      "file": "assets/models/zombie-variants/drowned-dockworker.glb",
+      "sha256": "203db1296f824b9b3fd55c2ed60a3e18428c51a29e509565f0bc83bdf9e355cf",
+      "bytes": 6142224
+    },
+    "fever-runner": {
+      "file": "assets/models/zombie-variants/fever-runner.glb",
+      "sha256": "1df86f804d90f17133f1b12b10e363115873e22960a02cb141d939d741dca39f",
+      "bytes": 5977964
+    },
+    "crooked-crawler": {
+      "file": "assets/models/zombie-variants/crooked-crawler.glb",
+      "sha256": "1555d0af772e36e583dfeb778ad8e7cb927862f298668afc43873a72f4074b1a",
+      "bytes": 6091588
+    }
+  },
+  "measurements": {
+    "retargetedFullSkin": [
+      {
+        "id": "drowned-dockworker",
+        "key": "idle",
+        "minimumSkinY": 0.015963256386484905,
+        "maximumHeight": 1.9149143597673632
+      },
+      {
+        "id": "drowned-dockworker",
+        "key": "shuffle",
+        "minimumSkinY": 0.014276504244012684,
+        "maximumHeight": 1.8823084865624773
+      },
+      {
+        "id": "drowned-dockworker",
+        "key": "chase",
+        "minimumSkinY": 0.012000036999932651,
+        "maximumHeight": 1.833596260889112
+      },
+      {
+        "id": "drowned-dockworker",
+        "key": "run",
+        "minimumSkinY": 0.011649981825109151,
+        "maximumHeight": 1.7464598523722856
+      },
+      {
+        "id": "drowned-dockworker",
+        "key": "crawl",
+        "minimumSkinY": 0.012000014249350838,
+        "maximumHeight": 0.8387701761290318
+      },
+      {
+        "id": "drowned-dockworker",
+        "key": "crawlIdle",
+        "minimumSkinY": 0.01199992348011787,
+        "maximumHeight": 0.8387703089543611
+      },
+      {
+        "id": "drowned-dockworker",
+        "key": "contort",
+        "minimumSkinY": 0.01199992348011787,
+        "maximumHeight": 0.8592026664762242
+      },
+      {
+        "id": "drowned-dockworker",
+        "key": "attack",
+        "minimumSkinY": 0.011999723417693722,
+        "maximumHeight": 1.7942002332846505
+      },
+      {
+        "id": "drowned-dockworker",
+        "key": "hit",
+        "minimumSkinY": 0.011999860130970277,
+        "maximumHeight": 1.8269752529160765
+      },
+      {
+        "id": "drowned-dockworker",
+        "key": "collapse",
+        "minimumSkinY": 0.01196812204477773,
+        "maximumHeight": 1.8777279093103432
+      },
+      {
+        "id": "fever-runner",
+        "key": "idle",
+        "minimumSkinY": 0.011999935144382447,
+        "maximumHeight": 1.8535191142338479
+      },
+      {
+        "id": "fever-runner",
+        "key": "shuffle",
+        "minimumSkinY": 0.013731269973179146,
+        "maximumHeight": 1.835995156003129
+      },
+      {
+        "id": "fever-runner",
+        "key": "chase",
+        "minimumSkinY": 0.011999518800839631,
+        "maximumHeight": 1.7589921528896826
+      },
+      {
+        "id": "fever-runner",
+        "key": "run",
+        "minimumSkinY": 0.011718679437754063,
+        "maximumHeight": 1.7135250266209978
+      },
+      {
+        "id": "fever-runner",
+        "key": "crawl",
+        "minimumSkinY": 0.012000292539622532,
+        "maximumHeight": 0.8796121632308032
+      },
+      {
+        "id": "fever-runner",
+        "key": "crawlIdle",
+        "minimumSkinY": 0.012000186511034478,
+        "maximumHeight": 0.8782035961410958
+      },
+      {
+        "id": "fever-runner",
+        "key": "contort",
+        "minimumSkinY": 0.012000369119319763,
+        "maximumHeight": 0.8524542382467909
+      },
+      {
+        "id": "fever-runner",
+        "key": "attack",
+        "minimumSkinY": 0.011999703007843112,
+        "maximumHeight": 1.7554435382664706
+      },
+      {
+        "id": "fever-runner",
+        "key": "hit",
+        "minimumSkinY": 0.01200013953625478,
+        "maximumHeight": 1.7968789768264815
+      },
+      {
+        "id": "fever-runner",
+        "key": "collapse",
+        "minimumSkinY": 0.01187520969087731,
+        "maximumHeight": 1.8181919858944429
+      },
+      {
+        "id": "crooked-crawler",
+        "key": "idle",
+        "minimumSkinY": 0.0128216194721913,
+        "maximumHeight": 1.8374924754392385
+      },
+      {
+        "id": "crooked-crawler",
+        "key": "shuffle",
+        "minimumSkinY": 0.015423548042388121,
+        "maximumHeight": 1.8020326279907135
+      },
+      {
+        "id": "crooked-crawler",
+        "key": "chase",
+        "minimumSkinY": 0.01200023437177689,
+        "maximumHeight": 1.7627868526787926
+      },
+      {
+        "id": "crooked-crawler",
+        "key": "run",
+        "minimumSkinY": 0.011727140509770811,
+        "maximumHeight": 1.6729532220452838
+      },
+      {
+        "id": "crooked-crawler",
+        "key": "crawl",
+        "minimumSkinY": 0.011894909564955373,
+        "maximumHeight": 0.8192774489965657
+      },
+      {
+        "id": "crooked-crawler",
+        "key": "crawlIdle",
+        "minimumSkinY": 0.01200023613221539,
+        "maximumHeight": 0.8199805834893654
+      },
+      {
+        "id": "crooked-crawler",
+        "key": "contort",
+        "minimumSkinY": 0.012000016753813228,
+        "maximumHeight": 0.8164660621170797
+      },
+      {
+        "id": "crooked-crawler",
+        "key": "attack",
+        "minimumSkinY": 0.012000282042648249,
+        "maximumHeight": 1.7110828473252584
+      },
+      {
+        "id": "crooked-crawler",
+        "key": "hit",
+        "minimumSkinY": 0.014870664780484237,
+        "maximumHeight": 1.8115709183620763
+      },
+      {
+        "id": "crooked-crawler",
+        "key": "collapse",
+        "minimumSkinY": 0.011809852331821441,
+        "maximumHeight": 1.7957381060315862
+      }
+    ],
+    "weightedArticulation": [
+      {
+        "id": "drowned-dockworker",
+        "controls": [
+          {
+            "name": "Jaw",
+            "vertices": 1496,
+            "maximumSkinMotion": 0.046891039855326715
+          },
+          {
+            "name": "LeftGrip",
+            "vertices": 906,
+            "maximumSkinMotion": 0.0684287083717471
+          },
+          {
+            "name": "RightGrip",
+            "vertices": 814,
+            "maximumSkinMotion": 0.07795281765309331
+          }
+        ]
+      },
+      {
+        "id": "fever-runner",
+        "controls": [
+          {
+            "name": "Jaw",
+            "vertices": 970,
+            "maximumSkinMotion": 0.044926603964400555
+          },
+          {
+            "name": "LeftGrip",
+            "vertices": 615,
+            "maximumSkinMotion": 0.062414024631440405
+          },
+          {
+            "name": "RightGrip",
+            "vertices": 599,
+            "maximumSkinMotion": 0.06398977198507443
+          }
+        ]
+      },
+      {
+        "id": "crooked-crawler",
+        "controls": [
+          {
+            "name": "Jaw",
+            "vertices": 686,
+            "maximumSkinMotion": 0.038625615014412334
+          },
+          {
+            "name": "LeftGrip",
+            "vertices": 887,
+            "maximumSkinMotion": 0.06990480827088606
+          },
+          {
+            "name": "RightGrip",
+            "vertices": 900,
+            "maximumSkinMotion": 0.09251906965369933
+          }
+        ]
+      }
+    ],
+    "runningFlight": [
+      {
+        "id": "drowned-dockworker",
+        "flightFrames": 11,
+        "supportFrames": 56,
+        "peakClearance": 0.03935542930743172
+      },
+      {
+        "id": "fever-runner",
+        "flightFrames": 7,
+        "supportFrames": 54,
+        "peakClearance": 0.042261626471774866
+      },
+      {
+        "id": "crooked-crawler",
+        "flightFrames": 11,
+        "supportFrames": 55,
+        "peakClearance": 0.04905610289647836
+      }
+    ],
+    "crawlerRiseAndRecovery": [
+      {
+        "id": "drowned-dockworker",
+        "samples": [
+          {
+            "frame": 32,
+            "minimumSkinY": 0.024509154344146144,
+            "height": 0.8126693154839719
+          },
+          {
+            "frame": 40,
+            "minimumSkinY": 0.017083442366839688,
+            "height": 0.8162005615238118
+          },
+          {
+            "frame": 48,
+            "minimumSkinY": -0.004248651832353047,
+            "height": 1.1051605165119025
+          },
+          {
+            "frame": 56,
+            "minimumSkinY": 0.011891309077108156,
+            "height": 1.6378671240975409
+          },
+          {
+            "frame": 64,
+            "minimumSkinY": 0.03737753647102837,
+            "height": 1.72350342840596
+          },
+          {
+            "frame": 70,
+            "minimumSkinY": 0.04301712408670091,
+            "height": 1.647944080541524
+          },
+          {
+            "frame": 72,
+            "minimumSkinY": 0.04375078549046859,
+            "height": 1.6646363905882722
+          },
+          {
+            "frame": 80,
+            "minimumSkinY": 0.04541592568479751,
+            "height": 1.6929211492603538
+          },
+          {
+            "frame": 88,
+            "minimumSkinY": 0.029540997576421223,
+            "height": 1.6342145461896307
+          },
+          {
+            "frame": 96,
+            "minimumSkinY": -0.00012531353786467136,
+            "height": 1.462953865868771
+          },
+          {
+            "frame": 104,
+            "minimumSkinY": 0.0033220674647895763,
+            "height": 0.9881283213657426
+          },
+          {
+            "frame": 112,
+            "minimumSkinY": 0.011936543803769007,
+            "height": 0.8323385936015566
+          },
+          {
+            "frame": 120,
+            "minimumSkinY": 0.011956530266730611,
+            "height": 0.8382053033260415
+          },
+          {
+            "frame": 128,
+            "minimumSkinY": 0.01198780881566201,
+            "height": 0.83987580584708
+          },
+          {
+            "frame": 136,
+            "minimumSkinY": 0.01199940900900805,
+            "height": 0.8375217716815297
+          },
+          {
+            "frame": 144,
+            "minimumSkinY": 0.012000059528132045,
+            "height": 0.834354445196277
+          },
+          {
+            "frame": 152,
+            "minimumSkinY": 0.01200025945993433,
+            "height": 0.8309793486475523
+          },
+          {
+            "frame": 160,
+            "minimumSkinY": 0.012000206449280286,
+            "height": 0.8275377356279223
+          },
+          {
+            "frame": 168,
+            "minimumSkinY": 0.012000175997775607,
+            "height": 0.8243150569565458
+          }
+        ]
+      },
+      {
+        "id": "fever-runner",
+        "samples": [
+          {
+            "frame": 32,
+            "minimumSkinY": 0.029370028506530955,
+            "height": 0.8565547398275131
+          },
+          {
+            "frame": 40,
+            "minimumSkinY": 0.01566062873754563,
+            "height": 0.859347290061742
+          },
+          {
+            "frame": 48,
+            "minimumSkinY": 0.01111640812735204,
+            "height": 1.13772419595291
+          },
+          {
+            "frame": 56,
+            "minimumSkinY": 0.011254035480204885,
+            "height": 1.6347696316749736
+          },
+          {
+            "frame": 64,
+            "minimumSkinY": 0.013458439024660837,
+            "height": 1.7287436625564097
+          },
+          {
+            "frame": 70,
+            "minimumSkinY": 0.027777971305084873,
+            "height": 1.6798528976776295
+          },
+          {
+            "frame": 72,
+            "minimumSkinY": 0.02820189371171608,
+            "height": 1.6916248691761173
+          },
+          {
+            "frame": 80,
+            "minimumSkinY": 0.029378326384035498,
+            "height": 1.70848760289884
+          },
+          {
+            "frame": 88,
+            "minimumSkinY": 0.017074597854285153,
+            "height": 1.643568320546612
+          },
+          {
+            "frame": 96,
+            "minimumSkinY": 0.012000000531910832,
+            "height": 1.4759822749943643
+          },
+          {
+            "frame": 104,
+            "minimumSkinY": 0.008378222405343142,
+            "height": 1.0166819266836147
+          },
+          {
+            "frame": 112,
+            "minimumSkinY": 0.011939773973567614,
+            "height": 0.8667587872699383
+          },
+          {
+            "frame": 120,
+            "minimumSkinY": 0.01195909040028715,
+            "height": 0.8748830708422027
+          },
+          {
+            "frame": 128,
+            "minimumSkinY": 0.011988879308480412,
+            "height": 0.8776625672183184
+          },
+          {
+            "frame": 136,
+            "minimumSkinY": 0.012000138685892234,
+            "height": 0.8762391341161643
+          },
+          {
+            "frame": 144,
+            "minimumSkinY": 0.01200072288353166,
+            "height": 0.8733457478304789
+          },
+          {
+            "frame": 152,
+            "minimumSkinY": 0.012000666485298399,
+            "height": 0.869935549014292
+          },
+          {
+            "frame": 160,
+            "minimumSkinY": 0.012000545660703547,
+            "height": 0.8663624724592759
+          },
+          {
+            "frame": 168,
+            "minimumSkinY": 0.012000500569750841,
+            "height": 0.8629836267133526
+          }
+        ]
+      },
+      {
+        "id": "crooked-crawler",
+        "samples": [
+          {
+            "frame": 32,
+            "minimumSkinY": 0.011992976116123917,
+            "height": 0.804294879535937
+          },
+          {
+            "frame": 40,
+            "minimumSkinY": 0.006703833383408513,
+            "height": 0.8065868441592856
+          },
+          {
+            "frame": 48,
+            "minimumSkinY": -0.00012045208439412369,
+            "height": 1.0737560361078802
+          },
+          {
+            "frame": 56,
+            "minimumSkinY": 0.004731386003031204,
+            "height": 1.5693669493196805
+          },
+          {
+            "frame": 64,
+            "minimumSkinY": 0.011842070478193597,
+            "height": 1.6724316095134646
+          },
+          {
+            "frame": 70,
+            "minimumSkinY": 0.02985348767456142,
+            "height": 1.5955389389344448
+          },
+          {
+            "frame": 72,
+            "minimumSkinY": 0.02983229192990648,
+            "height": 1.6112247794886556
+          },
+          {
+            "frame": 80,
+            "minimumSkinY": 0.031037334951167412,
+            "height": 1.634950437635067
+          },
+          {
+            "frame": 88,
+            "minimumSkinY": 0.008413566899792758,
+            "height": 1.5828455914701756
+          },
+          {
+            "frame": 96,
+            "minimumSkinY": 0.006956490228215664,
+            "height": 1.4196963925854444
+          },
+          {
+            "frame": 104,
+            "minimumSkinY": 0.009979479792707798,
+            "height": 0.9589093701150965
+          },
+          {
+            "frame": 112,
+            "minimumSkinY": 0.011186087563817705,
+            "height": 0.8107940409374789
+          },
+          {
+            "frame": 120,
+            "minimumSkinY": 0.011463699703211355,
+            "height": 0.817440984544648
+          },
+          {
+            "frame": 128,
+            "minimumSkinY": 0.011856125748814797,
+            "height": 0.8197916130130786
+          },
+          {
+            "frame": 136,
+            "minimumSkinY": 0.011990829136499242,
+            "height": 0.8181642422891755
+          },
+          {
+            "frame": 144,
+            "minimumSkinY": 0.012000291156644546,
+            "height": 0.8150928642468134
+          },
+          {
+            "frame": 152,
+            "minimumSkinY": 0.011999737181179623,
+            "height": 0.8116462944430568
+          },
+          {
+            "frame": 160,
+            "minimumSkinY": 0.011999878670094735,
+            "height": 0.808104100153304
+          },
+          {
+            "frame": 168,
+            "minimumSkinY": 0.012000418813956167,
+            "height": 0.8047990842902422
+          }
+        ]
+      }
+    ]
+  }
+}

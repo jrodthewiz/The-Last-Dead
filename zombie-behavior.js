@@ -45,6 +45,12 @@ export function hordeFrame(ctx) {
     id:e.id,...sensedLocation(e),pack:e.pack,sighting:e.mind?.sighting ? {...e.mind.sighting} : null,
   })).sort((a,b)=>a.id-b.id),neighbors:new Map(),visibility:new Map()};
   ctx.horde.byId=new Map(ctx.horde.members.map(o=>[o.id,o]));
+  ctx.horde.bins=new Map();
+  ctx.horde.operations={members:ctx.horde.members.length,neighborQueries:0,candidates:0,visibilityQueries:0};
+  for(const member of ctx.horde.members){
+    const key=`${Math.floor(member.x/5.2)}:${Math.floor(member.y/5.2)}`;
+    let bin=ctx.horde.bins.get(key);if(!bin)ctx.horde.bins.set(key,bin=[]);bin.push(member);
+  }
   return ctx.horde;
 }
 
@@ -54,7 +60,10 @@ function localNeighbors(ctx,e) {
   if(frame.neighbors.has(e.id))return frame.neighbors.get(e.id);
   const origin=frame.byId.get(e.id)||e,nearest=[];
   // Maintain six nearest without a full-population sort or array per query.
-  for(const o of frame.members){
+  frame.operations.neighborQueries++;
+  const bx=Math.floor(origin.x/5.2),by=Math.floor(origin.y/5.2);
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)for(const o of frame.bins.get(`${bx+dx}:${by+dy}`)||[]){
+    frame.operations.candidates++;
     if(o.id===e.id)continue;
     const distance=Math.hypot(o.x-origin.x,o.y-origin.y);
     if(distance>=5.2)continue;
@@ -68,6 +77,7 @@ function localNeighbors(ctx,e) {
 function neighborVisible(ctx,e,o) {
   const frame=hordeFrame(ctx),key=`${e.id}:${o.id}`;
   if(frame.visibility.has(key))return frame.visibility.get(key);
+  frame.operations.visibilityQueries++;
   const origin=frame.byId.get(e.id)||e,distance=Math.hypot(o.x-origin.x,o.y-origin.y);
   const visible=ctx.env.sensorLine?ctx.env.sensorLine(ctx.course,origin,o):ctx.env.castRay(ctx.course,origin.x,origin.y,Math.atan2(o.y-origin.y,o.x-origin.x)).dist>distance-.08;
   frame.visibility.set(key,visible);return visible;
@@ -122,7 +132,7 @@ export function gaitSpeed(ctx,e,visible,d,hash) {
   if(!visible || !hunting || e.mind.startle>0 || e.attacking || e.strike>0){
     if(g.phase!=='pace'){g.phase='recover';g.time=0;g.cooldown=Math.max(g.cooldown,1.2);}
     e.burst=Math.max(0,(e.burst||0)-ctx.dt*4);
-    return(crawler?.60:1)*g.variation;
+    return(crawler?.60:e.locomotion==='injured'?.72:1)*g.variation;
   }
   if((runner||crawler) && g.phase==='pace' && g.cooldown<=0 && d>1.6 && d<(runner?8:4.5)){
     g.phase='coil';g.time=0;
@@ -143,7 +153,7 @@ export function gaitSpeed(ctx,e,visible,d,hash) {
     return(crawler?.50:.66)*g.variation;
   }
   e.burst=0;
-  return(crawler?.60:1)*g.variation;
+  return(crawler?.60:e.locomotion==='injured'?.72:1)*g.variation;
 }
 
 export function interceptGoal(ctx,e,target,clear) {

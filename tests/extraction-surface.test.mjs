@@ -75,7 +75,7 @@ test('real imported coat is split, retracts with skinning, and restores original
   const restore=await cutaways.prepareWarmup(),sample=cutaways._warmup;
   assert(sample.actor);assert.equal(combat.actors.size,0);assert.equal(sample.combat.actors.size,1);
   const state=sample.combat.actors.get(sample.actor);assert(state.meshes.length>0);
-  for(const entry of state.meshes){assert(entry.geometry.attributes.brutalMembership);assert(entry.mesh.material.customProgramCacheKey().includes('brutal-source-seam-v5'));assert(!entry.geometry.attributes.harvestSide);}
+  for(const entry of state.meshes){assert(entry.geometry.attributes.brutalMembership);assert(entry.mesh.material.customProgramCacheKey().includes('brutal-source-seam-v9-material-reference'));assert(!entry.geometry.attributes.harvestSide);}
   let borrowedDisposals=0;gltf.scene.traverse(node=>node.geometry?.addEventListener('dispose',()=>borrowedDisposals++));
   restore();assert.equal(sample.actor.visible,false);cutaways.dispose();assert.equal(sample.combat.actors.size,0);assert.equal(borrowedDisposals,0);
 });

@@ -3,6 +3,32 @@ import {MeshBasicNodeMaterial} from './vendor/three.webgpu.js';
 import {positionLocal,normalLocal,positionView,screenSize,cameraProjectionMatrix,lights} from './vendor/three.tsl.js';
 import {BLACKWATER_LOOKS,makeBlackwaterBands,makeBlackwaterGraphicMaterial} from './blackwater-render-looks.js';
 
+// Ink reads position and normal only. Share identical Float32 tuples without
+// changing any corner, triangle order or signed-zero bit pattern. Hash clashes
+// are resolved by comparing all six words rather than by a tolerance.
+function indexInkCorners(positions,normals){
+ const count=positions.length/3,pbits=new Uint32Array(positions.buffer,positions.byteOffset,positions.length),nbits=new Uint32Array(normals.buffer,normals.byteOffset,normals.length);
+ const heads=new Map(),representatives=new Uint32Array(count),links=new Uint32Array(count),indices=new Uint32Array(count);let unique=0;
+ for(let corner=0;corner<count;corner++){
+  const offset=corner*3;let hash=2166136261;
+  for(let k=0;k<3;k++)hash=Math.imul(hash^pbits[offset+k],16777619);
+  for(let k=0;k<3;k++)hash=Math.imul(hash^nbits[offset+k],16777619);
+  hash>>>=0;let entry=heads.get(hash)||0,match=-1;
+  while(entry){
+   const candidate=entry-1,other=representatives[candidate]*3;
+   if(pbits[offset]===pbits[other]&&pbits[offset+1]===pbits[other+1]&&pbits[offset+2]===pbits[other+2]&&nbits[offset]===nbits[other]&&nbits[offset+1]===nbits[other+1]&&nbits[offset+2]===nbits[other+2]){match=candidate;break;}
+   entry=links[candidate];
+  }
+  if(match<0){match=unique++;representatives[match]=corner;links[match]=heads.get(hash)||0;heads.set(hash,match+1);}
+  indices[corner]=match;
+ }
+ const indexedPositions=new Float32Array(unique*3),indexedNormals=new Float32Array(unique*3);
+ const targetP=new Uint32Array(indexedPositions.buffer),targetN=new Uint32Array(indexedNormals.buffer);
+ for(let vertex=0;vertex<unique;vertex++)for(let k=0;k<3;k++){const source=representatives[vertex]*3+k,target=vertex*3+k;targetP[target]=pbits[source];targetN[target]=nbits[source];}
+ const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(indexedPositions,3));geometry.setAttribute('normal',new THREE.BufferAttribute(indexedNormals,3));
+ geometry.setIndex(new THREE.BufferAttribute(unique<=65536?new Uint16Array(indices):indices,1));return geometry;
+}
+
 // Ground, road, seawall and bridge materials share the district's painted
 // palette. Keep their original resources recoverable; large land slabs do
 // not need duplicate silhouette geometry.
@@ -11,7 +37,7 @@ export function applyBlackwaterCoastalSurfaces(root,materials,{lightSources=[]}=
  const sources=new Map(Object.entries(roles).filter(([key])=>materials[key]).map(([key,role])=>[materials[key],role]));
  const variants=new Map(),records=[],bands=makeBlackwaterBands(BLACKWATER_LOOKS.cartoon.bands),lighting=lights(lightSources);
  const swap=source=>{
-  const role=sources.get(source);if(!role)return source;
+  const role=sources.get(source);if(!role||source.userData.nativeTerrainPBR)return source;
   if(!variants.has(source)){
    const descriptor={...source,name:`coastal-${role}`,userData:{...source.userData,lookRole:role}};
    const material=makeBlackwaterGraphicMaterial(descriptor,bands);material.lightsNode=lighting;variants.set(source,material);
@@ -38,11 +64,12 @@ export function applyBlackwaterGraphicStyle(root,{inkPixels=1.1,lightSources=nul
  for(const object of sources){
   const original=object.material;originals.push({object,material:original});
   const swap=source=>{
-   if(!source?.isMeshStandardMaterial)return source;
+   if(!source?.isMeshStandardMaterial||source.userData.nativeTerrainPBR)return source;
    if(!variants.has(source)){const material=makeBlackwaterGraphicMaterial(source,bands);if(lighting)material.lightsNode=lighting;variants.set(source,material);}
    return variants.get(source);
   };
   object.material=Array.isArray(original)?original.map(swap):swap(original);
+  if((Array.isArray(original)?original:[original]).some(m=>m?.userData.nativeTerrainPBR))continue;
   // Very small paper scraps and alpha cards do not need a silhouette shell.
   if(!object.geometry?.attributes.normal||object.visible===false)continue;
   const source=object.geometry.index?object.geometry.toNonIndexed():object.geometry.clone();
@@ -62,7 +89,7 @@ export function applyBlackwaterGraphicStyle(root,{inkPixels=1.1,lightSources=nul
  for(const [key,parts]of chunks){
   const count=parts.reduce((n,g)=>n+g.attributes.position.count,0),positions=new Float32Array(count*3),normals=new Float32Array(count*3);let offset=0;
   for(const part of parts){positions.set(part.attributes.position.array,offset);normals.set(part.attributes.normal.array,offset);offset+=part.attributes.position.array.length;part.dispose();}
-  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));geometry.setAttribute('normal',new THREE.BufferAttribute(normals,3));geometry.computeBoundingBox();geometry.computeBoundingSphere();
+  const geometry=indexInkCorners(positions,normals);geometry.computeBoundingBox();geometry.computeBoundingSphere();
   const mesh=new THREE.Mesh(geometry,ink);mesh.name=`BlackwaterGraphicInk:${key}`;mesh.castShadow=false;mesh.receiveShadow=false;mesh.userData.graphicInk=true;mesh.userData.noBatch=true;mesh.layers.set(1);root.add(mesh);outlines.push(mesh);
  }
  let disposed=false;

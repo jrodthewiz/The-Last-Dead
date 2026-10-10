@@ -12,6 +12,8 @@ function writer(materials, bin=64) {
   if(!g.index)g.setIndex(Array.from({length:g.attributes.position.count},(_,i)=>i));
   const mat=materials[slot]||materials.metal;
   const uv=g.attributes.uv,p=g.attributes.position,n=g.attributes.normal,meters=mat.userData.textureMeters||2;
+  // These are writer-owned buffers; untargeted dressing retains exact old finish.
+  if(slot==='roof'||slot==='roofZinc')g.setAttribute('roofPlane',new THREE.Float32BufferAttribute(new Float32Array(p.count*4),4));
   if(uv&&mat.map)for(let i=0;i<p.count;i++){
    const nx=Math.abs(n.getX(i)),ny=Math.abs(n.getY(i)),nz=Math.abs(n.getZ(i));
    uv.setXY(i,(ny>nx&&ny>nz?p.getX(i):nx>nz?p.getZ(i):p.getX(i))/meters,(ny>nx&&ny>nz?p.getZ(i):p.getY(i))/meters);

@@ -22,3 +22,15 @@ test('production host serves the built game and new weapon module',async()=>{
   }
  }finally{app.server.closeAllConnections();await new Promise(resolve=>app.server.close(resolve));}
 });
+
+test('production revalidates unversioned runtime files while retaining binary asset caching',async()=>{
+ const app=await startServer({port:0});
+ try{
+  for(const route of ['/','/main.js','/dev-map-routes.js','/menu-cinematic.css','/assets/survivor/fps-arms-v5-manifest.json']){
+   const response=await fetch(`http://127.0.0.1:${app.port}${route}`,{method:'HEAD'});
+   assert.equal(response.status,200,route);assert.equal(response.headers.get('cache-control'),'no-cache',route);
+  }
+  const response=await fetch(`http://127.0.0.1:${app.port}/assets/survivor/fps-arms-v5.glb`,{method:'HEAD'});
+  assert.equal(response.status,200);assert.equal(response.headers.get('cache-control'),'public, max-age=3600');
+ }finally{app.server.closeAllConnections();await new Promise(resolve=>app.server.close(resolve));}
+});

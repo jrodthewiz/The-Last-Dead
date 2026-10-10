@@ -57,6 +57,8 @@ export class HarborInteriorVisuals{
    ctx.strokeStyle='#62786e';ctx.strokeRect(30,266,180,80);ctx.strokeRect(240,266,240,80);ctx.beginPath();ctx.moveTo(30,306);ctx.lineTo(480,306);ctx.stroke();
    const map=new THREE.CanvasTexture(board);map.colorSpace=THREE.SRGBColorSpace;const notice=new THREE.Mesh(new THREE.PlaneGeometry(2.1,1.55),new THREE.MeshStandardMaterial({map,roughness:.9}));notice.name='OperationsNotice';notice.position.set(r.x+r.width/2-1.6,2.15,r.z-r.depth/2+.12);g.add(notice);
    const deskY=new THREE.Box3().setFromObject(workDesk).max.y;const paper=new THREE.MeshStandardMaterial({color:0xe5d9b8,roughness:.9});for(let j=0;j<3;j++)box(g,r.x-r.width/2+1.4+j*.18,deskY+.008+j*.008,r.z,.4,.008,.3,paper,'DeskManifest');
+   const rackMaterials={trim,plaster,paper,wood:world.materials.rust};
+   for(const p of r.details.parts)box(g,p.x,p.y,p.z,p.w,p.h,p.d,rackMaterials[p.material],`InteriorDetail:${p.role}`);
    const drum=world.thaiWorld.templates.get('oil-drum');
    for(let j=0;j<2+i%2;j++)place(g,drum,r.x-r.width/2+1+j*.85,r.z-r.depth/2+1,.65,.95,.65);
    const cache=place(g,world.thaiWorld.templates.get('municipal-wheelie-bin'),r.cache.x*4,r.cache.y*4,.75,1.15,.8);cache.name=`RoomSupplies:${r.id}`;

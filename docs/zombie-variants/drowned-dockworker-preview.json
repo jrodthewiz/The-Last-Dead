@@ -1,0 +1,16 @@
+{
+  "variant": "drowned-dockworker",
+  "stage": "preview",
+  "id": "01a10849-9f4c-7517-b273-dfc37efc24f5",
+  "status": "SUCCEEDED",
+  "progress": 100,
+  "consumedCredits": 20,
+  "taskError": null,
+  "resultKeys": [],
+  "hasGLB": true,
+  "asset": {
+    "file": ".art-source/zombie-variants-meshy/drowned-dockworker/preview.glb",
+    "bytes": 869556,
+    "sha256": "acc92552d0d05e13b8700b3eff865fe6e997e316d0b2456ca78a541d443149c7"
+  }
+}

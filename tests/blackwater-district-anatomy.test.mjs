@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three.module.js';
-import {createModel,architectureColliders} from '../assets/blackwater-kit/architecture.js';
+import {createModel,createBuildingPlan,architectureColliders} from '../assets/blackwater-kit/architecture.js';
 import {civicSkylinePlan} from '../assets/blackwater-kit/skyline.js';
 import {makeBlackwaterDistrict} from '../blackwater-district-layout.js';
 import {makeCoastalNeighborhoods} from '../coastal-neighborhood-layout.js';
+import {makeHarborCourse} from '../harbor-course.js';
 
 test('district uses produce different roof anatomy and real upper facade relief',()=>{
  const specs=[['EAST WORKS / WAREHOUSE','factory-sawtooth-roof'],['EAST WORKS / WORKSHOP','workshop-ridge-monitor'],['EAST WORKS / CLINIC','setback-roof-pavilion'],['SALTWIND / APARTMENTS','apartment-balcony-return']];
@@ -137,4 +138,119 @@ test('new district silhouettes preserve playable portals and collider plans',()=
    }
   }finally{model.dispose();}
  }
+});
+
+test('authored residential ridge and works halls survive course projection and produce nested upper terraces',()=>{
+ const district=makeBlackwaterDistrict(makeCoastalNeighborhoods()),course=makeHarborCourse({openWorld:true});
+ const actual=course.coastal.blackwaterSlice.buildings;
+ for(const b of district.buildings){
+  const projected=actual.find(p=>p.id===b.id);
+  assert.equal(projected.districtProfile,b.districtProfile,`${b.label} profile reaches the runtime and collision plan`);
+  assert.equal(projected.height,b.height);
+  assert.deepEqual(architectureColliders(projected),architectureColliders(b));
+ }
+ assert.equal(district.buildings.filter(b=>b.districtProfile==='works-bearing-hall').length,31);
+ for(const profile of ['corner-step','terraced-court','low-gable']){
+  const b=district.buildings.find(p=>p.districtProfile===profile),model=createModel({...b,seed:1400+district.buildings.indexOf(b)});
+  try{
+   const p=model.diagnostics.plan.upperMassPlan;
+   assert.equal(p.profile,profile);assert.deepEqual(JSON.parse(JSON.stringify(p)),p);
+   for(const [index,level]of p.levels.entries()){
+    const parent=index?p.levels[index-1]:{width:b.width,depth:b.depth,x:0,z:0};
+    assert.ok(level.width>0&&level.depth>0&&level.height>0);
+    assert.ok(level.x-level.width/2>=parent.x-parent.width/2-.00001);
+    assert.ok(level.x+level.width/2<=parent.x+parent.width/2+.00001);
+    assert.ok(level.z-level.depth/2>=parent.z-parent.depth/2-.00001);
+    assert.ok(level.z+level.depth/2<=parent.z+parent.depth/2+.00001);
+   }
+   assert.equal(model.diagnostics.moduleCounts['setback-roof-pavilion'],undefined,'tiers replace the generic box plus rooftop box');
+   if(profile!=='low-gable')assert.ok(model.diagnostics.moduleCounts['district-exposed-terrace-deck']>0);
+   else assert.ok(model.diagnostics.moduleCounts['district-broad-hip-roof']>0);
+   assert.ok(model.diagnostics.moduleCounts['district-storey-bearing-band']>0);
+   model.root.updateMatrixWorld(true);
+   for(const y of [.65,1.4,2.2]){
+    const ray=new THREE.Raycaster(new THREE.Vector3(b.doorOffset,y,b.depth/2+2),new THREE.Vector3(0,0,-1),0,b.depth+4);
+    assert.equal(ray.intersectObject(model.root,true).length,0);
+   }
+  }finally{model.dispose();}
+ }
+});
+
+test('adjacent Saltwind addresses have different construction envelopes and one reserved pergola',()=>{
+ const district=makeBlackwaterDistrict(makeCoastalNeighborhoods());
+ const profiles=[['SALTWIND 31 / APARTMENTS','stucco-bay','district-stucco-hip-roof'],['SALTWIND 32 / APARTMENTS','brick-mansard','district-long-mansard-roof'],['SALTWIND 34 / APARTMENTS','terraced-court','district-top-parapet']];
+ const pergolas=district.buildings.filter(b=>createBuildingPlan(b).upperMassPlan?.roofFeature==='pergola');
+ assert.deepEqual(pergolas.map(b=>b.label),['SALTWIND 12 / APARTMENTS']);
+ for(const [label,profile,roof]of profiles){
+  const b=district.buildings.find(p=>p.label===label),model=createModel({...b,seed:1400+district.buildings.indexOf(b)});
+  try{
+   const plan=model.diagnostics.plan,p=plan.upperMassPlan;
+   assert.equal(p.profile,profile);assert.ok(model.diagnostics.moduleCounts[roof]>0);
+   assert.equal(model.diagnostics.moduleCounts['district-roof-pergola-post'],undefined);
+   if(profile==='brick-mansard'){
+    assert.ok(p.levels.every(level=>level.width===b.width&&level.depth===b.depth),'long brick block bears continuously below its mansard');
+    assert.equal(model.diagnostics.moduleCounts['district-exposed-terrace-deck'],undefined);
+   }
+   if(profile==='stucco-bay'){
+    assert.equal(plan.anatomy.wall,'render');
+    assert.ok(model.diagnostics.moduleCounts['stucco-oriel-bearing-cheek']>0);
+    assert.ok(model.diagnostics.moduleCounts['stucco-oriel-continuous-sill']>0);
+    assert.ok(model.diagnostics.bounds.max[2]<=b.depth/2+.861,'oriels stay within the existing canopy envelope above head height');
+   }
+   assert.deepEqual(model.colliders,architectureColliders(b));
+  }finally{model.dispose();}
+ }
+});
+
+test('actual coastal addresses retain the four landmark heights and distinct oldtown construction',()=>{
+ const course=makeHarborCourse({openWorld:true}),buildings=course.coastal.blackwaterSlice.buildings;
+ for(const [number,height]of [[49,9],[55,9],[58,9],[67,15]]){
+  const b=buildings.find(p=>p.label===`EAST WORKS ${number} / WAREHOUSE`);
+  assert.ok(b,`actual landmark ${number} exists`);assert.equal(b.height,height,`actual address ${number}, not zero-based neighbour`);
+ }
+ for(const [label,facade,role]of [['EAST END LAUNDRY','laundry-order','laundry-continuous-bearing-pilaster'],['LAST STOP GROCER','grocer-arches','grocer-stone-arch-voussoir']]){
+  const b=buildings.find(p=>p.label===label),model=createModel({...b,seed:1400+buildings.indexOf(b)});
+  try{
+   assert.equal(model.diagnostics.plan.anatomy.facade,facade);assert.ok(model.diagnostics.moduleCounts[role]>0);
+   assert.ok(model.diagnostics.moduleCounts['oldtown-deep-entry-bearing-jamb']>0);
+   assert.deepEqual(model.colliders,architectureColliders(b));
+   if(facade==='grocer-arches'){
+    model.root.updateMatrixWorld(true);
+    const h=model.diagnostics.plan.upperFloorHeight,spring=3.5+h*.65;
+    const brick=model.root.children.filter(m=>m.isMesh&&m.userData.blackwaterSlot==='brick');
+    const through=new THREE.Raycaster(new THREE.Vector3(0,spring+.55,b.depth/2+2),new THREE.Vector3(0,0,-1),0,3);
+    assert.equal(through.intersectObjects(brick,false).length,0,'arched glass has a real curved void in the wall behind it');
+    const above=new THREE.Raycaster(new THREE.Vector3(0,spring+1.10,b.depth/2+2),new THREE.Vector3(0,0,-1),0,3);
+    assert.ok(above.intersectObjects(brick,false).length>0,'load-bearing infill closes the wall above the arch');
+   }
+  }finally{model.dispose();}
+ }
+});
+
+
+test('actual Saltwind32 loggia removes upper street wall and bears covered walks behind an intact ground route',()=>{
+ const course=makeHarborCourse({openWorld:true}),b=course.coastal.blackwaterSlice.buildings.find(b=>b.label==='SALTWIND 32 / APARTMENTS');
+ const model=createModel({...b,seed:1400});
+ try{
+  const plan=createBuildingPlan({...b,seed:1400}),loggia=plan.upperMassPlan.loggia;
+  assert.equal(b.id,'coast-lot-1-1-0-2');assert.equal(loggia.recess,1.4);
+  assert.equal(plan.upperMassPlan.roof,'mansard');
+  assert.equal(model.diagnostics.moduleCounts['loggia-deep-bearing-return'],10);
+  assert.equal(model.diagnostics.moduleCounts['loggia-continuous-bearing-pier'],5);
+  assert.deepEqual(model.colliders,architectureColliders({...b,seed:1400}));
+  model.root.updateMatrixWorld(true);
+  const ray=(p,d,length)=>new THREE.Raycaster(new THREE.Vector3(...p),new THREE.Vector3(...d),0,length).intersectObject(model.root,true);
+  for(const level of plan.upperMassPlan.levels){
+   const y=level.y+1.45;
+   for(const x of [.45,2.75]){
+    const hits=ray([x,y,9],[0,0,-1],4);
+    assert.ok(hits.length>0,'inset glazed dwelling wall closes rear of covered walk');
+    assert.ok(hits[0].point.z<6.65 && hits[0].point.z>6,'no intact front wall or false dark patch fills the loggia');
+    assert.equal(ray([x,y,7.25],[0,0,1],1.1).length,0,'walk has genuine open volume above the guard');
+    assert.ok(ray([x,y,7.25],[0,-1,0],1.5).length>0,'solid bearing floor beneath the walk');
+    assert.ok(ray([x,y,7.25],[0,1,0],1.5).length>0,'actual covered soffit overhead');
+   }
+  }
+  for(const x of [-3.6,-2,-.4])for(const y of [.65,1.4,2.2])assert.equal(ray([x,y,10],[0,0,-1],20).length,0,'ground front-to-rear portal remains clear');
+ }finally{model.dispose();}
 });

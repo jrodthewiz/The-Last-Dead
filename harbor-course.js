@@ -3,6 +3,7 @@ import {attachIslandBasement} from './island-basement-layout.js';
 import {makeHarborRooms} from './harbor-interiors.js';
 import {makeHarborThaiLayout} from './harbor-thai-layout.js';
 import {attachCoastalWorld} from './coastal-world-layout.js';
+import {registerImmutablePropObstacles} from './harbor-collision.js';
 // Four-metre cells remain the collision authority; visual assets fit inside them.
 export function makeHarborCourse(base = {}) {
   const w=32,h=30, cells=Array.from({length:w*h},(_,i)=>[i<w?1:0,i%w===w-1?1:0,i>=w*(h-1)?1:0,i%w===0?1:0]);
@@ -44,5 +45,9 @@ export function makeHarborCourse(base = {}) {
   if(course.lowTide){course.harborRooms[1].name='COLD STORAGE / BAY 02';course.harborRooms[3].name='NETMAKERS SAFEHOUSE';}
   attachLowTide(course);
   if(base.openWorld)attachCoastalWorld(course);
-  return attachIslandBasement(course);
+  attachIslandBasement(course);
+  // Outdoor prop authority is complete, including the service stair walls.
+  // Mutable legacy/interior courses deliberately retain linear collision.
+  if(course.coastal)registerImmutablePropObstacles(course);
+  return course;
 }

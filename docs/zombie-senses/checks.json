@@ -1,0 +1,106 @@
+{
+  "date": "2026-10-05T00:38:35.232Z",
+  "status": "PASS",
+  "tests": {
+    "passed": 117,
+    "failed": 0,
+    "log": "output/zombie-senses-final-tests.log"
+  },
+  "build": {
+    "status": "PASS",
+    "log": "output/zombie-senses-build.log"
+  },
+  "modules": [
+    {
+      "file": "engine.js",
+      "bytes": 145355,
+      "sha256": "67598065ed0f9cb02e31b77fc9d3ffa2c45548bcc83650e3143062ba2c02b62f",
+      "packagedMatch": true
+    },
+    {
+      "file": "enemy-ai.js",
+      "bytes": 47204,
+      "sha256": "742e241898f476a38b4473da20c8ed19af2893bbdd4a7b9162a9e03fb7b4db54",
+      "packagedMatch": true
+    },
+    {
+      "file": "zombie-behavior.js",
+      "bytes": 8410,
+      "sha256": "c39a582c75615aa30ca8118243d7631dfb0d2a60855422f119dd8739cbc51a51",
+      "packagedMatch": true
+    },
+    {
+      "file": "npc-afterlife-model.js",
+      "bytes": 39225,
+      "sha256": "1a4f9978520812a9553dff0e46f03c71eca31ee7956a18130f1cdcaf43078e6e",
+      "packagedMatch": true
+    },
+    {
+      "file": "character-articulation.js",
+      "bytes": 8133,
+      "sha256": "5d490aa45199ac71ee4ffcd44268f2365ead8664edb288e916abc5430a895361",
+      "packagedMatch": true
+    }
+  ],
+  "assets": [
+    {
+      "file": "assets/models/afterlife-ash-witness-motion-v07.glb",
+      "bytes": 4193928,
+      "sha256": "8bd6bfed843879ae190fa8da3e69466998289a727634cdfdfe1d708f5e30b4e0",
+      "packagedMatch": true
+    },
+    {
+      "file": "assets/models/zombie-variants/drowned-dockworker.glb",
+      "bytes": 6142224,
+      "sha256": "203db1296f824b9b3fd55c2ed60a3e18428c51a29e509565f0bc83bdf9e355cf",
+      "packagedMatch": true
+    },
+    {
+      "file": "assets/models/zombie-variants/fever-runner.glb",
+      "bytes": 5977964,
+      "sha256": "1df86f804d90f17133f1b12b10e363115873e22960a02cb141d939d741dca39f",
+      "packagedMatch": true
+    },
+    {
+      "file": "assets/models/zombie-variants/crooked-crawler.glb",
+      "bytes": 6091588,
+      "sha256": "1555d0af772e36e583dfeb778ad8e7cb927862f298668afc43873a72f4074b1a",
+      "packagedMatch": true
+    }
+  ],
+  "extendedBrowserQA": "not run for the sensory/attention pass; earlier asset-delivery receipts do not validate changed runtime modules",
+  "generationCreditsUsedThisPass": 0,
+  "liveServer": {
+    "url": "http://127.0.0.1:5200/",
+    "verifiedAt": "2026-10-05T00:40:17.026Z",
+    "rootMatchesBuild": true,
+    "servedModules": [
+      {
+        "file": "engine.js",
+        "status": 200,
+        "sha256": "67598065ed0f9cb02e31b77fc9d3ffa2c45548bcc83650e3143062ba2c02b62f"
+      },
+      {
+        "file": "enemy-ai.js",
+        "status": 200,
+        "sha256": "742e241898f476a38b4473da20c8ed19af2893bbdd4a7b9162a9e03fb7b4db54"
+      },
+      {
+        "file": "zombie-behavior.js",
+        "status": 200,
+        "sha256": "c39a582c75615aa30ca8118243d7631dfb0d2a60855422f119dd8739cbc51a51"
+      },
+      {
+        "file": "npc-afterlife-model.js",
+        "status": 200,
+        "sha256": "1a4f9978520812a9553dff0e46f03c71eca31ee7956a18130f1cdcaf43078e6e"
+      },
+      {
+        "file": "character-articulation.js",
+        "status": 200,
+        "sha256": "5d490aa45199ac71ee4ffcd44268f2365ead8664edb288e916abc5430a895361"
+      }
+    ],
+    "characterAssetHeads": "four valid responses with delivered byte lengths"
+  }
+}

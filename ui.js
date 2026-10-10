@@ -1,3 +1,5 @@
+import {getActiveVehicle} from './harbor-vehicle-fleet.js';
+import {DEV_MAPS,devMapHref} from './dev-map-routes.js';
 import {lowTideObjective,lowTidePrompt,lowTideJournal,LOW_TIDE_TITLE} from './low-tide.js';
 import {basementPrompt} from './island-basement.js';
 import {harborRoomPrompt} from './harbor-interiors.js';
@@ -627,8 +629,8 @@ export class UI {
     this.root.innerHTML=`<section class="screen menu-screen" aria-label="The Last Dead main menu">
      <div class="cinema-frame" aria-hidden="true"><span>BLACKWATER</span><span>NO ONE LEAVES ALONE</span></div>
      <div class="menu-shell"><div class="menu-copy"><div class="brand-lockup"><p class="menu-eyebrow">SOMETHING REMEMBERS YOU.</p><h1 class="brand-title"><span>THE LAST</span><em>DEAD</em></h1><p class="menu-whisper">NO FURTHER TRANSFERS.</p></div></div>
-     <nav class="menu-actions" aria-label="Main menu"><button class="primary-button start-button" type="button" data-action="start"><span class="menu-choice">PLAY CAMPAIGN<small>BLACKWATER / OPEN WORLD</small></span><span class="menu-enter-arrow" aria-hidden="true">⟶</span></button>
-      ${this.devEnabled?'<button class="menu-link dev-mode-button" type="button" data-dev-inspect><span>FREE CAMERA <small>DEV</small></span><kbd class="game-key">F2</kbd></button>':''}
+     <nav class="menu-actions" aria-label="Main menu"><button class="primary-button start-button" type="button" data-action="start"><span class="menu-choice">PLAY CAMPAIGN<small>THE DESCENT / BLACKWATER ISLAND</small></span><span class="menu-enter-arrow" aria-hidden="true">⟶</span></button>
+      ${this.devEnabled?`<details class="dev-map-picker"><summary class="menu-link dev-mode-button"><span>DEV MODE <small>MAPS</small></span><span aria-hidden="true">+</span></summary><nav class="dev-map-choices" aria-label="Development maps">${DEV_MAPS.map(map=>`<a href="${esc(devMapHref(map.id))}" data-dev-map="${map.id}"><span>${map.name}</span><small>${map.detail} / free camera</small></a>`).join('')}<button class="menu-link dev-mode-button" type="button" data-dev-inspect><span>CURRENT MAP</span><kbd class="game-key">F2</kbd></button></nav></details>`:''}
           <div class="coop-access"><button class="coop-toggle" type="button" data-action="coop-toggle" aria-expanded="false" aria-controls="coop-form"><span><b>CO-OP</b></span><i data-coop-icon>+</i></button>
                         <div class="coop-panel" id="coop-form" data-coop-panel hidden aria-label="Co-op connection">
               <div class="network-panel">
@@ -1033,10 +1035,10 @@ export class UI {
     this.root.querySelectorAll('[data-dash]').forEach((pip, index) => pip.classList.toggle('is-ready', energy >= (index + 1) * 33));
     if(run.course.harbor){
       const count=Math.min(3,run.backpack.weaponPickups?.length||0),travel=Math.min(32,Math.floor((run.vehicle?.distance||0)*4));
-      const driving=!!run.vehicle?.occupied,nearTruck=run.vehicle&&Math.hypot(run.x-run.vehicle.x,run.y-run.vehicle.y)<1.5;
+      const vehicle=getActiveVehicle(run),driving=!!vehicle?.occupied,nearVehicle=(run.vehicleFleet?.vehicles||[run.vehicle]).filter(Boolean).filter(v=>!v.occupied&&(v.type!=='helicopter'||v.landed)).sort((a,b)=>Math.hypot(run.x-a.x,run.y-a.y)-Math.hypot(run.x-b.x,run.y-b.y))[0],nearTruck=nearVehicle&&Math.hypot(run.x-nearVehicle.x,run.y-nearVehicle.y)<1.5,helicopter=vehicle?.type==='helicopter',driveControls=helicopter?`${Math.round(vehicle.altitudeM)} M · SPACE LIFT · CTRL DESCEND · SHIFT BRAKE · W/S FLY · Q EXIT ON GROUND · R RECOVER WHEN STOPPED`:`${Math.round(Math.abs(vehicle?.speed||0)*14.4)} KM/H · SPACE BRAKE · Q EXIT · R RECOVER WHEN STOPPED`;
       const roomAction=lowTidePrompt(run)||harborRoomPrompt(run);
-      if(chapterNode){chapterNode.hidden=!driving&&!nearTruck&&!roomAction;this._setHud('journey-action',roomAction?roomAction.label:driving?`${Math.round(Math.abs(run.vehicle.speed)*14.4)} KM/H · SPACE BRAKE · Q EXIT`:'Q · DRIVE DOCK TRUCK');}
-      if(touchOperate){touchOperate.hidden=!driving&&!nearTruck;touchOperate.textContent=driving?'EXIT':'DRIVE';touchOperate.setAttribute('aria-label',driving?'Exit truck':'Drive truck');}
+      if(chapterNode){chapterNode.hidden=!driving&&!nearTruck&&!roomAction;this._setHud('journey-action',roomAction?roomAction.label:driving?driveControls:`Q · ${nearVehicle?.type==='helicopter'?'PILOT UTILITY HELICOPTER':'DRIVE '+(nearVehicle?.type==='truck'?'DOCK TRUCK':'STREET '+(nearVehicle?.kind||'CAR').toUpperCase())}`);}
+      if(touchOperate){touchOperate.hidden=!driving&&!nearTruck;touchOperate.textContent=driving?'EXIT':'DRIVE';touchOperate.setAttribute('aria-label',driving?'Exit vehicle':'Use vehicle');}
       this._setHud('sector',run.lowTide?'BLACKWATER':'BLACKWATER / COASTAL QUARANTINE');this._setHud('room-index',run.course.coastal?'OPEN COAST':run.lowTide?'LOW TIDE / 01':'HARBOR EXPEDITION');
       this._setHud('room-name',harborLocation(run));
       if(!this._harborNavAt||performance.now()-this._harborNavAt>250||this._harborNavCourse!==run.course||this._harborNavRevision!==run.lowTide?.revision||this._harborNavInterior!==run.course.activeInterior?.id){
@@ -1048,7 +1050,7 @@ export class UI {
         this._setHud('route-label',`${nav.target.label.toUpperCase()} · ${nav.distance} M · B / MAP`);
       }}
       this._setHud('objective',count<3?`STASH WEAPONS ${count} / 3`:travel<32?`DRIVE THE TRUCK ${travel} / 32 M`:'REACH THE FERRY EXTRACTION');
-      this._setHud('objective-sub',run.vehicle?.occupied?'W/S DRIVE · A/D STEER · SPACE BRAKE · Q EXIT':'WALK OVER WEAPONS TO STASH · B BACKPACK');
+      this._setHud('objective-sub',driving?driveControls:'Q SEARCH SUPPLIES · WALK OVER WEAPONS · B BACKPACK');
       if(objectiveSub)objectiveSub.hidden=false;
       this._setHud('room-progress-label','SALVAGE RUN');this._setHud('objective-progress','',(count/3+travel/32)*50);
       this._setHud('room-threat',`${run.course.enemies.filter(e=>!e.dead).length} INFECTED IN DISTRICT`);

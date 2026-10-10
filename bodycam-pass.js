@@ -288,6 +288,33 @@ export class BodycamPass {
     this._hasPrev = true;
   }
 
+  async prepare(compile,report=()=>{}) {
+    if(this._prepared)return;
+    this._ensureTarget();
+    const renderer=this.renderer,previous=renderer.getRenderTarget(),toneMapping=renderer.toneMapping;
+    const exposure=this.exposureMaterial.uniforms.tPrev.value,resolve=this.material.uniforms.tExposure.value;
+    try{
+      this.exposureMaterial.uniforms.tPrev.value=this.exposureTargets[0].texture;
+      this.quad.material=this.exposureMaterial;
+      renderer.setRenderTarget(this.exposureTargets[1]);
+      report('Preparing camera exposure');
+      await compile(renderer,this.scene,this.camera);
+      this.material.uniforms.tExposure.value=this.exposureTargets[1].texture;
+      this.quad.material=this.material;
+      renderer.setRenderTarget(previous);
+      renderer.toneMapping=THREE.NoToneMapping;
+      report('Preparing the camera image');
+      await compile(renderer,this.scene,this.camera);
+      this._prepared=true;
+    }finally{
+      this.quad.material=this.material;
+      this.exposureMaterial.uniforms.tPrev.value=exposure;
+      this.material.uniforms.tExposure.value=resolve;
+      renderer.toneMapping=toneMapping;
+      renderer.setRenderTarget(previous);
+    }
+  }
+
   render(scene, camera, nowMs = 0) {
     if (!this.enabled) { this.reset(); this.renderer.render(scene, camera); return; }
     if (this._lastNow && nowMs - this._lastNow > 250) this.reset();

@@ -17,7 +17,10 @@ export function makeHarborThaiLayout(course){
  // Market queues run parallel to Customs, leaving the carriageway centre open.
  add('market-noodles','noodle-soup-cart',38.4,23,2.5,2.8,1.6,PI/2,'market');
  add('market-fruit','iced-fruit-cart',38.4,29,2.5,2.8,1.6,PI/2,'market');
- add('market-canopy','street-stall-canopy-cart',38.4,35,3,3.2,1.8,PI/2,'market');
+ // A low service stall stays below the Customs stair sign and pitched ridge.
+ // Uniform fitting retains the cart's carrying frame, counter and food detail;
+ // its conservative declared collision footprint remains unchanged.
+ add('market-canopy','street-stall-canopy-cart',38.4,35,3,2.65,1.8,PI/2,'market');
  add('market-seating','terrazzo-pedestal-park-table',47.4,27,.9,1.05,.9,0,'market');
  add('market-bin','municipal-wheelie-bin',47.7,33,.65,1.2,.75,0,'market');
  // Transit lay-by on the outer east lane; the north-south route stays wide.

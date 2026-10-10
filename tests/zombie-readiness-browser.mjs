@@ -98,7 +98,7 @@ try{
   gl.readPixels(gl.drawingBufferWidth/2-32,gl.drawingBufferHeight/2-32,64,64,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
   const canvas=document.querySelector('canvas');return {calls:r.info.render.calls,triangles:r.info.render.triangles,textures:r.info.memory.textures,canvas:[canvas.clientWidth,canvas.clientHeight,canvas.width,canvas.height],colorLevels:new Set(pixels.filter((_,i)=>i%4!==3)).size,asset:q.d.renderer.diagnostics().ashWitness};
  });
- assert(report.diagnostics.colorLevels>5,'nonblank rendered game');assert.equal(report.diagnostics.asset.error,null);assert.equal(report.diagnostics.asset.clips.length,6);
+ assert(report.diagnostics.colorLevels>5,'nonblank rendered game');assert.equal(report.diagnostics.asset.error,null);assert.equal(report.diagnostics.asset.clips.length,10);
  assert.deepEqual(report.errors,[]);report.result='PASS';console.log(JSON.stringify({result:report.result,variants:report.variants,output}));
 }catch(error){report.result='FAIL';report.failure=error.stack;throw error;}
 finally{await writeFile(`${output}/report.json`,JSON.stringify(report,null,2));await browser?.close();server.server.closeAllConnections?.();await new Promise(resolve=>server.server.close(resolve));}

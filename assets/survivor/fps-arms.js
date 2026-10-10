@@ -4,7 +4,8 @@ import {installViewmodelDepthBoundary} from './viewmodel-depth.js';
 import {FIRST_PERSON_HOLD_POSES} from './viewmodel-hold-poses.js';
 import {FPS_GRIP_PROFILES} from './fps-grip-profiles.js';
 
-export const FPS_ARM_URL=new URL('./fps-arms-v3.glb',import.meta.url).href;
+export const FPS_ARM_REVISION=5;
+export const FPS_ARM_URL=new URL('./fps-arms-v5.glb',import.meta.url).href;
 const clamp=THREE.MathUtils.clamp;
 
 function garmentEnvelope(rig,name,side,upper,lower){
@@ -46,7 +47,7 @@ export function installFPSArms(renderer,asset){
    if(c){const v=new THREE.Color();for(let i=0;i<c.count;i++){v.setRGB(c.getX(i),c.getY(i),c.getZ(i)).convertLinearToSRGB();c.setXYZ(i,v.r,v.g,v.b);}c.needsUpdate=true;}
    if(!o.geometry.attributes.uv){const p=o.geometry.attributes.position,uv=new Float32Array(p.count*2);for(let i=0;i<p.count;i++){uv[i*2]=p.getX(i)*5;uv[i*2+1]=p.getY(i)*5;}o.geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));}
    o.material=(Array.isArray(o.material)?o.material:[o.material]).map(m=>{
-    if(!owned.has(m)){const copy=m.clone();copy.side=THREE.FrontSide;copy.userData={...copy.userData,authoredHeroSurface:true};owned.set(m,copy);}return owned.get(m);
+    if(!owned.has(m)){const copy=m.clone();copy.side=THREE.FrontSide;copy.userData={...copy.userData,authoredHeroSurface:true,surfaceRole:o.name.startsWith('FPSGlove_')?'authored-glove':'authored-canvas'};owned.set(m,copy);}return owned.get(m);
    });if(o.material.length===1)o.material=o.material[0];
   });
   // Each side keeps its own rendered subtree for blood/severing. The complete
@@ -61,7 +62,8 @@ export function installFPSArms(renderer,asset){
   state.scratch.clothDelta=new THREE.Quaternion();
   state.scratch.clothBind=new THREE.Quaternion();
   rig.traverse(o=>{if(o.isBone)state.sampled.push({bone:o,position:o.position.clone(),quaternion:o.quaternion.clone(),scale:o.scale.clone()});});
-  for(const clip of clips){const action=state.mixer.clipAction(clip);action.setLoop(THREE.LoopOnce,1);action.clampWhenFinished=true;state.actions.set(clip.name.split('/')[1],{action,duration:clip.duration});}
+  for(const clip of clips){const action=state.mixer.clipAction(clip);action.setLoop(THREE.LoopOnce,1);action.clampWhenFinished=true;state.actions.set(clip.name.split('/')[1],{action,duration:clip.duration,
+   samplers:clip.tracks.map(track=>({binding:THREE.PropertyBinding.create(rig,track.name),interpolant:track.createInterpolant()}))});}
   group.userData.viewArms={};group.updateWorldMatrix(true,true);
   for(const side of ['right','left']){
    const wrapper=rig.getObjectByName('FPS_'+name+'_'+side);if(!wrapper)continue;
@@ -70,7 +72,7 @@ export function installFPSArms(renderer,asset){
    if(!upper?.isBone||!lower?.isBone||!hand?.isBone||!grip)throw new Error('Invalid FPS chain/socket: '+name+'/'+side);
    grip.updateWorldMatrix(true,false);hand.updateWorldMatrix(true,false);
    const offset=grip.matrixWorld.clone().invert().multiply(hand.matrixWorld);
-   wrapper.userData.side=side==='right'?1:-1;wrapper.userData.viewmodelSource='blender-skinned-fps-v3';
+   wrapper.userData.side=side==='right'?1:-1;wrapper.userData.viewmodelSource='blender-skinned-fps-v5';
    const mcp=rig.getObjectByName(prefix+'Middle0'),wristAxis=hand.getWorldPosition(new THREE.Vector3()).sub(mcp.getWorldPosition(new THREE.Vector3())).normalize().applyQuaternion(hand.getWorldQuaternion(new THREE.Quaternion()).invert());
    const localPoint=bone=>rig.worldToLocal(bone.getWorldPosition(new THREE.Vector3()));
    const bindForearm=localPoint(lower).sub(localPoint(hand)).normalize(),bindUpper=localPoint(upper).sub(localPoint(lower)).normalize();
@@ -132,7 +134,7 @@ function seatGrip(state,arm){
  const capLimit=clamp((-arm.capMargin-q.axis.dot(q.old))/(a*arm.garmentReach),-1,1);
  if(q.axis.dot(q.next)>capLimit){q.d.copy(q.next).addScaledVector(q.axis,-q.axis.dot(q.next));if(q.d.lengthSq()<1e-10)q.d.set(1,0,0);q.next.copy(q.axis).multiplyScalar(capLimit).addScaledVector(q.d.normalize(),Math.sqrt(1-capLimit*capLimit));}
  q.next.multiplyScalar(a).add(q.goal).sub(q.s);upper.parent.getWorldQuaternion(q.parent);q.next.applyQuaternion(q.parent.invert());upper.parent.getWorldScale(q.scale);q.next.divide(q.scale);upper.position.add(q.next);upper.updateWorldMatrix(true,true);upper.getWorldPosition(q.s);lower.getWorldPosition(q.e);
- const rotate=(bone,from,to)=>{q.delta.setFromUnitVectors(from.normalize(),to.normalize());bone.parent.getWorldQuaternion(q.parent);q.local.copy(q.parent).invert().multiply(q.delta).multiply(q.parent).multiply(bone.quaternion);bone.quaternion.copy(q.local);bone.updateWorldMatrix(true,true);};
+ const rotate=(bone,from,to)=>{q.delta.setFromUnitVectors(from.normalize(),to.normalize());bone.parent.getWorldQuaternion(q.parent);q.local.copy(q.parent).invert().multiply(q.delta).multiply(q.parent).multiply(bone.quaternion);bone.quaternion.copy(q.local).normalize();bone.updateWorldMatrix(true,true);};
  rotate(upper,q.old.copy(q.e).sub(q.s),q.next.copy(q.goal).sub(q.s));
  lower.getWorldPosition(q.e);hand.getWorldPosition(q.w);rotate(lower,q.old.copy(q.w).sub(q.e),q.next.copy(q.position).sub(q.e));
  hand.parent.getWorldQuaternion(q.parent).normalize();hand.quaternion.copy(q.parent.invert().multiply(q.rotation)).normalize();hand.updateWorldMatrix(true,true);
@@ -145,13 +147,14 @@ function seatGrip(state,arm){
   lower.getWorldQuaternion(q.clothDelta);q.clothDelta.multiply(q.clothBind);
   q.delta.slerp(q.clothDelta,.5);
   q.clothBind.copy(q.rigRotation).multiply(arm.clothBindRotation);q.delta.multiply(q.clothBind);
-  arm.cloth.parent.getWorldQuaternion(q.parent);arm.cloth.quaternion.copy(q.parent.invert().multiply(q.delta));arm.cloth.updateWorldMatrix(true,true);
+  arm.cloth.parent.getWorldQuaternion(q.parent);arm.cloth.quaternion.copy(q.parent.invert().multiply(q.delta)).normalize();arm.cloth.updateWorldMatrix(true,true);
  }
  arm.gap=hand.getWorldPosition(q.w).distanceTo(q.position);
 }
 
-export function sampleFPSClip(group,phase,seconds){
+export function sampleFPSClip(group,phase,seconds,blend=false){
  const s=group?.userData.authoredFPS;if(!s)return false;
+ if(!blend)s.transition=null;
  const clip=s.actions.get(phase)||s.actions.get('idle');
  for(const p of s.sampled){p.bone.position.copy(p.position);p.bone.quaternion.copy(p.quaternion);p.bone.scale.copy(p.scale);}
  if(s.phase!==phase){s.mixer.stopAllAction();clip.action.reset().play();s.phase=phase;}
@@ -160,7 +163,22 @@ export function sampleFPSClip(group,phase,seconds){
  // after a completed attack, or when a second attack rewinds the same phase.
  if(clip.action.paused||time<(s.sampleTime??-1))clip.action.reset().play();
  s.sampleTime=time;
- s.mixer.setTime(time);
+ // Evaluate every authored track even when the absolute time repeats. Mixer
+ // property caches can skip a write after a transition or IK edited the bone,
+ // leaving the previous blended pose in place instead of the authored pose.
+ for(const sampler of clip.samplers)sampler.binding.setValue(sampler.interpolant.evaluate(time),0);
+ for(const p of s.sampled)p.bone.quaternion.normalize();
+ // Blend authored local bone poses before solving contacts. Store the blended
+ // performance, never the solved IK pose, so a transition cannot accumulate.
+ if(s.transition){
+  const f=clamp((s.elapsed-s.transition.started)/s.transition.duration,0,1),weight=f*f*(3-2*f);
+  for(let i=0;i<s.sampled.length;i++){
+   const bone=s.sampled[i].bone,from=s.transition.poses[i];
+   bone.position.lerpVectors(from.position,bone.position,weight);
+   bone.quaternion.slerpQuaternions(from.quaternion,s.scratch.local.copy(bone.quaternion),weight);
+  }
+  if(f===1)s.transition=null;
+ }
  for(const p of s.sampled){p.position.copy(p.bone.position);p.quaternion.copy(p.bone.quaternion);p.scale.copy(p.bone.scale);}
  group.updateWorldMatrix(true,true);for(const arm of s.arms)seatGrip(s,arm);
  // SkinnedMesh updates its inverse world bind in updateMatrixWorld. Make
@@ -176,12 +194,18 @@ export function updateFPSArms(group,run,presentation,dt){
  else if(s.index<6&&Math.min(presentation.shotAge,presentation.attachmentAge??10)<.5){phase='fire';time=Math.min(presentation.shotAge,presentation.attachmentAge??10);}
  else if(s.index>=6&&run.meleeActive){phase='strike';time=run.meleeProgress||0;}
  else if((run.speed||0)>.15){phase='walk';time=(run.distance||0)*1.1;}
- return sampleFPSClip(group,phase,time);
+ if(s.phase!==phase){
+  // A trigger/impact remains immediate. Breathing, gait and equip recovery
+  // ease between performances instead of snapping to another clip's frame 0.
+  s.transition=phase==='fire'||phase==='strike'?null:{started:s.elapsed,duration:phase==='draw'?.065:.12,
+   poses:s.sampled.map(p=>({position:p.position.clone(),quaternion:p.quaternion.clone()}))};
+ }
+ return sampleFPSClip(group,phase,time,true);
 }
 
 export function fpsGripDiagnostics(group){
  const s=group?.userData.authoredFPS;if(!s)return null;const v=new THREE.Vector3(),w=new THREE.Vector3(),matrix=new THREE.Matrix4(),rotation=new THREE.Quaternion(),actual=new THREE.Quaternion(),scale=new THREE.Vector3();
- return {source:'Blender weighted FPS v3',phase:s.phase,arms:s.arms.map(a=>{
+ return {source:'Blender weighted FPS v5',phase:s.phase,arms:s.arms.map(a=>{
   a.grip.updateWorldMatrix(true,false);matrix.multiplyMatrices(a.grip.matrixWorld,a.offset).decompose(v,rotation,scale);
   const handRotation=a.hand.getWorldQuaternion(actual).normalize(),axis=a.wristAxis.clone().applyQuaternion(handRotation),forearm=a.lower.getWorldPosition(v).sub(a.hand.getWorldPosition(w)).normalize();
   return {side:a.side,gap:a.gap,rotationGap:rotation.normalize().angleTo(handRotation),wristDegrees:THREE.MathUtils.radToDeg(Math.acos(clamp(axis.dot(forearm),-1,1))),wristLimitDegrees:THREE.MathUtils.radToDeg(a.wristLimit),upperMetres:a.upper.getWorldPosition(v).distanceTo(a.lower.getWorldPosition(w)),forearmMetres:a.lower.getWorldPosition(v).distanceTo(a.hand.getWorldPosition(w))};

@@ -7,7 +7,7 @@ import {createAuthoredCottagePlan,coversAuthoredCottageCurtainWindow} from './co
 import {createCape75Structure,compileCape75Structure,refreshCape75StructureDiagnostics,CAPE75_REPLACED_WALL_ROLES,CAPE75_REPLACED_FLOOR_ROLES} from './cape75-structure.js';
 import {createCape75UpstairsArtPlan,compileCape75UpstairsArt} from './cape75-upstairs-art.js';
 import {createEntranceDetailPlan,compileEntranceDetails} from './entrances.js';
-import {districtAnatomy,compileDistrictAnatomy,compileWorksHallFacade,compileCivicHallFacade} from './district-anatomy.js';
+import {districtAnatomy,compileDistrictAnatomy,compileWorksHallFacade,compileCivicHallFacade,compileOldtownFacades,createDistrictUpperMassPlan,compileDistrictUpperMass} from './district-anatomy.js';
 import {compileDistrictSkyline} from './skyline.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -27,7 +27,17 @@ function settings(options = {}) {
   const width = Math.max(8, Number(options.width) || (kind === 'house' ? 10 : 16));
   const depth = Math.max(8, Number(options.depth) || 12);
   const height = Math.max(kind === 'house' ? 6.4 : 7, Number(options.height) || (kind === 'house' ? 8.7 : 11));
-  return { kind, width, depth, height, seed: Number(options.seed) || 1042, enterable: Boolean(options.enterable), doorOffset: clamp(Number(options.doorOffset ?? 2), -width / 2 + 2.5, width / 2 - 2.5), label: options.label || (kind === 'corner' ? 'COASTAL PHARMACY' : kind === 'house' ? '26' : 'HARBOR STORES') };
+  return { kind, width, depth, height, districtProfile:options.districtProfile||null, seed: Number(options.seed) || 1042, enterable: Boolean(options.enterable), doorOffset: clamp(Number(options.doorOffset ?? 2), -width / 2 + 2.5, width / 2 - 2.5), label: options.label || (kind === 'corner' ? 'COASTAL PHARMACY' : kind === 'house' ? '26' : 'HARBOR STORES'),...(options.failedClosure===true?{failedClosure:true}:{}),...(options.groundCornerJoin===true?{groundCornerJoin:true}:{}) };
+}
+
+// Same front-right display frame and horizontal sash used by shop/windowModule.
+// Pure anchor planning lets sparse exterior dressing borrow real attachment
+// authority without compiling a second building or guessing a facade bay.
+export function createFailedClosurePlan(options = {}) {
+ const s=settings(options),doorRight=s.doorOffset+2,bayWidth=s.width/2-doorRight;
+ if(s.kind==='house'||bayWidth<=1.1)return null;
+ const openingWidth=bayWidth-.75,along=doorRight+bayWidth/2,sashY=1.69+.14;
+ return {bay:{along,width:openingWidth,y:1.69,height:1.78},anchor:[along+(openingWidth-.07)/2,sashY,s.depth/2-.19],roll:.05,retainedAttachment:'right window jamb',releasedAttachment:'left window jamb'};
 }
 
 // Planning precedes geometry: the same furniture plan drives collision and mesh.
@@ -36,6 +46,7 @@ export function createBuildingPlan(options = {}) {
   const anatomy=districtAnatomy(s);
   const floors = s.kind === 'house' ? 2 : /APARTMENTS/.test(s.label)?clamp(Math.round((s.height-3.5)/3.1),1,6)+1:clamp(Math.round((s.height - 3.5) / 3.1), 1, 3) + 1;
   const upperFloorHeight = s.kind === 'house' ? (s.height - 1.45) / 2 : (s.height - 3.5) / (floors - 1);
+  const upperMassPlan=createDistrictUpperMassPlan(s,floors,upperFloorHeight);
   const purpose=interiorPurpose(s),familyHouse=s.kind==='house'&&purpose.id==='family-home',pharmacy=purpose.id==='pharmacy';
   const furniture = familyHouse?createHouseFurniturePlan(s,upperFloorHeight):pharmacy&&s.enterable ? [
     { id: 'left-wall-shelving', position: [-s.width / 2 + .72, 1.04, 0], size: [.95, 2.08, s.depth - 2.2], slot: 'wood' },
@@ -71,7 +82,7 @@ export function createBuildingPlan(options = {}) {
     ...(s.kind === 'corner' ? [{ side: 'right', floor: Math.min(floors - 1, 2), bay: 0, cause: 'exposed corner after impact' }] : []),
   ]:[];
   const doorHeight=s.kind==='house'?upperFloorHeight-.17:2.8;
-  return { settings: s, anatomy, floors, upperFloorHeight,purpose,familyHouse,authoredCottage,structure,upstairsArt,entrances:createEntranceDetailPlan(s,doorHeight),routeFolio:upstairsArt?.routeFolio??null, residentialVariant: s.kind === 'house' ? Math.abs(s.seed) % 3 : null, damage,focalCollapse, roofVariant: Math.abs(s.seed) % 3, exposedEdges, furniture, rooms:s.enterable?(s.kind==='house'?[{id:familyHouse?'family-livingroom':`${purpose.id}-livingroom`,z:[0,s.depth/2-1.65]},{id:familyHouse?'family-kitchen':`${purpose.id}-bedroom-kitchen`,z:[-s.depth/2,0]}]:[{id:`${purpose.id}-public-room`,z:[0,s.depth/2]},{id:`${purpose.id}-service-room`,z:[-s.depth/2,0]}]):[],door: { center: [s.doorOffset, doorHeight/2, s.depth / 2], width: 4, height: doorHeight },rearDoor:s.enterable&&!pharmacy?{center:[s.doorOffset,doorHeight/2,-s.depth/2],width:4,height:doorHeight}:null,reservedZones: [{ role: 'entry-passage', x: [s.doorOffset - 2, s.doorOffset + 2], z: [-s.depth / 2+(pharmacy?1.2:0), s.depth / 2] }] };
+  return { settings: s, anatomy, floors, upperFloorHeight,upperMassPlan,purpose,familyHouse,authoredCottage,structure,upstairsArt,entrances:createEntranceDetailPlan(s,doorHeight),routeFolio:upstairsArt?.routeFolio??null, residentialVariant: s.kind === 'house' ? Math.abs(s.seed) % 3 : null, damage,focalCollapse, roofVariant: Math.abs(s.seed) % 3, exposedEdges, furniture, rooms:s.enterable?(s.kind==='house'?[{id:familyHouse?'family-livingroom':`${purpose.id}-livingroom`,z:[0,s.depth/2-1.65]},{id:familyHouse?'family-kitchen':`${purpose.id}-bedroom-kitchen`,z:[-s.depth/2,0]}]:[{id:`${purpose.id}-public-room`,z:[0,s.depth/2]},{id:`${purpose.id}-service-room`,z:[-s.depth/2,0]}]):[],door: { center: [s.doorOffset, doorHeight/2, s.depth / 2], width: 4, height: doorHeight },rearDoor:s.enterable&&!pharmacy?{center:[s.doorOffset,doorHeight/2,-s.depth/2],width:4,height:doorHeight}:null,reservedZones: [{ role: 'entry-passage', x: [s.doorOffset - 2, s.doorOffset + 2], z: [-s.depth / 2+(pharmacy?1.2:0), s.depth / 2] }],...(s.failedClosure?{failedClosure:createFailedClosurePlan(s)}:{}) };
 }
 
 export function architectureColliders(options = {}) {
@@ -81,7 +92,7 @@ export function architectureColliders(options = {}) {
 function compiler(materials) {
   const slots = new Map(), counts = {}, trianglesPerModule={}, structuralBounds=new Map(), placements = [];
   const matrix = new THREE.Matrix4(), quaternion = new THREE.Quaternion(), euler = new THREE.Euler();
-  function append(slot, geometry, position, rotation = [0, 0, 0], role = 'structure') {
+  function append(slot, geometry, position, rotation = [0, 0, 0], role = 'structure', roofFrame = null) {
     if (!geometry.index) geometry.setIndex(Array.from({length: geometry.attributes.position.count}, (_, i) => i));
     const uv = geometry.getAttribute('uv');
     const p = geometry.getAttribute('position'), n = geometry.getAttribute('normal');
@@ -93,6 +104,19 @@ function compiler(materials) {
         else if (nx > nz) uv.setXY(i, p.getZ(i) / metres, p.getY(i) / metres);
         else uv.setXY(i, p.getX(i) / metres, p.getY(i) / metres);
       }
+    }
+    // Owned roof-slot pieces carry one consistent schema through both merges.
+    // Coordinates are physical primitive/plane metres, before placement yaw.
+    if (slot === 'roof' || slot === 'roofZinc') {
+      const data = new Float32Array(p.count * 4);
+      if (roofFrame) for (let i = 0; i < p.count; i++) {
+        if (roofFrame.topOnly && n.getY(i) < .5) continue;
+        const dx = p.getX(i) - roofFrame.eave[0], dy = p.getY(i) - roofFrame.eave[1], dz = p.getZ(i) - roofFrame.eave[2];
+        data[i * 4] = dx * roofFrame.along[0] + dy * roofFrame.along[1] + dz * roofFrame.along[2];
+        data[i * 4 + 1] = dx * roofFrame.up[0] + dy * roofFrame.up[1] + dz * roofFrame.up[2];
+        data[i * 4 + 2] = roofFrame.run; data[i * 4 + 3] = roofFrame.type;
+      }
+      geometry.setAttribute('roofPlane', new THREE.BufferAttribute(data, 4));
     }
     euler.set(...rotation); quaternion.setFromEuler(euler);
     matrix.compose(new THREE.Vector3(...position), quaternion, new THREE.Vector3(1, 1, 1));
@@ -115,9 +139,9 @@ function compiler(materials) {
     trianglesPerModule[role]=(trianglesPerModule[role]||0)+geometry.index.count/3;
     placements.push({ role, slot, position: [...position], rotation: [...rotation] });
   }
-  function box(slot, position, size, rotation = [0, 0, 0], role = 'structure') {
+  function box(slot, position, size, rotation = [0, 0, 0], role = 'structure', roofFrame = null) {
     if (size.some(value => !Number.isFinite(value) || value <= .001)) return;
-    append(slot, new THREE.BoxGeometry(...size), position, rotation, role);
+    append(slot, new THREE.BoxGeometry(...size), position, rotation, role, roofFrame);
   }
   function cylinder(slot, a, b, radius = .04, role = 'utility') {
     const start = new THREE.Vector3(...a), end = new THREE.Vector3(...b);
@@ -126,12 +150,12 @@ function compiler(materials) {
     geometry.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize()));
     append(slot, geometry, start.add(end).multiplyScalar(.5).toArray(), [0, 0, 0], role);
   }
-  function triangle(slot, points, role = 'facade') {
+  function triangle(slot, points, role = 'facade', roofFrame = null) {
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(points.flat(), 3));
     geometry.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 1, 0, .5, 1], 2));
     geometry.setIndex([0, 1, 2]); geometry.computeVertexNormals();
-    append(slot, geometry, [0, 0, 0], [0, 0, 0], role);
+    append(slot, geometry, [0, 0, 0], [0, 0, 0], role, roofFrame);
   }
   function finish(root) {
     const geometries = [], triangles = {}, meshes = [];
@@ -179,7 +203,7 @@ function facadeFrame(side, width, depth) {
   } };
 }
 
-function windowModule(w, face, along, y, width, height, boarded, broken, rng, slot = 'pale', interior = false) {
+function windowModule(w, face, along, y, width, height, boarded, broken, rng, slot = 'pale', interior = false, failedClosure = false) {
   // Dark reveal is 22 cm behind the trim; panes never sit on the wall plane.
   face.box(w, 'dark', along, y, -.3, [width, height, .055], 'window-recess');
   face.box(w, slot, along - width / 2 - .065, y, -.075, [.13, height + .27, .15], 'window-jamb');
@@ -187,7 +211,16 @@ function windowModule(w, face, along, y, width, height, boarded, broken, rng, sl
   face.box(w, slot, along, y + height / 2 + .09, -.075, [width + .3, .18, .15], 'window-lintel');
   face.box(w, 'pale', along, y - height / 2 - .1, -.10, [width + .4, .2, .20], 'window-sill');
   face.box(w, 'wood', along, y, -.19, [.07, height - .08, .07], 'window-mullion');
-  face.box(w, 'wood', along, y + .14, -.19, [width - .07, .065, .07], 'window-sash');
+  if(failedClosure){
+    const anchor=along+(width-.07)/2,sashY=y+.14,roll=.05,arm=along-anchor;
+    face.box(w,'wood',anchor+arm*Math.cos(roll),sashY+arm*Math.sin(roll),-.19,[width-.07,.065,.07],'failed-attached-glazing-sash',roll);
+    // Real sash front edge captures the upper fold; loose cloth hangs inside
+    // the open glazing bay, above the unchanged solid lower plinth.
+    const a=face.point(anchor-.11,sashY+.025,-.155),b=face.point(anchor+.025,sashY-.008,-.155),
+      c=face.point(anchor+.04,sashY-.26,-.08),d=face.point(anchor-.10,sashY-.24,-.08),
+      e=face.point(anchor-.025,sashY-.58,.025),f=face.point(anchor-.14,sashY-.55,.015);
+    for(const tri of[[a,d,b],[b,d,c],[d,f,c],[c,f,e]]){w.triangle('fabric',tri,'closure-caught-folded-cloth');w.triangle('fabric',[...tri].reverse(),'closure-caught-folded-cloth');}
+  }else face.box(w, 'wood', along, y + .14, -.19, [width - .07, .065, .07], 'window-sash');
   const paneWidth = width / 2 - .07, paneHeight = height / 2 - .06;
   for (let column = 0; column < 2; column++) for (let row = 0; row < 2; row++) {
     const paneX = along + (column ? 1 : -1) * width / 4;
@@ -202,7 +235,8 @@ function windowModule(w, face, along, y, width, height, boarded, broken, rng, sl
   if (boarded) {
     for (let i = 0; i < 3; i++) {
       const plankY = y - height * .30 + i * height * .3;
-      face.box(w, 'wood', along + (rng() - .5) * .12, plankY, -.04, [width + .22, .21 + rng() * .07, .075], 'boarded-window', (rng() - .5) * .1);
+      const offset=(rng()-.5)*.12,plankHeight=.21+rng()*.07,oldRoll=(rng()-.5)*.1;
+      face.box(w,'wood',along+offset,plankY,-.04,[width+.22,plankHeight,.075],'boarded-window',oldRoll);
       face.box(w, 'rust', along - width * .38, plankY, -.015, [.026, .026, .012], 'board-nail');
       face.box(w, 'rust', along + width * .38, plankY, -.015, [.026, .026, .012], 'board-nail');
     }
@@ -243,9 +277,9 @@ function interiorWindowModule(w,face,along,y,width,height,boarded){
   face.box(w,'metal',along,y+height/2+.14,-.59,[width+.52,.025,.026],'interior-curtain-rod');
 }
 
-function wallWithWindows(w, face, y0, height, count, rng, material = 'brick', house = false, damageBay = -1, interior = false,skipBays=[]) {
+function wallWithWindows(w, face, y0, height, count, rng, material = 'brick', house = false, damageBay = -1, interior = false,skipBays=[],windowWidthLimit=null) {
   const bay = face.span / count;
-  const windowWidth = Math.min(house ? 1.18 : 1.30, bay - .65);
+  const windowWidth = Math.min(windowWidthLimit??(house ? 1.18 : 1.30), bay - .65);
   const windowHeight = Math.min(1.72, height - .95);
   const y = y0 + height * .51;
   // Infill around apertures, rather than a box hidden behind glass.
@@ -413,7 +447,12 @@ function shop(w, plan, rng) {
   for (const side of ['left', 'right', 'back']) {
     const face = facadeFrame(side, s.width, s.depth);
     if(side==='back'&&plan.rearDoor)shopRearDoorWall(w,face,s);
-    else face.box(w, 'masonry', 0, 1.75, -.18, [face.span, 3.5, .36], 'ground-floor-wall');
+    else {
+      // The existing front brick pier owns the last .36m at this corner.
+      // Left/right frame axes point in opposite longitudinal directions.
+      const joined=s.groundCornerJoin&&side!=='back',along=joined?(side==='left'?-.18:.18):0;
+      face.box(w, 'masonry', along, 1.75, -.18, [face.span-(joined?.36:0), 3.5, .36], 'ground-floor-wall');
+    }
     // Service entrances and vents sit on the exterior, away from the front portal.
     if (side === 'back'&&!plan.rearDoor) {
       face.box(w, 'metal', -s.width / 2 + 1.8, 1.1, -.03, [1.2, 2.18, .06], 'service-door');
@@ -422,19 +461,26 @@ function shop(w, plan, rng) {
   }
   const doorLeft = s.doorOffset - 2, doorRight = s.doorOffset + 2;
   const leftWidth = doorLeft + s.width / 2, rightWidth = s.width / 2 - doorRight;
+  const plinthSlot=['brick-mansard','stucco-bay'].includes(s.districtProfile)||['EAST END LAUNDRY','LAST STOP GROCER'].includes(s.label)?'masonry':'brick';
   front.box(w, 'brick', 0, 3.15, -.18, [s.width, .70, .36], 'shop-lintel');
   for (const [start, width] of [[-s.width / 2, leftWidth], [doorRight, rightWidth]]) {
     const x = start + width / 2;
     const openingWidth = Math.max(.1, width - .75);
-    front.box(w, 'brick', x, .40, -.18, [width, .8, .36], 'shop-plinth');
+    front.box(w, plinthSlot, x, .40, -.18, [width, .8, .36], 'shop-plinth');
     front.box(w, 'brick', start + .19, 1.75, -.18, [.38, 3.5, .36], 'shop-pier');
     front.box(w, 'brick', start + width - .19, 1.75, -.18, [.38, 3.5, .36], 'shop-pier');
-    if (width > 1.1) windowModule(w, front, x, 1.69, openingWidth, 1.78, rng()<.55, true, rng, 'metal');
+    if (width > 1.1) windowModule(w, front, x, 1.69, openingWidth, 1.78, rng()<.55, true, rng, s.label==='LAST STOP GROCER'?'wood':s.label==='EAST END LAUNDRY'?'pale':'metal',false,s.failedClosure&&start===doorRight);
     else front.box(w, 'brick', x, 1.75, -.18, [width, 3.5, .36], 'narrow-shop-pier');
   }
   front.box(w, 'metal', doorLeft - .07, 1.4, -.07, [.14, 2.8, .14], 'door-frame');
   front.box(w, 'metal', doorRight + .07, 1.4, -.07, [.14, 2.8, .14], 'door-frame');
   front.box(w, 'metal', s.doorOffset, 2.87, -.07, [4.28, .14, .14], 'door-frame');
+  if(['laundry-order','grocer-arches'].includes(plan.anatomy.facade)){
+   const slot=plan.anatomy.facade==='laundry-order'?'pale':'wood';
+   for(const x of [doorLeft-.15,doorRight+.15])front.box(w,slot,x,1.40,-.16,[.22,2.80,.30],'oldtown-deep-entry-bearing-jamb');
+   front.box(w,slot,s.doorOffset,3.00,-.16,[4.72,.32,.30],'oldtown-deep-entry-architrave');
+   front.box(w,'pale',s.doorOffset,3.24,-.15,[4.90,.16,.28],'oldtown-entry-cornice');
+  }
   if (!s.enterable) front.box(w, 'dark', s.doorOffset, 1.37, -.24, [3.75, 2.68, .05], 'closed-door');
   else {
     // Displaced sliding door is parked beside the opening, not across it.
@@ -443,7 +489,10 @@ function shop(w, plan, rng) {
   }
   if(plan.anatomy.facade==='works-hall')compileWorksHallFacade(w,plan,facadeFrame);
   if(plan.anatomy.facade==='civic-hall')compileCivicHallFacade(w,plan,facadeFrame);
-  for (let floor = 1; !['works-hall','civic-hall'].includes(plan.anatomy.facade)&&floor < plan.floors; floor++) {
+  if(['laundry-order','grocer-arches'].includes(plan.anatomy.facade))compileOldtownFacades(w,plan,facadeFrame,wallWithWindows,rng);
+  if(plan.upperMassPlan)compileDistrictUpperMass(w,plan,facadeFrame,wallWithWindows,rng);
+  if(!plan.upperMassPlan){
+  for (let floor = 1; !['works-hall','civic-hall','laundry-order','grocer-arches'].includes(plan.anatomy.facade)&&floor < plan.floors; floor++) {
     const y0 = 3.5 + (floor - 1) * plan.upperFloorHeight;
     for (const side of ['front', 'left', 'right', 'back']) {
       const face = facadeFrame(side, s.width, s.depth);
@@ -492,7 +541,7 @@ function shop(w, plan, rng) {
     for(const [start,end]of [[-s.width/2+.2,left],[right,s.width/2-.2]])w.box('roof',[(start+end)/2,s.height-.1,(minZ+maxZ)/2],[end-start,.18,maxZ-minZ],[0,0,0],'roof-deck');
     w.box('roof',[(left+right)/2,s.height-.1,(minZ+backEdge)/2],[right-left,.18,backEdge-minZ],[0,0,0],'collapse-surviving-rear-roof');
   }else w.box('roof', [0, s.height -.1, 0], [s.width - .4, .18, s.depth - .4], [0, 0, 0], 'roof-deck');
-  const roofHasAuthoredMass=plan.anatomy.family==='civic'||plan.anatomy.roof.startsWith('civic-neighbor-');
+  const roofHasAuthoredMass=plan.anatomy.family==='civic'||plan.anatomy.roof.startsWith('civic-neighbor-')||['merchant-gable','laundry-gable'].includes(plan.anatomy.roof);
   if(plan.roofVariant===0&&!collapse&&!roofHasAuthoredMass){
     // A shallow stepped parapet changes the silhouette without raising the
     // authoritative building height or adding a blocking ground mass.
@@ -507,6 +556,7 @@ function shop(w, plan, rng) {
   if(!roofHasAuthoredMass){
    w.box('metal', [-s.width * .27, s.height + .24, -s.depth * .16], [1.8, .52, 1.2], [0, 0, 0], 'roof-vent');
    for (let i = 0; i < 7; i++) w.box('dark', [-s.width * .27, s.height + .508, -s.depth * .16 - .47 + i * .15], [1.5, .016, .035], [0, 0, 0], 'roof-vent-grille');
+  }
   }
   // Faded canopy projects 90 cm. Steel braces visibly carry its weight.
   const canopyWidth=s.width-.38;
@@ -914,3 +964,4 @@ export function createModel(options = {}) {
     },
   };
 }
+
