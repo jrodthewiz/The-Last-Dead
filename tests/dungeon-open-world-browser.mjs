@@ -29,7 +29,7 @@ try{
   };
  });
  page.on('pageerror',e=>report.errors.push(String(e)));page.on('console',m=>{if(m.type()==='error'){report.errors.push(m.text());console.log('GPU ERROR',m.text());}});page.on('response',r=>{if(r.status()>=400)report.httpErrors.push({url:r.url(),status:r.status()});});
- await page.goto(`${gameUrl}?debug=1&horrorqa=1&worldSeed=7317`);
+ await page.goto(`${gameUrl}?dev=1&debug=1&horrorqa=1&worldSeed=7317`);
  await page.waitForFunction(()=>window.__DEAD_ARRIVAL__,null,{timeout:90000});
  await page.locator('[data-action="start"]').click();
  await page.waitForFunction(()=>window.__DEAD_ARRIVAL__.screen==='play',null,{timeout:480000});

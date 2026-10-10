@@ -9,6 +9,9 @@ test('full island overview fits landscape and portrait cameras while preserving 
   assert.equal(flight.overview(course,aspect),true);
   const span=2*(flight.pose.y-24)*Math.tan(75*Math.PI/360);
   assert(span>course.h*4);assert(span*aspect>course.w*4);
+  // The bodycam's narrowest centre-edge crop is ~0.68; reserve another
+  // 10% of the frame for the control bar rather than fitting only raw FOV.
+  assert(span*.68*.9>course.h*4);assert(span*aspect*.68*.9>course.w*4);
   assert.equal(flight.pose.x,224);assert.equal(flight.pose.z,208);assert(flight.pose.pitch<-1.5);
  }
  flight.reset();assert.deepEqual(flight.pose,origin);assert.equal(flight.overview({dungeon:true,w:112,h:104}),false);

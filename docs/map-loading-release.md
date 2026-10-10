@@ -15,13 +15,15 @@ Owned Chrome, native WebGPU, 1280 × 800, DPR 1. Default adaptive exposure; no r
 | View | Median frame | 95th percentile |
 | --- | ---: | ---: |
 | Island entry | 20.9 ms | 34.7 ms |
-| Full island overview | 27.8 ms | 34.8 ms |
+| Full island overview, including outer cliffs and control-bar margin | 34.6 ms | 35.3 ms |
 | Aerial flight | 34.6 ms | 41.7 ms |
 | Dungeon inspection | 7.1 ms | 14.0 ms |
 
-Cold loading took approximately 59 seconds for island inspection and 41 seconds for dungeon inspection on this desktop. These are measured desktop results, not a mobile or universal FPS guarantee.
+Cold loading took approximately 59–75 seconds for island inspection and 41 seconds for dungeon inspection on this desktop. The deployed-map run took 88 seconds for the island and 65 seconds for the dungeon, with no JavaScript or HTTP errors. These are measured desktop results, not a mobile or universal FPS guarantee.
 
-57 targeted loading, input, camera, vegetation and lifecycle checks passed. Core engine/AI checks, WebRTC, production serving, cache policy and signaling checks also passed. Browser journeys reported no JavaScript or HTTP errors.
+The complete overview retains all 562 trees in 12 coarse instance draws. CPU profiling measured approximately 30 ms for the renderer and 0.63 ms for world updates. Reducing resolution to 75% did not improve that run, so inspection keeps full resolution. Background load also produced slower runs; the measurements above are not a minimum FPS promise.
+
+59 targeted loading, input, camera, vegetation and lifecycle checks passed. Core engine/AI checks, WebRTC, production serving, cache policy and signaling checks also passed. Browser journeys reported no JavaScript or HTTP errors.
 
 Reproduce using local Playwright or the explicit project-supported `PLAYWRIGHT_PATH` and `CHROME_PATH` overrides:
 

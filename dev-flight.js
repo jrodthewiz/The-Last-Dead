@@ -14,8 +14,9 @@ export class DevFlight {
     if (!course?.coastal || !Number.isFinite(aspect) || aspect <= 0) return false;
     const width = course.w * 4, depth = course.h * 4;
     if (!(width > 0 && depth > 0)) return false;
-    // Match free camera's vertical FOV and fit either viewport orientation.
-    const height = Math.max(depth, width / aspect) / (2 * Math.tan(75 * Math.PI / 360)) * 1.15 + 24;
+    // Fit the 75-degree camera with room for the bodycam lens, cliff edges,
+    // and inspection controls. The output lens crops more than the raw frustum.
+    const height = Math.max(depth, width / aspect) / (2 * Math.tan(75 * Math.PI / 360)) * 1.7 + 24;
     this.pose = { x: width / 2, y: height, z: depth / 2, angle: Math.PI / 2, pitch: -Math.PI / 2 + .01 };
     return true;
   }
