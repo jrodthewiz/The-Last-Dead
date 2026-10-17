@@ -1,5 +1,6 @@
 export function itemIcon(id){
  const paths={
+ 'keeper-fuse':'<path d="M13 34h38v20H13z" fill="#c5b58a"/><path d="M8 31h11v26H8zM45 31h11v26H45z" fill="#8da28b"/><path d="M19 42h26v4H19z" fill="#65765c"/><path d="M22 35h19v3H22z" fill="#e0d4a7"/>',
  beer:'<path d="M27 7h10v18l8 12v44q-13 8-26 0V37l8-12z" fill="#685440"/><path d="M27 7h10v7H27z" fill="#c5ba8c"/><path d="M20 45h24v24H20z" fill="#c2a576"/><path d="m26 59 6-9 6 9-6 6z" fill="#4f6b56"/>',
  bandage:'<path d="m10 38 31-13 14 29-32 17z" fill="#c7c6aa"/><path d="m21 34 13 30m-5-33 13 28" stroke="#8c997f" stroke-width="3"/><path d="m32 39 9 18m-14-4 19-8" stroke="#9d6352" stroke-width="5"/>',
  dressing:'<path d="M10 24h44v46H10z" fill="#c7c6aa"/><path d="M28 32h8v30h-8zM17 43h30v8H17z" fill="#9d6352"/>',
