@@ -12,7 +12,7 @@ cannot be taken. **E** takes what fits and returns to the world; buttons still
 support individual collection and Take all without closing. Anything left stays
 in the container. Duplicate weapons report the actual recovered ammunition.
 Loose dressings and ammunition remain in the world if their storage is full.
-Pickup targets must be in front of the player and visible through solid cover.
+Pickup targets must be in front of the player and with no solid cover blocking reach.
 
 ## World changes and checks
 
