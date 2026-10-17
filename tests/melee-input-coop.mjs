@@ -1,21 +1,26 @@
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {mkdir,writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {startServer} from '../server.mjs';
 import {startPeerBroker} from './peerjs-broker-fixture.mjs';
 const require=createRequire(import.meta.url),{chromium}=require(process.env.PLAYWRIGHT_PATH||'playwright');
-const base=(process.env.DEAD_ARRIVAL_URL||'http://127.0.0.1:5200/dist/').replace(/\/?$/,'/');
+const ownServer=process.argv.includes('--local-broker')&&!process.env.DEAD_ARRIVAL_URL?await startServer({root:resolve('dist'),port:0}):null;
+const base=(process.env.DEAD_ARRIVAL_URL||(ownServer?`http://127.0.0.1:${ownServer.port}/`:'http://127.0.0.1:5200/dist/')).replace(/\/?$/,'/');
 const out=process.env.MELEE_QA_OUTPUT||'docs/melee-pass/verification/input-coop';
 await mkdir(out,{recursive:true});
-const report={url:base,checks:{},errors:[],samples:[]};
+const report={url:base,checks:{},errors:[],errorCounts:{},samples:[]};
 const pages=[];
+const seenErrors=new Set();
+const noteError=value=>{const message=String(value);report.errorCounts[message]=(report.errorCounts[message]||0)+1;if(!seenErrors.has(message)&&report.errors.length<32){seenErrors.add(message);report.errors.push(message);}};
 const broker=process.argv.includes('--local-broker')?await startPeerBroker(process.env.PLAYWRIGHT_PATH||require.resolve('playwright')):null;
 const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH});
 const inspect=page=>{
  pages.push(page);
  page.setDefaultTimeout(30000);
- page.on('pageerror',e=>report.errors.push(e.message));
- page.on('console',m=>{if(m.type()==='error')report.errors.push(m.text());});
- page.on('response',r=>{if(r.status()>=400)report.errors.push(`${r.status()} ${r.url()}`);});
+ page.on('pageerror',e=>noteError(e.message));
+ page.on('console',m=>{if(m.type()==='error')noteError(m.text());});
+ page.on('response',r=>{if(r.status()>=400)noteError(`${r.status()} ${r.url()}`);});
 };
 // The cinematic menu loads independently; weapon preparation starts on entry.
 const ready=page=>page.waitForFunction(()=>!!window.__DEAD_ARRIVAL__?.renderer,undefined,{timeout:90000});
@@ -77,14 +82,20 @@ try{
  const guestContext=await browser.newContext({viewport:{width:1280,height:900},hasTouch:true,isMobile:false});
  if(broker)for(const context of [hostContext,guestContext])await context.addInitScript(port=>{window.__DEAD_ARRIVAL_PEER_CONFIG__={host:'127.0.0.1',port,path:'/',secure:false,config:{iceServers:[]}};},broker.port);
  const host=await hostContext.newPage(),guest=await guestContext.newPage();inspect(host);inspect(guest);
+ console.log('Co-op gate: opening host and guest menus.');
  await Promise.all([host.goto(base+'?debug=1',{waitUntil:'domcontentloaded'}),guest.goto(base+'?debug=1',{waitUntil:'domcontentloaded'})]);
  await Promise.all([ready(host),ready(guest)]);
+ console.log('Co-op gate: both menus initialized.');
  await host.locator('[data-action="coop-toggle"]').tap();await host.locator('[data-action="host"]').tap();
  await host.waitForFunction(()=>document.querySelector('[name="roomCode"]')?.value.length===6);
  const code=await host.locator('[name="roomCode"]').inputValue();
+ console.log('Co-op gate: host room code created.');
  await guest.locator('[data-action="coop-toggle"]').tap();await guest.locator('[name="joinCode"]').fill(code);await guest.locator('[data-action="join"]').tap();
  await Promise.all([host.waitForFunction(()=>window.__DEAD_ARRIVAL__.session?.connected),guest.waitForFunction(()=>window.__DEAD_ARRIVAL__.session?.connected)]);
+ console.log('Co-op gate: WebRTC connected; waiting for the arena.');
  await guest.waitForFunction(()=>window.__DEAD_ARRIVAL__.screen==='play',undefined,{timeout:180000});
+ // Keep the live arena from ending while input and transport fixtures are set up.
+ await host.evaluate(()=>{const r=window.__DEAD_ARRIVAL__.run;r.health=10000;if(r.peer)r.peer.health=10000;r.course.enemies=[];r.waveDelay=999;if(r.director){r.director.queue=[];r.director.pending=0;r.director.state='combat';}});
  await Promise.all([host,guest].map(page=>page.waitForFunction(()=>window.__DEAD_ARRIVAL__.renderer._weaponsPrepared,undefined,{timeout:180000})));
  console.log('Two local clients connected through room code and RTCDataChannel.');
  for(const p of [host,guest])await p.evaluate(()=>{
@@ -109,8 +120,8 @@ try{
    if(canStand(r.course,x,y,.2)&&canStand(r.course,x,y-.67,.2)&&canStand(r.course,x-.8,y,.2)&&castRay(r.course,x,y,-Math.PI/2,1).dist>.9)point={x,y};
   }
   if(!point)throw new Error('No unobstructed co-op melee fixture');
-  const {x,y}=point;Object.assign(r,{x:x-.8,y,health:100,waveDelay:999});
-  Object.assign(r.peer,{x,y,z:0,vx:0,vy:0,angle:-Math.PI/2,pitch:0,health:100});
+  const {x,y}=point;Object.assign(r,{x:x-.8,y,health:10000,waveDelay:999});
+  Object.assign(r.peer,{x,y,z:0,vx:0,vy:0,angle:-Math.PI/2,pitch:0,health:10000});
   if(r.director){r.director.queue=[];r.director.pending=0;r.director.state='combat';}
   r.course.enemies=[{id,x,y:y-.67,z:0,hp:100,maxHp:100,kind:0,variant:'stalker',dead:false,flash:0,hits:0,attack:999,phase:0,moveSpeed:.000001}];
   return point;
@@ -155,7 +166,7 @@ try{
  await guest.locator('[data-action="resume"]').tap();
  // Repeated live input changes exercise animation, pools and loop teardown for two minutes.
  const start=Date.now();let iteration=0;
- console.log('Co-op melee checks passed; starting two-minute input/audio soak.');
+ console.log(process.argv.includes('--skip-soak')?'Co-op melee checks passed; soak skipped by release gate.':'Co-op melee checks passed; starting two-minute input/audio soak.');
  while(!process.argv.includes('--skip-soak')&&Date.now()-start<120000){
   await peerTarget();await guest.keyboard.press(iteration%2?'7':'8');
   await guestTouch.down(iteration%4===3?'alt':'fire');
@@ -177,4 +188,4 @@ try{
  }
  assert.deepEqual(report.errors,[]);
  console.log(JSON.stringify({checks:report.checks,errors:report.errors,samples:report.samples.length}));
-}catch(error){report.failure=error.stack;for(let i=0;i<pages.length;i++)if(!pages[i].isClosed())await pages[i].screenshot({path:out+'/failed-page-'+i+'.png'}).catch(()=>{});report.failureStates=await Promise.all(pages.filter(p=>!p.isClosed()).map(p=>p.evaluate(()=>{const d=window.__DEAD_ARRIVAL__,r=d?.run;return{screen:d?.screen,mode:r?.mode,connected:d?.session?.connected,ui:document.body.innerText.slice(0,1400),join:document.querySelector('[data-action="join"]')?.getBoundingClientRect().toJSON(),transport:window.__meleeTransport,counts:r&&Object.fromEntries(['projectiles','coins','gore','blood','tracers','spawnTelegraphs','explosions'].map(k=>[k,r[k]?.length])),player:{x:r?.x,y:r?.y,z:r?.z,angle:r?.angle,pitch:r?.pitch,health:r?.health,weapon:r?.weapon,sequence:r?.meleeSequence,active:r?.meleeActive},peer:r?.peer&&{x:r.peer.x,y:r.peer.y,z:r.peer.z,angle:r.peer.angle,pitch:r.peer.pitch,health:r.peer.health,weapon:r.peer.weapon,mode:r.peer.mode,sequence:r.peer.meleeSequence,active:r.peer.meleeActive},enemies:r?.course.enemies,audio:window.__meleeSounds};}).catch(e=>({error:e.message}))));throw error;}finally{await browser.close();if(broker){report.signalingFixture={...broker.counts};await broker.close();}await writeFile(out+'/qa-results.json',JSON.stringify(report,null,2));}
+}catch(error){console.error('Co-op gate failed:',error.message);report.failure=error.stack;for(let i=0;i<pages.length;i++)if(!pages[i].isClosed())await pages[i].screenshot({path:out+'/failed-page-'+i+'.png',timeout:5000}).catch(()=>{});report.failureStates=await Promise.all(pages.filter(p=>!p.isClosed()).map(p=>Promise.race([p.evaluate(()=>{const d=window.__DEAD_ARRIVAL__,r=d?.run;return{screen:d?.screen,mode:r?.mode,connected:d?.session?.connected,ui:document.body.innerText.slice(0,1400),join:document.querySelector('[data-action="join"]')?.getBoundingClientRect().toJSON(),transport:window.__meleeTransport,counts:r&&Object.fromEntries(['projectiles','coins','gore','blood','tracers','spawnTelegraphs','explosions'].map(k=>[k,r[k]?.length])),player:{x:r?.x,y:r?.y,z:r?.z,angle:r?.angle,pitch:r?.pitch,health:r?.health,weapon:r?.weapon,sequence:r?.meleeSequence,active:r?.meleeActive},peer:r?.peer&&{x:r.peer.x,y:r.peer.y,z:r.peer.z,angle:r.peer.angle,pitch:r.peer.pitch,health:r.peer.health,weapon:r.peer.weapon,mode:r.peer.mode,sequence:r.peer.meleeSequence,active:r.peer.meleeActive},enemies:r?.course.enemies,audio:window.__meleeSounds};}).catch(e=>({error:e.message})),new Promise(resolve=>setTimeout(()=>resolve({error:'State capture timed out'}),5000))])));throw error;}finally{await browser.close();if(broker){report.signalingFixture={...broker.counts};await broker.close();}if(ownServer){ownServer.server.closeAllConnections();await new Promise(resolve=>ownServer.server.close(resolve));}await writeFile(out+'/qa-results.json',JSON.stringify(report,null,2));}

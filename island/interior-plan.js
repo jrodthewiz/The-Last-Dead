@@ -1,0 +1,84 @@
+function authoredInterior(k,b,y){
+ const x=b.x,z=b.z,wood=0x6b5a43,cream=0xd7d1aa,metal=0x425c56;
+ const table=(xx,zz,w,d,h=.85)=>{k.box(xx,y+h,zz,w,.15,d,wood);for(const dx of [-w*.4,w*.4])for(const dz of [-d*.35,d*.35])k.box(xx+dx,y+h/2,zz+dz,.12,h,.12,metal);};
+ if(b.id==='lightkeeper'){
+  table(x-3,z-3,4,1.4);k.box(x-3,y+1.08,z-3,1.1,.32,.75,metal);for(let j=0;j<4;j++)k.add('cylinder',x-3.35+j*.22,y+1.28,z-3,.055,.06,.055,cream);
+  for(let i=0;i<3;i++){const xx=x+2+i*.6;k.add('cylinder',xx,y+1,z-4,.17,1.7,.17,0x7f8b68);k.box(xx,y+1.9,z-4,.45,.15,.45,cream);}
+  k.box(x+3,y+1.5,z-5.7,4,2,.12,0x525e46);for(let j=0;j<5;j++)k.box(x+1.5+j*.65,y+1.5,z-5.58,.05,1.4,.03,0xc9b486);
+  table(x+3,z,2.3,1.1);k.box(x+3,y+.96,z,1.6,.02,.8,0xd4cb9c);k.box(x+3,y+1,z,.12,.035,.7,metal);return true;
+ }
+ if(b.id==='clinic'){
+  for(const side of [-1,1])for(let j=0;j<3;j++){const xx=x+side*8,zz=z-5+j*4;k.box(xx,y+.66,zz,2.3,.26,3.2,0x7b8b78);k.box(xx,y+.9,zz,2.2,.2,3.1,cream);k.box(xx,y+1.08,zz-1,1.6,.18,.6,0xaab6a0);for(const dx of [-1,1])for(const dz of [-1.3,1.3])k.box(xx+dx,y+.3,zz+dz,.08,.6,.08,metal);k.rod([xx+1.5,y,zz],[xx+1.5,y+2.2,zz],.04,metal);k.box(xx+1.4,y+1.9,zz,.3,.5,.12,0x91a89c);}
+  table(x,z-6,4,1.4);k.box(x,y+1.13,z-6,1.3,.45,.8,0xc1c8aa);k.box(x,y+1.37,z-6,.14,.02,.55,0x975c49);k.box(x,y+1.37,z-6,.55,.02,.14,0x975c49);
+  for(const side of [-1,1])k.box(x+side*4.5,y+1.2,z-3,.10,2.3,5,0x799686);return true;
+ }
+ if(b.id==='arrival-house'){
+  table(x-3,z-3,4,1.6);for(let i=0;i<4;i++)k.box(x-4+i*.7,y+.96,z-3,.5,.035,.7,i%2?cream:0xa7b295);
+  k.box(x,y+1.7,z-6.25,4,2,.12,0x516b5a);k.box(x,y+1.7,z-6.16,3.5,1.5,.025,0xb8b88f);k.box(x,y+1.7,z-6.13,.1,1.2,.02,0x616f57);k.box(x,y+1.7,z-6.13,3,.06,.02,0x616f57);
+  for(let i=0;i<3;i++){const xx=x+3.7,zz=z-3+i*2.2;k.box(xx,y+.48,zz,2.6,.2,1.1,wood);for(const dx of [-1,1])k.box(xx+dx,y+.23,zz,.1,.46,.7,metal);k.box(xx,y+.95,zz-.47,2.6,.8,.12,wood);}
+  for(let j=0;j<3;j++)k.box(x-5,y+.4+j*.65,z+2,1.6,.55,1.3,j%2?0x788464:0xa59873);return true;
+ }
+ return false;
+}
+
+// Primitive records are shared by the renderer and movement. Small tabletop
+// objects never acquire a floor-to-ceiling proxy; solid furniture does.
+export function interiorPlan(b){
+ const pieces=[],solids=[],floor=b.baseY+.2;
+ const k={box(x,y,z,w,h,d,color,rotation=0){pieces.push({shape:'box',x,y,z,w,h,d,color,rotation});},add(shape,x,y,z,w,h,d,color,rotation=0){pieces.push({shape,x,y,z,w,h,d,color,rotation});},rod(a,c,r,color){pieces.push({shape:'rod',a,c,r,color});}};
+ const solid=(name,x,z,w,d,h)=>solids.push({id:b.id+'-'+name,x:b.x+x,z:b.z+z,w,d,y:floor,h});
+ if(authoredInterior(k,b,floor)){
+  // Existing landmark furniture remains authored; collision uses its actual
+  // visible volumes so the bed aisles and supply approaches stay open.
+  for(const p of pieces)if(p.shape==='box'&&((p.h>=.12&&p.w>.45&&p.d>.45)||(p.h>1&&Math.min(p.w,p.d)>.075&&Math.max(p.w,p.d)>1)))solids.push({id:b.id+'-furniture',x:p.x,z:p.z,w:p.w,d:p.d,y:p.y-p.h/2,h:p.h});
+  return {pieces,solids,kind:b.id};
+ }
+ const wood=0x96856a,dark=0x535a4d,linen=0xc1b797,green=0x84927b,clay=0xb38a68;
+ const box=(x,y,z,w,h,d,c)=>k.box(b.x+x,floor+y,b.z+z,w,h,d,c);
+ const table=(name,x,z,w=2.8,d=1.4)=>{box(x,.84,z,w,.15,d,wood);for(const dx of [-w*.4,w*.4])for(const dz of [-d*.35,d*.35])box(x+dx,.4,z+dz,.13,.8,.13,dark);solid(name,x,z,w,d,.92);};
+ const shelf=(x,z,w=2.7)=>{for(const dx of [-w/2,w/2])box(x+dx,1.05,z,.14,2.1,.65,dark);for(let j=0;j<3;j++){box(x,.3+j*.7,z,w,.12,.65,wood);for(let i=0;i<4;i++)box(x-w*.36+i*w*.23,.53+j*.7,z,.3,.34,.38,(i+j)%2?linen:green);}solid('shelf',x,z,w+.14,.65,2.1);};
+ const bed=(x,z)=>{box(x,.32,z,2,.5,3.1,dark);box(x,.64,z,1.94,.2,3,linen);box(x,.79,z+.2,1.95,.13,2.4,green);box(x,.83,z-1.08,1.4,.2,.55,linen);box(x,.65,z-1.62,2.1,1.1,.13,wood);solid('bed',x,z,2,3.1,.855);solid('bed-headboard',x,z-1.62,2.1,.13,1.2);};
+ const stove=(x,z)=>{box(x,.57,z,.9,1.1,.85,dark);box(x,.73,z+.44,.55,.4,.045,0x303f39);box(x,2.05,z,.22,1.85,.22,dark);k.add('cylinder',b.x+x,floor+1.19,b.z+z,.24,.18,.24,clay);solid('stove',x,z,1,.95,3);};
+ const boat=b.id==='building-7',garden=b.id==='building-8',village=b.district==='village';
+ if(village){
+  const side=boat||garden?1:b.seed%2?-1:1,bedX=side*(b.w/2-2),back=-b.d/2+2.4;
+  bed(bedX,back);shelf(-side*(b.w/2-2),-b.d/2+.8,2.6);
+  // Keep the central entry and both original pickup positions clear.
+  table('work-table',-side*3,-2.6,boat?3.9:2.8,1.45);stove(b.w/2-1.2,b.d/2-2);
+  box(0,.025,1,3.1,.035,3,garden?0x8d956e:0x9c8060);
+  table('washstand',-b.w/2+1.4,b.d/2-2.5,1.65,.85);
+  k.add('cylinder',b.x-b.w/2+1.4,floor+1.02,b.z+b.d/2-2.5,.48,.17,.32,linen);
+  if(boat){
+   box(1.2,1.28,-b.d/2+2.5,.16,2.56,4.7,0xa8a488);solid('sleeping-partition',1.2,-b.d/2+2.5,.16,4.7,2.56);
+   box(-3,.95,-2.6,3.6,.035,1.35,linen);
+   k.add('rock',b.x-3,floor+1.12,b.z-2.6,1.25,.2,.42,0x9f7957);
+   // Hull sections laid across a drawn plan, plus broad bent-rib templates.
+   for(let i=0;i<4;i++)box(-3.8+i*.5,1.31,-2.6,.08,.09,.65,dark);
+   for(let i=0;i<3;i++)box(-b.w/2+.65,.7+i*.35,0,.18,.19,3.3,wood);
+   solid('timber-rack',-b.w/2+.65,0,.5,3.5,1.6);
+   box(-3.9,1.07,-2.9,.6,.13,.15,clay);
+  }else if(garden){
+   box(1.3,1.2,-b.d/2+2.4,.12,2.4,4.3,0xa6b09a);solid('sleeping-screen',1.3,-b.d/2+2.4,.12,4.3,2.4);
+   box(-3,.95,-2.6,2.65,.035,1.3,0xb3a17d);
+   for(let i=0;i<3;i++){k.add('cylinder',b.x-3.75+i*.6,floor+1.08,b.z-2.6,.22,.35,.22,i===1?green:clay);box(-3.75+i*.6,1.28,-2.6,.23,.05,.23,linen);}
+   box(-2.2,1,-2.6,.4,.08,.6,linen);box(b.w/2-2,.35,1,1.4,.7,1,wood);solid('harvest-crate',b.w/2-2,1,1.4,1,.7);
+   for(let i=0;i<5;i++)k.add('rock',b.x+b.w/2-2+(i%3-.9)*.3,floor+.8,b.z+.8+Math.floor(i/3)*.3,.26,.22,.26,green);
+  }else {box(-3,1,-2.6,.7,.08,.45,linen);k.add('cylinder',b.x-3.75,floor+1.04,b.z-2.6,.17,.25,.17,clay);}
+ }else{
+  const kind=b.id==='building-54'?'bookshop':b.id==='building-78'?'networkshop':b.seed%2?'storeroom':'shop';
+  table('counter',-4,3,5,1.4);box(-5.2,1.08,3,.6,.4,.6,dark);
+  for(const side of [-1,1])for(let row=0;row<Math.max(2,Math.floor(b.d/8));row++)shelf(side*(b.w/2-1),-b.d/2+2.5+row*5.5,1.4);
+  if(kind==='bookshop'){
+   table('reading-table',3,-3,3,1.6);for(let j=0;j<3;j++)box(2.1+j*.65,1.02,-3,.46,.16,.65,j%2?clay:green);
+   const zz=b.d/2-5.5;solid('browsing-island',4,zz,1.5,4.1,1.85);
+   box(4,.9,zz,.15,1.8,4,dark);for(const dz of [-2,2])box(4,.9,zz+dz,1.5,1.8,.14,wood);
+   for(let row=0;row<3;row++){box(4,.3+row*.57,zz,1.5,.12,4,wood);for(const side of [-1,1])for(let j=0;j<6;j++)box(4+side*.48,.54+row*.57,zz-1.65+j*.63,.46,.38,.37,[0x8a5f4b,0xa9ab80,0x688b83,0xb69d70][(j+row)%4]);}
+   box(4,1.84,zz,1.6,.12,4.1,linen);
+  }
+  else {table('packing-table',3,-4,3.8,1.6);for(let j=0;j<3;j++)box(2+j*.8,1.12,-4,.55,.4,.7,j%2?green:clay);}
+ }
+ return {pieces,solids,kind:boat?'boatwright-house':garden?'garden-house':village?'home':'shop'};
+}
+
+export function buildInterior(kit,b){for(const p of interiorPlan(b).pieces){if(p.shape==='rod')kit.rod(p.a,p.c,p.r,p.color);else kit.add(p.shape,p.x,p.y,p.z,p.w,p.h,p.d,p.color,p.rotation||0);}}
+

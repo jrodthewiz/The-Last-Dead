@@ -1,5 +1,53 @@
 # The Last Dead
 
+The browser edition has been rebuilt as **Blackwater**: a solo or two-player, N64-inspired horror-survival journey across a forested island, a 300-metre suspension bridge and the procedural city of Saint Orin.
+
+## Play Blackwater
+
+Run **npm.cmd run dev**, or use **Start The Last Dead.cmd**, then open **http://127.0.0.1:5200/**. The canonical checkout is **C:/Users/wolfk/Desktop/thelastdead**. Node.js 18+ and the bundled assets are sufficient; there are no runtime downloads or API keys.
+
+Restore three emergency stations and reach the evacuation ferry. Explore 248 buildings and 45 furnished ground floors, scavenge ammunition and medical supplies, fight animated infected, drive utility trucks and save at shelters. Press **M** for the actual-world map and journal. Desktop and touch interfaces share the same mission and inventory state.
+
+**WASD** move, **mouse** look, **Shift** sprint, **Space** jump, **left/right click** fire/aim, **E** interact/drive, **R** reload, **F** melee, **H** heal, **M** map, **Esc** pause, **I** survivor inspection and equipment, **1–9 / wheel** weapon selection, **F2** developer flight, **F8** flight performance survey.
+
+Choose **Play together** to host a public waiting expedition or join an open frequency. The host chooses **Depart together** when both survivors are present. Infected, objectives and trucks are shared; inventories are personal. Co-op expeditions last for the session and never overwrite your solo journey. Closing the host ends the expedition. See [multiplayer and hosting](docs/blackwater-multiplayer.md).
+
+City upper storeys remain scenery; the original dungeon and co-op implementation is preserved locally at **/legacy.html**. The Unity project is separate. Existing work and legacy saves have been retained.
+
+See [world, art direction, asset provenance and scope](docs/blackwater-rewrite.md).
+
+The second quality pass adds stronger console-era lighting and colour, distinct city districts, a shaped carbine with hand-operated reload, physical signal-tower stairs, keeper-fuse and generator objectives, collidable evacuation routes, and clearer touch controls. See the [independent judge's iteration record](docs/blackwater-quality-iteration.md).
+
+The terrain and arsenal pass adds thousands of locally bundled camp, yard, storage and understorey props from 28 CC0 Kenney models; terrain-aware foundations and walkable entrances; corrected infected facing; a 240p console picture with low-resolution three-sample-filtered atlases; and the original animated survivor and eight weapon models alongside the expedition carbine. Rifle, revolver, shotgun, charged arc, rocket, marksman and melee behaviors have separate ammo/fuel and save state.
+
+The next pass gives the coast five discoverable destinations and three marked walking loops, persistent field records, a radio operator whose dialogue and ration service respond to restored signals, and distinct keeper-workshop, clinic and evacuation-office interiors. Two infected roles now separate, investigate sound, respect facing/cover, and commit to dodgeable attacks. The shotgun has a readable two-shell break-action cycle; weapon HUDs show the correct heat, charge, fuel or melee state. Nineteen additional CC0 heritage models are bundled from [Kenney’s Graveyard Kit](https://kenney.nl/assets/graveyard-kit).
+
+The atmosphere pass adds broad painted cloud banks, animated coastal wash and water colour, connected stone-and-grass slopes, and distinct plaster, slate, masonry and paving surfaces. Fern colonies, striped shop awnings, lanterns, rain pipes, window boxes and restrained ivy enrich the island and old town. Restoring Westlight now lights its optic and rotating coastal beam. The survivor inspection stage has softer lighting and grounded foot contact. All of this retains the 240p console presentation and uses locally bundled resources.
+
+The character and motion pass refines the carbine's carved stock, gripping hands, folded sleeves and visible reload. Rifle reloads have timed mechanism sounds, and shots eject small tumbling brass cases or red shotgun shells. The survivor wears distinct field clothing, a fitted pack and attached equipment; animation changes blend, and running preserves its airborne stride. The bundled fever runner and drowned dockworker join the infected population. Elias visibly listens to a handheld radio, while foliage, rooftop signal cloth, hanging shop signs and channel buoys move gently through the coast and city. The small textures, restrained palette and 240p image remain consistent.
+
+The settlement pass gives two neighboring village yards their own purpose: a supported dinghy repair station and a terraced kitchen garden with wind-stirred laundry and stacked fuel. One Old Town block now has an arched bookshop, a residential entrance and balcony, and a shuttered net-and-timber workshop. At the waterfront, walkable shore stairs lead to a timber landing, drying net and moored fishing launch. The boat rocks gently while its mooring lines remain attached. New construction shares its terrain heights and solid footprints with movement.
+
+The console interface uses bold ivory titles, an amber selection cursor, olive framed menus and larger segmented health/ammo readouts. Title, pause, settings, map, dialogue and survivor equipment share this style. **Up/Down** selects menu controls, **Enter** confirms and **Esc** returns; native sliders and selects retain their arrow controls. Touch layouts keep action buttons clear of ammunition, use appropriate hints, and frame the survivor between the heading and equipment list. See the [UI direction and review evidence](docs/ui-direction.md).
+
+The coastal craft pass gives the Arc lance a quieter enamel-and-iron body, fitted operating grip, and a charge carriage with three visible charge stages. Discharge animation follows actual firing. The survivor and Elias have clearer garment colours and equipment fitted to the posed body; imported walk/run clips remain intact. Seven small gulls inhabit the repair boat, bookshop cornice and tidal landing. They turn, leave in staggered flights when approached, stay away while the perch is occupied, and settle back after it clears. They share two instanced draws and use no downloaded runtime resources.
+
+The refuge pass adds Mara, a boatwright at the Alder Village repair bench, and Iven, tending a bed in the Northpoint clinic. Their planted work/rest poses ease into listening when approached; **E** opens conversation and a one-time supply. Dialogue changes with existing mission progress. Nearby homes now distinguish boat repair from gardening, and Alder Books has a stocked browsing aisle. Ground-floor windows, ceilings and furniture share their layout with collision, including support when jumping onto beds or tables. The Reliquary gains a fitted grip, hinged breech and visible cartridge insertion; Mourning and the chainsaw use quieter console colours, and the saw's chain now responds to active cutting. These additions reuse the bundled character rig and preserve the classic interface.
+
+[Open developer flight](http://127.0.0.1:5200/?dev=1) to tour sixteen viewpoints, including the working yards, shop block and tidal landing, fly freely, inspect frame time/draw counts, and export a measured survey. WASD moves in the look direction, Q/E descends/rises, Shift boosts, and the wheel changes speed. Flight pauses the journey and restores the survivor's position on exit. The performance report identifies hardware, resolution and measurement scope.
+
+- **npm.cmd run build** — standalone `dist/`, including the legacy entry.
+- **npm.cmd run test:blackwater** — world, movement, collision, mission and persistence checks.
+- **npm.cmd run test:blackwater:browser** — owned-browser gameplay and visual checks; supports `PLAYWRIGHT_PATH`, `CHROME_PATH`, and `BLACKWATER_QA_ROOT=dist`.
+- **npm.cmd run test:blackwater:ui** — menu navigation, focus, settings, UI flows and desktop/narrow/touch layout captures, with the same browser overrides.
+- **npm.cmd run test:blackwater:refuges** — Reliquary loading/control views, coherent rooms, NPC work/rest/listening samples, foot/tool measurements and persistent supplies; supports the same browser overrides.
+- **npm.cmd run test:blackwater:craft** — Arc charge/cancel checks, neutral hand views, survivor/Elias captures, and roost departure/return checks; use `BLACKWATER_QA_EXPECT_CRAFT=1` for the new material/charge assertions.
+
+## Legacy browser reference
+
+<details>
+<summary>Original campaign, co-op, development tools and historical build notes</summary>
+
 An original, fast horror FPS: industrial horror, aggressive movement, blood healing, weapon combinations, and two-player peer-to-peer co-op.
 
 ## Standalone project
@@ -53,12 +101,11 @@ Hold aim to line up firearm sights or brace unsighted guns. The Breach shotgun h
 
 Both players open their own copy of the same build (localhost or an HTTPS host):
 
-1. Host clicks **Create offer** and gives the offer code to their partner.
-2. Partner pastes it into **Join a breach**, clicks **Make answer**, and returns the answer code.
-3. Host pastes the answer into **Host: paste answer here** and clicks **Accept**.
-4. Both enter the same arena. Enemies, damage and waves are controlled by the host. A downed player revives if the partner survives.
+1. The host opens **Co-op**, clicks **Host**, and shares the six-character room code.
+2. The partner opens **Co-op**, enters that code, and clicks **Join**.
+3. Both enter the same arena. Enemies, damage and waves are controlled by the host. A downed player revives if the partner survives.
 
-The codes establish a real WebRTC data channel. There is no account, matchmaking service, or hosted relay. Some firewalls/NATs require a TURN relay; the transport supports one through its constructor configuration, but none is provisioned in this build. Local two-browser verification does not prove every internet route. Host departure ends the guest session; there is no host migration. Co-op stays live while a player's menu is open.
+The public PeerJS broker exchanges the WebRTC handshake; gameplay then uses a peer-to-peer data channel. There is no account, matchmaking, or hosted gameplay relay. Some firewalls and NATs require a TURN relay; none is provisioned in this build. Local two-browser verification does not prove every internet route. Host departure ends the guest session; there is no host migration. Co-op stays live while a player's menu is open. See [co-op signaling](docs/coop-signaling.md) for broker configuration.
 
 ## Build and checks
 
@@ -66,6 +113,9 @@ The codes establish a real WebRTC data channel. There is no account, matchmaking
 - **npm.cmd run preview** serves the built game.
 - **npm.cmd run test:engine** runs movement and combat regressions.
 - **npm.cmd run test:network** checks WebRTC using installed Chrome and Playwright (see docs/network.md for paths).
+- **npm.cmd run test:coop** checks the current room-code UI, two connected browsers, and host-authoritative combat against a local signaling fixture.
+- **npm.cmd run test:bodycam** checks the live WebGPU image pass, saved preferences, resize, and reduced motion in desktop Chrome.
+- **npm.cmd run test:performance** records live dungeon and island frame pacing, draw counts, and renderer memory in desktop Chrome.
 - **node browser-check.mjs** checks desktop and mobile inputs when Playwright is configured. For browser QA, install Playwright locally with **npm.cmd install --no-save playwright**, then **npx.cmd playwright install chromium**. An explicit **PLAYWRIGHT_PATH** can select another installed package; the default resolves this project's own dependencies.
 
 ## Map playground
@@ -108,3 +158,5 @@ See [iteration scope and next steps](docs/harbor-iteration.md) and
 [reproducible CC0 asset acquisition](docs/harbor-assets.md).
 Run `npm run test:harbor` for mechanics and `npm run test:harbor:browser` for
 an owned-browser smoke test (`PLAYWRIGHT_PATH`/`CHROME_PATH` overrides supported).
+
+</details>

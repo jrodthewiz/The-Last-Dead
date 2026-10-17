@@ -1,5 +1,33 @@
 # Underground campaign entry
 
+## Playtest controls and equipment
+
+On localhost (or an explicit `?dev=1` link), F3 toggles solo god mode. It
+restores health, clears existing grabs/injuries and prevents damage and new
+grabs. The pause menu also exposes the toggle; the life display reads GOD.
+It travels with you between areas and resets for a new run.
+
+F2 toggles the paused free camera. WASD flies, E/Q or Space/Ctrl changes
+height, Shift boosts and the wheel adjusts speed. Return Stairs aims the
+camera at this area's return portal. F4 lands the player on clear ground
+below the camera; F2 instead returns to the player's original position.
+Use E/Q at the first-floor entry stairs to reach the island. Deeper floors'
+entry lifts lead upward one floor at a time. M in island flight shows the map.
+
+Claim the Netmakers radio desk with Q before expecting persistent gear saves.
+At the nearby supply box, open B and scroll to Your Reserve to store/take
+weapons (including their fittings), medical supplies and scrap. Transfers
+require proximity; the starter sidearm cannot be stored. B also equips your
+carried weapons and opens the island field map and journal. Equipment changes
+autosave once the safehouse is claimed, including while exploring downstairs.
+Old saves remain compatible. Storage errors are shown in the box and journal.
+Reloading restores saved equipment but starts fresh dungeon rooms; the live
+five-floor state is retained only while the session stays open.
+
+Focused verification: `node --test tests/playtest-storage.test.mjs` and
+`node tests/playtest-controls-browser.mjs` (with the project's Playwright and
+Chrome path overrides when needed).
+
 Play Campaign starts in the original extended dungeon's first floor. The customs
 service stairs at its entry lead to the Blackwater coast; E or Q travels in either
 direction. The coast keeps its Low Tide chapter, vehicles and safehouse.

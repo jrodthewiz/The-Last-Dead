@@ -9,6 +9,7 @@ const DIST_ROOT = path.resolve(PROJECT_ROOT, 'dist');
 // publish tests, docs, source maps from another project, or local secrets.
 export const RUNTIME_FILES = [
   'index.html',
+  'legacy.html',
   'first-person-pass.js',
   'fps-arms-review.html', 'fps-arms-review.js',
   'first-person-motion.js',
@@ -29,6 +30,7 @@ export const RUNTIME_FILES = [
   'journey-visuals.js',
   'district-materials.js',
   'scavenger-pack.js',
+  'safehouse-storage.js',
   'scavenger-fitting.js',
   'coastal-workbenches.js',
   'coastal-scavenging.js',
@@ -155,7 +157,17 @@ export const RUNTIME_FILES = [
   'weapon-arc.js',
   'style.css',
 ];
-export const RUNTIME_DIRECTORIES = ['vendor', 'assets', 'public', 'playground'];
+export const RUNTIME_DIRECTORIES = ['vendor', 'assets', 'public', 'playground', 'island', 'coop'];
+// Preserve source art in the repository, but omit references and superseded
+// models that the game and included review pages never request at runtime.
+export const RELEASE_ASSET_EXCLUSIONS = [
+  'assets/concepts',
+  'assets/models/bloodworks-sentinel.glb',
+  'assets/models/afterlife-ash-witness-motion-v04.glb',
+  'assets/models/chest-anatomy-v1.glb',
+  'assets/survivor/fps-arms-v3.glb',
+  'assets/survivor/viewmodel-arms-v1.glb',
+];
 export const REQUIRED_RUNTIME_FILES = ['index.html', 'map-playground.html', 'main.js', 'gamepad-input.js', 'peer.js', 'engine.js', 'renderer.js', 'bodycam-pass.js', 'enemy-ai.js', 'enemy-fx.js', 'ui.js', 'audio.js', 'styles.css', 'campaign.js', 'explosion-vfx.js', 'weapon-reliquary.js', 'npc-bellwraith.js', 'world-polish.js', 'world-authored.js', 'dungeon-place-kit.js', 'dungeon-cover-kit.js', 'dungeon-weapon-loot.js', 'dungeon-evidence.js', 'dungeon-art-direction.js', 'dungeon-architecture.js', 'horror-ui.css', 'weapon-breach.js', 'weapon-arc.js', 'impact-vfx.js', 'weapon-materials.js', 'weapon-detail-pass.js', 'scream-mouth.js'];
 
 function isInside(root, candidate) {
@@ -207,6 +219,7 @@ export async function build({ dist = DIST_ROOT } = {}) {
   }
 
   const copiedDirectories = [];
+  const excludedSources = RELEASE_ASSET_EXCLUSIONS.map(resolveProjectChild);
   for (const relativePath of RUNTIME_DIRECTORIES) {
     const source = resolveProjectChild(relativePath);
     if (!(await exists(source))) {
@@ -215,7 +228,10 @@ export async function build({ dist = DIST_ROOT } = {}) {
     }
     const destination = path.resolve(outputRoot, relativePath);
     if (!isInside(outputRoot, destination)) throw new Error(`Refusing output path: ${relativePath}`);
-    await fs.cp(source, destination, { recursive: true, force: true, dereference: false });
+    await fs.cp(source, destination, {
+      recursive: true, force: true, dereference: false,
+      filter: candidate => !excludedSources.some(exclusion => isInside(exclusion, candidate)),
+    });
     copiedDirectories.push(relativePath);
   }
 

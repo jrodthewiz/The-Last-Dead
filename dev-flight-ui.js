@@ -24,6 +24,8 @@ export class DevFlightUI {
             <div><dt>Island overview</dt><dd><kbd>M</kbd> / Full Map</dd></div>
             <div><dt>Release mouse</dt><dd><kbd>TAB</kbd></dd></div>
             <div><dt>Pause menu</dt><dd><kbd>ESC</kbd></dd></div>
+            <div><dt>Land on clear ground</dt><dd><kbd>F4</kbd></dd></div>
+            <div><dt>God mode</dt><dd><kbd>F3</kbd><span>solo play</span></dd></div>
           </dl>
         </aside>
         <div class="dev-camera-footer">
@@ -32,6 +34,8 @@ export class DevFlightUI {
             <div class="dev-camera-speed"><output data-camera-speed></output><span>m/s</span></div>
           </div>
           <nav class="dev-flight-actions" aria-label="Camera actions">
+            <button type="button" data-dev-route><span>RETURN STAIRS</span></button>
+            <button type="button" data-dev-land><span>LAND HERE</span><kbd class="game-key">F4</kbd></button>
             <button type="button" data-dev-help aria-expanded="false" aria-controls="dev-camera-help"><span>CONTROLS</span><kbd class="game-key">H</kbd></button>
             <button type="button" data-dev-reset><span>RESET VIEW</span><kbd class="game-key">R</kbd></button>
             <button type="button" data-dev-capture><span data-camera-look>LOOK WITH MOUSE</span><kbd class="game-key" data-camera-look-key aria-hidden="true">↗</kbd></button>
@@ -60,6 +64,7 @@ export class DevFlightUI {
     if (!active) return;
     const map = course?.coastal ? 'island' : course?.dungeon ? 'descent' : null;
     this.overviewButton.hidden = map !== 'island';
+    this.element.querySelector('[data-dev-route]').hidden=!course?.basementPortal;
     for(const link of this.mapLinks) {
       if(link.dataset.devMap===map)link.setAttribute('aria-current','page');
       else link.removeAttribute('aria-current');

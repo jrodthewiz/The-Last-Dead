@@ -4,6 +4,13 @@ import {collectWeaponPickup, tickWeaponInventory} from '../weapon-inventory.js';
 const clear = {castRay: (_course,_x,_y,_angle,max) => ({dist:max})};
 const fixture = () => ({mode:'play',health:100,x:2,y:2,z:0,weapon:0,ownedWeapons:[0],events:[],
  course:{scavenging:true,weaponPickups:[{id:'harbor-bat',x:2.3,y:2,weaponIndex:6}]}});
+
+test('a duplicate pickup cannot pull a stored weapon out of its box or duplicate ownership',()=>{
+ const run=fixture();run.weaponReserve={weapons:[6],weaponMods:{6:'hardened-fitting'}};
+ assert.equal(collectWeaponPickup(run,'harbor-bat',clear).alreadyOwned,true);
+ assert.deepEqual(run.ownedWeapons,[0]);assert.deepEqual(run.weaponReserve.weapons,[6]);
+ assert.equal(run.weaponReserve.weaponMods[6],'hardened-fitting');
+});
 test('proximity stash preserves equipped gun, creates melee ownership once, and keeps scrap separate',()=>{
  const run=fixture();run.backpack={scrap:12,collected:[],weaponMods:{}};
  tickWeaponInventory(run,clear);tickWeaponInventory(run,clear);

@@ -244,6 +244,9 @@ export class BodycamPass {
     this.renderer.getDrawingBufferSize(this.size);
     const w = Math.max(1, Math.floor(this.size.x)), h = Math.max(1, Math.floor(this.size.y));
     if (this.target && this.target.width === w && this.target.height === h) return;
+    // An interrupted async warmup can leave this target selected. Never keep
+    // a disposed HDR target active across a resize.
+    if (this.target && this.renderer.getRenderTarget() === this.target) this.renderer.setRenderTarget(null);
     this.target?.dispose();
     // Multisampled to match the screen. Mipmaps feed bloom and metering; the
     // depth/stencil resolve flags stay default so TransmissionRegion, which
@@ -316,14 +319,23 @@ export class BodycamPass {
   }
 
   render(scene, camera, nowMs = 0) {
-    if (!this.enabled) { this.reset(); this.renderer.render(scene, camera); return; }
+    // The previous output cannot be the pass's own source texture. An
+    // interrupted preparation can leave that target selected.
+    const activeTarget = this.renderer.getRenderTarget();
+    const outputTarget = this.target && activeTarget === this.target ? null : activeTarget;
+    if (!this.enabled) {
+      this.reset();
+      this.renderer.setRenderTarget(outputTarget);
+      this.renderer.render(scene, camera);
+      return;
+    }
     if (this._lastNow && nowMs - this._lastNow > 250) this.reset();
     const dt = this._lastNow ? THREE.MathUtils.clamp((nowMs - this._lastNow) / 1000, 0.001, 0.1) : 0.016;
     this._lastNow = nowMs;
     this._ensureTarget();
     this._motion(camera, dt);
     const r = this.renderer;
-    const previousTarget = r.getRenderTarget();
+    const previousTarget = outputTarget;
     const autoReset = r.info.autoReset;
     if (autoReset) r.info.reset();
     r.info.autoReset = false;

@@ -35,6 +35,29 @@ The user approved the desktop follow-up. Actual captures revealed that the exist
 
 Seventeen native-game screenshots and states were reviewed, including disabled/ready/crafted/used bandage actions, fitting and rifle inventory. The live recipe and health checks pass; evidence: output/playwright/coastal-scavenging/verified and desktop-review.jpg. Mobile and the larger layout matrix are not part of this bounded desktop follow-up.
 
+## Blackwater console interface — October 16, 2026
+
+The rewritten browser game's current UI lives in `index.html`, `island/style.css`, `island/ui-controls.js` and the bindings in `island/game.js`. This section supersedes the legacy typography rules above for these Blackwater screens only.
+
+The player is a lone survivor: menus are calm planning moments, while combat needs immediate health, ammunition and interaction information. The visual promise is a late-1990s survival adventure. The island view owns the title background, the actual survivor owns equipment inspection, and the map owns the journal screen.
+
+- Bold ivory serif titles have short hard shadows. Bold Trebuchet/Arial labels and stable tabular numerals handle actions and combat; prose stays readable at display resolution. No new font downloads are needed.
+- The two shared motifs are an amber triangular focus cursor and a simple olive/ivory double-rule frame. Selection has a persistent amber edge, while keyboard focus has a cursor and outline. Locked items keep explicit labels. Red is reserved for danger and the medical cross.
+- Menus use open vertical action lists. The title avoids technical edition labels, fabricated vintage dates and ornamental coordinates. Pause, options, dialogue, map and inspection share colours and hierarchy; the HUD uses much smaller backing plates around its edge-bound counters.
+- Keyboard arrows move through visible enabled menu controls; Tab stays within the current screen. Native sliders and selects retain their own arrows. Enter activates the focused button, Escape follows the existing back/pause rules, and returning from options or inspection restores useful focus. There are no decorative gamepad prompts or claims of gamepad support.
+- Narrow layouts scroll within their own screen or panel instead of shrinking all text. Actions remain at least 44 CSS pixels tall, except the native checkbox whose full label is clickable. Touch controls inherit solid edges, hide irrelevant keyboard hints, and show touch-specific instructions.
+- The game world retains its 240p rendering. UI stays legible at screen resolution, with no blur, continuous glow, looping selection animation or new audio asset. Reduced-motion settings suppress UI transitions.
+
+Rendered baseline and iteration evidence lives under `output/playwright/blackwater-ui/`. `tests/blackwater-ui-review.mjs` uses owned headless browser instances and the repository background-input guard. It exercises menu focus, settings, paused simulation, map, inspection, dialogue, retry and desktop/narrow/emulated-touch layouts. The user's existing game tab remains untouched.
+
+The independent judge accepted the final console-inspired identity after concrete revisions. Initial touch action buttons overlapped the ammo panel; portrait actions now sit higher, while landscape ammo sits beside the action column. Touch hints now describe supported controls. Portrait and short-screen inspection calculate a clear model region from the header, equipment list or footer instead of allowing the heading or divider to cross the face. The narrow logo keeps its two-line form, short landscape menus have solid backing against bright sky, and slider handles share the square-edged control language. Narrow inspection shows fewer rows at once but preserves readable text in the scrollable list.
+
+`final-fit/report.json` passes 23 screen/layout checks, including desktop 1440×900 and 1280×720, short 844×480, 800×600 inspection, narrow 320×640, and touch emulation at 390×844 and 844×390. Arrow navigation/repeat, hidden and locked control skipping, selected-weapon focus, options readouts/back focus, frozen pause state, map, dialogue, retry and save/continue all pass. JavaScript and HTTP error arrays are empty. The `pass-2/` capture stopped on an incorrect test expectation: the already-owned Wake bat correctly follows the newly collected shotgun, before the animation selector. The corrected assertion passes in subsequent captures.
+
+All twenty world/gameplay Node checks passed. `mission/report.json` passes progression through the three relays and ferry ending, combat, driving, save/reload, death/retry and desktop/emulated-touch controls. The final inspection-framing-only correction followed that mission run and is covered by the final packaged UI checks. Seven changed runtime files match the final package by SHA-256. The repository-owned server remains at `http://127.0.0.1:5200/`, serving `dist`; no game tab or server restart was needed.
+
+The judge's final verdict accepts this scoped UI pass with no confirmed blocker. This is not a claim of exact historical N64 reproduction, gamepad support, physical-phone validation, continuous animation quality or stall-free performance. Existing loading/transition hitches remain outside this UI pass.
+
 
 ## Controls field manual — October 7, 2026
 
@@ -45,3 +68,13 @@ The guide owns bounded viewport scrolling. Its heading remains visible, and the 
 ## Supply pouch readability - October 7, 2026
 
 The existing materials ledger and workshop actions retain their olive field-kit structure. Recipe and life/treatment text use 12px supporting type; action names use 14px and pouch explanations 13px. Unavailable actions keep muted ink and borders without fading their requirements. Spare-material discard targets are 44px tall. This is a readability pass with more vertical scrolling where needed; it changes no quantities, requirements, callbacks or availability rules.
+
+## Co-op field radio — October 17, 2026
+
+Play together uses the same ivory, amber and olive console menu vocabulary.
+Open frequencies show actual waiting rooms, host callsigns and one free seat;
+the quiet-airwaves message is the real empty state. Six-character channels
+support direct invitations. Loading, errors, roster and host departure controls
+have distinct states. Keyboard focus stays inside the radio sheet and Escape
+returns to title. The sheet stacks on narrow displays with bounded scrolling.
+The compact gameplay status reports partner, DIRECT/RELAY and measured latency.

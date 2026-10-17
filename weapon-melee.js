@@ -497,9 +497,9 @@ function animateBat(root, meta, frame, time, dt) {
       // Pull the bat high on the right first.  The authored renderer hold is
       // already diagonal; this local yaw makes the windup read as a committed
       // backswing instead of a small rifle-like recoil.
-      yaw = THREE.MathUtils.lerp(-.08, -.88 - heavy * .1, u);
-      pitch = THREE.MathUtils.lerp(.02, -.1 - heavy * .06, u);
-      roll = THREE.MathUtils.lerp(.02, -.5, u);
+      yaw = THREE.MathUtils.lerp(0, -.88 - heavy * .1, u);
+      pitch = THREE.MathUtils.lerp(0, -.1 - heavy * .06, u);
+      roll = THREE.MathUtils.lerp(0, -.5, u);
       x = THREE.MathUtils.lerp(0, -.035, u);
     } else if (progress < .4) {
       const u = smooth((progress - .24) / .16);
@@ -525,9 +525,9 @@ function animateBat(root, meta, frame, time, dt) {
     } else {
       const u = smooth((progress - .48) / .52);
       const decay = 1 - u;
-      yaw = THREE.MathUtils.lerp(1.9 + heavy * .12, .05, u);
-      pitch = THREE.MathUtils.lerp(-.7 - heavy * .08, .02, u);
-      roll = THREE.MathUtils.lerp(.1, .025, u);
+      yaw = THREE.MathUtils.lerp(1.9 + heavy * .12, 0, u);
+      pitch = THREE.MathUtils.lerp(-.7 - heavy * .08, 0, u);
+      roll = THREE.MathUtils.lerp(.1, 0, u);
       x = .03 * decay;
       y = .1 * decay;
       z = (-.08 - heavy * .025) * decay;

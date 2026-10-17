@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {startServer} from '../server.mjs';
+import {guardBackgroundInput} from './background-input-guard.mjs';
+const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_PATH||'playwright');
+const output=resolve(process.env.BLACKWATER_QA_OUTPUT||'output/playwright/blackwater-settlement');await mkdir(output,{recursive:true});
+const server=await startServer({root:resolve(process.env.BLACKWATER_QA_ROOT||'dist'),port:0});
+const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH,args:['--enable-webgl','--ignore-gpu-blocklist']});
+const report={errors:[],httpErrors:[],scope:'Matched seed, time48 and cameras. Ordinary FPS, fixed environment views, no-post comparison, routes and bounded motion. Not a performance benchmark.'};
+try{
+ const context=await browser.newContext({viewport:{width:1440,height:900},recordVideo:{dir:output+'/video',size:{width:960,height:600}}}),page=await context.newPage();await guardBackgroundInput(page);
+ page.on('pageerror',e=>report.errors.push(e.message));page.on('console',m=>{if(m.type()==='error')report.errors.push(m.text());});page.on('response',r=>{if(r.status()>=400)report.httpErrors.push([r.status(),r.url()]);});
+ await page.goto(`http://127.0.0.1:${server.port}/?debug`,{waitUntil:'networkidle',timeout:120000});await page.waitForFunction(()=>!!window.__BLACKWATER__,{},{timeout:120000});await page.locator('#begin').click();
+ await page.evaluate(()=>{const g=window.__BLACKWATER__;g.setTime(48);for(const e of g.actors.enemies)e.alive=false;g.teleport(-540,191,0);});await page.waitForTimeout(2800);await page.screenshot({path:output+'/01-village-play.png'});
+ const views=[['02-village',[-550,25,204,-522,18,178]],['03-boat-yard',[-531,20,190,-537,17,177]],['04-garden',[-494,18,193,-502,15,178]],['05-block',[475,16.2,-4,565,17,-23]],['06-arcade',[489,16.1,-8,489,17,-21]],['07-residence',[523,16.1,-2,523,18,-15]],['08-workshop',[565,16.1,-2,565,17,-15]],['09-quay',[1210,16,237,1280,2,220]],['10-landing',[1269,2.85,220,1288,1.5,221]],['11-harbor',[1300,6,240,1274,1,220]]];
+ for(const [name,pose]of views){await page.evaluate(async({name,pose})=>{if(['03-boat-yard','04-garden'].includes(name)){const {terrainHeight}=await import('/island/data.js');pose[1]=terrainHeight(pose[0],pose[2])+1.7;pose[4]=terrainHeight(pose[3],pose[5])+1.3;}window.__BLACKWATER__.setPhoto(...pose);},{name,pose});await page.waitForTimeout(500);await page.screenshot({path:output+'/'+name+'.png'});}
+ await page.evaluate(()=>{const g=window.__BLACKWATER__;g.setPhoto(475,16.2,-4,565,17,-23);g.presentation.enabled=false;});await page.waitForTimeout(300);await page.screenshot({path:output+'/12-no-post.png'});await page.evaluate(()=>window.__BLACKWATER__.presentation.enabled=true);
+ if(await page.evaluate(()=>!!window.__BLACKWATER__.world.settlement)){
+  report.routes=await page.evaluate(async()=>{const g=window.__BLACKWATER__,{freshState,stepPlayer,supportHeight}=await import('/island/simulation.js');const routes=[{name:'tidal stairs down and up',points:[[1208,220],[1275,220],[1208,220]]},...['building-7','building-8','building-54','building-78'].map(id=>{const b=g.data.buildings.find(b=>b.id===id);return {name:id+' entrance',points:[[b.x,b.entry.z+b.entry.length+1],[b.x,b.entry.z-2],[b.x,b.entry.z+b.entry.length+1]]};})];return routes.map(r=>{const s=freshState();s.x=r.points[0][0];s.z=r.points[0][1];s.y=supportHeight(g.data,s.x,s.z);let maxStep=0;for(const [x,z]of r.points.slice(1)){for(let i=0;i<4000&&Math.hypot(x-s.x,z-s.z)>.25;i++){const lastY=s.y;s.yaw=Math.atan2(x-s.x,-(z-s.z));stepPlayer(s,{forward:1,strafe:0},g.data,g.grid,1/60);maxStep=Math.max(maxStep,Math.abs(s.y-lastY));}if(Math.hypot(x-s.x,z-s.z)>.3)return {name:r.name,passed:false,at:[s.x,s.y,s.z],target:[x,z]};}return {name:r.name,passed:true,maxStep};});});for(const r of report.routes)assert.ok(r.passed,JSON.stringify(r));
+  await page.evaluate(()=>{const g=window.__BLACKWATER__;g.setPhoto(1269,2.85,220,1288,1.5,221);g.setTime(null);});const before=await page.evaluate(()=>window.__BLACKWATER__.world.settlement.boat.position.y);await page.waitForTimeout(4200);report.motion=await page.evaluate(before=>{const s=window.__BLACKWATER__.world.settlement;return {boatStart:before,boatEnd:s.boat.position.y,clock:s.clock.value,ropes:s.ropes.length,metrics:s.stats};},before);assert.notEqual(report.motion.boatStart,report.motion.boatEnd);await page.screenshot({path:output+'/13-harbor-motion.png'});
+ }
+ await page.evaluate(()=>{const g=window.__BLACKWATER__;g.begin(false);for(const e of g.actors.enemies)e.alive=false;g.teleport(489,-8,0);});await page.waitForTimeout(900);await page.screenshot({path:output+'/14-city-play.png'});await page.setViewportSize({width:390,height:844});await page.waitForTimeout(400);await page.screenshot({path:output+'/15-portrait.png'});
+ assert.deepEqual(report.errors,[]);assert.deepEqual(report.httpErrors,[]);await context.close();
+}finally{await writeFile(output+'/report.json',JSON.stringify(report,null,2));await browser.close();await new Promise(r=>server.server.close(r));console.log(JSON.stringify(report,null,2));}

@@ -50,6 +50,12 @@ test('checkpoint restores only validated state at safehouse and reports storage 
  assert.equal(restoreLowTide(fresh(),{version:99}),false);
  assert.equal(createLowTide({answered:true,powered:true}).answered,false);
  const broken=createLowTideSave({getItem:()=>'{',setItem:()=>{throw Error('denied');}});assert.equal(broken.load(fresh()),false);assert.equal(broken.save(r),false);assert.match(r.lowTideSaveStatus,/unavailable/);const sessionRetry=fresh();assert.ok(broken.load(sessionRetry));assert.ok(sessionRetry.lowTide.manifest);
+ let attempts=0,persisted=null;
+ const intermittent=createLowTideSave({getItem:()=>persisted,setItem:(key,value)=>{if(++attempts===1)throw Error('temporary storage failure');persisted=value;}});
+ assert.equal(intermittent.save(r),false);
+ assert.equal(intermittent.save(r),true,'unchanged checkpoint retries a failed write');
+ assert.equal(attempts,2);
+ assert.ok(createLowTideSave({getItem:()=>persisted,setItem:()=>{}}).load(fresh()),'retried checkpoint survives a new session');
  assert.ok(lowTideSnapshot(r));
 });
 test('inactive, airborne and distant interactions cannot advance the chapter',()=>{

@@ -6,7 +6,7 @@ import * as T from '../vendor/three.module.js';
 import {GLTFLoader} from '../vendor/loaders/GLTFLoader.js';
 import {Renderer} from '../renderer.js';
 import {installForegroundArms,fitForegroundArms} from '../assets/survivor/foreground-arms.js';
-import {installFPSArms,sampleFPSClip,fpsGripDiagnostics,updateFPSArms} from '../assets/survivor/fps-arms.js';
+import {installFPSArms,sampleFPSClip,advanceFPSClip,fpsGripDiagnostics,updateFPSArms} from '../assets/survivor/fps-arms.js';
 import {FIRST_PERSON_HOLD_POSES} from '../assets/survivor/viewmodel-hold-poses.js';
 import {animateMeleeWeapon} from '../weapon-melee.js';
 import {WeaponAim} from '../weapon-aim.js';
@@ -286,4 +286,25 @@ test('native weapon style retains authored glove and canvas roles and embedded s
    assert.equal(mesh.material.roughnessMap,material.roughnessMap);assert(material.roughnessMap);
   }
  }finally{style.dispose();}
+});
+
+test('explicit island action recovery blends bat fingers without delaying the next strike or losing grip',()=>{
+ const group=r.weaponGroups[6],state=group.userData.authoredFPS;
+ const finger=state.rig.getObjectByName('FPS_bat_right_Index0');
+ for(const hz of [30,60,120]){
+  sampleFPSClip(group,'idle',10);const idle=finger.quaternion.clone();
+  sampleFPSClip(group,'strike',.72);const outgoing=finger.quaternion.clone();
+  assert(outgoing.angleTo(idle)>.04,'fixture must expose the original hard pose change');
+  advanceFPSClip(group,'idle',10,1/hz);
+  assert(outgoing.angleTo(finger.quaternion)<1e-6,'release starts from the outgoing authored performance');
+  let previous=finger.quaternion.clone(),maxStep=0;
+  for(let i=0;i<Math.ceil(.15*hz);i++){
+   advanceFPSClip(group,'idle',10,1/hz);maxStep=Math.max(maxStep,previous.angleTo(finger.quaternion));previous.copy(finger.quaternion);
+   for(const arm of fpsGripDiagnostics(group).arms)assert(arm.gap<1e-5&&arm.rotationGap<1e-6);
+  }
+  assert(maxStep<outgoing.angleTo(idle)*.5,'recovery distributes motion across frames');
+  assert(idle.angleTo(finger.quaternion)<1e-6);
+  sampleFPSClip(group,'strike',.2);const attack=finger.quaternion.clone();sampleFPSClip(group,'idle',10);
+  advanceFPSClip(group,'strike',.2,1/hz);assert(attack.angleTo(finger.quaternion)<1e-6,'input response is not crossfaded away');
+ }
 });

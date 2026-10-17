@@ -1,0 +1,151 @@
+{
+  "title": "Kenney Survival Kit 2.0",
+  "author": "Kenney",
+  "license": "CC0-1.0",
+  "source": "https://kenney.nl/assets/survival-kit",
+  "download": "https://kenney.nl/media/pages/assets/survival-kit/4065a8185b-1712149243/kenney_survival-kit.zip",
+  "acquired": "2026-10-15",
+  "runtimeTexture": "Textures/colormap.png",
+  "files": [
+    {
+      "name": "barrel.glb",
+      "bytes": 34256,
+      "sha256": "3a0d12f6bdd1badd361f64ce0fbbf878a4ccfc2de8ff1ac4ed4c1aea2a9ee04a"
+    },
+    {
+      "name": "bedroll-packed.glb",
+      "bytes": 13680,
+      "sha256": "980c222917e8564c68aa184af025d701612c7395e8ad8ef55b5b00785637a98f"
+    },
+    {
+      "name": "bedroll.glb",
+      "bytes": 14036,
+      "sha256": "2ad9baa2d800845195c7c92bd8423b0d99519530dee0afd3bd0ac4b2e255d728"
+    },
+    {
+      "name": "bottle.glb",
+      "bytes": 10468,
+      "sha256": "23f847b8812838830df686fb8b472fa225693a3b85c526f2796f7b0790831a9a"
+    },
+    {
+      "name": "box-large.glb",
+      "bytes": 14072,
+      "sha256": "69b4052f32b7b27e5d2ee27041b091a07d4a2dd4d877168a701607a97609f0f6"
+    },
+    {
+      "name": "box.glb",
+      "bytes": 14056,
+      "sha256": "346eebd23986793b992ca6e05e9f98d6f5db96a9bfa3aa7c8360ac8b7920def8"
+    },
+    {
+      "name": "bucket.glb",
+      "bytes": 7816,
+      "sha256": "ff173908480929067cd634d5edfedba038428f1503db487521492975fa5c8274"
+    },
+    {
+      "name": "campfire-pit.glb",
+      "bytes": 26468,
+      "sha256": "a78ce38de408456649146077e1917d70bb39f7c87c3c7370276d809d2409b0ab"
+    },
+    {
+      "name": "chest.glb",
+      "bytes": 35172,
+      "sha256": "84b03023e425cc1f96c6d0b0f352608be9e8e01b112790e6b00b8651bf84379b"
+    },
+    {
+      "name": "fence-fortified.glb",
+      "bytes": 13592,
+      "sha256": "c50f420e9ebf0f1383a9f95766d47f377b19852651760b8223219cc2be850ece"
+    },
+    {
+      "name": "fence.glb",
+      "bytes": 6428,
+      "sha256": "5d8050e39c8b83b5835ea38b9b17429b4a03e289b566a1db771b7e1d9c6e4050"
+    },
+    {
+      "name": "grass-large.glb",
+      "bytes": 18848,
+      "sha256": "68d23ba79b8b8c7a8fc5da6c4b688cce6d9a739720fbf9c3134e5388e91d6f07"
+    },
+    {
+      "name": "grass.glb",
+      "bytes": 5992,
+      "sha256": "f9430602f076fad8f67b396008ba412fc0c073a93eb8c863ec0944564cbda93d"
+    },
+    {
+      "name": "patch-grass.glb",
+      "bytes": 3492,
+      "sha256": "ae22da8e00dfdf5c12969d9dc27bd0fad70d1c5dc2a8b32f8cf441833f0d203c"
+    },
+    {
+      "name": "resource-planks.glb",
+      "bytes": 8884,
+      "sha256": "d3804257474a3baab7ac067be91de5c3d6d18d5803775dc876cb6d9442c30873"
+    },
+    {
+      "name": "resource-stone.glb",
+      "bytes": 5464,
+      "sha256": "c0ad4ecc890f99dc7c62da067824e31de0f0515de4437e73d8690136bd06e3c0"
+    },
+    {
+      "name": "resource-wood.glb",
+      "bytes": 7272,
+      "sha256": "1d5f559da9432f89bd323731ef76b60372e0deb261a96d0da8d5af570c485d80"
+    },
+    {
+      "name": "rock-flat.glb",
+      "bytes": 24780,
+      "sha256": "350f6440743ed400728d8889d711e0eb3eed56e8d7389e386352d9d98411a49d"
+    },
+    {
+      "name": "signpost.glb",
+      "bytes": 5924,
+      "sha256": "6d33757888c4ec9249610266ca8d60532b1138ae28fd37e93fa843ec4856fd25"
+    },
+    {
+      "name": "tent-canvas.glb",
+      "bytes": 16864,
+      "sha256": "efc4bca46a22e4cc4fe391aeafba161c24bc39bfa75e192c57eaacaf686f9717"
+    },
+    {
+      "name": "tent.glb",
+      "bytes": 14020,
+      "sha256": "2c1c5fcc213929af0904a84921084361599ffab5077423a44d3d72a81d8c87c6"
+    },
+    {
+      "name": "tool-axe.glb",
+      "bytes": 8612,
+      "sha256": "de5c6cc51cdb5bcfad8bd7128b7ff0e37a34e6f4f8deddec82bb8634c25cc20d"
+    },
+    {
+      "name": "tool-shovel.glb",
+      "bytes": 11656,
+      "sha256": "20abb2420f0215c59694287207b7a6324114552b9f59846ab2a2673e3a7c1147"
+    },
+    {
+      "name": "tree-log-small.glb",
+      "bytes": 9216,
+      "sha256": "5b416addc4cb01d9d6ad30ec282606a8fefb018043d3253d5e42c1e353aab3c8"
+    },
+    {
+      "name": "tree-log.glb",
+      "bytes": 9180,
+      "sha256": "bd358e55e63a75bd54bea1e4b40ed362baa937ce8e503f2aa2370a5a1d9da11c"
+    },
+    {
+      "name": "workbench-anvil.glb",
+      "bytes": 30084,
+      "sha256": "a6253df726c1eba7cbaddf7e31cd5a4adfac31309894bf647e4b803d9d75c275"
+    },
+    {
+      "name": "workbench-grind.glb",
+      "bytes": 24704,
+      "sha256": "93aa1468ee12b16bd2a554e65eab2beebe7e14cf52ed5a35a9530c6123292773"
+    },
+    {
+      "name": "workbench.glb",
+      "bytes": 26104,
+      "sha256": "bf72d2d535fa29127e5078a6c4c2023a74fa5cd7d02d91ad550e897e088e1dc8"
+    }
+  ]
+}

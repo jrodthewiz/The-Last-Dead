@@ -1,4 +1,5 @@
 import {lowTideObjective,lowTideJournal,LOW_TIDE_TITLE} from './low-tide.js';
+import {stashAccess,validateStash} from './safehouse-storage.js';
 import * as THREE from './vendor/three.module.js';
 import {mergeGeometries} from './vendor/utils/BufferGeometryUtils.js';
 import {lights} from './vendor/three.tsl.js';
@@ -45,6 +46,7 @@ export function bandageActionDescription(state,action) {
 export function createScavengerPackUI({getRun, onOpen = () => {}, onClose = () => {},
   onUpgrade = () => ({ok: false, reason: 'inactive'}), onEquip = () => false, weapons = DEFAULT_WEAPONS,
   onCraft = () => ({ok:false}), onUseBandage = () => ({ok:false}), onDiscard = () => ({ok:false}),
+  onStash = () => ({ok:false}),
   parent = document.body} = {}) {
   const root = document.createElement('div');
   root.className = 'scavenger-ui';
@@ -76,7 +78,8 @@ export function createScavengerPackUI({getRun, onOpen = () => {}, onClose = () =
       <div class="pack-fitting"><div><span class="pack-kicker">${escape(WEAPON_FITTING.name.toUpperCase())}</span>
         <strong>+25% DAMAGE</strong><p data-pack-target></p></div><button class="pack-upgrade" type="button">
         FIT WEAPON <span>${WEAPON_FITTING.cost} SCRAP</span></button></div>
-      <p class="pack-status" role="status" aria-live="polite"></p></div>
+      <p class="pack-status" role="status" aria-live="polite"></p>
+      <section class="pack-storage" aria-label="Netmakers storage box" hidden></section></div>
       <section class="pack-journal" aria-label="Low Tide field journal" hidden></section>
       <section class="pack-map" aria-label="Harbor field map" hidden></section>
       </div><footer>Weapons & fittings stay with you between floors.<span>B / ESC · RETURN</span></footer>
@@ -119,7 +122,7 @@ export function createScavengerPackUI({getRun, onOpen = () => {}, onClose = () =
     const contextText=view==='journal'?'Recovered evidence / newest record first':view==='map'?'Your position, destination and accessible routes':'Select a weapon to equip or improve.';
     if(context.textContent!==contextText)context.textContent=contextText;
     const footer=root.querySelector('.pack-panel footer');
-    if(footer.dataset.lowTide!==String(!!run.lowTide)){footer.dataset.lowTide=String(!!run.lowTide);footer.innerHTML=run.lowTide?'Progress saves after claiming Netmakers.<span>B / ESC - RETURN</span>':'Weapons & fittings stay with you between floors.<span>B / ESC - RETURN</span>';}
+    if(footer.dataset.lowTide!==String(!!run.lowTide)){footer.dataset.lowTide=String(!!run.lowTide);footer.innerHTML=run.lowTide?'Gear & box autosave after claiming Netmakers. Dungeon rooms reset after reload.<span>B / ESC - RETURN</span>':'E / Q at entry stairs: return toward the island. Claim Netmakers to save gear. Dungeon rooms reset after reload.<span>B / ESC - RETURN</span>';}
     const tabs=root.querySelector('.pack-tabs');if(tabs.hidden===!!run.course?.harbor)tabs.hidden=!run.course?.harbor;
     const journalButton=root.querySelector('[data-pack-view=journal]');
     if(run.lowTide&&!journalButton)tabs.insertAdjacentHTML('beforeend','<button type="button" data-pack-view="journal" aria-pressed="false">JOURNAL</button>');
@@ -141,6 +144,16 @@ export function createScavengerPackUI({getRun, onOpen = () => {}, onClose = () =
         const nav=harborNavigation(run);mapKey=key;
         const indoors=!!run.course.activeInterior;
         root.querySelector('.pack-map').innerHTML=`<div>${harborMapSvg(run)}</div><div class="pack-map-notes"><span class="pack-kicker">${indoors?'ROOM PLAN':'DISTRICT MAP'}</span><h3>${escape(harborLocation(run))}</h3><p class="map-destination">${escape(nav?.target.label||'Explore the district')}<strong>${nav?`${nav.distance} m ${indoors?'away':'by street'}`:'No active route'}</strong></p><p class="pack-map-legend">${indoors?'&#9650; YOU &nbsp; &#9679; SUPPLIES &nbsp; &#9671; OBJECTIVE<br>Green marker / exit / Q':'&#9650; YOU &nbsp; &#9679; WEAPON &nbsp; + SUPPLIES &nbsp; &#9644; TRUCK<br>&#9647; ROOM / Q &nbsp; &#9873; FERRY LOCATION<br>Gold dashes / walking route'}</p>${indoors?'<p>Walls and solid furniture block movement. Use Q at the marked door to return outside.</p>':`${run.course.coastal?`<div class="coastal-destinations"><span class="pack-kicker">SET A WALKING ROUTE</span>${run.course.coastal.landmarks.map((p,i)=>`<button type="button" data-coast-destination="${escape(p.id)}" aria-pressed="${run.coastalDestination===p.id}">${String.fromCharCode(65+i)} / ${escape(p.name)}</button>`).join('')}<button type="button" data-coast-destination="" aria-pressed="${!run.coastalDestination}">Follow chapter objective</button></div>`:''}<ol>${run.course.buildings.map(b=>`<li>${escape(b.name)}</li>`).join('')}</ol><p>Room entrances are marked in green. The Netmakers gate faces the waterfront.</p>`}</div>`;
+      }
+    }
+    const storage=root.querySelector('.pack-storage');storage.hidden=!run.lowTide;
+    if(run.lowTide){
+      const box=run.lowTide.stash||validateStash(),access=canUpgrade&&stashAccess(run);
+      const storageKey=JSON.stringify([box,access,owned,run.lowTide.bank,pack.scrap,pack.supplies,run.lowTideSaveStatus]);
+      if(storage.dataset.state!==storageKey){
+        storage.dataset.state=storageKey;
+        const button=(direction,kind,id,label,enabled)=>`<button type="button" data-stash-direction="${direction}" data-stash-kind="${kind}" data-stash-id="${id}" ${access&&enabled?'':'disabled'}>${escape(label)}</button>`;
+        storage.innerHTML=`<span class="pack-kicker">NETMAKERS / STORAGE BOX</span><h3>YOUR RESERVE</h3><p>${access?'Choose what to store or take. Weapons keep their fittings.':'Claim Netmakers, then stand beside its supply box to transfer gear.'}</p><p class="journal-save">${escape(run.lowTideSaveStatus||'Claim Netmakers to save equipment.')}</p><div class="pack-storage-row"><strong>SCRAP ${run.lowTide.bank} / 99</strong>${button('store','scrap','','STORE SCRAP',pack.scrap>0&&run.lowTide.bank<99)}${button('take','scrap','','TAKE SCRAP',run.lowTide.bank>0&&pack.scrap<pack.capacity)}</div>${['cloth','antiseptic','bandage'].map(id=>`<div class="pack-storage-row"><strong>${id.toUpperCase()} ${box.supplies[id]} / 99</strong>${button('store','supply',id,'STORE ONE',pack.supplies[id]>0&&box.supplies[id]<99)}${button('take','supply',id,'TAKE ONE',box.supplies[id]>0&&supplyCount(pack.supplies)<SUPPLY_CAPACITY&&(id!=='bandage'||pack.supplies.bandage<3))}</div>`).join('')}<h4>PACK → BOX</h4><div class="pack-storage-weapons">${owned.filter(n=>n!==0).map(n=>button('store','weapon',n,`STORE ${weaponName(n)}`,!box.weapons.includes(n))).join('')||'<p>Your starter sidearm stays with you.</p>'}</div><h4>BOX → PACK</h4><div class="pack-storage-weapons">${box.weapons.map(n=>button('take','weapon',n,`TAKE ${weaponName(n)}${box.weaponMods[n]?' / FITTED':''}`,!owned.includes(n))).join('')||'<p>No weapons stored.</p>'}</div><p data-stash-status role="status"></p>`;
       }
     }
     const bench = workbenchAccess(run);
@@ -227,6 +240,12 @@ export function createScavengerPackUI({getRun, onOpen = () => {}, onClose = () =
     return true;
   }
   launcher.addEventListener('click', open);
+  root.querySelector('.pack-storage').addEventListener('click',event=>{
+    const button=event.target.closest('[data-stash-direction]');if(!button||button.disabled)return;
+    const result=onStash(button.dataset.stashDirection,button.dataset.stashKind,button.dataset.stashKind==='weapon'?Number(button.dataset.stashId):button.dataset.stashId);
+    render(getRun?.()||current);
+    root.querySelector('[data-stash-status]').textContent=result?.ok?'Storage updated.':'Transfer unavailable. Check your position and capacity.';
+  });
   root.querySelector('.pack-tabs').addEventListener('click',event=>{const button=event.target.closest('[data-pack-view]');if(!button)return;view=button.dataset.packView;root.querySelector('.pack-content').scrollTop=0;render(getRun?.()||current);});
   root.querySelector('.pack-map').addEventListener('click',event=>{const button=event.target.closest('[data-coast-destination]');if(!button)return;const run=getRun?.()||current;run.coastalDestination=button.dataset.coastDestination||null;mapKey='';render(run);});
   closeButton.addEventListener('click', () => close());

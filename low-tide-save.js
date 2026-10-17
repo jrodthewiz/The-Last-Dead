@@ -7,13 +7,17 @@ export function lowTideSnapshot(run) {
   if(!run.lowTide?.shelter)return null;
   const rooms={};for(const room of run.course.harborRooms)rooms[room.id]=Math.min(2,Math.max(0,Number(run.harborRooms?.[room.id])||0));
   return {version:1,mission:createLowTide(run.lowTide),backpack:validateBackpack(run.backpack),
-    owned:[...new Set(run.ownedWeapons)].filter(n=>Number.isInteger(n)&&n>=0&&n<8),rooms};
+    owned:[...new Set(run.ownedWeapons)].filter(n=>Number.isInteger(n)&&n>=0&&n<8),weapon:run.weapon,rooms};
 }
 export function restoreLowTide(run,value) {
   if(!run.lowTide||value?.version!==1||!value.mission?.shelter)return false;
   const mission=createLowTide(value.mission);if(!mission.shelter)return false;
   run.lowTide=mission;run.backpack=validateBackpack(value.backpack);
   run.ownedWeapons=[...new Set([0,...(Array.isArray(value.owned)?value.owned:[]).filter(n=>Number.isInteger(n)&&n>=0&&n<8)])];
+  // Old saves have no box or equipped slot. Corrupt duplicates stay in the pack.
+  mission.stash.weapons=mission.stash.weapons.filter(n=>!run.ownedWeapons.includes(n));
+  for(const key of Object.keys(mission.stash.weaponMods))if(!mission.stash.weapons.includes(Number(key)))delete mission.stash.weaponMods[key];
+  run.weapon=run.ownedWeapons.includes(value.weapon)?value.weapon:0;
   for(const key of Object.keys(run.backpack.weaponMods))if(!run.ownedWeapons.includes(Number(key)))delete run.backpack.weaponMods[key];
   run.harborRooms={};for(const room of run.course.harborRooms)run.harborRooms[room.id]=Math.min(2,Math.max(0,Math.floor(Number(value.rooms?.[room.id])||0)));
   const home=run.course.harborRooms[3];run.course.activeInterior=home;
@@ -28,7 +32,7 @@ export function createLowTideSave(storage) {
       const value=lowTideSnapshot(run);if(!value)return false;
       // Bell phase is transient; don't write localStorage every simulation tick.
       value.mission.bellRemaining=value.mission.powered&&!value.mission.answered?24:0;
-      const text=JSON.stringify(value);memory=text;if(lastRun===run&&text===last)return lastSaved;
+      const text=JSON.stringify(value);memory=text;if(lastRun===run&&text===last&&lastSaved)return true;
       last=text;lastRun=run;
       try{storage.setItem(LOW_TIDE_SAVE_KEY,text);lastSaved=true;run.lowTideSaveStatus='Saved · resume at Netmakers';return true;}
       catch{lastSaved=false;run.lowTideSaveStatus='Save unavailable · keep this session open';return false;}

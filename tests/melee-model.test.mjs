@@ -52,6 +52,17 @@ test('bat has a full windup, cross-screen strike, contact pulse, and clean retur
   assert.ok(Math.abs(root.rotation.y - base.y) < .06, 'bat returns to its held pose after followthrough');
 });
 
+test('bat windup and recovery meet the held pose without an endpoint snap', () => {
+  const root=createMeleeWeapon({variant:'bat'});
+  animateMeleeWeapon(root,{active:false},0,1/60);
+  const position=root.position.clone(),rotation=root.quaternion.clone();
+  for(const progress of [0,1]){
+    animateMeleeWeapon(root,{active:true,progress},0,1/60);
+    assert.ok(root.position.distanceTo(position)<1e-8);
+    assert.ok(root.quaternion.angleTo(rotation)<1e-7);
+  }
+});
+
 test('bat impact tip crosses the reticle in the authored FPS wrapper', () => {
   const root = createMeleeWeapon({ variant: 'bat' });
   root.rotation.set(.92, -.32, -.22);

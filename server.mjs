@@ -4,6 +4,7 @@ import { randomInt } from 'node:crypto';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {ROOM_PATH,memoryRooms,roomRequest} from './coop/rooms.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_PORT = 5200;
@@ -290,7 +291,15 @@ export function createStaticServer({ root = DEFAULT_ROOT, spaFallback = true } =
     throw new Error(`Static root does not exist or is not a directory: ${absoluteRoot}`);
   }
   const rooms = new Map();
+  const expeditions=memoryRooms();
   const server = http.createServer(async (request, response) => {
+    if(request.url?.startsWith(ROOM_PATH)){
+      try{
+        const chunks=[];let bytes=0;for await(const chunk of request){bytes+=chunk.length;if(bytes>96_000){sendJson(response,413,{error:'Lobby update is too large.'});return;}chunks.push(chunk);}
+        const url=`http://${request.headers.host||'127.0.0.1'}${request.url}`,body=Buffer.concat(chunks).toString(),result=await roomRequest(new Request(url,{method:request.method,headers:request.headers,...(!['GET','HEAD'].includes(request.method)?{body}: {})}),expeditions);
+        response.writeHead(result.status,Object.fromEntries(result.headers));response.end(await result.text());
+      }catch{sendJson(response,503,{error:'The radio service is unavailable.'});}return;
+    }
     if (request.url?.startsWith(SIGNALING_PATH)) {
       const handled = await handleSignalingRequest(request, response, rooms);
       if (handled) return;

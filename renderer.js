@@ -2696,10 +2696,10 @@ export class Renderer {
 
   renderMenu(run, nowMs) {
     if (!this.renderer) return;
-    if (this._warmupCourse !== run.course) this.render(run, nowMs);
-    // Keep the last title frame while Start prepares the game. Rendering the
-    // animated skinned title on every compiler yield competes for both the
-    // main thread and GPU; the loading overlay still paints normally.
+    // The title has its own scene. Building the solo world behind it can
+    // overlap a room-code start and compile two different worlds at once.
+    // Prepare only the world the player selects, behind its loading overlay.
+    // Keep the last title frame while that preparation runs.
     if(this._beginPending&&!this._weaponsPrepared)return;
     this.menuCinematic ||= new MenuCinematic({ materials: this.materials, environment: this.scene.environment });
     this.menuCinematic.active = true;

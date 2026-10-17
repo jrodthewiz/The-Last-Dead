@@ -29,3 +29,9 @@ __pycache__/
 
 # Local assistant permission settings.
 .claude/
+
+# Generated hosted runtime; canonical game source is in the repository root.
+/sites/blackwater/public/
+/sites/blackwater/lib/game-shell.ts
+/sites/blackwater/lib/blackwater-rooms.js
+/sites/blackwater/.sites-checkout/

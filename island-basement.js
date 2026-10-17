@@ -19,7 +19,7 @@ function basementPortalAt(run) {
   if(c?.undergroundCampaign&&run.dungeonProgression?.exitReady&&c.dungeonIndex+1<c.dungeonCount&&Math.hypot(run.x-c.exit.x,run.y-c.exit.y)<.9)return {...c.exit,radius:.9,destination:'lower-floor'};
   return c?.basementPortal;
 }
-const sharedFields=['health','energy','weapon','ownedWeapons','backpack','storyRecords','playerWounds','kills','style','styleTotal','stylePending','styleLabel','rank','combo','bestCombo','cooldowns','fireCooldown','altCooldown','attachmentCooldown','hookCooldown','parryCooldown','coinCharges','coinRegen','extractions','extractionPoints','shotSequence','autoRun'];
+const sharedFields=['godMode','health','energy','weapon','ownedWeapons','backpack','storyRecords','playerWounds','kills','style','styleTotal','stylePending','styleLabel','rank','combo','bestCombo','cooldowns','fireCooldown','altCooldown','attachmentCooldown','hookCooldown','parryCooldown','coinCharges','coinRegen','extractions','extractionPoints','shotSequence','autoRun'];
 export class IslandBasementConnection {
   constructor(){this.reset();}
   reset(){this.island=null;this.basement=null;this.floors=new Map();this.lastInteract=false;}
@@ -28,7 +28,8 @@ export class IslandBasementConnection {
     this.basement=run;this.floors.set(run.course.dungeonIndex,run);
     this.island=newRun(makeHarborCourse(run.course.surfaceOptions));
     this.island.mode='play';
-    if(restore?.(this.island))for(const field of ['backpack','ownedWeapons'])run[field]=this.island[field];
+    if(restore?.(this.island))for(const field of ['backpack','ownedWeapons','weapon'])run[field]=this.island[field];
+    run.weaponReserve=this.island.lowTide?.stash;
     // A restored surface save belongs to Netmakers, but this arrival uses the
     // customs stairs. Keep its mission/equipment while leaving that room scope.
     this.island.course.activeInterior=null;
@@ -61,6 +62,7 @@ export class IslandBasementConnection {
     const arrivalX=p?.x+(p?.arrivalOffset?.[0]??0),arrivalY=p?.y+(p?.arrivalOffset?.[1]??0);
     if(!p||!canStand(target.course,arrivalX,arrivalY,.22))return null;
     for(const field of sharedFields)target[field]=run[field];
+    target.weaponReserve=this.island?.lowTide?.stash;
     Object.assign(target,{x:arrivalX,y:arrivalY,z:0,angle:p.arrivalAngle??p.angle??0,pitch:0,vx:0,vy:0,vz:0,speed:0,supportZ:null,supportId:null,structureId:null,mode:'play',events:[],pressed:{},aim:0,slide:0,dashTime:0,hookTime:0,hookTarget:-1,meleeActive:false,sawActive:false});
     if(target.course.dungeon){this.basement=target;this.floors.set(target.course.dungeonIndex,target);}else this.island=target;
     this.lastInteract=true;

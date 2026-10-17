@@ -277,7 +277,7 @@ function bankStyle(r,amount,label,totalAmount=amount){
  r.style=Math.min(1800,(r.style||0)+gain);r.styleTotal=(r.styleTotal||0)+clamp(Number(totalAmount)||0,0,1800);r.styleLabel=label;
  r.combo++;r.bestCombo=Math.max(r.bestCombo,r.combo);
 }
-function hurt(r,n,biteDamage=false){if(r.dashTime>0&&!biteDamage)return;
+function hurt(r,n,biteDamage=false){if(r.godMode)return;if(r.dashTime>0&&!biteDamage)return;
  // A grabbed player gets the promised escape window even in a crowd. Later
  // incidental hits are reduced while the grappler owns the close contact.
  if(r.bite?.phase==='held'&&!biteDamage){if(r.bite.elapsed<1.25)return;n*=.35;}
@@ -315,7 +315,7 @@ function beginBite(r,e){
  biteEvent(r,'bite-windup',e,{duration:BITE_TIMING.windup});
 }
 function biteEligible(r,e,profile,distance){
- return !!e.mind?.token&&['rush','hunter'].includes(profile.role)&&!e.wounds?.arm&&!e.dead
+ return !r.godMode&&!!e.mind?.token&&['rush','hunter'].includes(profile.role)&&!e.wounds?.arm&&!e.dead
   &&distance<.4&&r.z<.18&&Math.abs(playerFoot(r)-enemyBase(e))<.18&&r.dashTime<=0&&r.parryTime<=0&&r.health>0
   &&!biteActive(r)&&r.bite?.phase!=='terminal'&&(r.bite?.cooldown||0)<=0&&(e.biteCooldown||0)<=0;
 }
@@ -326,7 +326,14 @@ function addBiteEscape(r,amount,source){
  if(b.escape>=1)releaseBite(r,'break-free',true);
  return true;
 }
+export function setGodMode(r,enabled){
+ if(r.peer||r.playerId==='peer'||!['play','pause'].includes(r.mode)||r.health<=0)return false;
+ r.godMode=!!enabled;
+ if(r.godMode){releaseBite(r,'god-mode',true);resetBite(r);r.health=100;r.energy=100;}
+ return true;
+}
 function advancePlayerBite(world,r,dt){
+ if(r.godMode){if(biteActive(r))releaseBite(r,'god-mode',true);return;}
  const b=r.bite||(r.bite=makeBiteState());b.cooldown=Math.max(0,b.cooldown-dt);
  if(b.phase==='terminal'||b.phase==='idle')return;
  b.elapsed+=dt;
@@ -820,7 +827,7 @@ function dungeonNavigation(r,force=false){
   for(const item of course.loot||[]){
    const room=course.rooms.find(room=>room.id===item.roomId);
    if(!room||(room.flow?.onRoute!==true&&!course.route?.includes(room.id))
-     ||room.flow.sequence>nextSequence||p.lootCollected.includes(item.id)||r.ownedWeapons?.includes(item.weaponIndex))continue;
+     ||room.flow.sequence>nextSequence||p.lootCollected.includes(item.id)||r.ownedWeapons?.includes(item.weaponIndex)||r.weaponReserve?.weapons.includes(item.weaponIndex))continue;
    offer(item,'equipment',room.id,`Collect ${item.name||weapons[item.weaponIndex]?.name||'equipment'}`,
     room.flow.sequence*1000-.5);
   }
@@ -1156,7 +1163,7 @@ function updateDungeonProgression(r){
   const collector=[r,...(r.peer?[r.peer]:[])].find(player=>player.health>0&&Math.hypot(player.x-item.x,player.y-item.y)<.65);
   if(!collector)continue;
   progression.lootCollected.push(item.id);
-  const newWeapon=!r.ownedWeapons.includes(item.weaponIndex);
+  const newWeapon=!r.ownedWeapons.includes(item.weaponIndex)&&!r.weaponReserve?.weapons.includes(item.weaponIndex);
   if(newWeapon){r.ownedWeapons.push(item.weaponIndex);switchWeapon(r,item.weaponIndex);if(r.peer)r.peer.ownedWeapons=[...r.ownedWeapons];}
   r.events.push({type:'dungeon-weapon',lootId:item.id,weaponIndex:item.weaponIndex,weaponName:weapons[item.weaponIndex].name,rarity:item.rarity,story:item.story,newWeapon,floorIndex:course.dungeonIndex,x:item.x,y:item.y});
  }

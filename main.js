@@ -1,3 +1,5 @@
+import {transferStash} from './safehouse-storage.js';
+import {setGodMode} from './engine.js';
 import {createLowTideSave} from './low-tide-save.js';
 import {lowTideObjective,lowTidePrompt} from './low-tide.js';
 import {syncRoomGateCells} from './room-progression.js';
@@ -112,7 +114,7 @@ function makeSession(){cancelSignal();session?.close();let active;active=new Pee
 const ui=new UI({onSound:type=>{if(type==='hover'&&!audio.isUnlocked)return;audio.unlock().then(()=>audio.play(type));},onWeapon:index=>{if(screen==='play'){if(switchWeapon(run,index))audio.play('equip');}},onStart:()=>begin(false),onPause:pause,onResume:resume,onRestart:restart,onMenu:menu,onSettings:configure,onHost:async()=>{setCoopBusy(true,'Creating breach code…');const active=makeSession();try{const code=await active.host();if(session!==active)return;signalRoom=code;showRoomCode(code);setCoopBusy(true,`Send code ${code} to your partner.`);}catch(e){if(session!==active)return;setCoopBusy(false,coopError(e));active.close();session=null;}},onJoin:async code=>{setCoopBusy(true,'Joining breach…');const active=makeSession();try{await active.join(code);if(session!==active)return;if(!active.connected)setCoopBusy(true,'Connected. Waiting for host…');}catch(e){if(session!==active)return;setCoopBusy(false,coopError(e));active.close();session=null;}},onAccept:async()=>{ui.networkStatus('Use the six-character host code to join.');},onDisconnect:()=>{const wasGuest=session?.role==='guest';cancelSignal();session?.close();session=null;network='SOLO';if(run.peer)delete run.peer;if(wasGuest&&screen==='play'){screen='pause';run.mode='pause';audio.setScene?.('pause');ui.pause();}setCoopBusy(false,network);ui.networkStatus(network);}});
 let packPausedPlay=false;
 const packSupplyAction=action=>{if(session?.connected)return{ok:false,reason:'inactive'};const result=action(run);if(result.ok){audio.play('equip',0,{volume:.15});lowTideSave.save(basementConnection.surfaceForSave(run));}return result;};
-const packUI=createScavengerPackUI({getRun:()=>run,onOpen:()=>{packPausedPlay=screen==='play';if(packPausedPlay)pause();},onClose:()=>{if(packPausedPlay&&screen==='pause')resume();packPausedPlay=false;},weapons,onCraft:()=>packSupplyAction(craftBandage),onDiscard:id=>packSupplyAction(r=>discardSupply(r,id)),onUseBandage:()=>packSupplyAction(useBandage),onEquip:index=>{if(session?.connected)return false;const changed=switchWeapon(run,index);if(changed)audio.play('equip');return changed;},onUpgrade:index=>{if(session?.connected)return {ok:false,reason:'inactive'};const result=upgradeWeapon(run,index);if(result.ok){audio.unlock().then(()=>audio.play('mechanism',1));ui.toast('Hardened fitting installed · +25% weapon damage');lowTideSave.save(basementConnection.surfaceForSave(run));}return result;}});
+const packUI=createScavengerPackUI({getRun:()=>run,onOpen:()=>{packPausedPlay=screen==='play';if(packPausedPlay)pause();},onClose:()=>{if(packPausedPlay&&screen==='pause')resume();packPausedPlay=false;},weapons,onStash:(direction,kind,id)=>packSupplyAction(r=>transferStash(r,direction,kind,id)),onCraft:()=>packSupplyAction(craftBandage),onDiscard:id=>packSupplyAction(r=>discardSupply(r,id)),onUseBandage:()=>packSupplyAction(useBandage),onEquip:index=>{if(session?.connected)return false;const changed=switchWeapon(run,index);if(changed){audio.play('equip');lowTideSave.save(basementConnection.surfaceForSave(run));}return changed;},onUpgrade:index=>{if(session?.connected)return {ok:false,reason:'inactive'};const result=upgradeWeapon(run,index);if(result.ok){audio.unlock().then(()=>audio.play('mechanism',1));ui.toast('Hardened fitting installed · +25% weapon damage');lowTideSave.save(basementConnection.surfaceForSave(run));}return result;}});
 function saneSnapshot(s){return s&&Number.isInteger(s.seq)&&Number.isInteger(s.sectorIndex)&&s.sectorIndex>=0&&s.sectorIndex<3&&s.host&&s.guest&&Array.isArray(s.enemies)&&s.enemies.length<=96&&['projectiles','coins','gore','blood','tracers','spawnTelegraphs','explosions'].every(k=>Array.isArray(s[k])&&s[k].length<=250)&&[s.host,s.guest].every(p=>['x','y','z','angle','pitch','health'].every(k=>Number.isFinite(p[k]))&&p.x>=0&&p.x<=12&&p.y>=0&&p.y<=12)&&(s.vermin===undefined||(s.vermin&&Array.isArray(s.vermin.rats)&&s.vermin.rats.length<=VERMIN_LIMITS.rats&&Array.isArray(s.vermin.roaches)&&s.vermin.roaches.length<=VERMIN_LIMITS.roaches));}
 function applySnapshot(s,start=false){if(!saneSnapshot(s)||s.seq<=lastSnapshot)return;lastSnapshot=s.seq;run.playerId='peer';const oldHealth=run.health,oldKills=run.kills;if(start){audio.resetCounterCues();parrySequence=0;chestSequence=0;hookSequence=0;verminSequence=0;run=newRun(makeCampaignCourse(0),{requireEntry:true});run.playerId='peer';run.mode='play';screen='play';fatalBiteUntil=0;resetInput();ui.play?.();ui.hide?.();document.body.classList.add('playing');audio.setScene?.('play');audio.unlock().then(()=>{if(screen!=='play')return;audio.resume();audio.play('ambience');});pointerLock();}const changedSector=run.course.index!==s.sectorIndex;if(changedSector)run.course=makeCampaignCourse(s.sectorIndex);for(const key of ['campaign','sectorIndex','sectorCount','sectorId','sectorName','waveCount','director','roomProgression','enemyAICursor'])run[key]=s[key];syncRoomGateCells(run.course,run.roomProgression);const previous={x:run.x,y:run.y,z:run.z,angle:run.angle,pitch:run.pitch,weapon:run.weapon};for(const k of playerFields)if(s.guest[k]!==undefined)run[k]=s.guest[k];if(!start&&!changedSector&&screen==='play'&&Math.hypot(previous.x-run.x,previous.y-run.y)<.5&&run.health>0){run.x=previous.x+(run.x-previous.x)*.25;run.y=previous.y+(run.y-previous.y)*.25;run.angle=previous.angle;run.pitch=previous.pitch;}if(!start&&!changedSector&&screen==='play')run.weapon=previous.weapon;run.mode=s.host.mode;run.peer=s.host;run.vermin=validateVerminSnapshot(s.vermin,run.course);run._verminCourse=run.course;run.verminHand=validateVerminHand(s.guest.verminHand);run.verminCrawl=validateVerminCrawl(s.guest.verminCrawl);run.peer.verminHand=validateVerminHand(s.host.verminHand);run.peer.verminCrawl=validateVerminCrawl(s.host.verminCrawl);if(s.horror)horrorPresence.receive(s.horror,run);run.course.enemies=s.enemies;run.wave=s.wave;run.waveDelay=s.waveDelay;for(const key of ['projectiles','coins','gore','blood','tracers','spawnTelegraphs','explosions'])run[key]=s[key];run.kills=s.host.kills;run.autoRun=!!settings.autoRun;const freshBiteDamage=Array.isArray(s.audioEvents)&&s.audioEvents.some(e=>(e.type==='bite-damage'||e.type==='vermin-bite')&&e.playerId==='peer'&&Number.isSafeInteger(e.seq)&&e.seq>lastNetEvent);if(oldHealth>run.health&&!freshBiteDamage&&!['held','terminal'].includes(run.bite?.phase))audio.play('damage');if(oldKills<run.kills)audio.play('kill');audio.updateListener(listenerPose(run));if(Array.isArray(s.audioEvents))for(const e of s.audioEvents.slice(-20)){if(Number.isSafeInteger(e.seq)&&e.seq>lastNetEvent){lastNetEvent=e.seq;if(!isPredictedFirearmEcho(e,run.playerId||'peer')&&(!(BITE_EVENTS.has(e.type)||VERMIN_LOCAL_EVENTS.has(e.type))||e.playerId==='peer'))audio.play(e.type,e.weapon??0,spatialEvent(e));}}if(changedSector)ui.toast('DESCENT '+(run.sectorIndex+1)+' // '+run.sectorName.toUpperCase());}
 // Keep short trigger taps until a host simulation step consumes them, even if
@@ -160,6 +162,7 @@ addEventListener('mousemove',event=>{if(event.movementX||event.movementY)useInpu
 function requestInspector({enter=false}={}){
  if(!devEnabled||renderer._beginPending)return;
  if(session?.connected){ui.toast('Map inspection is available in solo play.');return;}
+ if(packUI.isOpen)packUI.close();
  if(screen==='menu'){inspectOnStart=true;begin(false);return;}
  if(screen==='pause'){resume();if(enter&&inspector.active)return;}
  if(screen!=='play')return;
@@ -183,15 +186,45 @@ function updateInspector(dt){
 function inspectFullMap(){
  if(inspector.active&&screen==='play'&&inspector.overview(run.course,renderer.camera.aspect)){resetInput();renderer.freeCamera=inspector.pose;}
 }
+function toggleGodMode(){
+ if(!devEnabled||session?.connected||!['play','pause'].includes(screen))return;
+ if(setGodMode(run,!run.godMode)){
+  ui.toast(`GOD MODE ${run.godMode?'ON / DAMAGE & GRABS DISABLED':'OFF'}`);
+  if(screen==='pause')ui.pause();
+ }
+}
+function inspectReturnRoute(){
+ const p=run.course.basementPortal;if(!p||!inspector.active)return;
+ inspector.pose={x:p.x*4,y:3.2,z:p.y*4,angle:p.arrivalAngle??p.angle??0,pitch:-.35};
+ renderer.freeCamera=inspector.pose;ui.toast(p.label+' / F4 TO LAND / E OR Q TO TRAVEL');
+}
+function landInspector(){
+ if(!inspector.active||screen!=='play'||session?.connected)return;
+ if(getActiveVehicle(run)?.occupied){ui.toast('Leave your vehicle before landing the camera.');return;}
+ const x=inspector.pose.x/4,y=inspector.pose.z/4;
+ const room=run.course.activeInterior;
+ if(room&&(Math.abs(x-room.x/4)>room.width/8-.22||Math.abs(y-room.z/4)>room.depth/8-.22)){ui.toast('Land inside this room, then use its door to go outside.');return;}
+ if(!canStand(run.course,x,y,.22,0)){ui.toast('Cannot land here. Move above clear walkable ground.');return;}
+ if(run.bite?.phase!=='idle'||run.brutal?.phase!=='idle'||run.extraction?.phase!=='idle'){ui.toast('Finish the current interaction before landing.');return;}
+ Object.assign(run,{x,y,z:0,angle:inspector.pose.angle,pitch:0,vx:0,vy:0,vz:0,supportZ:null,supportId:null,structureId:null,slide:0,dashTime:0,hookTime:0,hookTarget:-1,slam:false,rifleBurst:0,rifleBurstTimer:0,rifleCharging:false,rifleCharge:0});
+ requestInspector();ui.toast('LANDED / F3 TO TOGGLE GOD MODE');
+}
+document.addEventListener('click',event=>{
+ if(event.target.closest('[data-dev-god]'))toggleGodMode();
+ if(event.target.closest('[data-dev-land]'))landInspector();
+ if(event.target.closest('[data-dev-route]'))inspectReturnRoute();
+});
 document.addEventListener('click',event=>{if(event.target.closest('[data-dev-inspect]'))requestInspector({enter:screen==='pause'});if(event.target.closest('[data-dev-overview]'))inspectFullMap();if(inspector.active&&event.target.closest('[data-dev-capture]')){document.activeElement?.blur();if(document.pointerLockElement===canvas){resetInput();document.exitPointerLock?.();}else pointerLock();}if(inspector.active&&event.target.closest('[data-dev-reset]')){inspector.reset();renderer.freeCamera=inspector.pose;}});
 // Capture developer inputs before the game's weapon/ability shortcuts.
 addEventListener('keydown',event=>{
  if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;
  if(event.code==='F2'&&devEnabled){event.preventDefault();event.stopImmediatePropagation();if(!event.repeat)requestInspector();return;}
+ if(event.code==='F3'&&devEnabled){event.preventDefault();event.stopImmediatePropagation();if(!event.repeat)toggleGodMode();return;}
  if(!inspector.active||screen!=='play'||event.code==='Escape')return;
  if(event.code==='Tab'&&document.pointerLockElement===canvas){event.preventDefault();event.stopImmediatePropagation();resetInput();document.exitPointerLock?.();return;}
  if(event.code==='Tab'||['Enter','Space'].includes(event.code)&&document.activeElement?.tagName==='BUTTON')return;
  event.preventDefault();event.stopImmediatePropagation();keys.add(event.code);
+ if(event.code==='F4'&&!event.repeat)landInspector();
  if(event.code==='KeyH'&&!event.repeat)inspectorPanel?.toggleHelp();
  if(event.code==='KeyR'&&!event.repeat)inspector.reset();
  if(event.code==='KeyM'&&!event.repeat)inspectFullMap();

@@ -27,7 +27,7 @@ export function collectWeaponPickup(run, itemOrId, {castRay,interact=false} = {}
     :!Number.isFinite(clearance)||clearance<distance+.001) return {ok: false, reason: 'blocked'};
   if(item.requiresInteract&&!interact)return{ok:false,reason:'interact'};
   world.ownedWeapons ||= [];
-  const alreadyOwned = world.ownedWeapons.includes(item.weaponIndex);
+  const alreadyOwned = world.ownedWeapons.includes(item.weaponIndex)||!!(world.lowTide?.stash||world.weaponReserve)?.weapons.includes(item.weaponIndex);
   if (!alreadyOwned) world.ownedWeapons.push(item.weaponIndex);
   pack.weaponPickups.push(item.id);
   if (world.peer) { world.peer.ownedWeapons = [...world.ownedWeapons]; world.peer.backpack = pack; }

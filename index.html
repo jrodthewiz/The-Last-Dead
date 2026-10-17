@@ -1,23 +1,40 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#090909" />
-    <meta name="color-scheme" content="dark" />
-    <title>The Last Dead</title>
-    <link rel="stylesheet" href="./styles.css" />
-    <link rel="stylesheet" href="./horror-ui.css" />
-    <link rel="stylesheet" href="./menu-cinematic.css" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 fill=%27%23101419%27/%3E%3Cpath d=%27M8 4h9l7 7v10l-7 7H8z%27 fill=%27%23ff735e%27/%3E%3C/svg%3E">
-<link rel="stylesheet" href="./scavenger-pack.css">
-<link rel="stylesheet" href="./game-interface.css">
-</head>
-  <body>
-    <main id="game" aria-label="The Last Dead movement combat arena">
-      <canvas id="world" aria-label="The Last Dead game world"></canvas>
-      <div id="ui" aria-live="polite"></div>
-    </main>
-    <script type="module" src="./main.js"></script>
-  </body>
-</html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#263e35">
+<title>The Last Dead · Blackwater</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%233c5148'/%3E%3Cpath d='M15 5h2v22h-2zM6 15h20v2H6z' fill='%23e7dfbb'/%3E%3C/svg%3E"><link rel="stylesheet" href="./island/style.css">
+<link rel="stylesheet" href="./island/coop.css"></head><body>
+<canvas id="world" aria-label="Blackwater open world"></canvas><div id="grain" aria-hidden="true"></div><div id="damage" aria-hidden="true"></div>
+<main id="title" class="title-screen">
+ <div class="edition"><span class="emblem" aria-hidden="true">✦</span> A SURVIVAL ADVENTURE</div>
+ <div class="title-content"><p class="eyebrow">SOMEWHERE, THE LIGHT IS STILL ON.</p><h1>THE LAST<br><span>DEAD</span></h1><div class="chapter"><span>01</span><i></i> BLACKWATER</div><div class="title-actions"><button id="continue" class="primary" hidden>Continue journey </button><button id="begin" class="primary" disabled>Preparing the coast…</button><button id="title-inspect" class="text-button">Survivor & equipment <span>I</span></button><button id="title-fly" class="text-button">Developer flight <span>F2</span></button><button id="title-settings" class="text-button">Settings</button></div><p id="loading" role="status">Charting Blackwater Island</p></div>
+ <div class="title-location"><span>THE ORIN STRAIT</span><strong>One last crossing.</strong><i>Blackwater Island / Saint Orin</i></div>
+ <footer class="title-footer"><span class="keyboard-note">↑ ↓ SELECT &nbsp; · &nbsp; ENTER CONFIRM &nbsp; · &nbsp; MOUSE / CLICK</span><span>HEADPHONES RECOMMENDED</span><span>BLACKWATER · CHAPTER I</span></footer>
+</main>
+<div id="hud" hidden>
+ <div class="compass"><span id="compass-left">W</span><div><span id="heading">N</span><i></i></div><span id="compass-right">E</span></div><div id="bearing"><span>◇</span> <span id="target-name"></span> <small id="target-distance"></small></div>
+ <div class="objective"><p class="eyebrow" id="objective-kicker">THE EMERGENCY BROADCAST</p><h2 id="objective-title">A signal in the silence</h2><p id="objective-detail">Restore the three emergency stations.</p><div class="relay-dots"><i></i><i></i><i></i></div></div>
+ <div id="crosshair" aria-hidden="true"></div><div id="hitmarker" aria-hidden="true">×</div><div id="location-card"><span>BLACKWATER</span><h2></h2></div><div id="interaction" hidden><kbd>E</kbd><span></span><div id="interaction-progress"></div></div><div id="toast" role="status"></div>
+ <div class="health"><span>HEALTH</span><div class="health-meter"><i id="health-fill"></i></div><strong id="health-number">100</strong><div class="stamina-meter"><i id="stamina-fill"></i></div></div>
+ <div class="inventory"><span id="weapon-name">FIELD CARBINE</span><div><strong id="ammo">08</strong><i id="ammo-divider">/</i><span id="reserve">48</span></div><small id="weapon-status"></small><br><small id="medical">2 FIELD DRESSINGS</small></div><div class="bottom-controls"><span><kbd>M</kbd> Field map</span><span><kbd>B</kbd> Backpack</span><span><kbd>H</kbd> Heal</span><span><kbd>F</kbd> Strike</span><span><kbd>Q</kbd> Shove</span><span><kbd>I</kbd> Survivor</span><span><kbd>Esc</kbd> Pause</span></div>
+ <div id="action-label" hidden></div><button id="crimson-hint" hidden>V · CRIMSON PUNCH</button><button id="mobile-pack" aria-label="Open backpack">PACK</button><button id="mobile-pause" aria-label="Pause journey">Ⅱ</button><button id="mobile-map" aria-label="Open field map">MAP</button><div id="joystick"><i></i></div><div id="touch-look" aria-label="Drag to look"></div><div id="touch-actions"><button data-touch="fire" aria-label="Fire">FIRE</button><button data-touch="interact" aria-label="Interact">USE</button><button data-touch="jump" aria-label="Jump or vault">JUMP</button><button data-touch="reload" aria-label="Reload">LOAD</button><button data-touch="heal" aria-label="Heal">HEAL</button><button data-touch="melee" aria-label="Melee strike">STRIKE</button><button data-touch="shove" aria-label="Shove">SHOVE</button></div>
+</div>
+<section id="overlay" class="overlay" hidden aria-modal="true" role="dialog" aria-labelledby="overlay-title"><div class="overlay-panel"><p class="eyebrow" id="overlay-kicker">BLACKWATER</p><h2 id="overlay-title">A moment of quiet.</h2><p id="overlay-description"></p>
+ <div id="pause-actions"><button id="resume" class="primary">Return to the coast </button><button id="pause-map" class="text-button">Field map & journal <span>M</span></button><button id="pause-pack" class="text-button">Field pack <span>B</span></button><button id="pause-inspect" class="text-button">Survivor & equipment <span>I</span></button><button id="pause-fly" class="text-button">Developer flight <span>F2</span></button><button id="pause-settings" class="text-button">Settings</button><button id="save-quit" class="text-button">Save & return to title </button></div>
+ <div id="settings" hidden><label>Look sensitivity <input id="sensitivity" aria-label="Look sensitivity" type="range" min="0.5" max="3" step="0.1" value="1"><output id="sensitivity-value" for="sensitivity">1.0×</output></label><label>Audio <input id="volume" aria-label="Audio" type="range" min="0" max="1" step="0.05" value="0.45"><output id="volume-value" for="volume">45%</output></label><label>Picture<select id="quality"><option value="retro" selected>Console · 240p</option><option value="balanced">Crisp · 480p</option><option value="native">Native resolution</option></select></label><label>Camera movement<input id="motion" type="checkbox" checked></label><p class="settings-note">WASD move · Shift sprint · Space jump / vault low obstacles<br>Mouse aim · Left click fire · Right click sights<br>E interact / drive · R reload · F strike · Q shove · H heal<br>B backpack · V Crimson Punch<br>1–9 / wheel weapons · I survivor & equipment<br>M map · Esc pause · F2 developer flight · F8 flight survey</p><p class="settings-note touch-note">Left stick to move · Drag right side to look<br>Use the action buttons to fire, jump and interact.<br>MAP opens your journal. Ⅱ pauses the journey.</p><button id="settings-back" class="primary">Done </button></div>
+ <div id="end-actions" hidden><button id="retry" class="primary">Return to shelter </button><button id="keep-exploring" class="primary" hidden>Keep exploring </button></div>
+</div></section>
+<section id="map-screen" hidden aria-label="Field map and journal"><header><div><p class="eyebrow">BLACKWATER FIELD NOTES</p><h2>Field map</h2></div><button id="close-map" class="text-button">Return <kbd>M</kbd></button></header><div class="map-layout"><div class="map-paper"><canvas id="field-map" aria-label="Map. Click to place a waypoint."></canvas><div class="map-legend"><span>● Emergency station</span><span>● Settlement / shelter</span><span>△ Your position</span><span>Click to set a waypoint</span></div></div><aside><p class="eyebrow">THE JOURNEY</p><h3>A signal in the silence</h3><p>The ferry is still waiting. Restore the emergency network so the captain knows someone is alive.</p><ol id="journal-relays"></ol><hr><p class="eyebrow">FIELD NOTES</p><p>Supplies remain in the village houses. Their open doors offer shelter, but the dead can follow you inside.</p><p>Two utility trucks still run. Follow the roads to cross the strait. Stop at a campfire to recover and save.</p><p class="eyebrow" id="journal-count"></p><div id="journal-records"></div><p id="journal-excerpt"></p><button id="clear-pin" class="text-button">Clear waypoint <span>×</span></button><p id="map-save" class="map-save"></p></aside></div></section>
+<div id="photo-hint" hidden>PHOTO MODE &nbsp; · &nbsp; WASD fly &nbsp; · &nbsp; Q / E descend / rise &nbsp; · &nbsp; Shift boost &nbsp; · &nbsp; F2 return</div>
+<section id="record-screen" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="record-title"><div class="overlay-panel"><p class="eyebrow" id="record-kicker"></p><h2 id="record-title"></h2><p id="record-text"></p><p id="record-reward"></p><button id="record-service" class="primary">Take field ration</button><button id="record-close" class="text-button">Return to the coast <kbd>Esc</kbd></button></div></section>
+<section id="inspection" hidden aria-label="Survivor and equipment">
+ <header><div><p class="eyebrow">EXPEDITION RECORD / 01</p><h2>Survivor & equipment</h2></div><button id="inspect-close" class="text-button">Return <kbd>I</kbd></button></header>
+ <aside><p class="eyebrow">FIELD EQUIPMENT</p><div id="armory-list"></div><p class="inspection-note">Recover weapon cases across the island and city. Ammunition caches supply every weapon you own.</p></aside>
+ <footer><span>DRAG TO TURN<span class="keyboard-note"> · SCROLL TO ZOOM</span></span><label>Animation <select id="inspect-animation"><option value="Idle_Relaxed">At rest</option><option value="Walk_Forward">Walking</option><option value="Run_Forward">Running</option></select></label></footer>
+</section>
+<section id="flight-panel" hidden aria-label="Developer flight">
+ <header><div><p class="eyebrow">BLACKWATER / WORLD SURVEY</p><h2>Developer flight</h2></div><button id="flight-close" class="text-button">Return <kbd>F2</kbd></button></header>
+ <pre id="flight-stats" aria-live="off"></pre><label>View <select id="flight-location" aria-label="Flight location"></select></label>
+ <div class="flight-actions"><button id="flight-benchmark" class="text-button">Run world survey <kbd>F8</kbd></button><button id="flight-export" class="text-button" disabled>Export measurements <span>↓</span></button></div>
+ <p id="flight-status" role="status"></p><p class="flight-help">Click world to look · WASD fly · Q / E down / up<br>Shift ×4 boost · Wheel adjusts speed · Esc releases / returns<br>Journey and combat are paused. No progress is changed.</p>
+</section>
+<script type="module" src="./island/game.js"></script></body></html>

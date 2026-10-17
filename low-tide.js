@@ -1,4 +1,5 @@
 // Chapter rules contain no DOM, storage or renderer dependencies.
+import {validateStash} from './safehouse-storage.js';
 export const LOW_TIDE_TITLE = 'THE FIRST NAME ON THE MANIFEST';
 export const LOW_TIDE_RECORDS = Object.freeze({
   shelter: ['A room above the tide', 'Netmakers is secure. A battery radio sits beside an evacuation list. Someone has circled Customs House. This is your return point.'],
@@ -12,7 +13,7 @@ export const LOW_TIDE_RECORDS = Object.freeze({
 const FLAGS = Object.keys(LOW_TIDE_RECORDS);
 export function createLowTide(value) {
   const v=value&&typeof value==='object'?value:{};
-  const state={revision:0,bank:Math.max(0,Math.min(99,Math.floor(Number(v.bank)||0))),bellRemaining:0,bellNext:0};
+  const state={revision:0,bank:Math.max(0,Math.min(99,Math.floor(Number(v.bank)||0))),stash:validateStash(v.stash),bellRemaining:0,bellNext:0};
   state.shelter=v.shelter===true;
   state.manifest=state.shelter&&v.manifest===true;
   state.identified=state.manifest&&v.identified===true;
@@ -63,7 +64,7 @@ export function lowTidePrompt(run) {
     case 'battery':case 'fuel':enabled=s.identified&&!s[p.id];label=s[p.id]?'SUPPLY SECURED':!s.identified?'IDENTIFY THE MISSING MECHANIC':p.id==='battery'?'TAKE STARTER BATTERY':'TAKE SEALED DIESEL';break;
     case 'powered':enabled=s.battery&&s.fuel&&!s.powered;label=s.powered?'DOCK CIRCUIT ONLINE':!s.battery||!s.fuel?'NEEDS BATTERY + DIESEL':'RESTORE POWER · SHIFT BELL WILL RING';break;
   }
-  return {station:p,enabled,label:`${enabled?'Q · ':''}${label}`};
+  return {station:p,enabled,label:`${enabled?'Q · ':''}${label}${p.id==='stash'?' / B · WEAPONS & SUPPLIES':''}`};
 }
 export function tickLowTideInteraction(run,input) {
   if(!run.lowTide)return false;

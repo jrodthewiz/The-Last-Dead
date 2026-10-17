@@ -171,3 +171,5 @@ body:has(.pack-overlay:not([hidden])) #ui .pause-screen{visibility:hidden}
 .pack-supplies .pack-supply-action>p{margin:8px 0 0;padding-left:8px;border-left:2px solid #8d7550;color:#d9cdb6;font-size:12px;line-height:1.45}
 .pack-supplies .pack-supply-action>p[data-ready="true"]{border-color:#93b781;color:#cad8bc}
 @media(max-width:480px){.pack-supply-actions{flex-direction:column}.pack-supply-action{flex:auto}}
+
+.pack-storage{border-top:1px solid #53584b;margin-top:24px;padding-top:20px}.pack-storage h3,.pack-storage h4{margin:10px 0}.pack-storage p{color:#b7bba9;font-size:13px;line-height:1.5}.pack-storage-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0}.pack-storage-row strong{flex:1 1 150px;font-size:12px}.pack-storage button{border:1px solid #72775c;background:#252a21;color:#e3e6d2;padding:10px;font:inherit;font-size:12px;cursor:pointer}.pack-storage button:disabled{opacity:.4;cursor:default}.pack-storage button:focus-visible{outline:2px solid #e1cb88;outline-offset:3px}.pack-storage-weapons{display:flex;gap:8px;flex-wrap:wrap}

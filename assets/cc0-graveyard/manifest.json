@@ -1,0 +1,28 @@
+{
+  "title": "Kenney Graveyard Kit 5.0",
+  "license": "CC0-1.0",
+  "source": "https://kenney.nl/assets/graveyard-kit",
+  "download": "https://kenney.nl/media/pages/assets/graveyard-kit/ba8d4b4517-1760691807/kenney_graveyard-kit_5.0.zip",
+  "acquired": "2026-10-15",
+  "files": {
+    "bench-damaged.glb": "48007ab37acaf512dc131f57984424d1897fe2f94446c096e9f3574e06c5b8af",
+    "bench.glb": "2fd1ed7a06e8b2a9a6e81896eb96f08103ba6d9d705f6643504ea82d8280d213",
+    "candle-multiple.glb": "e747e04390e8f431e0d80b17696ef01cfa935dd8efff44f7008de6408236b547",
+    "cross-column.glb": "6c3467a3562e29d24a4f2dc8ab73725cbff3ec37064439ba6d158383a3f5b1c5",
+    "debris.glb": "bf584bb5a4c1a7d4b7aed9ced00473a8678e9d402db1cfafc17e84e46aa2d42a",
+    "grave-border.glb": "ab330ef153b3616967346cc4db3df942bd54661e538dcb938fb0e80b3077250a",
+    "gravestone-bevel.glb": "83c78e259fe18fd9d93548ee4a28b327f368cc06a711f15839ed1ceb09032ff0",
+    "gravestone-broken.glb": "67693974f6b30d49da8c56a436b78de4f49007be68d985bfb42d433119cc527a",
+    "gravestone-cross.glb": "ef49164a4ca545cb2bb491f592d63b1611f6f8f640db77db62f9651ec33fb849",
+    "gravestone-round.glb": "20574c84e41990d7143cdb1201d8318e875a326fe605512a7c82bac3086c8db0",
+    "iron-fence-damaged.glb": "7229744e6c557fdc4afe3dc6459b24a04b79056b7951b02e0afcd24608a55ac2",
+    "iron-fence.glb": "6ea3e334d97348d8ad9de5a8c77cdd07fb798a23f56971186c8f9edb85689cd9",
+    "lantern-candle.glb": "c78da0717e38ea019617a39a2ad263c54ecc3b0efbdcd3da124db6550657e90e",
+    "pillar-obelisk.glb": "f7a9d985522d8bb1eef765ce2b841588b43c8607b32c87056945696a172b3bf1",
+    "rocks.glb": "e574e8dd7e71a8673765b4385c1fbef3af05940bdf6b6df7690225509a6d394b",
+    "stone-wall-damaged.glb": "2e0357e73f5fc0bc95f12469474c39191c93a67d586b5d3ad749edf2ec021c88",
+    "stone-wall.glb": "f6276d585e0ae3603d005e5a80d8d2ac6af3da5f357df520d21de0df62837f59",
+    "trunk.glb": "e8f241c336d6693ccee658bc9830a461f0d18d5b90aba9a52e6276e89e4f8171",
+    "urn-round.glb": "9a80d295c1c2124435eea72166fc16d7a4fe54e538950aa320dfb63a704b5e37"
+  }
+}

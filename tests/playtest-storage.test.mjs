@@ -1,0 +1,50 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {newRun,makeCourse,setGodMode,tick,addPeer} from '../engine.js';
+import {createMind} from '../enemy-ai.js';
+import {makeHarborCourse} from '../harbor-course.js';
+import {transferStash,stashAccess} from '../safehouse-storage.js';
+import {createLowTideSave} from '../low-tide-save.js';
+import {IslandBasementConnection} from '../island-basement.js';
+import {createSoloCampaignCourse} from '../campaign-entry.js';
+
+test('box conserves fitted weapons, supplies and scrap across actual save/load and underground travel',()=>{
+ const r=newRun(makeHarborCourse({lowTide:true}));r.mode='play';r.lowTide.shelter=true;
+ const station=r.course.lowTideStations.find(p=>p.id==='stash');
+ r.course.activeInterior=r.course.harborRooms.find(p=>p.id===station.roomId);Object.assign(r,{x:station.x,y:station.y});
+ r.ownedWeapons=[0,4,5];r.weapon=4;r.backpack.weaponMods[4]='hardened-fitting';r.backpack.supplies={cloth:2,antiseptic:1,bandage:1};r.backpack.scrap=12;
+ assert.ok(stashAccess(r));assert.equal(transferStash(r,'store','weapon',0).ok,false);
+ assert.ok(transferStash(r,'store','weapon',4).ok);assert.equal(r.weapon,0);
+ assert.equal(r.lowTide.stash.weaponMods[4],'hardened-fitting');assert.equal(r.backpack.weaponMods[4],undefined);
+ assert.equal(transferStash(r,'store','weapon',4).ok,false);
+ assert.ok(transferStash(r,'store','supply','cloth').ok);assert.ok(transferStash(r,'store','scrap').ok);
+ let raw;const storage={getItem:()=>raw,setItem:(k,v)=>raw=v};
+ assert.ok(createLowTideSave(storage).save(r));
+ const restored=newRun(makeHarborCourse({lowTide:true}));restored.mode='play';
+ assert.ok(createLowTideSave(storage).load(restored));assert.deepEqual(restored.lowTide.stash,r.lowTide.stash);
+ assert.equal(restored.lowTide.bank,12);assert.equal(restored.backpack.supplies.cloth,1);
+ Object.assign(restored,{x:station.x,y:station.y});
+ assert.ok(transferStash(restored,'take','weapon',4).ok);assert.ok(restored.ownedWeapons.includes(4));
+ assert.equal(restored.backpack.weaponMods[4],'hardened-fitting');assert.equal(restored.lowTide.stash.weaponMods[4],undefined);
+ assert.ok(transferStash(restored,'take','supply','cloth').ok);assert.equal(restored.backpack.supplies.cloth,2);
+ assert.ok(transferStash(restored,'take','scrap').ok);assert.equal(restored.backpack.scrap,12);
+ restored.lowTide.stash.supplies.bandage=2;restored.backpack.supplies.bandage=3;
+ assert.equal(transferStash(restored,'take','supply','bandage').ok,false);
+ restored.x+=3;assert.equal(transferStash(restored,'store','weapon',4).ok,false);
+ const underground=newRun(createSoloCampaignCourse()),connection=new IslandBasementConnection();underground.mode='play';
+ connection.start(underground,{restore:surface=>createLowTideSave(storage).load(surface)});
+ assert.deepEqual(underground.ownedWeapons,[0,5]);assert.equal(underground.backpack.supplies.cloth,1);
+ assert.ok(setGodMode(underground,true));const island=connection.transition(underground);assert.equal(island.godMode,true);
+ assert.deepEqual(island.lowTide.stash.weapons,[4]);assert.equal(connection.transition(island),underground);
+});
+
+test('god mode releases a real grab, blocks sustained combat damage and restores normal vulnerability when disabled',()=>{
+ const r=newRun(makeCourse());Object.assign(r,{mode:'play',x:6,y:9,angle:-Math.PI/2,wave:3,waveDelay:999});
+ const e={id:2,x:6,y:8.72,z:0,hp:100,maxHp:100,kind:0,variant:'stalker',dead:false,flash:0,phase:0,attack:0,moveSpeed:.3,contactDamage:12,biteAttackCount:0};
+ createMind(e,{state:'stalk',firstAttack:0});e.mind.token=true;r.course.enemies=[e];
+ const step=seconds=>{for(let i=0;i<seconds*120;i++)tick(r,1/120,{});};
+ step(.7);assert.equal(r.bite.phase,'held');assert.ok(setGodMode(r,true));assert.equal(r.bite.phase,'idle');
+ step(15);assert.equal(r.health,100);assert.equal(r.mode,'play');assert.equal(r.bite.phase,'idle');
+ assert.ok(setGodMode(r,false));step(20);assert.ok(r.health<100);
+ const coop=newRun(makeCourse());coop.mode='play';addPeer(coop);assert.equal(setGodMode(coop,true),false);
+});

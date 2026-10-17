@@ -25,16 +25,16 @@ function resources(root){
 
 export function installFPSArms(renderer,asset){
  const sources=renderer.weaponGroups.map((g,i)=>{
-  const name=FIRST_PERSON_HOLD_POSES[i].name,source=asset.scene.getObjectByName('FPSRig_'+name);
+  const sourceIndex=renderer.fpsSourceIndices?.[i]??i,name=FIRST_PERSON_HOLD_POSES[sourceIndex].name,source=asset.scene.getObjectByName('FPSRig_'+name);
   if(!source)throw new Error('Missing Blender FPS rig: '+name);
   const clips=asset.animations.filter(c=>c.name.startsWith(name+'/'));
-  const phases=['idle','walk','draw',i<6?'fire':'strike'];
+  const phases=['idle','walk','draw',sourceIndex<6?'fire':'strike'];
   if(clips.length!==phases.length||!phases.every(phase=>clips.filter(c=>c.name===name+'/'+phase).length===1)||!clips.every(c=>Number.isFinite(c.duration)&&c.duration>0&&c.tracks.some(t=>t.name.startsWith('FPS_')&&t.name.endsWith('.quaternion')))||!clips.some(c=>c.tracks.some(t=>t.name.includes('Index')&&t.name.endsWith('.quaternion'))))throw new Error('Missing articulated FPS actions: '+name);
-  return {name,source,clips};
+  return {name,source,clips,sourceIndex};
  });
  let arms=0;
  for(const [index,group]of renderer.weaponGroups.entries()){
-  const {name,source,clips}=sources[index],rig=cloneSkeleton(source),owned=new Map();
+  const {name,source,clips,sourceIndex}=sources[index],rig=cloneSkeleton(source),owned=new Map();
   rig.name='AnimatedFPS_'+name;rig.traverse(o=>{
    o.layers.set(1);o.userData.viewmodelArm=true;o.userData.weaponBatchIgnore=true;
    if(!o.isMesh)return;
@@ -57,7 +57,7 @@ export function installFPSArms(renderer,asset){
   // wrist frame. The Blender rig owns the fit from this point forward.
   if(group.userData.foregroundFitRig)group.userData.foregroundFitRig.position.set(0,0,0);
   group.add(rig);delete group.userData.foregroundArmFits;delete group.userData.foregroundFitRig;delete group.userData.meleeArms;
-  const state={rig,camera:renderer.camera,mixer:new THREE.AnimationMixer(rig),actions:new Map(),arms:[],sampled:[],phase:null,name,index,elapsed:0,
+  const state={rig,camera:renderer.camera,mixer:new THREE.AnimationMixer(rig),actions:new Map(),arms:[],sampled:[],phase:null,name,index:sourceIndex,elapsed:0,
    scratch:{s:new THREE.Vector3(),e:new THREE.Vector3(),w:new THREE.Vector3(),d:new THREE.Vector3(),axis:new THREE.Vector3(),pole:new THREE.Vector3(),goal:new THREE.Vector3(),old:new THREE.Vector3(),next:new THREE.Vector3(),parent:new THREE.Quaternion(),rigRotation:new THREE.Quaternion(),delta:new THREE.Quaternion(),local:new THREE.Quaternion(),position:new THREE.Vector3(),rotation:new THREE.Quaternion(),scale:new THREE.Vector3(),matrix:new THREE.Matrix4()}};
   state.scratch.clothDelta=new THREE.Quaternion();
   state.scratch.clothBind=new THREE.Quaternion();
@@ -79,7 +79,7 @@ export function installFPSArms(renderer,asset){
    const cloth=rig.getObjectByName(prefix+'ElbowCloth'),rigInverse=rig.getWorldQuaternion(new THREE.Quaternion()).invert();
    const bindRotation=bone=>rigInverse.clone().multiply(bone.getWorldQuaternion(new THREE.Quaternion()));
    const clothFrames=cloth?{cloth,clothBindRotation:bindRotation(cloth),upperBindRotation:bindRotation(upper),lowerBindRotation:bindRotation(lower)}:{};
-   group.userData.viewArms[side+'Arm']=wrapper;state.arms.push({side,wrapper,upper,lower,hand,grip,offset,wristAxis,bindForearm,bindUpper,...clothFrames,...garmentEnvelope(rig,name,side,upper,lower),wristLimit:THREE.MathUtils.degToRad(FPS_GRIP_PROFILES[index][side].wristConeDegrees),gap:0});arms++;
+   group.userData.viewArms[side+'Arm']=wrapper;state.arms.push({side,wrapper,upper,lower,hand,grip,offset,wristAxis,bindForearm,bindUpper,...clothFrames,...garmentEnvelope(rig,name,side,upper,lower),wristLimit:THREE.MathUtils.degToRad(FPS_GRIP_PROFILES[sourceIndex][side].wristConeDegrees),gap:0});arms++;
   }
   group.userData.authoredFPS=state;sampleFPSClip(group,'idle',0);
  }
@@ -187,13 +187,10 @@ export function sampleFPSClip(group,phase,seconds,blend=false){
  s.rig.traverse(o=>{if(o.isSkinnedMesh)o.skeleton.update();});return true;
 }
 
-export function updateFPSArms(group,run,presentation,dt){
+// Explicit phase/time callers share the same authored-pose transition owner.
+// Blend before IK, so palms stay seated and solved rotations never accumulate.
+export function advanceFPSClip(group,phase,time,dt){
  const s=group?.userData.authoredFPS;if(!s)return false;s.elapsed+=Math.max(0,Math.min(.05,dt||0));
- let phase='idle',time=s.elapsed;
- if(presentation.pose?.phase==='draw'){phase='draw';time=presentation.equipAge;}
- else if(s.index<6&&Math.min(presentation.shotAge,presentation.attachmentAge??10)<.5){phase='fire';time=Math.min(presentation.shotAge,presentation.attachmentAge??10);}
- else if(s.index>=6&&run.meleeActive){phase='strike';time=run.meleeProgress||0;}
- else if((run.speed||0)>.15){phase='walk';time=(run.distance||0)*1.1;}
  if(s.phase!==phase){
   // A trigger/impact remains immediate. Breathing, gait and equip recovery
   // ease between performances instead of snapping to another clip's frame 0.
@@ -201,6 +198,16 @@ export function updateFPSArms(group,run,presentation,dt){
    poses:s.sampled.map(p=>({position:p.position.clone(),quaternion:p.quaternion.clone()}))};
  }
  return sampleFPSClip(group,phase,time,true);
+}
+
+export function updateFPSArms(group,run,presentation,dt){
+ const s=group?.userData.authoredFPS;if(!s)return false;
+ let phase='idle',time=s.elapsed+Math.max(0,Math.min(.05,dt||0));
+ if(presentation.pose?.phase==='draw'){phase='draw';time=presentation.equipAge;}
+ else if(s.index<6&&Math.min(presentation.shotAge,presentation.attachmentAge??10)<.5){phase='fire';time=Math.min(presentation.shotAge,presentation.attachmentAge??10);}
+ else if(s.index>=6&&run.meleeActive){phase='strike';time=run.meleeProgress||0;}
+ else if((run.speed||0)>.15){phase='walk';time=(run.distance||0)*1.1;}
+ return advanceFPSClip(group,phase,time,dt);
 }
 
 export function fpsGripDiagnostics(group){
