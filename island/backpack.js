@@ -24,6 +24,7 @@ export function itemDefinition(id){
  return {name:id.startsWith('weapon-')?weapon.name:weapon.name+(weapon.kind==='saw'?' fuel':' ammunition'),description:id.startsWith('weapon-')?weapon.description:'Added to this weapon’s reserve.',colour:'#c5af77',weapon:weapon.id};
 }
 export function openStash(s,stash){if(!s.backpack.searched.includes(stash.id)){s.backpack.searched.push(stash.id);s.backpack.remaining[stash.id]={...stash.loot};}return s.backpack.remaining[stash.id]||{};}
+export function lootSpace(s,id){if(ITEMS[id])return Math.max(0,PACK_CAPACITY-packCount(s));const def=itemDefinition(id),w=WEAPONS.find(w=>w.id===def?.weapon),a=s.armory[w?.id];if(!w||!a)return 0;const reserve=w.id===s.weapon?s.reserve:a.reserve;if(id.startsWith('ammo-'))return Math.max(0,999-reserve);return !a.owned||w.capacity&&reserve<999?1:0;}
 export function transferLoot(s,stash,id,requested=99){
  const loot=openStash(s,stash),available=bounded(loot[id],99);let count=Math.min(available,bounded(requested,99));if(!count)return 0;
  if(ITEMS[id]){count=Math.min(count,PACK_CAPACITY-packCount(s));s.backpack.items[id]+=count;}
@@ -32,6 +33,7 @@ export function transferLoot(s,stash,id,requested=99){
  else return 0;
  loot[id]-=count;return count;
 }
+export function transferLootReceipt(s,stash,id){const def=itemDefinition(id),a=s.armory[def?.weapon],duplicate=id.startsWith('weapon-')&&a?.owned,before=a?(s.weapon===def.weapon?s.reserve:a.reserve):0,count=transferLoot(s,stash,id);if(!count)return null;return duplicate?{id:'ammo-'+def.weapon,count:a.reserve-before}:{id,count};}
 export function craftBandage(s){const p=s.backpack.items;if(p.cloth<2||p.antiseptic<1)return false;p.cloth-=2;p.antiseptic--;p.bandage++;return true;}
 export function fitWeapon(s,id){if(!s.armory[id]?.owned||s.backpack.fittings[id]||s.backpack.items.scrap<8)return false;s.backpack.items.scrap-=8;s.backpack.fittings[id]=true;return true;}
 export const weaponDamageMultiplier=s=>s.backpack?.fittings?.[s.weapon]?1.2:1;

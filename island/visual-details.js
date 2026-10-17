@@ -2,6 +2,7 @@ import * as T from '../vendor/three.module.js';
 import {random,terrainHeight,roadAt} from './data.js';
 import {reservedPlace} from './places.js';
 import {settlementReserved,FRONTAGES} from './settlement-plan.js';
+import {accessReserved} from './access-plan.js';
 
 function fernGeometry(){
  const points=[],tri=(a,b,c)=>points.push(...a,...b,...c,...c,...b,...a);
@@ -16,7 +17,7 @@ function fernGeometry(){
 
 export function coastalBotany(kit,data){
  kit.geometries.fern=fernGeometry();const rng=random(26016);let count=0;
- const plant=(x,z,s)=>{const y=terrainHeight(x,z),r=roadAt(x,z);if(y<4||y>85||reservedPlace(x,z,.5)||settlementReserved(x,z,.5)||r.distance<r.width/2+1.6)return;
+ const plant=(x,z,s)=>{const y=terrainHeight(x,z),r=roadAt(x,z);if(y<4||y>85||reservedPlace(x,z,.5)||settlementReserved(x,z,.5)||accessReserved(data.accessPaths||[],x,z,.7)||r.distance<r.width/2+1.6)return;
   if(Math.abs(terrainHeight(x+.5,z)-terrainHeight(x-.5,z))>1||Math.abs(terrainHeight(x,z+.5)-terrainHeight(x,z-.5))>1)return;
   if(data.buildings.some(b=>Math.abs(x-b.x)<b.w/2+3&&Math.abs(z-b.z)<b.d/2+4))return;
   kit.add('fern',x,y-.025,z,s,s,s,[0x75894d,0x8f9757,0x55774a][count++%3],rng()*6.28,null,4);

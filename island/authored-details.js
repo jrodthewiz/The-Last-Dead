@@ -1,6 +1,7 @@
 import {terrainHeight,groundHeight,SIGNAL_STAIRS,HOSPITAL_GENERATOR,random,roadAt} from './data.js';
 import * as T from '../vendor/three.module.js';
 import {FRONTAGES} from './settlement-plan.js';
+import {accessReserved} from './access-plan.js';
 
 export function authoredDetails(scene,kit,data,sign){
   // The crossing has a refuge, an abandoned queue, an exposed span, and a
@@ -23,7 +24,7 @@ export function authoredDetails(scene,kit,data,sign){
   for(const b of data.buildings.filter(b=>b.district==='village')){
     for(const side of [-1,1])for(let j=0;j<5;j++){
       const x=b.x+side*(b.w/2+3),z=b.z-b.d/2+j*b.d/4;
-      if(roadAt(x,z).distance<7)continue;
+      if(roadAt(x,z).distance<7||accessReserved(data.accessPaths,x,z,1))continue;
       kit.add('rock',x,terrainHeight(x,z)+.35,z,.75,.65,1.8,0x959c7a,j*.3);
     }
     const z=b.z+b.d/2+2.5;

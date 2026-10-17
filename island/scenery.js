@@ -1,6 +1,7 @@
 import {freezeLocalTransforms} from './render-lifecycle.js';
 import {reservedPlace} from './places.js';
 import {settlementReserved} from './settlement-plan.js';
+import {accessReserved} from './access-plan.js';
 import * as T from '../vendor/three.module.js';
 import {mergeGeometries} from '../vendor/utils/BufferGeometryUtils.js';
 import {loadGlb} from '../assets/load-glb.js';
@@ -11,7 +12,7 @@ export const SCENERY_ASSETS=['barrel','box','box-large','bucket','campfire-pit',
 const solid=new Set(['barrel','box-large','chest','tent','tent-canvas','workbench','workbench-anvil','workbench-grind','resource-wood','tree-log']);
 export function sceneryPlan(data){
   const rng=random(data.seed+1801),items=[];
-  const free=(x,z,r=1)=>{const road=roadAt(x,z);if(reservedPlace(x,z,r)||settlementReserved(x,z,r))return false;if(terrainHeight(x,z)<3)return false;if(x<355&&road.distance<road.width/2+r+1)return false;
+  const free=(x,z,r=1)=>{const road=roadAt(x,z);if(reservedPlace(x,z,r)||settlementReserved(x,z,r)||accessReserved(data.accessPaths||[],x,z,r+.6))return false;if(terrainHeight(x,z)<3)return false;if(x<355&&road.distance<road.width/2+r+1)return false;
     if(x>=355){const dx=Math.abs((x-392+38)%76-38),dz=Math.abs(((z+456)%76+76)%76-38);if(dx<8+r||Math.min(dz,Math.abs(dz-76))>30-r)return false;}
     if(Math.hypot(x-SPAWN.x,z-SPAWN.z)<10||LANDMARKS.some(p=>Math.hypot(x-p.x,z-p.z)<7))return false;
     if(data.supplies.some(p=>Math.hypot(x-p.x,z-p.z)<2+r)||data.enemies.some(p=>Math.hypot(x-p.x,z-p.z)<3+r))return false;

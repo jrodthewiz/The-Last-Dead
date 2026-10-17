@@ -47,6 +47,8 @@ The refuge pass adds Mara, a boatwright at the Alder Village repair bench, and I
 - **npm.cmd run test:blackwater:refuges** — Reliquary loading/control views, coherent rooms, NPC work/rest/listening samples, foot/tool measurements and persistent supplies; supports the same browser overrides.
 - **npm.cmd run test:blackwater:craft** — Arc charge/cancel checks, neutral hand views, survivor/Elias captures, and roost departure/return checks; use `BLACKWATER_QA_EXPECT_CRAFT=1` for the new material/charge assertions.
 
+The pickup/cohesion pass adds compact scavenging prompts and receipts, a smaller container sheet with **E** to take what fits and return, and storage-full protection. Twenty terrain-following home-to-road paths and a planted orchard make the village land use clearer. All 45 playable ground-floor interiors retain reachable containers. See [the checks and scope](docs/blackwater-cohesion-pass.md).
+
 ## Legacy browser reference
 
 <details>

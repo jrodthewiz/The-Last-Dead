@@ -10,6 +10,7 @@ import {createCoastalMotion} from './coastal-motion.js';
 import {createSettlementLife} from './settlement-life.js';
 import {buildSettlement} from './settlement-art.js';
 import {FRONTAGES,settlementReserved} from './settlement-plan.js';
+import {accessSurface,accessReserved} from './access-plan.js';
 import * as T from '../vendor/three.module.js';
 import {TERRAIN,ROADS,LANDMARKS,random,terrainHeight,baseHeight,bridgeHeight,roadAt,clamp,groundHeight,stationPosition,entranceHeight} from './data.js';
 
@@ -140,6 +141,7 @@ function tree(kit,x,y,z,s=1,kind='pine',rotation=0){
     const colors=rotation>3?[0x9c9e56,0xb6aa64,0x899752]:[0x68834f,0x899d59,0x9aa761];
     for(let i=0;i<3;i++){const a=rotation+i*2.1,dx=Math.cos(a)*2*s,dz=Math.sin(a)*2*s;kit.rod([x,y+3*s,z],[x+dx,y+6*s,z+dz],.16*s,0x726347);kit.add('sphere',x+dx,y+(6.6+i*.6)*s,z+dz,3.1*s,2.8*s,3*s,colors[i],a,null,4);}
   }
+  if(kind==='orchard')for(let i=0;i<5;i++){const a=rotation+i*2.4;kit.add('rock',x+Math.sin(a)*1.8*s,y+(5.3+i%2)*s,z+Math.cos(a)*1.8*s,.16*s,.2*s,.16*s,0xb59a57,a,null,4);}
   kit.surface=0;
 }
 function buildBridge(scene,kit){
@@ -243,7 +245,7 @@ export function createWorld(scene,data){
   const sky=createSky(scene),water=createWater(scene),kit=new Kit(scene);
   const hemi=new T.HemisphereLight(0xd8e7ed,0x758d65,1.15);scene.add(hemi);
   const sun=new T.DirectionalLight(0xffe6bc,1.8);sun.position.set(-700,850,250);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-90,right:90,top:90,bottom:-90,near:1,far:400});sun.shadow.bias=-.00025;sun.shadow.normalBias=.08;scene.add(sun,sun.target);
-  buildTerrain(scene);buildRoads(scene,kit);for(const b of data.buildings)compileBuilding(kit,b);
+  buildTerrain(scene);const accessVertices=accessSurface(data.accessPaths,terrainHeight,TERRAIN),accessGeometry=surface(accessVertices),accessUV=[];for(let i=0;i<accessVertices.length;i+=3)accessUV.push(accessVertices[i]/2,accessVertices[i+2]/2);accessGeometry.setAttribute('uv',new T.Float32BufferAttribute(accessUV,2));const accessMesh=new T.Mesh(accessGeometry,new T.MeshLambertMaterial({color:0xb0a17a,map:grain,flatShading:true}));accessMesh.receiveShadow=true;scene.add(accessMesh);buildRoads(scene,kit);for(const b of data.buildings)compileBuilding(kit,b);
   for(const t of data.trees)tree(kit,t.x,t.y,t.z,t.scale,t.kind,t.rotation);
   for(const r of data.rocks)kit.add('rock',r.x,r.y+r.s*.35,r.z,r.s,r.s*.7,r.s*.8,0x9da68e,r.r);
   buildBridge(scene,kit);buildLandmarks(scene,kit);streetDetails(scene,kit,data);authoredDetails(scene,kit,data,sign);placeDetails(scene,kit,data,sign);streetCraft(kit,data);coastalBotany(kit,data);
@@ -252,7 +254,7 @@ export function createWorld(scene,data){
   const rng=random(6);for(let i=0;i<50;i++){const a=i/50*Math.PI*2,x=-490+Math.cos(a)*700,z=Math.sin(a)*600;if(x>20&&Math.abs(z)<220)continue;kit.add('rock',x,-4,z,12+rng()*25,9+rng()*18,15+rng()*20,0x87998b,rng()*6);}
   for(let i=0;i<12;i++)kit.add('rock',-1600+i*280,-25,-1600,250+rng()*180,90+rng()*70,220,0x91afa7,rng()*6);
   // Grass patches and low coastal scrub share the same seed as the terrain.
-  for(let i=0;i<9000;i++){const x=-1030+rng()*1100,z=-440+rng()*850,y=terrainHeight(x,z),r=roadAt(x,z);if(y<5||reservedPlace(x,z)||settlementReserved(x,z,1)||r.distance<r.width*.5+1||data.buildings.some(b=>Math.abs(x-b.x)<b.w*.5+2&&Math.abs(z-b.z)<b.d*.5+2))continue;const s=.2+rng()*.5;kit.add('cone',x,y+s*.5,z,s*.30,s,s*.30,i%3?0x6b8348:0xa2a66b,rng()*6);if(i%5===0)kit.add('rock',x,y+.3,z,.6,.5,.6,0x738657);}
+  for(let i=0;i<9000;i++){const x=-1030+rng()*1100,z=-440+rng()*850,y=terrainHeight(x,z),r=roadAt(x,z);if(y<5||reservedPlace(x,z)||settlementReserved(x,z,1)||accessReserved(data.accessPaths,x,z,.7)||r.distance<r.width*.5+1||data.buildings.some(b=>Math.abs(x-b.x)<b.w*.5+2&&Math.abs(z-b.z)<b.d*.5+2))continue;const s=.2+rng()*.5;kit.add('cone',x,y+s*.5,z,s*.30,s,s*.30,i%3?0x6b8348:0xa2a66b,rng()*6);if(i%5===0)kit.add('rock',x,y+.3,z,.6,.5,.6,0x738657);}
   const stats=kit.finish();addContactShadows(scene,data);const movingRoots=new Set([sky.sky,sun,sun.target,settlement.boat]);for(const root of scene.children)if(!root.isCamera&&!movingRoots.has(root))freezeLocalTransforms(root);const coastalMotion=createCoastalMotion(scene),life=createSettlementLife(scene,data);
   const birds=new T.Group();const birdMat=new T.MeshBasicMaterial({color:0x3e5754});for(let i=0;i<12;i++){const geo=surface([-1,0,0,0,.25,0,0,0,.3,0,.25,0,1,0,0,0,0,.3]);const bird=new T.Mesh(geo,birdMat);bird.userData.phase=i*.52;birds.add(bird);}scene.add(birds);
   return {stats,sun,hemi,water,sky,coastalMotion,life,settlement,update(time,player,day=.64,relays=[]){stats.update(player);kit.material.userData.wind.value=time;life.update(time,player);settlement.update(time,player);water.time.value=time;sky.uniforms.time.value=time;sky.sky.position.copy(player);coastalMotion.update(time,relays);const light=.55+.45*Math.max(0,Math.sin(day*Math.PI));sun.intensity=2.1*light;hemi.intensity=.65+.25*light;const sx=Math.round(player.x),sz=Math.round(player.z),sy=groundHeight(sx,sz);sun.target.position.set(sx,sy,sz);sun.position.set(sx-110,sy+160,sz+65);for(let i=0;i<birds.children.length;i++){const b=birds.children[i],a=time*.06+i*.52;b.position.set(-490+Math.cos(a)*330,95+Math.sin(a*3)*12,30+Math.sin(a)*230);b.rotation.y=-a;b.scale.y=.6+Math.sin(time*3+i)*.4;}}};

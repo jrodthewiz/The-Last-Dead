@@ -78,3 +78,19 @@ support direct invitations. Loading, errors, roster and host departure controls
 have distinct states. Keyboard focus stays inside the radio sheet and Escape
 returns to title. The sheet stacks on narrow displays with bounded scrolling.
 The compact gameplay status reports partner, DIRECT/RELAY and measured latency.
+
+## Pickup and container clarity — October 17, 2026
+
+The world and the held weapon remain the visual anchor during scavenging.
+Proximity/search/treatment share a compact lower-centre field label: amber action,
+ivory object name, quiet storage or interruption hint, and a single progress rule.
+Acquisition receipts sit at the left edge above health, with the existing item
+silhouettes and actual quantities. Three receipts at most, brisk entrance,
+short lifetime and reduced-motion support keep repeated pickups quiet.
+
+Container contents use a smaller translucent sheet and ruled rows. Full pouch
+and full reserve states are explicit; ammunition storage stays distinct from
+material slots. E collects what fits and returns; B/Return leaves the container.
+Mouse/touch buttons retain individual collection and Take all. Touch hides the
+keyboard-only shortcut hints. The inventory, title and combat HUD retain the
+established ivory/amber/olive language.

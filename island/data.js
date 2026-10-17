@@ -1,7 +1,9 @@
 import {interiorPlan} from './interior-plan.js';
 import {houseShell} from './house-shell.js';
 import {reservedPlace} from './places.js';
-import {settlementReserved,settlementColliders} from './settlement-plan.js';
+import {settlementReserved,settlementColliders,YARDS} from './settlement-plan.js';
+import {createAccessPaths,accessReserved} from './access-plan.js';
+import {orchardReserved,orchardTrees} from './land-use.js';
 // Blackwater: one deterministic world description shared by art, physics and map.
 export const SEED = 641979;
 export const SAVE_KEY = 'last-dead-blackwater-64-v1';
@@ -121,6 +123,7 @@ export function createWorldData(seed=SEED) {
   }
   add(970,-340,56,34,5,'civic','hospital-main');
   add(946,-300,26,18,1,'civic','clinic');
+  const accessPaths=createAccessPaths(buildings,ROADS,terrainHeight,YARDS);
   for(let i=0;i<3000;i++) {
     const x=-1090+rng()*1190,z=-500+rng()*1010,y=terrainHeight(x,z),r=roadAt(x,z);
     if(reservedPlace(x,z,2))continue;
@@ -138,7 +141,9 @@ export function createWorldData(seed=SEED) {
   for(let i=0;i<30;i++){const x=410+rng()*730,z=-430+rng()*840;if(buildings.every(b=>Math.abs(b.x-x)>b.w/2+2||Math.abs(b.z-z)>b.d/2+2))supplyAt(x,z,i%3?'ammo':'medkit');}
   const encounters=[[-810,-230],[-400,-253],[-459,120],[-718,48],[410,8],[585,8],[815,-277],[942,-287],[970,-289],[1095,260]];
   for(const [x,z] of encounters)for(let i=0;i<3;i++)enemies.push({id:`dead-${enemies.length}`,x:x>=355?392+Math.round((x-392)/76)*76:x+i*5,z:z+i*6,health:70,phase:rng()*6.28});
-  return {seed,buildings,trees:trees.filter(t=>!settlementReserved(t.x,t.z,3)),rocks:rocks.filter(r=>!settlementReserved(r.x,r.z,r.s)),supplies,enemies,landmarks:LANDMARKS,wrecks:BRIDGE_WRECKS,parkedCars:PARKED_CARS};
+  const planted=orchardTrees(buildings,accessPaths,terrainHeight,accessReserved);
+  const entryClear=(x,z,r)=>buildings.every(b=>!b.enterable||Math.abs(x-b.entry.x)>b.entry.width/2+r||z<b.entry.z-r||z>b.entry.z+b.entry.length+r);
+  return {seed,buildings,accessPaths,trees:[...trees.filter(t=>!settlementReserved(t.x,t.z,3)&&!accessReserved(accessPaths,t.x,t.z,3)&&!orchardReserved(t.x,t.z)&&entryClear(t.x,t.z,2)),...planted],rocks:rocks.filter(r=>!settlementReserved(r.x,r.z,r.s)&&!accessReserved(accessPaths,r.x,r.z,r.s)&&entryClear(r.x,r.z,r.s)),supplies,enemies,landmarks:LANDMARKS,wrecks:BRIDGE_WRECKS,parkedCars:PARKED_CARS};
 }
 export function regionAt(x,z) {
   if(x>68&&x<372&&Math.abs(z)<25)return 'Saint Orin Bridge';
