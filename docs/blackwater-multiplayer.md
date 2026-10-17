@@ -48,6 +48,11 @@ HTML/API modules from the canonical root sources. It uses only the dedicated
 `dist/sites-stage` subfolder and leaves the running local game's main dist intact.
 The Sites wrapper is a Vinext Worker with an ASSETS binding and D1 `DB`.
 Install/build and publication use the Sites plugin's official helpers.
+On Windows, put Git's `bin` directory ahead of System32 when invoking the
+publisher so its packager finds Git Bash; set `TAR_OPTIONS=--force-local` and
+use an absolute forward-slash archive path. This prevents GNU tar treating the
+Windows drive letter as a remote host. Source credentials belong only in the
+publisher's hidden stdin protocol, never a file, shell argument or GitHub source.
 
 The local legacy game remains bundled in the ordinary root build. The hosted
 Blackwater build omits the legacy entry and its optional 34 MB boss model to

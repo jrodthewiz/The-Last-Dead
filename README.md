@@ -4,6 +4,9 @@ The browser edition has been rebuilt as **Blackwater**: a solo or two-player, N6
 
 ## Play Blackwater
 
+[**Play the public game**](https://the-last-dead-blackwater.jrodonthebeat.chatgpt.site) ·
+[GitHub source](https://github.com/jrodthewiz/The-Last-Dead)
+
 Run **npm.cmd run dev**, or use **Start The Last Dead.cmd**, then open **http://127.0.0.1:5200/**. The canonical checkout is **C:/Users/wolfk/Desktop/thelastdead**. Node.js 18+ and the bundled assets are sufficient; there are no runtime downloads or API keys.
 
 Restore three emergency stations and reach the evacuation ferry. Explore 248 buildings and 45 furnished ground floors, scavenge ammunition and medical supplies, fight animated infected, drive utility trucks and save at shelters. Press **M** for the actual-world map and journal. Desktop and touch interfaces share the same mission and inventory state.
@@ -39,6 +42,7 @@ The refuge pass adds Mara, a boatwright at the Alder Village repair bench, and I
 - **npm.cmd run build** — standalone `dist/`, including the legacy entry.
 - **npm.cmd run test:blackwater** — world, movement, collision, mission and persistence checks.
 - **npm.cmd run test:blackwater:browser** — owned-browser gameplay and visual checks; supports `PLAYWRIGHT_PATH`, `CHROME_PATH`, and `BLACKWATER_QA_ROOT=dist`.
+- **npm.cmd run test:blackwater:coop** — two-client discovery, combat, vehicles, menu recovery and save isolation; also targets the built Sites preview or public URL.
 - **npm.cmd run test:blackwater:ui** — menu navigation, focus, settings, UI flows and desktop/narrow/touch layout captures, with the same browser overrides.
 - **npm.cmd run test:blackwater:refuges** — Reliquary loading/control views, coherent rooms, NPC work/rest/listening samples, foot/tool measurements and persistent supplies; supports the same browser overrides.
 - **npm.cmd run test:blackwater:craft** — Arc charge/cancel checks, neutral hand views, survivor/Elias captures, and roost departure/return checks; use `BLACKWATER_QA_EXPECT_CRAFT=1` for the new material/charge assertions.
