@@ -12,7 +12,7 @@ cannot be taken. **E** takes what fits and returns to the world; buttons still
 support individual collection and Take all without closing. Anything left stays
 in the container. Duplicate weapons report the actual recovered ammunition.
 Loose dressings and ammunition remain in the world if their storage is full.
-Pickup targets must be in front of the player and with no solid cover blocking reach.
+Pickup targets must be in front of the player, with no solid cover blocking reach.
 
 ## World changes and checks
 
@@ -48,3 +48,18 @@ room rather than being filled uniformly with props.
 colliders, collection flows and finite captures. The existing scavenging suite
 also checks healing, last-row focus, mobile input and persistent contents.
 Evidence lives under ignored `output/pickup-cohesion/` and is not a game input.
+
+## Verification record
+
+70 Node checks pass. The existing owned-browser scavenging suite passes on
+desktop and touch, and the two-player regression passes including direct-to-relay
+fallback, combat, vehicles, live-menu recovery and solo-save protection.
+
+The Sites build was published from source commit
+`10de796cae0107aa03fa30332125446836934c3b` as version 3. The local server now
+serves the same frontend on port 5200; its existing game tab was never reloaded.
+Portrait/landscape review includes simultaneous collection receipts and active
+rummaging, with bounds checks against the joystick and action buttons.
+The final public-URL run passes all 45 interior approaches, all 20 outdoor paths,
+quick collection, storage-full preservation and touch prompt/receipt/search
+clearance. It records no unexpected HTTP or JavaScript errors.
