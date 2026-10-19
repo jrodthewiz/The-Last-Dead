@@ -18,6 +18,7 @@ async function setup(options={}){
 }
 try{
  page=await setup();await page.waitForTimeout(1000);
+ report.keeperFurniture=await page.evaluate(async()=>{const g=__BLACKWATER__,b=g.data.buildings.find(b=>b.id==='lightkeeper'),{interiorPlan}=await import('/island/interior-plan.js'),bench=g.scenery.colliders.find(p=>p.id==='scenery-workbench-grind'&&Math.abs(p.x-b.x)<b.w/2&&Math.abs(p.z-b.z)<b.d/2);if(!bench)throw Error('Keeper grinding bench missing');const overlaps=interiorPlan(b).solids.filter(p=>Math.abs(p.x-bench.x)<(p.w+bench.w)/2-.01&&Math.abs(p.z-bench.z)<(p.d+bench.d)/2-.01&&Math.min(p.y+p.h,bench.y+bench.h)>Math.max(p.y,bench.y)+.01);return{overlaps:overlaps.map(p=>p.id),bench};});assert.deepEqual(report.keeperFurniture.overlaps,[],'Imported workshop prop intersects keeper furniture');
  // Every authored weapon find must be targetable with the actual scenery and
  // furniture in place. The E press takes the target shown by the production HUD.
  const finds=await page.evaluate(()=>__BLACKWATER__.caches);
@@ -45,11 +46,12 @@ try{
  // across the reload, even when fire was held just before pressing R.
  const profiles=await page.evaluate(async()=>(await import('/island/armory-state.js')).WEAPONS.filter(w=>w.capacity));
  for(const w of profiles){
-  await page.evaluate(w=>{const g=__BLACKWATER__;g.selectWeapon(w.id);g.state.ammo=Math.max(0,w.capacity-3);g.state.reserve=7;},w);await page.waitForTimeout(350);await page.evaluate(()=>__BLACKWATER__.holdFire(true));await page.keyboard.press('KeyR');
+  await page.evaluate(w=>{const g=__BLACKWATER__;g.selectWeapon(w.id);g.state.ammo=Math.max(0,w.capacity-3);g.state.reserve=7;},w);await page.waitForTimeout(350);await page.keyboard.press('KeyR');
   await page.waitForFunction(()=>__BLACKWATER__.combat.reload>0);if(w.id==='breach'){await page.waitForTimeout(1100);await page.screenshot({path:output+'/break-action-reload.png'});}
   await page.waitForFunction(()=>__BLACKWATER__.combat.reload<=0);const state=await page.evaluate(()=>({ammo:__BLACKWATER__.state.ammo,reserve:__BLACKWATER__.state.reserve}));
   assert.equal(state.ammo,w.capacity);assert.equal(state.reserve,7-Math.min(3,w.capacity));report.reloads.push({weapon:w.id,...state});
  }
+ await page.evaluate(()=>{const g=__BLACKWATER__;g.selectWeapon('carrion');g.state.ammo=10;g.state.reserve=10;g.holdFire(true);g.doReload();});await page.waitForFunction(()=>__BLACKWATER__.combat.reload<=0);await page.waitForTimeout(400);assert.equal(await page.evaluate(()=>__BLACKWATER__.state.ammo),20);assert.equal(await page.evaluate(()=>__BLACKWATER__.state.reserve),0);report.heldReloadCleared=true;
  await page.evaluate(()=>{const g=__BLACKWATER__;g.selectWeapon('bat');});await page.waitForTimeout(350);await page.keyboard.press('KeyF');await page.keyboard.press('Digit1');
  assert.equal(await page.evaluate(()=>__BLACKWATER__.state.weapon),'bat','A swing cannot be cancelled by a weapon swap');await page.waitForTimeout(750);report.swingCommit=true;
  // Interior photos use a standing player's eye height and the real render path.

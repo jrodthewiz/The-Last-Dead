@@ -58,3 +58,19 @@ errors.
 
 These are bounded interaction and visual checks, not an extended performance
 soak or certification of every network/device combination.
+
+## Release checks
+
+Public handling and cohesion runs pass over HTTPS, including held-fire release
+across reload, desktop/touch storage feedback and every interior route, with no
+unexpected JavaScript or HTTP errors. The game modules served by
+`https://lastdead.jrod.download/` are compared with the verified canonical source
+after newline normalization, and public lobby discovery responds with HTTP 200.
+The local game server also serves the new build on port 5200. The player's
+existing browser tab was preserved.
+
+The final keeper-room review caught the bundled grinding bench intersecting the
+new cot. The bench now occupies the front wall. A browser regression compares
+its actual loaded collision bounds against every authored keeper furnishing;
+the corrected room has no overlaps. All exterior-to-container routes are checked
+again with the moved prop.

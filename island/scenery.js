@@ -25,7 +25,7 @@ export function sceneryPlan(data){
     if(village){for(let j=0;j<6;j++){const xx=b.x-b.w/2+j*b.w/5,z=b.z-b.d/2-3;add('fence',xx,z,2.4,Math.PI/2);add('grass-large',xx,z+1.4,1.1,rng()*6.28);}add('signpost',b.x-3,b.entry.z+3,1.7,.1);}
   }
   // Reuse the bundled tool and provision meshes inside the authored rooms.
-  const roomProps={lightkeeper:[['workbench-grind',-4,0,1.6,0],['tool-axe',3,0,.7,.96],['bucket',-5,-3,.65,0],['bottle',-3,-3,.35,.96]],clinic:[['bottle',-.4,-6,.28,.98],['bottle',.4,-6,.28,.98],['box',2,-6,.6,0]],'arrival-house':[['chest',-5,2,1.2,0],['bottle',-3,-3,.28,.98],['bedroll-packed',-4,2,1,0]]};
+  const roomProps={lightkeeper:[['workbench-grind',-4,4.8,1.6,0],['tool-axe',3,0,.7,.96],['bucket',-5,-3,.65,0],['bottle',-3,-3,.35,.96]],clinic:[['bottle',-.4,-6,.28,.98],['bottle',.4,-6,.28,.98],['box',2,-6,.6,0]],'arrival-house':[['chest',-5,2,1.2,0],['bottle',-3,-3,.28,.98],['bedroll-packed',-4,2,1,0]]};
   for(const b of data.buildings){for(const [name,dx,dz,size,up] of roomProps[b.id]||[])items.push({name,x:b.x+dx,z:b.z+dz,y:b.baseY+.2+up,size,angle:.15});}
   // Each camp has sleeping, storage and a work area, composed around open fire access.
   for(const [cx,cz] of [[-773,290],[-718,99],[-850,-217],[-370,-228],[727,35],[1000,-280]]){
