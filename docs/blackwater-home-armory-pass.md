@@ -51,5 +51,10 @@ The cohesion review checks all 45 real exterior-to-container approaches and all
 and touch collection/full-storage layouts. Evidence is retained under
 `output/home-armory-pass/`; it is not runtime input.
 
+The merged two-player relay regression also passes lobby discovery, movement,
+guest gunfire/shove/Crimson, mission progress, exclusive vehicle ownership,
+live-menu recovery and solo-save protection, with no unexpected browser or HTTP
+errors.
+
 These are bounded interaction and visual checks, not an extended performance
 soak or certification of every network/device combination.
