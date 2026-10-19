@@ -190,7 +190,8 @@ function streetDetails(scene,kit,data){
   for(const [x,z,label] of [[-690,264,'ALDER  →'],[-470,55,'←  WESTLIGHT'],[-353,-215,'SIGNAL HILL'],[-240,54,'SAINT ORIN  →']]){const y=terrainHeight(x,z);kit.box(x+6,y+1.5,z,.15,3,.15,COLORS.wood);sign(scene,label,x+6,y+2.6,z,4);}
   // Inland ruins provide a destination and a different silhouette.
   for(let i=0;i<9;i++){const x=-790+i*5,z=12;kit.box(x,terrainHeight(x,z)+1.7,z,3.4,3.4,1.2,0xa1a28a);}for(let i=0;i<5;i++){const x=-790,z=12+i*5;kit.box(x,terrainHeight(x,z)+1.3,z,1.2,2.6,3.7,0xa1a28a);}
-  for(let i=0;i<30;i++){const x=-810+(i%6)*17,z=55+Math.floor(i/6)*17;if(roadAt(x,z).distance>9)tree(kit,x,terrainHeight(x,z),z,.65,'broad');}
+  // The canonical orchard in data.trees owns the planted rows and reserves
+  // house footprints and access paths. A second scenery grid grew into homes.
 }
 function createSky(scene){
   const uniforms={time:{value:0},sun:{value:new T.Vector3(-110,160,65).normalize()},top:{value:new T.Color(0x698e9f)},bottom:{value:new T.Color(0xd5c4a6)},cloudLight:{value:new T.Color(0xe5ddc4)},cloudShade:{value:new T.Color(0x8a9b9e)}};

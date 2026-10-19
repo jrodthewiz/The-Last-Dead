@@ -1,4 +1,5 @@
 import {furnishCottage} from './home-details.js';
+import {domesticProfile} from './domestic-profile.js';
 
 function authoredInterior(k,b,y){
  const x=b.x,z=b.z,wood=0x6b5a43,cream=0xd7d1aa,metal=0x425c56;
@@ -42,7 +43,7 @@ export function interiorPlan(b){
   for(const p of pieces)if(p.shape==='box'&&((p.h>=.12&&p.w>.45&&p.d>.45)||(p.h>1&&Math.min(p.w,p.d)>.075&&Math.max(p.w,p.d)>1)))solids.push({id:b.id+'-furniture',x:p.x,z:p.z,w:p.w,d:p.d,y:p.y-p.h/2,h:p.h});
   return {pieces,solids,kind:b.id};
  }
- const wood=0x96856a,dark=0x535a4d,linen=0xc1b797,green=0x84927b,clay=0xb38a68;
+ const wood=0x96856a,dark=0x535a4d,linen=0xc1b797,green=domesticProfile(b)?.colour||0x84927b,clay=0xb38a68;
  const box=(x,y,z,w,h,d,c)=>k.box(b.x+x,floor+y,b.z+z,w,h,d,c);
  const table=(name,x,z,w=2.8,d=1.4)=>{box(x,.84,z,w,.15,d,wood);for(const dx of [-w*.4,w*.4])for(const dz of [-d*.35,d*.35])box(x+dx,.4,z+dz,.13,.8,.13,dark);solid(name,x,z,w,d,.92);};
  const shelf=(x,z,w=2.7)=>{for(const dx of [-w/2,w/2])box(x+dx,1.05,z,.14,2.1,.65,dark);for(let j=0;j<3;j++){box(x,.3+j*.7,z,w,.12,.65,wood);for(let i=0;i<4;i++)box(x-w*.36+i*w*.23,.53+j*.7,z,.3,.34,.38,(i+j)%2?linen:green);}solid('shelf',x,z,w+.14,.65,2.1);};
@@ -72,10 +73,10 @@ export function interiorPlan(b){
    for(let i=0;i<3;i++){k.add('cylinder',b.x-3.75+i*.6,floor+1.08,b.z-2.6,.22,.35,.22,i===1?green:clay);box(-3.75+i*.6,1.28,-2.6,.23,.05,.23,linen);}
    box(-2.2,1,-2.6,.4,.08,.6,linen);box(b.w/2-2,.35,1,1.4,.7,1,wood);solid('harvest-crate',b.w/2-2,1,1.4,1,.7);
    for(let i=0;i<5;i++)k.add('rock',b.x+b.w/2-2+(i%3-.9)*.3,floor+.8,b.z+.8+Math.floor(i/3)*.3,.26,.22,.26,green);
-  }else {box(-side*3,1,-2.6,.7,.08,.45,linen);k.add('cylinder',b.x-side*3.75,floor+1.04,b.z-2.6,.17,.25,.17,clay);}
+  }
   furnishCottage(k,b,floor,solid,{side,workX:-side*3,special:boat||garden});
  }else{
-  const kind=b.id==='building-54'?'bookshop':b.id==='building-78'?'networkshop':b.seed%2?'storeroom':'shop';
+  const kind=b.id==='building-54'?'bookshop':b.id==='building-78'?'networkshop':b.id==='building-87'?'chandlery':b.seed%2?'storeroom':'shop';
   table('counter',-4,3,5,1.4);box(-5.2,1.08,3,.6,.4,.6,dark);
   for(const side of [-1,1])for(let row=0;row<Math.max(2,Math.floor(b.d/8));row++)shelf(side*(b.w/2-1),-b.d/2+2.5+row*5.5,1.4);
   if(kind==='bookshop'){
@@ -85,9 +86,27 @@ export function interiorPlan(b){
    for(let row=0;row<3;row++){box(4,.3+row*.57,zz,1.5,.12,4,wood);for(const side of [-1,1])for(let j=0;j<6;j++)box(4+side*.48,.54+row*.57,zz-1.65+j*.63,.46,.38,.37,[0x8a5f4b,0xa9ab80,0x688b83,0xb69d70][(j+row)%4]);}
    box(4,1.84,zz,1.6,.12,4.1,linen);
   }
-  else {table('packing-table',3,-4,3.8,1.6);for(let j=0;j<3;j++)box(2+j*.8,1.12,-4,.55,.4,.7,j%2?green:clay);}
+  else {
+   const packingZ=kind==='chandlery'?8:-4;
+   table('packing-table',3,packingZ,3.8,1.6);
+   if(kind==='chandlery'){
+    box(3,.94,packingZ,3.1,.035,1.35,linen);k.lastRole('chandlery-sailcloth');
+    for(const xx of [2.05,4.02])for(let strand=0;strand<3;strand++)for(let j=0;j<12;j++){
+     const r=.22+strand*.045,a=j*Math.PI/6,c=(j+1)*Math.PI/6;
+     k.rod([b.x+xx+Math.cos(a)*r,floor+.99,b.z+packingZ+Math.sin(a)*r],[b.x+xx+Math.cos(c)*r,floor+.99,b.z+packingZ+Math.sin(c)*r],.022,clay);k.lastRole('chandlery-rope');
+    }
+    box(3.1,.99,packingZ,.62,.08,.83,green);box(3.1,1.04,packingZ,.54,.025,.76,linen);k.lastRole('chandlery-manifest');
+    const displayZ=b.d/2-7.5;
+    box(-3.2,.14,displayZ,3.4,.28,2.1,wood);solid('sail-display',-3.2,displayZ,3.4,2.1,1.35);
+    for(const dx of [-1,0,1]){box(-3.2+dx,.43,displayZ+.38,.84,.32,1.05,linen);box(-3.2+dx,.61,displayZ+.38,.65,.035,.98,dark);}
+    for(const dx of [-1.35,1.35])box(-3.2+dx,.78,displayZ-.7,.10,1.2,.10,dark);
+    box(-3.2,1.32,displayZ-.7,2.8,.12,.12,wood);box(-3.2,.94,displayZ-.7,2.5,.64,.08,linen);k.lastRole('chandlery-sail-display');
+    k.add('cylinder',b.x-3.3,floor+1.01,b.z+3,.21,.08,.21,0xb5a46f);k.lastRole('chandlery-compass');
+    k.rod([b.x-3.42,floor+1.06,b.z+3],[b.x-3.18,floor+1.06,b.z+3],.014,dark);
+   }else for(let j=0;j<3;j++)box(2+j*.8,1.12,-4,.55,.4,.7,j%2?green:clay);
+  }
  }
- return {pieces,solids,kind:boat?'boatwright-house':garden?'garden-house':village?'home':'shop'};
+ return {pieces,solids,kind:boat?'boatwright-house':garden?'garden-house':village?'home':b.id==='building-87'?'chandlery':'shop'};
 }
 
 export function buildInterior(kit,b){for(const p of interiorPlan(b).pieces){if(p.shape==='rod')kit.rod(p.a,p.c,p.r,p.color);else kit.add(p.shape,p.x,p.y,p.z,p.w,p.h,p.d,p.color,p.rotation||0);}}

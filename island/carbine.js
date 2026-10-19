@@ -77,9 +77,9 @@ export function makeRifle(camera){
   const support=hand(gun,-1);support.position.set(-.037,-.012,-.29);support.rotation.z=-1.1;
   // Sleeves connect wrists to elbows, rather than floating rectangular cuffs.
   function arm(){const g=new T.Group();gun.add(g);const rings=[];for(const [t,w]of [[-.5,.116],[-.32,.124],[-.12,.108],[.10,.098],[.24,.109],[.33,.088],[.43,.084],[.5,.076]])rings.push([t,0,w,w*.88]);const sleeve=loft(g,rings,'cloth');sleeve.rotation.x=-Math.PI/2;
-    const cuff=mesh(g,new T.CylinderGeometry(.039,.044,.036,8),'seam');const wrist=mesh(g,new T.CylinderGeometry(.027,.032,.042,8),'skin');return {g,sleeve,cuff,wrist};}
+    const cuff=mesh(g,new T.CylinderGeometry(.039,.044,.036,8,1,true),'seam');const wrist=mesh(g,new T.CylinderGeometry(.030,.034,.052,8),'skin');return {g,sleeve,cuff,wrist};}
   const right=arm(),left=arm();
-  function setArm(arm,elbow,wrist){const a=new T.Vector3(...elbow),b=new T.Vector3(...wrist),d=b.clone().sub(a);arm.g.position.copy(a.add(b).multiplyScalar(.5));arm.g.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),d.clone().normalize());arm.sleeve.scale.z=d.length()-.025;arm.cuff.position.y=d.length()/2-.029;arm.wrist.position.y=d.length()/2-.004;}
+  function setArm(arm,elbow,wrist){const a=new T.Vector3(...elbow),b=new T.Vector3(...wrist),d=b.clone().sub(a);arm.g.position.copy(a.add(b).multiplyScalar(.5));arm.g.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),d.clone().normalize());arm.sleeve.scale.z=d.length()-.025;arm.cuff.position.y=d.length()/2-.017;arm.wrist.position.y=d.length()/2+.005;}
   setArm(right,[.25,-.32,.36],[.035,-.093,.13]);
   const flash=new T.Mesh(new T.ConeGeometry(.065,.17,5),new T.MeshBasicMaterial({color:0xffd68c}));flash.rotation.x=-Math.PI/2;flash.position.set(0,.069,-.85);gun.add(flash);flash.visible=false;
   const smooth=(a,b,t)=>T.MathUtils.smoothstep(t,a,b);

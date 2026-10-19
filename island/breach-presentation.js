@@ -19,3 +19,12 @@ export function breachGesture(shotAge,equipAge,aim=0,motion=true){
  const settle=time>.09&&time<.34?Math.sin((time-.09)/.25*Math.PI)*.08:0;
  return {kick:(kick-settle)*weight,draw,roll:(motion?kick*.018:0)*weight-draw*.18};
 }
+
+export function finishExpeditionSteel(models){
+ for(const [index,family]of [[0,'ossuary'],[4,'rifle']]){
+  const materials=models[index].userData[family].materials;
+  for(const [role,color]of Object.entries({steel:0x718478,panel:0x44584e,edge:0x9da68f,brass:0x9d9270})){
+   const m=materials[role];if(!m)continue;m.map=m.bumpMap=m.normalMap=null;m.vertexColors=false;m.color.setHex(color);m.needsUpdate=true;
+  }
+ }
+}

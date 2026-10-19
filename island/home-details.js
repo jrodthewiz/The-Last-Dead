@@ -4,7 +4,7 @@ import {domesticProfile} from './domestic-profile.js';
 // Small, readable domestic objects share the world's existing instanced kit.
 // Every substantial addition supplies the same volume to movement and bullets.
 export function furnishCottage(k,b,floor,solid,{side,workX,special=false}){
- const wood=0x96856a,edge=0x665e4b,cream=0xd3c7a3,iron=0x43544c;
+ const profile=domesticProfile(b),wood=0x96856a,edge=0x665e4b,cream=0xd3c7a3,iron=0x43544c;
  const box=(role,x,y,z,w,h,d,color)=>{k.box(b.x+x,floor+y,b.z+z,w,h,d,color);k.lastRole(role);};
  const cylinder=(role,x,y,z,r,h,color)=>{k.add('cylinder',b.x+x,floor+y,b.z+z,r,h,r,color);k.lastRole(role);};
  const back=-b.d/2,prepX=special?-1:0,prepW=special?1.9:3.2,prepZ=back+.85;
@@ -39,8 +39,22 @@ export function furnishCottage(k,b,floor,solid,{side,workX,special=false}){
    box('dining-chair-back',x,.89,chairZ+.28,.62,.67,.10,wood);
    solid('dining-chair-'+x,x,chairZ,.64,.72,1.23);
   }
-  cylinder('dinner-plate',workX+.72,.94,-2.6,.24,.035,cream);
-  cylinder('drinking-mug',workX+.12,1.04,-2.85,.095,.20,0x7a9789);
+  if(profile?.kind==='linen'){
+   box('sewing-workcloth',workX,.948,-2.6,1.25,.035,.85,profile.colour);
+   for(const x of [workX-.48,workX-.22]){cylinder('thread-spool',x,1.04,-2.84,.075,.15,cream);cylinder('spool-end',x,1.122,-2.84,.095,.018,wood);}
+   box('sewing-tin',workX+.46,1.01,-2.55,.35,.12,.26,iron);
+   for(const dx of [-.08,.08])k.rod([b.x+workX+dx,floor+.98,b.z-2.4],[b.x+workX-dx,floor+.98,b.z-2.15],.017,iron);
+  }else if(profile?.kind==='remedies'){
+   box('care-ledger-cover',workX,.94,-2.55,.90,.045,.65,edge);
+   for(const dx of [-.22,.22])box('care-ledger-page',workX+dx,.969,-2.55,.42,.018,.60,cream);
+   for(let i=0;i<3;i++){cylinder('remedy-bottle',workX-.73+i*.23,1.05,-2.88,.065,.24,i%2?0x8d6d5b:0x658274);cylinder('remedy-stopper',workX-.73+i*.23,1.18,-2.88,.045,.035,cream);}
+   box('clean-gauze',workX+.72,.96,-2.5,.30,.07,.46,cream);
+  }else{
+   cylinder('dinner-plate',workX+.72,.94,-2.6,.24,.035,cream);
+   cylinder('drinking-mug',workX+.12,1.04,-2.85,.095,.20,0x7a9789);
+   box('bread-board',workX-.60,.946,-2.54,.68,.035,.54,wood);
+   k.add('rock',b.x+workX-.60,floor+1.04,b.z-2.54,.44,.19,.30,0xb19867);k.lastRole('household-loaf');
+  }
  }
  const bedX=side*(b.w/2-2),bedZ=back+2.4;
  // A nightstand beside the foot, rather than inside the bed or an aisle.
@@ -69,14 +83,14 @@ export function furnishCottage(k,b,floor,solid,{side,workX,special=false}){
   const windows=houseShell(b).windows.filter(w=>w.side===(s===1?2:3));
   const window=windows.sort((a,c)=>Math.abs(a.u-bedZ)-Math.abs(c.u-bedZ))[0];
   if(!window)continue;
-  const wx=s*(b.w/2-.31),shade=b.seed%2?0x8b9e8b:0xa78e72;
+  const wx=s*(b.w/2-.31),shade=profile?.colour||(b.seed%2?0x8b9e8b:0xa78e72);
   for(const end of [-1,1]){
    box('gathered-window-curtain',wx,1.72,window.u+end*.55,.12,1.57,.20,shade);
    box('curtain-tie',wx-s*.075,1.40,window.u+end*.55,.035,.10,.22,cream);
   }
   k.rod([b.x+wx,floor+2.56,b.z+window.u-.78],[b.x+wx,floor+2.56,b.z+window.u+.78],.025,edge);
  }
- const profile=domesticProfile(b),entryZ=b.d/2-1.1;
+ const entryZ=b.d/2-1.1;
  if(profile){
   // A usable entry bench gives the household's supplies an authored place.
   box('scavenging-bench-top',3,.65,entryZ,2.4,.10,.92,wood);

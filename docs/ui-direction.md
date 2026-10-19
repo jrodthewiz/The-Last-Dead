@@ -94,3 +94,68 @@ material slots. E collects what fits and returns; B/Return leaves the container.
 Mouse/touch buttons retain individual collection and Take all. Touch hides the
 keyboard-only shortcut hints. The inventory, title and combat HUD retain the
 established ivory/amber/olive language.
+
+
+## Coastal field kit continuity — October 19, 2026
+
+This pass keeps the N64 survival-adventure identity while making the live HUD,
+weapon rack and scavenging one interface. During play the held weapon, room and
+threats own the image. Health and ammunition remain small ink-green plates at
+opposite lower edges. A new find is a short receipt, never a full-screen reward.
+Melee equipment uses a compact ready plate instead of a large empty ammunition
+counter. The gameplay state owner applies that mode only outside a vehicle, so
+the truck retains its speed readout.
+
+Warm paper is primary information, grey-green is supporting state, amber means
+selection/action/confirmation, and rust-red means damage or treatment. A single
+amber diamond now carries menu focus, selected kit rows, equipped state and a
+weapon discovery receipt. Display serif belongs to place and item names;
+Trebuchet/Arial handles decisions, and changing values use tabular numerals.
+No browser fonts, blur/glass panels, pill controls or looping ornament are added.
+
+The pack is a ruled equipment rack and an item illustration. Rows retain the
+same weight for all twelve weapons, with explicit carried, in-hand and
+undiscovered states. Ammunition reads from current gameplay state, and melee
+items say that they need no ammunition. Owned melee finds say already carried;
+they never promise zero spare rounds. Empty material quantities remain readable.
+Supplies use the same row grammar, actual counts, treatment effects and recipes.
+
+Searching opens a smaller foldout at the left edge on wide screens, leaving
+part of the actual room visible. The action label, progress rule, silhouette,
+contents, pouch capacity and acquisition receipt share the same colours and
+spacing. Ammunition reserve and pouch space stay distinct. Leftovers stay in
+the real container; the UI does not regenerate them or claim they were taken.
+E still takes what fits and returns. Take all and individual collection remain
+visible click/touch actions, including when keyboard hints are suppressed.
+
+The layout scrolls within its own kit body. Narrow screens retain readable
+rows and a bounded weapon list, followed by item detail and real actions;
+short landscape screens keep 44px minimum actions instead of shrinking them.
+Arrow keys follow the rendered grid, Home/End reach its ends, left/right change
+categories when a tab is focused, and Enter confirms. Tab still follows the
+shared screen focus order. There are no decorative gamepad prompts.
+
+The serialized source run's six UI captures under
+`output/fundamentals-pass/arsenal/ui-*.png` were reviewed at 1280×800 and
+390×844. They show the pickup/search progression, left supply foldout, edge
+receipts and expanded weapon rack. This review found narrow objective-chip
+drift clipping and the selected last-row tool below the initial viewport.
+The narrow chip now stays under the compass and the rack reveals its selection,
+including after resizing from a wide display. The follow-up cohesion run under
+`output/fundamentals-pass/cohesion/` verifies the final pipe row is in view,
+Home/End selection, all 45 building routes and both shop aisles. The six reviewed
+wide, portrait and emulated-touch captures show readable rack actions, a clear
+pickup/search label, quiet acquisition receipts and unobstructed touch targets.
+Its JavaScript and HTTP error arrays are empty. A focused final check in
+`cohesion/ui-fit-final.json` covers 390×844 and 844×390 emulated-touch layouts:
+pickup, receipt, active search with receipts, and landscape prompt plus receipt.
+The final four PNGs were visually inspected. All touch action buttons, Pack,
+Map, Pause, joystick, health and weapon plates are separated; receipts clear
+the objective and prompts clear the ammunition plate. Both target chips fit
+the viewport and neither layout overflows horizontally. The short-landscape
+grid now starts below Pause, with the receipt and prompt placed in separate
+regions. Final JavaScript and HTTP error arrays are empty.
+The held-tool action is called SWING; PUNCH explicitly means the secondary fist
+action, with the pack note and actual touch buttons checked for matching copy.
+These checks do not establish physical-device touch acceptance, gamepad support
+or continuous animation quality.
