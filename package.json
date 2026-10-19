@@ -15,7 +15,7 @@
     "start": "node server.mjs",
     "test": "node --test engine.test.mjs enemy-ai.test.mjs && node tests/network.test.mjs",
     "test:engine": "node --test engine.test.mjs",
-    "test:blackwater": "node --test tests/blackwater-rewrite.test.mjs tests/blackwater-enhancement.test.mjs tests/blackwater-depth.test.mjs tests/blackwater-refuges.test.mjs tests/blackwater-scavenging.test.mjs tests/blackwater-movement.test.mjs tests/blackwater-navigation.test.mjs tests/blackwater-field-batches.test.mjs tests/blackwater-coop.test.mjs tests/blackwater-cohesion.test.mjs tests/blackwater-home-armory.test.mjs",
+    "test:blackwater": "node --test tests/blackwater-rewrite.test.mjs tests/blackwater-enhancement.test.mjs tests/blackwater-depth.test.mjs tests/blackwater-refuges.test.mjs tests/blackwater-scavenging.test.mjs tests/blackwater-movement.test.mjs tests/blackwater-navigation.test.mjs tests/blackwater-field-batches.test.mjs tests/blackwater-coop.test.mjs tests/blackwater-cohesion.test.mjs tests/blackwater-home-armory.test.mjs tests/blackwater-cottage-motion.test.mjs",
     "test:blackwater:browser": "node tests/blackwater-rewrite-browser.mjs",
     "test:blackwater:visual": "node tests/blackwater-visual-review.mjs",
     "test:bodycam": "node tests/bodycam-browser.mjs",
@@ -54,7 +54,8 @@
     "build:site": "node scripts/prepare-blackwater-site.mjs",
     "test:blackwater:cohesion": "node tests/blackwater-cohesion-review.mjs",
     "test:blackwater:handling": "node tests/blackwater-home-armory-review.mjs",
-    "test:blackwater:input": "node scripts/verify-gameplay-input.mjs && node scripts/verify-first-person.mjs"
+    "test:blackwater:input": "node scripts/verify-gameplay-input.mjs && node scripts/verify-first-person.mjs",
+    "test:blackwater:cottage-motion": "node tests/blackwater-cottage-motion-review.mjs"
   },
   "devDependencies": {
     "esbuild": "0.25.12",

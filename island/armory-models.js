@@ -1,4 +1,5 @@
 import {createUtilityReload} from './utility-reloads.js';
+import {finishExpeditionBreach,breachGesture} from './breach-presentation.js';
 import {craftExpeditionWeapons} from './expedition-weapons.js';
 import {createShotgunReload} from './weapon-reload.js';
 import {craftArc} from './arc-craft.js';
@@ -9,6 +10,7 @@ import {createArc,animateArc} from '../weapon-arc.js';
 import {createReliquary,animateReliquary} from '../weapon-reliquary.js';
 import {createRifle,animateRifle} from '../weapon-rifles.js';
 import {createMeleeWeapon,animateMeleeWeapon} from '../weapon-melee.js';
+import {batContactPose} from './melee-presentation.js';
 import {FIRST_PERSON_HOLD_POSES} from '../assets/survivor/viewmodel-hold-poses.js';
 import {installFPSArms,advanceFPSClip} from '../assets/survivor/fps-arms.js';
 import {loadGlb} from '../assets/load-glb.js';
@@ -21,6 +23,7 @@ export async function createArmoryModels(camera,source=loadGlb(new URL('../asset
  // Remove the inherited overlay kit: it was authored for a different barrel
  // envelope and obscured the working breech at console resolution.
  models[1].getObjectByName('Img2ThreejsMicroDetail-breach')?.removeFromParent();models[1].userData.breach.pressureValve.visible=false;models[1].userData.breach.ribcage.visible=false;models[1].userData.breach.parts['underbarrel-launcher'].visible=false;models[1].userData.breach.materials.brass.color.setHex(0x9d9877);
+ finishExpeditionBreach(models[1]);
  const arcCraft=craftArc(models[2]),expeditionCraft=craftExpeditionWeapons(models);
  const groups=models.map((model,i)=>{const group=new T.Group(),hold=FIRST_PERSON_HOLD_POSES[i];group.add(model);group.userData.model=model;group.name=hold.name;group.position.fromArray(hold.position);group.rotation.fromArray(hold.rotation);group.scale.setScalar(hold.scale);if(i>=6)model.rotation.set(i===6?.92:.32,i===6?-.32:.58,i===6?-.22:-.10);
    if(i<6){const parts=model.userData.sculptRuntime?.parts||model.userData.rifle?.parts;for(const side of ['right','left']){const part=parts?.[side==='right'?'grip':'support-grip'];if(part){part.scale.set(side==='right'?.30:.46,.65,side==='right'?.30:.46);const socket=new T.Object3D();socket.position.set(0,side==='right'?(i===1?-.05:-.07):-.12,0);part.add(socket);model.userData[side==='right'?'grip':'supportGrip']=socket;}}}
@@ -44,13 +47,14 @@ export async function createArmoryModels(camera,source=loadGlb(new URL('../asset
    reloading=reviewReload??reloading;rig.visible=visible&&id!=='carbine';if(!rig.visible){wasVisible=false;shotAge=9;impactHold=0;sawRev=0;lastShot=shotSequence;return;}if(!wasVisible){equipAge=0;wasVisible=true;}const index=groups.findIndex(g=>g.name===id);if(index<0)return;
    if(id!==previous){previous=id;equipAge=0;shotAge=9;impactHold=0;sawRev=0;lastShot=shotSequence;}equipAge+=dt;shotAge=shotSequence!==lastShot?0:shotAge+Math.max(0,dt-impactHold);impactHold=Math.max(0,impactHold-dt);lastShot=shotSequence;sawRev=T.MathUtils.damp(sawRev,firing?1:0,9,dt);
    groups.forEach((g,i)=>g.visible=i===index);const group=groups[index],model=models[index],hold=FIRST_PERSON_HOLD_POSES[index],tilt=reloading>=0?Math.sin(reloading*Math.PI):0;
-   const settle=T.MathUtils.smoothstep(equipAge,0,.28),kick=T.MathUtils.smoothstep(recoil,0,1)*[.05,.10,.04,.12,.045,.075,.02,.015][index];
+   const gesture=index===1?breachGesture(shotAge,equipAge,aim,motion):null,settle=T.MathUtils.smoothstep(equipAge,0,.28),kick=gesture?gesture.kick*.10:T.MathUtils.smoothstep(recoil,0,1)*[.05,.10,.04,.12,.045,.075,.02,.015][index];
    group.position.fromArray(hold.position);group.position.x*=Math.min(1,camera.aspect/.9);group.position.x=T.MathUtils.lerp(group.position.x,.025,aim*.92);group.position.y+=(motion?(stride?Math.sin(stride.phase)*.008*stride.weight:Math.sin(time*(moving?10:1.8))*(moving?.008:.0015)):0)+tilt*(index===6?-.16:.07)-(1-settle)*.3;group.position.z+=kick;group.position.x+=(motion?(stride?Math.sin(stride.phase*.5)*.004*stride.weight:Math.sin(time*(moving?5:1.2))*(moving?.004:.001))*(1-aim):0);
    group.rotation.fromArray(hold.rotation);group.rotation.y*=1-aim;group.rotation.x+=T.MathUtils.smoothstep(recoil,0,1)*.045-tilt*.25;group.rotation.z-=tilt*.22;if(index===1){group.rotation.y+=tilt*.48;group.rotation.z+=tilt*.28;group.position.y-=tilt*.04;}
+   if(gesture){group.position.x+=gesture.draw*.055;group.position.z+=gesture.draw*.16;group.position.y+=gesture.kick*.012;group.rotation.x+=gesture.draw*.13;group.rotation.z+=gesture.roll;}
    if(index===0)animateOssuary(model,recoil,time,dt);if(index===1)animateBreach(model,time,recoil,dt);if(index===2){animateArc(model,time,recoil,dt);arcCraft.update(charge,recoil,dt);}if(index===3)animateReliquary(model,recoil,time,dt);if(index===4||index===5)animateRifle(model,recoil,time,dt,{heat,charge});
    if(index===3){group.rotation.y+=tilt*.5;group.rotation.z+=tilt*.18;expeditionCraft.update(reloading);}
    if(index===1)shotgunReload.update(reloading,reloadCount);if(index===0||index===2){group.rotation.y+=tilt*.30;group.rotation.z+=tilt*.15;}
-   if(index>=6)animateMeleeWeapon(model,{active:index===6&&shotAge<.72,progress:Math.min(1,shotAge<=.25?shotAge/.25*.4:.4+(shotAge-.25)/.47*.6),sawRev,contact:sawContact>0?.5:0,sawActive:firing,reducedMotion:!motion},time,dt);
+   if(index>=6)animateMeleeWeapon(model,{active:index===6&&shotAge<.72,progress:Math.min(1,shotAge<=.25?shotAge/.25*.4:.4+(shotAge-.25)/.47*.6),...(index===6?batContactPose(group.position.x,group.position.y,hold.scale):{}),sawRev,contact:sawContact>0?.5:0,sawActive:firing,reducedMotion:!motion},time,dt);
    utilityReloads[index]?.update(reloading);
    const r=reloads[index];if(r){const p=Math.max(0,reloading),smooth=(a,b)=>T.MathUtils.smoothstep(p,a,b),drop=(smooth(.22,.4)-smooth(.48,.67))*.34;r.magazine.position.copy(r.position);r.magazine.position.y-=drop;r.magazine.quaternion.copy(r.rotation);
      if(reloading>=0){group.updateWorldMatrix(true,true);r.home.updateWorldMatrix(true,false);r.goal.multiplyMatrices(r.home.matrixWorld,r.left.offset).decompose(r.homePosition,r.handRotation,r.handScale);r.point.set(-.16,-.20-drop,r.position.z+.12);r.boltPoint.set(0,.12,.19+(smooth(.76,.82)-smooth(.84,.9))*.12);r.point.lerp(r.boltPoint,smooth(.67,.77));model.localToWorld(r.point);r.point.lerp(r.homePosition,1-smooth(.06,.2)+smooth(.9,1));r.goal.compose(r.point,r.handRotation,r.handScale);r.local.copy(model.matrixWorld).invert().multiply(r.goal).multiply(r.inverseOffset);r.socket.matrix.copy(r.local);r.left.grip=r.socket;if(p>.7)model.userData.rifle.mechanisms.boltCarrier.position.z+=(smooth(.76,.82)-smooth(.84,.9))*.12;

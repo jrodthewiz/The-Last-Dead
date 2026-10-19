@@ -26,9 +26,10 @@ test('weapon mechanisms give each shot a distinct lightweight motion cue', () =>
   const breach = createBreach();
   step(breachStep, breach, 0, 0, .016);
   const valveRest = breach.userData.breach.pressureValve.position.y;
+  const ribRest = breach.userData.breach.ribcage.scale.x;
   step(breachStep, breach, 1, .016, .016);
   assert.ok(breach.userData.breach.pressureValve.position.y > valveRest, 'Breach pressure valves should lift on a shot');
-  assert.ok(breach.userData.breach.ribcage.scale.x > 1, 'Breach rib cage should expand under pressure');
+  assert.ok(breach.userData.breach.ribcage.scale.x > ribRest, 'Breach rib cage should expand from its authored resting scale under pressure');
 
   const arc = createArc();
   step(arcStep, arc, 0, 0, .016);

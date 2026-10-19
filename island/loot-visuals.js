@@ -13,11 +13,11 @@ export function createLootVisuals(scene,containers){
   piece(group,0,.24,0,width,.42,depth,mat);piece(group,0,.45,0,width-.09,.015,depth-.08,1);
   const lid=new T.Group();lid.position.set(0,.45,-depth/2);group.add(lid);piece(lid,0,.025,depth/2,width,.05,depth,mat);
   for(const x of [-width*.32,width*.32]){piece(group,x,.23,depth/2+.006,.06,.4,.02,2);piece(lid,x,.054,depth/2,.06,.012,depth,2);}
-  piece(group,0,.34,depth/2+.014,.12,.1,.025,2);if(c.name.includes('Medical')||c.name.includes('Ward')){piece(lid,0,.059,depth/2,.27,.015,.07,4);piece(lid,0,.06,depth/2,.07,.015,.27,4);}
+  piece(group,0,.34,depth/2+.014,.12,.1,.025,2);if(/medical|ward/i.test(c.name)){piece(lid,0,.059,depth/2,.27,.015,.07,4);piece(lid,0,.06,depth/2,.07,.015,.27,4);}
   const contents=new T.Group();group.add(contents);for(let i=0;i<3;i++)piece(contents,(i-1)*.18,.46,.02,.14,.07,.24,i===1?4:2);
   batchStaticWeaponMeshes(group);sleepHiddenBranch(group);entries.push({c,group,lid,contents});
  }
- return {entries,colliders:containers.map(c=>({id:c.id,x:c.x,z:c.z,w:c.kind==='bag'?.72:1.05,d:c.kind==='bag'?.44:.65,y:c.y,h:.48})),update(dt,state,camera){for(const e of entries){e.group.visible=camera.distanceToSquared(e.group.position)<110**2;if(!e.group.visible)continue;const open=state.backpack.searched.includes(e.c.id);e.lid.rotation.x=T.MathUtils.damp(e.lid.rotation.x,open?-1.2:0,9,dt);e.contents.visible=open&&Object.values(state.backpack.remaining[e.c.id]||{}).some(n=>n>0);}}};
+ return {entries,colliders:containers.map(c=>({id:c.id,x:c.x,z:c.z,w:c.kind==='bag'?.72:1.05,d:c.kind==='bag'?.44:.65,y:c.y,h:.48})),update(dt,state,camera,search=null){for(const e of entries){e.group.visible=camera.distanceToSquared(e.group.position)<110**2;if(!e.group.visible)continue;const open=state.backpack.searched.includes(e.c.id),opening=search?.container.id===e.c.id?T.MathUtils.smoothstep(search.time,.86,1.15):0;e.lid.rotation.x=T.MathUtils.damp(e.lid.rotation.x,open?-1.2:-opening*.95,12,dt);e.contents.visible=open&&Object.values(state.backpack.remaining[e.c.id]||{}).some(n=>n>0);}}};
 }
 export function dressWeaponFinds(cacheVisuals,armory){
  for(const c of cacheVisuals){const index=WEAPONS.findIndex(w=>w.id===c.weapon)-1,model=armory.models[index];if(!model)continue;

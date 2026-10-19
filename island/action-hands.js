@@ -5,6 +5,7 @@ import {FIRST_PERSON_HOLD_POSES} from '../assets/survivor/viewmodel-hold-poses.j
 import {consoleMaterial} from './retro-materials.js';
 import {chestHandPoint,chestTissueState} from '../chest-finisher-visuals.js';
 import {CRIMSON} from './close-combat.js';
+import {punchMotion} from './search-motion.js';
 
 const smooth=(t,a,b)=>T.MathUtils.smoothstep(t,a,b);
 export async function createActionHands(camera,source=loadGlb(new URL('../assets/survivor/fps-arms-v5.glb',import.meta.url).href)){
@@ -29,18 +30,49 @@ export async function createActionHands(camera,source=loadGlb(new URL('../assets
  }
  const boneRotation=new T.Quaternion(),parentRotation=new T.Quaternion(),handRotation=new T.Quaternion(),jointDirection=new T.Vector3(),desiredDirection=new T.Vector3();
  function openPalm(arm,weight){const bones=arm.side==='right'?rightBones:leftBones;arm.hand.getWorldQuaternion(handRotation);for(const [index,digit]of ['Index','Middle','Ring','Little'].entries())for(let i=0;i<3;i++){const bone=bones[digit+i];bone.getWorldQuaternion(boneRotation);jointDirection.set(0,1,0).applyQuaternion(boneRotation);desiredDirection.copy(arm.fingerAxis).addScaledVector(arm.across,[.12,.025,-.045,-.13][index]).addScaledVector(arm.palmNormal,i*.07).normalize().applyQuaternion(handRotation);delta.setFromUnitVectors(jointDirection,desiredDirection);bone.parent.getWorldQuaternion(parentRotation);boneRotation.copy(parentRotation).invert().multiply(delta).multiply(parentRotation);delta.identity().slerp(boneRotation,weight);bone.quaternion.premultiply(delta);bone.updateWorldMatrix(false,true);}}
+ function pointJoint(bone,direction){bone.getWorldQuaternion(boneRotation);jointDirection.set(0,1,0).applyQuaternion(boneRotation);delta.setFromUnitVectors(jointDirection,direction);bone.parent.getWorldQuaternion(parentRotation);boneRotation.copy(parentRotation).invert().multiply(delta).multiply(parentRotation);bone.quaternion.premultiply(boneRotation);bone.updateWorldMatrix(false,true);}
+ function closeFist(arm){
+  const bones=arm.side==='right'?rightBones:leftBones;arm.hand.getWorldQuaternion(handRotation);
+  // Solve a closed three-phalange pose from the actual segment lengths. The
+  // fingertip lands at the palmar pad, rather than hanging below the palm.
+  // Cache the resulting local bone rotations: the wrist/arm solver continues
+  // to own the moving fist, without resampling a direction approximation.
+  if(arm.closedPose){for(const [bone,q]of arm.closedPose)bone.quaternion.copy(q);return;}
+  const f=arm.fingerAxis,n=arm.palmNormal;
+  for(const digit of ['Index','Middle','Ring','Little']){
+   const joints=[0,1,2].map(i=>bones[digit+i]),l1=joints[1].position.length(),l2=joints[2].position.length(),l3=l2*.88;
+   const pip=new T.Vector2(l1*.42,l1*.9075),tip=new T.Vector2(-l1*.60,l1*.30),line=tip.clone().sub(pip),distance=line.length();line.normalize();
+   const along=(l2*l2-l3*l3+distance*distance)/(2*distance),height=Math.sqrt(Math.max(0,l2*l2-along*along));
+   const dip=pip.clone().addScaledVector(line,along).add(new T.Vector2(line.y,-line.x).multiplyScalar(height));
+   joints[0].getWorldPosition(a);arm.hand.worldToLocal(a);const origin=a.clone();
+   for(const [i,p]of [pip,dip,tip].entries()){
+    a.copy(origin).addScaledVector(f,p.x).addScaledVector(n,p.y);arm.hand.localToWorld(a);joints[i].getWorldPosition(b);desiredDirection.subVectors(a,b).normalize();pointJoint(joints[i],desiredDirection);
+   }
+  }
+  // Oppose the thumb outside the folded index/middle pads.
+  for(const [i,target]of ['Index1','Middle2','Ring2'].entries()){bones[target].getWorldPosition(a);a.addScaledVector(desiredDirection.copy(n).applyQuaternion(handRotation),.012);bones['Thumb'+i].getWorldPosition(b);desiredDirection.subVectors(a,b).normalize();pointJoint(bones['Thumb'+i],desiredDirection);}
+  arm.closedPose=['Index','Middle','Ring','Little','Thumb'].flatMap(digit=>[0,1,2].map(i=>{const bone=bones[digit+i];return[bone,bone.quaternion.clone()];}));
+ }
  let lastKind='',age=0;
  return {root,group,parts,prop,get gaps(){return frame.arms.map(a=>a.gap);},update({action,dt,visible}){
   root.visible=visible&&!!action;if(!root.visible){lastKind='';return;}const kind=action.kind;if(kind!==lastKind){age=0;lastKind=kind;}age+=dt;const t=action.time||0,p=t/(action.duration||1),envelope=smooth(p,0,.14)*(1-smooth(p,.8,1));camera.updateWorldMatrix(true,false);camera.getWorldQuaternion(cameraRotation);model.updateWorldMatrix(true,false);inverseWorld.copy(model.matrixWorld).invert();
   for(const arm of parts){const right=arm.side==='right';point.set(right?.25:-.25,-.30,-.55);rotation.copy(cameraRotation).multiply(arm.base);
-   if(kind==='punch'){const drive=smooth(t,.06,.19)*(1-smooth(t,.25,.54));point.set(right?.23-drive*.16:-.23,-.28+drive*.14,-.48-drive*.65);}
+   if(kind==='punch'){const strike=arm.side===(action.side||'right'),pose=punchMotion(t,strike);point.set((right?1:-1)*pose.x,pose.y,pose.z);rotation.copy(cameraRotation).multiply(arm.openRot.vault);if(strike)rotation.multiply(delta.setFromAxisAngle(axis.set(0,0,1),(right?-1:1)*pose.drive*.10));}
    if(kind==='shove'){const drive=smooth(t,.025,.17)*(1-smooth(t,.17,.44));point.set(right?.22:-.22,-.30+drive*.04,-.48-drive*.62);rotation.slerp(delta.copy(cameraRotation).multiply(arm.openRot.shove),smooth(t,0,.12));}
    if(kind==='vault'){const reach=smooth(p,0,.22)*(1-smooth(p,.35,.57));point.set(right?.25:-.25,-.32-reach*.10,-.48-reach*.28);rotation.slerp(delta.copy(cameraRotation).multiply(arm.openRot.vault),smooth(p,0,.14));}
    if(kind==='heal'){if(action.id==='beer'){point.set(right?.20:-.28,-.38+envelope*(right?.40:.08),-.52+envelope*(right?.17:0));if(right)rotation.multiply(delta.setFromAxisAngle(axis.set(1,0,0),envelope*-.75));}else{point.set(right?.10:-.12,-.28+(right?Math.sin(p*Math.PI*6)*.025:0),-.56+(right?.08:0));}}
-   if(kind==='search')point.set(right?.22:-.24,-.38+Math.sin(t*10+(right?0:Math.PI))*.045,-.64-Math.sin(t*5+(right?0:Math.PI))*.12);
+   if(kind==='search')point.set(right?.22:-.24,-.32,-.52);
    point.y-=smooth(p,.82,1)*.24;point.applyMatrix4(camera.matrixWorld);if(kind==='shove'&&action.target){const reach=smooth(t,.025,.17)*(1-smooth(t,.17,.44));a.set(right?.16:-.16,0,0).applyQuaternion(cameraRotation).add(action.target);point.lerp(a,reach);}
    if(kind==='vault'){const reach=smooth(p,.02,.18)*(1-smooth(p,.32,.48));a.set(right?.23:-.23,0,0).applyQuaternion(cameraRotation).add(new T.Vector3(action.hand.x,action.hand.y+.04,action.hand.z));point.lerp(a,reach);}
-   if(kind==='punch'&&right&&action.target){const weight=smooth(t,.06,.19)*(1-smooth(t,.25,.54));point.lerp(action.target,weight);}
+   if(kind==='punch'&&arm.side===(action.side||'right')&&action.target){const weight=punchMotion(t,true).drive;point.lerp(action.target,weight);}
+   if(kind==='search'&&action.container){
+    const container=action.container,reach=smooth(p,0,.24)*(1-smooth(p,.72,1)),dx=camera.position.x-container.x,dz=camera.position.z-container.z,len=Math.hypot(dx,dz)||1;
+    const nx=dx/len,nz=dz/len,offset=right?.18:-.18,stroke=Math.sin(smooth(p,.26,.70)*Math.PI*2+(right?0:Math.PI))*.025;
+    a.set(container.x+nx*.29+nz*offset,container.y+.60+stroke,container.z+nz*.29-nx*offset);
+    point.lerp(a,reach);
+    // Palm faces down onto the lid; preserve finger direction along its edge.
+    rotation.slerp(delta.copy(cameraRotation).multiply(arm.openRot.vault),reach);
+   }
    if(kind==='crimson'){
     const f=action.frame,hand=chestHandPoint(right?'Right':'Left',t,{contactAt:CRIMSON.contact,extractionAt:CRIMSON.extract,releaseAt:CRIMSON.release,spearDepth:f.depth});hand.applyQuaternion(f.rotation).add(f.entry);point.lerp(hand,smooth(t,0,.13)*(1-smooth(t,CRIMSON.release,CRIMSON.duration)));
     if(right){axis.copy(arm.fingerAxis).applyQuaternion(rotation);delta.setFromUnitVectors(axis,f.front.clone().negate());rotation.premultiply(delta);}
@@ -50,6 +82,8 @@ export async function createActionHands(camera,source=loadGlb(new URL('../assets
   sampleFPSClip(group,'idle',0);
   const flex=kind==='shove'||kind==='vault'?0:kind==='punch'?.48:kind==='crimson'&&t<CRIMSON.extract?-.48:kind==='heal'&&action.id==='beer'?.20:.08;
   for(const digit of ['Index','Middle','Ring','Little'])for(let i=0;i<3;i++)rightBones[digit+i].quaternion.multiply(delta.setFromAxisAngle(axis.set(1,0,0),flex*[.7,1,.65][i]));
+  if(kind==='punch')for(const arm of parts)closeFist(arm);
+  if(kind==='search')for(const arm of parts)openPalm(arm,smooth(p,0,.24)*(1-smooth(p,.72,1)));
   if(kind==='shove'||kind==='vault')for(const arm of parts)openPalm(arm,smooth(t,0,.12));
   group.updateMatrixWorld(true);
 

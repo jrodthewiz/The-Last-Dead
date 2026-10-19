@@ -1,4 +1,5 @@
 import {houseShell} from './house-shell.js';
+import {domesticProfile} from './domestic-profile.js';
 
 // Small, readable domestic objects share the world's existing instanced kit.
 // Every substantial addition supplies the same volume to movement and bullets.
@@ -74,6 +75,20 @@ export function furnishCottage(k,b,floor,solid,{side,workX,special=false}){
    box('curtain-tie',wx-s*.075,1.40,window.u+end*.55,.035,.10,.22,cream);
   }
   k.rod([b.x+wx,floor+2.56,b.z+window.u-.78],[b.x+wx,floor+2.56,b.z+window.u+.78],.025,edge);
+ }
+ const profile=domesticProfile(b),entryZ=b.d/2-1.1;
+ if(profile){
+  // A usable entry bench gives the household's supplies an authored place.
+  box('scavenging-bench-top',3,.65,entryZ,2.4,.10,.92,wood);
+  for(const x of [2.02,3.98])for(const dz of [-.32,.32])box('scavenging-bench-leg',x,.30,entryZ+dz,.12,.60,.12,edge);
+  solid('scavenging-bench',3,entryZ,2.4,.92,.70);
+  box('household-hook-board',2.7,1.92,b.d/2-.25,1.6,.22,.09,profile.colour);
+  for(const x of [2.2,2.7,3.2])box('coat-hook',x,1.90,b.d/2-.38,.055,.13,.22,iron);
+  box('hanging-work-cloth',3.2,1.51,b.d/2-.39,.39,.69,.08,profile.colour);
+  if(profile.kind==='pantry')for(const [x,h]of [[2.15,.30],[3.83,.23]]){cylinder('pantry-preserving-jar',x,.72+h/2,entryZ-.07,.12,h,0x82936c);cylinder('jar-lid',x,.73+h,entryZ-.07,.13,.035,cream);}
+  if(profile.kind==='linen')for(let i=0;i<3;i++)box('household-folded-blanket',2.12,.75+i*.09,entryZ,.38,.08,.62,i%2?cream:profile.colour);
+  if(profile.kind==='remedies'){box('medical-tin',2.1,.83,entryZ,.42,.25,.45,cream);box('medical-tin-cross',2.1,.964,entryZ,.26,.018,.07,0x995b45);box('medical-tin-cross',2.1,.965,entryZ,.07,.018,.26,0x995b45);}
+  if(profile.kind==='workshop'){box('repair-cloth',3.88,.72,entryZ,.42,.035,.61,profile.colour);box('repair-hammer-handle',2.22,1.65,b.d/2-.42,.07,.50,.07,wood);box('repair-hammer-head',2.22,1.91,b.d/2-.42,.34,.14,.14,cream);}
  }
  return {kitchen:{x:prepX,z:prepZ},bedside:{x:nx,z:nz}};
 }

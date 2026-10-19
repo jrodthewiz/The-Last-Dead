@@ -483,7 +483,11 @@ function animateBat(root, meta, frame, time, dt) {
   const active = Boolean(frame.active);
   const progress = active ? clamp(Number(frame.progress) || 0, 0, 1) : 0;
   const reduced = Boolean(frame.reducedMotion);
-  const amp = reduced ? .58 : 1;
+  // A fitted first-person contact pose keeps its sweep through the aiming
+  // line with camera/bob motion disabled as well as at ordinary settings.
+  const amp = reduced && !frame.preserveContact ? .58 : 1;
+  const contactYaw = Number.isFinite(frame.contactYaw) ? frame.contactYaw : 1.6;
+  const contactPitch = Number.isFinite(frame.contactPitch) ? frame.contactPitch : -.5;
   const heavy = frame.heavy ? 1 : 0;
   let yaw = 0;
   let pitch = 0;
@@ -506,8 +510,8 @@ function animateBat(root, meta, frame, time, dt) {
       // The hit frame is authored as the crossing point: the bat comes from
       // screen right, passes the reticle, and finishes its contact low enough
       // to read as a strike rather than an upright pose.
-      yaw = THREE.MathUtils.lerp(-.88 - heavy * .1, 1.6 + heavy * .12, u);
-      pitch = THREE.MathUtils.lerp(-.1 - heavy * .06, -.5 - heavy * .08, u);
+      yaw = THREE.MathUtils.lerp(-.88 - heavy * .1, contactYaw + heavy * .12, u);
+      pitch = THREE.MathUtils.lerp(-.1 - heavy * .06, contactPitch - heavy * .08, u);
       roll = THREE.MathUtils.lerp(-.5, -.42, u);
       x = THREE.MathUtils.lerp(-.035, .025, u);
       y = THREE.MathUtils.lerp(0, .3 + heavy * .04, u);
@@ -516,8 +520,8 @@ function animateBat(root, meta, frame, time, dt) {
       const u = smooth((progress - .4) / .08);
       // Let the head continue left and down immediately after contact.  This
       // short follow-through is what sells weight before the longer recovery.
-      yaw = THREE.MathUtils.lerp(1.6 + heavy * .12, 1.9 + heavy * .12, u);
-      pitch = THREE.MathUtils.lerp(-.5 - heavy * .08, -.7 - heavy * .08, u);
+      yaw = THREE.MathUtils.lerp(contactYaw + heavy * .12, contactYaw + .3 + heavy * .12, u);
+      pitch = THREE.MathUtils.lerp(contactPitch - heavy * .08, contactPitch - .2 - heavy * .08, u);
       roll = THREE.MathUtils.lerp(-.42, .1, u);
       x = THREE.MathUtils.lerp(.025, .03, u);
       y = THREE.MathUtils.lerp(.3 + heavy * .04, .1, u);
@@ -525,8 +529,8 @@ function animateBat(root, meta, frame, time, dt) {
     } else {
       const u = smooth((progress - .48) / .52);
       const decay = 1 - u;
-      yaw = THREE.MathUtils.lerp(1.9 + heavy * .12, 0, u);
-      pitch = THREE.MathUtils.lerp(-.7 - heavy * .08, 0, u);
+      yaw = THREE.MathUtils.lerp(contactYaw + .3 + heavy * .12, 0, u);
+      pitch = THREE.MathUtils.lerp(contactPitch - .2 - heavy * .08, 0, u);
       roll = THREE.MathUtils.lerp(.1, 0, u);
       x = .03 * decay;
       y = .1 * decay;
