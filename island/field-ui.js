@@ -11,12 +11,13 @@ export function createFieldUI({touch=false}={}){
  const feed=document.createElement('div');feed.id='pickup-feed';feed.setAttribute('role','status');feed.setAttribute('aria-live','polite');document.getElementById('hud').append(feed);
  let receipts=[],clock=0,signature='';
  const text=(el,value)=>{if(el.textContent!==value)el.textContent=value;};
- function update(i,s,{search=null,healing=null,restore=null}={}){
+ function update(i,s,{search=null,healing=null,restore=null,reloading=false}={}){
   const busy=search||healing||restore;root.hidden=!i&&!busy;if(root.hidden)return;
   let title=i?.label||'',verb='INTERACT',note='',fraction=0,blocked=false;
   if(i?.kind==='stash'){title=i.item.name;const searched=s.backpack.searched.includes(i.item.id);verb=searched?'OPEN CONTAINER':'SEARCH CONTAINER';note=searched?'Supplies left inside':'Contents unknown';}
   if(i?.kind==='supply'){const medical=i.item.type==='medkit';title=medical?'Field dressing':'Ammunition & fuel';blocked=medical?s.medkits>=20:!WEAPONS.some(w=>w.capacity&&s.armory[w.id].owned&&(w.id===s.weapon?s.reserve:s.armory[w.id].reserve)<999);verb=blocked?'STORAGE FULL':'PICK UP';note=medical?`Medical belt · ${s.medkits} / 20`:'Resupplies your recovered weapons';}
-  if(i?.kind==='weapon'){title=WEAPONS.find(w=>w.id===i.item.weapon)?.name||'Expedition weapon';verb='RECOVER WEAPON';note='Added to your expedition arsenal';}
+  if(i?.kind==='weapon'){const w=WEAPONS.find(w=>w.id===i.item.weapon),owned=s.armory[w?.id]?.owned,reserve=w?.id===s.weapon?s.reserve:s.armory[w?.id]?.reserve;title=w?.name||'Expedition weapon';blocked=owned&&reserve>=999;verb=blocked?'RESERVE FULL':owned?'RECOVER AMMUNITION':'RECOVER & EQUIP';note=owned?(w.kind==='saw'?'Recover spare fuel':'Recover '+Math.min(w.capacity,999-reserve)+' spare rounds'):'Loaded and ready · weapons use separate storage';if(blocked)note='This weapon stays here until you have room';}
+  if(i?.kind==='weapon'&&reloading){verb='FINISH RELOADING';note='Then recover this weapon';blocked=false;}
   if(i?.kind==='fuse'){title='Keeper’s spare fuse';verb='PICK UP · MISSION ITEM';note='Repairs the Westlight beacon';}
   if(search){title=search.container.name;verb='SEARCHING';note='Keep close · move away to cancel';fraction=Math.min(1,search.time/1.15);}
   if(restore){title=restore.item.name;verb='RESTORING SIGNAL';note='Keep close to the station';fraction=Math.min(1,restore.time/2.5);}

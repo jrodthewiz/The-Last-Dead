@@ -21,6 +21,16 @@ export function weaponProfile(s){return WEAPONS.find(w=>w.id===s.weapon)||WEAPON
 export function storeAmmo(s){if(s.armory?.[s.weapon])Object.assign(s.armory[s.weapon],{ammo:s.ammo,reserve:s.reserve});}
 export function equip(s,id){if(!s.armory?.[id]?.owned||s.weapon===id)return false;storeAmmo(s);s.weapon=id;s.ammo=s.armory[id].ammo;s.reserve=s.armory[id].reserve;return true;}
 export function collectWeapon(s,id){const entry=s.armory[id],w=WEAPONS.find(w=>w.id===id);if(!entry||entry.owned)return false;entry.owned=true;entry.ammo=w.capacity;entry.reserve=Math.max(entry.reserve,w.reserve);return true;}
+// Loose finds are consumed by identity, independently of weapon ownership.
+// Recovering the same weapon from a cupboard first must not erase the field find.
+export function recoverWeapon(s,cache){
+ if(s.collected.includes(cache.id))return null;
+ const w=WEAPONS.find(w=>w.id===cache.weapon),a=s.armory[cache.weapon];if(!w||!a)return null;
+ let receipt;if(!a.owned){collectWeapon(s,w.id);receipt={id:'weapon-'+w.id,count:1};}
+ else{storeAmmo(s);const count=Math.min(w.capacity,999-a.reserve);if(count<=0)return null;a.reserve+=count;s.reserve=s.armory[s.weapon].reserve;receipt={id:'ammo-'+w.id,count};}
+ s.collected.push(cache.id);return receipt;
+}
+export const repeatsWhileHeld=w=>w.id==='carrion'||w.kind==='saw'||w.kind==='arc';
 export function supplyAmmo(s){storeAmmo(s);for(const w of WEAPONS){const a=s.armory[w.id];if(a.owned&&w.capacity)a.reserve=Math.min(999,a.reserve+(w.id==='carbine'?16:w.kind==='rocket'?2:w.kind==='arc'?3:w.kind==='saw'?40:w.capacity));}s.reserve=s.armory[s.weapon].reserve;}
 export function finishReload(s){const w=weaponProfile(s),add=Math.min(w.capacity-s.ammo,s.reserve);s.ammo+=add;s.reserve-=add;storeAmmo(s);return add;}
 export function weaponCaches(data){

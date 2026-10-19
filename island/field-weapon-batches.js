@@ -24,5 +24,5 @@ export function batchFieldWeapon(root){
 }
 
 export function updateWeaponFinds(caches,state,camera){
- for(const c of caches)c.mesh.visible=!state.armory[c.weapon].owned&&c.mesh.position.distanceToSquared(camera)<110**2;
+ for(const c of caches)c.mesh.visible=!state.collected.includes(c.id)&&c.mesh.position.distanceToSquared(camera)<110**2;
 }

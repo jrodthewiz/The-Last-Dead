@@ -20,7 +20,7 @@ const up=new T.Vector3(0,1,0),dummy=new T.Object3D();
 const COLORS={stone:0xb3baa5,wood:0x796849,darkwood:0x4b5141,roof:0x5b7976,road:0x6b7369,cream:0xded7b6,metal:0x405a55,glass:0x4e7779,leaf:0x607c49};
 // Module registry, grouped by geometry/material and spatial tile. Per-instance
 // colours retain the art palette; tile bounds retain useful frustum culling.
-function grainTexture(){const c=document.createElement('canvas');c.width=c.height=64;const ctx=c.getContext('2d'),rng=random(817),pixels=ctx.createImageData(64,64);for(let i=0;i<pixels.data.length;i+=4){const n=222+Math.floor(rng()*30);pixels.data[i]=n;pixels.data[i+1]=n;pixels.data[i+2]=n;pixels.data[i+3]=255;}ctx.putImageData(pixels,0,0);const texture=new T.CanvasTexture(c);texture.wrapS=texture.wrapT=T.RepeatWrapping;texture.magFilter=T.NearestFilter;texture.colorSpace=T.SRGBColorSpace;return texture;}
+function grainTexture(){const c=document.createElement('canvas');c.width=c.height=64;const ctx=c.getContext('2d'),rng=random(817),pixels=ctx.createImageData(64,64);for(let i=0;i<pixels.data.length;i+=4){const n=222+Math.floor(rng()*30);pixels.data[i]=n;pixels.data[i+1]=n;pixels.data[i+2]=n;pixels.data[i+3]=255;}ctx.putImageData(pixels,0,0);const texture=new T.CanvasTexture(c);texture.wrapS=texture.wrapT=T.RepeatWrapping;texture.magFilter=T.LinearFilter;texture.colorSpace=T.SRGBColorSpace;return texture;}
 const grain=grainTexture();
 class Kit {
   constructor(scene){this.scene=scene;this.parts=new Map();this.surface=0;this.geometries={box:new T.BoxGeometry(1,1,1),cone:new T.ConeGeometry(1,1,7),cylinder:new T.CylinderGeometry(1,1,1,7),rock:new T.IcosahedronGeometry(1,0),sphere:new T.IcosahedronGeometry(1,1)};this.material=paintArchitecture(consoleMaterial(new T.MeshLambertMaterial({color:0xffffff,flatShading:true,map:grain})));this.count=0;}
@@ -163,7 +163,7 @@ function buildLandmarks(scene,kit){
   for(const x of [690,778])for(let z=-54;z<=54;z+=27)tree(kit,x,14.4,z,.9,'broad');
   for(const side of [-1,1])sign(scene,'SAINT ORIN · 1894',734,18,side*3.55,6,side>0?0:Math.PI,true);
   const face=document.createElement('canvas');face.width=face.height=128;const fc=face.getContext('2d');fc.fillStyle='#d6cfaa';fc.beginPath();fc.arc(64,64,61,0,Math.PI*2);fc.fill();fc.strokeStyle='#445d50';fc.lineWidth=5;fc.stroke();for(let i=0;i<12;i++){const a=i/12*Math.PI*2;fc.beginPath();fc.moveTo(64+Math.sin(a)*49,64-Math.cos(a)*49);fc.lineTo(64+Math.sin(a)*55,64-Math.cos(a)*55);fc.stroke();}fc.lineWidth=4;fc.beginPath();fc.moveTo(64,64);fc.lineTo(37,45);fc.moveTo(64,64);fc.lineTo(103,76);fc.stroke();
-  const clockTexture=new T.CanvasTexture(face);clockTexture.magFilter=T.NearestFilter;clockTexture.colorSpace=T.SRGBColorSpace;
+  const clockTexture=new T.CanvasTexture(face);clockTexture.magFilter=T.LinearFilter;clockTexture.colorSpace=T.SRGBColorSpace;
   for(let i=0;i<4;i++){const a=i*Math.PI/2,m=new T.Mesh(new T.PlaneGeometry(4.5,4.5),new T.MeshLambertMaterial({map:clockTexture,transparent:true}));m.position.set(734+Math.sin(a)*3.56,35,Math.cos(a)*3.56);m.rotation.y=a;scene.add(m);}
   sign(scene,'NORTHPOINT HOSPITAL',970,26,-322.9,24,0,true);
   // East ferry: pier, mooring posts, hull, cabins, and gangway.

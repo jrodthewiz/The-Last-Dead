@@ -1,3 +1,5 @@
+import {furnishCottage} from './home-details.js';
+
 function authoredInterior(k,b,y){
  const x=b.x,z=b.z,wood=0x6b5a43,cream=0xd7d1aa,metal=0x425c56;
  const table=(xx,zz,w,d,h=.85)=>{k.box(xx,y+h,zz,w,.15,d,wood);for(const dx of [-w*.4,w*.4])for(const dz of [-d*.35,d*.35])k.box(xx+dx,y+h/2,zz+dz,.12,h,.12,metal);};
@@ -5,7 +7,14 @@ function authoredInterior(k,b,y){
   table(x-3,z-3,4,1.4);k.box(x-3,y+1.08,z-3,1.1,.32,.75,metal);for(let j=0;j<4;j++)k.add('cylinder',x-3.35+j*.22,y+1.28,z-3,.055,.06,.055,cream);
   for(let i=0;i<3;i++){const xx=x+2+i*.6;k.add('cylinder',xx,y+1,z-4,.17,1.7,.17,0x7f8b68);k.box(xx,y+1.9,z-4,.45,.15,.45,cream);}
   k.box(x+3,y+1.5,z-5.7,4,2,.12,0x525e46);for(let j=0;j<5;j++)k.box(x+1.5+j*.65,y+1.5,z-5.58,.05,1.4,.03,0xc9b486);
-  table(x+3,z,2.3,1.1);k.box(x+3,y+.96,z,1.6,.02,.8,0xd4cb9c);k.box(x+3,y+1,z,.12,.035,.7,metal);return true;
+  table(x+3,z,2.3,1.1);k.box(x+3,y+.96,z,1.6,.02,.8,0xd4cb9c);k.box(x+3,y+1,z,.12,.035,.7,metal);
+  // The keeper lived here as well as tending the beacon. A narrow cot stays
+  // against the side wall, clear of the supply/fuse and workshop approaches.
+  k.box(x-4.9,y+.35,z+1,1.7,.55,3.1,wood);k.box(x-4.9,y+.70,z+1,1.66,.18,3,cream);
+  k.box(x-4.9,y+.84,z+1.3,1.67,.12,2.25,0x7f8b68);k.box(x-4.9,y+.86,z-.08,1.25,.19,.55,cream);
+  k.box(x-4.9,y+.80,z-.6,1.8,1.2,.12,wood);
+  k.box(x-4.9,y+.4,z+3.45,1.8,.8,.7,wood);k.box(x-4.9,y+.85,z+3.45,1.6,.08,.6,cream);
+  return true;
  }
  if(b.id==='clinic'){
   for(const side of [-1,1])for(let j=0;j<3;j++){const xx=x+side*8,zz=z-5+j*4;k.box(xx,y+.66,zz,2.3,.26,3.2,0x7b8b78);k.box(xx,y+.9,zz,2.2,.2,3.1,cream);k.box(xx,y+1.08,zz-1,1.6,.18,.6,0xaab6a0);for(const dx of [-1,1])for(const dz of [-1.3,1.3])k.box(xx+dx,y+.3,zz+dz,.08,.6,.08,metal);k.rod([xx+1.5,y,zz],[xx+1.5,y+2.2,zz],.04,metal);k.box(xx+1.4,y+1.9,zz,.3,.5,.12,0x91a89c);}
@@ -25,7 +34,7 @@ function authoredInterior(k,b,y){
 // objects never acquire a floor-to-ceiling proxy; solid furniture does.
 export function interiorPlan(b){
  const pieces=[],solids=[],floor=b.baseY+.2;
- const k={box(x,y,z,w,h,d,color,rotation=0){pieces.push({shape:'box',x,y,z,w,h,d,color,rotation});},add(shape,x,y,z,w,h,d,color,rotation=0){pieces.push({shape,x,y,z,w,h,d,color,rotation});},rod(a,c,r,color){pieces.push({shape:'rod',a,c,r,color});}};
+ const k={box(x,y,z,w,h,d,color,rotation=0){pieces.push({shape:'box',x,y,z,w,h,d,color,rotation});},add(shape,x,y,z,w,h,d,color,rotation=0){pieces.push({shape,x,y,z,w,h,d,color,rotation});},rod(a,c,r,color){pieces.push({shape:'rod',a,c,r,color});},lastRole(role){pieces.at(-1).role=role;}};
  const solid=(name,x,z,w,d,h)=>solids.push({id:b.id+'-'+name,x:b.x+x,z:b.z+z,w,d,y:floor,h});
  if(authoredInterior(k,b,floor)){
   // Existing landmark furniture remains authored; collision uses its actual
@@ -63,7 +72,8 @@ export function interiorPlan(b){
    for(let i=0;i<3;i++){k.add('cylinder',b.x-3.75+i*.6,floor+1.08,b.z-2.6,.22,.35,.22,i===1?green:clay);box(-3.75+i*.6,1.28,-2.6,.23,.05,.23,linen);}
    box(-2.2,1,-2.6,.4,.08,.6,linen);box(b.w/2-2,.35,1,1.4,.7,1,wood);solid('harvest-crate',b.w/2-2,1,1.4,1,.7);
    for(let i=0;i<5;i++)k.add('rock',b.x+b.w/2-2+(i%3-.9)*.3,floor+.8,b.z+.8+Math.floor(i/3)*.3,.26,.22,.26,green);
-  }else {box(-3,1,-2.6,.7,.08,.45,linen);k.add('cylinder',b.x-3.75,floor+1.04,b.z-2.6,.17,.25,.17,clay);}
+  }else {box(-side*3,1,-2.6,.7,.08,.45,linen);k.add('cylinder',b.x-side*3.75,floor+1.04,b.z-2.6,.17,.25,.17,clay);}
+  furnishCottage(k,b,floor,solid,{side,workX:-side*3,special:boat||garden});
  }else{
   const kind=b.id==='building-54'?'bookshop':b.id==='building-78'?'networkshop':b.seed%2?'storeroom':'shop';
   table('counter',-4,3,5,1.4);box(-5.2,1.08,3,.6,.4,.6,dark);

@@ -18,12 +18,13 @@ test('scavenging container batching retains the moving lid and contents in both 
  visuals.update(.1,state,new T.Vector3(20,15,30));const closed=vertexCloud(entry.lid);assert.equal(entry.contents.visible,false);state.backpack.searched.push('pack');for(let i=0;i<30;i++)visuals.update(1/60,state,new T.Vector3(20,15,30));assert.ok(entry.lid.rotation.x<-1.1);assert.equal(entry.contents.visible,true);assert.notDeepEqual(vertexCloud(entry.lid),closed);assert.deepEqual(visuals.colliders,[{id:'pack',x:20,z:30,w:.72,d:.44,y:14,h:.48}]);
 });
 
-test('weapon finds follow camera distance while ownership survives flight and return',()=>{
- const mesh=new T.Group();mesh.position.set(20,14,30);const caches=[{weapon:'bat',mesh}],state={armory:{bat:{owned:false}}};
+test('weapon finds follow distance and remain until their own pickup is consumed',()=>{
+ const mesh=new T.Group();mesh.position.set(20,14,30);const caches=[{id:'weapon-bat',weapon:'bat',mesh}],state={collected:[],armory:{bat:{owned:false}}};
  updateWeaponFinds(caches,state,new T.Vector3(20,15,32));assert.equal(mesh.visible,true);
  updateWeaponFinds(caches,state,new T.Vector3(900,60,300));assert.equal(mesh.visible,false);
  updateWeaponFinds(caches,state,new T.Vector3(20,15,32));assert.equal(mesh.visible,true);
- state.armory.bat.owned=true;updateWeaponFinds(caches,state,new T.Vector3(20,15,32));assert.equal(mesh.visible,false);
+ state.armory.bat.owned=true;updateWeaponFinds(caches,state,new T.Vector3(20,15,32));assert.equal(mesh.visible,true);
+ state.collected.push('weapon-bat');updateWeaponFinds(caches,state,new T.Vector3(20,15,32));assert.equal(mesh.visible,false);
 });
 
 test('non-leaf surfaces retain their transparent, mirrored and instanced descendants',()=>{
