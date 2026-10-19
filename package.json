@@ -57,7 +57,8 @@
     "test:blackwater:input": "node scripts/verify-gameplay-input.mjs && node scripts/verify-first-person.mjs",
     "test:blackwater:cottage-motion": "node tests/blackwater-cottage-motion-review.mjs",
     "test:blackwater:arsenal": "node tests/blackwater-arsenal-vision.mjs",
-    "test:blackwater:weapon-motion": "node tests/blackwater-weapon-motion-review.mjs"
+    "test:blackwater:weapon-motion": "node tests/blackwater-weapon-motion-review.mjs",
+    "test:blackwater:impact-motion": "node tests/blackwater-impact-motion.mjs"
   },
   "devDependencies": {
     "esbuild": "0.25.12",

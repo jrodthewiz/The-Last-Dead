@@ -7,6 +7,7 @@ import {animateSalvageMelee,salvageFraming} from '../island/salvage-motion.js';
 import {WEAPONS} from '../island/armory-state.js';
 import {createMeleeWeapon} from '../weapon-melee.js';
 import {fitRipperControl} from '../island/ripper-presentation.js';
+import {SALVAGE_RESPONSE,salvageMotionAge} from '../island/salvage-response.js';
 
 const IDS=['sword','hammer','pipe'];
 const finite=v=>v.toArray().every(Number.isFinite);
@@ -104,4 +105,25 @@ test('Ripper rear control moves its real handle, guard, throttle and hand socket
  assert.ok(new T.Box3().setFromObject(meta.parts['chainsaw-rear-grip'],true).containsPoint(meta.sockets.grip.position));assert.equal(throttle.parent,guard);near(guard.position,new T.Vector3(0,-.10,.09));near(cap.position,capPosition);
  const lug=root.getObjectByName('Ripper cast rear throttle mounting lug'),body=root.getObjectByName('motor-casing');assert.ok(new T.Box3().setFromObject(lug,true).intersectsBox(new T.Box3().setFromObject(body,true)),'grip mounting lug must seat into solid casing');
  fitRipperControl(root);near(meta.sockets.grip.position,grip);const before=meta.sockets.grip.position.clone();batchStaticWeaponMeshes(root);near(meta.sockets.grip.position,before);assert.ok(meta.chainLoop.userData.teethMesh.parent,'moving chain survives presentation batching');
+});
+
+test('contact resistance preserves miss timing and settles before the original next legal swing',()=>{
+ for(const id of IDS){const w=WEAPONS.find(w=>w.id===id),r=SALVAGE_RESPONSE[id];
+  assert.equal(salvageMotionAge(id,w.contact-.025,w.contact,w.interval,'body',true),w.contact,'authoritative event must render contact even when the presentation clock is one frame behind');
+  for(const kind of ['body','wall']){let last=w.contact;
+   for(let i=0;i<=1000;i++){const age=w.contact+(w.interval-w.contact)*i/1000,t=salvageMotionAge(id,age,w.contact,w.interval,kind);assert.ok(t>=last-1e-10&&t<=w.interval);last=t;}
+   assert.equal(last,w.interval);assert.equal(salvageMotionAge(id,w.contact+r.hold*.8,w.contact,w.interval,kind),w.contact);
+  }
+  for(const age of [0,w.contact/2,w.contact,w.interval])assert.equal(salvageMotionAge(id,age,w.contact,w.interval,''),age);
+ }
+ assert.ok(SALVAGE_RESPONSE.hammer.hold>SALVAGE_RESPONSE.pipe.hold&&SALVAGE_RESPONSE.pipe.hold>SALVAGE_RESPONSE.sword.hold);
+});
+
+test('hit, wall and miss paths return without a pop at minimum repeat cadence',()=>{
+ for(const aspect of [1.6,390/844,844/390])for(const id of IDS)for(const hit of ['','body','wall']){
+  const model=createSalvageMelee(id),group=new T.Group(),w=WEAPONS.find(w=>w.id===id),f=salvageFraming(id,aspect,{});group.position.set(f.x,f.y,f.z);group.scale.setScalar(f.scale);group.add(model);
+  const pose=age=>{animateSalvageMelee(model,{id,age,contact:w.contact,duration:w.interval,active:age<w.interval,group,aspect,hit:age>=w.contact?hit:''});group.updateWorldMatrix(true,true);return {p:model.userData.impactTip.getWorldPosition(new T.Vector3()),q:model.getWorldQuaternion(new T.Quaternion())};};
+  const last=pose(w.interval-1/30),ready=pose(w.interval);assert.ok(last.p.distanceTo(ready.p)<.025,id+' working end snaps at repeat');assert.ok(last.q.angleTo(ready.q)<.07,id+' rotation snaps at repeat');
+  const at=pose(w.contact);assert.ok(Math.hypot(at.p.x,at.p.y)<1e-7);
+ }
 });
