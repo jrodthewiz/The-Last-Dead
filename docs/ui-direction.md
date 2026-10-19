@@ -159,3 +159,9 @@ The held-tool action is called SWING; PUNCH explicitly means the secondary fist
 action, with the pack note and actual touch buttons checked for matching copy.
 These checks do not establish physical-device touch acceptance, gamepad support
 or continuous animation quality.
+
+The weapon-motion pass keeps the touch sight line clear: portrait utility actions
+form a quiet row below the objective, while FIRE/USE/JUMP use one edge column.
+Short landscape displays use a shallow two-line weapon/ammunition strip,
+leaving the wrapped hands visible above it. These reuse the field-kit colours
+and retain at least 44px action targets. The desktop layout is unchanged.

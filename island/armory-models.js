@@ -11,6 +11,8 @@ import {createReliquary,animateReliquary} from '../weapon-reliquary.js';
 import {createRifle,animateRifle} from '../weapon-rifles.js';
 import {createMeleeWeapon,animateMeleeWeapon} from '../weapon-melee.js';
 import {createSalvageMelee} from './salvage-melee.js';
+import {animateSalvageMelee,salvageFraming,fitSalvageHands} from './salvage-motion.js';
+import {fitRipperControl} from './ripper-presentation.js';
 import {applySightPose,installAimingReferences} from './weapon-aim-pose.js';
 import {WEAPONS} from './armory-state.js';
 import {batContactPose} from './melee-presentation.js';
@@ -36,6 +38,12 @@ export async function createArmoryModels(camera,source=loadGlb(new URL('../asset
    group.visible=false;rig.add(group);return group;});
  const asset=await source;
  installFPSArms({weaponGroups:groups,fpsSourceIndices:sourceIndices,weaponRig:rig,camera,_findWeaponSocket(model,name){let result=model.userData[name];if(!result)model.traverse(o=>{if(!result&&o.userData[name])result=o.userData[name];});return result;}},asset);
+ // These tools supply complete grip trajectories. Inheriting the bat's elbow
+ // swing a second time folds sleeves over the weapon during overhead cuts.
+ for(const group of groups.slice(8)){group.userData.authoredFPS.gripDriven=true;fitSalvageHands(group,group.name);}
+ // Expose the rear throttle beneath the casing instead of looking squarely
+ // into the motor. Sockets stay calibrated to the original authored grip.
+ fitRipperControl(models[7]);models[7].rotation.set(.43,.80,-.08);
  // Ossuary keeps its authored firing hand. A separate support chain appears
  // only for loading, so its one-handed firing silhouette remains intact.
  const reloadArm=new T.Group(),reloadGrip=new T.Object3D();reloadArm.userData.model=models[0];groups[0].add(reloadArm);reloadGrip.position.set(-.25,-.12,.1);models[0].add(reloadGrip);
@@ -48,31 +56,34 @@ export async function createArmoryModels(camera,source=loadGlb(new URL('../asset
  // Preserve the original skinned hands while giving the two magazine-fed
  // rifles a physical withdraw/insert/charge action in this runtime.
  const reloads=groups.map((group,i)=>{if(i!==4&&i!==5)return null;const model=models[i],parts=model.userData.rifle.parts,magazine=parts[i===4?'curved-magazine':'box-magazine'],left=group.userData.authoredFPS.arms.find(a=>a.side==='left'),socket=new T.Object3D();model.add(socket);socket.matrixAutoUpdate=false;return {magazine,position:magazine.position.clone(),rotation:magazine.quaternion.clone(),left,home:left.grip,socket,goal:new T.Matrix4(),local:new T.Matrix4(),point:new T.Vector3(),homePosition:new T.Vector3(),handRotation:new T.Quaternion(),handScale:new T.Vector3(),inverseOffset:left.offset.clone().invert(),boltPoint:new T.Vector3()};});
+ const framePose={x:0,y:0,z:0,scale:1};
  let reviewReload=null,previous='',shotAge=9,equipAge=9,lastShot=0,sawRev=0,impactHold=0,wasVisible=false;
  return {rig,groups,models,impact(){impactHold=.045;const w=WEAPONS.find(w=>w.id===previous);if(w?.kind==='melee')shotAge=Math.max(w.contact,shotAge);},get motion(){return{shotAge,equipAge,impactHold,visible:rig.visible};},shotgunReload,expeditionCraft,utilityReloads,setReviewReload(value){reviewReload=value;},ready:Promise.all(models.map(m=>m.userData.resourcesReady).filter(Boolean)),update({id,time,dt,moving,aim,recoil,reloading,charge,heat,firing,visible,reloadCount=2,shotSequence=0,sawContact=0,motion=true,stride=null}){
    reloading=reviewReload??reloading;rig.visible=visible&&id!=='carbine';if(!rig.visible){wasVisible=false;shotAge=9;impactHold=0;sawRev=0;lastShot=shotSequence;return;}if(!wasVisible){equipAge=0;wasVisible=true;}const index=groups.findIndex(g=>g.name===id);if(index<0)return;
    if(id!==previous){previous=id;equipAge=0;shotAge=9;impactHold=0;sawRev=0;lastShot=shotSequence;}equipAge+=dt;shotAge=shotSequence!==lastShot?0:shotAge+Math.max(0,dt-impactHold);impactHold=Math.max(0,impactHold-dt);lastShot=shotSequence;sawRev=T.MathUtils.damp(sawRev,firing?1:0,9,dt);
-   groups.forEach((g,i)=>g.visible=i===index);const group=groups[index],model=models[index],hold=holds[index],profile=WEAPONS.find(w=>w.id===id),melee=profile.kind==='melee',tilt=reloading>=0?Math.sin(reloading*Math.PI):0,fit=['hammer','chainsaw'].includes(id)?T.MathUtils.lerp(.72,1,T.MathUtils.smoothstep(camera.aspect,.42,.85)):1;group.scale.setScalar(hold.scale*fit);
+   groups.forEach((g,i)=>g.visible=i===index);const group=groups[index],model=models[index],hold=holds[index],profile=WEAPONS.find(w=>w.id===id),melee=profile.kind==='melee',salvage=index>=8,framed=salvage||index===7,tilt=reloading>=0?Math.sin(reloading*Math.PI):0;
+   if(framed)salvageFraming(id,camera.aspect,framePose);group.scale.setScalar(framed?framePose.scale:hold.scale);
    const gesture=index===1?breachGesture(shotAge,equipAge,aim,motion):null,settle=T.MathUtils.smoothstep(equipAge,0,.28),kick=gesture?gesture.kick*.10:T.MathUtils.smoothstep(recoil,0,1)*([.05,.10,.04,.12,.045,.075,.02,.015][index]??.02);
-   group.position.fromArray(hold.position);group.position.y*=fit;group.position.x*=Math.min(1,camera.aspect/.9);group.position.x=T.MathUtils.lerp(group.position.x,.025,aim*.92);group.position.y+=(motion?(stride?Math.sin(stride.phase)*.008*stride.weight:Math.sin(time*(moving?10:1.8))*(moving?.008:.0015)):0)+tilt*(index===6?-.16:.07)-(1-settle)*.3;group.position.z+=kick;group.position.x+=(motion?(stride?Math.sin(stride.phase*.5)*.004*stride.weight:Math.sin(time*(moving?5:1.2))*(moving?.004:.001))*(1-aim):0);
+   if(framed)group.position.set(framePose.x,framePose.y,framePose.z);else{group.position.fromArray(hold.position);group.position.x*=Math.min(1,camera.aspect/.9);}group.position.x=T.MathUtils.lerp(group.position.x,.025,aim*.92);group.position.y+=(motion?(stride?Math.sin(stride.phase)*.008*stride.weight:Math.sin(time*(moving?10:1.8))*(moving?.008:.0015)):0)+tilt*(index===6?-.16:.07)-(1-settle)*.3;group.position.z+=kick;group.position.x+=(motion?(stride?Math.sin(stride.phase*.5)*.004*stride.weight:Math.sin(time*(moving?5:1.2))*(moving?.004:.001))*(1-aim):0);
    group.rotation.fromArray(hold.rotation);group.rotation.y*=1-aim;group.rotation.x+=T.MathUtils.smoothstep(recoil,0,1)*.045-tilt*.25;group.rotation.z-=tilt*.22;if(index===1){group.rotation.y+=tilt*.48;group.rotation.z+=tilt*.28;group.position.y-=tilt*.04;}
    if(gesture){group.position.x+=gesture.draw*.055;group.position.z+=gesture.draw*.16;group.position.y+=gesture.kick*.012;group.rotation.x+=gesture.draw*.13;group.rotation.z+=gesture.roll;}
    applySightPose(group,id,group.scale.x,aim,recoil);
    if(index===0)animateOssuary(model,recoil,time,dt);if(index===1)animateBreach(model,time,recoil,dt);if(index===2){animateArc(model,time,recoil,dt);arcCraft.update(charge,recoil,dt);}if(index===3)animateReliquary(model,recoil,time,dt);if(index===4||index===5)animateRifle(model,recoil,time,dt,{heat,charge});
    if(index===3){group.rotation.y+=tilt*.5;group.rotation.z+=tilt*.18;expeditionCraft.update(reloading);}
    if(index===1)shotgunReload.update(reloading,reloadCount);if(index===0||index===2){group.rotation.y+=tilt*.30;group.rotation.z+=tilt*.15;}
-   if(index>=6)animateMeleeWeapon(model,{active:melee&&shotAge<profile.interval,progress:melee?Math.min(1,shotAge<=profile.contact?shotAge/profile.contact*.4:.4+(shotAge-profile.contact)/(profile.interval-profile.contact)*.6):0,...(melee?batContactPose(group.position.x,group.position.y,group.scale.x):{}),sawRev,contact:sawContact>0?.5:0,sawActive:firing,reducedMotion:!motion},time,dt);
+   if(salvage)animateSalvageMelee(model,{id,age:shotAge,contact:profile.contact,duration:profile.interval,active:shotAge<profile.interval,group,aspect:camera.aspect});
+   else if(index>=6)animateMeleeWeapon(model,{active:melee&&shotAge<profile.interval,progress:melee?Math.min(1,shotAge<=profile.contact?shotAge/profile.contact*.4:.4+(shotAge-profile.contact)/(profile.interval-profile.contact)*.6):0,...(melee?batContactPose(group.position.x,group.position.y,group.scale.x):{}),sawRev,contact:sawContact>0?.5:0,sawActive:firing,reducedMotion:!motion},time,dt);
    utilityReloads[index]?.update(reloading);
    const r=reloads[index];if(r){const p=Math.max(0,reloading),smooth=(a,b)=>T.MathUtils.smoothstep(p,a,b),drop=(smooth(.22,.4)-smooth(.48,.67))*.34;r.magazine.position.copy(r.position);r.magazine.position.y-=drop;r.magazine.quaternion.copy(r.rotation);
      if(reloading>=0){group.updateWorldMatrix(true,true);r.home.updateWorldMatrix(true,false);r.goal.multiplyMatrices(r.home.matrixWorld,r.left.offset).decompose(r.homePosition,r.handRotation,r.handScale);r.point.set(-.16,-.20-drop,r.position.z+.12);r.boltPoint.set(0,.12,.19+(smooth(.76,.82)-smooth(.84,.9))*.12);r.point.lerp(r.boltPoint,smooth(.67,.77));model.localToWorld(r.point);r.point.lerp(r.homePosition,1-smooth(.06,.2)+smooth(.9,1));r.goal.compose(r.point,r.handRotation,r.handScale);r.local.copy(model.matrixWorld).invert().multiply(r.goal).multiply(r.inverseOffset);r.socket.matrix.copy(r.local);r.left.grip=r.socket;if(p>.7)model.userData.rifle.mechanisms.boltCarrier.position.z+=(smooth(.76,.82)-smooth(.84,.9))*.12;
      }else r.left.grip=r.home;}
-   const phase=equipAge<.28?'draw':melee&&shotAge<profile.interval||index===7&&firing?'strike':index<6&&shotAge<.4?'fire':moving?'walk':'idle';
+   const phase=equipAge<.28?'draw':salvage&&shotAge<profile.interval?'idle':melee&&shotAge<profile.interval||index===7&&firing?'strike':index<6&&shotAge<.4?'fire':moving?'walk':'idle';
    // One authored gait cycle per footstep pair, shared with distance-driven
    // camera bob. Stopping against a wall settles rather than marching in place.
    const gaitTime=stride?stride.phase/(Math.PI*4)*group.userData.authoredFPS.actions.get('walk').duration:time;
    // A held saw trigger maintains its authored clutch grip. Repeated fuel
    // ticks must not restart a nonexistent firearm clip on the chainsaw rig.
-   advanceFPSClip(group,phase,equipAge<.28?equipAge:index===7&&firing?sawRev*.24:melee&&shotAge<profile.interval?(shotAge<=profile.contact?shotAge/profile.contact*.25:.25+(shotAge-profile.contact)/(profile.interval-profile.contact)*.47):index<6&&shotAge<.4?shotAge:phase==='walk'?gaitTime:time,dt);
+   advanceFPSClip(group,phase,equipAge<.28?equipAge:salvage&&shotAge<profile.interval?0:index===7&&firing?sawRev*.24:melee&&shotAge<profile.interval?(shotAge<=profile.contact?shotAge/profile.contact*.25:.25+(shotAge-profile.contact)/(profile.interval-profile.contact)*.47):index<6&&shotAge<.4?shotAge:phase==='walk'?gaitTime:time,dt);
    if(index===2)arcCraft.poseFinger();
    if(index===3)expeditionCraft.poseFinger();
  }};

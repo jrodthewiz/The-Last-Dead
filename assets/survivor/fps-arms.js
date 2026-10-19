@@ -109,7 +109,9 @@ function seatGrip(state,arm){
   state.camera.getWorldQuaternion(q.parent);q.next.set(...approach).normalize().applyQuaternion(q.parent);
  }
  q.d.copy(arm.bindForearm).applyQuaternion(q.rigRotation);q.old.copy(q.e).sub(q.w).normalize();
- q.delta.setFromUnitVectors(q.d,q.old);q.next.applyQuaternion(q.delta);q.goal.copy(q.position).addScaledVector(q.next,b);
+ // A dedicated tool trajectory already owns the grip motion. Keep its elbow
+ // approach in camera space rather than applying an inherited swing twice.
+ q.delta.setFromUnitVectors(q.d,q.old);if(!state.gripDriven)q.next.applyQuaternion(q.delta);q.goal.copy(q.position).addScaledVector(q.next,b);
  // The metacarpal-to-wrist axis supplies the anatomical cone. If a moving
  // melee socket exceeds it, move the hidden shoulder instead of folding the
  // visible wrist backward. Neither segment is scaled or stretched.
@@ -125,7 +127,7 @@ function seatGrip(state,arm){
  state.camera.getWorldQuaternion(q.parent);
  q.next.set(arm.side==='right'?.36:-.36,-.44,.12).applyQuaternion(q.parent);
  state.camera.getWorldPosition(q.old);q.next.add(q.old).sub(q.goal).normalize();
- q.d.copy(arm.bindUpper).applyQuaternion(q.rigRotation);q.delta.setFromUnitVectors(q.d,q.pole);q.next.applyQuaternion(q.delta);
+ q.d.copy(arm.bindUpper).applyQuaternion(q.rigRotation);q.delta.setFromUnitVectors(q.d,q.pole);if(!state.gripDriven)q.next.applyQuaternion(q.delta);
  q.axis.set(0,1,-Math.tan(THREE.MathUtils.degToRad(state.camera.fov*.5))).normalize().applyQuaternion(q.parent);
  state.camera.getWorldPosition(q.old);q.old.negate().add(q.goal);
  // Blender's upper garment extends past the anatomical shoulder. Constrain

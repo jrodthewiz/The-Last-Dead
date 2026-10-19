@@ -2,9 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as T from '../vendor/three.module.js';
 import {createSalvageMelee} from '../island/salvage-melee.js';
-import {animateMeleeWeapon} from '../weapon-melee.js';
 import {batchStaticWeaponMeshes} from '../weapon-batching.js';
-import {batContactPose} from '../island/melee-presentation.js';
+import {animateSalvageMelee,salvageFraming} from '../island/salvage-motion.js';
+import {WEAPONS} from '../island/armory-state.js';
+import {createMeleeWeapon} from '../weapon-melee.js';
+import {fitRipperControl} from '../island/ripper-presentation.js';
 
 const IDS=['sword','hammer','pipe'];
 const finite=v=>v.toArray().every(Number.isFinite);
@@ -24,7 +26,7 @@ for(const id of IDS){
    assert(m.material.flatShading);assert.equal(m.material.transparent,false);assert.equal(m.material.map,null);
   }
   assert(triangles<2500,`${triangles} exceeds the authored console budget`);
-  for(const [name,expected]of [['grip',[0,-.055,.31]],['supportGrip',[0,-.055,.09]],['impactTip',[0,.015,-.91]]]){
+  for(const [name,expected]of [['grip',[0,-.055,.31]],['supportGrip',[0,-.055,.09]],['impactTip',id==='sword'?[.031,.015,-.73]:id==='hammer'?[.227,.015,-.86]:[-.0675,.015,-.858]]]){
    const socket=root.userData[name];assert(socket?.isObject3D);near(socket.position,new T.Vector3(...expected));assert(socket.userData.viewmodelAnchor&&socket.userData.weaponBatchIgnore);
   }
   // The authored hand sockets must be inside the actual wrapped grip, rather
@@ -43,15 +45,15 @@ for(const id of IDS){
   for(const a of anchors){assert.equal(a.parent,root);assert.equal(root.getObjectByName(a.name),a);}
   assert.equal(root.userData.melee.mechanisms.swingPivot.parent,root);assert.equal(root.userData.melee.impactPulse.children.length,0);
   const hold=new T.Group();hold.position.set(.32,-.34,-.85);hold.scale.setScalar(.58);hold.add(root);root.rotation.set(.92,-.32,-.22);
-  const rest=root.rotation.clone();const pose=batContactPose(hold.position.x,hold.position.y,hold.scale.x);
+  const w=WEAPONS.find(w=>w.id===id);animateSalvageMelee(root,{id,age:0,contact:w.contact,duration:w.interval,active:false,group:hold,aspect:1.6});const rest=root.quaternion.clone();
   for(const p of[0,.12,.24,.32,.4,.45,.65,.85,1]){
-   animateMeleeWeapon(root,{active:true,progress:p,...pose,contact:p===.4?1:0},p,.016);hold.updateWorldMatrix(true,true);
+   const age=p<=.4?p/.4*w.contact:w.contact+(p-.4)/.6*(w.interval-w.contact);animateSalvageMelee(root,{id,age,contact:w.contact,duration:w.interval,active:true,group:hold,aspect:1.6});hold.updateWorldMatrix(true,true);
    assert(root.matrixWorld.elements.every(Number.isFinite));assert(finite(root.userData.impactTip.getWorldPosition(new T.Vector3())));
    assert(Number.isFinite(root.userData.melee.materials.glow.emissiveIntensity));
    if(p===.4){const tip=root.userData.impactTip.getWorldPosition(new T.Vector3());assert(Math.abs(tip.x)<1e-5&&Math.abs(tip.y)<1e-5,`contact misses the aiming line: ${tip.toArray()}`);}
   }
-  animateMeleeWeapon(root,{active:false},2,.016);
-  near(root.position,new T.Vector3());near(new T.Vector3(root.rotation.x,root.rotation.y,root.rotation.z),new T.Vector3(rest.x,rest.y,rest.z));
+  animateSalvageMelee(root,{id,age:2,contact:w.contact,duration:w.interval,active:false,group:hold,aspect:1.6});
+  near(root.position,new T.Vector3());assert.ok(root.quaternion.angleTo(rest)<1e-7);
   assert.equal(root.userData.melee.materials.glow.emissive.getHex(),0,'contact must not invent luminous tool surfaces');
  });
 }
@@ -75,4 +77,31 @@ test('salvage instances reuse static resources and reject unknown IDs',()=>{
  for(let i=0;i<am.length;i++){assert.equal(am[i].geometry,bm[i].geometry);assert.equal(am[i].material,bm[i].material);assert(am[i].geometry.userData.sharedAsset);}
  assert.notEqual(a.userData.grip,b.userData.grip);assert.notEqual(a.userData.melee.mechanisms.swingPivot,b.userData.melee.mechanisms.swingPivot);
  assert.throws(()=>createSalvageMelee('unknown'),RangeError);
+});
+
+test('all working contact anchors sit on the real outward surface, including the hammer face',()=>{
+ for(const id of IDS){const root=createSalvageMelee(id),p=root.userData.impactTip.position.clone(),normal=new T.Vector3(...root.userData.salvageMelee.contactNormal);root.updateWorldMatrix(true,true);
+  const ray=new T.Raycaster(p.clone().addScaledVector(normal,.02),normal.clone().negate(),0,.04),hit=ray.intersectObject(root,true)[0];assert.ok(hit,id+' anchor has no working geometry');assert.ok(Math.abs(hit.distance-.02)<.002,id+' anchor floats off its surface');assert.ok(hit.face.normal.dot(normal)>.5,id+' anchor is on a trailing surface');
+ }
+});
+
+test('dedicated cuts have distinct physical directions and keep the leading face on the aiming line',()=>{
+ for(const aspect of [1.6,390/844,844/390])for(const id of IDS){const root=createSalvageMelee(id),group=new T.Group(),camera=new T.PerspectiveCamera(74,aspect,.02,100),f=salvageFraming(id,aspect,{}),w=WEAPONS.find(w=>w.id===id);group.position.set(f.x,f.y,f.z);group.scale.setScalar(f.scale);group.add(root);camera.add(group);
+  const sample=age=>{animateSalvageMelee(root,{id,age,contact:w.contact,duration:w.interval,active:true,group,aspect});camera.updateWorldMatrix(true,true);return root.userData.impactTip.getWorldPosition(new T.Vector3());};
+  const before=sample(w.contact-.001),after=sample(w.contact+.001),velocity=after.sub(before).normalize();sample(w.contact);const projected=root.userData.impactTip.getWorldPosition(new T.Vector3()).project(camera),normal=new T.Vector3(...root.userData.salvageMelee.contactNormal).applyQuaternion(root.getWorldQuaternion(new T.Quaternion()));
+  assert.ok(Math.hypot(projected.x,projected.y)<1e-6,id+' missed camera ray');assert.ok(normal.dot(velocity)>.94,id+' working face trails its motion');
+  if(id==='sword')assert.ok(velocity.x<-.3&&velocity.y<-.6,'sword must cut diagonally');
+  if(id==='hammer')assert.ok(velocity.y<-.99&&Math.abs(velocity.x)<.1,'hammer must strike downward');
+  if(id==='pipe')assert.ok(velocity.x<-.98&&Math.abs(velocity.y)<.16,'pipe must strike laterally');
+  let last=sample(0);for(let i=1;i<=240;i++){const p=sample(i/240*w.interval);assert.ok(p.distanceTo(last)<.06,id+' discontinuous working surface');assert.ok(root.matrixWorld.elements.every(Number.isFinite));last=p;}
+  const endP=root.position.clone(),endQ=root.quaternion.clone();animateSalvageMelee(root,{id,age:w.interval+1,contact:w.contact,duration:w.interval,active:false,group,aspect});assert.ok(root.position.distanceTo(endP)<1e-7);assert.ok(root.quaternion.angleTo(endQ)<1e-7,id+' recovery snaps into ready');
+ }
+});
+
+test('Ripper rear control moves its real handle, guard, throttle and hand socket as one mounted kit',()=>{
+ const root=createMeleeWeapon({variant:'chainsaw'}),meta=root.userData.melee,cap=root.getObjectByName('fuel-cap'),capPosition=cap.position.clone(),grip=meta.sockets.grip.position.clone(),guard=meta.parts['chainsaw-trigger-guard'],throttle=root.getObjectByName('throttle-trigger');
+ fitRipperControl(root);root.updateWorldMatrix(true,true);near(meta.sockets.grip.position,grip.add(new T.Vector3(0,-.10,.09)));
+ assert.ok(new T.Box3().setFromObject(meta.parts['chainsaw-rear-grip'],true).containsPoint(meta.sockets.grip.position));assert.equal(throttle.parent,guard);near(guard.position,new T.Vector3(0,-.10,.09));near(cap.position,capPosition);
+ const lug=root.getObjectByName('Ripper cast rear throttle mounting lug'),body=root.getObjectByName('motor-casing');assert.ok(new T.Box3().setFromObject(lug,true).intersectsBox(new T.Box3().setFromObject(body,true)),'grip mounting lug must seat into solid casing');
+ fitRipperControl(root);near(meta.sockets.grip.position,grip);const before=meta.sockets.grip.position.clone();batchStaticWeaponMeshes(root);near(meta.sockets.grip.position,before);assert.ok(meta.chainLoop.userData.teethMesh.parent,'moving chain survives presentation batching');
 });

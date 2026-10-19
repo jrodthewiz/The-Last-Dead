@@ -1,8 +1,9 @@
 import * as T from '../vendor/three.module.js';
+import {SALVAGE_CONTACTS} from './salvage-motion.js';
 
 // These are tools recovered from Blackwater, built in the bat's metre-space.
-// Both hands retain the authored bat socket frames; the striking end remains
-// at (0,.015,-.91), so contact fitting and gameplay never guess from a bound.
+// Both hands retain the authored bat socket frames. Contact anchors identify
+// the blade edge, hammer face and pipe coupling rather than a generic tip.
 const geometries=new Map(),materials={};
 const PALETTE={steel:0x74857f,edge:0xa6afa0,iron:0x424f4c,wood:0x9b805d,cloth:0x777e68,brass:0xa08f67,rust:0x795543,black:0x303d39};
 for(const [name,color]of Object.entries(PALETTE)){
@@ -127,12 +128,12 @@ export function createSalvageMelee(id){
  if(!['sword','hammer','pipe'].includes(id))throw new RangeError(`Unknown salvage melee weapon: ${id}`);
  const root=new T.Group();root.name=`Blackwater salvaged ${id}`;handle(root,id);
  ({sword,hammer,pipe})[id](root);
- const sockets={grip:anchor(root,'grip',[0,-.055,.31]),supportGrip:anchor(root,'supportGrip',[0,-.055,.09]),impactTip:anchor(root,'impactTip',[0,.015,-.91])};
+ const sockets={grip:anchor(root,'grip',[0,-.055,.31]),supportGrip:anchor(root,'supportGrip',[0,-.055,.09]),impactTip:anchor(root,'impactTip',SALVAGE_CONTACTS[id].point)};
  const swingPivot=protectedPivot(root,`${id} swing pivot`),impactPulse=protectedPivot(swingPivot,`${id} contact pulse`);impactPulse.visible=false;
  const diagnostics={asset:`blackwater-salvage-${id}-v1`,variant:id,triangles:0,meshes:0,materials:0,textures:0,budget:{targetTriangles:2500,staticBatchSafe:true}};
  const usedMaterials=new Set();root.traverse(n=>{if(n.isMesh){diagnostics.meshes++;diagnostics.triangles+=(n.geometry.index?.count??n.geometry.attributes.position.count)/3;usedMaterials.add(n.material);}});diagnostics.materials=usedMaterials.size;
  root.userData.weaponDynamic=false;root.userData.resourcesReady=Promise.resolve();root.userData.diagnostics=diagnostics;
- root.userData.salvageMelee={id,contactPoint:[0,.015,-.91],sourceRig:'bat',finish:'muted-forged-salvage',diagnostics};
+ root.userData.salvageMelee={id,contactPoint:[...SALVAGE_CONTACTS[id].point],contactNormal:[...SALVAGE_CONTACTS[id].normal],sourceRig:'bat-skin',motion:'authored-working-surface',finish:'muted-forged-salvage',diagnostics};
  root.userData.melee={variant:id,parts:{},materials,sockets,mechanisms:{swingPivot},impactPulse,lastSequence:0,swingValue:0,contactValue:0,restCaptured:false,restPosition:new T.Vector3(),restRotation:new T.Euler(),timeline:{windup:.24,strike:.48,contact:.4,recover:1}};
  return root;
 }
