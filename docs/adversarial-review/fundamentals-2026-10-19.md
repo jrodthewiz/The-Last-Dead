@@ -35,7 +35,8 @@ Hammer/Ripper framing adapts to narrow screens.
 Ordinary cottages gain different household activities: sewing cloth and tools,
 a care ledger and gauze, or a bread board and meal setting. Existing domestic
 palettes, bed screens, sinks and work surfaces remain coherent. The Old Town
-chandlery gains sailcloth, rope coils, manifest and compass, an entrance sail
+chandlery's Morrow Maritime exterior sign matches its former use. It gains
+sailcloth, rope coils, manifest and compass, an entrance sail
 display and a nearer packing table. Solid records and visible furnishings use
 the same plan. Two routes around its display remain walkable.
 
