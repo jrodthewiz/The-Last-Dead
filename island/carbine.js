@@ -77,11 +77,12 @@ export function makeRifle(camera){
   rod(gun,[.025,-.043,.030],[.007,-.048,.024],.007,'skin',.006);
   const support=hand(gun,-1);support.position.set(-.037,-.012,-.29);support.rotation.z=-1.1;
   // Sleeves connect wrists to elbows, rather than floating rectangular cuffs.
-  function arm(){const g=new T.Group();gun.add(g);const rings=[];for(const [t,w]of [[-.5,.116],[-.32,.124],[-.12,.108],[.10,.098],[.24,.109],[.33,.088],[.43,.084],[.5,.076]])rings.push([t,0,w,w*.88]);const sleeve=loft(g,rings,'cloth');sleeve.rotation.x=-Math.PI/2;
-    const cuff=mesh(g,new T.CylinderGeometry(.039,.044,.036,8,1,true),'seam');const wrist=mesh(g,new T.CylinderGeometry(.030,.034,.052,8),'skin');return {g,sleeve,cuff,wrist};}
+  function arm(){const g=new T.Group();gun.add(g);const rings=[];for(const [t,w]of [[-.5,.116],[-.32,.124],[-.12,.108],[.10,.100],[.24,.096],[.33,.085],[.43,.077],[.5,.072]])rings.push([t,0,w,w*.88]);const sleeve=loft(g,rings,'cloth');sleeve.rotation.x=-Math.PI/2;
+    const cuff=mesh(g,new T.LatheGeometry([new T.Vector2(.039,-.019),new T.Vector2(.042,-.012),new T.Vector2(.039,.006),new T.Vector2(.034,.013)],8),'seam');const wrist=mesh(g,new T.CapsuleGeometry(.027,.012,2,8),'skin');gun.add(wrist);return {g,sleeve,cuff,wrist};}
   const right=arm(),left=arm();
-  function setArm(arm,elbow,wrist){const a=new T.Vector3(...elbow),b=new T.Vector3(...wrist),d=b.clone().sub(a);arm.g.position.copy(a.add(b).multiplyScalar(.5));arm.g.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),d.clone().normalize());arm.sleeve.scale.z=d.length()-.025;arm.cuff.position.y=d.length()/2-.017;arm.wrist.position.y=d.length()/2+.005;}
-  setArm(right,[.25,-.32,.36],[.035,-.093,.13]);
+  const armStart=new T.Vector3(),armEnd=new T.Vector3(),armDelta=new T.Vector3(),wristStart=new T.Vector3(),palmSeat=new T.Vector3(),armUp=new T.Vector3(0,1,0);
+  function setArm(arm,elbow,hand){hand.updateMatrix();palmSeat.set(0,-.012,.030).applyMatrix4(hand.matrix);armEnd.set(0,-.014,.058).applyMatrix4(hand.matrix);armStart.fromArray(elbow);armDelta.copy(armEnd).sub(armStart);const length=armDelta.length();arm.g.position.copy(armStart).add(armEnd).multiplyScalar(.5);arm.g.quaternion.setFromUnitVectors(armUp,armDelta.normalize());arm.sleeve.scale.z=length-.025;arm.cuff.position.y=length/2-.017;wristStart.copy(armEnd).addScaledVector(armDelta,-.018);arm.wrist.position.copy(wristStart).add(palmSeat).multiplyScalar(.5);armDelta.copy(palmSeat).sub(wristStart);arm.wrist.quaternion.setFromUnitVectors(armUp,armDelta.clone().normalize());arm.wrist.scale.set(1,Math.max(.65,armDelta.length()/.066),.9);}
+  setArm(right,[.25,-.32,.36],trigger);
   const flash=new T.Mesh(new T.ConeGeometry(.065,.17,5),new T.MeshBasicMaterial({color:0xffd68c}));flash.rotation.x=-Math.PI/2;flash.position.set(0,.069,-.85);gun.add(flash);flash.visible=false;
   const smooth=(a,b,t)=>T.MathUtils.smoothstep(t,a,b);
   let wasVisible=false,equipAge=1,shotAge=9,lastShot=0;const firePose={};const sway=createLookSway({response:9,xGain:-.3/60,yGain:-.3/60,maxRate:4.8});
@@ -112,7 +113,7 @@ export function makeRifle(camera){
         else if(p<=.88){support.position.copy(contact);support.rotation.z=.35;}
         else{const t=smooth(.88,1,p);support.position.copy(contact).lerp(new T.Vector3(-.037,-.012,-.29),t);support.position.y+=Math.sin(t*Math.PI)*.13;support.rotation.z=T.MathUtils.lerp(.35,-1.1,t);}
       }
-      setArm(left,[-.27,-.27,.21],[support.position.x-.01,support.position.y-.025,support.position.z+.035]);
+      setArm(left,[-.27,-.27,.21],support);
       bolt.position.z=reloading?charge:(shotSequence===null?recoil:firePose.pulse)*.04;
       flash.visible=shotSequence===null?recoil>.78:shotAge<.035;
     }

@@ -182,7 +182,7 @@ export function sampleFPSClip(group,phase,seconds,blend=false){
   if(f===1)s.transition=null;
  }
  for(const p of s.sampled){p.position.copy(p.bone.position);p.quaternion.copy(p.bone.quaternion);p.scale.copy(p.bone.scale);}
- group.updateWorldMatrix(true,true);for(const arm of s.arms)seatGrip(s,arm);
+ s.beforeSeat?.();group.updateWorldMatrix(true,true);for(const arm of s.arms)seatGrip(s,arm);
  // SkinnedMesh updates its inverse world bind in updateMatrixWorld. Make
  // CPU surface/contact queries agree with the following native render.
  s.rig.updateMatrixWorld(true);
