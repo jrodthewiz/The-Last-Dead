@@ -32,40 +32,31 @@ explains that resting restores breath. The movement harm rate remains 5 health/s
 Review caught and corrected three small regressions:
 
 - **CONFIRMED / resolved:** reopening Elias after collection with full storage
-  said the ration remained. Claimed-state copy now takes priority; runtime checks
-  reopen and assert the collected/full state.
+  said the ration remained. Claimed-state copy now takes priority in the source.
 - **CONFIRMED / resolved:** continuous exhaustion maintained the visual damage
   timer, suppressing enemy-contact audio. An independent .45 s contact-cue gate
-  now ticks/reset separately. Browser instrumentation observes zero blunt cues
-  during exhaustion alone and one bounded cue for simultaneous contact events.
+  now ticks/reset separately in the source. Runtime audio acceptance is pending.
 - **CONFIRMED / resolved:** the incoming barrel warning briefly cross-faded over
   a touch location label. Obscured touch location labels now hide immediately.
-  Actual notification-frame samples and the regenerated portrait still show no
-  overlap. The normal area-arrival transition remains.
+  The regenerated portrait still shows no overlap. The normal area-arrival
+  transition remains; continuous transition acceptance is pending.
 
 Counterevidence kept the changes narrow: existing damage resolution, stronger
 contact vignette and ordinary landscape layout already worked. The reviewers
 accepted the corrected source and supplied raw views within this scope. They
 did not certify the entire game, uninterrupted animation or listening quality.
 
-## Evidence and limits
+## Verification correction and limits
 
-- `npm run test:blackwater`: 115 passing tests, including five new transaction,
-  save/load, partial-receipt and 30/60/120 Hz environmental-harm regressions.
-- `npm run test:blackwater:input`: pointer ownership, reload completion and
-  actual skinned first-person camera/support checks pass.
-- `tests/blackwater-component-review.mjs`: built-source parity plus eight
-  desktop/touch journeys. Final local report has `passed:true` and empty page,
-  console and HTTP error arrays. Heat sampled across 166 actual frames reached
-  internal 1.048018 while displayed heat remained at most 100%.
-- Raw evidence lives in `output/component-craft-pass/final/`: full/recovered
-  gifts, cooling, exhaustion/recovery, treatment and portrait/landscape touch.
-  Final reviewers used ordinary in-game views, not isolated model photographs.
+The user rejected this pass's test files as incorrect and requested their removal.
+The two added test files, their npm runner entry and the generated release-test
+helper have been removed. The automated validation claims previously recorded
+here are withdrawn; historical generated reports are not current acceptance.
 
-The first run failed because a test fired before the post-dialogue weapon draw
-was ready. The fixture now waits for the visible weapon and zero draw cooldown,
-then asserts an actual shot and completed reload. That incomplete run is not
-final proof. The final complete run was repeated after the touch transition fix.
+Static captures remain in `output/component-craft-pass/final/`: full/recovered
+gifts, cooling, exhaustion/recovery, treatment and portrait/landscape touch.
+Reviewers used these ordinary in-game views and source inspection. They establish
+only what those stills and source show; direct gameplay acceptance is pending.
 
 No new asset, map geometry, animation envelope, performance optimization or
 network transport is claimed by this pass. Still views do not establish motion
