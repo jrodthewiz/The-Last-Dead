@@ -18,3 +18,19 @@ export function weaponResponse(id,age,aim=0,motion=true,out={}){
  out.z=out.kick*p.travel;out.pitch=out.kick*p.pitch;out.roll=motion?out.kick*p.roll*(1-aim*.85):0;out.sight=out.kick*p.ads/.045;return out;
 }
 export const reloadWeight=p=>Math.sin(Math.PI*Math.max(0,Math.min(1,p)))**2;
+
+// All draws finish within the existing .28–.30 s ready gates. Hands stay on
+// their sockets while each tool's mass describes a small lift and inward arc.
+const DRAW_RESPONSE={
+ carbine:[.28,.24,.10,-.14,.09,.035],ossuary:[.24,.21,.08,-.12,-.12,.025],
+ breach:[.28,.27,.12,-.18,-.14,.045],arc:[.28,.25,.10,-.13,.08,.035],
+ reliquary:[.28,.29,.12,-.16,.10,.025],carrion:[.26,.24,.09,-.13,-.10,.035],
+ mourning:[.28,.26,.11,-.16,.08,.03],bat:[.26,.24,.07,-.10,.12,.04],
+ chainsaw:[.28,.27,.10,-.10,-.08,.025],sword:[.25,.23,.07,-.08,.11,.04],
+ hammer:[.28,.27,.09,-.13,.10,.035],pipe:[.24,.22,.06,-.09,-.09,.035],
+};
+export function weaponDraw(id,age,motion=true,out={}){
+ const d=DRAW_RESPONSE[id]||DRAW_RESPONSE.carbine,p=Math.max(0,Math.min(1,age/d[0])),weight=1-p*p*(3-2*p);
+ out.x=motion&&p<1?Math.sin(p*Math.PI)*d[5]:0;out.y=-weight*(motion?d[1]:.14);
+ out.z=motion?weight*d[2]:0;out.pitch=motion?weight*d[3]:0;out.roll=motion?weight*d[4]:0;return out;
+}

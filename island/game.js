@@ -160,16 +160,18 @@ function renderRecords(){const list=$('journal-records');list.replaceChildren();
 function toggleFlight(){if(coop?.playing){notify('Developer flight is available outside co-op expeditions.');return;}if(mode==='flight'){const previous=flight.exit();unlock();if(previous==='title'){mode='title';$('title').hidden=false;focusControl('title-fly');}else if(previous==='pause'){showOverlay('pause');focusControl('pause-fly');}else resume();return;}if(!['playing','pause','title'].includes(mode)||!flight)return;const previous=mode;unlock();sound.pause(true);mode='flight';$('hud').hidden=true;$('title').hidden=true;$('overlay').hidden=true;flight.enter(previous);}
 function nearestInteraction(){
   if(vehicle)return {kind:'vehicle-exit',label:'Leave utility truck',distance:0};
-  const choices=[];const add=(kind,item,x,z,label,radius=3.2)=>{const d=Math.hypot(state.x-x,state.z-z);if(d>=radius)return;const y=item?.y??supportHeight(data,x,z);if(Math.abs(state.y-y)>=3)return;if(['stash','supply','weapon','fuse'].includes(kind)&&!canReachPickup(state,{x,y,z},grid,radius))return;choices.push({kind,item,x,z,label,distance:d});};
+  const choices=[];const add=(kind,item,x,z,label,radius=3.2,priority=0)=>{const d=Math.hypot(state.x-x,state.z-z);if(d>=radius)return;const y=item?.y??supportHeight(data,x,z);if(Math.abs(state.y-y)>=3)return;if(['stash','supply','weapon','fuse'].includes(kind)&&!canReachPickup(state,{x,y,z},grid,radius))return;choices.push({kind,item,x,z,label,distance:d,priority});};
   for(const p of PLACES)add('record',p,p.x,p.z,'Read '+p.note,2.8);add('contact',CONTACT,CONTACT.x,CONTACT.z,'Speak with Elias',3.0);
-  for(const c of loot){const searched=state.backpack.searched.includes(c.id);if(!searched&&!searchFocused(state,c))continue;const empty=searched&&!Object.values(state.backpack.remaining[c.id]||{}).some(n=>n>0);if(!empty){const dx=c.x-state.x,dz=c.z-state.z,d=Math.hypot(dx,dz),oy=state.y+1.7,ty=c.y+.5,ray=new T.Vector3(dx,ty-oy,dz),length=ray.length();if(d<2.6&&clearShot([state.x,oy,state.z],ray.normalize().toArray(),Math.max(0,length-.7),grid))add('stash',c,c.x,c.z,(state.backpack.searched.includes(c.id)?'Open ':'Search ')+c.name,2.6);}}
+  for(const c of loot){const searched=state.backpack.searched.includes(c.id),focused=searchFocused(state,c);if(!searched&&!focused)continue;const empty=searched&&!Object.values(state.backpack.remaining[c.id]||{}).some(n=>n>0);if(empty&&!focused)continue;const dx=c.x-state.x,dz=c.z-state.z,d=Math.hypot(dx,dz),oy=state.y+1.7,ty=c.y+.5,ray=new T.Vector3(dx,ty-oy,dz),length=ray.length();if(d<2.6&&clearShot([state.x,oy,state.z],ray.normalize().toArray(),Math.max(0,length-.7),grid))add('stash',c,c.x,c.z,(searched?'Open ':'Search ')+c.name,empty?2:2.6,empty?2:0);}
   for(const person of SURVIVORS)add('survivor',person,person.x,person.z,'Speak with '+person.name.split(' · ')[0],2.8);
   for(const s of data.supplies)if(!state.collected.includes(s.id))add('supply',s,s.x,s.z,s.type==='ammo'?'Take ammunition & fuel':'Take field dressing',2.4);
   for(const c of caches)if(!state.collected.includes(c.id))add('weapon',c,c.x,c.z,'Take '+WEAPONS.find(w=>w.id===c.weapon).name,2.5);
   for(const v of actors.vehicles)add('vehicle',v,v.x,v.z,'Drive utility truck',4.5);
   if(!state.fuse)add('fuse',KEEPER_FUSE,KEEPER_FUSE.x,KEEPER_FUSE.z,'Take the keeper’s spare fuse',2.4);if(!state.generatorReady)add('generator',HOSPITAL_GENERATOR,HOSPITAL_GENERATOR.x,HOSPITAL_GENERATOR.z+2.5,generatorRun?'Generator warming up…':'Start emergency generator',3.4);
   for(const p of LANDMARKS){if(p.type==='relay'){const pos=stationPosition(p);add('relay',p,pos.x,pos.z,state.relays.includes(p.id)?'Station online':'Restore '+p.name,3.4);}if(p.type==='camp')add('camp',p,p.x,p.z,'Rest & save journey',3.6);if(p.type==='exit')add('exit',p,p.x,p.z,state.relays.length===3?'Signal the ferry':'Ferry · waiting for three signals',5);}
-  return choices.sort((a,b)=>a.distance-b.distance)[0]||null;
+  // A focused empty container can confirm it is picked clean, but fresh finds
+  // and useful interactions win when another object shares the same approach.
+  return choices.sort((a,b)=>(a.distance+a.priority)-(b.distance+b.priority))[0]||null;
 }
 function interact(){
   if(mode!=='playing')return;interaction=nearestInteraction();const i=interaction;if(!canInteract(i))return;

@@ -27,17 +27,33 @@ export function furnishCottage(k,b,floor,solid,{side,workX,special=false}){
   box('screen-timber-cap',px,2.31,pz,.18,.07,3.75,wood);
   solid('sleeping-nook-screen',px,pz,.18,3.75,2.35);
  }
- box('kitchen-base',prepX,.46,prepZ,prepW,.88,.88,edge);
+ // Hollow cabinet construction leaves room beneath the inset sink. A solid
+ // block here would fill the bowl even if the worktop had an opening.
+ box('kitchen-plinth',prepX,.08,prepZ,prepW,.16,.88,edge);
+ box('kitchen-back',prepX,.52,prepZ-.41,prepW,.80,.06,edge);
+ for(const s of [-1,1])box('kitchen-side',prepX+s*(prepW/2-.03),.52,prepZ,.06,.80,.88,edge);
  for(const dx of [-1,1]){
   box('kitchen-door',prepX+dx*prepW*.245,.49,prepZ+.46,prepW*.46,.72,.055,wood);
   box('kitchen-pull',prepX+dx*.16,.70,prepZ+.51,.16,.045,.05,iron);
  }
- box('kitchen-worktop',prepX,.95,prepZ,prepW+.08,.10,.98,cream);
+ const sinkX=prepX-.27,sinkW=.82,sinkD=.58,topLeft=prepX-(prepW+.08)/2,topRight=prepX+(prepW+.08)/2;
+ const leftW=sinkX-sinkW/2-topLeft,rightW=topRight-sinkX-sinkW/2;
+ box('kitchen-worktop',topLeft+leftW/2,.95,prepZ,leftW,.10,.98,cream);
+ box('kitchen-worktop',topRight-rightW/2,.95,prepZ,rightW,.10,.98,cream);
+ for(const s of [-1,1])box('kitchen-worktop',sinkX,.95,prepZ+s*(sinkD/2+.10),sinkW,.10,.20,cream);
  solid('kitchen',prepX,prepZ,prepW+.08,.98,1.01);
- box('sink-rim',prepX-.27,1.012,prepZ,.82,.025,.58,0x83948a);
- box('sink-basin',prepX-.27,1.028,prepZ,.64,.014,.40,iron);
+ box('sink-bowl-floor',sinkX,.80,prepZ,.76,.035,.52,iron);
+ for(const s of [-1,1]){
+  box('sink-bowl-wall',sinkX+s*.39,.90,prepZ,.04,.20,.56,0x6b8178);
+  box('sink-bowl-wall',sinkX,.90,prepZ+s*.27,.76,.20,.04,0x6b8178);
+  box('sink-rim',sinkX+s*.39,1.007,prepZ,.065,.026,.61,0x83948a);
+  box('sink-rim',sinkX,1.007,prepZ+s*.27,.76,.026,.065,0x83948a);
+ }
+ cylinder('sink-drain',sinkX,.821,prepZ,.055,.008,0x303f39);
  k.rod([b.x+prepX-.27,floor+1.03,b.z+prepZ-.28],[b.x+prepX-.27,floor+1.34,b.z+prepZ-.28],.027,iron);
  k.rod([b.x+prepX-.27,floor+1.34,b.z+prepZ-.28],[b.x+prepX-.27,floor+1.34,b.z+prepZ-.03],.027,iron);
+ k.rod([b.x+sinkX,floor+1.34,b.z+prepZ-.03],[b.x+sinkX,floor+1.26,b.z+prepZ-.03],.027,iron);
+ box('tap-lever',sinkX+.10,1.08,prepZ-.30,.16,.045,.045,iron);
  box('folded-tea-towel',prepX+prepW*.32,1.022,prepZ+.06,.32,.035,.47,0x8c9d88);
  if(!special){
   cylinder('ceramic-jug',prepX+.65,1.15,prepZ-.08,.13,.28,0xac8061);

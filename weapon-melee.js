@@ -476,6 +476,16 @@ function captureRest(root, meta) {
   meta.restCaptured = true;
 }
 
+function batReturnChannel(progress,contact,follow){
+  const end=.96,a=(follow-contact)/.08,b=-follow/(end-.48);
+  // Preserve genuine reversals, but let continuing channels carry velocity
+  // through the follow-through knot. The harmonic tangent cannot overshoot.
+  const tangent=a*b>0?2*a*b/(a+b):0;
+  const first=progress<.48,span=first?.08:end-.48,u=clamp((progress-(first?.4:.48))/span,0,1),u2=u*u,u3=u2*u;
+  const start=first?contact:follow,finish=first?follow:0,from=first?0:tangent,to=first?tangent:0;
+  return (2*u3-3*u2+1)*start+(-2*u3+3*u2)*finish+(u3-2*u2+u)*span*from+(u3-u2)*span*to;
+}
+
 function animateBat(root, meta, frame, time, dt) {
   // Gameplay keeps the last completed progress at 1 while the weapon is
   // idle. Only an explicit active flag should enter the swing timeline;
@@ -536,6 +546,12 @@ function animateBat(root, meta, frame, time, dt) {
       y = .1 * decay;
       z = (-.08 - heavy * .025) * decay;
     }
+  }
+  if(active&&frame.flowingReturn&&progress>=.4){
+    yaw=batReturnChannel(progress,contactYaw+heavy*.12,contactYaw+.3+heavy*.12);
+    pitch=batReturnChannel(progress,contactPitch-heavy*.08,contactPitch-.2-heavy*.08);
+    roll=batReturnChannel(progress,-.42,.1);x=batReturnChannel(progress,.025,.03);
+    y=batReturnChannel(progress,.3+heavy*.04,.1);z=batReturnChannel(progress,-.055-heavy*.025,-.08-heavy*.025);
   }
   // Contact comes from authoritative gameplay after collision resolution. Do
   // not flash or imply a hit merely because the visual swing crossed .4.
