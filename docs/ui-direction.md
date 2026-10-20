@@ -184,3 +184,22 @@ Medical dialogue distinguishes a full belt from an already claimed gift. Medical
 notes can be copied while full and keep their dressing for a later visit.
 Container silhouettes, open contents and pack quantities share the same household
 identities. Evidence: `docs/adversarial-review/craft-council-2026-10-19.md`.
+
+## Component continuity — October 20, 2026
+
+Gift and field-record dialogue separate copying a record from collecting its
+supplies. Full belts/reserves leave unclaimable supplies at their source. Actual
+receipts count only what fits; a collected ration never promises a second one.
+
+Touch action ink follows the current hand action. Treatment prevents conflicting
+combat/use actions; searching still permits deliberate punch, shove or treatment
+interruptions. Held automatic fire survives its normal cadence and cooling.
+An incoming touch notification hides the location label immediately rather than
+cross-fading two messages in the same space.
+
+Carrion's existing ammunition plate shows rust-coloured COOLING during its
+lockout, with heat bounded to 100%. Exhausted swimming uses the health plate's
+EXHAUSTED label and existing danger ink. Its one transition warning gives a
+recovery action; resting clears the condition. Damage interrupts treatment
+without consuming it, and contact sound retains its own debounce. Evidence and
+limits: `docs/adversarial-review/component-craft-2026-10-20.md`.

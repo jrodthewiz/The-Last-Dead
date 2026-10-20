@@ -34,7 +34,12 @@ export function recoverWeapon(s,cache){
  s.collected.push(cache.id);return receipt;
 }
 export const repeatsWhileHeld=w=>w.id==='carrion'||w.kind==='saw'||w.kind==='arc';
-export function supplyAmmo(s){storeAmmo(s);for(const w of WEAPONS){const a=s.armory[w.id];if(a.owned&&w.capacity)a.reserve=Math.min(999,a.reserve+(w.id==='carbine'?16:w.kind==='rocket'?2:w.kind==='arc'?3:w.kind==='saw'?40:w.capacity));}s.reserve=s.armory[s.weapon].reserve;}
+export function hasAmmoSpace(s){return WEAPONS.some(w=>w.capacity&&s.armory[w.id].owned&&(w.id===s.weapon?s.reserve:s.armory[w.id].reserve)<999);}
+export function supplyAmmo(s){
+ storeAmmo(s);const recovered=[];
+ for(const w of WEAPONS){const a=s.armory[w.id];if(!a.owned||!w.capacity)continue;const amount=w.id==='carbine'?16:w.kind==='rocket'?2:w.kind==='arc'?3:w.kind==='saw'?40:w.capacity,count=Math.min(amount,999-a.reserve);if(count>0){a.reserve+=count;recovered.push({id:'ammo-'+w.id,count});}}
+ s.reserve=s.armory[s.weapon].reserve;return recovered;
+}
 export function finishReload(s){const w=weaponProfile(s),add=Math.min(w.capacity-s.ammo,s.reserve);s.ammo+=add;s.reserve-=add;storeAmmo(s);return add;}
 export function weaponCaches(data){
  const near=(x,z)=>data.buildings.filter(b=>b.enterable&&b.district==='village').sort((a,b)=>Math.hypot(a.x-x,a.z-z)-Math.hypot(b.x-x,b.z-z))[0];

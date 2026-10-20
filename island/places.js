@@ -1,3 +1,4 @@
+import {hasAmmoSpace,supplyAmmo} from './armory-state.js';
 // Authored destinations and connecting walking loops. The terrain, ecology,
 // map and discovery system all read this single plan.
 export const CONTACT={id:'elias',name:'Elias · coast radio operator',x:-762,z:291};
@@ -22,13 +23,16 @@ export function contactResponse(state){const n=state.relays.length;return [
  'Two stations answering. I heard someone at the docks. They are waiting for the hospital broadcast before bringing the ferry in. Your next ration is ready.',
  'All three stations. The captain answered by name. You brought this coast back within reach of someone. Take the last ration and follow the waterfront to the ferry.',
  ][Math.min(3,n)];}
-export function claimContactSupply(state){const stage=state.relays.length;if(state.contactStage>=stage)return false;state.contactStage=stage;state.medkits=Math.min(20,state.medkits+1);return true;}
+export function claimContactSupply(state){const stage=state.relays.length;if(state.contactStage>=stage||state.medkits>=20&&!hasAmmoSpace(state))return false;state.contactStage=stage;state.medkits=Math.min(20,state.medkits+1);return true;}
 
-// A full medical belt must not erase the tin beside a copied field record.
-// Pending markers use the existing collected ledger, including save round trips.
-export function claimMedicalNote(state,record){
- const marker='pending-medical-'+record.id,pending=state.collected.includes(marker);
- if(state.records.includes(record.id)&&!pending)return 'claimed';
- if(state.medkits>=20){if(!pending)state.collected.push(marker);return 'full';}
- state.medkits++;if(pending)state.collected.splice(state.collected.indexOf(marker),1);return 'recovered';
+// Copying a note and collecting its supply are separate decisions. Pending
+// markers preserve unclaimed tins in existing saves; old copied notes stay claimed.
+export function claimNoteSupply(state,record){
+ const medical=record.reward==='medical',marker='pending-'+record.reward+'-'+record.id,pending=state.collected.includes(marker);
+ if(state.records.includes(record.id)&&!pending)return {status:'claimed',items:[]};
+ const fits=medical?state.medkits<20:hasAmmoSpace(state);
+ if(!fits){if(!pending)state.collected.push(marker);return {status:'full',items:[]};}
+ const items=medical?(state.medkits++,[{id:'dressing',count:1}]):supplyAmmo(state);
+ if(pending)state.collected.splice(state.collected.indexOf(marker),1);return {status:'recovered',items};
 }
+export const claimMedicalNote=(state,record)=>claimNoteSupply(state,record).status;

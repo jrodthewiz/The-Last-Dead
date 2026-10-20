@@ -48,8 +48,8 @@ export function stepPlayer(state,input,data,grid,dt){
   // Upward jumps and real ledges retain the normal gravity trajectory.
   const stepDown=onGround&&!swimming&&state.vy<=0&&previousY>=floor&&previousY-floor<=.35;
   if(state.y<floor||stepDown){if(!stepDown&&state.vy<-2)motion.landing=Math.min(1,-state.vy/12);state.y=floor;state.vy=0;}
-  if(swimming&&state.stamina<=0)state.health=Math.max(0,state.health-5*dt);
-  return {moving,sprinting,swimming,onGround:state.vy===0&&state.y<=floor+.08,landing:motion.landing,vaulting:false,distance,speed:actualSpeed};
+  const exhausted=swimming&&state.stamina<=0,environmentalDamage=exhausted?5*dt:0;
+  return {moving,sprinting,swimming,exhausted,environmentalDamage,onGround:state.vy===0&&state.y<=floor+.08,landing:motion.landing,vaulting:false,distance,speed:actualSpeed};
 }
 export function viewCeiling(grid,x,y,z){
  let ceiling=Infinity;for(const b of grid.query(x,z,.1))if(b.y>y+1.5&&Math.abs(x-b.x)<b.w/2+.1&&Math.abs(z-b.z)<b.d/2+.1)ceiling=Math.min(ceiling,b.y-.1);return ceiling;
