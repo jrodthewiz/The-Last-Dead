@@ -11,7 +11,7 @@ import {searchLidAngle} from './search-motion.js';
 // inside their semantic pivots, never allocated during the frame loop.
 export const lootFamily=id=>id==='beer'?'beer':id==='cloth'?'linen':id==='bandage'||id==='antiseptic'?'medical':id.startsWith('ammo-')?'ammo':'tools';
 export function createLootVisuals(scene,containers){
- const box=new T.BoxGeometry(1,1,1),bottle=new T.CylinderGeometry(.8,1,1,6),entries=[];
+ const box=new T.BoxGeometry(1,1,1),bottle=new T.CylinderGeometry(.8,1,1,6),entries=[],unitTransform=new T.Object3D();
  const vertices=[],footprint=[[-.75,-1],[.75,-1],[1,-.7],[1,.7],[.75,1],[-.75,1],[-1,.7],[-1,-.7]],rings=[[.30,.18,.03],[.36,.22,.23],[.32,.20,.43],[.285,.165,.41],[.26,.14,.08]];
  const ringPoint=(r,i)=>[footprint[i][0]*r[0],r[2],footprint[i][1]*r[1]];
  for(let r=0;r<rings.length-1;r++)for(let i=0;i<8;i++){const j=(i+1)%8,a=ringPoint(rings[r],i),b=ringPoint(rings[r],j),c=ringPoint(rings[r+1],i),d=ringPoint(rings[r+1],j);vertices.push(...a,...c,...b,...b,...c,...d);}
@@ -54,7 +54,11 @@ export function createLootVisuals(scene,containers){
    const f=new T.Group();f.name='Remaining '+family;const spacing=width/(types.length+1);f.position.x=-width/2+spacing*(i+1);contents.add(f);families.set(family,f);
    if(family==='beer'){piece(f,0,.235,0,.075,.27,.075,6,bottle);piece(f,0,.395,0,.038,.075,.038,6,bottle);piece(f,0,.435,0,.045,.025,.045,2,bottle);piece(f,0,.245,.065,.10,.105,.012,2);}
    else if(family==='medical'){piece(f,0,.22,0,.19,.23,.24,7);piece(f,0,.342,0,.14,.018,.17,2);piece(f,0,.358,0,.10,.012,.032,4);piece(f,0,.359,0,.032,.012,.10,4);}
-   else if(family==='linen'){for(let j=0;j<3;j++){piece(f,0,.13+j*.065,0,.23-j*.012,.055,.28,2);piece(f,0,.16+j*.065,.144,.20,.012,.012,1);}}
+   else if(family==='linen'){
+    const folds=new T.InstancedMesh(box,mats[2],3),edges=new T.InstancedMesh(box,mats[1],3);folds.name='Remaining cloth folds';edges.name='Remaining cloth seams';f.add(folds,edges);f.userData.stack=[folds,edges];
+    for(let j=0;j<3;j++){unitTransform.position.set(0,.13+j*.065,0);unitTransform.scale.set(.23-j*.012,.055,.28);unitTransform.updateMatrix();folds.setMatrixAt(j,unitTransform.matrix);unitTransform.position.set(0,.16+j*.065,.144);unitTransform.scale.set(.20,.012,.012);unitTransform.updateMatrix();edges.setMatrixAt(j,unitTransform.matrix);}
+    for(const mesh of f.userData.stack){mesh.castShadow=mesh.receiveShadow=true;mesh.computeBoundingSphere();}
+   }
    else if(family==='ammo'){piece(f,0,.20,0,.21,.23,.25,1);piece(f,0,.32,0,.055,.02,.26,2);piece(f,0,.20,.13,.055,.23,.012,2);}
    else{piece(f,0,.17,0,.23,.17,.27,0);const bar=piece(f,0,.285,0,.26,.04,.05,7);bar.rotation.y=.4;piece(f,.075,.29,0,.06,.055,.13,3);}
   }
@@ -64,9 +68,9 @@ export function createLootVisuals(scene,containers){
   for(const e of entries){e.group.visible=camera.distanceToSquared(e.group.position)<110**2;if(!e.group.visible)continue;
    const open=state.backpack.searched.includes(e.c.id),searching=search?.container.id===e.c.id;
    e.lid.rotation.x=searching?searchLidAngle(search.time):T.MathUtils.damp(e.lid.rotation.x,open?-1.35:0,12,dt);
-   const remaining=open?(state.backpack.remaining[e.c.id]||{}):e.c.loot,signature=Object.entries(remaining).filter(([,n])=>n>0).map(([id])=>lootFamily(id)).sort().join('|');
+   const remaining=open?(state.backpack.remaining[e.c.id]||{}):e.c.loot,signature=Object.entries(remaining).filter(([,n])=>n>0).map(([id,n])=>id+':'+n).sort().join('|');
    e.contents.visible=e.lid.rotation.x<-.70&&!!signature;
-   if(signature!==e.signature){e.signature=signature;const present=new Set(Object.entries(remaining).filter(([,n])=>n>0).map(([id])=>lootFamily(id)));let slot=0;for(const [family,f]of e.families){f.visible=present.has(family);if(f.visible)f.position.set(-e.width/2+e.width/(present.size+1)*(++slot),.10,0);}}
+   if(signature!==e.signature){e.signature=signature;const present=new Set(Object.entries(remaining).filter(([,n])=>n>0).map(([id])=>lootFamily(id)));let slot=0;for(const [family,f]of e.families){f.visible=present.has(family);if(f.visible)f.position.set(-e.width/2+e.width/(present.size+1)*(++slot),0,0);if(family==='linen')for(const mesh of f.userData.stack)mesh.count=Math.min(3,remaining.cloth||0);}}
   }
  }};
 }

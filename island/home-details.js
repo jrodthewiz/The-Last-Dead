@@ -87,8 +87,12 @@ export function furnishCottage(k,b,floor,solid,{side,workX,special=false}){
    for(let i=0;i<3;i++){const xx=workX-.86+i*.30,h=[.32,.43,.35][i];cylinder('remedy-bottle',xx,.985+h/2,-2.83,.10,h,i%2?0x8d6d5b:0x658274);cylinder('remedy-stopper',xx,1.005+h,-2.83,.068,.04,cream);box('remedy-label',xx,.985+h*.48,-2.723,.13,.12,.018,cream);}
    box('clean-gauze',workX+.72,1.013,-2.5,.30,.07,.46,cream);
   }else{
-   cylinder('dinner-plate',workX+.72,.94,-2.6,.24,.035,cream);
-   cylinder('drinking-mug',workX+.12,1.04,-2.85,.095,.20,0x7a9789);
+   k.add('basin',b.x+workX+.72,floor+.941,b.z-2.6,.24,.052,.24,cream);k.lastRole('dinner-plate');
+   const mugX=workX+.12,mugZ=-2.85,mugColour=0x7a9789;
+   k.add('mug',b.x+mugX,floor+1.035,b.z+mugZ,.105,.24,.105,mugColour);k.lastRole('drinking-mug');
+   // Thick angular handle joins the wall at both ends; the cup stays hollow.
+   for(const y of [.985,1.115])k.rod([b.x+mugX+.09,floor+y,b.z+mugZ],[b.x+mugX+.175,floor+y,b.z+mugZ],.022,mugColour);
+   k.rod([b.x+mugX+.175,floor+.985,b.z+mugZ],[b.x+mugX+.175,floor+1.115,b.z+mugZ],.022,mugColour);
    box('bread-board',workX-.60,.946,-2.54,.68,.035,.54,wood);
    k.add('rock',b.x+workX-.60,floor+1.04,b.z-2.54,.44,.19,.30,0xb19867);k.lastRole('household-loaf');
   }
