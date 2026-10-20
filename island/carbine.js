@@ -1,4 +1,5 @@
 import * as T from '../vendor/three.module.js';
+import {weaponResponse,reloadWeight} from './weapon-response.js';
 import {createLookSway} from './look-sway.js';
 import {consoleMaterial} from './retro-materials.js';
 
@@ -83,17 +84,19 @@ export function makeRifle(camera){
   setArm(right,[.25,-.32,.36],[.035,-.093,.13]);
   const flash=new T.Mesh(new T.ConeGeometry(.065,.17,5),new T.MeshBasicMaterial({color:0xffd68c}));flash.rotation.x=-Math.PI/2;flash.position.set(0,.069,-.85);gun.add(flash);flash.visible=false;
   const smooth=(a,b,t)=>T.MathUtils.smoothstep(t,a,b);
-  let wasVisible=false,equipAge=1;const sway=createLookSway({response:9,xGain:-.3/60,yGain:-.3/60,maxRate:4.8});
-  const api={root,gun,flash,magazine,support,trigger,bolt,poseOverride:null,
-    update(time,moving,aim,recoil,reloadPhase,visible,dt=1/60,motion=true,stride=null){
-      const p=api.poseOverride??reloadPhase,reloading=p>=0,tilt=reloading?Math.sin(Math.PI*p):0;
-      root.visible=visible;root.scale.setScalar(.94);if(!visible){wasVisible=false;sway.reset();return;}
+  let wasVisible=false,equipAge=1,shotAge=9,lastShot=0;const firePose={};const sway=createLookSway({response:9,xGain:-.3/60,yGain:-.3/60,maxRate:4.8});
+  const ejectionSocket=new T.Object3D();ejectionSocket.position.set(.055,.065,-.01);gun.add(ejectionSocket);
+  const api={root,gun,flash,magazine,support,trigger,bolt,ejectionSocket,get shotAge(){return shotAge;},poseOverride:null,
+    update(time,moving,aim,recoil,reloadPhase,visible,dt=1/60,motion=true,stride=null,shotSequence=null){
+      const p=api.poseOverride??reloadPhase,reloading=p>=0,tilt=reloading?reloadWeight(p):0;
+      root.visible=visible;root.scale.setScalar(.94);if(!visible){wasVisible=false;shotAge=9;lastShot=shotSequence;sway.reset();return;}
+      if(shotSequence!==null){if(!wasVisible)lastShot=shotSequence;if(shotSequence!==lastShot)shotAge=0;else shotAge+=dt;lastShot=shotSequence;}
       if(visible&&!wasVisible)equipAge=0;wasVisible=visible;equipAge=Math.min(1,equipAge+dt*4.5);
       const {x:swayX,y:swayY}=sway.update(camera.rotation.y,camera.rotation.x,dt,motion);
       const bob=motion?(stride?Math.sin(stride.phase)*.007*stride.weight:moving?Math.sin(time*10.5)*.007:Math.sin(time*1.7)*.0015):0;
-      const kick=T.MathUtils.smoothstep(recoil,0,1);
-      root.position.set(T.MathUtils.lerp(.20,0,aim),T.MathUtils.lerp(-.25,-.127,aim)+bob+tilt*.14,-.62+kick*.065-tilt*.045);
-      root.rotation.set(kick*.07-tilt*.12,tilt*.12,-tilt*.30);
+      weaponResponse('carbine',shotAge,aim,motion,firePose);const kick=shotSequence===null?T.MathUtils.smoothstep(recoil,0,1):firePose.kick;
+      root.position.set(T.MathUtils.lerp(.20,0,aim),T.MathUtils.lerp(-.25,-.127,aim)+bob+tilt*.14,-.62+(shotSequence===null?kick*.065:firePose.z)-tilt*.045);
+      root.rotation.set(kick*.062-tilt*.12,tilt*.12,-tilt*.30+firePose.roll);
       root.position.x+=swayX*(1-aim*.8);root.position.y+=swayY*(1-aim*.8)-(1-equipAge)**2*.18;root.rotation.z+=swayX*.6;
       // Release, withdraw, insert, charge. The hand and magazine share the
       // withdraw/insert displacement; return to the fore-end is a separate arc.
@@ -110,8 +113,8 @@ export function makeRifle(camera){
         else{const t=smooth(.88,1,p);support.position.copy(contact).lerp(new T.Vector3(-.037,-.012,-.29),t);support.position.y+=Math.sin(t*Math.PI)*.13;support.rotation.z=T.MathUtils.lerp(.35,-1.1,t);}
       }
       setArm(left,[-.27,-.27,.21],[support.position.x-.01,support.position.y-.025,support.position.z+.035]);
-      bolt.position.z=reloading?charge:recoil*.04;
-      flash.visible=recoil>.78;
+      bolt.position.z=reloading?charge:(shotSequence===null?recoil:firePose.pulse)*.04;
+      flash.visible=shotSequence===null?recoil>.78:shotAge<.035;
     }
   };api.update(0,false,0,0,-1,true);return api;
 }
