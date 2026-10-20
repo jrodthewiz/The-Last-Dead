@@ -63,10 +63,10 @@ export function animateSalvageMelee(root,{id,age,contact,duration,active,group,a
  p[1].fromArray(d.high);p[1].x*=inset;p[2].set(0,0,-1.30);p[3].fromArray(d.low);p[3].x*=inset;p[4].fromArray(d.return);p[4].x*=inset;
  t[0]=0;t[1]=contact*d.load;t[2]=contact;t[3]=contact+d.followTime;t[4]=duration*d.recoverAt;t[5]=end;
  setRotation(q[3],d.follow);
- if(hit){const response=SALVAGE_RESPONSE[id],hard=hit==='wall'?1.15:1;p[3].multiplyScalar(response.follow);p[3].z=-1.30;
+ if(hit){const response=SALVAGE_RESPONSE[id],wall=hit==='wall',hard=wall?1.15:1;p[3].multiplyScalar(wall?(response.wallFollow??response.follow):response.follow);p[3].z=-1.30+(wall?(response.wallRetreat||0):0);
   if(id==='hammer')p[3].y=response.rebound*hard;
   if(id==='pipe')p[3].x=response.rebound*inset*hard;
-  q[3].slerp(q[2],id==='sword'?.22:.62);
+  q[3].slerp(q[2],id==='sword'?(wall?.80:.22):.62);
  }
  for(const velocity of v)velocity.set(0,0,0);
  if(!hit)v[2].copy(p[3]).sub(p[1]).multiplyScalar(1.20/(t[3]-t[1]));

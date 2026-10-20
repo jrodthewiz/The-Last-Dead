@@ -80,7 +80,7 @@ export async function createArmoryModels(camera,source=loadGlb(new URL('../asset
    if(salvage){animateSalvageMelee(model,{id,age:shotAge,contact:profile.contact,duration:profile.interval,active:shotAge<profile.interval,group,aspect:camera.aspect,hit:salvageHit,impactFrame:salvageImpactFrame});salvageImpactFrame=false;}
    else if(index>=6)animateMeleeWeapon(model,{active:melee&&shotAge<profile.interval,progress:melee?Math.min(1,batAge<=profile.contact?batAge/profile.contact*.4:.4+(batAge-profile.contact)/(batEnd-profile.contact)*.6):0,...(melee?batContactPose(group.position.x,group.position.y,group.scale.x):{}),flowingReturn:index===6,sawRev,contact:sawContact>0?.5:0,sawActive:firing,reducedMotion:!motion},time,dt);
    if(index===6)salvageImpactFrame=false;
-   utilityReloads[index]?.update(reloading);
+   utilityReloads[index]?.update(reloading,reloadCount);
    reloads[index]?.update(reloading);
    const phase=equipAge<.28?'draw':salvage&&shotAge<profile.interval?'idle':melee&&shotAge<profile.interval||index===7&&firing?'strike':index<6&&shotAge<.4?'fire':moving?'walk':'idle';
    // One authored gait cycle per footstep pair, shared with distance-driven

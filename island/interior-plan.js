@@ -78,7 +78,12 @@ export function interiorPlan(b){
   table('work-table',-side*3,-2.6,boat?3.9:2.8,1.45);stove(b.w/2-1.2,b.d/2-2);
   box(0,.025,1,3.1,.035,3,garden?0x8d956e:0x9c8060);
   table('washstand',-b.w/2+1.4,b.d/2-2.5,1.65,.85);
-  k.add('cylinder',b.x-b.w/2+1.4,floor+1.02,b.z+b.d/2-2.5,.48,.17,.32,linen);
+  const washX=-b.w/2+1.4,washZ=b.d/2-2.5;
+  k.add('basin',b.x+washX,floor+1.03,b.z+washZ,.48,.23,.32,linen);k.lastRole('wash-basin');
+  k.add('cylinder',b.x+washX,floor+.982,b.z+washZ,.295,.008,.195,0x81968b);k.lastRole('wash-basin-bottom');
+  box(washX+.59,.938,washZ+.28,.28,.035,.34,green);
+  box(washX+.59,.825,washZ+.44,.28,.22,.025,green);k.lastRole('hanging-washcloth');
+  box(washX+.59,.746,washZ+.457,.27,.025,.010,linen);
   if(boat){
    box(1.2,1.28,-b.d/2+2.5,.16,2.56,4.7,0xa8a488);solid('sleeping-partition',1.2,-b.d/2+2.5,.16,4.7,2.56);
    box(-3,.95,-2.6,3.6,.035,1.35,linen);

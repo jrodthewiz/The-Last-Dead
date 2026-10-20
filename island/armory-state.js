@@ -17,11 +17,18 @@ export const WEAPONS=Object.freeze([
  {id:'pipe',name:'Service pipe',kind:'melee',capacity:0,reserve:0,damage:45,head:45,range:2.6,interval:.58,contact:.20,width:1.15,reload:0,spread:0,description:'A battered utility pipe. Fast, dependable blunt strikes with a short recovery. No ammunition needed.'},
 ]);
 export function ensureArmory(s,saved=s.armory){
- const result={};for(const w of WEAPONS){const old=saved?.[w.id],owned=w.id==='carbine'||w.id==='bat'||old?.owned===true;result[w.id]={owned,ammo:clamp(Math.floor(Number.isFinite(old?.ammo)?old.ammo:w.id==='carbine'?s.ammo:w.capacity),0,w.capacity),reserve:clamp((w.id==='breach'?clamp((old?.ammo||0)-w.capacity,0,3):0)+Math.floor(Number.isFinite(old?.reserve)?old.reserve:w.id==='carbine'?s.reserve:w.reserve),0,999)};}
+ const result={};for(const w of WEAPONS){const old=saved?.[w.id],owned=w.id==='carbine'||w.id==='bat'||old?.owned===true,ammo=clamp(Math.floor(Number.isFinite(old?.ammo)?old.ammo:w.id==='carbine'?s.ammo:w.capacity),0,w.capacity);result[w.id]={owned,ammo,reserve:clamp((w.id==='breach'?clamp((old?.ammo||0)-w.capacity,0,3):0)+Math.floor(Number.isFinite(old?.reserve)?old.reserve:w.id==='carbine'?s.reserve:w.reserve),0,999)};
+  // Legacy saves did not distinguish an empty chamber from a retained case.
+  // Preserve their ammunition; only known shots may create an ejected case.
+  if(w.id==='ossuary'||w.id==='breach')result[w.id].spent=clamp(Math.floor(Number.isFinite(old?.spent)?old.spent:0),0,w.capacity-ammo);
+ }
  s.armory=result;s.weapon=WEAPONS.some(w=>w.id===s.weapon&&result[w.id].owned)?s.weapon:'carbine';const current=result[s.weapon];s.ammo=current.ammo;s.reserve=current.reserve;return s;
 }
 export function weaponProfile(s){return WEAPONS.find(w=>w.id===s.weapon)||WEAPONS[0];}
 export function storeAmmo(s){if(s.armory?.[s.weapon])Object.assign(s.armory[s.weapon],{ammo:s.ammo,reserve:s.reserve});}
+export function retainCase(s){const w=weaponProfile(s);if(w.id==='ossuary'||w.id==='breach')s.armory[w.id].spent=Math.min(w.capacity-s.ammo,(s.armory[w.id].spent||0)+1);}
+export function spentCases(s){const w=weaponProfile(s);return w.id==='ossuary'||w.id==='breach'?clamp(s.armory[w.id].spent||0,0,w.capacity-s.ammo):0;}
+export function ejectCases(s){const count=spentCases(s);if(s.weapon==='ossuary'||s.weapon==='breach')s.armory[s.weapon].spent=0;return count;}
 export function equip(s,id){if(!s.armory?.[id]?.owned||s.weapon===id)return false;storeAmmo(s);s.weapon=id;s.ammo=s.armory[id].ammo;s.reserve=s.armory[id].reserve;return true;}
 export function collectWeapon(s,id){const entry=s.armory[id],w=WEAPONS.find(w=>w.id===id);if(!entry||entry.owned)return false;entry.owned=true;entry.ammo=w.capacity;entry.reserve=Math.max(entry.reserve,w.reserve);return true;}
 // Loose finds are consumed by identity, independently of weapon ownership.
@@ -40,7 +47,7 @@ export function supplyAmmo(s){
  for(const w of WEAPONS){const a=s.armory[w.id];if(!a.owned||!w.capacity)continue;const amount=w.id==='carbine'?16:w.kind==='rocket'?2:w.kind==='arc'?3:w.kind==='saw'?40:w.capacity,count=Math.min(amount,999-a.reserve);if(count>0){a.reserve+=count;recovered.push({id:'ammo-'+w.id,count});}}
  s.reserve=s.armory[s.weapon].reserve;return recovered;
 }
-export function finishReload(s){const w=weaponProfile(s),add=Math.min(w.capacity-s.ammo,s.reserve);s.ammo+=add;s.reserve-=add;storeAmmo(s);return add;}
+export function finishReload(s){const w=weaponProfile(s),add=Math.min(w.capacity-s.ammo,s.reserve);ejectCases(s);s.ammo+=add;s.reserve-=add;storeAmmo(s);return add;}
 export function weaponCaches(data){
  const near=(x,z)=>data.buildings.filter(b=>b.enterable&&b.district==='village').sort((a,b)=>Math.hypot(a.x-x,a.z-z)-Math.hypot(b.x-x,b.z-z))[0];
  const home=data.buildings.find(b=>b.id==='arrival-house'),village=near(-420,160),keeper=data.buildings.find(b=>b.id==='lightkeeper'),orchard=data.buildings.find(b=>b.id==='orchard-house'),boatwright=data.buildings.find(b=>b.id==='building-7'),dock=data.buildings.filter(b=>b.enterable&&b.x>350).sort((a,b)=>Math.hypot(a.x-1100,a.z-200)-Math.hypot(b.x-1100,b.z-200))[0];

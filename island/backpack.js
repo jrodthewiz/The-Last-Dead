@@ -34,6 +34,13 @@ export function transferLoot(s,stash,id,requested=99){
  loot[id]-=count;return count;
 }
 export function transferLootReceipt(s,stash,id){const def=itemDefinition(id),a=s.armory[def?.weapon],duplicate=id.startsWith('weapon-')&&a?.owned,before=a?(s.weapon===def.weapon?s.reserve:a.reserve):0,count=transferLoot(s,stash,id);if(!count)return null;return duplicate?{id:'ammo-'+def.weapon,count:a.reserve-before}:{id,count};}
+export function previewLoot(s,stash){
+ // The forecast runs the real transfer order on a detached save-shaped copy.
+ // Shared pouch space, duplicate weapons and capped reserves have one owner.
+ const preview=structuredClone(s),loot=openStash(preview,stash),packed=[];
+ for(const id of Object.keys(loot)){const receipt=transferLootReceipt(preview,stash,id);if(receipt)packed.push(receipt);}
+ return {packed,left:Object.entries(loot).filter(([,count])=>count>0).map(([id,count])=>({id,count}))};
+}
 export function craftBandage(s){const p=s.backpack.items;if(p.cloth<2||p.antiseptic<1)return false;p.cloth-=2;p.antiseptic--;p.bandage++;return true;}
 export function fitWeapon(s,id){if(!s.armory[id]?.owned||s.backpack.fittings[id]||s.backpack.items.scrap<8)return false;s.backpack.items.scrap-=8;s.backpack.fittings[id]=true;return true;}
 export const weaponDamageMultiplier=s=>s.backpack?.fittings?.[s.weapon]?1.2:1;
