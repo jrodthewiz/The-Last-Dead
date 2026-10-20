@@ -165,3 +165,22 @@ form a quiet row below the objective, while FIRE/USE/JUMP use one edge column.
 Short landscape displays use a shallow two-line weapon/ammunition strip,
 leaving the wrapped hands visible above it. These reuse the field-kit colours
 and retain at least 44px action targets. The desktop layout is unchanged.
+
+## Craft council continuity — October 19, 2026
+
+The ten-agent craft pass preserves the field-kit identity and world-first
+composition. Arc equipment teaches HOLD FIRE / CHARGE; touch failure messages
+name PUNCH. Reinforced melee impact displays its effective value, and completed
+reinforcement says Reinforced instead of offering an unavailable recipe.
+
+Collection receipts age only during visible play. A multi-reserve pickup shows
+the active weapon's actual gain and acknowledges other reserves in one quiet
+plate. Immediate pickup refresh keeps the counter consistent with the receipt.
+Dry-fire/reserve notices end when resupply or switching resolves that failure;
+mission notices retain their own lifetime. Portrait touch location labels sit
+below the utility row and yield to a notification.
+
+Medical dialogue distinguishes a full belt from an already claimed gift. Medical
+notes can be copied while full and keep their dressing for a later visit.
+Container silhouettes, open contents and pack quantities share the same household
+identities. Evidence: `docs/adversarial-review/craft-council-2026-10-19.md`.

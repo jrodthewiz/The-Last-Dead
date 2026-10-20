@@ -143,7 +143,7 @@ export function createWorldData(seed=SEED) {
   for(const [x,z] of encounters)for(let i=0;i<3;i++)enemies.push({id:`dead-${enemies.length}`,x:x>=355?392+Math.round((x-392)/76)*76:x+i*5,z:z+i*6,health:70,phase:rng()*6.28});
   const planted=orchardTrees(buildings,accessPaths,terrainHeight,accessReserved);
   const entryClear=(x,z,r)=>buildings.every(b=>!b.enterable||Math.abs(x-b.entry.x)>b.entry.width/2+r||z<b.entry.z-r||z>b.entry.z+b.entry.length+r);
-  return {seed,buildings,accessPaths,trees:[...trees.filter(t=>!settlementReserved(t.x,t.z,3)&&!accessReserved(accessPaths,t.x,t.z,3)&&!orchardReserved(t.x,t.z)&&entryClear(t.x,t.z,2)),...planted],rocks:rocks.filter(r=>!settlementReserved(r.x,r.z,r.s)&&!accessReserved(accessPaths,r.x,r.z,r.s)&&entryClear(r.x,r.z,r.s)),supplies,enemies,landmarks:LANDMARKS,wrecks:BRIDGE_WRECKS,parkedCars:PARKED_CARS};
+  return {seed,buildings,accessPaths,trees:[...trees.filter(t=>!settlementReserved(t.x,t.z,3)&&!accessReserved(accessPaths,t.x,t.z,3)&&!orchardReserved(t.x,t.z)&&entryClear(t.x,t.z,2)),...planted],rocks:rocks.filter(r=>buildings.every(b=>Math.abs(r.x-b.x)>b.w/2+r.s+.5||Math.abs(r.z-b.z)>b.d/2+r.s+.5)&&!settlementReserved(r.x,r.z,r.s)&&!accessReserved(accessPaths,r.x,r.z,r.s)&&entryClear(r.x,r.z,r.s)),supplies,enemies,landmarks:LANDMARKS,wrecks:BRIDGE_WRECKS,parkedCars:PARKED_CARS};
 }
 export function regionAt(x,z) {
   if(x>68&&x<372&&Math.abs(z)<25)return 'Saint Orin Bridge';

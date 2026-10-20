@@ -10,10 +10,10 @@ export function createLootPlan(data,grid,floorAt){
  const add=(id,x,z,theme)=>{const [name,kind,loot]=theme;result.push({id:'stash-'+id,name,kind,x,z,y:floorAt(x,z),loot:{...loot,...(rare[id]?{['weapon-'+rare[id]]:1}:{})}});};
  for(const [i,b]of data.buildings.filter(b=>b.enterable).entries()){
   const household=domesticProfile(b);
-  if(household){result.push({id:'stash-'+b.id,name:household.name,kind:household.container,x:household.x,z:household.z,y:household.y,household:household.kind,loot:{...household.loot}});continue;}
+  if(household){result.push({id:'stash-'+b.id,name:household.name,kind:household.container,x:household.x,z:household.z,y:household.y,household:household.kind,yaw:Math.PI,loot:{...household.loot}});continue;}
   const candidates=[[b.x+3,b.z+b.d/2-2],[b.x-3,b.z+b.d/2-2],[b.x+b.w/2-2,b.z+1],[b.x-b.w/2+2,b.z+1]];
   const p=candidates.find(([x,z])=>!grid.blocked(x,z,b.baseY+.2,.7)&&Math.abs(floorAt(x,z)-(b.baseY+.2))<.12);if(!p)continue;
-  const theme=b.id==='clinic'?['Ward supply chest','chest',{bandage:3,antiseptic:2,cloth:2}]:b.id==='lightkeeper'?['Keeper’s ammunition','chest',{'ammo-mourning':10,scrap:3}]:b.id==='orchard-house'?['Orchard tool chest','chest',{'ammo-chainsaw':35,scrap:4}]:themes[i%themes.length];add(b.id,...p,theme);
+  const theme=b.id==='clinic'?['Ward supply chest','chest',{bandage:3,antiseptic:2,cloth:2}]:b.id==='lightkeeper'?['Keeper’s ammunition','chest',{'ammo-mourning':10,scrap:3}]:b.id==='orchard-house'?['Orchard tool chest','chest',{'ammo-chainsaw':35,scrap:4}]:themes[i%themes.length];add(b.id,...p,theme);result.at(-1).yaw=Math.PI;
  }
  for(const [i,p]of PLACES.entries()){
   for(const [dx,dz]of [[3,2],[-3,2],[2,-3],[-2,-3]]){const x=p.x+dx,z=p.z+dz,y=floorAt(x,z);if(!grid.blocked(x,z,y,.8)){add(p.id,x,z,i%2?['Trail ammunition','chest',{'ammo-breach':6,'ammo-carbine':12,scrap:3}]:['Forgotten provisions','bag',{bandage:2,beer:2,cloth:2}]);break;}}

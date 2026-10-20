@@ -23,3 +23,12 @@ export function contactResponse(state){const n=state.relays.length;return [
  'All three stations. The captain answered by name. You brought this coast back within reach of someone. Take the last ration and follow the waterfront to the ferry.',
  ][Math.min(3,n)];}
 export function claimContactSupply(state){const stage=state.relays.length;if(state.contactStage>=stage)return false;state.contactStage=stage;state.medkits=Math.min(20,state.medkits+1);return true;}
+
+// A full medical belt must not erase the tin beside a copied field record.
+// Pending markers use the existing collected ledger, including save round trips.
+export function claimMedicalNote(state,record){
+ const marker='pending-medical-'+record.id,pending=state.collected.includes(marker);
+ if(state.records.includes(record.id)&&!pending)return 'claimed';
+ if(state.medkits>=20){if(!pending)state.collected.push(marker);return 'full';}
+ state.medkits++;if(pending)state.collected.splice(state.collected.indexOf(marker),1);return 'recovered';
+}

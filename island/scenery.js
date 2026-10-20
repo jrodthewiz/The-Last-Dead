@@ -6,6 +6,7 @@ import * as T from '../vendor/three.module.js';
 import {mergeGeometries} from '../vendor/utils/BufferGeometryUtils.js';
 import {loadGlb} from '../assets/load-glb.js';
 import {random,terrainHeight,roadAt,LANDMARKS,SPAWN} from './data.js';
+import {supportHeight} from './simulation.js';
 import {consoleMaterial} from './retro-materials.js';
 
 export const SCENERY_ASSETS=['barrel','box','box-large','bucket','campfire-pit','chest','fence','fence-fortified','bedroll','bedroll-packed','bottle','resource-wood','resource-planks','resource-stone','tent','tent-canvas','tool-axe','tool-shovel','workbench','workbench-anvil','workbench-grind','tree-log','tree-log-small','grass','grass-large','patch-grass','rock-flat','signpost'];
@@ -37,16 +38,28 @@ export function sceneryPlan(data){
 }
 
 export async function loadScenery(scene,data){
-  const items=sceneryPlan(data),assets=new Map(),tiles=new Map(),colliders=[],matrix=new T.Matrix4(),q=new T.Quaternion(),pos=new T.Vector3(),scale=new T.Vector3();let material;
-  await Promise.all(SCENERY_ASSETS.map(async name=>{const gltf=await loadGlb(new URL(`../assets/cc0-survival/${name}.glb`,import.meta.url).href);gltf.scene.updateMatrixWorld(true);const pieces=[];gltf.scene.traverse(o=>{if(o.isMesh){const g=o.geometry.clone().applyMatrix4(o.matrixWorld);for(const key of Object.keys(g.attributes))if(!['position','normal','uv'].includes(key))g.deleteAttribute(key);pieces.push(g.index?g.toNonIndexed():g);if(!material)material=consoleMaterial(new T.MeshLambertMaterial({map:o.material.map,color:0xd5d3b7,flatShading:true}));}});const geometry=mergeGeometries(pieces);geometry.computeBoundingBox();assets.set(name,{geometry,bounds:geometry.boundingBox.clone()});}));
+  const items=sceneryPlan(data),assets=new Map(),tiles=new Map(),colliders=[],matrix=new T.Matrix4(),q=new T.Quaternion(),pos=new T.Vector3(),scale=new T.Vector3();let material;const footings=[],footingBox=new T.BoxGeometry(1,1,1),footingMatrix=new T.Matrix4(),footingPoints=[];
+  await Promise.all(SCENERY_ASSETS.map(async name=>{const gltf=await loadGlb(new URL(`../assets/cc0-survival/${name}.glb`,import.meta.url).href);gltf.scene.updateMatrixWorld(true);const pieces=[];gltf.scene.traverse(o=>{if(o.isMesh){const g=o.geometry.clone().applyMatrix4(o.matrixWorld);for(const key of Object.keys(g.attributes))if(!['position','normal','uv'].includes(key))g.deleteAttribute(key);pieces.push(g.index?g.toNonIndexed():g);if(!material)material=consoleMaterial(new T.MeshLambertMaterial({map:o.material.map,color:0xd5d3b7,flatShading:true}));}});const geometry=mergeGeometries(pieces);geometry.computeBoundingBox();const bounds=geometry.boundingBox.clone(),feet=[];
+  if(name.startsWith('workbench')||name.startsWith('tent')){
+   const p=geometry.attributes.position,centre=bounds.getCenter(new T.Vector3()),height=bounds.max.y-bounds.min.y;
+   for(const sx of [-1,1])for(const sz of [-1,1]){const points=[];for(let i=0;i<p.count;i++)if(p.getY(i)<bounds.min.y+height*.015&&(p.getX(i)-centre.x)*sx>0&&(p.getZ(i)-centre.z)*sz>0)points.push(new T.Vector3().fromBufferAttribute(p,i));if(points.length){const foot=new T.Box3().setFromPoints(points);feet.push({centre:foot.getCenter(new T.Vector3()),width:foot.max.x-foot.min.x,depth:foot.max.z-foot.min.z});}}
+  }
+  assets.set(name,{geometry,bounds,feet});}));
   for(const p of items){const a=assets.get(p.name),dimensions=a.bounds.getSize(new T.Vector3()),s=p.size/Math.max(dimensions.x,dimensions.y,dimensions.z),centre=a.bounds.getCenter(new T.Vector3());
-    q.setFromAxisAngle(new T.Vector3(0,1,0),p.angle);pos.set(-centre.x*s,-a.bounds.min.y*s,-centre.z*s).applyQuaternion(q).add(new T.Vector3(p.x,p.y,p.z));matrix.compose(pos,q,scale.setScalar(s));
+    q.setFromAxisAngle(new T.Vector3(0,1,0),p.angle);
+    if(['barrel','bucket','box','box-large','chest'].includes(p.name)&&Math.abs(p.y-terrainHeight(p.x,p.z))<.02){const span=Math.max(.15,Math.min(dimensions.x,dimensions.z)*s*.45),dx=(terrainHeight(p.x+span,p.z)-terrainHeight(p.x-span,p.z))/(2*span),dz=(terrainHeight(p.x,p.z+span)-terrainHeight(p.x,p.z-span))/(2*span);q.premultiply(new T.Quaternion().setFromUnitVectors(new T.Vector3(0,1,0),new T.Vector3(-dx,1,-dz).normalize()));}
+    pos.set(-centre.x*s,-a.bounds.min.y*s,-centre.z*s).applyQuaternion(q).add(new T.Vector3(p.x,p.y,p.z));matrix.compose(pos,q,scale.setScalar(s));
+    // Timber feet extend to the actual ground on the downhill side. Uphill
+    // feet naturally enter the soil; the work surface keeps its authored level.
+    // Only the four measured sole clusters of timber frames receive posts.
+    for(const foot of a.feet){const centre=foot.centre.clone().applyMatrix4(matrix),ground=supportHeight(data,centre.x,centre.z),height=centre.y-ground+.035;if(height<.08)continue;const w=Math.max(.065,Math.min(.16,foot.width*s)),d=Math.max(.065,Math.min(.16,foot.depth*s));footingMatrix.compose(new T.Vector3(centre.x,ground+height/2,centre.z),q,new T.Vector3(w,height,d));footings.push(footingBox.clone().applyMatrix4(footingMatrix));const record={x:centre.x,z:centre.z,w,d,y:ground,h:height,id:'scenery-timber-footing',prop:p.name};colliders.push(record);footingPoints.push(record);}
     // Coarser render batches reduce CPU draw submission. Every authored prop
     // and its individual collider remain; solid/detail ranges stay separate.
     const tile=`${Math.floor(p.x/192)},${Math.floor(p.z/192)}:${solid.has(p.name)?'solid':'detail'}`;if(!tiles.has(tile))tiles.set(tile,[]);tiles.get(tile).push(a.geometry.clone().applyMatrix4(matrix));
     if(solid.has(p.name)){const box=a.bounds.clone().applyMatrix4(matrix),size=box.getSize(new T.Vector3()),centre=box.getCenter(new T.Vector3());colliders.push({x:centre.x,z:centre.z,w:size.x*.86,d:size.z*.86,y:box.min.y,h:size.y,id:'scenery-'+p.name});}
   }
   const meshes=[];for(const [key,geometries] of tiles){const geometry=mergeGeometries(geometries);geometry.computeBoundingSphere();const mesh=new T.Mesh(geometry,material);mesh.name='Survival scenery '+key;mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.distance=key.endsWith('detail')?230:600;scene.add(mesh);freezeLocalTransforms(mesh);meshes.push(mesh);for(const g of geometries)g.dispose();}
+  if(footings.length){const geometry=mergeGeometries(footings),mesh=new T.Mesh(geometry,new T.MeshLambertMaterial({color:0x726247,flatShading:true}));mesh.name='Grounded timber feet';mesh.castShadow=mesh.receiveShadow=true;scene.add(mesh);freezeLocalTransforms(mesh);for(const g of footings)g.dispose();}footingBox.dispose();
   for(const a of assets.values())a.geometry.dispose();assets.clear();tiles.clear();
-  return {items,colliders,stats:{assets:SCENERY_ASSETS.length,props:items.length,batches:meshes.length},update(camera){for(const m of meshes){const b=m.geometry.boundingSphere;m.visible=camera.distanceToSquared(b.center)<(m.userData.distance+b.radius)**2;}}};
+  return {items,colliders,footingPoints,stats:{assets:SCENERY_ASSETS.length,props:items.length,batches:meshes.length+(footings.length?1:0),footings:footings.length},update(camera){for(const m of meshes){const b=m.geometry.boundingSphere;m.visible=camera.distanceToSquared(b.center)<(m.userData.distance+b.radius)**2;}}};
 }

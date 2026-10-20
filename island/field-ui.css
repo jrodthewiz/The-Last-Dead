@@ -57,6 +57,7 @@
 @media(prefers-reduced-motion:reduce){.pickup-receipt{animation:none}.pack-capacity-track i{transition:none}}
 /* Keep the sight line and operating hands readable behind touch controls. */
 @media(pointer:coarse) and (min-height:601px){
+ #location-card{top:264px;max-width:calc(100vw - 40px)}
  #touch-actions{grid-template-columns:50px;gap:8px;right:16px;bottom:172px}
  #touch-actions button{width:50px;height:48px;background:#19312766}
  #touch-actions button[data-touch=reload],#touch-actions button[data-touch=heal],#touch-actions button[data-touch=melee],#touch-actions button[data-touch=shove]{position:fixed;top:208px;width:44px;height:44px;font-size:9px}

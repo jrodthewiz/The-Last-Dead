@@ -4,7 +4,14 @@ import {WEAPONS} from './armory-state.js';
 
 // The same compact field label owns proximity, searching and treatment.
 // Receipts live at the edge; frequent collections never replace mission messages.
-export function createFieldUI({touch=false}={}){
+export function compactReceipts(items,title,equipped){
+ const ammo=items.filter(p=>p.count>0&&p.id.startsWith('ammo-'));
+ if(ammo.length<2)return items.map(p=>({...p,title}));
+ const primary=ammo.find(p=>p.id==='ammo-'+equipped)||ammo[0];
+ return [...items.filter(p=>!p.id.startsWith('ammo-')).map(p=>({...p,title})),{...primary,reserves:ammo.filter(p=>p!==primary).map(p=>p.id),title:`Ammo & fuel · ${ammo.length-1} other reserves`}];
+}
+
+export function createFieldUI({touch=false,getWeapon=()=>null}={}){
  const root=document.getElementById('interaction');
  root.innerHTML='<kbd></kbd><div class="interaction-copy"><small id="interaction-action"></small><span id="interaction-name"></span><small id="action-label" hidden></small></div><i id="interaction-icon" aria-hidden="true" hidden></i><div id="interaction-progress"></div>';
  const key=root.querySelector('kbd'),name=root.querySelector('#interaction-name'),action=root.querySelector('#interaction-action'),detail=root.querySelector('#action-label'),icon=root.querySelector('#interaction-icon'),bar=root.querySelector('#interaction-progress');
@@ -26,7 +33,7 @@ export function createFieldUI({touch=false}={}){
   text(key,busy?Math.round(fraction*100)+'%':touch?'USE':'E');text(name,title);text(action,verb);text(detail,note);detail.hidden=!note;bar.style.width=fraction*100+'%';root.classList.toggle('is-working',!!busy);root.classList.toggle('is-full',blocked);root.classList.toggle('is-weapon',i?.kind==='weapon'&&!busy);root.setAttribute('aria-label',verb+' · '+title+(note?' · '+note:''));
  }
  function receipt(items,title='Supplies packed'){
-  for(const item of items){if(!item.count)continue;const def=itemDefinition(item.id),old=receipts.find(r=>r.id===item.id);if(old){old.count+=item.count;old.until=clock+3.8;old.title=title;}else receipts.push({...item,name:def?.name||item.name||item.id,title,until:clock+3.8});}
+  for(const item of compactReceipts(items,title,getWeapon())){if(!item.count)continue;const def=itemDefinition(item.id),old=receipts.find(r=>r.id===item.id);if(old){old.count+=item.count;old.until=clock+3.8;old.reserves=[...new Set([...(old.reserves||[]),...(item.reserves||[])])];old.title=old.reserves.length?`Ammo & fuel · ${old.reserves.length} other reserves`:item.title;}else receipts.push({...item,name:def?.name||item.name||item.id,until:clock+3.8});}
   receipts=receipts.slice(-3);draw();
  }
  function draw(){const next=receipts.map(r=>r.id+':'+r.count+':'+r.title).join('|');if(next===signature)return;signature=next;feed.replaceChildren();for(const r of receipts){const found=r.id.startsWith('weapon-'),row=document.createElement('div');row.className='pickup-receipt'+(found?' is-discovery':'');const icon=document.createElement('i');icon.innerHTML=itemIcon(r.id);const copy=document.createElement('span'),label=document.createElement('small'),strong=document.createElement('strong'),count=document.createElement('b');label.textContent=found?'Weapon recovered':r.title;strong.textContent=r.name;count.textContent=found?'◆':'+'+r.count;copy.append(label,strong);row.append(icon,copy,count);feed.append(row);}}
