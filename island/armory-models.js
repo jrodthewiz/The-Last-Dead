@@ -21,7 +21,7 @@ import {applySightPose,installAimingReferences} from './weapon-aim-pose.js';
 import {WEAPONS} from './armory-state.js';
 import {batContactPose} from './melee-presentation.js';
 import {FIRST_PERSON_HOLD_POSES} from '../assets/survivor/viewmodel-hold-poses.js';
-import {installFPSArms,advanceFPSClip} from '../assets/survivor/fps-arms.js';
+import {installFPSArms,advanceFPSClip,seatFPSArms} from '../assets/survivor/fps-arms.js';
 import {loadGlb} from '../assets/load-glb.js';
 import {consoleMaterial} from './retro-materials.js';
 import {batchStaticWeaponMeshes} from '../weapon-batching.js';
@@ -62,7 +62,7 @@ export async function createArmoryModels(camera,source=loadGlb(new URL('../asset
  const reloads=groups.map((group,i)=>i===4||i===5?createRifleReload(group,models[i],i):null);
  const framePose={x:0,y:0,z:0,scale:1},firePose={};
  let reviewReload=null,previous='',shotAge=9,equipAge=9,lastShot=0,sawRev=0,sawLoad=0,impactHold=0,wasVisible=false,salvageHit='',salvageImpactFrame=false;
- return {rig,groups,models,impact(kind='body'){const w=WEAPONS.find(w=>w.id===previous);if(SALVAGE_RESPONSE[previous]){salvageHit=kind;salvageImpactFrame=true;}else{impactHold=.045;if(w?.kind==='melee')shotAge=Math.max(w.contact,shotAge);}},get motion(){return{shotAge,equipAge,impactHold,impactKind:salvageHit,visible:rig.visible};},shotgunReload,expeditionCraft,utilityReloads,reloads,setReviewReload(value){reviewReload=value;},ready:Promise.all(models.map(m=>m.userData.resourcesReady).filter(Boolean)),update({id,time,dt,moving,aim,recoil,reloading,charge,heat,firing,visible,reloadCount=2,shotSequence=0,sawContact=0,motion=true,stride=null}){
+ return {rig,groups,models,impact(kind='body'){const w=WEAPONS.find(w=>w.id===previous);if(SALVAGE_RESPONSE[previous]){salvageHit=kind;salvageImpactFrame=true;}else{impactHold=.045;if(w?.kind==='melee')shotAge=Math.max(w.contact,shotAge);}},get motion(){return{shotAge,equipAge,impactHold,impactKind:salvageHit,visible:rig.visible};},seatHands(){if(!rig.visible)return;const group=groups.find(g=>g.visible);if(!group)return;seatFPSArms(group);const reloadArm=group.userData.reloadArm;if(reloadArm?.visible)seatFPSArms(reloadArm);if(group.name==='arc')arcCraft.poseFinger();if(group.name==='reliquary')expeditionCraft.poseFinger();},shotgunReload,expeditionCraft,utilityReloads,reloads,setReviewReload(value){reviewReload=value;},ready:Promise.all(models.map(m=>m.userData.resourcesReady).filter(Boolean)),update({id,time,dt,moving,aim,recoil,reloading,charge,heat,firing,visible,reloadCount=2,shotSequence=0,sawContact=0,motion=true,stride=null,deferHands=false}){
    reloading=reviewReload??reloading;rig.visible=visible&&id!=='carbine';if(!rig.visible){wasVisible=false;shotAge=9;impactHold=0;salvageHit='';salvageImpactFrame=false;sawRev=sawLoad=0;lastShot=shotSequence;return;}if(!wasVisible){equipAge=0;wasVisible=true;}const index=groups.findIndex(g=>g.name===id);if(index<0)return;
    if(id!==previous){previous=id;equipAge=0;shotAge=9;impactHold=0;salvageHit='';salvageImpactFrame=false;sawRev=sawLoad=0;lastShot=shotSequence;}equipAge+=dt;if(shotSequence!==lastShot){shotAge=0;salvageHit='';salvageImpactFrame=false;}else shotAge+=Math.max(0,dt-impactHold);impactHold=Math.max(0,impactHold-dt);lastShot=shotSequence;sawRev=T.MathUtils.damp(sawRev,firing?1:0,9,dt);
    groups.forEach((g,i)=>g.visible=i===index);const group=groups[index],model=models[index],hold=holds[index],profile=WEAPONS.find(w=>w.id===id),melee=profile.kind==='melee',salvage=index>=8,framed=salvage||index===7,tilt=reloading>=0?reloadWeight(reloading):0;const response=FIRE_RESPONSE[id];weaponResponse(id,shotAge,aim,motion,firePose);const visualShot=response?firePose.pulse:recoil,batEnd=profile.interval-.045,batAge=id==='bat'?salvageMotionAge(id,shotAge,profile.contact,batEnd,salvageHit,salvageImpactFrame):shotAge;sawLoad=T.MathUtils.damp(sawLoad,index===7&&firing&&sawContact>0?1:0,18,dt);
@@ -86,8 +86,8 @@ export async function createArmoryModels(camera,source=loadGlb(new URL('../asset
    const gaitTime=stride?stride.phase/(Math.PI*4)*group.userData.authoredFPS.actions.get('walk').duration:time;
    // A held saw trigger maintains its authored clutch grip. Repeated fuel
    // ticks must not restart a nonexistent firearm clip on the chainsaw rig.
-   advanceFPSClip(group,phase,equipAge<.28?equipAge:salvage&&shotAge<profile.interval?0:index===7&&firing?sawRev*.24:melee&&shotAge<profile.interval?(batAge<=profile.contact?batAge/profile.contact*.25:.25+(batAge-profile.contact)/(batEnd-profile.contact)*.47):index<6&&shotAge<.4?shotAge:phase==='walk'?gaitTime:time,dt);
-   if(index===2)arcCraft.poseFinger();
-   if(index===3)expeditionCraft.poseFinger();
+   advanceFPSClip(group,phase,equipAge<.28?equipAge:salvage&&shotAge<profile.interval?0:index===7&&firing?sawRev*.24:melee&&shotAge<profile.interval?(batAge<=profile.contact?batAge/profile.contact*.25:.25+(batAge-profile.contact)/(batEnd-profile.contact)*.47):index<6&&shotAge<.4?shotAge:phase==='walk'?gaitTime:time,dt,deferHands);
+   if(index===2&&!deferHands)arcCraft.poseFinger();
+   if(index===3&&!deferHands)expeditionCraft.poseFinger();
  }};
 }

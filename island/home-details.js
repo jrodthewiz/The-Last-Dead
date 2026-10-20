@@ -8,6 +8,16 @@ export function furnishCottage(k,b,floor,solid,{side,workX,special=false}){
  const box=(role,x,y,z,w,h,d,color)=>{k.box(b.x+x,floor+y,b.z+z,w,h,d,color);k.lastRole(role);};
  const cylinder=(role,x,y,z,r,h,color)=>{k.add('cylinder',b.x+x,floor+y,b.z+z,r,h,r,color);k.lastRole(role);};
  const back=-b.d/2,prepX=special?-1:0,prepW=special?1.9:3.2,prepZ=back+.85;
+ // Ceiling members sit into a continuous wall plate. Their overhead volumes
+ // also constrain the camera on a jump; no posts intrude on the room's aisles.
+ for(const s of [-1,1]){
+  box('ceiling-wall-plate',s*(b.w/2-.32),2.96,0,.17,.17,b.d-.46,edge);
+  box('ceiling-wall-plate',0,2.96,s*(b.d/2-.32),b.w-.46,.17,.17,edge);
+ }
+ for(const z of [-b.d*.25,0,b.d*.25]){
+  box('ceiling-cross-joist',0,2.93,z,b.w-.50,.22,.20,wood);
+  solid('ceiling-joist-'+z,0,z,b.w-.50,.20,.22,2.82);
+ }
  box('living-timber-floor',0,.009,b.d/4,b.w-.5,.014,b.d/2-.25,0x938366);
  const boardCount=Math.floor((b.w-.5)/.7),boardWidth=(b.w-.5)/boardCount;
  for(let i=1;i<boardCount;i++)box('floorboard-joint',-(b.w-.5)/2+i*boardWidth,.019,b.d/4,.018,.005,b.d/2-.25,0x766e55);

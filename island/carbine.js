@@ -13,7 +13,10 @@ export function makeRifle(camera){
   for(const kind of ['wood','cloth','steel']){const c=document.createElement('canvas');c.width=c.height=32;const ctx=c.getContext('2d');ctx.fillStyle=kind==='wood'?'#b3a18a':kind==='cloth'?'#a8aaa0':'#b6bcb9';ctx.fillRect(0,0,32,32);
     for(let i=0;i<18;i++){ctx.strokeStyle=kind==='wood'?'rgba(47,34,20,.22)':kind==='cloth'?'rgba(36,45,37,.10)':'rgba(244,243,221,.12)';ctx.beginPath();const y=(i*13)%32;ctx.moveTo(0,y);ctx.lineTo(16,y+Math.sin(i)*2);ctx.lineTo(32,y+Math.cos(i)*2);ctx.stroke();}
     const map=new T.CanvasTexture(c);map.colorSpace=T.SRGBColorSpace;map.wrapS=map.wrapT=T.RepeatWrapping;m[kind].map=map;consoleMaterial(m[kind],{textureSize:32});}
-  m.wood.color.setHex(0x937352);m.cloth.color.setHex(0x697769);
+  m.wood.color.setHex(0x937352);m.cloth.color.setHex(0x91aeb4);m.glove.color.setHex(0x514c39);
+  // Gouraud cloth shading keeps the low-sided silhouette without turning
+  // the long forearm into a single hard planar blade.
+  m.cloth.flatShading=false;m.cloth.needsUpdate=true;
   function mesh(parent,geo,mat,x=0,y=0,z=0){const o=new T.Mesh(geo,m[mat]);o.position.set(x,y,z);parent.add(o);return o;}
   function box(parent,x,y,z,w,h,d,mat){return mesh(parent,new T.BoxGeometry(w,h,d),mat,x,y,z);}
   function profile(parent,points,width,mat){
@@ -64,24 +67,24 @@ export function makeRifle(camera){
     for(let i=0;i<4;i++){
       if(side===1&&i===0)continue; // The trigger index has its own contact pose.
       const z=(i-1.5)*.018,a=[side*.023,-.003,z],b=[side*.035,-.028,z],c=[side*.012,-.043,z];
-      rod(g,a,b,.009,'glove',.008);rod(g,b,c,.008,'skin',.0068);
-      mesh(g,new T.IcosahedronGeometry(.009,1),'skin',...b);
+      rod(g,a,b,.0095,'glove',.0085);rod(g,b,c,.0085,'glove',.0075);
+      mesh(g,new T.IcosahedronGeometry(.0095,1),'glove',...b);
     }
-    rod(g,[-side*.025,.02,.015],[-side*.041,.003,-.014],.012,'skin',.009);
-    rod(g,[-side*.041,.003,-.014],[-side*.020,-.01,-.030],.009,'skin',.007);
+    rod(g,[-side*.025,.02,.015],[-side*.041,.003,-.014],.012,'glove',.009);
+    rod(g,[-side*.041,.003,-.014],[-side*.020,-.01,-.030],.009,'glove',.007);
     return g;
   }
   const trigger=hand(gun,1);trigger.position.set(.028,-.06,.10);trigger.rotation.set(-.45,0,.27);
   rod(gun,[.05,-.05,.095],[.059,-.034,.060],.009,'glove',.008);
-  rod(gun,[.059,-.034,.060],[.025,-.043,.030],.008,'skin',.007);
-  rod(gun,[.025,-.043,.030],[.007,-.048,.024],.007,'skin',.006);
+  rod(gun,[.059,-.034,.060],[.025,-.043,.030],.008,'glove',.007);
+  rod(gun,[.025,-.043,.030],[.007,-.048,.024],.007,'glove',.006);
   const support=hand(gun,-1);support.position.set(-.037,-.012,-.29);support.rotation.z=-1.1;
   // Sleeves connect wrists to elbows, rather than floating rectangular cuffs.
-  function arm(){const g=new T.Group();gun.add(g);const rings=[];for(const [t,w]of [[-.5,.116],[-.32,.124],[-.12,.108],[.10,.100],[.24,.096],[.33,.085],[.43,.077],[.5,.072]])rings.push([t,0,w,w*.88]);const sleeve=loft(g,rings,'cloth');sleeve.rotation.x=-Math.PI/2;
-    const cuff=mesh(g,new T.LatheGeometry([new T.Vector2(.039,-.019),new T.Vector2(.042,-.012),new T.Vector2(.039,.006),new T.Vector2(.034,.013)],8),'seam');const wrist=mesh(g,new T.CapsuleGeometry(.027,.012,2,8),'skin');gun.add(wrist);return {g,sleeve,cuff,wrist};}
+  function arm(){const g=new T.Group();gun.add(g);const rings=[[-.5,.059],[-.39,.066],[-.23,.063],[-.12,.056],[.04,.058],[.17,.052],[.29,.049],[.39,.041],[.44,.044],[.5,.037]].map(([y,r])=>new T.Vector2(r,y));const sleeve=mesh(g,new T.LatheGeometry(rings,10),'cloth');sleeve.scale.z=.90;
+    const cuff=mesh(g,new T.LatheGeometry([new T.Vector2(.039,-.019),new T.Vector2(.042,-.012),new T.Vector2(.039,.006),new T.Vector2(.034,.013)],8),'seam');const wrist=mesh(g,new T.CapsuleGeometry(.027,.012,2,8),'glove');gun.add(wrist);return {g,sleeve,cuff,wrist};}
   const right=arm(),left=arm();
   const armStart=new T.Vector3(),armEnd=new T.Vector3(),armDelta=new T.Vector3(),wristStart=new T.Vector3(),palmSeat=new T.Vector3(),armUp=new T.Vector3(0,1,0);
-  function setArm(arm,elbow,hand){hand.updateMatrix();palmSeat.set(0,-.012,.030).applyMatrix4(hand.matrix);armEnd.set(0,-.014,.058).applyMatrix4(hand.matrix);armStart.fromArray(elbow);armDelta.copy(armEnd).sub(armStart);const length=armDelta.length();arm.g.position.copy(armStart).add(armEnd).multiplyScalar(.5);arm.g.quaternion.setFromUnitVectors(armUp,armDelta.normalize());arm.sleeve.scale.z=length-.025;arm.cuff.position.y=length/2-.017;wristStart.copy(armEnd).addScaledVector(armDelta,-.018);arm.wrist.position.copy(wristStart).add(palmSeat).multiplyScalar(.5);armDelta.copy(palmSeat).sub(wristStart);arm.wrist.quaternion.setFromUnitVectors(armUp,armDelta.clone().normalize());arm.wrist.scale.set(1,Math.max(.65,armDelta.length()/.066),.9);}
+  function setArm(arm,elbow,hand){hand.updateMatrix();palmSeat.set(0,-.012,.030).applyMatrix4(hand.matrix);armEnd.set(0,-.014,.058).applyMatrix4(hand.matrix);armStart.fromArray(elbow);armDelta.copy(armEnd).sub(armStart);const length=armDelta.length();arm.g.position.copy(armStart).add(armEnd).multiplyScalar(.5);arm.g.quaternion.setFromUnitVectors(armUp,armDelta.normalize());arm.sleeve.scale.y=length-.025;arm.cuff.position.y=length/2-.017;wristStart.copy(armEnd).addScaledVector(armDelta,-.018);arm.wrist.position.copy(wristStart).add(palmSeat).multiplyScalar(.5);armDelta.copy(palmSeat).sub(wristStart);arm.wrist.quaternion.setFromUnitVectors(armUp,armDelta.clone().normalize());arm.wrist.scale.set(1,Math.max(.65,armDelta.length()/.066),.9);}
   setArm(right,[.25,-.32,.36],trigger);
   const flash=new T.Mesh(new T.ConeGeometry(.065,.17,5),new T.MeshBasicMaterial({color:0xffd68c}));flash.rotation.x=-Math.PI/2;flash.position.set(0,.069,-.85);gun.add(flash);flash.visible=false;
   const smooth=(a,b,t)=>T.MathUtils.smoothstep(t,a,b);

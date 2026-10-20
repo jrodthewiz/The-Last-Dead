@@ -4,6 +4,9 @@ export function searchFocused(s,c){
  return d<.01||(dx*Math.sin(s.yaw)*Math.cos(s.pitch)+dy*Math.sin(s.pitch)-dz*Math.cos(s.yaw)*Math.cos(s.pitch))/d>.45;
 }
 const smooth=(t,a,b)=>{const p=Math.max(0,Math.min(1,(t-a)/(b-a)));return p*p*(3-2*p);};
+// The lid and its lifting hand share this timeline. Inventory is revealed by
+// the gameplay owner only after the search completes.
+export const searchLidAngle=time=>-1.15*smooth(time,.22,.74);
 export function punchMotion(time,active){
  const drive=smooth(time,.035,.19)*(1-smooth(time,.23,.49));
  return active?{x:.23-drive*.14,y:-.28+drive*.13,z:-.48-drive*.57,drive}:{x:.23,y:-.25+drive*.015,z:-.43-drive*.035,drive:0};

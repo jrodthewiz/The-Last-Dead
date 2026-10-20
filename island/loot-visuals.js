@@ -4,6 +4,7 @@ import {WEAPONS} from './armory-state.js';
 import {batchStaticWeaponMeshes} from '../weapon-batching.js';
 import {batchFieldWeapon} from './field-weapon-batches.js';
 import {sleepHiddenBranch} from './render-lifecycle.js';
+import {searchLidAngle} from './search-motion.js';
 
 // The closed silhouette teaches the kind of find; the opened contents follow
 // the same saved inventory as the pack. All pieces are built once and batched
@@ -16,7 +17,11 @@ export function createLootVisuals(scene,containers){
  for(let r=0;r<rings.length-1;r++)for(let i=0;i<8;i++){const j=(i+1)%8,a=ringPoint(rings[r],i),b=ringPoint(rings[r],j),c=ringPoint(rings[r+1],i),d=ringPoint(rings[r+1],j);vertices.push(...a,...c,...b,...b,...c,...d);}
  for(let i=0;i<8;i++)vertices.push(0,.08,0,...ringPoint(rings.at(-1),(i+1)%8),...ringPoint(rings.at(-1),i));
  const clothBody=new T.BufferGeometry();clothBody.setAttribute('position',new T.Float32BufferAttribute(vertices,3));clothBody.computeVertexNormals();
- for(const g of [box,bottle,clothBody])g.userData.sharedAsset=true;
+ const flapVertices=[],flapRings=[[.30,.02,0],[.32,.055,.17],[.28,.02,.36],[.22,-.065,.45]],corners=[[-1,-1],[1,-1],[1,1],[-1,1]],flapPoint=(r,i)=>[corners[i][0]*flapRings[r][0],flapRings[r][1]+corners[i][1]*.014,flapRings[r][2]];
+ for(let r=0;r<3;r++)for(let i=0;i<4;i++){const j=(i+1)%4,a=flapPoint(r,i),b=flapPoint(r,j),c=flapPoint(r+1,i),d=flapPoint(r+1,j);flapVertices.push(...a,...b,...c,...b,...d,...c);}
+ for(const r of [0,3]){const a=flapPoint(r,0),b=flapPoint(r,1),c=flapPoint(r,2),d=flapPoint(r,3);if(r===0)flapVertices.push(...a,...c,...b,...a,...d,...c);else flapVertices.push(...a,...b,...c,...a,...c,...d);}
+ const clothFlap=new T.BufferGeometry();clothFlap.setAttribute('position',new T.Float32BufferAttribute(flapVertices,3));clothFlap.computeVertexNormals();
+ for(const g of [box,bottle,clothBody,clothFlap])g.userData.sharedAsset=true;
  const mats=[0x8c7656,0x5d7660,0xc8bd91,0x446159,0x9b6250,0x243e31,0x795b3d,0x91aaa0].map(color=>new T.MeshLambertMaterial({color,flatShading:true}));
  const piece=(parent,x,y,z,w,h,d,material=0,geometry=box)=>{const m=new T.Mesh(geometry,mats[material]);m.position.set(x,y,z);m.scale.set(w,h,d);m.castShadow=m.receiveShadow=true;parent.add(m);return m;};
  for(const c of containers){
@@ -39,12 +44,10 @@ export function createLootVisuals(scene,containers){
   const lid=new T.Group();lid.name=bag?'Folded satchel flap':crate?'Slatted crate cover':'Reinforced hinged lid';lid.position.set(0,.45,-depth/2);group.add(lid);
   if(crate){for(let j=0;j<4;j++)piece(lid,0,.025,(j+.5)*depth/4,width,.045,depth/4-.018,0);for(const x of [-width*.32,width*.32])piece(lid,x,.058,depth/2,.06,.025,depth,6);}
   else{
-   piece(lid,0,.02,depth/2,width-(bag?.08:0),.045,depth,mat);
-   for(const x of [-width*.32,width*.32])piece(lid,x,.048,depth/2,.05,.014,depth,2);
-   if(bag){piece(lid,0,-.055,depth+.005,.23,.14,.025,1);for(const x of [-.11,.11])piece(lid,x,.10,depth/2,.035,.13,.05,2);piece(lid,0,.17,depth/2,.25,.035,.05,2);}
-   else{piece(group,0,.34,depth/2+.035,.13,.11,.035,2);piece(group,0,.22,depth/2+.05,.28,.045,.035,5);for(const x of [-.13,.13])piece(group,x,.26,depth/2+.05,.04,.10,.035,2);}
+   if(bag){piece(lid,0,0,0,1,1,1,mat,clothFlap);for(const x of [-.21,.21])piece(lid,x,.065,.21,.04,.012,.28,2);for(const x of [-.11,.11])piece(lid,x,.10,depth/2,.035,.13,.05,2);piece(lid,0,.17,depth/2,.25,.035,.05,2);}
+   else{piece(lid,0,.02,depth/2,width,.045,depth,mat);for(const x of [-width*.32,width*.32])piece(lid,x,.048,depth/2,.05,.014,depth,2);piece(group,0,.34,depth/2+.035,.13,.11,.035,2);piece(group,0,.22,depth/2+.05,.28,.045,.035,5);for(const x of [-.13,.13])piece(group,x,.26,depth/2+.05,.04,.10,.035,2);}
   }
-  if(/medical|ward/i.test(c.name)){piece(lid,0,.05,depth/2,.25,.012,.065,4);piece(lid,0,.051,depth/2,.065,.012,.25,4);}
+  if(/medical|ward/i.test(c.name)){piece(lid,0,bag?.076:.05,depth/2,.25,.012,.065,4);piece(lid,0,bag?.077:.051,depth/2,.065,.012,.25,4);}
   const contents=new T.Group(),families=new Map();contents.name='Remaining supplies';group.add(contents);
   const types=['beer','linen','medical','ammo','tools'];
   for(const [i,family]of types.entries()){
@@ -59,10 +62,10 @@ export function createLootVisuals(scene,containers){
  }
  return {entries,colliders:containers.map(c=>({id:c.id,x:c.x,z:c.z,w:c.kind==='bag'?.72:1.105,d:c.kind==='bag'?.44:.705,y:c.y,h:.48})),update(dt,state,camera,search=null){
   for(const e of entries){e.group.visible=camera.distanceToSquared(e.group.position)<110**2;if(!e.group.visible)continue;
-   const open=state.backpack.searched.includes(e.c.id),opening=search?.container.id===e.c.id?T.MathUtils.smoothstep(search.time,.86,1.15):0;
-   e.lid.rotation.x=T.MathUtils.damp(e.lid.rotation.x,open?-1.35:-opening*.95,12,dt);
-   const remaining=state.backpack.remaining[e.c.id]||{},signature=Object.entries(remaining).filter(([,n])=>n>0).map(([id])=>lootFamily(id)).sort().join('|');
-   e.contents.visible=open&&!!signature;
+   const open=state.backpack.searched.includes(e.c.id),searching=search?.container.id===e.c.id;
+   e.lid.rotation.x=searching?searchLidAngle(search.time):T.MathUtils.damp(e.lid.rotation.x,open?-1.35:0,12,dt);
+   const remaining=open?(state.backpack.remaining[e.c.id]||{}):e.c.loot,signature=Object.entries(remaining).filter(([,n])=>n>0).map(([id])=>lootFamily(id)).sort().join('|');
+   e.contents.visible=e.lid.rotation.x<-.70&&!!signature;
    if(signature!==e.signature){e.signature=signature;const present=new Set(Object.entries(remaining).filter(([,n])=>n>0).map(([id])=>lootFamily(id)));let slot=0;for(const [family,f]of e.families){f.visible=present.has(family);if(f.visible)f.position.set(-e.width/2+e.width/(present.size+1)*(++slot),.10,0);}}
   }
  }};

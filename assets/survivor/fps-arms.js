@@ -154,7 +154,7 @@ function seatGrip(state,arm){
  arm.gap=hand.getWorldPosition(q.w).distanceTo(q.position);
 }
 
-export function sampleFPSClip(group,phase,seconds,blend=false){
+export function sampleFPSClip(group,phase,seconds,blend=false,deferSeat=false){
  const s=group?.userData.authoredFPS;if(!s)return false;
  if(!blend)s.transition=null;
  const clip=s.actions.get(phase)||s.actions.get('idle');
@@ -182,6 +182,15 @@ export function sampleFPSClip(group,phase,seconds,blend=false){
   if(f===1)s.transition=null;
  }
  for(const p of s.sampled){p.position.copy(p.bone.position);p.quaternion.copy(p.bone.quaternion);p.scale.copy(p.bone.scale);}
+ if(deferSeat)return true;
+ return seatFPSArms(group);
+}
+
+// Final camera-relative placement must precede IK. Callers with a clearance
+// pose can defer seating without evaluating or advancing the animation twice.
+export function seatFPSArms(group){
+ const s=group?.userData.authoredFPS;if(!s)return false;
+ for(const p of s.sampled){p.bone.position.copy(p.position);p.bone.quaternion.copy(p.quaternion);p.bone.scale.copy(p.scale);}
  s.beforeSeat?.();group.updateWorldMatrix(true,true);for(const arm of s.arms)seatGrip(s,arm);
  // SkinnedMesh updates its inverse world bind in updateMatrixWorld. Make
  // CPU surface/contact queries agree with the following native render.
@@ -191,7 +200,7 @@ export function sampleFPSClip(group,phase,seconds,blend=false){
 
 // Explicit phase/time callers share the same authored-pose transition owner.
 // Blend before IK, so palms stay seated and solved rotations never accumulate.
-export function advanceFPSClip(group,phase,time,dt){
+export function advanceFPSClip(group,phase,time,dt,deferSeat=false){
  const s=group?.userData.authoredFPS;if(!s)return false;s.elapsed+=Math.max(0,Math.min(.05,dt||0));
  if(s.phase!==phase){
   // A trigger/impact remains immediate. Breathing, gait and equip recovery
@@ -199,7 +208,7 @@ export function advanceFPSClip(group,phase,time,dt){
   s.transition=phase==='fire'||phase==='strike'?null:{started:s.elapsed,duration:phase==='draw'?.065:.12,
    poses:s.sampled.map(p=>({position:p.position.clone(),quaternion:p.quaternion.clone()}))};
  }
- return sampleFPSClip(group,phase,time,true);
+ return sampleFPSClip(group,phase,time,true,deferSeat);
 }
 
 export function updateFPSArms(group,run,presentation,dt){

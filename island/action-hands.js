@@ -5,7 +5,7 @@ import {FIRST_PERSON_HOLD_POSES} from '../assets/survivor/viewmodel-hold-poses.j
 import {consoleMaterial} from './retro-materials.js';
 import {chestHandPoint,chestTissueState} from '../chest-finisher-visuals.js';
 import {CRIMSON} from './close-combat.js';
-import {punchMotion} from './search-motion.js';
+import {punchMotion,searchLidAngle} from './search-motion.js';
 
 const smooth=(t,a,b)=>T.MathUtils.smoothstep(t,a,b);
 export async function createActionHands(camera,source=loadGlb(new URL('../assets/survivor/fps-arms-v5.glb',import.meta.url).href)){
@@ -66,9 +66,11 @@ export async function createActionHands(camera,source=loadGlb(new URL('../assets
    if(kind==='vault'){const reach=smooth(p,.02,.18)*(1-smooth(p,.32,.48));a.set(right?.23:-.23,0,0).applyQuaternion(cameraRotation).add(new T.Vector3(action.hand.x,action.hand.y+.04,action.hand.z));point.lerp(a,reach);}
    if(kind==='punch'&&arm.side===(action.side||'right')&&action.target){const weight=punchMotion(t,true).drive;point.lerp(action.target,weight);}
    if(kind==='search'&&action.container){
-    const container=action.container,reach=smooth(p,0,.24)*(1-smooth(p,.72,1)),dx=camera.position.x-container.x,dz=camera.position.z-container.z,len=Math.hypot(dx,dz)||1;
-    const nx=dx/len,nz=dz/len,offset=right?.18:-.18,stroke=Math.sin(smooth(p,.26,.70)*Math.PI*2+(right?0:Math.PI))*.025;
-    a.set(container.x+nx*.29+nz*offset,container.y+.60+stroke,container.z+nz*.29-nx*offset);
+    const container=action.container,reach=smooth(p,0,.22)*(1-smooth(p,.80,1)),bag=container.kind==='bag',depth=bag?.44:.65,width=bag?.72:1.05,angle=searchLidAngle(t),yaw=container.yaw||0;
+    const rummage=right?smooth(p,.60,.71)*(1-smooth(p,.79,.90)):0;
+    const lx=right?width*.14:-width*.32,lz=right?T.MathUtils.lerp(-depth/2+Math.cos(angle)*depth,0,rummage):depth*.32;
+    const height=right?T.MathUtils.lerp(.49-Math.sin(angle)*depth,.34,rummage):.40;
+    a.set(container.x+Math.cos(yaw)*lx+Math.sin(yaw)*lz,container.y+height,container.z-Math.sin(yaw)*lx+Math.cos(yaw)*lz);
     point.lerp(a,reach);
     // Palm faces down onto the lid; preserve finger direction along its edge.
     rotation.slerp(delta.copy(cameraRotation).multiply(arm.openRot.vault),reach);
@@ -83,7 +85,7 @@ export async function createActionHands(camera,source=loadGlb(new URL('../assets
   const flex=kind==='shove'||kind==='vault'?0:kind==='punch'?.48:kind==='crimson'&&t<CRIMSON.extract?-.48:kind==='heal'&&action.id==='beer'?.20:.08;
   for(const digit of ['Index','Middle','Ring','Little'])for(let i=0;i<3;i++)rightBones[digit+i].quaternion.multiply(delta.setFromAxisAngle(axis.set(1,0,0),flex*[.7,1,.65][i]));
   if(kind==='punch')for(const arm of parts)closeFist(arm);
-  if(kind==='search')for(const arm of parts)openPalm(arm,smooth(p,0,.24)*(1-smooth(p,.72,1)));
+  if(kind==='search')for(const arm of parts)openPalm(arm,smooth(p,0,.22)*(1-smooth(p,.80,1)));
   if(kind==='shove'||kind==='vault')for(const arm of parts)openPalm(arm,smooth(t,0,.12));
   group.updateMatrixWorld(true);
 

@@ -36,7 +36,7 @@ function authoredInterior(k,b,y){
 export function interiorPlan(b){
  const pieces=[],solids=[],floor=b.baseY+.2;
  const k={box(x,y,z,w,h,d,color,rotation=0){pieces.push({shape:'box',x,y,z,w,h,d,color,rotation});},add(shape,x,y,z,w,h,d,color,rotation=0){pieces.push({shape,x,y,z,w,h,d,color,rotation});},rod(a,c,r,color){pieces.push({shape:'rod',a,c,r,color});},lastRole(role){pieces.at(-1).role=role;}};
- const solid=(name,x,z,w,d,h)=>solids.push({id:b.id+'-'+name,x:b.x+x,z:b.z+z,w,d,y:floor,h});
+ const solid=(name,x,z,w,d,h,bottom=0)=>solids.push({id:b.id+'-'+name,x:b.x+x,z:b.z+z,w,d,y:floor+bottom,h});
  if(authoredInterior(k,b,floor)){
   // Existing landmark furniture remains authored; collision uses its actual
   // visible volumes so the bed aisles and supply approaches stay open.
@@ -47,7 +47,15 @@ export function interiorPlan(b){
  const box=(x,y,z,w,h,d,c)=>k.box(b.x+x,floor+y,b.z+z,w,h,d,c);
  const table=(name,x,z,w=2.8,d=1.4)=>{box(x,.84,z,w,.15,d,wood);for(const dx of [-w*.4,w*.4])for(const dz of [-d*.35,d*.35])box(x+dx,.4,z+dz,.13,.8,.13,dark);solid(name,x,z,w,d,.92);};
  const shelf=(x,z,w=2.7)=>{for(const dx of [-w/2,w/2])box(x+dx,1.05,z,.14,2.1,.65,dark);for(let j=0;j<3;j++){box(x,.3+j*.7,z,w,.12,.65,wood);for(let i=0;i<4;i++)box(x-w*.36+i*w*.23,.53+j*.7,z,.3,.34,.38,(i+j)%2?linen:green);}solid('shelf',x,z,w+.14,.65,2.1);};
- const bed=(x,z)=>{box(x,.32,z,2,.5,3.1,dark);box(x,.64,z,1.94,.2,3,linen);box(x,.79,z+.2,1.95,.13,2.4,green);box(x,.83,z-1.08,1.4,.2,.55,linen);box(x,.65,z-1.62,2.1,1.1,.13,wood);solid('bed',x,z,2,3.1,.855);solid('bed-headboard',x,z-1.62,2.1,.13,1.2);};
+ const bed=(x,z)=>{
+  for(const dx of [-.85,.85]){box(x+dx,.41,z,.14,.25,3.05,wood);for(const dz of [-1.32,1.32])box(x+dx,.25,z+dz,.18,.5,.18,dark);}
+  for(const dz of [-1.40,1.40])box(x,.41,z+dz,1.78,.25,.13,wood);
+  box(x,.52,z,1.78,.08,2.85,dark);box(x,.64,z,1.94,.2,3,linen);
+  box(x,.79,z+.2,1.95,.13,2.4,green);box(x,.88,z+.90,1.95,.055,.42,green);
+  box(x,.913,z+1.06,1.91,.012,.035,linen);box(x,.83,z-1.08,1.4,.2,.55,linen);
+  box(x,.65,z-1.62,2.1,1.1,.13,wood);for(const dx of [-.94,.94])box(x+dx,.63,z-1.62,.17,1.26,.18,dark);
+  solid('bed',x,z,2,3.1,.92);solid('bed-headboard',x,z-1.62,2.1,.18,1.26);
+ };
  const stove=(x,z)=>{box(x,.57,z,.9,1.1,.85,dark);box(x,.73,z+.44,.55,.4,.045,0x303f39);box(x,2.05,z,.22,1.85,.22,dark);k.add('cylinder',b.x+x,floor+1.19,b.z+z,.24,.18,.24,clay);solid('stove',x,z,1,.95,3);};
  const boat=b.id==='building-7',garden=b.id==='building-8',village=b.district==='village';
  if(village){
