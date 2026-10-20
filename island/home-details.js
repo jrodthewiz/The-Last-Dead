@@ -66,15 +66,26 @@ export function furnishCottage(k,b,floor,solid,{side,workX,special=false}){
    solid('dining-chair-'+x,x,chairZ,.64,.72,1.23);
   }
   if(profile?.kind==='linen'){
-   box('sewing-workcloth',workX,.948,-2.6,1.25,.035,.85,profile.colour);
+   box('sewing-workcloth',workX,.948,-2.6,1.90,.035,.85,profile.colour);
    for(const x of [workX-.48,workX-.22]){cylinder('thread-spool',x,1.04,-2.84,.075,.15,cream);cylinder('spool-end',x,1.122,-2.84,.095,.018,wood);}
-   box('sewing-tin',workX+.46,1.01,-2.55,.35,.12,.26,iron);
+   // A broad open work basket survives the low-resolution entry view. Its
+   // cloth and rim stay on the existing table, with no new floor obstacle.
+   const bx=workX+.55,bz=-2.55;
+   box('sewing-basket-bottom',bx,.993,bz,.70,.055,.57,edge);
+   for(const dx of [-.33,.33])box('sewing-basket-rim',bx+dx,1.11,bz,.055,.24,.57,wood);
+   for(const dz of [-.26,.26])box('sewing-basket-rim',bx,1.11,bz+dz,.64,.24,.055,wood);
+   box('basket-linen',bx,1.11,bz,.53,.16,.42,cream);
+   box('basket-linen-fold',bx+.06,1.205,bz+.08,.42,.035,.25,profile.colour);
+   for(const dx of [-.26,.26])k.rod([b.x+bx+dx,floor+1.18,b.z+bz],[b.x+bx+dx*.65,floor+1.47,b.z+bz],.035,edge);
+   k.rod([b.x+bx-.17,floor+1.47,b.z+bz],[b.x+bx+.17,floor+1.47,b.z+bz],.035,edge);
    for(const dx of [-.08,.08])k.rod([b.x+workX+dx,floor+.98,b.z-2.4],[b.x+workX-dx,floor+.98,b.z-2.15],.017,iron);
   }else if(profile?.kind==='remedies'){
-   box('care-ledger-cover',workX,.94,-2.55,.90,.045,.65,edge);
-   for(const dx of [-.22,.22])box('care-ledger-page',workX+dx,.969,-2.55,.42,.018,.60,cream);
-   for(let i=0;i<3;i++){cylinder('remedy-bottle',workX-.73+i*.23,1.05,-2.88,.065,.24,i%2?0x8d6d5b:0x658274);cylinder('remedy-stopper',workX-.73+i*.23,1.18,-2.88,.045,.035,cream);}
-   box('clean-gauze',workX+.72,.96,-2.5,.30,.07,.46,cream);
+   box('care-ledger-cover',workX+.43,.94,-2.55,.90,.045,.65,edge);
+   for(const dx of [-.22,.22])box('care-ledger-page',workX+.43+dx,.969,-2.55,.42,.018,.60,cream);
+   box('remedy-tray',workX-.56,.95,-2.83,.92,.07,.53,iron);
+   for(const dz of [-.24,.24])box('remedy-tray-lip',workX-.56,1.00,-2.83+dz,.92,.10,.035,iron);
+   for(let i=0;i<3;i++){const xx=workX-.86+i*.30,h=[.32,.43,.35][i];cylinder('remedy-bottle',xx,.985+h/2,-2.83,.10,h,i%2?0x8d6d5b:0x658274);cylinder('remedy-stopper',xx,1.005+h,-2.83,.068,.04,cream);box('remedy-label',xx,.985+h*.48,-2.723,.13,.12,.018,cream);}
+   box('clean-gauze',workX+.72,1.013,-2.5,.30,.07,.46,cream);
   }else{
    cylinder('dinner-plate',workX+.72,.94,-2.6,.24,.035,cream);
    cylinder('drinking-mug',workX+.12,1.04,-2.85,.095,.20,0x7a9789);
