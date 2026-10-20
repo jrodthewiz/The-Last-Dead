@@ -31,13 +31,13 @@ export async function createActionHands(camera,source=loadGlb(new URL('../assets
  const boneRotation=new T.Quaternion(),parentRotation=new T.Quaternion(),handRotation=new T.Quaternion(),jointDirection=new T.Vector3(),desiredDirection=new T.Vector3();
  function openPalm(arm,weight){const bones=arm.side==='right'?rightBones:leftBones;arm.hand.getWorldQuaternion(handRotation);for(const [index,digit]of ['Index','Middle','Ring','Little'].entries())for(let i=0;i<3;i++){const bone=bones[digit+i];bone.getWorldQuaternion(boneRotation);jointDirection.set(0,1,0).applyQuaternion(boneRotation);desiredDirection.copy(arm.fingerAxis).addScaledVector(arm.across,[.12,.025,-.045,-.13][index]).addScaledVector(arm.palmNormal,i*.07).normalize().applyQuaternion(handRotation);delta.setFromUnitVectors(jointDirection,desiredDirection);bone.parent.getWorldQuaternion(parentRotation);boneRotation.copy(parentRotation).invert().multiply(delta).multiply(parentRotation);delta.identity().slerp(boneRotation,weight);bone.quaternion.premultiply(delta);bone.updateWorldMatrix(false,true);}}
  function pointJoint(bone,direction){bone.getWorldQuaternion(boneRotation);jointDirection.set(0,1,0).applyQuaternion(boneRotation);delta.setFromUnitVectors(jointDirection,direction);bone.parent.getWorldQuaternion(parentRotation);boneRotation.copy(parentRotation).invert().multiply(delta).multiply(parentRotation);bone.quaternion.premultiply(boneRotation);bone.updateWorldMatrix(false,true);}
- function closeFist(arm){
+ function closeFist(arm,weight=1){
   const bones=arm.side==='right'?rightBones:leftBones;arm.hand.getWorldQuaternion(handRotation);
   // Solve a closed three-phalange pose from the actual segment lengths. The
   // fingertip lands at the palmar pad, rather than hanging below the palm.
   // Cache the resulting local bone rotations: the wrist/arm solver continues
   // to own the moving fist, without resampling a direction approximation.
-  if(arm.closedPose){for(const [bone,q]of arm.closedPose)bone.quaternion.copy(q);return;}
+  if(arm.closedPose){for(const [bone,q]of arm.closedPose)bone.quaternion.slerp(q,weight);return;}
   const f=arm.fingerAxis,n=arm.palmNormal;
   for(const digit of ['Index','Middle','Ring','Little']){
    const joints=[0,1,2].map(i=>bones[digit+i]),l1=joints[1].position.length(),l2=joints[2].position.length(),l3=l2*.88;
@@ -54,7 +54,7 @@ export async function createActionHands(camera,source=loadGlb(new URL('../assets
   arm.closedPose=['Index','Middle','Ring','Little','Thumb'].flatMap(digit=>[0,1,2].map(i=>{const bone=bones[digit+i];return[bone,bone.quaternion.clone()];}));
  }
  let lastKind='',age=0;
- return {root,group,parts,prop,get gaps(){return frame.arms.map(a=>a.gap);},update({action,dt,visible}){
+ return {root,group,parts,prop,heart,get gaps(){return frame.arms.map(a=>a.gap);},update({action,dt,visible}){
   root.visible=visible&&!!action;if(!root.visible){lastKind='';return;}const kind=action.kind;if(kind!==lastKind){age=0;lastKind=kind;}age+=dt;const t=action.time||0,p=t/(action.duration||1),envelope=smooth(p,0,.14)*(1-smooth(p,.8,1));camera.updateWorldMatrix(true,false);camera.getWorldQuaternion(cameraRotation);model.updateWorldMatrix(true,false);inverseWorld.copy(model.matrixWorld).invert();
   for(const arm of parts){const right=arm.side==='right';point.set(right?.25:-.25,-.30,-.55);rotation.copy(cameraRotation).multiply(arm.base);
    if(kind==='punch'){const strike=arm.side===(action.side||'right'),pose=punchMotion(t,strike);point.set((right?1:-1)*pose.x,pose.y,pose.z);rotation.copy(cameraRotation).multiply(arm.openRot.vault);if(strike)rotation.multiply(delta.setFromAxisAngle(axis.set(0,0,1),(right?-1:1)*pose.drive*.10));}
@@ -85,13 +85,14 @@ export async function createActionHands(camera,source=loadGlb(new URL('../assets
   const flex=kind==='shove'||kind==='vault'?0:kind==='punch'?.48:kind==='crimson'&&t<CRIMSON.extract?-.48:kind==='heal'&&action.id==='beer'?.20:.08;
   for(const digit of ['Index','Middle','Ring','Little'])for(let i=0;i<3;i++)rightBones[digit+i].quaternion.multiply(delta.setFromAxisAngle(axis.set(1,0,0),flex*[.7,1,.65][i]));
   if(kind==='punch')for(const arm of parts)closeFist(arm);
+  if(kind==='crimson')closeFist(parts.find(a=>a.side==='right'),1-smooth(t,CRIMSON.extract-.20,CRIMSON.extract-.05));
   if(kind==='search')for(const arm of parts)openPalm(arm,smooth(p,0,.22)*(1-smooth(p,.80,1)));
   if(kind==='shove'||kind==='vault')for(const arm of parts)openPalm(arm,smooth(t,0,.12));
   group.updateMatrixWorld(true);
 
   // The held remedy follows the solved palm. It is a world-depth object, like
   // the arms, so the chest can actually occlude the driven hand.
-  bottle.visible=kind==='heal'&&action.id==='beer';wrap.visible=kind==='heal'&&action.id!=='beer';if(heart){heart.visible=kind==='crimson'&&t>=CRIMSON.extract&&t<CRIMSON.release+.12;if(heart.visible){const shapes=chestTissueState(t);heart.traverse(m=>{if(m.morphTargetDictionary)for(const [name,i]of Object.entries(m.morphTargetDictionary))m.morphTargetInfluences[i]=shapes[name]||0;});}}
+  bottle.visible=kind==='heal'&&action.id==='beer';wrap.visible=kind==='heal'&&action.id!=='beer';if(heart){heart.visible=kind==='crimson'&&t>=CRIMSON.extract&&!action.organReleased&&t<CRIMSON.release+.12;if(heart.visible){const shapes=chestTissueState(t);heart.traverse(m=>{if(m.morphTargetDictionary)for(const [name,i]of Object.entries(m.morphTargetDictionary))m.morphTargetInfluences[i]=shapes[name]||0;});}}
   // Fit the bottle into the bent middle finger's contact arc. The cylinder
   // axis runs across the four knuckles, not along the wrist or the camera.
   rightBones.Middle0.getWorldPosition(a);rightBones.Middle1.getWorldPosition(b);rightBones.Middle2.getWorldPosition(c);u.subVectors(b,a);v.subVectors(c,a);normal.crossVectors(u,v);const denominator=2*normal.lengthSq();
