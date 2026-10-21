@@ -9,6 +9,23 @@ The browser edition has been rebuilt as **Blackwater**: a solo or two-player, N6
 
 Run **npm.cmd run dev**, or use **Start The Last Dead.cmd**, then open **http://127.0.0.1:5200/**. The canonical checkout is **C:/Users/wolfk/Desktop/thelastdead**. Node.js 18+ and the bundled assets are sufficient; there are no runtime downloads or API keys.
 
+The command launcher and installed Wolf Games shortcut check build freshness,
+rebuild changed runtime sources, and reuse an existing healthy game server.
+They serve the same built runtime used for release. `npm run dev` serves live
+source directly; `npm run build` followed by `npm run preview` serves the bundle.
+The build validates the active game's 115-module dependency graph and writes
+`build-info.json` for source/build comparison. The exact module count can grow.
+
+GitHub pushes and pull requests run the **Playable browser build** workflow,
+which builds the game, checks existing first-person/scavenging/co-op contracts,
+prepares the hosted assets, and retains a downloadable Node-served runtime.
+This checks the GitHub source; public Sites publication uses its separate
+scoped source/publish workflow described in the hosting guide.
+
+The reusable [grounded game style skill](skills/grounded-game-style/SKILL.md)
+records the reference-led layout, camera and art-direction workflow used for
+future passes while retaining Blackwater's N64 horror identity.
+
 Restore three emergency stations and reach the evacuation ferry. Explore 248 buildings and 45 furnished ground floors, scavenge ammunition and medical supplies, fight animated infected, drive utility trucks and save at shelters. Press **M** for the actual-world map and journal. Desktop and touch interfaces share the same mission and inventory state.
 
 **WASD** move, **mouse** look, **Shift** sprint, **Space** jump, **left/right click** fire/aim, **E** interact/drive, **R** reload, **F** melee, **H** heal, **M** map, **Esc** pause, **I** survivor inspection and equipment, **1–9 / wheel** weapon selection, **F2** developer flight, **F8** flight performance survey.

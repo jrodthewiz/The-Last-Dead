@@ -1,6 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 
 const PROJECT_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const DIST_ROOT = path.resolve(PROJECT_ROOT, 'dist');
@@ -76,6 +77,7 @@ export const RUNTIME_FILES = [
   'brutal-combat-visuals.js',
   'chest-finisher-visuals.js',
   'body-spear-visuals.js',
+  'body-spear-ray-tree.js',
   'corpse-physics.js',
   'hand-grip-rig.js',
   'horror-scares-game.js',
@@ -190,6 +192,47 @@ async function exists(filePath) {
   }
 }
 
+// Launchers can reuse a healthy server while detecting a stale built game.
+// Source code is hashed; large bundled art also includes its size/mtime so a
+// normal asset checkout invalidates the build without rereading every GLB.
+export async function sourceFingerprint() {
+  const hash = createHash('sha256');
+  const exclusions = RELEASE_ASSET_EXCLUSIONS.map(resolveProjectChild);
+  async function visit(relativePath) {
+    const absolute = resolveProjectChild(relativePath);
+    if (exclusions.some(p => isInside(p, absolute))) return;
+    let info;try { info = await fs.lstat(absolute); } catch(error) { if(error.code==='ENOENT')return;throw error; }
+    if (info.isSymbolicLink()) throw new Error(`Runtime source cannot be a symlink: ${relativePath}`);
+    if (info.isDirectory()) { for(const name of (await fs.readdir(absolute)).sort())await visit(`${relativePath}/${name}`);return; }
+    if (!info.isFile()) return;
+    hash.update(relativePath+'\0'+info.size+'\0');
+    if (/\.(?:js|mjs|html|css|json)$/.test(relativePath)) hash.update(await fs.readFile(absolute));
+    else hash.update(String(info.mtimeMs));
+  }
+  for(const relativePath of [...RUNTIME_FILES,...RUNTIME_DIRECTORIES,'build.mjs'])await visit(relativePath);
+  return hash.digest('hex');
+}
+
+// Validate the active game's module graph inside the completed bundle. A new
+// root module omitted from the explicit allowlist must fail the build, rather
+// than leave a production-only 404 after a successful local source run.
+async function verifyGameModules(outputRoot) {
+  const seen = new Set(), pending = ['island/game.js'];
+  while(pending.length) {
+    const name = pending.pop();if(seen.has(name))continue;seen.add(name);
+    const absolute = path.resolve(outputRoot,name);
+    if(!isInside(outputRoot,absolute))throw new Error(`Runtime import escapes build: ${name}`);
+    let source;try { source=await fs.readFile(absolute,'utf8'); } catch { throw new Error(`Missing game module in build: ${name}`); }
+    const imports=[...source.matchAll(/(?:\b(?:import|export)\s+(?:[^'";]*?\s+from\s*)?|\bimport\s*\(\s*)['"](\.{1,2}\/[^'"]+)['"]/g)];
+    for(const match of imports) {
+      const target=path.posix.normalize(path.posix.join(path.posix.dirname(name),match[1].split(/[?#]/)[0]));
+      if(!isInside(outputRoot,path.resolve(outputRoot,target))||!(await exists(path.resolve(outputRoot,target))))throw new Error(`Missing runtime import: ${name} → ${match[1]}`);
+      if(/\.(?:m?js)$/.test(target))pending.push(target);
+    }
+  }
+  return seen.size;
+}
+
 export async function build({ dist = DIST_ROOT } = {}) {
   const outputRoot = path.resolve(dist);
   const distRoot = path.resolve(DIST_ROOT);
@@ -238,7 +281,10 @@ export async function build({ dist = DIST_ROOT } = {}) {
   if (!(await exists(path.join(outputRoot, 'index.html')))) {
     throw new Error('The Last Dead build requires index.html in the project root.');
   }
-  return { outputRoot, copiedFiles, copiedDirectories };
+  const modules=await verifyGameModules(outputRoot);
+  const fingerprint=await sourceFingerprint();
+  await fs.writeFile(path.join(outputRoot,'build-info.json'),JSON.stringify({game:'The Last Dead · Blackwater',builtAt:new Date().toISOString(),sourceFingerprint:fingerprint,modules},null,2)+'\n');
+  return { outputRoot, copiedFiles, copiedDirectories, modules, fingerprint };
 }
 
 function wantsServe(argv) {
@@ -247,6 +293,14 @@ function wantsServe(argv) {
 
 if (path.resolve(process.argv[1] || '') === path.resolve(fileURLToPath(import.meta.url))) {
   try {
+    if(process.argv.includes('--if-needed')) {
+      let previous;try { previous=JSON.parse(await fs.readFile(path.join(DIST_ROOT,'build-info.json'),'utf8')); } catch {}
+      if(previous?.sourceFingerprint===await sourceFingerprint()) {
+        await verifyGameModules(DIST_ROOT);
+        console.log(`The Last Dead build is current: ${DIST_ROOT}`);
+        process.exit(0);
+      }
+    }
     const result = await build();
     console.log(`The Last Dead build ready: ${result.outputRoot}`);
     console.log(`Files: ${result.copiedFiles.join(', ') || '(none)'}`);

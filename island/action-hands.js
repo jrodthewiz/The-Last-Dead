@@ -19,8 +19,11 @@ export async function createActionHands(camera,source=loadGlb(new URL('../assets
  const blood={value:0},bloodMaterials=new Set();
  function bloodSurface(branch){branch?.traverse(o=>{if(!o.isMesh)return;for(const m of(Array.isArray(o.material)?o.material:[o.material])){
   if(m.userData.surfaceRole!=='authored-glove'||bloodMaterials.has(m))continue;bloodMaterials.add(m);const prior=m.onBeforeCompile,key=m.customProgramCacheKey();
-  m.onBeforeCompile=(shader,renderer)=>{prior.call(m,shader,renderer);shader.uniforms.crimsonHandBlood=blood;shader.vertexShader='varying vec3 crimsonGlovePosition;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ncrimsonGlovePosition=position;');shader.fragmentShader='uniform float crimsonHandBlood;varying vec3 crimsonGlovePosition;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\nfloat fleck=sin(crimsonGlovePosition.x*173.+crimsonGlovePosition.z*87.)*sin(crimsonGlovePosition.y*131.-crimsonGlovePosition.z*73.);float feather=max(fwidth(fleck),.04);float bloodMask=smoothstep(.25-feather,.52+feather,fleck)*crimsonHandBlood;diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.26,.028,.018),bloodMask);');};
-  m.customProgramCacheKey=()=>key+'-crimson-glove-v1';m.needsUpdate=true;
+  m.onBeforeCompile=(shader,renderer)=>{prior.call(m,shader,renderer);shader.uniforms.crimsonHandBlood=blood;shader.vertexShader='varying vec3 crimsonGlovePosition;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ncrimsonGlovePosition=position;');shader.fragmentShader=`uniform float crimsonHandBlood;varying vec3 crimsonGlovePosition;
+float crimsonHash(vec3 p){p=fract(p*.1031);p+=dot(p,p.yzx+33.33);return fract((p.x+p.y)*p.z);}
+float crimsonNoise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(crimsonHash(i),crimsonHash(i+vec3(1,0,0)),f.x),mix(crimsonHash(i+vec3(0,1,0)),crimsonHash(i+vec3(1,1,0)),f.x),f.y),mix(mix(crimsonHash(i+vec3(0,0,1)),crimsonHash(i+vec3(1,0,1)),f.x),mix(crimsonHash(i+vec3(0,1,1)),crimsonHash(i+vec3(1,1,1)),f.x),f.y),f.z);}
+`+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\nvec3 bp=crimsonGlovePosition;float bloodField=crimsonNoise(bp*19.+vec3(4.7,1.3,7.2))*.8+crimsonNoise(bp*47.)*.2;float feather=max(fwidth(bloodField),.018);float smear=smoothstep(.44-feather,.64+feather,bloodField);float fleck=step(.94,crimsonHash(floor(bp*113.)));float bloodMask=max(smear,fleck*.72)*crimsonHandBlood;diffuseColor.rgb=mix(diffuseColor.rgb,mix(vec3(.18,.023,.016),vec3(.31,.038,.024),bloodField),bloodMask);');};
+  m.customProgramCacheKey=()=>key+'-crimson-glove-v2';m.needsUpdate=true;
  }});}
  bloodSurface(root);
  const prop=new T.Group();root.add(prop);const bottle=new T.Group(),wrap=new T.Group(),heart=anatomy.scene.getObjectByName('Heart')?.clone(true);prop.add(bottle,wrap);if(heart){prop.add(heart);heart.position.set(0,0,0);heart.scale.setScalar(.8);heart.traverse(o=>{if(o.isMesh){o.material=o.material.clone();consoleMaterial(o.material);}});}
@@ -83,7 +86,7 @@ export async function createActionHands(camera,source=loadGlb(new URL('../assets
     rotation.slerp(delta.copy(cameraRotation).multiply(arm.openRot.vault),reach);
    }
    if(kind==='crimson'){
-    const f=action.frame,hand=chestHandPoint(right?'Right':'Left',t,{contactAt:CRIMSON.contact,extractionAt:CRIMSON.extract+.12,releaseAt:CRIMSON.release,spearDepth:f.depth});hand.applyQuaternion(f.rotation).add(f.entry);point.lerp(hand,smooth(t,0,.13)*(1-smooth(t,CRIMSON.release,CRIMSON.duration)));
+    const f=action.frame,hand=chestHandPoint(right?'Right':'Left',t,{contactAt:CRIMSON.contact,extractionAt:CRIMSON.extract+.12,releaseAt:CRIMSON.release,spearDepth:f.depth});if(right){const pull=smooth(t,CRIMSON.extract-.10,CRIMSON.extract+.16);hand.x+=pull*.14;hand.y+=pull*.075;hand.z+=pull*.17;}hand.applyQuaternion(f.rotation).add(f.entry);point.lerp(hand,smooth(t,.08,.23)*(1-smooth(t,CRIMSON.release,CRIMSON.duration)));
     if(right){axis.copy(arm.fingerAxis).applyQuaternion(rotation);delta.setFromUnitVectors(axis,f.front.clone().negate());rotation.premultiply(delta);}
    }
    if(right)rightPoint.copy(point);matrix.compose(point,rotation,scale);arm.grip.matrix.copy(inverseWorld).multiply(matrix).multiply(arm.inverse);
@@ -99,7 +102,7 @@ export async function createActionHands(camera,source=loadGlb(new URL('../assets
 
   // The held remedy follows the solved palm. It is a world-depth object, like
   // the arms, so the chest can actually occlude the driven hand.
-  bottle.visible=kind==='heal'&&action.id==='beer';wrap.visible=kind==='heal'&&action.id!=='beer';if(heart){heart.visible=kind==='crimson'&&t>=CRIMSON.extract&&!action.organReleased&&t<CRIMSON.release+.12;if(heart.visible){const shapes=chestTissueState(t);heart.traverse(m=>{if(m.morphTargetDictionary)for(const [name,i]of Object.entries(m.morphTargetDictionary))m.morphTargetInfluences[i]=shapes[name]||0;});}}
+  bottle.visible=kind==='heal'&&action.id==='beer';wrap.visible=kind==='heal'&&action.id!=='beer';if(heart){heart.visible=kind==='crimson'&&t>=CRIMSON.extract&&!action.organReleased&&t<CRIMSON.release+.12;if(heart.visible){const shapes=chestTissueState(t,{contactAt:CRIMSON.contact,extractionAt:CRIMSON.extract,releaseAt:CRIMSON.release});heart.traverse(m=>{if(m.morphTargetDictionary)for(const [name,i]of Object.entries(m.morphTargetDictionary))m.morphTargetInfluences[i]=shapes[name]||0;});}}
   // Fit the bottle into the bent middle finger's contact arc. The cylinder
   // axis runs across the four knuckles, not along the wrist or the camera.
   rightBones.Middle0.getWorldPosition(a);rightBones.Middle1.getWorldPosition(b);rightBones.Middle2.getWorldPosition(c);u.subVectors(b,a);v.subVectors(c,a);normal.crossVectors(u,v);const denominator=2*normal.lengthSq();

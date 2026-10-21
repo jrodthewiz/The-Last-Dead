@@ -1,5 +1,6 @@
 import * as T from '../vendor/three.module.js';
 import {groundHeight} from './data.js';
+import {createGroundBlood} from './ground-blood.js';
 
 // A bounded pool: no geometry, materials or scene objects are allocated per shot.
 export function createFeedback(scene,floorAt=groundHeight){
@@ -7,13 +8,8 @@ export function createFeedback(scene,floorAt=groundHeight){
   const surfaceCount=32,surfaces=new T.InstancedMesh(splashGeometry,new T.MeshLambertMaterial({color:0xffffff,side:T.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,depthWrite:false}),surfaceCount),surfaceMarks=Array.from({length:surfaceCount},()=>({life:0,p:new T.Vector3(),q:new T.Quaternion(),size:0,aspect:1}));surfaces.frustumCulled=false;scene.add(surfaces);let nextSurface=0;const surfaceNormal=new T.Vector3(),zAxis=new T.Vector3(0,0,1),spin=new T.Quaternion(),scarOffset=new T.Vector3();
   const count=96,mesh=new T.InstancedMesh(new T.IcosahedronGeometry(1,0),new T.MeshLambertMaterial({vertexColors:false,flatShading:true}),count);
   mesh.frustumCulled=false;scene.add(mesh);const dummy=new T.Object3D(),particles=Array.from({length:count},()=>({life:0,p:new T.Vector3(),v:new T.Vector3()}));let next=0;
-  // A clot spreads into an uneven puddle, not the pointed impact silhouette.
-  // Vertex colour gives the thick centre a darker value at console resolution.
-  const edge=[.91,.96,.83,1,.89,.76,.84,.98,.92,.77,.89,.95,.73,.87],puddlePositions=[],puddleColors=[];
-  for(let i=0;i<edge.length;i++){puddlePositions.push(0,0,0);puddleColors.push(.62,.62,.62);for(const j of[i,(i+1)%edge.length]){const a=j/edge.length*Math.PI*2;puddlePositions.push(Math.cos(a)*edge[j],Math.sin(a)*edge[j],0);puddleColors.push(1,.95,.90);}}
-  const puddleGeometry=new T.BufferGeometry();puddleGeometry.setAttribute('position',new T.Float32BufferAttribute(puddlePositions,3));puddleGeometry.setAttribute('color',new T.Float32BufferAttribute(puddleColors,3));puddleGeometry.computeVertexNormals();
-  const markCount=40,marks=new T.InstancedMesh(puddleGeometry,new T.MeshLambertMaterial({color:0x722d26,vertexColors:true,side:T.DoubleSide,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1}),markCount),stains=Array.from({length:markCount},()=>({life:0,p:new T.Vector3(),size:0}));marks.frustumCulled=false;scene.add(marks);let nextMark=0;const colour=new T.Color(),velocity=new T.Vector3(),origin=new T.Vector3();
-  function stain(point,size,limit=.22){const floor=floorAt(point.x,point.z)+.018;for(const s of stains)if(s.life>0&&Math.abs(s.p.y-floor)<.04&&(s.p.x-point.x)**2+(s.p.z-point.z)**2<.0256){s.size=Math.min(Math.max(limit,s.size),Math.hypot(s.size,size));s.life=22;return;}const s=stains[nextMark++%markCount];s.life=22;s.p.copy(point);s.p.y=floor;s.size=size;}
+  const groundBlood=createGroundBlood(scene,floorAt),stain=(point,size,limit)=>groundBlood.mark(point,size,limit);
+  const colour=new T.Color(),velocity=new T.Vector3(),origin=new T.Vector3();
   // Brief, opaque facets retain the cartridge-era palette without a screen-red
   // overlay. Geometry, colours and tangent vectors are prepared before combat.
   const fanShape=new T.Shape(),lobes=[.92,.90,.48,.55,.82,1,.62,.40,.76,.81,.57,.45,.85,.92,.61,.35,.72,.65];for(let i=0;i<lobes.length;i++){const a=i/lobes.length*Math.PI*2,x=Math.cos(a)*lobes[i],y=Math.sin(a)*lobes[i];if(i===0)fanShape.moveTo(x,y);else fanShape.lineTo(x,y);}fanShape.closePath();
@@ -43,15 +39,15 @@ export function createFeedback(scene,floorAt=groundHeight){
        if(pipe)s.p.add(scarOffset.set((j?1:-1)*s.size*.65,0,0).applyQuaternion(s.q));surfaces.setColorAt(i,colour.setHex(organic?(i%2?0x682820:0x873b2d):0x394038));writeSurface(i,s);
       }surfaces.instanceColor.needsUpdate=true;surfaces.instanceMatrix.needsUpdate=true;
     },
-    clear(){particles.forEach(p=>p.life=0);shells.forEach(p=>p.life=0);stains.forEach(p=>p.life=0);surfaceMarks.forEach(p=>p.life=0);fans.forEach(p=>p.life=0);trailLife.fill(0);api.update(0);},
+    clear(){particles.forEach(p=>p.life=0);shells.forEach(p=>p.life=0);groundBlood.clear();surfaceMarks.forEach(p=>p.life=0);fans.forEach(p=>p.life=0);trailLife.fill(0);api.update(0);},
     get bursts(){return fans.filter(p=>p.life>0).length;},
-    get active(){return {particles:particles.filter(p=>p.life>0).length,stains:stains.filter(p=>p.life>0).length,surfaces:surfaceMarks.filter(p=>p.life>0).length,cases:shells.filter(p=>p.life>0).length};},
+    get active(){return {particles:particles.filter(p=>p.life>0).length,stains:groundBlood.active,surfaces:surfaceMarks.filter(p=>p.life>0).length,cases:shells.filter(p=>p.life>0).length};},
     trail(from,to,arc=false){const index=nextTrail++%12,color=new T.Color(arc?0x9bc8c2:0xc2b991);from.toArray(trailPositions,index*6);to.toArray(trailPositions,index*6+3);color.toArray(trailColors,index*6);color.toArray(trailColors,index*6+3);trailLife[index]=arc?.13:.045;trailGeometry.attributes.position.needsUpdate=trailGeometry.attributes.color.needsUpdate=true;},
     eject(point,velocity,shotgun=true){cartridge(point,velocity,shotgun);},
     casing(camera,socket=null){if(socket){socket.updateWorldMatrix(true,false);socket.getWorldPosition(casePoint);}else casePoint.set(.11,-.15,-.53).applyMatrix4(camera.matrixWorld);caseVelocity.set(1.8,1.4,.4).applyQuaternion(camera.quaternion);cartridge(casePoint,caseVelocity);},
     update(dt){for(let i=0;i<12;i++){trailLife[i]-=dt;if(trailLife[i]<=0)trailPositions.fill(0,i*6,i*6+6);}trailGeometry.attributes.position.needsUpdate=true;for(let i=0;i<count;i++){const p=particles[i];if(p.life>0){p.life-=dt;p.age+=dt;p.v.y-=7*dt;p.p.addScaledVector(p.v,dt);if(p.blood&&p.p.y<floorAt(p.p.x,p.p.z)+.02){stain(p.p,p.size*(p.pooling?3.4:2.3),p.pooling?.38:.22);p.life=0;}}writeParticle(i,p);}mesh.instanceMatrix.needsUpdate=true;
      for(let i=0;i<caseCount;i++){const p=shells[i];if(p.life>0){p.life-=dt;p.v.y-=9*dt;p.p.addScaledVector(p.v,dt);const floor=floorAt(p.p.x,p.p.z)+p.size;if(p.p.y<floor){p.p.y=floor;p.v.y=p.bounced?0:Math.abs(p.v.y)*.24;p.v.x*=.6;p.v.z*=.6;p.bounced=true;}if(!p.bounced||p.v.y>.1){p.rotation.x+=dt*9;p.rotation.z+=dt*6;}}writeCase(i,p);}cases.instanceMatrix.needsUpdate=caps.instanceMatrix.needsUpdate=true;
-     for(let i=0;i<markCount;i++){const p=stains[i];p.life=Math.max(0,p.life-dt);dummy.position.copy(p.p);dummy.rotation.set(-Math.PI/2,0,i*2.4);dummy.scale.set(p.size*Math.min(1,p.life/3),p.size*.7*Math.min(1,p.life/3),1);dummy.updateMatrix();marks.setMatrixAt(i,dummy.matrix);}marks.instanceMatrix.needsUpdate=true;
+     groundBlood.update(dt);
      for(let i=0;i<surfaceCount;i++){const p=surfaceMarks[i];p.life=Math.max(0,p.life-dt);writeSurface(i,p);}surfaces.instanceMatrix.needsUpdate=true;
      for(let i=0;i<burstCount;i++){const p=fans[i];p.life=Math.max(0,p.life-dt);writeFan(i,p);}bursts.instanceMatrix.needsUpdate=true;
     }

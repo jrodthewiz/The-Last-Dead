@@ -1,0 +1,4 @@
+interface:
+  display_name: "Grounded Game Style"
+  short_description: "Apply visual references to playable game worlds"
+  default_prompt: "Use $grounded-game-style to study this reference and apply a coherent art direction to the existing playable game."

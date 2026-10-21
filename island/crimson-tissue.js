@@ -13,6 +13,8 @@ export function createCrimsonTissue(scene,floorAt,onTear){
  const bits=Array.from({length:32},()=>({life:0,p:new T.Vector3(),v:new T.Vector3(),turn:new T.Euler(),scale:new T.Vector3()}));
  const pulls=Array.from({length:4},()=>({life:0,age:0,frame:null,source:null,broken:false,cuts:Array.from({length:3},()=>({ready:false,hasEnd:false,wound:new T.Vector3(),organ:new T.Vector3(),lastEnd:new T.Vector3()}))}));
  const dummy=new T.Object3D(),color=new T.Color(),right=new T.Vector3(),up=new T.Vector3(0,1,0),start=new T.Vector3(),end=new T.Vector3(),a=new T.Vector3(),b=new T.Vector3(),axis=new T.Vector3(),side=new T.Vector3();
+ const anchors=new WeakMap();let anchorTemplate=null;
+ function prepareOrgan(root){const meshes=[];root.updateWorldMatrix(true,true);root.traverse(m=>{if(m.isMesh)meshes.push(m);});if(!anchorTemplate){anchorTemplate=[[-.014,.061,.029],[.010,.057,.042],[-.032,.056,-.018]].map(target=>{let best=Infinity,result=null;for(let m=0;m<meshes.length;m++){const mesh=meshes[m];for(let i=0;i<mesh.geometry.attributes.position.count;i++){mesh.getVertexPosition(i,a);mesh.localToWorld(a);root.worldToLocal(a);const distance=a.distanceToSquared(b.fromArray(target));if(distance<best){best=distance;result={mesh:m,index:i};}}}return result;});}anchors.set(root,anchorTemplate.map(p=>({mesh:meshes[p.mesh],index:p.index})));}
  let nextBit=0,nextPull=0;
  const smooth=(t,a,b)=>T.MathUtils.smoothstep(t,a,b);
  function burst(frame,tearing=false){
@@ -42,7 +44,7 @@ export function createCrimsonTissue(scene,floorAt,onTear){
    for(let i=0;i<3;i++){
     if(p.life>0){
      const cut=p.cuts[i];start.copy(p.frame.entry).addScaledVector(right,(i-1)*.022);start.y+=(i%2?-.027:.018);
-     if(p.source){p.source.updateWorldMatrix(true,false);end.set((i-1)*.016,.014,.005).applyMatrix4(p.source.matrixWorld);cut.lastEnd.copy(end);cut.hasEnd=true;}else end.copy(cut.hasEnd?cut.lastEnd:start);
+     if(p.source){p.source.updateWorldMatrix(true,true);const anchor=anchors.get(p.source)?.[i];if(anchor)anchor.mesh.getVertexPosition(anchor.index,end).applyMatrix4(anchor.mesh.matrixWorld);else end.set((i-1)*.016,.014,.005).applyMatrix4(p.source.matrixWorld);cut.lastEnd.copy(end);cut.hasEnd=true;}else end.copy(cut.hasEnd?cut.lastEnd:start);
      if(p.broken&&!cut.ready){p.broken=false;point(a,.5,p,i,false);p.broken=true;cut.wound.subVectors(a,start);cut.organ.subVectors(a,end);cut.ready=true;}
     }
     for(let link=0;link<6;link++){
@@ -53,13 +55,13 @@ export function createCrimsonTissue(scene,floorAt,onTear){
       point(a,segment/total,p,i,half);point(b,(segment+1)/total,p,i,half);axis.subVectors(b,a);const length=axis.length();
       dummy.position.lerpVectors(a,b,.5);dummy.quaternion.setFromUnitVectors(up,axis.divideScalar(Math.max(length,1e-6)));
       const tension=p.broken?0:T.MathUtils.clamp(start.distanceTo(end)/.25,0,1),radius=(i===1?.008:.0065)*(1-tension*.28)*Math.min(1,p.life*3);
-      dummy.scale.set(radius,length+.001,radius*.70);
+      dummy.scale.set(radius*(1-.22*(segment+.5)/total),length+.001,radius*.70*(1-.22*(segment+.5)/total));
      }dummy.updateMatrix();strands.setMatrixAt(id,dummy.matrix);
     }
    }
   }strands.instanceMatrix.needsUpdate=true;
  }
- const api={burst,extract(frame,source,action){const p=pulls[nextPull++%pulls.length];Object.assign(p,{frame,source,action,age:0,life:3.2,broken:false,released:false});for(const c of p.cuts)c.ready=c.hasEnd=false;},
+ const api={prepareOrgan,burst,extract(frame,source,action){const p=pulls[nextPull++%pulls.length];Object.assign(p,{frame,source,action,age:0,life:3.2,broken:false,released:false});for(const c of p.cuts)c.ready=c.hasEnd=false;},
   release(frame,source){for(const p of pulls)if(p.life>0&&p.frame===frame){if(!p.broken)p.breakAge=p.age;p.broken=true;p.source=source;p.action=null;p.released=true;}},
   sever(frame){for(const p of pulls)if(p.life>0&&p.frame===frame&&!p.released){if(!p.broken)p.breakAge=p.age;p.broken=true;p.source=p.action=null;}},
   get active(){return {fragments:bits.filter(p=>p.life>0).length,strands:pulls.filter(p=>p.life>0).length*3};},
@@ -68,7 +70,7 @@ export function createCrimsonTissue(scene,floorAt,onTear){
     const p=bits[i];if(p.life>0){p.life=Math.max(0,p.life-dt);p.v.y-=8*dt;p.p.addScaledVector(p.v,dt);const floor=floorAt(p.p.x,p.p.z)+.012;if(p.p.y<floor){p.p.y=floor;p.v.set(0,0,0);}else{p.turn.x+=dt*6;p.turn.z+=dt*4;}}
     dummy.position.copy(p.p);dummy.rotation.copy(p.turn);dummy.scale.copy(p.scale).multiplyScalar(p.life>0?Math.min(1,p.life*4):0);dummy.updateMatrix();debris.setMatrixAt(i,dummy.matrix);
    }debris.instanceMatrix.needsUpdate=true;
-   for(const p of pulls)if(p.life>0){p.life=Math.max(0,p.life-dt);p.age=!p.broken&&p.action?Math.max(0,p.action.time-CRIMSON.extract):p.age+dt;if(!p.broken&&p.age>=.19){p.breakAge=p.age;p.broken=true;burst(p.frame,true);onTear?.(p.frame);}}
+   for(const p of pulls)if(p.life>0){p.life=Math.max(0,p.life-dt);p.age=!p.broken&&p.action?Math.max(0,p.action.time-CRIMSON.extract):p.age+dt;if(!p.broken&&p.age>=.30){p.breakAge=p.age;p.broken=true;burst(p.frame,true);onTear?.(p.frame);}}
    writeStrands();
   },clear(){for(const p of bits)p.life=0;for(const p of pulls){p.life=0;p.frame=p.source=p.action=null;}api.update(0);}
  };

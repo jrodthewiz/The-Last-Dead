@@ -1,4 +1,5 @@
 import {freezeLocalTransforms,sleepHiddenBranch} from './render-lifecycle.js';
+import {supportCorpse,clearCorpseSupport} from './corpse-support.js';
 import {stepEnemyImpulse} from './shove.js';
 import {ENEMY_ROLES,hearNoise,canSeePlayer,neighbourField,attackConnects} from './enemy-behavior.js';
 import * as T from '../vendor/three.module.js';
@@ -45,7 +46,7 @@ export async function loadActors(scene,data,onProgress){
 }
 const clips={idle:'AshWitness_Idle',walk:'AshWitness_Shuffle',run:'AshWitness_Run',attack:'AshWitness_AttackLunge',hit:'AshWitness_HitRecoil',dead:'AshWitness_Collapse'};
 export function setEnemyAction(e,state){
-  if(e.state===state)return;const wasMoving=['walk','run'].includes(e.state),phase=e.action?e.action.time/e.action.getClip().duration:0;e.state=state;
+  if(e.state===state)return;if(state!=='dead')clearCorpseSupport(e);const wasMoving=['walk','run'].includes(e.state),phase=e.action?e.action.time/e.action.getClip().duration:0;e.state=state;
   const action=e.actions[state==='run'?ENEMY_ROLES[e.role||'shambler'].runClip:clips[state]]||e.actions[clips.idle]||Object.values(e.actions)[0];if(!action)return;
   if(e.action)e.action.fadeOut(.18);action.reset().setEffectiveWeight(1).fadeIn(.18).play();if(wasMoving&&['walk','run'].includes(state))action.time=(phase%1)*action.getClip().duration;action.clampWhenFinished=['dead','attack','hit'].includes(state);action.setLoop(['dead','attack','hit'].includes(state)?T.LoopOnce:T.LoopRepeat,Infinity);e.action=action;
 }
@@ -54,12 +55,12 @@ export function navigationMetrics(grid){return pathQueues.get(grid)?.stats??null
 export function resetNavigation(grid){pathQueues.get(grid)?.clear();}
 export function updateEnemies(enemies,primary,grid,dt,time,onDamage,companions=[]){
  let paths=pathQueues.get(grid);if(!paths){paths=createPathQueue(grid);pathQueues.set(grid,paths);}
- const floor=(x,z)=>grid.floorAt?.(x,z)??groundHeight(x,z),separate=neighbourField(enemies);let attackers=enemies.filter(e=>e.alive&&e.attackTimer>0).length;
+ const floor=(x,z)=>grid.floorAt?.(x,z)??groundHeight(x,z),visualFloor=grid.effectFloorAt||floor,separate=neighbourField(enemies);let attackers=enemies.filter(e=>e.alive&&e.attackTimer>0).length;let supportBudget=384;
  for(const e of enemies){
   let player=primary;for(const other of companions)if(other.health>0&&(player.health<=0||Math.hypot(e.x-other.x,e.z-other.z)<Math.hypot(e.x-player.x,e.z-player.z)))player=other;
   const distance=Math.hypot(e.x-player.x,e.z-player.z);e.root.visible=Math.hypot(e.x-primary.x,e.z-primary.z)<150;if(distance>=150){e.notice=Math.max(0,e.notice-dt);continue;}
   e.crimsonWindow=Math.max(0,(e.crimsonWindow||0)-dt);if(e.finisherHeld)continue;
-  e.cooldown=Math.max(0,e.cooldown-dt);e.hit=Math.max(0,e.hit-dt);if(!e.alive){e.mixer.update(dt);continue;}
+  e.cooldown=Math.max(0,e.cooldown-dt);e.hit=Math.max(0,e.hit-dt);if(!e.alive){e.mixer.update(dt);supportBudget-=supportCorpse(e,visualFloor,dt,supportBudget);continue;}
   if(e.hit>0&&e.attackTimer>0){e.attackTimer=0;attackers--;}
   stepEnemyImpulse(e,grid,dt);
   const role=ENEMY_ROLES[e.role||'shambler'];e.navTimer-=dt;e.sightTimer=(e.sightTimer||0)-dt;
@@ -82,7 +83,7 @@ export function updateEnemies(enemies,primary,grid,dt,time,onDamage,companions=[
   else next='idle';
   if(e.attackTimer===0){const push=separate(e),y=floor(e.x,e.z);if(!grid.blocked(e.x+push.x*dt,e.z,y,.35)&&floor(e.x+push.x*dt,e.z)>1)e.x+=push.x*dt;if(!grid.blocked(e.x,e.z+push.z*dt,y,.35)&&floor(e.x,e.z+push.z*dt)>1)e.z+=push.z*dt;}
   if(e.hit>0){next='hit';if(e.attackTimer>0)attackers--;e.attackTimer=0;}
-  const moved=Math.hypot(e.x-oldX,e.z-oldZ);if(['walk','run'].includes(next)&&moved<dt*.04)next='idle';setEnemyAction(e,next);e.root.position.set(e.x,floor(e.x,e.z),e.z);
+  const moved=Math.hypot(e.x-oldX,e.z-oldZ);if(['walk','run'].includes(next)&&moved<dt*.04)next='idle';setEnemyAction(e,next);e.root.position.set(e.x,visualFloor(e.x,e.z),e.z);
   if(e.attackTimer===0){const fx=moved>.001?e.x-oldX:dx,fz=moved>.001?e.z-oldZ:dz,targetYaw=Math.atan2(fx,fz),turn=Math.atan2(Math.sin(targetYaw-e.root.rotation.y),Math.cos(targetYaw-e.root.rotation.y));e.root.rotation.y+=turn*(1-Math.exp(-9*dt));}
   if(e.action){if(['walk','run'].includes(next))e.action.timeScale=clamp(moved/Math.max(dt,.001)/(next==='run'?2:1),.25,1.65);else e.action.timeScale=next==='attack'?.48/role.windup:1;}e.mixer.update(dt);
  }

@@ -1,0 +1,43 @@
+name: Playable browser build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build the portable game and validate its module graph
+        run: node build.mjs
+      - name: Verify existing first-person, scavenging and co-op contracts
+        run: |
+          node scripts/verify-first-person.mjs
+          node --test tests/blackwater-scavenging.test.mjs tests/blackwater-coop.test.mjs
+      - name: Prepare the hosted game's canonical assets
+        run: node scripts/prepare-blackwater-site.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blackwater-playable-runtime
+          path: |
+            dist/index.html
+            dist/*.js
+            dist/*.css
+            dist/build-info.json
+            dist/assets/
+            dist/vendor/
+            dist/island/
+            dist/coop/
+            server.mjs
+            coop/
+            package.json
+          retention-days: 7

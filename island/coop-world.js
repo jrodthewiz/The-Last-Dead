@@ -7,6 +7,7 @@ import {dressSurvivor} from './character-craft.js';
 import {captureWeaponVisual} from '../chest-finisher-visuals.js';
 import {batchFieldWeapon} from './field-weapon-batches.js';
 import {setEnemyAction} from './actors.js';
+import {supportCorpse} from './corpse-support.js';
 import {clearShot} from './simulation.js';
 import {WEAPONS} from './armory-state.js';
 import {hearNoise} from './enemy-behavior.js';
@@ -70,7 +71,8 @@ export function createCoopWorld({scene,gltf,actors,rifle,armory,getState,getGrid
   if(remoteGrab&&(performance.now()>remoteGrab.expires||!remotePose||!inCrimsonReach(remotePose,remoteGrab.enemy,getGrid())))releaseGrab();
   if(vehicleOwner>=0&&remotePose?.vehicle!==vehicleOwner&&performance.now()-(vehicleGrant?.at||0)>3000)vehicleOwner=-1;
   indicator.hidden=false;indicator.textContent=`CO-OP · ${(connection.role==='host'?latest?.guest:latest?.host)||'Radio linked'} · ${connection.fast?'DIRECT':'RELAY'} · ${Math.round(connection.rtt)} ms`;
-  if(connection.role==='guest')for(const e of actors.enemies){const row=targets.get(e.id);if(!row||e.finisherHeld)continue;const blend=Math.hypot(row[1]-e.x,row[3]-e.z)>12?1:1-Math.exp(-15*dt);e.x=T.MathUtils.lerp(e.x,row[1],blend);e.z=T.MathUtils.lerp(e.z,row[3],blend);e.root.position.set(e.x,row[2],e.z);e.root.rotation.y+=Math.atan2(Math.sin(row[4]-e.root.rotation.y),Math.cos(row[4]-e.root.rotation.y))*blend;e.root.visible=Math.hypot(e.x-getState().x,e.z-getState().z)<150;e.mixer.update(dt);}
+  let supportBudget=384;
+  if(connection.role==='guest')for(const e of actors.enemies){const row=targets.get(e.id);if(!row||e.finisherHeld)continue;const blend=Math.hypot(row[1]-e.x,row[3]-e.z)>12?1:1-Math.exp(-15*dt);e.x=T.MathUtils.lerp(e.x,row[1],blend);e.z=T.MathUtils.lerp(e.z,row[3],blend);e.root.position.set(e.x,row[2],e.z);e.root.rotation.y+=Math.atan2(Math.sin(row[4]-e.root.rotation.y),Math.cos(row[4]-e.root.rotation.y))*blend;e.root.visible=Math.hypot(e.x-getState().x,e.z-getState().z)<150;e.mixer.update(dt);if(!e.alive&&!e.remoteHeld&&e.root.visible)supportBudget-=supportCorpse(e,getGrid().effectFloorAt||getGrid().floorAt,dt,supportBudget);}
   avatar.visible=!!remotePose&&performance.now()-receivedAt<6000&&remotePose.health>0&&Math.hypot(remotePose.x-getState().x,remotePose.z-getState().z)<200;if(weaponVisual)weaponVisual.visible=avatar.visible;
   if(!avatar.visible)return;const a=avatar.userData,blend=Math.hypot(avatar.position.x-remotePose.x,avatar.position.z-remotePose.z)>12?1:1-Math.exp(-15*dt);avatar.position.lerp(p.set(remotePose.x,remotePose.y+base,remotePose.z),blend);const yaw=-remotePose.yaw;avatar.rotation.y+=Math.atan2(Math.sin(yaw-avatar.rotation.y),Math.cos(yaw-avatar.rotation.y))*blend;
   for(const [name,action]of Object.entries(a.actions)){action.setEffectiveWeight(name===(remotePose.moving===2?'Run_Forward':remotePose.moving?'Walk_Forward':'Idle_Relaxed')?1:0);action.setEffectiveTimeScale(remotePose.moving?1.5:1);}a.mixer.update(dt);

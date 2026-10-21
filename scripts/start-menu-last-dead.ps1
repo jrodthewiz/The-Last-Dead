@@ -1,6 +1,8 @@
 # Loaded by the installed Wolf Games launcher. Its existing ownership list
 # cleans up only a server started for this window, never a reused server.
 function Start-LastDeadWindowServer([int]$PreferredPort = 0) {
+    & (Get-Command node.exe -ErrorAction Stop).Source (Join-Path $root 'build.mjs') --if-needed | ForEach-Object { Write-Host $_ }
+    if ($LASTEXITCODE -ne 0) { throw 'The Last Dead build failed. The game server was left untouched.' }
     $entry = Join-Path $root 'server.mjs'
     $pattern = '(?i)(?:^|[\s"])' + [regex]::Escape($entry) + '(?:[\s"]|$)'
     $listeners = @(Get-NetTCPConnection -State Listen -ErrorAction Stop)
@@ -17,7 +19,7 @@ function Start-LastDeadWindowServer([int]$PreferredPort = 0) {
     }
     # Let the OS allocate an available port atomically, avoiding port races.
     $label = 'game-' + [Guid]::NewGuid().ToString('N')
-    Start-OwnedServer $entry @('--dist',('"{0}"' -f $root),'--port',"$PreferredPort") $label
+    Start-OwnedServer $entry @('--dist',('"{0}"' -f (Join-Path $root 'dist')),'--port',"$PreferredPort") $label
     $record = $owned[$owned.Count - 1]
     $stdout = Join-Path $logDir "$label.stdout.log"
     for ($attempt = 0; $attempt -lt 60; $attempt++) {

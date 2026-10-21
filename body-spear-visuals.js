@@ -1,4 +1,5 @@
 import * as THREE from './vendor/three.module.js';
+import {bodySpearCandidates} from './body-spear-ray-tree.js';
 import {loadGlb} from './assets/load-glb.js';
 import {BODY_SPEAR_MOTION} from './assets/animations/body-spear-v1.js';
 
@@ -17,7 +18,7 @@ export function prepareBodySpearAnatomy(asset){
   }
  });return asset;
 }
-const bindings=new WeakMap(),skinTriangles=new WeakMap(),q0=new THREE.Quaternion(),q1=new THREE.Quaternion(),hip=new THREE.Vector3(),hipNext=new THREE.Vector3();
+const bindings=new WeakMap(),skinTriangles=new WeakMap(),skinWork=new WeakMap(),q0=new THREE.Quaternion(),q1=new THREE.Quaternion(),hip=new THREE.Vector3(),hipNext=new THREE.Vector3();
 const clamp=THREE.MathUtils.clamp;
 function sampleIndex(elapsed){const frame=clamp(elapsed,0,BODY_SPEAR_MOTION.duration)*BODY_SPEAR_MOTION.fps,a=Math.floor(frame);return{a,b:Math.min(90,a+1),fraction:frame-a};}
 export function bodySpearState(elapsed){
@@ -46,7 +47,7 @@ export function applyBodySpearReaction(root,elapsed,weight,save=()=>{}){
 
 // Fit both opening planes to actual posed imported skin. Neither a chest
 // socket's guessed depth nor one character's proportions defines the tunnel.
-export function fitBodySpearFrame(root){
+export function fitBodySpearFrame(root,{rimFit=false,useCache=true}={}){
  const anchor=root.getObjectByName('Socket_Chest');if(!anchor)return null;
  // SkinnedMesh.updateMatrixWorld refreshes its attached bind inverse. The
  // generic updateWorldMatrix traversal skips that override after reparenting.
@@ -65,34 +66,40 @@ export function fitBodySpearFrame(root){
   }
   // One skin evaluation per vertex serves both rays. Raycaster's
   // generic mesh path skins three vertices for every triangle on each ray.
-  const vertices=new Float64Array(geometry.attributes.position.count*3),visited=new Uint8Array(geometry.attributes.position.count),point=new THREE.Vector3();
-  const vertex=(id,out)=>{const offset=id*3;if(!visited[id]){mesh.getVertexPosition(id,point).applyMatrix4(mesh.matrixWorld);point.toArray(vertices,offset);visited[id]=1;}return out.fromArray(vertices,offset);};
+  let work=skinWork.get(geometry);if(!work){work={vertices:new Float64Array(geometry.attributes.position.count*3),visited:new Uint32Array(geometry.attributes.position.count),stamp:0};skinWork.set(geometry,work);}const {vertices,visited}=work,stamp=++work.stamp,point=new THREE.Vector3();
+  const vertex=(id,out)=>{const offset=id*3;if(visited[id]!==stamp){mesh.getVertexPosition(id,point).applyMatrix4(mesh.matrixWorld);point.toArray(vertices,offset);visited[id]=stamp;}return out.fromArray(vertices,offset);};
+  const candidates=rimFit&&useCache?bodySpearCandidates(mesh,triangles,right,up,center,.088,.111):null;
   const materials=Array.isArray(mesh.material)?mesh.material:[mesh.material];
-  surfaces.push({triangles,vertex,groups:geometry.groups,materials});
+  surfaces.push({triangles,candidates,vertex,groups:geometry.groups,materials});
  });
- const ray=new THREE.Ray(),intersection=new THREE.Vector3(),a=new THREE.Vector3(),b=new THREE.Vector3(),c=new THREE.Vector3(),centerRight=center.dot(right),centerUp=center.dot(up);
- function surface(sign){
-  ray.set(center.clone().addScaledVector(front,sign*1.1),front.clone().multiplyScalar(-sign));let closest=Infinity,result=null;
-  for(const {triangles,vertex,groups,materials}of surfaces)for(let i=0;i<triangles.length;i+=3){
+ const intersection=new THREE.Vector3(),a=new THREE.Vector3(),b=new THREE.Vector3(),c=new THREE.Vector3(),centerRight=center.dot(right),centerUp=center.dot(up),rays=[];
+ const addRays=(dx,dy)=>{for(const sign of[1,-1])rays.push({sign,dx,dy,ray:new THREE.Ray(center.clone().addScaledVector(right,dx).addScaledVector(up,dy).addScaledVector(front,sign*1.1),front.clone().multiplyScalar(-sign)),closest:Infinity,hit:false,point:new THREE.Vector3()});};
+ addRays(0,0);if(rimFit)for(let i=0;i<8;i++){const angle=i/8*Math.PI*2;addRays(Math.cos(angle)*.087,Math.sin(angle)*.11);}
+ // Skin/project each candidate triangle once for the complete ray bundle.
+ // Eighteen independent scans repeated all skin-cache reads and projections.
+ function trace(filtered){
+  for(const surface of surfaces){const {triangles,candidates,vertex,groups,materials}=surface,faces=filtered?candidates:null,total=faces?faces.length:triangles.length/3;for(let face=0;face<total;face++){const i=faces?faces[face]:face*3;
    vertex(triangles[i],a);vertex(triangles[i+1],b);vertex(triangles[i+2],c);
-   // Reject triangles outside the chest ray's projected horizontal/vertical
-   // intervals. Use geometry, since the crawler's coat has unusual weights.
-   const ax=a.dot(right)-centerRight,bx=b.dot(right)-centerRight,cx=c.dot(right)-centerRight;
-   if(Math.min(ax,bx,cx)>0||Math.max(ax,bx,cx)<0)continue;
-   const ay=a.dot(up)-centerUp,by=b.dot(up)-centerUp,cy=c.dot(up)-centerUp;
-   if(Math.min(ay,by,cy)>0||Math.max(ay,by,cy)<0)continue;
+   const ax=a.dot(right)-centerRight,bx=b.dot(right)-centerRight,cx=c.dot(right)-centerRight,minX=Math.min(ax,bx,cx),maxX=Math.max(ax,bx,cx);
+   if(minX>.088||maxX<-.088)continue;
+   const ay=a.dot(up)-centerUp,by=b.dot(up)-centerUp,cy=c.dot(up)-centerUp,minY=Math.min(ay,by,cy),maxY=Math.max(ay,by,cy);
+   if(minY>.111||maxY<-.111)continue;
    const group=materials.length>1?groups.find(g=>i>=g.start&&i<g.start+g.count):null,side=materials[group?.materialIndex||0]?.side??THREE.FrontSide;
-   if(!ray.intersectTriangle(side===THREE.BackSide?c:a,b,side===THREE.BackSide?a:c,side!==THREE.DoubleSide,intersection))continue;
-   const distance=intersection.distanceTo(ray.origin);if(distance<closest&&distance<=2.2){closest=distance;result=intersection.clone();}
-  }
-  return result;
+   for(const r of rays){if(minX>r.dx||maxX<r.dx||minY>r.dy||maxY<r.dy)continue;
+    if(!r.ray.intersectTriangle(side===THREE.BackSide?c:a,b,side===THREE.BackSide?a:c,side!==THREE.DoubleSide,intersection))continue;
+    const distance=intersection.distanceToSquared(r.ray.origin);if(distance<r.closest&&distance<=4.84){r.closest=distance;r.hit=true;r.point.copy(intersection);r.surface=surface;r.triangle=i;}
+   }
+  }}
  }
- const entry=surface(1),exit=surface(-1);if(!entry||!exit)return null;
+ trace(useCache);if(!rays[0].hit||!rays[1].hit){for(const r of rays){r.closest=Infinity;r.hit=false;}trace(false);}
+ const entry=rays[0].hit?rays[0].point:null,exit=rays[1].hit?rays[1].point:null;if(!entry||!exit)return null;
  const depth=entry.clone().sub(exit).dot(front);if(depth<.07||depth>.65)return null;
  // The bore overlaps the authored entry lip (base radius .073/.092),
  // while remaining under its outer .087/.110 silhouette. This overlap
  // keeps oblique folded coats from covering the inner tissue mouth.
- return {anchor,rotation,front,entry,exit,depth,entryLocal:anchor.worldToLocal(entry.clone()),exitLocal:anchor.worldToLocal(exit.clone()),halfExtent:new THREE.Vector2(.073,.092)};
+ const rims=rimFit?{entryRim:[],exitRim:[]}:{};
+ if(rimFit)for(let i=0;i<8;i++)for(let j=0;j<2;j++){const r=rays[2+i*2+j],origin=j?exit:entry;rims[j?'exitRim':'entryRim'].push(r.hit?clamp(a.copy(r.point).sub(origin).dot(front)*r.sign,-.07,.07):0);}
+ return {anchor,rotation,front,entry,exit,depth,...rims,entryLocal:anchor.worldToLocal(entry.clone()),exitLocal:anchor.worldToLocal(exit.clone()),halfExtent:new THREE.Vector2(.073,.092)};
 }
 
 export class BodySpearVisuals {

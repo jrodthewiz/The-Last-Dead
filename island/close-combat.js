@@ -1,6 +1,6 @@
 import {clearShot} from './simulation.js';
 
-export const CRIMSON={contact:.24,extract:.68,release:.94,duration:1.45,cost:15,range:2.05};
+export const CRIMSON={contact:.24,extract:.68,release:1.10,duration:1.60,cost:15,range:2.05};
 export function inCrimsonReach(player,e,grid){
  const dx=e.x-player.x,dz=e.z-player.z,d=Math.hypot(dx,dz);
  if(d>.0&&d<=CRIMSON.range&&Math.abs(e.root.position.y-player.y)<.65&&(dx*Math.sin(player.yaw)-dz*Math.cos(player.yaw))/d>.82){

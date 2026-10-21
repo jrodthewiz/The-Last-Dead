@@ -3,7 +3,7 @@ import {loadGlb} from '../assets/load-glb.js';
 import {createFirstPersonMotion} from './first-person-motion.js';
 import {createFirstPersonBody} from './first-person-body.js';
 import {installGameplayInput,wrapHeading} from './gameplay-input.js';
-import {locomotion,resetLocomotion} from './traversal.js';
+import {locomotion,resetLocomotion,bodyClear} from './traversal.js';
 import {SHOVE,shoveTarget,interruptEnemy} from './shove.js';
 import {surfaceHit} from './surface-hit.js';
 import {createActionHands} from './action-hands.js';
@@ -56,7 +56,11 @@ const firstPersonMotion=createFirstPersonMotion(),fieldUI=createFieldUI({touch,g
 const projectiles=[];let reloadCount=0,reloadSpent=0,reloadEjected=false,reloadCue=0;
 function notify(message,seconds=4,reason=null){toastReason=reason;toastWeapon=reason?state.weapon:null;$('toast').textContent=message;$('toast').classList.add('show');toastTimer=seconds;}
 function clearNotice(reason){if(toastReason!==reason)return;toastReason=toastWeapon=null;toastTimer=0;$('toast').classList.remove('show');}
-function cancelActions(){pendingStrike=null;searchAction=null;healing=null;punch=null;shove=null;locomotion(state).buffer=locomotion(state).coyote=0;if(crimson){coop?.action('release',{enemy:crimson.enemy.id});crimsonVisuals?.end(crimson.enemy);crimson.enemy.finisherHeld=false;if(!crimson.enemy.alive)setEnemyAction(crimson.enemy,'dead');crimson=null;}}
+function releaseCrimson(action){
+ if(action.time>=CRIMSON.extract&&!action.organReleased){crimsonVisuals.releaseOrgan(actionHands.heart,action.frame.front,action.frame);action.organReleased=true;}
+ coop?.action('release',{enemy:action.enemy.id});crimsonVisuals.end(action.enemy);action.enemy.finisherHeld=false;if(!action.enemy.alive)setEnemyAction(action.enemy,'dead');
+}
+function cancelActions(){pendingStrike=null;searchAction=null;healing=null;punch=null;shove=null;locomotion(state).buffer=locomotion(state).coyote=0;if(crimson){releaseCrimson(crimson);crimson=null;}}
 function resetInput(){weaponWasVisible=false;pointerControls?.reset();cancelActions();firstPersonMotion.reset();locomotion(state).vx=locomotion(state).vz=0;keys.clear();firing=aiming=false;input.jump=false;stick.forward=stick.strafe=0;const knob=$('joystick').firstElementChild;if(knob)knob.style.transform='';}
 function handsFree(){return !healing&&!crimson&&!shove&&!locomotion(state).vault&&!punch;}
 function canUseWeapon(){return mode==='playing'&&!vehicle&&reload<=0&&handsFree();}
@@ -116,11 +120,18 @@ function shoot(melee=false){
  if(w.kind==='arc'||w.kind==='bullet'&&shotSequence%3===0){const distance=wallDistance(origin,direction,w.kind==='arc'?w.range:traceEnd),end=origin.clone().addScaledVector(direction,distance),from=new T.Vector3();camera.updateMatrixWorld(true);if(w.id==='carbine')rifle.flash.getWorldPosition(from);else{const model=armoryModels.models[WEAPONS.findIndex(p=>p.id===w.id)-1],socket=model?.userData[w.id]?.sockets?.muzzle||model?.userData.rifle?.sockets?.muzzle;if(socket)socket.getWorldPosition(from);else from.set(.08,-.14,-.75).applyMatrix4(camera.matrixWorld);}feedback.trail(from,end,w.kind==='arc');}
  if(w.id==='carbine')feedback.casing(camera,rifle.ejectionSocket);else if(['carrion','mourning'].includes(w.id))feedback.casing(camera,armoryModels.models[WEAPONS.findIndex(p=>p.id===w.id)-1].userData.rifle.sockets.ejectionSocket);hearNoise(actors.enemies,state.x,state.z,w.kind==='melee'?10:w.kind==='saw'?38:90);coop?.noise(w.kind==='melee'?10:w.kind==='saw'?38:90);
 }
+function crimsonApproach(enemy){const dx=state.x-enemy.x,dz=state.z-enemy.z,d=Math.hypot(dx,dz);return {x:state.x,z:state.z,tx:enemy.x+dx/d*.93,tz:enemy.z+dz/d*.93};}
+function clearCrimsonApproach(enemy){const a=crimsonApproach(enemy),steps=Math.max(1,Math.ceil(Math.hypot(a.tx-a.x,a.tz-a.z)/.12));let y=state.y;for(let i=1;i<=steps;i++){const x=T.MathUtils.lerp(a.x,a.tx,i/steps),z=T.MathUtils.lerp(a.z,a.tz,i/steps),next=grid.floorAt(x,z);if(Math.abs(next-y)>.28||!bodyClear(grid,x,next,z))return false;y=next;}return true;}
+function availableCrimson(){if(mode!=='playing'||vehicle||reload>0||healing||searchAction||crimson||shove||locomotion(state).vault||punch||pendingStrike)return null;const e=crimsonCandidate(state,actors.enemies,grid);return e&&clearCrimsonApproach(e)?e:null;}
 function startCrimson(){
- if(mode!=='playing'||vehicle||reload>0||healing||crimson||shove||locomotion(state).vault||punch||pendingStrike)return false;
- const enemy=crimsonCandidate(state,actors.enemies,grid);if(!enemy)return false;
+ const enemy=availableCrimson();if(!enemy)return false;
  enemy.root.rotation.y=Math.atan2(state.x-enemy.x,state.z-enemy.z);enemy.root.updateMatrixWorld(true);const frame=crimsonVisuals.fit(enemy);if(!frame)return false;
- searchAction=null;firing=aiming=false;charge=0;enemy.finisherHeld=true;enemy.attackTimer=0;state.stamina-=CRIMSON.cost;crimsonVisuals.begin(enemy);crimson={enemy,frame,time:0,contacted:false,nextSpurt:CRIMSON.contact+.07};coop?.action('grab',{enemy:enemy.id});sound.play('cloth',.22,.8);return true;
+ searchAction=null;firing=aiming=false;charge=0;enemy.finisherHeld=true;enemy.attackTimer=0;state.stamina-=CRIMSON.cost;crimsonVisuals.begin(enemy);crimson={enemy,frame,time:0,contacted:false,nextSpurt:CRIMSON.contact+.07,approach:crimsonApproach(enemy)};coop?.action('grab',{enemy:enemy.id});sound.play('cloth',.22,.8);return true;
+}
+function approachCrimson(){
+ if(!crimson||crimson.time>.20)return;const a=crimson.approach,t=T.MathUtils.smoothstep(crimson.time,0,.18),x=T.MathUtils.lerp(a.x,a.tx,t),z=T.MathUtils.lerp(a.z,a.tz,t),steps=Math.max(1,Math.ceil(Math.hypot(x-state.x,z-state.z)/.08)),sx=(x-state.x)/steps,sz=(z-state.z)/steps;
+ for(let i=0;i<steps;i++){const nx=state.x+sx,nz=state.z+sz,y=grid.floorAt(nx,nz);if(Math.abs(y-state.y)>.28||!bodyClear(grid,nx,y,nz))break;state.x=nx;state.z=nz;state.y=y;}
+ const m=locomotion(state);m.vx=m.vz=0;
 }
 function beginShove(){
  if(mode!=='playing'||vehicle||reload>0||healing||punch||pendingStrike||crimson||shove||locomotion(state).vault||shoveCooldown>0)return false;
@@ -128,15 +139,15 @@ function beginShove(){
 }
 function updateShove(dt){if(!shove)return;shove.time+=dt;if(!shove.contacted){const e=shoveTarget(state,actors.enemies,grid);if(e){const d=Math.max(.001,Math.hypot(e.x-state.x,e.z-state.z));shove.target=new T.Vector3(e.x-(e.x-state.x)/d*.38,e.root.position.y+1.35,e.z-(e.z-state.z)/d*.38);}else shove.target=null;if(shove.time>=SHOVE.contact){shove.contacted=true;if(e){interruptEnemy(e,state);sound.play('cloth',.45,.7);showHit(false,.10);}else sound.play('bat',.15,1.35);}}if(shove.time>=shove.duration)shove=null;}
 function updateCrimson(dt){
- if(crimson){const action=crimson,events=advanceCrimson(action,dt,(action.enemy.alive||action.contacted)&&inCrimsonReach(state,action.enemy,grid));if(!events.includes('cancel')&&action.enemy.finisherHeld)crimsonVisuals.pose(action.enemy,action.frame,Math.min(action.time,CRIMSON.release));for(const event of events){
-  if(event==='cancel'){coop?.action('release',{enemy:action.enemy.id});crimsonVisuals.end(action.enemy);action.enemy.finisherHeld=false;if(!action.enemy.alive)setEnemyAction(action.enemy,'dead');crimson=null;notify('Too far. Crimson Punch interrupted.',2);break;}
+ if(crimson){const action=crimson,near=action.time<.22||Math.hypot(state.x-action.enemy.x,state.z-action.enemy.z)<1.35,events=advanceCrimson(action,dt,near&&(action.enemy.alive||action.contacted)&&inCrimsonReach(state,action.enemy,grid));if(!events.includes('cancel')&&action.enemy.finisherHeld)crimsonVisuals.pose(action.enemy,action.frame,Math.min(action.time,CRIMSON.release));for(const event of events){
+  if(event==='cancel'){releaseCrimson(action);crimson=null;notify('Too far. Crimson Punch interrupted.',2);break;}
   if(event==='contact'){crimsonVisuals.add(action.enemy,action.frame);crimsonVisuals.burst(action.frame);actionHands.stain();wound(action.enemy,999,action.frame.entry,true,true);feedback.impact(action.frame.exit,true,action.frame.front.clone().negate(),true);sound.play('crimson',.5,.8);}
   if(event==='extract'){crimsonVisuals.extract(action.frame,actionHands.heart,action);feedback.impact(action.frame.entry,true,action.frame.front,true);sound.play('flesh',.4,.7);}
   if(event==='release'){coop?.action('release',{enemy:action.enemy.id});crimsonVisuals.releaseOrgan(actionHands.heart,action.frame.front,action.frame);action.organReleased=true;crimsonVisuals.end(action.enemy);action.frame={...action.frame,entry:action.frame.entry.clone(),exit:action.frame.exit.clone(),rotation:action.frame.rotation.clone(),front:action.frame.front.clone()};action.enemy.finisherHeld=false;setEnemyAction(action.enemy,'dead');}
   if(event==='finish'){crimson=null;shotCooldown=.15;}
  }if(crimson?.contacted&&action.time>=action.nextSpurt&&action.time<CRIMSON.extract+.12){action.nextSpurt+=.11;feedback.arterial(action.frame.entry,action.frame.front);}
  }
- const candidate=!crimson&&!punch&&!healing&&!searchAction&&reload<=0&&!vehicle?crimsonCandidate(state,actors.enemies,grid):null;$('crimson-hint').hidden=!candidate;$('crimson-hint').textContent=touch?'CRIMSON PUNCH':'V · CRIMSON PUNCH';
+ const candidate=availableCrimson();$('crimson-hint').hidden=!candidate;$('crimson-hint').textContent=touch?'CRIMSON PUNCH':'V · CRIMSON PUNCH';
 }
 function selectWeapon(id){if(reload>0||vehicle||healing||crimson||shove||locomotion(state).vault||punch||pendingStrike||!equip(state,id))return false;charge=0;barrelCooling=false;pointerControls?.releaseCombat();firing=aiming=false;recoil=0;shotCooldown=.30;sound.play('reload',.10,1.2);updateHUD();return true;}
 function toggleInspection(){if(mode==='inspection'){const previous=inspectionFrom;$('inspection').hidden=true;if(previous==='title'){mode='title';$('title').hidden=false;focusControl('title-inspect');}else if(previous==='pause'){showOverlay('pause');focusControl('pause-inspect');}else resume();return;}if(!['playing','pause','title'].includes(mode)||!inspection)return;inspectionFrom=mode;mode='inspection';unlock();sound.pause(true);$('title').hidden=true;$('hud').hidden=true;$('overlay').hidden=true;$('inspection').hidden=false;renderArmory();$('inspect-close').focus();}
@@ -228,6 +239,7 @@ function frame(now){
     state.time+=dt;shoveCooldown=Math.max(0,shoveCooldown-dt);feedback.update(dt);updateProjectiles(dt);heat=Math.max(0,heat-dt*.18);if(weaponProfile(state).id==='arc'&&firing&&shotCooldown<=0&&reload<=0)charge=Math.min(1,charge+dt/1.1);else if(!firing)charge=Math.max(0,charge-dt*2);shotCooldown=Math.max(0,shotCooldown-dt);if(shotCooldown===0)barrelCooling=false;recoil=Math.max(0,recoil-dt*6);hitTimer=Math.max(0,hitTimer-dt);damageTimer=Math.max(0,damageTimer-dt);contactSoundTimer=Math.max(0,contactSoundTimer-dt);aim=T.MathUtils.damp(aim,aiming&&canAim()?1:0,12,dt);
     if(reload>0){reload=Math.max(0,reload-dt);if(['carbine','ossuary','breach','arc','reliquary','chainsaw','carrion','mourning'].includes(state.weapon)&&reloadCue<3&&1-reload/weaponProfile(state).reload>=(state.weapon==='breach'?[.18,.54,.82]:state.weapon==='ossuary'?[.2,.60,.82]:[.2,.67,.82])[reloadCue]){sound.play('reload',[.12,.20,.16][reloadCue],[1.25,.9,1.08][reloadCue]);reloadCue++;}if(state.weapon==='breach'&&!reloadEjected&&reload<weaponProfile(state).reload*.7){reloadEjected=true;ejectCases(state);const rig=armoryModels.shotgunReload.hinge;rig.updateWorldMatrix(true,true);for(let i=0;i<reloadSpent;i++){const p=new T.Vector3(i? .052:-.052,-.037,.1);rig.localToWorld(p);feedback.eject(p,new T.Vector3(-.6,.7,.8).applyQuaternion(camera.quaternion));}}if(state.weapon==='ossuary'&&!reloadEjected&&reload<weaponProfile(state).reload*.7){reloadEjected=true;ejectCases(state);const cylinder=armoryModels.models[0].userData.ossuary.cylinder;cylinder.updateWorldMatrix(true,true);for(let i=0;i<reloadSpent;i++){const a=i*Math.PI/3,p=new T.Vector3(Math.sin(a)*.12,Math.cos(a)*.12,.06);cylinder.localToWorld(p);feedback.eject(p,new T.Vector3(-.45-i*.035,-.6,.35).applyQuaternion(camera.quaternion),false);}}if(reload<=0){finishReload(state);sound.play('reload',.18,.85);updateHUD();}}
     if(!vehicle)sound.engine(0,false);if(vehicle){input.jump=false;updateVehicle(dt);moving=Math.abs(vehicle.speed)>.5;}else{input.forward=Number(keys.has('KeyW'))-Number(keys.has('KeyS'))+stick.forward;input.strafe=Number(keys.has('KeyD'))-Number(keys.has('KeyA'))+stick.strafe;input.sprint=keys.has('ShiftLeft')||keys.has('ShiftRight')||Math.hypot(stick.forward,stick.strafe)>.95;input.vault=!(reload>0||healing||searchAction||crimson||punch||shove||pendingStrike);const movement=stepPlayer(state,input,data,grid,dt);const wasExhausted=movementFrame.exhausted;movementFrame=movement;if(movement.environmentalDamage){takeDamage(movement.environmentalDamage,'exhaustion');if(!wasExhausted)notify('Exhausted. Stop swimming to catch your breath.',4,'exhaustion');}firstPersonMotion.advance(movement,dt);moving=movement.moving;input.jump=false;if(moving&&movement.onGround){footstep+=movement.distance||0;if(footstep>(movement.sprinting?2.6:2.1)){sound.play('step',.13,1+Math.random()*.15);hearNoise(actors.enemies,state.x,state.z,movement.sprinting?15:5);footstep=0;}}}
+    approachCrimson();
     const bob=!vehicle&&settings.motion?((Math.sin(firstPersonMotion.stride.phase)*.018*firstPersonMotion.stride.weight)-(movementFrame.landing||0)*.045):0;
     if(vehicle){const v=vehicle,origin=new T.Vector3(v.x,state.y+2,v.z),desired=new T.Vector3(v.x-Math.sin(v.angle)*8.5,state.y+4.7,v.z+Math.cos(v.angle)*8.5),delta=desired.clone().sub(origin),distance=delta.length();delta.normalize();let boom=distance;for(const box of grid.query(v.x,v.z,11)){const d=rayBox(origin.toArray(),delta.toArray(),box,distance);if(d!==null&&d>.1)boom=Math.min(boom,Math.max(1.5,d-.4));}desired.copy(origin).addScaledVector(delta,boom);camera.position.lerp(desired,1-Math.exp(-7*dt));camera.lookAt(v.x+Math.sin(v.angle)*8,state.y+1.3,v.z-Math.cos(v.angle)*8);}
     else{const vault=locomotion(state).vault,p=vault?vault.time/vault.duration:0,crouch=vault?T.MathUtils.smoothstep(p,0,.28)*(1-T.MathUtils.smoothstep(p,.65,1)):0;camera.position.set(state.x,firstPersonMotion.eyeHeight(state.y,movementFrame.onGround,dt,viewCeiling(grid,state.x,state.y,state.z))-crouch*1.05+bob,state.z);camera.rotation.set(state.pitch,-state.yaw,0,'YXZ');}
@@ -296,7 +308,7 @@ function bindControls(){
 async function init(){
   try{
     renderer=new T.WebGLRenderer({canvas,antialias:false,logarithmicDepthBuffer:true,powerPreference:'high-performance'});renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.03;scene=new T.Scene();scene.matrixAutoUpdate=false;camera=new T.PerspectiveCamera(74,innerWidth/innerHeight,.06,4800);scene.add(camera);presentation=createPresentation(renderer);resize();
-    data=createWorldData();grid=new SpatialGrid(createColliders(data));grid.floorAt=(x,z)=>supportHeight(data,x,z);const effectsFloor=(x,z)=>effectFloorHeight(x,z,supportHeight(data,x,z));$('loading').textContent='Raising the island and Saint Orin';await new Promise(requestAnimationFrame);world=createWorld(scene,data);rifle=makeRifle(camera);feedback=createFeedback(scene,effectsFloor);createInteractables();map=new FieldMap($('field-map'),data,value=>{pin=value;map.draw(state,pin);});
+    data=createWorldData();grid=new SpatialGrid(createColliders(data));grid.floorAt=(x,z)=>supportHeight(data,x,z);grid.effectFloorAt=(x,z)=>effectFloorHeight(x,z,grid.floorAt(x,z));const effectsFloor=(x,z)=>effectFloorHeight(x,z,supportHeight(data,x,z));$('loading').textContent='Raising the island and Saint Orin';await new Promise(requestAnimationFrame);world=createWorld(scene,data);rifle=makeRifle(camera);feedback=createFeedback(scene,effectsFloor);createInteractables();map=new FieldMap($('field-map'),data,value=>{pin=value;map.draw(state,pin);});
     // Asset parsing and shader preparation own startup. Do not render partially
     // loaded rigs and synchronously compile their materials between fetches.
     $('loading').textContent='Unpacking the coast, survivor & expedition arsenal';
@@ -308,12 +320,16 @@ async function init(){
     coop=createCoopWorld({scene,gltf:await survivorAsset,actors,rifle,armory:armoryModels,getState:()=>state,getGrid:()=>grid,getMode:()=>mode,getVehicle:()=>vehicle?actors.vehicles.indexOf(vehicle):-1,enterVehicle(index){const v=actors.vehicles[index];if(mode==='playing'&&v&&Math.hypot(state.x-v.x,state.z-v.z)<6){resetTravel();vehicle=v;state.y=groundHeight(v.x,v.z);state.yaw=v.angle;notify('W / S drive · A / D steer · E leave',4);}else coop.releaseVehicle(index);},cancelGrab(id){if(crimson?.enemy.id===id)cancelActions();},begin,returnTitle,unlock(){mode='lobby';unlock();},notify,wound,takeDamage,feedback});
     armsAsset=survivorAsset=null; // Consumers own their live rigs; release startup parser caches.
     await armoryModels.ready;
+    // Prepare each shared anatomy variant while startup already owns parsing
+    // and shaders. Gameplay queries conservative, bone-deformed triangle bounds.
+    await crimsonVisuals.prepare(actors.enemies);
+
     for(const branch of [rifle.root,armoryModels.rig,...armoryModels.groups,actionHands.root])sleepHiddenBranch(branch);
-    grid=new SpatialGrid([...createColliders(data),...scenery.colliders,...exploration.colliders]);grid.floorAt=(x,z)=>supportHeight(data,x,z);loot=createLootPlan(data,grid,grid.floorAt);lootVisuals=createLootVisuals(scene,loot);
-    grid=new SpatialGrid([...createColliders(data),...scenery.colliders,...exploration.colliders,...lootVisuals.colliders]);grid.floorAt=(x,z)=>supportHeight(data,x,z);dressWeaponFinds(cacheVisuals,armoryModels);updateWeaponFinds(cacheVisuals,state,camera.position);flight=createFlight(renderer,camera);
+    grid=new SpatialGrid([...createColliders(data),...scenery.colliders,...exploration.colliders]);grid.floorAt=(x,z)=>supportHeight(data,x,z);grid.effectFloorAt=(x,z)=>effectFloorHeight(x,z,grid.floorAt(x,z));loot=createLootPlan(data,grid,grid.floorAt);lootVisuals=createLootVisuals(scene,loot);
+    grid=new SpatialGrid([...createColliders(data),...scenery.colliders,...exploration.colliders,...lootVisuals.colliders]);grid.floorAt=(x,z)=>supportHeight(data,x,z);grid.effectFloorAt=(x,z)=>effectFloorHeight(x,z,grid.floorAt(x,z));dressWeaponFinds(cacheVisuals,armoryModels);updateWeaponFinds(cacheVisuals,state,camera.position);flight=createFlight(renderer,camera);
     camera.position.set(-610,155,550);camera.lookAt(-85,26,-45);camera.fov=58;camera.updateProjectionMatrix();rifle.root.visible=armoryModels.rig.visible=false;
     world.update(0,camera.position,.64,state.relays);scenery.update(camera.position);lootVisuals.update(0,state,camera.position);exploration.update(0,state,camera.position);
-    $('loading').textContent='Preparing the coast';warmup=await prepareRenderer(renderer,presentation,scene,camera,inspection);
+    $('loading').textContent='Preparing the coast';warmup=await prepareRenderer(renderer,presentation,scene,camera,inspection);crimsonVisuals.finishWarmup();
     // Present the completed title before accepting input, including the final
     // RGB555 pass. The first playable frame never owns startup compilation.
     presentation.render(scene,camera);bindControls();mode='title';frameTime=performance.now();requestAnimationFrame(frame);
