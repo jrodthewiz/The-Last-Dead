@@ -216,10 +216,12 @@ export async function sourceFingerprint() {
 // Validate the active game's module graph inside the completed bundle. A new
 // root module omitted from the explicit allowlist must fail the build, rather
 // than leave a production-only 404 after a successful local source run.
-async function verifyGameModules(outputRoot) {
+async function verifyGameModules(outputRoot,sourcePreflight=false) {
   const seen = new Set(), pending = ['island/game.js'];
   while(pending.length) {
     const name = pending.pop();if(seen.has(name))continue;seen.add(name);
+    if(sourcePreflight&&!RUNTIME_FILES.includes(name)&&!RUNTIME_DIRECTORIES.some(dir=>name.startsWith(dir+'/')))
+      throw new Error(`Game module is not included in the release allowlist: ${name}`);
     const absolute = path.resolve(outputRoot,name);
     if(!isInside(outputRoot,absolute))throw new Error(`Runtime import escapes build: ${name}`);
     let source;try { source=await fs.readFile(absolute,'utf8'); } catch { throw new Error(`Missing game module in build: ${name}`); }
@@ -245,6 +247,9 @@ export async function build({ dist = DIST_ROOT } = {}) {
   } catch (error) {
     if (error.code !== 'ENOENT') throw error;
   }
+  // Reject a missing or omitted dependency before replacing a healthy bundle
+  // that an existing shortcut-launched game may still be serving.
+  await verifyGameModules(PROJECT_ROOT,true);
   await fs.rm(outputRoot, { recursive: true, force: true });
   await fs.mkdir(outputRoot, { recursive: true });
 
