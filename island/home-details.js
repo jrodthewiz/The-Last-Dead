@@ -107,6 +107,12 @@ export function furnishCottage(k,b,floor,solid,{side,workX,special=false}){
  cylinder('bedside-lamp-base',nx,.80,nz,.13,.07,iron);
  cylinder('bedside-lamp-stem',nx,.98,nz,.028,.31,iron);
  cylinder('bedside-lamp-shade',nx,1.17,nz,.23,.23,cream);
+ // A finished shade has a lower rim; the unlit lamp and a dog-eared book
+ // tell a quiet domestic story without introducing lights or floor clutter.
+ cylinder('lamp-shade-rim',nx,1.06,nz,.235,.035,wood);
+ box('bedside-book-cover',nx+.20,.802,nz+.23,.24,.035,.24,profile?.colour||iron);
+ box('bedside-book-pages',nx+.20,.833,nz+.23,.22,.028,.22,cream);
+ box('bedside-book-cover',nx+.20,.855,nz+.23,.24,.018,.24,profile?.colour||iron);
  // A low sideboard occupies the side wall, beyond the loose supply position.
  const sx=-b.w/2+.68,sz=1.6;
  box('linen-sideboard',sx,.53,sz,.78,1.06,1.70,wood);
@@ -133,10 +139,29 @@ export function furnishCottage(k,b,floor,solid,{side,workX,special=false}){
  }
  const entryZ=b.d/2-1.1;
  if(profile){
+  // The door's mat remains flat and clear. Boots live beneath the bench,
+  // within its existing solid footprint, rather than becoming aisle hazards.
+  box('entry-coir-mat',0,.025,entryZ,2.22,.035,1.02,0x776748);
+  for(const x of [-.88,-.44,0,.44,.88])box('entry-mat-weave',x,.046,entryZ,.035,.008,.90,0x9c8a60);
   // A usable entry bench gives the household's supplies an authored place.
   box('scavenging-bench-top',3,.65,entryZ,2.4,.10,.92,wood);
   for(const x of [2.02,3.98])for(const dz of [-.32,.32])box('scavenging-bench-leg',x,.30,entryZ+dz,.12,.60,.12,edge);
   solid('scavenging-bench',3,entryZ,2.4,.92,.70);
+  for(const x of [2.65,2.95]){
+   box('work-boot-sole',x,.047,entryZ+.06,.23,.075,.48,iron);
+   box('work-boot-foot',x,.14,entryZ+.06,.21,.15,.44,edge);
+   box('work-boot-shaft',x,.27,entryZ-.08,.20,.26,.22,wood);
+   box('work-boot-cuff',x,.40,entryZ-.08,.22,.045,.24,iron);
+  }
+  // A calendar sits only on a solid back-wall pier. Respect every real
+  // window opening, including narrower homes with a central kitchen window.
+  const piers=[0,-b.w*.25,b.w*.25].filter(x=>!houseShell(b).windows.some(w=>w.side===1&&Math.abs(w.u-x)<1.03));
+  if(piers.length){const x=piers[0],z=-b.d/2+.225;
+   box('household-calendar-frame',x,2.03,z,.74,.84,.055,edge);
+   box('household-calendar-paper',x,2.03,z+.035,.64,.74,.018,cream);
+   box('household-calendar-heading',x,2.29,z+.047,.57,.10,.008,profile.colour);
+   for(let row=0;row<3;row++)for(let col=0;col<4;col++)box('household-calendar-days',x-.21+col*.14,2.10-row*.13,z+.049,.055,.045,.008,row===1&&col===b.seed%4?0x995b45:0x7e8064);
+  }
   box('household-hook-board',2.7,1.92,b.d/2-.25,1.6,.22,.09,profile.colour);
   for(const x of [2.2,2.7,3.2])box('coat-hook',x,1.90,b.d/2-.38,.055,.13,.22,iron);
   box('hanging-work-cloth',3.2,1.51,b.d/2-.39,.39,.69,.08,profile.colour);

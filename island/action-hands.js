@@ -31,7 +31,7 @@ float crimsonNoise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix
  const cylinder=(parent,r1,r2,h,y,mat)=>{const m=new T.Mesh(new T.CylinderGeometry(r1,r2,h,8),mat);m.position.y=y;parent.add(m);return m;};
  cylinder(bottle,.032,.038,.17,0,glass);cylinder(bottle,.014,.032,.05,.11,glass);cylinder(bottle,.014,.014,.065,.165,glass);cylinder(bottle,.017,.017,.012,.203,dark);cylinder(bottle,.033,.038,.085,-.01,paper);
  const label=new T.Mesh(new T.BoxGeometry(.032,.038,.002),dark);label.position.set(0,0,.038);label.rotation.z=Math.PI/4;bottle.add(label);const roll=cylinder(wrap,.036,.036,.07,0,paper);roll.rotation.z=Math.PI/2;const band=new T.Mesh(new T.BoxGeometry(.09,.015,.12),paper);band.position.set(0,-.02,.065);wrap.add(band);
- const point=new T.Vector3(),rightPoint=new T.Vector3(),rotation=new T.Quaternion(),delta=new T.Quaternion(),matrix=new T.Matrix4(),inverseWorld=new T.Matrix4(),scale=new T.Vector3(.56,.56,.56),axis=new T.Vector3(),cameraRotation=new T.Quaternion();root.visible=false;
+ const point=new T.Vector3(),rightPoint=new T.Vector3(),rotation=new T.Quaternion(),delta=new T.Quaternion(),searchRotation=new T.Quaternion(),lidRotation=new T.Quaternion(),matrix=new T.Matrix4(),inverseWorld=new T.Matrix4(),scale=new T.Vector3(.56,.56,.56),axis=new T.Vector3(),cameraRotation=new T.Quaternion();root.visible=false;
  const leftBones={};for(const digit of ['Index','Middle','Ring','Little','Thumb'])for(let i=0;i<3;i++)leftBones[digit+i]=group.getObjectByName('FPS_breach_left_'+digit+i);
  const rightBones={};for(const digit of ['Index','Middle','Ring','Little','Thumb'])for(let i=0;i<3;i++)rightBones[digit+i]=group.getObjectByName('FPS_breach_right_'+digit+i);
  const a=new T.Vector3(),b=new T.Vector3(),c=new T.Vector3(),u=new T.Vector3(),v=new T.Vector3(),normal=new T.Vector3(),cross=new T.Vector3(),center=new T.Vector3(),propRotation=new T.Quaternion();
@@ -77,13 +77,19 @@ float crimsonNoise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix
    if(kind==='punch'&&arm.side===(action.side||'right')&&action.target){const weight=punchMotion(t,true).drive;point.lerp(action.target,weight);}
    if(kind==='search'&&action.container){
     const container=action.container,reach=smooth(p,0,.22)*(1-smooth(p,.80,1)),bag=container.kind==='bag',depth=bag?.44:.65,width=bag?.72:1.05,angle=searchLidAngle(t),yaw=container.yaw||0;
-    const rummage=right?smooth(p,.60,.71)*(1-smooth(p,.79,.90)):0;
+    // Release the raised cover once, dip into the opening, then withdraw.
+    // Returning the dip to zero made the hand grab through the open lid again.
+    const rummage=right?smooth(p,.59,.73):0;
     const lx=right?width*.14:-width*.32,lz=right?T.MathUtils.lerp(-depth/2+Math.cos(angle)*depth,0,rummage):depth*.32;
     const height=right?T.MathUtils.lerp(.49-Math.sin(angle)*depth,.34,rummage):.40;
     a.set(container.x+Math.cos(yaw)*lx+Math.sin(yaw)*lz,container.y+height,container.z-Math.sin(yaw)*lx+Math.cos(yaw)*lz);
     point.lerp(a,reach);
-    // Palm faces down onto the lid; preserve finger direction along its edge.
-    rotation.slerp(delta.copy(cameraRotation).multiply(arm.openRot.vault),reach);
+    // The lid owns the wrist while it is held. Looking around must not rotate
+    // a planted hand away from its container; the bracing hand stays level.
+    searchRotation.setFromAxisAngle(axis.set(0,1,0),yaw);
+    lidRotation.setFromAxisAngle(axis.set(1,0,0),right?angle*(1-rummage):0);
+    searchRotation.multiply(lidRotation).multiply(arm.openRot.vault);
+    rotation.slerp(searchRotation,reach);
    }
    if(kind==='crimson'){
     const f=action.frame,hand=chestHandPoint(right?'Right':'Left',t,{contactAt:CRIMSON.contact,extractionAt:CRIMSON.extract+.12,releaseAt:CRIMSON.release,spearDepth:f.depth});if(right){const pull=smooth(t,CRIMSON.extract-.10,CRIMSON.extract+.16);hand.x+=pull*.14;hand.y+=pull*.075;hand.z+=pull*.17;}hand.applyQuaternion(f.rotation).add(f.entry);point.lerp(hand,smooth(t,.08,.23)*(1-smooth(t,CRIMSON.release,CRIMSON.duration)));

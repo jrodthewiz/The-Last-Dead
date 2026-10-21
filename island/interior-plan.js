@@ -46,7 +46,43 @@ export function interiorPlan(b){
  const wood=0x96856a,dark=0x535a4d,metal=0x425c56,linen=0xc1b797,green=domesticProfile(b)?.colour||0x84927b,clay=0xb38a68;
  const box=(x,y,z,w,h,d,c)=>k.box(b.x+x,floor+y,b.z+z,w,h,d,c);
  const table=(name,x,z,w=2.8,d=1.4)=>{box(x,.84,z,w,.15,d,wood);for(const dx of [-w*.4,w*.4])for(const dz of [-d*.35,d*.35])box(x+dx,.4,z+dz,.13,.8,.13,dark);solid(name,x,z,w,d,.92);};
- const shelf=(x,z,w=2.7)=>{for(const dx of [-w/2,w/2])box(x+dx,1.05,z,.14,2.1,.65,dark);for(let j=0;j<3;j++){box(x,.3+j*.7,z,w,.12,.65,wood);for(let i=0;i<4;i++)box(x-w*.36+i*w*.23,.53+j*.7,z,.3,.34,.38,(i+j)%2?linen:green);}solid('shelf',x,z,w+.14,.65,2.1);};
+ const shelf=(x,z,w=2.7)=>{
+  for(const dx of [-w/2,w/2])box(x+dx,1.13,z,.14,2.26,.65,dark);
+  box(x,1.13,z-.31,w,2.20,.045,0x817b60);
+  const household=domesticProfile(b);
+  for(let j=0;j<3;j++){
+   const deck=.3+j*.7;box(x,deck,z,w,.12,.65,wood);
+   if(!household){for(let i=0;i<4;i++)box(x-w*.36+i*w*.23,deck+.23,z,.3,.34,.38,(i+j)%2?linen:green);continue;}
+   // Broad silhouettes survive the console image: preserve shelf space and
+   // explain each household with crockery, folded linen, medicine or tools.
+   for(let i=0;i<3;i++){
+    const xx=x+(i-1)*w*.28,base=deck+.06,kind=household.kind;
+    if(kind==='linen'){
+     for(let fold=0;fold<2+(i+j)%2;fold++){
+      box(xx,base+.05+fold*.10,z,.48-fold*.025,.09,.43,fold%2?linen:green);k.lastRole('shelf-folded-linen');
+      box(xx,base+.092+fold*.10,z+.219,.42-fold*.025,.012,.015,wood);
+     }
+    }else if(kind==='remedies'){
+     const h=.25+((i+j)%3)*.055,r=.10+(j===0?.02:0);
+     k.add('cylinder',b.x+xx,floor+base+h/2,b.z+z,r,h,r,(i+j)%2?0x698a7b:0x9c775d);k.lastRole('shelf-apothecary-bottle');
+     k.add('cylinder',b.x+xx,floor+base+h+.025,b.z+z,r*.64,.05,r*.64,linen);
+     box(xx,base+h*.48,z+r+.006,r*1.25,h*.45,.018,linen);
+     if(j===0)box(xx,base+.022,z+.16,.38,.035,.32,linen);
+    }else if(kind==='pantry'){
+     const r=j===1?.18:.14,h=j===1?.31:.27;
+     k.add('cylinder',b.x+xx,floor+base+h/2,b.z+z,r,h,r,j===1?clay:0x748469);k.lastRole('shelf-preserving-crock');
+     k.add('cylinder',b.x+xx,floor+base+h+.018,b.z+z,r*1.08,.035,r*1.08,linen);
+     box(xx,base+h*.55,z+r,.16,.105,.018,linen);
+    }else{
+     box(xx,base+.13,z,.48,.25,.42,green);k.lastRole('shelf-workshop-tin');
+     box(xx,base+.27,z,.51,.035,.45,metal);box(xx,base+.14,z+.219,.20,.095,.018,linen);
+     if(j===0){box(xx,base+.32,z,.30,.06,.065,wood);box(xx+.12,base+.33,z,.08,.09,.22,metal);}
+    }
+   }
+  }
+  box(x,2.25,z+.02,w+.18,.12,.73,wood);k.lastRole('shelf-cornice');
+  solid('shelf',x,z+.02,w+.18,.73,2.31);
+ };
  const bed=(x,z)=>{
   for(const dx of [-.85,.85]){box(x+dx,.41,z,.14,.25,3.05,wood);for(const dz of [-1.32,1.32])box(x+dx,.25,z+dz,.18,.5,.18,dark);}
   for(const dz of [-1.40,1.40])box(x,.41,z+dz,1.78,.25,.13,wood);
@@ -68,6 +104,12 @@ export function interiorPlan(b){
   box(x,2.06,z-.18,.22,2.04,.22,dark);k.lastRole('stove-flue');
   box(x,3.015,z-.18,.38,.08,.38,metal);k.lastRole('stove-ceiling-collar');
   k.add('cylinder',b.x+x,floor+1.25,b.z+z+.18,.24,.18,.24,clay);
+  k.add('cylinder',b.x+x,floor+1.352,b.z+z+.18,.25,.035,.25,metal);k.lastRole('stove-kettle-lid');
+  k.add('cylinder',b.x+x,floor+1.39,b.z+z+.18,.055,.055,.055,wood);
+  k.rod([b.x+x-.19,floor+1.29,b.z+z+.18],[b.x+x-.16,floor+1.58,b.z+z+.18],.025,metal);
+  k.rod([b.x+x-.16,floor+1.58,b.z+z+.18],[b.x+x+.16,floor+1.58,b.z+z+.18],.025,wood);
+  k.rod([b.x+x+.16,floor+1.58,b.z+z+.18],[b.x+x+.19,floor+1.29,b.z+z+.18],.025,metal);
+  k.rod([b.x+x+.18,floor+1.22,b.z+z+.18],[b.x+x+.35,floor+1.39,b.z+z+.18],.055,clay);k.lastRole('stove-kettle-spout');
   solid('stove',x,z,1,.95,3.06);
  };
  const boat=b.id==='building-7',garden=b.id==='building-8',village=b.district==='village';
