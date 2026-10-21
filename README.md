@@ -7,14 +7,14 @@ The browser edition has been rebuilt as **Blackwater**: a solo or two-player, N6
 [**Play the public game**](https://the-last-dead-blackwater.jrodonthebeat.chatgpt.site) ·
 [GitHub source](https://github.com/jrodthewiz/The-Last-Dead)
 
-Run **npm.cmd run dev**, or use **Start The Last Dead.cmd**, then open **http://127.0.0.1:5200/**. The canonical checkout is **C:/Users/wolfk/Desktop/thelastdead**. Node.js 18+ and the bundled assets are sufficient; there are no runtime downloads or API keys.
+Run **npm.cmd run dev**, or double-click **Start Blackwater Browser.cmd** (the existing **Start The Last Dead.cmd** also works), then open **http://127.0.0.1:5200/**. These launchers start only this standalone Three.js browser edition; the Unity project is separate. The canonical checkout is **C:/Users/wolfk/Desktop/thelastdead**. Node.js 18+ and the bundled assets are sufficient; there are no runtime downloads or API keys.
 
 The command launcher and installed Wolf Games shortcut check build freshness,
 rebuild changed runtime sources, and reuse an existing healthy game server.
 They serve the same built runtime used for release. `npm run dev` serves live
 source directly; `npm run build` followed by `npm run preview` serves the bundle.
-The build validates the active game's 115-module dependency graph and writes
-`build-info.json` for source/build comparison. The exact module count can grow.
+The build validates the active game's module dependency graph and writes
+`build-info.json` for source/build comparison.
 
 GitHub pushes and pull requests run the **Playable browser build** workflow,
 which builds the game, checks existing first-person/scavenging/co-op contracts,

@@ -12,7 +12,7 @@ export const SALVAGE_CONTACTS=Object.freeze({
 const DESIGNS={
  sword:{ready:[.92,-.28,-.38],windup:[1.04,-.65,-.70],follow:[.08,.52,-1.35],recover:[.58,.12,-.70],load:.48,followTime:.105,recoverAt:.76,
   high:[.34,.34,-1.14],low:[-.30,-.30,-1.26],return:[-.06,-.16,-1.18]},
- hammer:{ready:[1.02,-.12,-.10],windup:[1.34,-.18,-.52],follow:[-.38,-.12,-1.57],recover:[.55,-.16,-.66],load:.64,followTime:.145,recoverAt:.80,
+ hammer:{ready:[.91,-.30,-.34],windup:[1.34,-.18,-.52],follow:[-.38,-.12,-1.57],recover:[.55,-.16,-.66],load:.64,followTime:.145,recoverAt:.80,
   high:[.04,.57,-1.26],low:[0,-.30,-1.30],return:[.10,-.08,-1.16]},
  pipe:{ready:[.78,-.18,-.16],windup:[.70,-.52,-.04],follow:[.68,.48,.13],recover:[.57,.02,-.06],load:.42,followTime:.075,recoverAt:.73,
   high:[.29,0,-1.30],low:[-.25,0,-1.30],return:[.05,-.14,-1.17]},
@@ -30,7 +30,7 @@ function stateFor(root,id){
 }
 function contactRotation(id,inset,q){
  if(id==='sword'){direction.set(-.55*inset,.55*inset*inset,-.63);normal.set(-inset,-1,0);}
- else if(id==='hammer'){direction.set(-.30*inset,0,-1);normal.set(0,-1,0);}
+ else if(id==='hammer'){direction.set(.34*inset,-.08,-1);normal.set(0,-1,0);}
  else{direction.set(-.035*inset,.55,-.83);normal.set(-1,0,0);}
  direction.normalize();axisZ.copy(direction).negate();axisX.copy(normal).addScaledVector(axisZ,-normal.dot(axisZ)).normalize();
  // The pipe's left coupling wall leads its short leftward swing.
@@ -56,16 +56,22 @@ function flowingRotation(out,q,velocities,segment,u,span){
  curveC.slerpQuaternions(q[segment],curveA,u);curveD.slerpQuaternions(curveA,curveB,u);curveE.slerpQuaternions(curveB,q[segment+1],u);
  curveC.slerp(curveD,u);curveD.slerp(curveE,u);out.slerpQuaternions(curveC,curveD,u);
 }
-export function animateSalvageMelee(root,{id,age,contact,duration,active,group,aspect,hit='',impactFrame=false}){
+export function animateSalvageMelee(root,{id,age,contact,duration,active,group,aspect,hit='',impactFrame=false,target=null}){
  const s=stateFor(root,id),d=s.design,p=s.points,q=s.rotations,t=s.times,v=s.velocities,inset=Math.min(1,aspect/.9),scale=group.scale.x,end=duration-.045;
  contactRotation(id,inset,q[2]);
  point.fromArray(SALVAGE_CONTACTS[id].point);p[0].copy(point).applyQuaternion(q[0]).multiplyScalar(scale).add(group.position);p[5].copy(p[0]);
  p[1].fromArray(d.high);p[1].x*=inset;p[2].set(0,0,-1.30);p[3].fromArray(d.low);p[3].x*=inset;p[4].fromArray(d.return);p[4].x*=inset;
  t[0]=0;t[1]=contact*d.load;t[2]=contact;t[3]=contact+d.followTime;t[4]=duration*d.recoverAt;t[5]=end;
+ // Seat the committed stroke near the acquired target before wind-up begins.
+ // Spread the offset over the entire curve so contact cannot teleport the tool.
+ // Long-range forgiveness remains gameplay-owned; arms have a bounded reach.
+ if(target){const x=T.MathUtils.clamp(target.x,-.48,.48),y=T.MathUtils.clamp(target.y,-.32,.22),z=T.MathUtils.clamp(target.z,-1.90,-.95)+1.30;
+  for(const [i,weight]of [[1,.35],[2,1],[3,.75],[4,.18]]){p[i].x+=x*weight;p[i].y+=y*weight;p[i].z+=z*weight;}
+ }
  setRotation(q[3],d.follow);
- if(hit){const response=SALVAGE_RESPONSE[id],wall=hit==='wall',hard=wall?1.15:1;p[3].multiplyScalar(wall?(response.wallFollow??response.follow):response.follow);p[3].z=-1.30+(wall?(response.wallRetreat||0):0);
-  if(id==='hammer')p[3].y=response.rebound*hard;
-  if(id==='pipe')p[3].x=response.rebound*inset*hard;
+ if(hit){const response=SALVAGE_RESPONSE[id],wall=hit==='wall',hard=wall?1.15:1;p[3].sub(p[2]).multiplyScalar(wall?(response.wallFollow??response.follow):response.follow).add(p[2]);p[3].z=p[2].z+(wall?(response.wallRetreat||0):0);
+  if(id==='hammer')p[3].y=p[2].y+response.rebound*hard;
+  if(id==='pipe')p[3].x=p[2].x+response.rebound*inset*hard;
   q[3].slerp(q[2],id==='sword'?(wall?.80:.22):.62);
  }
  for(const velocity of v)velocity.set(0,0,0);

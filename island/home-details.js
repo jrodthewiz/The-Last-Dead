@@ -71,20 +71,22 @@ export function furnishCottage(k,b,floor,solid,{side,workX,special=false}){
    // A broad open work basket survives the low-resolution entry view. Its
    // cloth and rim stay on the existing table, with no new floor obstacle.
    const bx=workX+.55,bz=-2.55;
-   box('sewing-basket-bottom',bx,.993,bz,.70,.055,.57,edge);
-   for(const dx of [-.33,.33])box('sewing-basket-rim',bx+dx,1.11,bz,.055,.24,.57,wood);
-   for(const dz of [-.26,.26])box('sewing-basket-rim',bx,1.11,bz+dz,.64,.24,.055,wood);
-   box('basket-linen',bx,1.11,bz,.53,.16,.42,cream);
-   box('basket-linen-fold',bx+.06,1.205,bz+.08,.42,.035,.25,profile.colour);
-   for(const dx of [-.26,.26])k.rod([b.x+bx+dx,floor+1.18,b.z+bz],[b.x+bx+dx*.65,floor+1.47,b.z+bz],.035,edge);
-   k.rod([b.x+bx-.17,floor+1.47,b.z+bz],[b.x+bx+.17,floor+1.47,b.z+bz],.035,edge);
+   box('sewing-basket-bottom',bx,.993,bz,.90,.055,.67,edge);
+   for(const dx of [-.43,.43])box('sewing-basket-rim',bx+dx,1.16,bz,.055,.34,.67,wood);
+   for(const dz of [-.31,.31])box('sewing-basket-rim',bx,1.16,bz+dz,.84,.34,.055,wood);
+   box('basket-linen',bx,1.15,bz,.71,.20,.52,cream);
+   box('basket-linen-fold',bx+.06,1.29,bz+.08,.60,.07,.38,profile.colour);
+   for(const dx of [-.39,.39])k.rod([b.x+bx+dx,floor+1.28,b.z+bz],[b.x+bx+dx*.6,floor+1.68,b.z+bz],.035,edge);
+   k.rod([b.x+bx-.234,floor+1.68,b.z+bz],[b.x+bx+.234,floor+1.68,b.z+bz],.035,edge);
    for(const dx of [-.08,.08])k.rod([b.x+workX+dx,floor+.98,b.z-2.4],[b.x+workX-dx,floor+.98,b.z-2.15],.017,iron);
   }else if(profile?.kind==='remedies'){
    box('care-ledger-cover',workX+.43,.94,-2.55,.90,.045,.65,edge);
    for(const dx of [-.22,.22])box('care-ledger-page',workX+.43+dx,.969,-2.55,.42,.018,.60,cream);
    box('remedy-tray',workX-.56,.95,-2.83,.92,.07,.53,iron);
    for(const dz of [-.24,.24])box('remedy-tray-lip',workX-.56,1.00,-2.83+dz,.92,.10,.035,iron);
-   for(let i=0;i<3;i++){const xx=workX-.86+i*.30,h=[.32,.43,.35][i];cylinder('remedy-bottle',xx,.985+h/2,-2.83,.10,h,i%2?0x8d6d5b:0x658274);cylinder('remedy-stopper',xx,1.005+h,-2.83,.068,.04,cream);box('remedy-label',xx,.985+h*.48,-2.723,.13,.12,.018,cream);}
+   for(let i=0;i<3;i++){const xx=workX-.86+i*.30,h=[.36,.55,.41][i];cylinder('remedy-bottle',xx,.985+h/2,-2.83,.10,h,i%2?0x8d6d5b:0x658274);cylinder('remedy-stopper',xx,1.005+h,-2.83,.068,.04,cream);box('remedy-label',xx,.985+h*.48,-2.723,.13,.16,.018,cream);}
+   for(const x of [workX-1.04,workX-.08])box('apothecary-carrier-upright',x,1.31,-2.83,.065,.67,.13,wood);
+   box('apothecary-carrier-handle',workX-.56,1.66,-2.83,1.04,.075,.13,wood);
    box('clean-gauze',workX+.72,1.013,-2.5,.30,.07,.46,cream);
   }else{
    k.add('basin',b.x+workX+.72,floor+.941,b.z-2.6,.24,.052,.24,cream);k.lastRole('dinner-plate');
@@ -93,8 +95,9 @@ export function furnishCottage(k,b,floor,solid,{side,workX,special=false}){
    // Thick angular handle joins the wall at both ends; the cup stays hollow.
    for(const y of [.985,1.115])k.rod([b.x+mugX+.09,floor+y,b.z+mugZ],[b.x+mugX+.175,floor+y,b.z+mugZ],.022,mugColour);
    k.rod([b.x+mugX+.175,floor+.985,b.z+mugZ],[b.x+mugX+.175,floor+1.115,b.z+mugZ],.022,mugColour);
-   box('bread-board',workX-.60,.946,-2.54,.68,.035,.54,wood);
-   k.add('rock',b.x+workX-.60,floor+1.04,b.z-2.54,.44,.19,.30,0xb19867);k.lastRole('household-loaf');
+   box('bread-board',workX-.60,.946,-2.54,1.04,.035,.64,wood);
+   k.add('rock',b.x+workX-.60,floor+1.09,b.z-2.54,.78,.28,.42,0xb19867);k.lastRole('household-loaf');
+   for(const dx of [-.17,0,.17])k.rod([b.x+workX-.60+dx,floor+1.19,b.z-2.66],[b.x+workX-.55+dx,floor+1.19,b.z-2.43],.018,cream);
   }
  }
  const bedX=side*(b.w/2-2),bedZ=back+2.4;
@@ -167,7 +170,14 @@ export function furnishCottage(k,b,floor,solid,{side,workX,special=false}){
   box('hanging-work-cloth',3.2,1.51,b.d/2-.39,.39,.69,.08,profile.colour);
   if(profile.kind==='pantry')for(const [x,h]of [[2.15,.30],[3.83,.23]]){cylinder('pantry-preserving-jar',x,.72+h/2,entryZ-.07,.12,h,0x82936c);cylinder('jar-lid',x,.73+h,entryZ-.07,.13,.035,cream);}
   if(profile.kind==='linen')for(let i=0;i<3;i++)box('household-folded-blanket',2.12,.75+i*.09,entryZ,.38,.08,.62,i%2?cream:profile.colour);
-  if(profile.kind==='remedies'){box('medical-tin',2.1,.83,entryZ,.42,.25,.45,cream);box('medical-tin-cross',2.1,.964,entryZ,.26,.018,.07,0x995b45);box('medical-tin-cross',2.1,.965,entryZ,.07,.018,.26,0x995b45);}
+  if(profile.kind==='remedies'){
+   // The searchable satchel owns the medical cross. This open care tray is
+   // supporting household dressing, with no competing pickup emblem.
+   box('care-tray',2.1,.735,entryZ,.50,.04,.48,iron);
+   for(const dx of [-.23,.23])box('care-tray-edge',2.1+dx,.78,entryZ,.035,.08,.48,iron);
+   for(const dz of [-.22,.22])box('care-tray-edge',2.1,.78,entryZ+dz,.46,.08,.035,iron);
+   for(const dx of [-.10,.10]){cylinder('care-gauze-roll',2.1+dx,.82,entryZ,.085,.13,cream);cylinder('gauze-roll-core',2.1+dx,.888,entryZ,.028,.009,edge);}
+  }
   if(profile.kind==='workshop'){box('repair-cloth',3.88,.72,entryZ,.42,.035,.61,profile.colour);box('repair-hammer-handle',2.22,1.65,b.d/2-.42,.07,.50,.07,wood);box('repair-hammer-head',2.22,1.91,b.d/2-.42,.34,.14,.14,cream);}
  }
  return {kitchen:{x:prepX,z:prepZ},bedside:{x:nx,z:nz}};

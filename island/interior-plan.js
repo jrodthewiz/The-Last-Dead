@@ -129,9 +129,16 @@ export function interiorPlan(b){
   if(boat){
    box(1.2,1.28,-b.d/2+2.5,.16,2.56,4.7,0xa8a488);solid('sleeping-partition',1.2,-b.d/2+2.5,.16,4.7,2.56);
    box(-3,.95,-2.6,3.6,.035,1.35,linen);
-   k.add('rock',b.x-3,floor+1.12,b.z-2.6,1.25,.2,.42,0x9f7957);
-   // Hull sections laid across a drawn plan, plus broad bent-rib templates.
-   for(let i=0;i<4;i++)box(-3.8+i*.5,1.31,-2.6,.08,.09,.65,dark);
+   // Open hull ribs and continuous gunwales read as boat repair from the
+   // doorway. Replace the old solid lump; keep the same worktable footprint.
+   const frames=[[-1.18,.035,.22],[-.78,.33,.35],[0,.46,.39],[.78,.33,.35],[1.18,.035,.22]];
+   for(const [xx,half,h]of frames)for(const side of [-1,1]){
+    k.rod([b.x-3+xx,floor+1.01,b.z-2.6],[b.x-3+xx,floor+1.01+h,b.z-2.6+side*half],.033,dark);k.lastRole('boatwright-hull-rib');
+   }
+   k.rod([b.x-4.18,floor+1.01,b.z-2.6],[b.x-1.82,floor+1.01,b.z-2.6],.045,wood);
+   for(let i=0;i<frames.length-1;i++)for(const side of [-1,1])for(const level of [.56,1]){
+    const a=frames[i],c=frames[i+1];k.rod([b.x-3+a[0],floor+1.01+a[2]*level,b.z-2.6+side*a[1]*level],[b.x-3+c[0],floor+1.01+c[2]*level,b.z-2.6+side*c[1]*level],level===1?.05:.035,wood);k.lastRole('boatwright-gunwale');
+   }
    for(let i=0;i<3;i++)box(-b.w/2+.65,.7+i*.35,0,.18,.19,3.3,wood);
    solid('timber-rack',-b.w/2+.65,0,.5,3.5,1.6);
    box(-3.9,1.07,-2.9,.6,.13,.15,clay);

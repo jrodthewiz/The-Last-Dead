@@ -29,6 +29,7 @@ export function createBackpackUI({getState,equip,use,close,changed,announce}){
    if(!entries.length)grid.innerHTML='<p class="pack-empty">Picked clean.<br>Someone made it this far.</p>';
    detail.innerHTML=`<div class="loot-seal" aria-hidden="true">◇</div><p class="eyebrow">IN YOUR POUCH</p><h3>${PACK_CAPACITY-packCount(s)} <small>${PACK_CAPACITY-packCount(s)===1?'space':'spaces'} free</small></h3><p>Weapons and ammunition fit separately.</p><p class="eyebrow">READY TO PACK</p><p id="pack-forecast"></p><p id="pack-leftovers"></p><p class="loot-quick-hint"><kbd>E</kbd> Take all & return<br><kbd>B</kbd> Leave container</p>`;
    const forecast=previewLoot(s,stash),describe=items=>items.map(p=>p.count+' × '+(itemDefinition(p.id).short||itemDefinition(p.id).name)).join(' · ');
+   detail.querySelector('.loot-quick-hint').innerHTML=(forecast.packed.length?'<kbd>E</kbd> Take all & return<br>':'')+'<kbd>B</kbd> Leave container';
    el('pack-forecast').textContent=forecast.packed.length?'Will pack: '+describe(forecast.packed):entries.length?'Nothing fits right now.':'This container is empty.';
    el('pack-leftovers').hidden=!forecast.left.length;el('pack-leftovers').textContent=forecast.left.length?'Stays here: '+describe(forecast.left):'';
    detail.append(button('Take all that fits',()=>{const collected=[];for(const id of Object.keys(loot)){const result=transferLootReceipt(s,stash,id);if(result)collected.push(result);}if(collected.length)changed('collect',collected);render(collected.length?'Packed: '+collected.map(p=>p.count+' × '+itemDefinition(p.id).name).join(' · '):'No room. The rest stays in this container.');el('pack-close').focus();},!entries.some(([id])=>lootSpace(s,id)>0)));detail.lastChild.id='pack-take-all';return;
@@ -48,7 +49,13 @@ export function createBackpackUI({getState,equip,use,close,changed,announce}){
   }
  }
  root.addEventListener('keydown',event=>{
-  if(stash&&event.code==='KeyE'&&!event.repeat){event.preventDefault();event.stopPropagation();el('pack-take-all')?.click();close();return;}
+  if(stash&&event.code==='KeyE'&&!event.repeat){
+   event.preventDefault();event.stopPropagation();const take=el('pack-take-all');
+   // A full pouch must not dismiss the find as though it was collected.
+   // Keep the saved contents visible and make the next useful action clear.
+   if(take?.disabled){const empty=!Object.values(getState().backpack.remaining[stash.id]||{}).some(n=>n>0),message=empty?'Picked clean. B to return.':'Nothing fits. Open Supplies to make room; these items stay here.';el('pack-message').textContent=message;announce(message);if(!empty)el('pack-supplies').focus();return;}
+   take?.click();close();return;
+  }
   const grid=el('pack-grid'),keys=['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Home','End'];
   if(grid.contains(event.target)&&keys.includes(event.code)){
    const buttons=[...grid.querySelectorAll('button:not(:disabled)')],index=buttons.indexOf(document.activeElement);if(!buttons.length)return;
