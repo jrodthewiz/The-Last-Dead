@@ -16,6 +16,13 @@ export async function createActionHands(camera,source=loadGlb(new URL('../assets
  installFPSArms({weaponGroups:[group],fpsSourceIndices:[1],weaponRig:root,camera,_findWeaponSocket:(m,name)=>m.userData[name]},asset);
  const frame=group.userData.authoredFPS,parts=frame.arms.map(a=>{a.grip.matrixAutoUpdate=false;return {...a,inverse:a.offset.clone().invert(),base:camera.getWorldQuaternion(new T.Quaternion()).invert().multiply(a.hand.getWorldQuaternion(new T.Quaternion())),fingerAxis:a.hand.worldToLocal(group.getObjectByName('FPS_breach_'+a.side+'_Middle0').getWorldPosition(new T.Vector3())).normalize()};});
  root.traverse(o=>{o.layers.set(0);if(o.isMesh){o.renderOrder=0;for(const m of(Array.isArray(o.material)?o.material:[o.material])){m.userData.viewmodelDepth=false;consoleMaterial(m);m.color?.setHex(m.userData.surfaceRole==='authored-canvas'?0x91aeb4:0xa29674);}}});
+ const blood={value:0},bloodMaterials=new Set();
+ function bloodSurface(branch){branch?.traverse(o=>{if(!o.isMesh)return;for(const m of(Array.isArray(o.material)?o.material:[o.material])){
+  if(m.userData.surfaceRole!=='authored-glove'||bloodMaterials.has(m))continue;bloodMaterials.add(m);const prior=m.onBeforeCompile,key=m.customProgramCacheKey();
+  m.onBeforeCompile=(shader,renderer)=>{prior.call(m,shader,renderer);shader.uniforms.crimsonHandBlood=blood;shader.vertexShader='varying vec3 crimsonGlovePosition;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ncrimsonGlovePosition=position;');shader.fragmentShader='uniform float crimsonHandBlood;varying vec3 crimsonGlovePosition;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\nfloat fleck=sin(crimsonGlovePosition.x*173.+crimsonGlovePosition.z*87.)*sin(crimsonGlovePosition.y*131.-crimsonGlovePosition.z*73.);float feather=max(fwidth(fleck),.04);float bloodMask=smoothstep(.25-feather,.52+feather,fleck)*crimsonHandBlood;diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.26,.028,.018),bloodMask);');};
+  m.customProgramCacheKey=()=>key+'-crimson-glove-v1';m.needsUpdate=true;
+ }});}
+ bloodSurface(root);
  const prop=new T.Group();root.add(prop);const bottle=new T.Group(),wrap=new T.Group(),heart=anatomy.scene.getObjectByName('Heart')?.clone(true);prop.add(bottle,wrap);if(heart){prop.add(heart);heart.position.set(0,0,0);heart.scale.setScalar(.8);heart.traverse(o=>{if(o.isMesh){o.material=o.material.clone();consoleMaterial(o.material);}});}
  const glass=new T.MeshLambertMaterial({color:0x52634a,flatShading:true}),paper=new T.MeshLambertMaterial({color:0xd3c89d,flatShading:true}),dark=new T.MeshLambertMaterial({color:0x8b6644,flatShading:true});
  const cylinder=(parent,r1,r2,h,y,mat)=>{const m=new T.Mesh(new T.CylinderGeometry(r1,r2,h,8),mat);m.position.y=y;parent.add(m);return m;};
@@ -54,8 +61,8 @@ export async function createActionHands(camera,source=loadGlb(new URL('../assets
   arm.closedPose=['Index','Middle','Ring','Little','Thumb'].flatMap(digit=>[0,1,2].map(i=>{const bone=bones[digit+i];return[bone,bone.quaternion.clone()];}));
  }
  let lastKind='',age=0;
- return {root,group,parts,prop,heart,get gaps(){return frame.arms.map(a=>a.gap);},update({action,dt,visible}){
-  root.visible=visible&&!!action;if(!root.visible){lastKind='';return;}const kind=action.kind;if(kind!==lastKind){age=0;lastKind=kind;}age+=dt;const t=action.time||0,p=t/(action.duration||1),envelope=smooth(p,0,.14)*(1-smooth(p,.8,1));camera.updateWorldMatrix(true,false);camera.getWorldQuaternion(cameraRotation);model.updateWorldMatrix(true,false);inverseWorld.copy(model.matrixWorld).invert();
+ return {root,group,parts,prop,heart,bloodSurface,stain(){blood.value=1;},clearBlood(){blood.value=0;},get blood(){return blood.value;},get gaps(){return frame.arms.map(a=>a.gap);},update({action,dt,visible}){
+  blood.value=Math.max(0,blood.value-dt*.06);root.visible=visible&&!!action;if(!root.visible){lastKind='';return;}const kind=action.kind;if(kind!==lastKind){age=0;lastKind=kind;}age+=dt;const t=action.time||0,p=t/(action.duration||1),envelope=smooth(p,0,.14)*(1-smooth(p,.8,1));camera.updateWorldMatrix(true,false);camera.getWorldQuaternion(cameraRotation);model.updateWorldMatrix(true,false);inverseWorld.copy(model.matrixWorld).invert();
   for(const arm of parts){const right=arm.side==='right';point.set(right?.25:-.25,-.30,-.55);rotation.copy(cameraRotation).multiply(arm.base);
    if(kind==='punch'){const strike=arm.side===(action.side||'right'),pose=punchMotion(t,strike);point.set((right?1:-1)*pose.x,pose.y,pose.z);rotation.copy(cameraRotation).multiply(arm.openRot.vault);if(strike)rotation.multiply(delta.setFromAxisAngle(axis.set(0,0,1),(right?-1:1)*pose.drive*.10));}
    if(kind==='shove'){const drive=smooth(t,.025,.17)*(1-smooth(t,.17,.44));point.set(right?.22:-.22,-.30+drive*.04,-.48-drive*.62);rotation.slerp(delta.copy(cameraRotation).multiply(arm.openRot.shove),smooth(t,0,.12));}
@@ -76,7 +83,7 @@ export async function createActionHands(camera,source=loadGlb(new URL('../assets
     rotation.slerp(delta.copy(cameraRotation).multiply(arm.openRot.vault),reach);
    }
    if(kind==='crimson'){
-    const f=action.frame,hand=chestHandPoint(right?'Right':'Left',t,{contactAt:CRIMSON.contact,extractionAt:CRIMSON.extract,releaseAt:CRIMSON.release,spearDepth:f.depth});hand.applyQuaternion(f.rotation).add(f.entry);point.lerp(hand,smooth(t,0,.13)*(1-smooth(t,CRIMSON.release,CRIMSON.duration)));
+    const f=action.frame,hand=chestHandPoint(right?'Right':'Left',t,{contactAt:CRIMSON.contact,extractionAt:CRIMSON.extract+.12,releaseAt:CRIMSON.release,spearDepth:f.depth});hand.applyQuaternion(f.rotation).add(f.entry);point.lerp(hand,smooth(t,0,.13)*(1-smooth(t,CRIMSON.release,CRIMSON.duration)));
     if(right){axis.copy(arm.fingerAxis).applyQuaternion(rotation);delta.setFromUnitVectors(axis,f.front.clone().negate());rotation.premultiply(delta);}
    }
    if(right)rightPoint.copy(point);matrix.compose(point,rotation,scale);arm.grip.matrix.copy(inverseWorld).multiply(matrix).multiply(arm.inverse);

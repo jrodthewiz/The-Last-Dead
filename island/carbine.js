@@ -14,6 +14,7 @@ export function makeRifle(camera){
     for(let i=0;i<18;i++){ctx.strokeStyle=kind==='wood'?'rgba(47,34,20,.22)':kind==='cloth'?'rgba(36,45,37,.10)':'rgba(244,243,221,.12)';ctx.beginPath();const y=(i*13)%32;ctx.moveTo(0,y);ctx.lineTo(16,y+Math.sin(i)*2);ctx.lineTo(32,y+Math.cos(i)*2);ctx.stroke();}
     const map=new T.CanvasTexture(c);map.colorSpace=T.SRGBColorSpace;map.wrapS=map.wrapT=T.RepeatWrapping;m[kind].map=map;consoleMaterial(m[kind],{textureSize:32});}
   m.wood.color.setHex(0x937352);m.cloth.color.setHex(0x91aeb4);m.glove.color.setHex(0x514c39);
+  m.glove.userData.surfaceRole='authored-glove';
   // Gouraud cloth shading keeps the low-sided silhouette without turning
   // the long forearm into a single hard planar blade.
   m.cloth.flatShading=false;m.cloth.needsUpdate=true;

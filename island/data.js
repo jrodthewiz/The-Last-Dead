@@ -46,6 +46,19 @@ export function baseHeight(x,z) {
   return y;
 }
 export const TERRAIN = {minX:-1400,maxX:1550,minZ:-1000,maxZ:1000,step:10};
+// The city deck is drawn above terrain. Contact effects share its actual
+// surface heights instead of disappearing below the asphalt or pavement.
+export const CITY_GROUND={x:790,z:0,w:858,d:1000,roadY:14.05,walkY:14.16,originX:392,originZ:-456,spacing:76,blocksX:10,blocksZ:12,walkWidth:61};
+export function effectFloorHeight(x,z,physicalHeight){
+ const c=CITY_GROUND;let y=physicalHeight;
+ if(Math.abs(x-c.x)<=c.w/2&&Math.abs(z-c.z)<=c.d/2){
+  y=Math.max(y,c.roadY);const col=Math.floor((x-c.originX)/c.spacing),row=Math.floor((z-c.originZ)/c.spacing);
+  if(col>=0&&col<c.blocksX&&row>=0&&row<c.blocksZ&&Math.abs(x-(c.originX+(col+.5)*c.spacing))<=c.walkWidth/2&&Math.abs(z-(c.originZ+(row+.5)*c.spacing))<=c.walkWidth/2)y=Math.max(y,c.walkY);
+ }
+ if(x>=70&&x<=370&&Math.abs(z)<11.5)y=Math.max(y,bridgeHeight(x)+(Math.abs(z)<8?.10:.07));
+ if(x>=1174&&x<=1246&&Math.abs(z-300)<12&&Math.abs(x-(1174+Math.round((x-1174)/8)*8))<.075)y=Math.max(y,14.10);
+ return y;
+}
 // Match the rendered triangle grid exactly, including shorelines.
 export function terrainHeight(x,z) {
   const s=TERRAIN.step, x0=Math.floor((x-TERRAIN.minX)/s)*s+TERRAIN.minX,z0=Math.floor((z-TERRAIN.minZ)/s)*s+TERRAIN.minZ;

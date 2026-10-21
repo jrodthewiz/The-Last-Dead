@@ -12,7 +12,7 @@ import {buildSettlement} from './settlement-art.js';
 import {FRONTAGES,settlementReserved} from './settlement-plan.js';
 import {accessSurface,accessReserved} from './access-plan.js';
 import * as T from '../vendor/three.module.js';
-import {TERRAIN,ROADS,LANDMARKS,random,terrainHeight,baseHeight,bridgeHeight,roadAt,clamp,groundHeight,stationPosition,entranceHeight} from './data.js';
+import {TERRAIN,CITY_GROUND,ROADS,LANDMARKS,random,terrainHeight,baseHeight,bridgeHeight,roadAt,clamp,groundHeight,stationPosition,entranceHeight} from './data.js';
 
 import {authoredDetails} from './authored-details.js';
 
@@ -61,10 +61,10 @@ function buildRoads(scene,kit){
   for(const road of ROADS){const points=[];for(let i=1;i<road.points.length;i++){const a=road.points[i-1],b=road.points[i],n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/2);for(let j=0;j<n;j++){const t=j/n,x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;points.push([x,terrainHeight(x,z),z]);}}const a=road.points.at(-1);points.push([a[0],terrainHeight(a[0],a[1]),a[1]]);
     if(road.width>=6)for(let i=0;i<points.length-1;i+=7){const a=points[i],b=points[i+1],angle=Math.atan2(b[0]-a[0],b[2]-a[2]);kit.box(a[0],a[1]+.24,a[2],.13,.025,2,0xd2c49a,angle);}
   }
-  kit.box(790,14.02,0,858,.06,1000,0x70786f,0,9);
-  for(let col=0;col<11;col++)for(let row=0;row<13;row++){
-    const x=392+col*76,z=-456+row*76;
-    if(row<12&&col<10)kit.box(x+38,14.08,z+38,61,.16,61,0xb1b4a1,0,8);
+  const c=CITY_GROUND;kit.box(c.x,c.roadY-.03,c.z,c.w,.06,c.d,0x70786f,0,9);
+  for(let col=0;col<=c.blocksX;col++)for(let row=0;row<=c.blocksZ;row++){
+    const x=c.originX+col*c.spacing,z=c.originZ+row*c.spacing;
+    if(row<c.blocksZ&&col<c.blocksX)kit.box(x+c.spacing/2,c.walkY-.08,z+c.spacing/2,c.walkWidth,.16,c.walkWidth,0xb1b4a1,0,8);
     if(row<12)for(let k=0;k<6;k++)kit.box(x,14.08,z+k*12+6,.2,.025,5,0xd4cba8);
     if(col<10)for(let k=0;k<6;k++)kit.box(x+k*12+6,14.08,z,5,.025,.2,0xd4cba8);
     // Short, legible crosswalks. Empty road ownership is retained at junctions.
