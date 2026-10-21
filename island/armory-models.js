@@ -30,6 +30,7 @@ export async function createArmoryModels(camera,source=loadGlb(new URL('../asset
  const rig=new T.Group();rig.name='Blackwater expedition armory';camera.add(rig);
  const salvageIds=['sword','hammer','pipe'],holds=[...FIRST_PERSON_HOLD_POSES,...salvageIds.map(name=>({...FIRST_PERSON_HOLD_POSES[6],name}))],sourceIndices=holds.map((_,i)=>i<8?i:6);
  const models=[createOssuary(),createBreach(),createArc(),createReliquary(),createRifle({variant:'carrion'}),createRifle({variant:'mourning'}),createMeleeWeapon({variant:'bat'}),createMeleeWeapon({variant:'chainsaw'}),...salvageIds.map(createSalvageMelee)];
+ const resourcesReady=Promise.all(models.map(m=>m.userData.resourcesReady).filter(Boolean));
  // Remove the inherited overlay kit: it was authored for a different barrel
  // envelope and obscured the working breech at console resolution.
  models[1].getObjectByName('Img2ThreejsMicroDetail-breach')?.removeFromParent();models[1].userData.breach.pressureValve.visible=false;models[1].userData.breach.ribcage.visible=false;models[1].userData.breach.parts['underbarrel-launcher'].visible=false;models[1].userData.breach.materials.brass.color.setHex(0x9d9877);
@@ -56,6 +57,10 @@ export async function createArmoryModels(camera,source=loadGlb(new URL('../asset
  arcCraft.fitHands(groups[2]);expeditionCraft.bind(groups[3]);
  const shotgunReload=createShotgunReload(groups[1],models[1]);
  const utilityReloads=groups.map((g,i)=>[0,2,7].includes(i)?createUtilityReload(g,models[i],i):null);
+ // TextureLoader returns before its image is decoded. Styling an outstanding
+ // rifle/bat map would treat it as missing and permanently remove it. Resolve
+ // the models' existing resource promises before conversion and shader warmup.
+ await resourcesReady;
  const materials=new Set();rig.traverse(o=>{o.layers.set(0);if(o.isMesh){o.castShadow=o.receiveShadow=false;for(const m of(Array.isArray(o.material)?o.material:[o.material]))materials.add(m);}});for(const m of materials){if(m.userData.surfaceRole==='authored-canvas')m.color.setHex(0x91aeb4);if(m.userData.surfaceRole==='authored-glove')m.color.setHex(0xa29674);consoleMaterial(m);}for(const group of groups)batchStaticWeaponMeshes(group);
  // Preserve the original skinned hands while giving the two magazine-fed
  // rifles a physical withdraw/insert/charge action in this runtime.
