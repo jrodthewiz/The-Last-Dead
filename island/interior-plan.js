@@ -186,5 +186,6 @@ export function interiorPlan(b){
  return {pieces,solids,kind:boat?'boatwright-house':garden?'garden-house':village?'home':b.id==='building-87'?'chandlery':'shop'};
 }
 
-export function buildInterior(kit,b){for(const p of interiorPlan(b).pieces){if(p.shape==='rod')kit.rod(p.a,p.c,p.r,p.color);else kit.add(p.shape,p.x,p.y,p.z,p.w,p.h,p.d,p.color,p.rotation||0);}}
+export function compilePieces(kit,pieces){for(const p of pieces){if(p.shape==='label')kit.label(p);else if(p.shape==='rod')kit.rod(p.a,p.c,p.r,p.color);else kit.add(p.shape,p.x,p.y,p.z,p.w,p.h,p.d,p.color,p.rotation||0);}}
+export function buildInterior(kit,b){compilePieces(kit,interiorPlan(b).pieces);}
 

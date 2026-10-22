@@ -37,7 +37,7 @@ export function coastalBotany(kit,data){
  };
  // Colonies follow actual canopy, with open trail edges and patchy gaps.
  // This is static instanced ground cover, not a per-frame particle carpet.
- for(let i=0;i<data.trees.length;i+=2){const t=data.trees[i],angle=rng()*6.28;
+ for(let i=0;i<data.trees.length;i+=2){const t=data.trees[i];if(t.urban)continue;const angle=rng()*6.28;
   for(let j=0;j<5+(i%3);j++){const a=angle+j*2.4,r=1.5+rng()*4;plant(t.x+Math.cos(a)*r,t.z+Math.sin(a)*r,.85+rng()*1.05);}
   if(i%4===0){const x=t.x+Math.cos(angle)*4.3,z=t.z+Math.sin(angle)*4.3,y=ground(x,z,1.4);if(y!==null){
    const s=.8+rng()*.5;

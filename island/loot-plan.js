@@ -1,5 +1,7 @@
 import {PLACES} from './places.js';
 import {domesticProfile} from './domestic-profile.js';
+import {interiorPlan} from './interior-plan.js';
+import {cityIdentity} from './city-identity.js';
 
 // Every container has stable contents and identity. Searching reveals that
 // inventory once; taking only what fits leaves the rest in the world.
@@ -15,8 +17,9 @@ export function createLootPlan(data,grid,floorAt){
   const household=domesticProfile(b);
   if(household){result.push({id:'stash-'+b.id,name:household.name,kind:household.container,x:household.x,z:household.z,y:household.y,household:household.kind,yaw:Math.PI,loot:{...household.loot}});continue;}
   const candidates=[[b.x+3,b.z+b.d/2-2],[b.x-3,b.z+b.d/2-2],[b.x+b.w/2-2,b.z+1],[b.x-b.w/2+2,b.z+1]];
-  const p=candidates.find(([x,z])=>!grid.blocked(x,z,b.baseY+.2,.7)&&Math.abs(floorAt(x,z)-(b.baseY+.2))<.12);if(!p)continue;
+  const anchor=b.cityInterior?interiorPlan(b).stashAnchor:null,p=anchor?[anchor.x,anchor.z]:candidates.find(([x,z])=>!grid.blocked(x,z,b.baseY+.2,.7)&&Math.abs(floorAt(x,z)-(b.baseY+.2))<.12);if(!p)continue;
   const theme=b.cityInterior?(b.district==='industrial'?['Workshop spares','chest',{scrap:2,'ammo-carbine':4}]:['Abandoned day bag','bag',{cloth:1,beer:1}]):b.id==='clinic'?['Ward supply chest','chest',{bandage:3,antiseptic:2,cloth:2}]:b.id==='lightkeeper'?['Keeper’s ammunition','chest',{'ammo-mourning':10,scrap:3}]:b.id==='orchard-house'?['Orchard tool chest','chest',{'ammo-chainsaw':35,scrap:4}]:themes[i%themes.length];add(b.id,...p,theme);result.at(-1).yaw=Math.PI;
+  if(b.cityInterior){const identity=cityIdentity(b);result.at(-1).name=identity.id==='press'?'Copy desk satchel':identity.id==='radio'?'Broadcast crew supplies':identity.id==='studio'?'Surveyor’s day bag':identity.id==='shipping'?'Dispatch provisions':identity.id==='records'||identity.id==='bank'?'Evening shift bag':result.at(-1).name;}
  }
  for(const [i,p]of PLACES.entries()){
   for(const [dx,dz]of [[3,2],[-3,2],[2,-3],[-2,-3]]){const x=p.x+dx,z=p.z+dz,y=floorAt(x,z);if(!grid.blocked(x,z,y,.8)){add(p.id,x,z,i%2?['Trail ammunition','chest',{'ammo-breach':6,'ammo-carbine':12,scrap:3}]:['Forgotten provisions','bag',{bandage:2,beer:2,cloth:2}]);break;}}

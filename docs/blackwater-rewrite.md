@@ -1,5 +1,17 @@
 # Blackwater — Three.js rewrite
 
+## Place identity pass — October 22, 2026
+
+The street-level goal is recognition through use and construction: a player should distinguish a newspaper office from a bank by its equipment, work areas and frontage before reading its sign. The existing N64 palette, terrain, street grid, mission, first-person framing and inventory grammar remain the baseline.
+
+All 66 downtown lobbies now occupy a real 6.8 m volume. Their ceiling, upper window openings, pilasters and mass above the room share the same dimensions with collision and camera clearance. Upper storeys beyond this lobby volume remain closed. Six business identities govern muted accent colours, desk equipment, a larger feature and matching exterior/interior labels: printing and typewriters, savings records and a safe, freight manifests, radio consoles and tape equipment, survey plans and a bridge model, and assurance records and terminals.
+
+Household scenes add breakfast things, photographs, cameras or seed trays. Supply bags sit on real supported benches, retain their stable stash IDs, and can be searched from the normal entry route. Three-metre central aisles and usable front cross routes remain clear. Forecourts add two small pockets of seating or planting, a framed notice and a bin; benches supply both collision and standing support. Urban tree placement reserves the whole crown against building footprints, and the same tree records drive rendering and trunk collision.
+
+Small props share the existing instance kit. World text uses one low-resolution atlas and spatially merged geometry, with physical boards, posts or wall mounting. It does not add floating interface cards or a separate canvas/material for every sign. New generation is deterministic and uses bundled assets and authored geometry only.
+
+Matched eye-level and close construction views, native entrance walks and scavenging evidence live in `output/playwright/place-identity-2026-10-22/`. Structural coverage and rendered sampling are separate claims: all new interior centre routes are checked numerically; representative rooms are inspected in game. This is an iteration, not certification that every interior or floor is finished.
+
 The root `index.html` now launches a separate, cohesive single-player horror-survival game. Its runtime lives in `island/`; it does not import the old arena engine or its overlapping HUD layers. The previous browser entry remains at `/legacy.html`, and its source files, saves, tools, co-op and uncommitted changes are retained. This change does not touch the Unity project.
 
 ## The playable journey

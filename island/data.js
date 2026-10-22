@@ -4,6 +4,8 @@ import {reservedPlace} from './places.js';
 import {settlementReserved,settlementColliders,YARDS} from './settlement-plan.js';
 import {createAccessPaths,accessReserved} from './access-plan.js';
 import {orchardReserved,orchardTrees} from './land-use.js';
+import {cityIdentity} from './city-identity.js';
+import {cityForecourtPlan,cityStreetTreePlan} from './city-forecourts.js';
 // Blackwater: one deterministic world description shared by art, physics and map.
 export const SEED = 641979;
 export const SAVE_KEY = 'last-dead-blackwater-64-v1';
@@ -101,6 +103,8 @@ export function buildingPlan(id,x,z,w,d,floors,district,seed) {
   if(floors>=8) {tiers[0].h=10.2;tiers[0].floors=3;tiers.push({y:10.2,w:w-4,d:d-4,h:height-10.2,floors:floors-3});}
   const b={id,x,z,w,d,floors,height,district,tiers,roof:cottage||district==='oldtown'&&seed%3!==0?'gable':district==='industrial'?'sawtooth':floors>=8?'crown':'flat',color:PALETTES[district][Math.floor(rng()*PALETTES[district].length)],accent:rng()>.5?0x536d68:0x985c49,enterable:cottage||id==='clinic'||(district==='oldtown'&&seed%3===0),seed};
   b.cityInterior=!b.enterable;b.enterable=true;
+  b.interiorHeight=b.cityInterior&&district==='downtown'?6.8:3.4;
+  if(b.cityInterior)b.accent=cityIdentity(b).colour;
   // The floor clears the complete triangulated footprint, including terrain
   // grid vertices inside it. Foundations extend down to the actual slope.
   const xs=[x-w/2,x+w/2],zs=[z-d/2,z+d/2];for(let v=Math.ceil(xs[0]/10)*10;v<xs[1];v+=10)xs.push(v);for(let v=Math.ceil(zs[0]/10)*10;v<zs[1];v+=10)zs.push(v);
@@ -155,9 +159,9 @@ export function createWorldData(seed=SEED) {
   for(let i=0;i<30;i++){const x=410+rng()*730,z=-430+rng()*840;if(buildings.every(b=>Math.abs(b.x-x)>b.w/2+2||Math.abs(b.z-z)>b.d/2+2))supplyAt(x,z,i%3?'ammo':'medkit');}
   const encounters=[[-810,-230],[-400,-253],[-459,120],[-718,48],[410,8],[585,8],[815,-277],[942,-287],[970,-289],[1095,260]];
   for(const [x,z] of encounters)for(let i=0;i<3;i++)enemies.push({id:`dead-${enemies.length}`,x:x>=355?392+Math.round((x-392)/76)*76:x+i*5,z:z+i*6,health:70,phase:rng()*6.28});
-  const planted=orchardTrees(buildings,accessPaths,terrainHeight,accessReserved);
+  const planted=orchardTrees(buildings,accessPaths,terrainHeight,accessReserved),urbanTrees=cityStreetTreePlan(buildings,groundHeight);
   const entryClear=(x,z,r)=>buildings.every(b=>!b.enterable||Math.abs(x-b.entry.x)>b.entry.width/2+r||z<b.entry.z-r||z>b.entry.z+b.entry.length+r);
-  return {seed,buildings,accessPaths,trees:[...trees.filter(t=>!settlementReserved(t.x,t.z,3)&&!accessReserved(accessPaths,t.x,t.z,3)&&!orchardReserved(t.x,t.z)&&entryClear(t.x,t.z,2)),...planted],rocks:rocks.filter(r=>buildings.every(b=>Math.abs(r.x-b.x)>b.w/2+r.s+.5||Math.abs(r.z-b.z)>b.d/2+r.s+.5)&&!settlementReserved(r.x,r.z,r.s)&&!accessReserved(accessPaths,r.x,r.z,r.s)&&entryClear(r.x,r.z,r.s)),supplies,enemies,landmarks:LANDMARKS,wrecks:BRIDGE_WRECKS,parkedCars:PARKED_CARS};
+  return {seed,buildings,accessPaths,trees:[...trees.filter(t=>!settlementReserved(t.x,t.z,3)&&!accessReserved(accessPaths,t.x,t.z,3)&&!orchardReserved(t.x,t.z)&&entryClear(t.x,t.z,2)),...planted,...urbanTrees],rocks:rocks.filter(r=>buildings.every(b=>Math.abs(r.x-b.x)>b.w/2+r.s+.5||Math.abs(r.z-b.z)>b.d/2+r.s+.5)&&!settlementReserved(r.x,r.z,r.s)&&!accessReserved(accessPaths,r.x,r.z,r.s)&&entryClear(r.x,r.z,r.s)),supplies,enemies,landmarks:LANDMARKS,wrecks:BRIDGE_WRECKS,parkedCars:PARKED_CARS};
 }
 export function regionAt(x,z) {
   if(x>68&&x<372&&Math.abs(z)<25)return 'Saint Orin Bridge';
@@ -171,7 +175,7 @@ export function createColliders(data) {
   for(const b of data.buildings){const y=b.baseY;
     if(y-b.foundationBottom>.3)box(b.x,b.z,b.w,b.d,b.foundationBottom,y-b.foundationBottom-.12,b.id+'-foundation');
     if(!b.enterable)box(b.x,b.z,b.w,b.d,y,b.height,b.id);
-    else {box(b.x,b.z,b.w-.4,b.d-.4,y+3.24,.16,b.id+'-ceiling');for(const w of houseShell(b).walls)box(b.x+w.x,b.z+w.z,w.w,w.d,y+w.y,w.h,b.id);if(b.height>3.4)box(b.x,b.z,b.w,b.d,y+3.4,b.height-3.4,b.id);colliders.push(...interiorPlan(b).solids);}
+    else {const h=b.interiorHeight||3.4;box(b.x,b.z,b.w-.4,b.d-.4,y+h-.16,.16,b.id+'-ceiling');for(let floor=0;floor<h/3.4;floor++)for(const w of houseShell({...b,upper:floor>0}).walls)box(b.x+w.x,b.z+w.z,w.w,w.d,y+w.y+floor*3.4,w.h,b.id);if(b.height>h)box(b.x,b.z,b.w,b.d,y+h,b.height-h,b.id);colliders.push(...interiorPlan(b).solids,...cityForecourtPlan(b,groundHeight).solids);}
   }
   for(const tree of data.trees)box(tree.x,tree.z,.7*tree.scale,.7*tree.scale,tree.y,9,'tree');
   for(let i=0;i<30;i++){const x=75+i*10;for(const z of [-11.4,11.4])box(x,z,10,.45,bridgeHeight(x),2,'bridge-rail');}

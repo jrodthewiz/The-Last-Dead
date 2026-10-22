@@ -36,6 +36,8 @@ City upper storeys remain scenery; the original dungeon and co-op implementation
 
 The title screen uses an authored angular wordmark and a console-style selection list. Forest undergrowth follows canopy and terrain, with clustered grass, ferns, young trees, shrubs and fallen branches; roads, footpaths and entrances remain reserved. Small ground cover uses short-range spatial batches and does not cast thousands of individual shadows.
 
+The 66 downtown towers have double-height lobbies with six business identities: newspaper, savings bank, shipping office, radio studio, architecture studio and public records. Their equipment, signs and supply benches follow those uses. Apartment details distinguish families, photographers and gardeners. City forecourts have seating, planters and framed notices; street-tree crowns reserve building space. Upper occupied floors remain closed scenery.
+
 See [world, art direction, asset provenance and scope](docs/blackwater-rewrite.md).
 
 The second quality pass adds stronger console-era lighting and colour, distinct city districts, a shaped carbine with hand-operated reload, physical signal-tower stairs, keeper-fuse and generator objectives, collidable evacuation routes, and clearer touch controls. See the [independent judge's iteration record](docs/blackwater-quality-iteration.md).

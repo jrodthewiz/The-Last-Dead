@@ -1,7 +1,10 @@
 import {freezeLocalTransforms} from './render-lifecycle.js';
 import {TRAILS,reservedPlace} from './places.js';
 import {placeDetails} from './place-art.js';
-import {buildInterior} from './interior-plan.js';
+import {buildInterior,compilePieces} from './interior-plan.js';
+import {cityIdentity} from './city-identity.js';
+import {cityForecourtPlan} from './city-forecourts.js';
+import {compileWorldLabels} from './world-labels.js';
 import {houseShell} from './house-shell.js';
 import {consoleMaterial} from './retro-materials.js';
 import {paintArchitecture,paintTerrain,skyNoise} from './surface-art.js';
@@ -23,11 +26,12 @@ const COLORS={stone:0xb3baa5,wood:0x796849,darkwood:0x4b5141,roof:0x5b7976,road:
 function grainTexture(){const c=document.createElement('canvas');c.width=c.height=64;const ctx=c.getContext('2d'),rng=random(817),pixels=ctx.createImageData(64,64);for(let i=0;i<pixels.data.length;i+=4){const n=222+Math.floor(rng()*30);pixels.data[i]=n;pixels.data[i+1]=n;pixels.data[i+2]=n;pixels.data[i+3]=255;}ctx.putImageData(pixels,0,0);const texture=new T.CanvasTexture(c);texture.wrapS=texture.wrapT=T.RepeatWrapping;texture.magFilter=T.LinearFilter;texture.colorSpace=T.SRGBColorSpace;return texture;}
 const grain=grainTexture();
 class Kit {
-  constructor(scene){this.scene=scene;this.parts=new Map();this.surface=0;this.geometries={box:new T.BoxGeometry(1,1,1),cone:new T.ConeGeometry(1,1,7),cylinder:new T.CylinderGeometry(1,1,1,7),basin:new T.LatheGeometry([[0,-.5],[.66,-.5],[.85,-.40],[1,.30],[1.02,.43],[.96,.50],[.88,.43],[.86,.27],[.65,-.22],[0,-.22]].map(([r,y])=>new T.Vector2(r,y)),10),mug:new T.LatheGeometry([[0,-.5],[.80,-.5],[.91,-.43],[1,.40],[1,.47],[.96,.50],[.82,.47],[.82,.37],[.75,-.31],[0,-.31]].map(([r,y])=>new T.Vector2(r,y)),8),rock:new T.IcosahedronGeometry(1,0),sphere:new T.IcosahedronGeometry(1,1)};this.material=paintArchitecture(consoleMaterial(new T.MeshLambertMaterial({color:0xffffff,flatShading:true,map:grain})));this.count=0;}
+  constructor(scene){this.scene=scene;this.parts=new Map();this.labels=[];this.surface=0;this.geometries={box:new T.BoxGeometry(1,1,1),cone:new T.ConeGeometry(1,1,7),dial:new T.CylinderGeometry(1,1,1,12).rotateX(Math.PI/2),cylinder:new T.CylinderGeometry(1,1,1,7),basin:new T.LatheGeometry([[0,-.5],[.66,-.5],[.85,-.40],[1,.30],[1.02,.43],[.96,.50],[.88,.43],[.86,.27],[.65,-.22],[0,-.22]].map(([r,y])=>new T.Vector2(r,y)),10),mug:new T.LatheGeometry([[0,-.5],[.80,-.5],[.91,-.43],[1,.40],[1,.47],[.96,.50],[.82,.47],[.82,.37],[.75,-.31],[0,-.31]].map(([r,y])=>new T.Vector2(r,y)),8),rock:new T.IcosahedronGeometry(1,0),sphere:new T.IcosahedronGeometry(1,1)};this.material=paintArchitecture(consoleMaterial(new T.MeshLambertMaterial({color:0xffffff,flatShading:true,map:grain})));this.count=0;}
   add(shape,x,y,z,sx,sy,sz,color,ry=0,q=null,role=this.surface){const foliage=shape==='fern'||shape==='tuft',tile=foliage?72:180,distance=shape==='tuft'?65:shape==='fern'?100:270,detail=foliage||Math.max(sx,sy,sz)<2.1,key=`${shape}:${Math.floor(x/tile)},${Math.floor(z/tile)}:${detail}`;if(!this.parts.has(key))this.parts.set(key,{shape,items:[],detail,distance});this.parts.get(key).items.push({x,y,z,sx,sy,sz,color,ry,q,role});this.count++;}
+  label(p){this.labels.push({...p});this.count++;}
   box(x,y,z,w,h,d,c,r=0,role=this.surface){this.add('box',x,y,z,w,h,d,c,r,null,role);}
   rod(a,b,r,c){const av=new T.Vector3(...a),bv=new T.Vector3(...b),d=bv.clone().sub(av),m=av.add(bv).multiplyScalar(.5);this.add('cylinder',m.x,m.y,m.z,r,d.length(),r,c,0,new T.Quaternion().setFromUnitVectors(up,d.normalize()));}
-  finish(){let calls=0;const detailMeshes=[];for(const {shape,items,detail,distance} of this.parts.values()){const geometry=this.geometries[shape].clone();geometry.setAttribute('artRole',new T.InstancedBufferAttribute(new Float32Array(items.map(p=>p.role)),1));const mesh=new T.InstancedMesh(geometry,this.material,items.length);for(let i=0;i<items.length;i++){const p=items[i];dummy.position.set(p.x,p.y,p.z);dummy.scale.set(p.sx,p.sy,p.sz);dummy.rotation.set(0,p.ry,0);if(p.q)dummy.quaternion.copy(p.q);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);mesh.setColorAt(i,new T.Color(p.color));}mesh.computeBoundingSphere();mesh.receiveShadow=true;mesh.castShadow=shape!=='fern'&&shape!=='tuft';this.scene.add(mesh);if(detail)detailMeshes.push({mesh,distance});calls++;}this.parts.clear();for(const g of Object.values(this.geometries))g.dispose();return {modules:this.count,batches:calls,update(camera){for(const {mesh,distance} of detailMeshes){const b=mesh.boundingSphere;mesh.visible=camera.distanceToSquared(b.center)<(distance+b.radius)**2;}}};}
+  finish(){let calls=0;const detailMeshes=[];for(const {shape,items,detail,distance} of this.parts.values()){const geometry=this.geometries[shape].clone();geometry.setAttribute('artRole',new T.InstancedBufferAttribute(new Float32Array(items.map(p=>p.role)),1));const mesh=new T.InstancedMesh(geometry,this.material,items.length);for(let i=0;i<items.length;i++){const p=items[i];dummy.position.set(p.x,p.y,p.z);dummy.scale.set(p.sx,p.sy,p.sz);dummy.rotation.set(0,p.ry,0);if(p.q)dummy.quaternion.copy(p.q);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);mesh.setColorAt(i,new T.Color(p.color));}mesh.computeBoundingSphere();mesh.receiveShadow=true;mesh.castShadow=shape!=='fern'&&shape!=='tuft';this.scene.add(mesh);if(detail)detailMeshes.push({mesh,distance});calls++;}this.parts.clear();for(const g of Object.values(this.geometries))g.dispose();const labels=compileWorldLabels(this.scene,this.labels);return {modules:this.count,batches:calls+labels.batches,labels,update(camera){labels.update(camera);for(const {mesh,distance} of detailMeshes){const b=mesh.boundingSphere;mesh.visible=camera.distanceToSquared(b.center)<(distance+b.radius)**2;}}};}
 }
 function surface(vertices,colors){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(vertices,3));if(colors)g.setAttribute('color',new T.Float32BufferAttribute(colors,3));g.computeVertexNormals();return g;}
 function buildTerrain(scene){
@@ -76,17 +80,17 @@ function gable(kit,b,y){const angle=Math.atan2(3.4,b.w*.5+1),length=Math.hypot(b
   kit.box(b.x+b.w*.28,y+2,b.z-2,.9,3,1.2,0x8d8168);
 }
 function compileBuilding(kit,b){
-  const y=b.baseY,rng=random(b.seed);kit.surface=1;
+  const y=b.baseY,rng=random(b.seed),roomHeight=b.interiorHeight||3.4;kit.surface=1;
   kit.box(b.x,(y+b.foundationBottom)/2,b.z,b.w+.5,y-b.foundationBottom,b.d+.5,0x858d78,0,7);
   if(b.enterable)for(let i=0;i<b.entry.steps;i++){const z=b.entry.z+(i+.5)*b.entry.length/b.entry.steps,top=entranceHeight(b,b.x,z),bottom=terrainHeight(b.x,z)-.15;kit.box(b.x,(top+bottom)/2,z,3,Math.max(.12,top-bottom),b.entry.length/b.entry.steps,0xb3a789);}
   for(const side of [-1,1])for(let k=0;k<Math.ceil(b.d/2);k++){const z=b.z-b.d/2+(k+.5)*b.d/Math.ceil(b.d/2),bottom=terrainHeight(b.x+side*b.w/2,z);if(y-bottom>.35)kit.box(b.x+side*(b.w/2+.28),(y+bottom)/2,z,.08,y-bottom,b.d/Math.ceil(b.d/2)-.1,0x727d6c);}
   for(const tier of b.tiers){
     const yy=y+tier.y;
     if(b.enterable&&tier.y===0){
-      if(tier.h>3.4)kit.box(b.x,yy+3.4+(tier.h-3.4)/2,b.z,tier.w,tier.h-3.4,tier.d,b.color);
+      if(tier.h>roomHeight)kit.box(b.x,yy+roomHeight+(tier.h-roomHeight)/2,b.z,tier.w,tier.h-roomHeight,tier.d,b.color);
       kit.box(b.x,yy+.10,b.z,b.w,.2,b.d,0xb6aa85);
-      for(const w of houseShell(b).walls)kit.box(b.x+w.x,yy+w.y+w.h/2,b.z+w.z,w.w,w.h,w.d,b.color);
-      kit.box(b.x,yy+3.32,b.z,b.w-.4,.16,b.d-.4,0xb8b496);
+      for(let floor=0;floor<roomHeight/3.4;floor++)for(const w of houseShell({...b,upper:floor>0}).walls)kit.box(b.x+w.x,yy+w.y+w.h/2+floor*3.4,b.z+w.z,w.w,w.h,w.d,b.color);
+      kit.box(b.x,yy+roomHeight-.08,b.z,b.w-.4,.16,b.d-.4,0xb8b496);
       kit.surface=0;buildInterior(kit,b);kit.surface=1;
     }else kit.box(b.x,yy+tier.h/2,b.z,tier.w,tier.h,tier.d,b.color);
     // Four exposed surfaces with dimensional floor and bay rhythms.
@@ -95,11 +99,11 @@ function compileBuilding(kit,b){
       const front=side===0,back=side===1;
       for(let floor=0;floor<tier.floors;floor++)for(let bay=0;bay<count;bay++){
         if(front&&floor===0&&tier.y===0&&FRONTAGES[b.id])continue;
-        if(b.enterable&&front&&floor===0&&Math.abs((bay+.5)*span-along/2)<2.8)continue;
+        if(b.enterable&&front&&floor===0&&tier.y===0&&Math.abs((bay+.5)*span-along/2)<2.8)continue;
         const u=(bay+.5)*span-along/2,wy=yy+floor*3.4+1.9;
-        const offset=b.enterable&&floor===0?.26:.055;let wx=b.x,wz=b.z;if(side<2){wx+=u;wz+=(front?1:-1)*(tier.d/2+offset);}else{wx+=(side===2?1:-1)*(tier.w/2+offset);wz+=u;}
+        const openWindow=b.enterable&&tier.y===0&&floor*3.4<roomHeight,offset=openWindow?.26:.055;let wx=b.x,wz=b.z;if(side<2){wx+=u;wz+=(front?1:-1)*(tier.d/2+offset);}else{wx+=(side===2?1:-1)*(tier.w/2+offset);wz+=u;}
         const c=rng()>.86?0xd6bf84:COLORS.glass;
-        if(!(b.enterable&&floor===0&&tier.y===0))kit.box(wx,wy,wz,side<2?1.25:.09,1.65,side<2?.09:1.25,c,0,c===0xd6bf84?6:5);
+        if(!openWindow)kit.box(wx,wy,wz,side<2?1.25:.09,1.65,side<2?.09:1.25,c,0,c===0xd6bf84?6:5);
         else {
           const ix=wx-(side===2?.52:side===3?-.52:0),iz=wz-(front?.52:back?-.52:0);
           kit.box(ix,wy-.9,iz,side<2?1.55:.27,.16,side<2?.27:1.55,COLORS.cream);
@@ -126,6 +130,7 @@ function compileBuilding(kit,b){
   if(FRONTAGES[b.id]){kit.surface=0;return;}
   if(b.enterable){kit.box(b.x,y+2.85,b.z+b.d/2+.85,b.cityInterior?5.4:4.3,b.cityInterior?.18:.25,2.2,b.accent);for(const sign of [-1,1])kit.box(b.x+sign*(b.cityInterior?2.45:2),y+1.3,b.z+b.d/2+1.5,b.cityInterior?.22:.16,2.6,b.cityInterior?.22:.16,b.cityInterior?COLORS.metal:COLORS.wood);}
   else{const color=[0x8b5945,0x536d65,0xb9a267][b.seed%3];kit.box(b.x,y+3,b.z+b.d/2+.8,b.w-2,.3,1.8,color);for(let k=0;k<3;k++)kit.box(b.x-6+k*6,y+1.5,b.z+b.d/2+.1,3.6,2.3,.13,0x3c5353,0,5);}kit.surface=0;
+  if(b.cityInterior){const identity=cityIdentity(b);kit.label({x:b.x,y:y+2.36,z:b.entry.z+1.97,w:4.9,h:.72,text:identity.name,subline:identity.room,colour:identity.colour});}
 }
 export function sign(scene,text,x,y,z,width=6,rotation=0,dark=false){
   const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;const c=canvas.getContext('2d');c.fillStyle=dark?'#d6d0ae':'#3d5550';c.fillRect(0,0,512,96);c.strokeStyle=dark?'#4b6255':'#c8c6a5';c.lineWidth=3;c.strokeRect(7,7,498,82);c.fillStyle=dark?'#3d5550':'#e2d8af';c.font='600 36px Georgia';c.textAlign='center';c.textBaseline='middle';c.fillText(text,256,48,475);
@@ -179,7 +184,6 @@ function streetDetails(scene,kit,data){
   for(let col=0;col<10;col++)for(let row=0;row<12;row++){
     const x=400+col*76,z=-448+row*76;if(Math.abs(x-740)<65&&Math.abs(z)<90)continue;
     kit.add('cylinder',x,17.4,z,.12,6.6,.12,COLORS.metal);kit.box(x+1,20.65,z,2.4,.17,.2,COLORS.metal);kit.box(x+2,20.5,z,.8,.18,.5,0xead5a2);
-    if((col+row)%2===0)tree(kit,x+4,14.25,z+7,.62,'broad');
     kit.box(x+9,14.8,z+2,1.1,1.5,1.1,0x5f776b);kit.box(x+13,14.7,z+2,3,.14,.9,0x876e4a);kit.box(x+13,15.1,z+2.4,3,.7,.12,0x876e4a);
     if(rng()>.6){kit.box(x+3,14.6,z+17,1.6,1,1.3,0xad9b73);kit.box(x+4.5,14.4,z+18,1,.7,1,0x9c8a65);}
   }
@@ -246,7 +250,7 @@ export function createWorld(scene,data){
   const sky=createSky(scene),water=createWater(scene),kit=new Kit(scene);
   const hemi=new T.HemisphereLight(0xd8e7ed,0x758d65,1.15);scene.add(hemi);
   const sun=new T.DirectionalLight(0xffe6bc,1.8);sun.position.set(-700,850,250);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-90,right:90,top:90,bottom:-90,near:1,far:400});sun.shadow.bias=-.00025;sun.shadow.normalBias=.08;scene.add(sun,sun.target);
-  buildTerrain(scene);const accessVertices=accessSurface(data.accessPaths,terrainHeight,TERRAIN),accessGeometry=surface(accessVertices),accessUV=[];for(let i=0;i<accessVertices.length;i+=3)accessUV.push(accessVertices[i]/2,accessVertices[i+2]/2);accessGeometry.setAttribute('uv',new T.Float32BufferAttribute(accessUV,2));const accessMesh=new T.Mesh(accessGeometry,new T.MeshLambertMaterial({color:0xb0a17a,map:grain,flatShading:true}));accessMesh.receiveShadow=true;scene.add(accessMesh);buildRoads(scene,kit);for(const b of data.buildings)compileBuilding(kit,b);
+  buildTerrain(scene);const accessVertices=accessSurface(data.accessPaths,terrainHeight,TERRAIN),accessGeometry=surface(accessVertices),accessUV=[];for(let i=0;i<accessVertices.length;i+=3)accessUV.push(accessVertices[i]/2,accessVertices[i+2]/2);accessGeometry.setAttribute('uv',new T.Float32BufferAttribute(accessUV,2));const accessMesh=new T.Mesh(accessGeometry,new T.MeshLambertMaterial({color:0xb0a17a,map:grain,flatShading:true}));accessMesh.receiveShadow=true;scene.add(accessMesh);buildRoads(scene,kit);for(const b of data.buildings){compileBuilding(kit,b);compilePieces(kit,cityForecourtPlan(b,groundHeight).pieces);}
   for(const t of data.trees)tree(kit,t.x,t.y,t.z,t.scale,t.kind,t.rotation);
   for(const r of data.rocks)kit.add('rock',r.x,r.y+r.s*.35,r.z,r.s,r.s*.7,r.s*.8,0x9da68e,r.r);
   buildBridge(scene,kit);buildLandmarks(scene,kit);streetDetails(scene,kit,data);authoredDetails(scene,kit,data,sign);placeDetails(scene,kit,data,sign);streetCraft(kit,data);const botany=coastalBotany(kit,data);

@@ -1,15 +1,19 @@
 // Furnished street levels share one inspectable plan with movement and bullets.
-// The three-metre centre aisle and the front four metres remain clear.
+// The three-metre centre aisle and the front cross aisle remain clear.
+import {cityIdentity} from './city-identity.js';
+import {businessDetails} from './business-details.js';
 const plans=new WeakMap();
 export function cityInteriorPlan(b){
  if(plans.has(b))return plans.get(b);
- const pieces=[],solids=[],floor=b.baseY+.2;
+ const pieces=[],solids=[],floor=b.baseY+.2,identity=cityIdentity(b),roomHeight=b.interiorHeight||3.4;
  const palette={wood:0x88795e,edge:0x4c5b51,cream:0xc9c4a0,cloth:0x879582,metal:0x496762,paper:0xd5caa6};
  const box=(role,x,y,z,w,h,d,color=palette.wood,solid=false)=>{
   pieces.push({shape:'box',role,x:b.x+x,y:floor+y,z:b.z+z,w,h,d,color,rotation:0});
   if(solid)solids.push({id:b.id+'-'+role,x:b.x+x,z:b.z+z,w,d,y:floor+y-h/2,h});
  };
  const cylinder=(role,x,y,z,r,h,color)=>pieces.push({shape:'cylinder',role,x:b.x+x,y:floor+y,z:b.z+z,w:r,h,d:r,color,rotation:0});
+ const disc=(role,x,y,z,r,depth,color)=>pieces.push({shape:'dial',role,x:b.x+x,y:floor+y,z:b.z+z,w:r,h:r,d:depth,color,rotation:0});
+ const label=(text,subline,x,y,z,w,h,rotation=0)=>pieces.push({shape:'label',x:b.x+x,y:floor+y,z:b.z+z,w,h,text,subline,colour:identity.colour,rotation});
  const desk=(x,z,w=2.4,d=1.2)=>{
   box('desk-top',x,.82,z,w,.14,d,palette.wood,true);
   for(const dx of [-w*.4,w*.4])box('desk-pedestal',x+dx,.39,z,.32,.72,d*.8,palette.edge,true);
@@ -46,9 +50,19 @@ export function cityInteriorPlan(b){
   box('wall-skirting',side*(b.w/2-.26),.10,0,.08,.20,b.d-.5,palette.edge);
  }
  for(let z=back+3;z<front-3;z+=6){
-  box('ceiling-light-frame',0,2.96,z,1.4,.10,.65,palette.edge);
-  box('ceiling-light-diffuser',0,2.90,z,1.23,.035,.49,palette.paper);
-  box('ceiling-cross-member',0,2.99,z+2,b.w-.45,.15,.12,0xa9ad93);
+  const height=roomHeight>3.4?4.25:2.96;
+  box('ceiling-light-frame',0,height,z,1.4,.10,.65,palette.edge);
+  box('ceiling-light-diffuser',0,height-.06,z,1.23,.035,.49,palette.paper);
+  box('ceiling-cross-member',0,roomHeight-.41,z+2,b.w-.45,.15,.12,0xa9ad93);
+  if(roomHeight>3.4)box('pendant-suspension',0,(height+roomHeight-.42)/2,z,.055,roomHeight-.42-height,.055,palette.edge);
+ }
+ if(roomHeight>3.4){
+  for(const side of [-1,1]){
+   box('clerestory-band',side*(b.w/2-.28),3.19,0,.12,.24,b.d-.5,palette.cream);
+   for(const z of [-b.d/4,b.d/4])box('lobby-pilaster',side*(b.w/2-.43),roomHeight/2-.1,z,.42,roomHeight-.2,.55,0xb6b69a,true);
+  }
+  box('lobby-name-board',0,3.76,back+.26,6.1,.90,.10,palette.edge);
+  label(identity.name,identity.room,0,3.76,back+.316,6,.86);
  }
  if(kind==='tower-lobby'||kind==='office'){
   // Reception, visitors and a closed lift bank explain the tower's street level.
@@ -60,17 +74,17 @@ export function cityInteriorPlan(b){
   // Work pods and a visitors' lounge occupy the middle of the long podium.
   // Keep every piece beyond the protected centre aisle, with cross aisles.
   for(const side of [-1,1]){
-   const cx=side*(b.w/4+1.1);
-   for(const z of [-3,3]){desk(cx,z,Math.min(3,b.w/2-4),1.2);chair(cx,z+1.1,-1);}
-   box('pod-divider',cx,1.02,0,Math.min(4,b.w/2-4),2.04,.12,0x929d88,true);
-   box('noticeboard-frame',cx,1.47,.08,1.2,.65,.05,palette.edge);
-   for(let i=0;i<3;i++)box('noticeboard-paper',cx-.37+i*.37,1.46,.112,.28,.42,.014,palette.paper);
+   const cx=side*4;
+   for(const z of [-3,3]){desk(cx,z,Math.min(3,b.w/2-4),1.2);chair(cx,z+1.1,-1);businessDetails({box,cylinder,disc,label,palette},identity,cx,z);}
+   box('pod-divider',cx,.65,0,Math.min(4,b.w/2-4),1.3,.12,0x929d88,true);
+   box('noticeboard-frame',cx,1.01,.08,1.2,.54,.05,palette.edge);
+   for(let i=0;i<3;i++)box('noticeboard-paper',cx-.37+i*.37,1.01,.112,.28,.38,.014,palette.paper);
   }
   desk(rx,back+10,2.7,1.0);
   cylinder('staff-kettle',rx-.7,.99,back+10,.20,.27,palette.metal);
   for(const dx of [.15,.5,.85])cylinder('staff-cup',rx+dx,.99,back+10,.095,.23,palette.paper);
   desk(rx-1,back+5,3.2,1.5);chair(rx-1,back+6.4,-1);
-  shelves(lx,back+1,3.3);shelves(lx,back+6,3.3);
+  shelves(lx,back+1,3.3);businessDetails({box,cylinder,disc,label,palette},identity,lx,back+6,{feature:true});
   const liftZ=back+.28;
   box('lift-bank-stone',0,1.45,liftZ,5.4,2.9,.16,palette.edge,true);
   for(const side of [-1,1]){
@@ -105,11 +119,26 @@ export function cityInteriorPlan(b){
    shelves(side*(b.w/2-.9),back+9,1.0);
    box('bedside-cabinet',cx+side*1.6,.40,bedZ+.3,.65,.80,.70,palette.wood,true);
    cylinder('bedside-lamp',cx+side*1.6,1.0,bedZ+.3,.18,.32,palette.paper);
+   const photoX=cx+side*1.6,photoZ=bedZ+.64;
+   box('family-photo-frame',photoX,1.08,photoZ,.48,.42,.065,palette.edge);
+   box('family-photo-stand',photoX,.84,photoZ-.015,.28,.08,.12,palette.edge);
+   box('family-photo-paper',photoX,1.08,photoZ+.039,.39,.33,.012,palette.paper);
+   for(const dx of [-.09,.09]){box('family-photo-head',photoX+dx,1.13,photoZ+.049,.07,.08,.008,identity.colour);box('family-photo-figure',photoX+dx,1.02,photoZ+.05,.105,.15,.008,identity.colour);}
    box('flat-wall-picture',side*(b.w/2-.25),1.8,4,.06,.82,1.10,palette.edge);
    box('flat-picture-print',side*(b.w/2-.29),1.8,4,.025,.66,.92,0xa4ae8f);
    box('kitchen-unit',cx,.49,back+.8,Math.min(3.6,roomW),.98,1.0,palette.wood,true);
    box('kitchen-top',cx,1.02,back+.8,Math.min(3.7,roomW+.1),.10,1.10,palette.paper);
    cylinder('cooking-pot',cx-.4,1.16,back+.8,.23,.22,palette.edge);
+   if(identity.id==='photographer'){
+    box('camera-body',cx+.65,1.18,back+.8,.53,.28,.26,palette.edge);disc('camera-lens',cx+.65,1.18,back+.98,.115,.18,palette.metal);
+    for(let i=0;i<3;i++)box('photo-prints',cx+.65+i*.10,1.08+i*.015,back+1.2,.37,.015,.26,palette.paper);
+   }else if(identity.id==='gardener'){
+    box('seed-tray',cx+.65,1.11,back+.8,.86,.10,.53,palette.wood);
+    for(let i=0;i<3;i++){cylinder('seedling-pot',cx+.39+i*.26,1.21,back+.8,.09,.16,palette.edge);box('seedling-leaf',cx+.39+i*.26,1.35,back+.8,.16,.18,.035,0x728a52);}
+   }else{
+    box('family-breakfast-tray',cx+.65,1.105,back+.8,.80,.06,.56,palette.wood);for(const dx of [-.22,.22])cylinder('family-breakfast-mug',cx+.65+dx,1.23,back+.8,.09,.20,palette.paper);
+   }
+   label(identity.notice,identity.detail,side*2.29,1.8,-.2,1.7,.34,side*Math.PI/2);
    plant(side*(b.w/2-1.2),front-5);
   }
  }else if(kind==='hospital'){
@@ -147,5 +176,15 @@ export function cityInteriorPlan(b){
   box('service-top',lx+1,1.18,front-6,4.7,.12,1.7,palette.paper);
   shelves(rx,back+1,2.5);plant(rx,front-4);
  }
- const plan={pieces,solids,kind};plans.set(b,plan);return plan;
+ let stashAnchor=null;
+ if(b.seed%4===0){
+  const x=3,z=front-2;
+  box('supplies-bench-top',x,.65,z,1.8,.10,1,palette.wood,true);
+  for(const dx of [-.72,.72])box('supplies-bench-leg',x+dx,.30,z,.12,.60,.82,palette.edge,true);
+  for(const dx of [-.75,.75])box('supplies-board-upright',x+dx,.76,z-.85,.07,1.52,.08,palette.edge,true);
+  box('supplies-board',x,1.54,z-.85,1.8,.34,.08,palette.edge,true);
+  label('FOR THE NEXT SHIFT','TAKE WHAT YOU NEED',x,1.54,z-.802,1.65,.30);
+  stashAnchor={x:b.x+x,z:b.z+z,y:floor+.70};
+ }
+ const plan={pieces,solids,kind,identity:identity.id,stashAnchor};plans.set(b,plan);return plan;
 }
