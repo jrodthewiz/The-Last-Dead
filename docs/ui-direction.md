@@ -1,5 +1,15 @@
 # The Last Dead interface direction
 
+## Blackwater title screen — October 22, 2026
+
+The browser edition's title is a console game screen, with the live low-resolution island as its visual anchor. A centred, custom angular ivory wordmark uses short olive extrusion, hard edges and a few fixed cuts. It is an authored SVG asset, independent of installed fonts. Blackwater sits below it; a single quiet line carries the survival premise.
+
+The menu is an open, compact vertical list. Warm ivory labels turn amber at selection, accompanied by a cut triangular cursor and a restrained dark strip. Mouse movement transfers actual focus so keyboard and pointer share the selected row. Native Enter, arrows and Tab retain their existing behavior. Continue appears only for a real local save; preparing and failed-load copy remain real runtime states. There are no decorative controller prompts.
+
+Primary choices are journey, co-op, survivor equipment and options. The existing developer flight remains a smaller World survey / Extras entry; F2 still opens that tool. Portrait keeps one column; short landscape places the wordmark beside the choices. Targets stay at least 44 CSS pixels. Narrow screens may scroll vertically instead of compressing the actions. No continuous UI motion, new font download, or global HUD restyle is introduced.
+
+`island/title-screen.css` owns this title-only treatment. The field-kit palette and meaning of amber focus carry into the existing options and in-game menus; those denser screens keep their quieter typography and frames. Evidence for this pass is in `output/playwright/title-screen-2026-10-22/`. This section supersedes earlier title composition guidance, without changing the combat HUD contract below.
+
 The interface should feel authored for a horror FPS. The world remains the dominant image during play and inspection; screens that pause the game should make the next action immediately clear.
 
 ## Visual contract

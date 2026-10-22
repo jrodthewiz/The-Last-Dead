@@ -1,5 +1,6 @@
 import {furnishCottage} from './home-details.js';
 import {domesticProfile} from './domestic-profile.js';
+import {cityInteriorPlan} from './city-interiors.js';
 
 function authoredInterior(k,b,y){
  const x=b.x,z=b.z,wood=0x6b5a43,cream=0xd7d1aa,metal=0x425c56;
@@ -34,6 +35,7 @@ function authoredInterior(k,b,y){
 // Primitive records are shared by the renderer and movement. Small tabletop
 // objects never acquire a floor-to-ceiling proxy; solid furniture does.
 export function interiorPlan(b){
+ if(b.cityInterior)return cityInteriorPlan(b);
  const pieces=[],solids=[],floor=b.baseY+.2;
  const k={box(x,y,z,w,h,d,color,rotation=0){pieces.push({shape:'box',x,y,z,w,h,d,color,rotation});},add(shape,x,y,z,w,h,d,color,rotation=0){pieces.push({shape,x,y,z,w,h,d,color,rotation});},rod(a,c,r,color){pieces.push({shape:'rod',a,c,r,color});},lastRole(role){pieces.at(-1).role=role;}};
  const solid=(name,x,z,w,d,h,bottom=0)=>solids.push({id:b.id+'-'+name,x:b.x+x,z:b.z+z,w,d,y:floor+bottom,h});

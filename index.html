@@ -2,13 +2,15 @@
 <html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#263e35">
 <title>The Last Dead · Blackwater</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%233c5148'/%3E%3Cpath d='M15 5h2v22h-2zM6 15h20v2H6z' fill='%23e7dfbb'/%3E%3C/svg%3E"><link rel="stylesheet" href="./island/style.css">
-<link rel="stylesheet" href="./island/coop.css"><link rel="stylesheet" href="./island/field-ui.css"></head><body>
+<link rel="stylesheet" href="./island/coop.css"><link rel="stylesheet" href="./island/field-ui.css"><link rel="stylesheet" href="./island/title-screen.css"></head><body>
 <canvas id="world" aria-label="Blackwater open world"></canvas><div id="grain" aria-hidden="true"></div><div id="damage" aria-hidden="true"></div>
 <main id="title" class="title-screen">
- <div class="edition"><span class="emblem" aria-hidden="true">✦</span> A SURVIVAL ADVENTURE</div>
- <div class="title-content"><p class="eyebrow">SOMEWHERE, THE LIGHT IS STILL ON.</p><h1>THE LAST<br><span>DEAD</span></h1><div class="chapter"><span>01</span><i></i> BLACKWATER</div><div class="title-actions"><button id="continue" class="primary" hidden>Continue journey </button><button id="begin" class="primary" disabled>Preparing the coast…</button><button id="title-inspect" class="text-button">Survivor & equipment <span>I</span></button><button id="title-fly" class="text-button">Developer flight <span>F2</span></button><button id="title-settings" class="text-button">Settings</button></div><p id="loading" role="status">Charting Blackwater Island</p></div>
- <div class="title-location"><span>THE ORIN STRAIT</span><strong>One last crossing.</strong><i>Blackwater Island / Saint Orin</i></div>
- <footer class="title-footer"><span class="keyboard-note">↑ ↓ SELECT &nbsp; · &nbsp; ENTER CONFIRM &nbsp; · &nbsp; MOUSE / CLICK</span><span>HEADPHONES RECOMMENDED</span><span>BLACKWATER · CHAPTER I</span></footer>
+ <div class="title-content">
+  <header class="title-identity"><h1><img src="./assets/ui/last-dead-title.svg" alt="The Last Dead" width="568" height="308"></h1><p class="chapter"><i aria-hidden="true"></i> BLACKWATER <i aria-hidden="true"></i></p><p class="title-tagline">Somewhere, the light is still on.</p></header>
+  <nav class="title-actions" aria-label="Main menu"><button id="continue" class="primary" hidden>Continue journey</button><button id="begin" class="primary" disabled>Preparing the coast…</button><button id="title-inspect" class="text-button">Survivor & equipment</button><button id="title-settings" class="text-button">Options</button><button id="title-fly" class="text-button title-extra">World survey <span>EXTRAS · F2</span></button></nav>
+  <p id="loading" role="status">Charting Blackwater Island</p>
+ </div>
+ <footer class="title-footer"><span class="keyboard-note"><b>↑ ↓</b> SELECT <b>ENTER</b> CONFIRM <span class="mouse-note"> / MOUSE</span></span><span>AN ISLAND. A DEAD CITY. ONE LAST CROSSING.</span></footer>
 </main>
 <div id="hud" hidden>
  <div class="compass"><span id="compass-left">W</span><div><span id="heading">N</span><i></i></div><span id="compass-right">E</span></div><div id="bearing"><span>◇</span> <span id="target-name"></span> <small id="target-distance"></small></div>

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -8 568 308" fill-rule="evenodd">
+  <defs>
+    <path id="d" d="M0 0h40l16 16v64L40 96H0Zm19 19v58h13l5-5V24l-5-5Z"/>
+    <path id="e" d="M0 0h56v19H19v19h31v19H19v20h37v19H0Z"/>
+    <path id="a" d="M0 96V16L16 0h24l16 16v80H37V61H19v35Zm19-77v24h18V19Z"/>
+    <path id="t" d="M0 0h56v19H37v77H19V19H0Z"/>
+    <path id="h" d="M0 0h19v38h18V0h19v96H37V57H19v39H0Z"/>
+    <path id="l" d="M0 0h19v77h37v19H0Z"/>
+    <path id="s" d="M16 0h40v19H20v19h20l16 16v26L40 96H0V77h36V58H16L0 42V16Z"/>
+    <g id="letters">
+      <g transform="translate(74 0) scale(.8 .7)">
+        <use href="#t"/><use href="#h" x="70"/><use href="#e" x="140"/>
+        <use href="#l" x="238"/><use href="#a" x="308"/><use href="#s" x="378"/><use href="#t" x="448"/>
+      </g>
+      <g transform="translate(0 82) scale(2)">
+        <use href="#d"/><use href="#e" x="72"/><use href="#a" x="144"/><use href="#d" x="216"/>
+      </g>
+    </g>
+    <linearGradient id="ivory" x2="0" y2="1">
+      <stop stop-color="#fff0c3"/><stop offset=".43" stop-color="#e7d9a6"/>
+      <stop offset=".44" stop-color="#bdad7b"/><stop offset="1" stop-color="#dbca94"/>
+    </linearGradient>
+    <clipPath id="face"><use href="#letters"/></clipPath>
+  </defs>
+  <use href="#letters" transform="translate(10 14)" fill="#071410" stroke="#071410" stroke-width="5"/>
+  <use href="#letters" transform="translate(5 7)" fill="#6f694d" stroke="#393e2e" stroke-width="3"/>
+  <use href="#letters" fill="url(#ivory)" stroke="#253329" stroke-width="3"/>
+  <g clip-path="url(#face)" fill="none" stroke="#fff0c3" stroke-opacity=".65" stroke-width="2">
+    <path d="M0 1h550M0 83h550M0 85h550"/>
+  </g>
+  <g clip-path="url(#face)" fill="#574c35" opacity=".6">
+    <path d="m29 103 3 31-6 8 3-27ZM187 169l-8 25 4 15 4-17ZM351 86l-8 25 3 11 2-14ZM491 232l-5 24 6 16-2-20Z"/>
+  </g>
+</svg>

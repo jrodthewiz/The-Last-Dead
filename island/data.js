@@ -100,6 +100,7 @@ export function buildingPlan(id,x,z,w,d,floors,district,seed) {
   const height=floors*3.4,tiers=[{y:0,w,d,h:height,floors}];
   if(floors>=8) {tiers[0].h=10.2;tiers[0].floors=3;tiers.push({y:10.2,w:w-4,d:d-4,h:height-10.2,floors:floors-3});}
   const b={id,x,z,w,d,floors,height,district,tiers,roof:cottage||district==='oldtown'&&seed%3!==0?'gable':district==='industrial'?'sawtooth':floors>=8?'crown':'flat',color:PALETTES[district][Math.floor(rng()*PALETTES[district].length)],accent:rng()>.5?0x536d68:0x985c49,enterable:cottage||id==='clinic'||(district==='oldtown'&&seed%3===0),seed};
+  b.cityInterior=!b.enterable;b.enterable=true;
   // The floor clears the complete triangulated footprint, including terrain
   // grid vertices inside it. Foundations extend down to the actual slope.
   const xs=[x-w/2,x+w/2],zs=[z-d/2,z+d/2];for(let v=Math.ceil(xs[0]/10)*10;v<xs[1];v+=10)xs.push(v);for(let v=Math.ceil(zs[0]/10)*10;v<zs[1];v+=10)zs.push(v);
@@ -149,7 +150,7 @@ export function createWorldData(seed=SEED) {
   for(let i=0;i<260;i++){const x=-1100+rng()*1220,z=-520+rng()*1060,y=terrainHeight(x,z);if(y>0&&!reservedPlace(x,z,3)&&roadAt(x,z).distance>12)rocks.push({x,z,y,s:1+rng()*3,r:rng()*6.28});}
   const supplyAt=(x,z,type)=>supplies.push({id:`supply-${supplies.length}`,x,z,type});
   supplyAt(-742,282,'ammo');supplyAt(-756,311,'medkit');
-  for(const b of buildings.filter(b=>b.enterable)){supplyAt(b.x-3,b.z+1,'ammo');if(rng()>.55)supplyAt(b.x+3,b.z-2,'medkit');}
+  for(const b of buildings.filter(b=>b.enterable&&!b.cityInterior)){supplyAt(b.x-3,b.z+1,'ammo');if(rng()>.55)supplyAt(b.x+3,b.z-2,'medkit');}
   for(const p of LANDMARKS.filter(p=>p.type==='relay')){supplyAt(p.x+7,p.z+7,'ammo');supplyAt(p.x-6,p.z+9,'medkit');}
   for(let i=0;i<30;i++){const x=410+rng()*730,z=-430+rng()*840;if(buildings.every(b=>Math.abs(b.x-x)>b.w/2+2||Math.abs(b.z-z)>b.d/2+2))supplyAt(x,z,i%3?'ammo':'medkit');}
   const encounters=[[-810,-230],[-400,-253],[-459,120],[-718,48],[410,8],[585,8],[815,-277],[942,-287],[970,-289],[1095,260]];

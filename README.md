@@ -26,13 +26,15 @@ The reusable [grounded game style skill](skills/grounded-game-style/SKILL.md)
 records the reference-led layout, camera and art-direction workflow used for
 future passes while retaining Blackwater's N64 horror identity.
 
-Restore three emergency stations and reach the evacuation ferry. Explore 248 buildings and 45 furnished ground floors, scavenge ammunition and medical supplies, fight animated infected, drive utility trucks and save at shelters. Press **M** for the actual-world map and journal. Desktop and touch interfaces share the same mission and inventory state.
+Restore three emergency stations and reach the evacuation ferry. All 248 buildings have furnished, enterable street levels: island homes, tower lobbies, ground-floor apartments, cafés, offices, workshops and hospital wards. Scavenge ammunition and medical supplies, fight animated infected, drive utility trucks and save at shelters. Press **M** for the actual-world map and journal. Desktop and touch interfaces share the same mission and inventory state.
 
 **WASD** move, **mouse** look, **Shift** sprint, **Space** jump, **left/right click** fire/aim, **E** interact/drive, **R** reload, **F** melee, **H** heal, **M** map, **Esc** pause, **I** survivor inspection and equipment, **1–9 / wheel** weapon selection, **F2** developer flight, **F8** flight performance survey.
 
 Choose **Play together** to host a public waiting expedition or join an open frequency. The host chooses **Depart together** when both survivors are present. Infected, objectives and trucks are shared; inventories are personal. Co-op expeditions last for the session and never overwrite your solo journey. Closing the host ends the expedition. See [multiplayer and hosting](docs/blackwater-multiplayer.md).
 
 City upper storeys remain scenery; the original dungeon and co-op implementation is preserved locally at **/legacy.html**. The Unity project is separate. Existing work and legacy saves have been retained.
+
+The title screen uses an authored angular wordmark and a console-style selection list. Forest undergrowth follows canopy and terrain, with clustered grass, ferns, young trees, shrubs and fallen branches; roads, footpaths and entrances remain reserved. Small ground cover uses short-range spatial batches and does not cast thousands of individual shadows.
 
 See [world, art direction, asset provenance and scope](docs/blackwater-rewrite.md).
 
