@@ -1,5 +1,17 @@
 # The Last Dead interface direction
 
+## Blackwater playable interface — October 22, 2026
+
+During play, the player needs to recognise a find, understand whether it can be taken, and return to the world quickly. The visual anchor is the same low-resolution island as the title screen. The interface borrows the cartridge title's chunky ivory lettering, cut amber cursor and short olive shadows. No downloaded font, soft glass, continuous motion or decorative telemetry is needed.
+
+`island/console-ui.css` owns the current HUD and field-menu treatment above the existing layout foundations. It does not restyle the title screen. Action and equipment headings use heavy sans lettering; the shared body face carries descriptions. Amber indicates a usable action or selection; muted olive denotes unavailable equipment; rust remains damage, fullness and danger. Frames use lit upper edges and dark lower edges. Existing authored item silhouettes appear in the held-weapon plate, proximity prompt, pickup receipts and pack.
+
+The health plate groups dressings and stout with the health they restore. The weapon plate shows the actual held weapon, ammunition and current operating state. The four quiet desktop reminders are map, pack, heal and pause; the full control guide remains in options. The objective uses open lettering with a hard shadow. Proximity prompts put the find first, the available action second, and only then the short explanation. A blocked prompt has a dash rather than an active E key, including during weapon reloading. Search and treatment keep their real progress, cancellation and damage states.
+
+Scavenging opens a compact sheet at the left edge so the room and find stay visible. Stacks have larger silhouettes and quantities. The pouch uses 24 actual capacity divisions; its free count and transfer forecast describe real inventory. Clicking a stack takes that stack. Clicking **Take all & return** and pressing E now have the same result: collect what fits and return to play. A full pouch stays open, preserves unclaimed contents and directs the player to Supplies. Discarding a material immediately makes room. The pack uses a clear selected row, substantial item illustration, separate carried and undiscovered weapon states, and 44-pixel minimum controls. Portrait scrolls the contents rather than compressing targets; short landscape retains a two-column loot arrangement.
+
+Evidence is in `output/playwright/field-ui-2026-10-22/`: guarded real-game captures and native input flows, including full-pouch recovery, healing, keyboard selection and coarse-pointer layouts. These controlled review scenes disable enemies to isolate the interface. No test files are added or changed. This section supersedes earlier Blackwater HUD/pack typography and placement guidance; the title composition below remains unchanged.
+
 ## Blackwater title screen — October 22, 2026
 
 The browser edition's title is a console game screen, with the live low-resolution island as its visual anchor. A centred, custom angular ivory wordmark uses short olive extrusion, hard edges and a few fixed cuts. It is an authored SVG asset, independent of installed fonts. Blackwater sits below it; a single quiet line carries the survival premise.

@@ -1,5 +1,7 @@
 export function itemIcon(id){
  const paths={
+ truck:'<path d="M6 40h29V28h15l9 18v22H6z" fill="#93a27c"/><path d="M39 33h8l6 13H39zM10 43h21v10H10z" fill="#344e40"/><path d="M4 61h56v7H4z" fill="#c3b889"/><path d="M12 63h11v13H12zM43 63h11v13H43z" fill="#273d31"/><path d="M44 53h10v4H44z" fill="#dfc891"/>',
+ pack:'<path d="M24 13h16l4 11h10v53H10V24h10z" fill="#8c9b78"/><path d="M25 14h14v10H25zM14 43h36v27H14z" fill="#3c5746"/><path d="M10 29h44v8H10zM17 49h30v4H17z" fill="#c5b58a"/><path d="M18 30v14m28-14v14" stroke="#384e3c" stroke-width="5"/>',
  'keeper-fuse':'<path d="M13 34h38v20H13z" fill="#c5b58a"/><path d="M8 31h11v26H8zM45 31h11v26H45z" fill="#8da28b"/><path d="M19 42h26v4H19z" fill="#65765c"/><path d="M22 35h19v3H22z" fill="#e0d4a7"/>',
  beer:'<path d="M27 7h10v18l8 12v44q-13 8-26 0V37l8-12z" fill="#685440"/><path d="M27 7h10v7H27z" fill="#c5ba8c"/><path d="M20 45h24v24H20z" fill="#c2a576"/><path d="m26 59 6-9 6 9-6 6z" fill="#4f6b56"/>',
  bandage:'<path d="m10 38 31-13 14 29-32 17z" fill="#c7c6aa"/><path d="m21 34 13 30m-5-33 13 28" stroke="#8c997f" stroke-width="3"/><path d="m32 39 9 18m-14-4 19-8" stroke="#9d6352" stroke-width="5"/>',
