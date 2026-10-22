@@ -40,18 +40,26 @@
 #interaction.is-working>kbd{min-width:42px;font-size:11px;color:var(--paper)}
 #interaction.is-full{border-top-color:#808c71}#interaction.is-full>kbd{color:#8d9e83;border-color:#66775c;background:#1a2d22;box-shadow:none}
 #interaction.is-full #interaction-action{color:#c0c7ad}
+#interaction.is-weapon{padding-left:74px;min-height:94px;border-top:2px solid #d0c88f}
+#interaction.is-weapon #interaction-icon{width:48px;height:72px;left:12px;top:9px;background:#99a7791a;box-shadow:inset 1px 1px #607450}
+#interaction.is-weapon #interaction-icon svg{width:46px;height:70px}
+#interaction-facts{order:4;border-top:1px solid #6d815b;padding-top:5px;margin-top:2px;font:700 10px/1.3 var(--body);color:#e4d69c;letter-spacing:.2px}
 #pickup-feed{left:var(--hud-inset);bottom:138px;width:255px;gap:4px}.pickup-receipt{padding:6px 9px;border:0;border-left:3px solid #b2b287;background:#12291fe8;box-shadow:2px 2px #06150e}
 .pickup-receipt strong{font-size:13px}.pickup-receipt small{font-size:8px;letter-spacing:.6px}.pickup-receipt>b{font:900 23px var(--console)}
+.pickup-receipt.is-discovery{min-height:91px;border:1px solid #b6b782;border-left:3px solid #e1c278;padding:10px 9px;background:#1c3323}
+.pickup-receipt.is-discovery>i,.pickup-receipt.is-discovery svg{width:43px;height:62px}.pickup-receipt.is-discovery strong{font:900 15px/1.12 var(--console);text-transform:uppercase}
+.pickup-receipt.is-discovery small{color:#edc67d;font-size:8px}.pickup-receipt.is-discovery em{font:10px/1.4 var(--body);color:#c6d1b3;margin-top:3px}.pickup-receipt.is-discovery>b{font-size:10px}
 #toast{bottom:30%;padding:7px 12px;font-size:12px;line-height:1.4;border:0;border-block:1px solid #b2b28766;box-shadow:2px 2px #071811;background:#12291ff2}
 
 /* The pack is an equipment roster, not a page of application cards. */
 #backpack{background:#06180f66;padding:32px}
 .pack-sheet,.is-looting .pack-sheet{width:min(950px,100%);max-height:calc(100dvh - 64px);padding:18px 22px 12px;background:#152c22fa;border:2px solid #a6ad7d;border-right-color:#4e674c;border-bottom-color:#4e674c;box-shadow:3px 3px #06170f,0 0 0 2px #06170f}
 .pack-sheet header{padding-bottom:12px;gap:14px}.pack-sheet header .eyebrow{font-size:9px;letter-spacing:1.3px;color:#b8bd99}
+.pack-header-emblem{display:grid;place-items:center;width:39px;height:54px;flex-shrink:0;background:#9da77a18;box-shadow:inset 1px 1px #5a7352}.pack-header-emblem svg{width:35px;height:49px}.pack-sheet header>div{flex:1}
 .pack-sheet h2,.is-looting .pack-sheet h2{font:900 28px/1.08 var(--console);text-transform:uppercase;letter-spacing:-.6px;text-shadow:2px 3px #07190f;margin-top:5px}
 .pack-sheet header .text-button{font:900 11px var(--body);padding-inline:20px 8px}
 .pack-status{font-size:10px;border-top:1px solid #7f926c;padding:8px 0;color:#d8dcc0}.pack-status #pack-capacity{color:#edce8a}.pack-full #pack-capacity{color:#e0a08a}
-.pack-capacity-track{position:relative;height:5px;background:#0a1c13}
+.pack-capacity-track{position:relative;height:8px;background:#0a1c13;border-block:1px solid #52694a}
 .pack-capacity-track::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(100% / 24 - 2px),#5c7354 calc(100% / 24 - 2px) calc(100% / 24));pointer-events:none}
 .pack-capacity-track i{background:#c8c78a;transition:none}
 .pack-full .pack-capacity-track i{background:#cb937b}
@@ -61,12 +69,14 @@
 .pack-tabs button:hover{color:#f7dfa1;background:#334a2c}.pack-tabs button[aria-pressed=true]:hover{color:#192b1c;background:#d4cd97}
 .pack-layout{grid-template-columns:minmax(0,1.18fr) minmax(0,.85fr);gap:23px;padding:18px 0 14px;min-height:0}
 .pack-layout>div>.eyebrow{font-size:9px;color:#b6c29c;letter-spacing:1.5px;margin-bottom:10px}
-.supply-grid,.weapon-list{gap:4px 6px}.pack-item,.pack-weapon{padding:9px 8px 9px 15px;min-height:76px;border:1px solid transparent;border-bottom-color:#536c4c;background:#10241b55;font-size:13px;gap:9px}
-.pack-item.selected,.pack-weapon.selected{background:#33482c;border:1px solid #bfbd86;box-shadow:inset 0 -2px #192d1c;color:#fae4a6}
-.pack-item::before,.pack-weapon::before{left:4px;top:calc(50% - 5px);width:6px;height:10px;transform:none;clip-path:polygon(0 0,100% 50%,0 100%)}
-.pack-item svg,.pack-weapon svg{width:39px;height:52px;background:#89966e16;filter:drop-shadow(2px 3px #071811)}
-.pack-item small,.pack-weapon small{font-size:8px;line-height:1.4;margin-top:5px;color:#bac6a6}
-.pack-item b{font:900 19px var(--console);letter-spacing:-.5px}.pack-item.is-empty{color:#98ac8e}.pack-item.is-empty svg{opacity:.5}
+.supply-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.weapon-list{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.pack-item,.pack-weapon{display:grid;grid-template-columns:1fr;justify-items:center;align-content:center;text-align:center;padding:8px 6px;min-height:100px;border:1px solid #546e4d;background:#10241b;box-shadow:inset 2px 2px #071a1255;font-size:11px;gap:5px}
+.pack-item{min-height:132px;font-size:13px}.pack-item.selected,.pack-weapon.selected{background:#3c502d;border:1px solid #e0d39b;box-shadow:inset 0 0 0 2px #182f1c;color:#fff0b9}
+.pack-item::before,.pack-weapon::before{left:5px;top:5px;width:9px;height:9px;transform:none;clip-path:polygon(0 0,100% 0,0 100%)}
+.pack-item svg,.pack-weapon svg{width:44px;height:48px;background:none;filter:drop-shadow(3px 3px #071811)}.pack-item svg{width:51px;height:64px}
+.pack-item>span,.pack-weapon>span{max-width:100%;line-height:1.2}.pack-item small,.pack-weapon small{font-size:8px;line-height:1.35;margin-top:4px;color:#bbc9a8;letter-spacing:0}
+.pack-item b{position:absolute;right:8px;top:8px;margin:0;font:900 19px var(--console);letter-spacing:-.5px}.pack-item.is-empty{color:#98ac8e}.pack-item.is-empty svg{opacity:.4}
+.pack-equipped{position:absolute;right:6px;top:7px;font-size:9px}.pack-weapon.is-undiscovered svg{opacity:.24;filter:brightness(.65) drop-shadow(2px 2px #071811)}
 #pack-rack-hint{font-size:11px;line-height:1.4;margin-bottom:9px;color:#bcc8ac}
 #pack-detail{padding-left:22px;border-left:1px solid #667c57}.pack-illustration{height:148px;background:#84936a20;border:1px solid #5d7653;box-shadow:inset 3px 3px #0b211766}
 .pack-illustration svg{width:110px;height:136px;filter:drop-shadow(5px 6px #0a1c14)}
@@ -81,6 +91,8 @@
 .pack-detail-copy>.eyebrow{font:700 9px/1.4 var(--body);color:#d7bc7b;letter-spacing:1px;margin:15px 0 6px}
 .pack-detail-copy>p:not(.eyebrow){font:12px/1.5 var(--body);color:#c4ceb3;margin:9px 0}
 .pack-detail-copy>.pack-ammunition{color:var(--paper);font-weight:700}.pack-detail-copy>.pack-use-note{font-size:11px}
+.pack-recipe{padding:5px 0;margin:0}.pack-recipe>.eyebrow{font-size:8px;letter-spacing:.7px;margin:0 0 5px}.pack-recipe>div{display:flex;align-items:center;gap:12px}.pack-recipe span{display:grid;grid-template-columns:25px 1fr;column-gap:5px;align-items:center;font:10px/1.3 var(--body);color:#a3b597}.pack-recipe svg{width:25px;height:30px;grid-row:1/3}.pack-recipe b{font-size:13px}.pack-recipe .ready{color:#efd290}.pack-recipe i{font-style:normal;color:#b0bf9e}
+#backpack[data-category=supplies] .pack-illustration{height:100px}#backpack[data-category=supplies] .pack-illustration svg{height:92px;width:80px}
 .pack-actions{padding-top:5px;border-top:1px solid #667c57;flex-shrink:0;background:#152c22}
 .pack-sheet footer{border-color:#71865d;padding-top:8px;gap:18px}.pack-sheet footer p{font-size:11px;line-height:1.45;color:#b3c3a4;min-height:16px}.pack-navigation{justify-content:space-between;font-size:9px;letter-spacing:.5px;margin-top:10px;color:#b7c8aa}
 .pack-sheet #pack-craft{font-size:10px}.pack-sheet #pack-craft small{font-size:9px}
@@ -93,6 +105,7 @@
 .is-looting #pack-detail{display:grid;grid-template-columns:75px minmax(0,1fr);gap:0 15px;padding:13px 0 0;border:0;border-top:1px solid #667e56}
 .loot-list button{padding:10px 9px;min-height:82px;gap:13px;border-bottom:1px solid #607752;background:#0b211744}
 .loot-list button:hover:not(:disabled),.loot-list button:focus-visible{background:#374c2b}
+.loot-list button{position:relative;border:1px solid transparent;border-bottom-color:#607752;padding-left:15px}.loot-list button:focus-visible{outline:0;border-color:#ddce92;box-shadow:inset 0 0 0 2px #172d1c}.loot-list button:focus-visible::before{display:block;visibility:visible;left:4px;width:6px;height:10px;transform:none;clip-path:polygon(0 0,100% 50%,0 100%)}
 .loot-list button>span{font:900 14px/1.2 var(--body)}.loot-list button small{font:11px/1.4 var(--body);color:#c2ccb0;margin-top:5px}.loot-list svg{width:42px;height:58px;filter:drop-shadow(2px 3px #071811)}.loot-list button>b{font:900 25px var(--console)}
 .loot-capacity{grid-column:1;grid-row:1/3;align-self:center}.loot-capacity .eyebrow{display:block;font-size:8px;letter-spacing:.5px;color:#b1c09e;white-space:nowrap;margin-bottom:5px}.loot-capacity strong{display:block;font:900 26px var(--console);color:#e3d69c;white-space:nowrap}.loot-capacity small{display:block;font:900 9px var(--body);letter-spacing:1px;color:#b8c6a5;margin-top:3px}
 .loot-manifest{grid-column:2;align-self:center}.loot-manifest p{font:11px/1.5 var(--body);margin:3px 0;color:#d1d8ba}.loot-manifest #pack-leftovers{color:#deaa8a}
@@ -116,7 +129,7 @@
  #backpack:not(.is-looting) #pack-detail{display:flex;flex-direction:column;align-self:stretch;min-height:0;max-height:100%;overflow:hidden;padding-right:6px}
  .pack-detail-copy{min-height:0;overflow:auto;overscroll-behavior:contain;flex:1;scrollbar-width:thin;scrollbar-color:var(--edge) #102219;padding-right:6px}
 }
-@media(max-width:1000px){#hud{--hud-inset:20px}.objective{width:218px}.objective h2{font-size:16px}.objective>p:last-of-type{font-size:10px}.pack-item,.pack-weapon{font-size:12px;gap:6px}.pack-sheet{width:min(870px,100%)}}
+@media(max-width:1000px){#hud{--hud-inset:20px}.objective{width:218px}.objective h2{font-size:16px}.objective>p:last-of-type{font-size:10px}.pack-weapon{font-size:11px}.pack-sheet{width:min(870px,100%)}.weapon-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:680px){
  #hud{--hud-inset:16px}.objective{top:96px;width:205px}.objective h2{font-size:15px}.objective>p:last-of-type{font-size:10px}.relay-dots{margin-top:7px}
  .health{width:156px;bottom:22px;padding:7px 8px 6px 28px;gap:4px 6px}.health::before{left:6px;top:29px;font-size:22px}.health>strong{font-size:25px}.health>#medical{font-size:8px;letter-spacing:0}.health.critical{padding-left:28px}.health.critical::before{left:6px}
@@ -126,7 +139,7 @@
  #backpack,#backpack.is-looting{padding:12px;background:#06180f88;place-items:center}.pack-sheet,.is-looting .pack-sheet{width:100%;max-height:calc(100dvh - 24px);padding:13px 13px 10px}
  .pack-sheet h2,.is-looting .pack-sheet h2{font-size:23px}.pack-sheet header .eyebrow{font-size:8px;letter-spacing:.7px}.pack-sheet header .text-button{font-size:10px;gap:6px;padding-left:16px}.pack-sheet header{padding-bottom:8px}
  .pack-status{font-size:9px;letter-spacing:0;padding:7px 0}.pack-tabs{padding-top:10px;gap:4px}.pack-tabs button{font-size:10px;letter-spacing:.5px;padding:9px 12px}
- .pack-layout{grid-template-columns:1fr;gap:14px;padding:15px 0 10px}.pack-item,.pack-weapon{min-height:65px;padding:6px 5px 6px 12px;gap:6px;font-size:12px}.pack-item svg,.pack-weapon svg{width:29px;height:44px}.pack-item b{font-size:17px}
+ .pack-layout{grid-template-columns:1fr;gap:14px;padding:15px 0 10px}.pack-item,.pack-weapon{min-height:105px;padding:7px 4px;gap:5px;font-size:11px}.pack-item svg,.pack-weapon svg{width:42px;height:53px}.pack-item b{font-size:17px;right:6px;top:6px}.supply-grid,.weapon-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.weapon-list{max-height:224px}.pack-header-emblem{width:30px;height:44px}.pack-header-emblem svg{width:27px;height:40px}
  #pack-detail{display:grid;grid-template-columns:76px minmax(0,1fr);column-gap:12px;padding:12px 0 0;border-left:0;border-top:1px solid #667c57}.pack-illustration{height:106px;grid-row:1/5}.pack-illustration svg{width:68px;height:97px}#pack-detail>.eyebrow{font-size:8px;margin-top:0}#pack-detail h3{font-size:20px;margin:5px 0}#pack-detail>p:not(.eyebrow){font-size:11px;line-height:1.45;margin:5px 0}#pack-detail button{font-size:11px;min-height:44px}
  .pack-detail-copy{display:contents}.pack-detail-copy>*:not(.pack-illustration){grid-column:2}.pack-detail-copy>.pack-illustration{grid-column:1;grid-row:1/5}.pack-detail-copy>.eyebrow{font-size:8px;margin:0}.pack-detail-copy>p:not(.eyebrow){font-size:11px;line-height:1.45;margin:5px 0}.pack-detail-copy>.pack-weapon-facts,.pack-detail-copy>.pack-use-note{grid-column:1/3!important}.pack-actions{grid-column:1/3!important}
  .pack-sheet footer{padding-top:5px}.pack-sheet footer p{font-size:10px}.pack-sheet #pack-craft{font-size:10px;min-height:44px;padding-block:6px}
@@ -135,7 +148,7 @@
  .overlay-panel h2,#map-screen h2,#inspection h2{font-size:24px}
 }
 @media(pointer:coarse){
- #interaction{left:16px;transform:none;bottom:270px;width:max-content;min-width:0;max-width:calc(100vw - 98px);padding:10px 11px;min-height:62px}#interaction>kbd{min-width:30px;font-size:10px}.inventory.held-melee>#weapon-status{padding-top:14px}
+ #interaction{left:16px;transform:none;bottom:270px;width:max-content;min-width:0;max-width:calc(100vw - 98px);padding:10px 11px;min-height:62px}#interaction.is-weapon{padding:10px 11px;min-height:90px}#interaction-facts{font-size:9px}#interaction>kbd{min-width:30px;font-size:10px}.inventory.held-melee>#weapon-status{padding-top:14px}
  #interaction-name{font-size:14px}.interaction-copy #interaction-action{font-size:9px}.loot-quick-hint{display:none}
  #mobile-pack,#mobile-map,#mobile-pause{border:1px solid #a6ad7d;border-bottom:3px solid #5d734d;background:#172f24ed;box-shadow:2px 2px #06170f;font:900 11px var(--body)}
  #touch-actions button{border:1px solid #a6ad7d;border-bottom:3px solid #506d4a;background:#193127aa;box-shadow:2px 2px #06170f;font:900 9px var(--body)}#touch-actions button:disabled{opacity:.4}
@@ -143,11 +156,11 @@
 }
 @media(max-width:350px){
  #hud{--hud-inset:12px}.health{width:140px}.health>#medical{font-size:7px}.inventory,.inventory.held-melee{min-width:139px;max-width:148px}.inventory>#weapon-status{font-size:7px}.objective{width:190px}
- .pack-sheet h2,.is-looting .pack-sheet h2{font-size:21px}.pack-sheet header .eyebrow{font-size:7px}.pack-item,.pack-weapon{font-size:11px;gap:4px}.pack-item svg,.pack-weapon svg{width:24px}.pack-item b{font-size:15px}.pack-tabs button{padding-inline:10px}.pack-tabs{gap:3px}
+ .pack-sheet h2,.is-looting .pack-sheet h2{font-size:21px}.pack-sheet header .eyebrow{font-size:7px}.pack-item,.pack-weapon{font-size:10px;gap:4px}.pack-item svg,.pack-weapon svg{width:37px}.pack-item b{font-size:15px}.pack-tabs button{padding-inline:10px}.pack-tabs{gap:3px}.pack-header-emblem{display:none}.pack-recipe>div{gap:6px}.pack-recipe span{font-size:9px}
 }
 @media(max-height:520px) and (min-width:681px){
  .objective{top:18px}.objective>p:last-of-type{display:none}.health,.inventory,.inventory.held-melee{bottom:19px}.bottom-controls{display:none}#interaction{bottom:116px}
- #backpack,#backpack.is-looting{padding:12px}.pack-sheet,.is-looting .pack-sheet{max-height:calc(100dvh - 24px);padding:10px 17px}.pack-sheet header{padding-bottom:4px}.pack-sheet h2,.is-looting .pack-sheet h2{font-size:23px}.pack-status{padding:5px 0}.pack-tabs{padding-top:7px}.pack-tabs button{padding:8px 15px}.pack-layout{padding:10px 0;gap:18px}.pack-item,.pack-weapon{min-height:56px}.pack-illustration{height:80px}.pack-illustration svg{height:76px;width:66px}#pack-detail h3{font-size:20px}#pack-detail>p:not(.eyebrow){font-size:11px}.pack-sheet footer p{font-size:10px}
+ #backpack,#backpack.is-looting{padding:12px}.pack-sheet,.is-looting .pack-sheet{max-height:calc(100dvh - 24px);padding:10px 17px}.pack-sheet header{padding-bottom:4px}.pack-sheet h2,.is-looting .pack-sheet h2{font-size:23px}.pack-status{padding:5px 0}.pack-tabs{padding-top:7px}.pack-tabs button{padding:8px 15px}.pack-layout{padding:10px 0;gap:18px}.pack-item,.pack-weapon{min-height:91px}.pack-item svg,.pack-weapon svg{height:42px;width:37px}.pack-header-emblem{height:40px;width:29px}.pack-header-emblem svg{height:36px;width:26px}.pack-illustration{height:80px}.pack-illustration svg{height:76px;width:66px}#pack-detail h3{font-size:20px}#pack-detail>p:not(.eyebrow){font-size:11px}.pack-sheet footer p{font-size:10px}
  .is-looting .pack-layout{grid-template-columns:minmax(0,1.2fr) minmax(150px,1fr);gap:14px}.is-looting #pack-detail{grid-template-columns:1fr;border:0;border-left:1px solid #667c57;padding:0 0 0 14px;gap:4px}.loot-capacity{grid-column:1;grid-row:auto;display:flex;gap:14px;align-items:center}.loot-capacity strong{font-size:24px}.loot-capacity small{display:inline;font-size:8px;margin-left:4px}.loot-manifest{grid-column:1}.is-looting #pack-detail .loot-quick-hint{grid-column:1;grid-row:auto}.is-looting #pack-detail #pack-take-all{grid-column:1;margin-top:3px;font-size:10px}.loot-list button{min-height:68px}.loot-list button small{font-size:10px}
  .pack-detail-copy{display:grid;grid-template-columns:62px minmax(0,1fr);column-gap:10px;align-content:start}
  .pack-detail-copy>.pack-illustration{grid-column:1;grid-row:1/4;height:56px}.pack-detail-copy>.pack-illustration svg{height:52px;width:48px}
