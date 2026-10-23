@@ -43,6 +43,20 @@ room directory and relay snapshots.
 
 ## Rebuilding the Sites deployment
 
+The browser edition's canonical public game is
+https://the-last-dead-blackwater.jrodonthebeat.chatgpt.site (Sites project
+`appgprj_6ad33a298eb8819188a58f7b2d1de01c`). JRod Hub lists it as **Blackwater**
+in https://jrod.download/games/ and shares it through
+https://jrod.download/blackwater/. That hub route redirects to this existing
+game origin. Future game releases publish to the same Site; the hub does not
+need a copied game build or a new URL. The older Last Dead Railway listing and
+the Unity project remain separate.
+
+The hub's `blackwater` registry entry owns its alias, listing and capture
+metadata. Its own Site is `appgprj_6ac2e378ab00819189d0aa31f0db5147`. Keep the
+game's room API on its canonical origin so lobby discovery, relay traffic and
+solo saves continue using the existing service and browser storage.
+
 `npm.cmd run build:site` prepares `sites/blackwater/public` and the generated
 HTML/API modules from the canonical root sources. It uses only the dedicated
 `dist/sites-stage` subfolder and leaves the running local game's main dist intact.
