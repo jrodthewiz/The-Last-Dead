@@ -1,9 +1,10 @@
 import {businessDetails} from './business-details.js';
+import {interiorPlacement} from './interior-placement.js';
 
 // Occupied side bays retain the tall public spine. Suspended work ceilings use
 // real solid volumes; their ties meet the original shell without floor posts
 // being introduced into existing doorways, archive aisles or stash approaches.
-export function businessOccupancy(k,b,id,{back,front,left,right}){
+export function businessOccupancy(k,b,id,{back,front,left,right,spaces}){
  const {box,cylinder,disc,desk,chair,shelves,palette}=k,{wood,edge,paper,metal,cloth}=palette;
  const outer=b.w/2-.6;
  const tie=(role,x,z,bottom)=>{
@@ -21,11 +22,11 @@ export function businessOccupancy(k,b,id,{back,front,left,right}){
   box(role+'-end',x,y,z1,w+.14,.20,.16,wood,true);
   if(hung)for(const xx of [x0,x1])tie(role+'-suspension',xx,z1,y+.1);
  };
- const hutch=(role,x,z,w=3.8)=>{
+ const hutch=(role,x,z,w=3.8,write=box)=>{
   // A supported upper shelf rises from an existing .89m work surface.
-  for(const dx of [-w*.46,w*.46])box(role+'-upright',x+dx,1.59,z,.10,1.40,.11,wood,true);
-  box(role+'-shelf',x,2.24,z,w,.12,.40,wood,true);
-  for(let i=0;i<4;i++)box(role+'-stock',x-w*.33+i*w*.22,2.47,z,.44,.34,.34,i%2?paper:cloth);
+  for(const dx of [-w*.46,w*.46])write(role+'-upright',x+dx,1.59,z,.10,1.40,.11,wood,true);
+  write(role+'-shelf',x,2.24,z,w,.12,.40,wood,true);
+  for(let i=0;i<4;i++)write(role+'-stock',x-w*.33+i*w*.22,2.47,z,.44,.34,.34,i%2?paper:cloth);
  };
  if((b.interiorHeight||3.4)>4){
   if(id.id==='bank'){
@@ -78,7 +79,7 @@ export function businessOccupancy(k,b,id,{back,front,left,right}){
   }
  }
  if(id.id==='cafe'){
-  const z=front-13;
+  const z=spaces.prep.z;
   box('cafe-preparation-unit',left,.45,z,5.1,.90,1.10,wood,true);
   box('cafe-preparation-top',left,.96,z,5.25,.12,1.25,paper,true);
   // Hutch feet meet the higher preparation surface, with a broad backsplash.
@@ -95,10 +96,10 @@ export function businessOccupancy(k,b,id,{back,front,left,right}){
   for(const dx of [-.24,.24])box('cafe-bread-loaf',left-1.35+dx,1.22,z+.08,.40,.24,.46,0xb79e72);
  }else if(id.id==='office'){
   // Ticket stock and a framed staff alcove explain the counter's back office.
-  const z=back+6;
-  hutch('ticket-stock-hutch',left,z-.50,3.15);
-  for(const dx of [-1.8,1.8])box('ticket-office-return',left+dx,1.17,z-.10,.12,2.34,1.6,0xa1a68b,true);
-  for(let i=0;i<3;i++)box('ticket-stock-book',left+.8,.95+i*.09,z+.20,.54,.08,.72,i%2?paper:cloth);
+  const work=interiorPlacement(k,spaces.staffWork);
+  hutch('ticket-stock-hutch',0,-.50,3.15,work.box);
+  for(const dx of [-1.8,1.8])work.box('ticket-office-return',dx,1.17,-.10,.12,2.34,1.6,0xa1a68b,true);
+  for(let i=0;i<3;i++)work.box('ticket-stock-book',.8,.95+i*.09,.20,.54,.08,.72,i%2?paper:cloth);
  }
 }
 

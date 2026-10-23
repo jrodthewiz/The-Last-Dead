@@ -1,4 +1,5 @@
 import {houseShell} from './house-shell.js';
+import {interiorPlacement} from './interior-placement.js';
 
 // Independent of the identity modulo and the world's procedural RNG. Neighbours
 // with the same occupation retain different, stable finishes and daily habits.
@@ -20,8 +21,8 @@ export function interiorWallFinish({box},b,life){
  }
 }
 
-export function homeLife(k,b,id,{cx,side,back,front},life){
- const {box,cylinder,palette}=k,{wood,edge,paper,metal}=palette,z=front-9.6;
+export function homeLife(k,b,id,{cx,side,back,front,layout},life){
+ const {box,cylinder,palette}=k,{wood,edge,paper,metal}=palette,z=layout.wallMount.z,bedZ=layout.bed.z,kitchen=interiorPlacement(k,layout.kitchen);
  // This composition occupies a known uninterrupted divider segment between
  // living-room doors. Its coat depth remains inside the existing wall buffer.
  const wall=(role,u,y,w,h,color,depth=.035,offset=0)=>box(role,side*(2.26+offset+depth/2),y,z+u,depth,h,w,color);
@@ -48,11 +49,11 @@ export function homeLife(k,b,id,{cx,side,back,front},life){
    wall('raincoat-hem-band',u,top-h+.13,w,.065,paper,.018,.22);
   }
   if(life.variant===1){
-   box('folded-adult-raincoat',cx-1.25,1.12,back+.8,.75,.10,.72,life.cloth);
-   box('raincoat-folded-band',cx-1.25,1.177,back+.8,.75,.014,.065,paper);
+   kitchen.box('folded-adult-raincoat',-1.25,1.12,0,.75,.10,.72,life.cloth);
+   kitchen.box('raincoat-folded-band',-1.25,1.177,0,.75,.014,.065,paper);
   }else if(life.variant===2){
-   box('folded-child-raincoat',cx+.55,.984,back+4.9,.58,.10,.54,0xb3a17b);
-   box('child-coat-folded-band',cx+.55,1.041,back+4.9,.58,.014,.06,paper);
+   box('folded-child-raincoat',cx+.55,.984,bedZ+.9,.58,.10,.54,0xb3a17b);
+   box('child-coat-folded-band',cx+.55,1.041,bedZ+.9,.58,.014,.06,paper);
   }
  }else if(id.id==='gardener'){
   for(const u of [-.59,0,.59]){
@@ -76,24 +77,23 @@ export function homeLife(k,b,id,{cx,side,back,front},life){
  }
  // Drawers and a towel belong to the kitchen already in the plan. Their broad
  // bands, rather than new floor clutter, make its blank cabinet read as used.
- const kitchenZ=back+.8,w=Math.min(3.6,b.w/2-3.8);
+ const w=Math.min(3.6,b.w/2-3.8);
  for(const dx of [-w*.25,w*.25]){
-  box('kitchen-door-front',cx+dx,.49,kitchenZ+.508,w*.47,.77,.035,life.trim);
-  box('kitchen-door-pull',cx+dx,.74,kitchenZ+.54,.24,.055,.055,metal);
+  kitchen.box('kitchen-door-front',dx,.49,.508,w*.47,.77,.035,life.trim);
+  kitchen.box('kitchen-door-pull',dx,.74,.54,.24,.055,.055,metal);
  }
- box('kitchen-towel-rail',cx+w*.30,.82,kitchenZ+.58,.62,.055,.075,wood);
- box('kitchen-used-towel',cx+w*.30,.60,kitchenZ+.62,.44,.45,.035,life.cloth);
- box('towel-woven-band',cx+w*.30,.44,kitchenZ+.642,.44,.055,.012,paper);
- if(id.id==='family'&&side<0){
+ kitchen.box('kitchen-towel-rail',w*.30,.82,.58,.62,.055,.075,wood);
+ kitchen.box('kitchen-used-towel',w*.30,.60,.62,.44,.45,.035,life.cloth);
+ kitchen.box('towel-woven-band',w*.30,.44,.642,.44,.055,.012,paper);
+ if(id.id==='family'){
   // A repaired blanket repeats the adult coat colour, tying the everyday
   // departure scene to the sleeping area without another written caption.
-  const bedZ=back+4;
   for(const dx of [-.55,.55])box('family-blanket-patch',cx+dx,.927,bedZ+.9,.72,.014,.72,life.cloth);
   for(const dx of [-.55,.55])box('blanket-patch-seam',cx+dx,.938,bedZ+.9,.58,.008,.025,paper);
  }
 }
 
-export function businessLife(k,b,id,{back,front,left,right},life){
+export function businessLife(k,b,id,{back,front,left,right,spaces},life){
  const {box,cylinder,disc,label,palette}=k,{wood,edge,paper,metal,cloth}=palette;
  if(id.id==='radio'){
   const x=-4.8,z=back+7,selected=life.take;
@@ -139,17 +139,17 @@ export function businessLife(k,b,id,{back,front,left,right},life){
   box('application-open-page',right-1.95,.959,1,.55,.018,.80,paper);
   for(let i=0;i<3;i++)box('application-signature-line',right-1.95,.975,.80+i*.19,.39,.012,.025,edge);
  }else if(id.id==='cafe'){
-  const z=front-10;
+  const z=spaces.service.z;
   box('serving-towel-rail',left-1.75,.99,z+.76,.76,.055,.07,wood);
   box('cafe-service-towel',left-1.75,.70,z+.80,.54,.58,.035,life.cloth);
   box('cafe-towel-band',left-1.75,.48,z+.825,.54,.065,.012,paper);
  }else if(id.id==='office'){
-  const x=right-.85,z=front-12.55;
-  box('waiting-passenger-case',x,.855,z,.90,.60,.56,life.cloth,true);
-  box('case-seam',x,.855,z+.286,.86,.035,.018,wood);
-  for(const dx of [-.28,.28])box('case-travel-strap',x+dx,.855,z+.293,.07,.56,.025,paper);
-  for(const dx of [-.19,.19])box('case-handle-upright',x+dx,1.205,z,.055,.10,.075,wood);
-  box('case-carry-handle',x,1.28,z,.43,.055,.075,wood);
-  box('ferry-ticket-envelope',left+1.85,1.23,front-9,.56,.04,.40,life.cloth);
+  const seat=interiorPlacement(k,spaces.waiting[1]),x=-.85,z=-.05;
+  seat.box('waiting-passenger-case',x,.855,z,.90,.60,.56,life.cloth,true);
+  seat.box('case-seam',x,.855,z-.286,.86,.035,.018,wood);
+  for(const dx of [-.28,.28])seat.box('case-travel-strap',x+dx,.855,z-.293,.07,.56,.025,paper);
+  for(const dx of [-.19,.19])seat.box('case-handle-upright',x+dx,1.205,z,.055,.10,.075,wood);
+  seat.box('case-carry-handle',x,1.28,z,.43,.055,.075,wood);
+  interiorPlacement(k,spaces.ticket).box('ferry-ticket-envelope',1.85,1.23,0,.56,.04,.40,life.cloth);
  }
 }

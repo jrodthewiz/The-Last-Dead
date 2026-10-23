@@ -5,10 +5,12 @@ import {businessLayout} from './business-layouts.js';
 import {residentialActivity} from './interior-character.js';
 import {homeTableActivity} from './interior-occupancy.js';
 import {interiorLifeProfile,interiorWallFinish,homeLife} from './interior-life.js';
+import {interiorPlacement} from './interior-placement.js';
+import {homeRoomLayout,homeRoomStructure,familyLounge} from './home-layouts.js';
 const plans=new WeakMap();
 export function cityInteriorPlan(b){
  if(plans.has(b))return plans.get(b);
- const pieces=[],solids=[],floor=b.baseY+.2,identity=cityIdentity(b),roomHeight=b.interiorHeight||3.4,life=interiorLifeProfile(b);
+ const pieces=[],solids=[],rooms=[],floor=b.baseY+.2,identity=cityIdentity(b),roomHeight=b.interiorHeight||3.4,life=interiorLifeProfile(b);
  const palette={wood:0x88795e,edge:0x4c5b51,cream:0xc9c4a0,cloth:0x879582,metal:0x496762,paper:0xd5caa6};
  const box=(role,x,y,z,w,h,d,color=palette.wood,solid=false)=>{
   pieces.push({shape:'box',role,x:b.x+x,y:floor+y,z:b.z+z,w,h,d,color,rotation:0});
@@ -16,17 +18,17 @@ export function cityInteriorPlan(b){
  };
  const cylinder=(role,x,y,z,r,h,color,solid=false)=>{pieces.push({shape:'cylinder',role,x:b.x+x,y:floor+y,z:b.z+z,w:r,h,d:r,color,rotation:0});if(solid)solids.push({id:b.id+'-'+role,x:b.x+x,z:b.z+z,w:r*2,d:r*2,y:floor+y-h/2,h});};
  const cone=(role,x,y,z,w,h,d,color,rotation=0)=>pieces.push({shape:'cone',role,x:b.x+x,y:floor+y,z:b.z+z,w,h,d,color,rotation});
- const disc=(role,x,y,z,r,depth,color)=>pieces.push({shape:'dial',role,x:b.x+x,y:floor+y,z:b.z+z,w:r,h:r,d:depth,color,rotation:0});
+ const disc=(role,x,y,z,r,depth,color,rotation=0)=>pieces.push({shape:'dial',role,x:b.x+x,y:floor+y,z:b.z+z,w:r,h:r,d:depth,color,rotation});
  const label=(text,subline,x,y,z,w,h,rotation=0)=>pieces.push({shape:'label',x:b.x+x,y:floor+y,z:b.z+z,w,h,text,subline,colour:identity.colour,rotation});
- const desk=(x,z,w=2.4,d=1.2,dressed=true)=>{
-  box('desk-top',x,.82,z,w,.14,d,palette.wood,true);
-  for(const dx of [-w*.4,w*.4])box('desk-pedestal',x+dx,.39,z,.32,.72,d*.8,palette.edge,true);
-  if(dressed){box('desk-paper',x-.42,.907,z+.12,.62,.025,.43,palette.paper);box('desk-ledger',x+.58,.94,z-.09,.44,.09,.61,b.accent);}
+ const desk=(x,z,w=2.4,d=1.2,dressed=true,write=box)=>{
+  write('desk-top',x,.82,z,w,.14,d,palette.wood,true);
+  for(const dx of [-w*.4,w*.4])write('desk-pedestal',x+dx,.39,z,.32,.72,d*.8,palette.edge,true);
+  if(dressed){write('desk-paper',x-.42,.907,z+.12,.62,.025,.43,palette.paper);write('desk-ledger',x+.58,.94,z-.09,.44,.09,.61,b.accent);}
  };
- const chair=(x,z,back=1)=>{
-  box('chair-seat',x,.48,z,.72,.12,.70,palette.cloth,true);
-  box('chair-back',x,.89,z+back*.31,.72,.72,.12,palette.cloth,true);
-  for(const dx of [-.28,.28])for(const dz of [-.25,.25])box('chair-leg',x+dx,.23,z+dz,.07,.46,.07,palette.edge);
+ const chair=(x,z,back=1,write=box)=>{
+  write('chair-seat',x,.48,z,.72,.12,.70,palette.cloth,true);
+  write('chair-back',x,.89,z+back*.31,.72,.72,.12,palette.cloth,true);
+  for(const dx of [-.28,.28])for(const dz of [-.25,.25])write('chair-leg',x+dx,.23,z+dz,.07,.46,.07,palette.edge);
  };
  const shelves=(x,z,w=2.4)=>{
   box('shelf-frame',x,1.12,z,w,2.24,.60,palette.edge,true);
@@ -86,9 +88,9 @@ export function cityInteriorPlan(b){
   }
  }else if(kind==='apartments'){
   for(const side of [-1,1]){
-   const cx=side*(b.w/4+1.2),roomW=b.w/2-3.8;
+   const room=homeRoomLayout(b,identity,side),{cx,roomW}=room,kit={box,cylinder,cone,disc,label,desk,chair,shelves,plant,palette};rooms.push(room);
    // Separate living and sleeping zones, with a real 1.6 m room opening.
-   const openings=[back+8,2,front-7].sort((a,c)=>a-c),start=back+.5,end=front-4;
+   const openings=[...room.openings].sort((a,c)=>a-c),start=back+.5,end=front-4;
    let cursor=start;
    for(const z of openings){
     if(z-1>cursor)box('room-divider',side*2.2,1.32,(cursor+z-1)/2,.12,2.64,z-1-cursor,0xaaa98b,true);
@@ -97,14 +99,16 @@ export function cityInteriorPlan(b){
    if(cursor<end)box('room-divider',side*2.2,1.32,(cursor+end)/2,.12,2.64,end-cursor,0xaaa98b,true);
    const gapZ=front-7;
    box('flat-door-jamb',side*2.2,1.32,gapZ-1.1,.16,2.64,.18,palette.edge,true);
-   box('living-rug',cx,.022,3,roomW-.7,.035,3.5,b.accent);
-   if(side<0&&['gardener','photographer'].includes(identity.id))residentialActivity({box,cylinder,cone,disc,label,palette},identity,cx,2.2,roomW);
-   else{box('sofa-base',cx,.44,2.2,Math.min(3,roomW-.4),.70,.95,palette.cloth,true);box('sofa-back',cx,.91,1.8,Math.min(3,roomW-.4),.95,.22,palette.edge,true);}
-   desk(cx,5,Math.min(2.3,roomW-.4),1.1,false);
-   homeTableActivity({box,cylinder,palette},identity,cx,5,side,life);
-   chair(cx-.65,6.2);
-   if(identity.id==='family'&&side<0)chair(cx+.65,6.2);
-   const bedZ=back+4;
+   homeRoomStructure(kit,b,room);
+   box('living-rug',cx,.022,identity.id==='family'?front-8.5:room.dining.z,roomW-.7,.035,identity.id==='family'?7.4:4.8,b.accent);
+   if(identity.id==='family')familyLounge(kit,room);
+   else residentialActivity(interiorPlacement(kit,room.living),identity,0,0,roomW);
+   const dining=interiorPlacement(kit,room.dining);
+   dining.desk(0,0,Math.min(2.3,roomW-.4),1.1,false);
+   homeTableActivity(dining,identity,0,0,side,life);
+   dining.chair(-.65,1.2);
+   if(identity.id==='family'&&side<0)dining.chair(.65,1.2);
+   const bedZ=room.bed.z;
    box('bed-frame',cx,.35,bedZ,2.0,.6,3.2,palette.wood,true);
    box('bed-mattress',cx,.72,bedZ,1.92,.20,3.1,palette.paper);
    box('bed-blanket',cx,.86,bedZ+.35,1.94,.12,2.3,b.accent);
@@ -120,20 +124,21 @@ export function cityInteriorPlan(b){
     box('bedside-coast-sea',photoX,1.025,photoZ+.049,.34,.14,.008,0x829c91);
     box('bedside-coast-island',photoX-.04,1.105,photoZ+.05,.20,.085,.008,0x7d8e67);
    }else for(const dx of [-.09,.09]){box('family-photo-head',photoX+dx,1.13,photoZ+.049,.07,.08,.008,identity.colour);box('family-photo-figure',photoX+dx,1.02,photoZ+.05,.105,.15,.008,identity.colour);}
-   box('kitchen-unit',cx,.49,back+.8,Math.min(3.6,roomW),.98,1.0,palette.wood,true);
-   box('kitchen-top',cx,1.02,back+.8,Math.min(3.7,roomW+.1),.10,1.10,palette.paper);
-   cylinder('cooking-pot',cx-.4,1.16,back+.8,.23,.22,palette.edge);
+   const kitchen=interiorPlacement(kit,room.kitchen);
+   kitchen.box('kitchen-unit',0,.49,0,Math.min(3.6,roomW),.98,1.0,palette.wood,true);
+   kitchen.box('kitchen-top',0,1.02,0,Math.min(3.7,roomW+.1),.10,1.10,palette.paper);
+   kitchen.cylinder('cooking-pot',-.4,1.16,0,.23,.22,palette.edge);
    if(identity.id==='photographer'){
-    box('camera-body',cx+.65,1.18,back+.8,.53,.28,.26,palette.edge);disc('camera-lens',cx+.65,1.18,back+.98,.115,.18,palette.metal);
-    for(let i=0;i<3;i++)box('photo-prints',cx+.65+i*.10,1.08+i*.015,back+1.2,.37,.015,.26,palette.paper);
+    kitchen.box('camera-body',.65,1.18,0,.53,.28,.26,palette.edge);kitchen.disc('camera-lens',.65,1.18,.18,.115,.18,palette.metal);
+    for(let i=0;i<3;i++)kitchen.box('photo-prints',.65+i*.10,1.08+i*.015,.4,.37,.015,.26,palette.paper);
    }else if(identity.id==='gardener'){
-    box('seed-tray',cx+.65,1.11,back+.8,.86,.10,.53,palette.wood);
-    for(let i=0;i<3;i++){cylinder('seedling-pot',cx+.39+i*.26,1.21,back+.8,.09,.16,palette.edge);box('seedling-leaf',cx+.39+i*.26,1.35,back+.8,.16,.18,.035,0x728a52);}
+    kitchen.box('seed-tray',.65,1.11,0,.86,.10,.53,palette.wood);
+    for(let i=0;i<3;i++){kitchen.cylinder('seedling-pot',.39+i*.26,1.21,0,.09,.16,palette.edge);kitchen.box('seedling-leaf',.39+i*.26,1.35,0,.16,.18,.035,0x728a52);}
    }else{
-    box('family-breakfast-tray',cx+.65,1.105,back+.8,.80,.06,.56,palette.wood);for(const dx of [-.22,.22])cylinder('family-breakfast-mug',cx+.65+dx,1.23,back+.8,.09,.20,palette.paper);
+    kitchen.box('family-breakfast-tray',.65,1.105,0,.80,.06,.56,palette.wood);for(const dx of [-.22,.22])kitchen.cylinder('family-breakfast-mug',.65+dx,1.23,0,.09,.20,palette.paper);
    }
    label(identity.notice,identity.detail,side*2.29,1.8,-.2,1.7,.34,side*Math.PI/2);
-   homeLife({box,cylinder,palette},b,identity,{cx,side,back,front},life);
+   homeLife({box,cylinder,palette},b,identity,{cx,side,back,front,layout:room},life);
    plant(side*(b.w/2-1.2),front-5);
   }
  }else if(kind==='hospital'){
@@ -171,5 +176,5 @@ export function cityInteriorPlan(b){
   label('FOR THE NEXT SHIFT','TAKE WHAT YOU NEED',x,1.54,z-.802,1.65,.30);
   stashAnchor={x:b.x+x,z:b.z+z,y:floor+.70};
  }
- const plan={pieces,solids,kind,identity:identity.id,life,stashAnchor};plans.set(b,plan);return plan;
+ const plan={pieces,solids,rooms,kind,identity:identity.id,life,stashAnchor};plans.set(b,plan);return plan;
 }

@@ -2,25 +2,27 @@ import {businessDetails} from './business-details.js';
 import {businessRoomCharacter} from './interior-character.js';
 import {businessOccupancy} from './interior-occupancy.js';
 import {businessLife,interiorLifeProfile} from './interior-life.js';
+import {interiorPlacement} from './interior-placement.js';
+import {businessRoomLayout} from './business-spaces.js';
 
 // Street-level plans are organized around work, customers and goods. All
 // substantial forms use the caller's shared visual/collision writer. The
 // centre spine, front crossover and saved supply-bench anchors stay clear.
 export function businessLayout(k,b,identity,{back,front,lx,rx}){
  const {box,cylinder,disc,label,desk,chair,shelves,plant,palette}=k;
- const {wood,edge,paper,metal,cloth}=palette,left=-Math.min(5.2,b.w/2-3.4),right=-left;
+ const {wood,edge,paper,metal,cloth}=palette,left=-Math.min(5.2,b.w/2-3.4),right=-left,spaces=businessRoomLayout(b,identity);
  const details=(x,z,options={})=>businessDetails(k,identity,x,z,options);
  const mat=(role,x,z,w,d,color=cloth)=>box(role,x,.025,z,w,.035,d,color);
- const bench=(x,z,w=3.8)=>{
-  box('waiting-bench-seat',x,.48,z,w,.15,.78,wood,true);
-  box('waiting-bench-back',x,.89,z+.33,w,.78,.13,cloth,true);
-  for(const dx of [-w*.4,w*.4])box('waiting-bench-foot',x+dx,.22,z,.16,.44,.68,edge,true);
+ const bench=(x,z,w=3.8,write=box)=>{
+  write('waiting-bench-seat',x,.48,z,w,.15,.78,wood,true);
+  write('waiting-bench-back',x,.89,z+.33,w,.78,.13,cloth,true);
+  for(const dx of [-w*.4,w*.4])write('waiting-bench-foot',x+dx,.22,z,.16,.44,.68,edge,true);
  };
- const counter=(role,x,z,w=5.6)=>{
-  box(role+'-body',x,.55,z,w,1.10,1.25,wood,true);
-  box(role+'-top',x,1.15,z,w+.18,.12,1.42,paper,true);
-  box(role+'-plinth',x,.12,z+.64,w-.16,.20,.07,edge);
-  for(const dx of [-w*.31,0,w*.31])box(role+'-front-panel',x+dx,.62,z+.637,w*.27,.66,.035,identity.colour);
+ const counter=(role,x,z,w=5.6,write=box)=>{
+  write(role+'-body',x,.55,z,w,1.10,1.25,wood,true);
+  write(role+'-top',x,1.15,z,w+.18,.12,1.42,paper,true);
+  write(role+'-plinth',x,.12,z+.64,w-.16,.20,.07,edge);
+  for(const dx of [-w*.31,0,w*.31])write(role+'-front-panel',x+dx,.62,z+.637,w*.27,.66,.035,identity.colour);
  };
  const rack=(x,z,w=4.8)=>{
   for(const dx of [-w/2,w/2])for(const dz of [-.7,.7])box('parcel-rack-upright',x+dx,1.38,z+dz,.14,2.76,.14,metal,true);
@@ -133,7 +135,7 @@ export function businessLayout(k,b,identity,{back,front,lx,rx}){
   }
   plant(rx,front-5.3);
  }else if(identity.id==='cafe'){
-  const z=front-10;
+  const z=spaces.service.z;
   counter('cafe-serving-counter',left,z,5.4);
   box('cafe-canopy',left,2.74,z,5.65,.16,1.58,0x8d8061,true);
   for(const dx of [-2.65,2.65])box('cafe-canopy-post',left+dx,1.92,z-.58,.10,1.56,.10,edge,true);
@@ -143,33 +145,49 @@ export function businessLayout(k,b,identity,{back,front,lx,rx}){
   for(let i=0;i<3;i++)cylinder('stacked-cups',left+.45+i*.42,1.35,z,.12,.28,paper);
   box('cake-display-base',left+1.6,1.30,z,1.12,.15,.78,wood);
   for(const dx of [-.24,.24])box('cake-slice',left+1.6+dx,1.48,z,.33,.24,.45,paper);
-  for(let zz=back+5;zz<=front-7;zz+=5){
-   cylinder('cafe-round-top',right,.83,zz,.95,.14,wood,true);
-   cylinder('cafe-table-pedestal',right,.40,zz,.18,.80,metal,true);
-   chair(right,zz+1.45);chair(right,zz-1.45,-1);
-   cylinder('cafe-cup',right+.27,1.0,zz,.11,.20,paper);
-   box('folded-cafe-menu',right-.32,.93,zz,.39,.06,.48,edge);
-   mat('cafe-seating-mat',right,zz,4.0,4.0,0x999374);
+  // Two window banquettes flank a communal table rather than another row of
+  // identical pairs. Their inward-facing seats share their real solid plan.
+  for(const seat of spaces.banquettes){
+   box('cafe-banquette-base',seat.x,.21,seat.z,.85,.42,3.6,wood,true);
+   box('cafe-banquette-cushion',seat.x,.47,seat.z,.86,.10,3.5,cloth);
+   box('cafe-banquette-back',seat.x+.36,.86,seat.z,.16,.68,3.6,cloth,true);
+   const tx=b.w/2-2.85;
+   desk(tx,seat.z,2.6,1.4,false);
+   for(const dz of [-.39,.39]){cylinder('banquette-mug',tx,1.0,seat.z+dz,.11,.22,paper);box('banquette-menu',tx-.61,.92,seat.z+dz,.40,.06,.46,edge);}
+   mat('cafe-banquette-rug',tx,seat.z,3.3,4.2,0x999374);
   }
-  for(const zz of [back+6,front-13<3.7?-3:0]){
-   bench(left,zz,3.8);desk(left,zz-1.7,2.7,.95,false);
-   cylinder('window-table-mug',left,1.0,zz-1.7,.11,.20,paper);
-  }
+  desk(spaces.communal.x,0,2.4,4.6,false);
+  for(const side of [-1,1])bench(0,0,3.6,interiorPlacement(k,{x:right+side*1.8,z:0,q:side<0?1:-1}).box);
+  for(const dz of [-1.5,0,1.5]){cylinder('communal-cup',right-.55,1.0,dz,.11,.22,paper);box('communal-open-book',right+.35,.93,dz,.65,.08,.76,edge);}
+  mat('cafe-communal-rug',right,0,6.0,5.6,0x999374);
+  bench(left,spaces.reading.z,3.8);desk(left,spaces.reading.z-1.7,2.7,.95,false);
+  cylinder('reading-table-mug',left,1.0,spaces.reading.z-1.7,.11,.20,paper);
+  // The side return connects preparation and serving into one working L.
+  const prepEnd=spaces.prep.z+.625,serviceEnd=spaces.service.z-.71,returnZ=(prepEnd+serviceEnd)/2,returnD=serviceEnd-prepEnd;
+  box('cafe-service-return',left-2.50,.45,returnZ,.60,.90,returnD,wood,true);
+  box('cafe-return-top',left-2.50,.96,returnZ,.70,.12,returnD,paper,true);
   shelves(lx,back+1,3.0);plant(rx,front-5.2);
  }else{
   // The ferry office is a ticket hall: timetable/counter on one side and
   // connected waiting benches on the other, rather than office cubicles.
-  const z=front-9;
-  counter('ticket-counter',left,z,5.4);
-  box('timetable-board',left,2.02,z-.55,5.35,1.25,.12,edge,true);
-  for(const dx of [-2.45,2.45])box('timetable-support',left+dx,1.56,z-.55,.11,.92,.12,wood,true);
+  const ticket=interiorPlacement(k,spaces.ticket),z=0;
+  counter('ticket-counter',0,z,5.4,ticket.box);
+  ticket.box('timetable-board',0,2.52,z-.55,5.35,.72,.12,edge,true);
+  for(const dx of [-2.45,2.45])ticket.box('timetable-support',dx,1.73,z-.55,.11,1.04,.12,wood,true);
   for(let i=0;i<3;i++){
-   const yy=2.40-i*.36;
-   label(['SAINT ORIN  /  08:10','WESTLIGHT  /  12:40','NORTH STRAIT  /  LAST FERRY'][i],'',left,yy,z-.477,4.8,.23);
+   const yy=2.74-i*.22;
+   ticket.label(['SAINT ORIN  /  08:10','WESTLIGHT  /  12:40','NORTH STRAIT  /  LAST FERRY'][i],'',0,yy,z-.477,4.8,.17);
   }
-  for(const zz of [front-8,front-12.5,front-17])bench(right,zz,4.0);
-  mat('waiting-area',right,front-12.5,5.4,12.2,0x9d9e85);
-  desk(left,back+6,3.3,1.4,false);details(left,back+6);chair(left,back+7.4);
+  for(const seat of spaces.waiting)bench(0,0,4.0,interiorPlacement(k,seat).box);
+  mat('waiting-area',right+1,0,3.2,b.d-11,0x9d9e85);
+  const staffRight=spaces.ticket.x-.55;
+  box('ticket-staff-side-screen',spaces.staffOuter,1.2,front-10.65,.14,2.4,7.3,0xa1a68b,true);
+  box('ticket-staff-rear-return',(spaces.staffOuter+staffRight)/2,1.2,front-14.3,staffRight-spaces.staffOuter,2.4,.14,0xa1a68b,true);
+  mat('ticket-queue-pocket',spaces.ticket.x+1.65,spaces.ticket.z,1.4,5.3,0x9d9e85);
+  // The terminal, its stock shelf and the chair occupy the same staff bay.
+  // Screen faces the seated clerk, who faces outward toward the ticket hall.
+  const work=interiorPlacement(k,spaces.staffWork);
+  work.desk(0,0,3.3,1.4,false);businessDetails(work,identity,0,0);work.chair(0,1.15);
   shelves(lx,back+1,3.3);tea(right,back+5);
   box('ferry-office-map-frame',left,1.85,-3,3.9,1.70,.15,wood,true);
   box('ferry-office-map-water',left,1.85,-2.91,3.66,1.45,.025,0x769a92);
@@ -179,6 +197,6 @@ export function businessLayout(k,b,identity,{back,front,lx,rx}){
   for(const dx of [-1.55,1.55])box('ferry-map-upright',left+dx,.83,-3,.14,1.66,.15,wood,true);
   plant(lx,front-5.2);
  }
- businessOccupancy(k,b,identity,{back,front,left,right});
- businessLife(k,b,identity,{back,front,left,right},interiorLifeProfile(b));
+ businessOccupancy(k,b,identity,{back,front,left,right,spaces});
+ businessLife(k,b,identity,{back,front,left,right,spaces},interiorLifeProfile(b));
 }

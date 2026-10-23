@@ -71,7 +71,7 @@ export function businessRoomCharacter(k,b,identity,{back,lx,featureZ=back+7}){
 }
 
 export function residentialActivity(k,identity,cx,z,width){
- const {box,cylinder,cone,palette}=k,{wood,edge,paper,metal}=palette,w=Math.min(3.0,width-.4);
+ const {box,cylinder,cone,palette}=k,{wood,edge,paper,metal}=palette,w=Math.min(identity.id==='gardener'?4.2:3.0,width-.4);
  box('resident-workbench',cx,.78,z,w,.14,1.0,wood,true);
  for(const dx of [-w*.4,w*.4])box('resident-bench-leg',cx+dx,.36,z,.14,.72,.78,edge,true);
  if(identity.id==='gardener'){
@@ -86,6 +86,7 @@ export function residentialActivity(k,identity,cx,z,width){
   }
   cylinder('watering-can',cx+.98,1.04,z,.22,.37,metal);
   box('watering-can-handle',cx+.98,1.33,z,.36,.07,.07,paper);
+  for(const dx of [-.13,.13])box('watering-handle-upright',cx+.98+dx,1.26,z,.055,.15,.07,paper);
   box('watering-can-spout',cx+.63,1.12,z,.43,.10,.10,metal);
   // A small plant shelf uses the footprint formerly occupied by the sofa back.
   for(const dx of [-w*.44,w*.44])box('plant-shelf-post',cx+dx,1.16,z-.40,.10,2.32,.10,wood,true);
