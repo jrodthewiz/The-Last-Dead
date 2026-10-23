@@ -1,6 +1,7 @@
 import {businessDetails} from './business-details.js';
 import {businessRoomCharacter} from './interior-character.js';
 import {businessOccupancy} from './interior-occupancy.js';
+import {businessLife,interiorLifeProfile} from './interior-life.js';
 
 // Street-level plans are organized around work, customers and goods. All
 // substantial forms use the caller's shared visual/collision writer. The
@@ -179,4 +180,5 @@ export function businessLayout(k,b,identity,{back,front,lx,rx}){
   plant(lx,front-5.2);
  }
  businessOccupancy(k,b,identity,{back,front,left,right});
+ businessLife(k,b,identity,{back,front,left,right},interiorLifeProfile(b));
 }

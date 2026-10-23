@@ -126,13 +126,19 @@ export function businessDetails({box,cylinder,disc,label,palette},identity,x,z,{
   // Keep the lower tabletop readable instead of masking it with a placard.
  }else if(identity.id==='radio'){
   for(const side of [-1,1]){
-   box('studio-speaker',x+side*.9,1.12,z,.75,1.85,.62,edge,true);
-   for(const y of [.70,1.42])disc('speaker-cone',x+side*.9,y,z+.325,.26,.045,0x374d43);
+   const xx=x+side*.9;
+   box('monitor-stand-foot',xx,.06,z,.64,.12,.60,metal,true);
+   box('monitor-stand-post',xx,.49,z,.12,.74,.12,metal,true);
+   box('studio-speaker',xx,1.28,z,.66,.84,.54,edge,true);
+   disc('speaker-woofer',xx,1.12,z+.286,.17,.032,0x374d43);
+   disc('speaker-tweeter',xx,1.49,z+.286,.105,.032,paper);
+   box('monitor-status-light',xx+.22,.96,z+.287,.035,.035,.018,wood);
   }
   box('tape-stand',x,.395,z,1.04,.79,.75,edge,true);
   box('tape-deck',x,1.1,z,1.04,.62,.75,wood,true);
   for(const dx of [-.28,.28]){disc('tape-reel',x+dx,1.21,z+.39,.21,.06,paper);disc('reel-centre',x+dx,1.21,z+.43,.06,.015,edge);}
-  placard('COASTLINE / STUDIO','THE EMERGENCY FREQUENCY',x,2.35,z-.40,3.4,.55);
+  // The studio's rundown/storage now belongs to its acoustic wall, leaving
+  // the selected tape and microphone visible from the booth doorway.
  }else{
   for(let row=0;row<3;row++){
    box('dispatch-cabinet',x, .42+row*.73,z,2.6,.68,.88,metal,true);

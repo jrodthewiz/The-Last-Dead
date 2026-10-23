@@ -4,10 +4,11 @@ import {cityIdentity} from './city-identity.js';
 import {businessLayout} from './business-layouts.js';
 import {residentialActivity} from './interior-character.js';
 import {homeTableActivity} from './interior-occupancy.js';
+import {interiorLifeProfile,interiorWallFinish,homeLife} from './interior-life.js';
 const plans=new WeakMap();
 export function cityInteriorPlan(b){
  if(plans.has(b))return plans.get(b);
- const pieces=[],solids=[],floor=b.baseY+.2,identity=cityIdentity(b),roomHeight=b.interiorHeight||3.4;
+ const pieces=[],solids=[],floor=b.baseY+.2,identity=cityIdentity(b),roomHeight=b.interiorHeight||3.4,life=interiorLifeProfile(b);
  const palette={wood:0x88795e,edge:0x4c5b51,cream:0xc9c4a0,cloth:0x879582,metal:0x496762,paper:0xd5caa6};
  const box=(role,x,y,z,w,h,d,color=palette.wood,solid=false)=>{
   pieces.push({shape:'box',role,x:b.x+x,y:floor+y,z:b.z+z,w,h,d,color,rotation:0});
@@ -45,13 +46,14 @@ export function cityInteriorPlan(b){
  const lx=-b.w/2+2.4,rx=b.w/2-2.4,back=-b.d/2,front=b.d/2;
  const kind=b.id==='hospital-main'?'hospital':b.district==='downtown'?'tower-lobby':b.district==='industrial'?'workshop':b.district==='civic'?'apartments':b.seed%2?'cafe':'office';
  const business=kind==='tower-lobby'||kind==='office'||kind==='cafe';
+ if(business||kind==='apartments')interiorWallFinish({box},b,life);
  box('entry-mat',0,.016,front-1.1,2.6,.025,1.4,0x6d7761);
  // Businesses use a short entry runner and local work-area floor treatments.
  // Their clear central travel spine no longer reads as the same hotel lobby.
  if(business)box('business-entry-runner',0,.018,front-3.5,2.5,.028,3,0x788979);
  else box('aisle-runner',0,.018,0,2.5,.028,b.d-5,kind==='workshop'?0x8e8b6e:0x788979);
  for(const side of [-1,1]){
-  box('wall-dado',side*(b.w/2-.23),.60,0,.045,1.20,b.d-.45,0xa5aa90);
+  box('wall-dado',side*(b.w/2-.23),.41,0,.045,.82,b.d-.45,business||kind==='apartments'?life.trim:0xa5aa90);
   box('wall-skirting',side*(b.w/2-.26),.10,0,.08,.20,b.d-.5,palette.edge);
  }
  for(let z=back+3;z<front-3;z+=6){
@@ -99,7 +101,7 @@ export function cityInteriorPlan(b){
    if(side<0&&['gardener','photographer'].includes(identity.id))residentialActivity({box,cylinder,cone,disc,label,palette},identity,cx,2.2,roomW);
    else{box('sofa-base',cx,.44,2.2,Math.min(3,roomW-.4),.70,.95,palette.cloth,true);box('sofa-back',cx,.91,1.8,Math.min(3,roomW-.4),.95,.22,palette.edge,true);}
    desk(cx,5,Math.min(2.3,roomW-.4),1.1,false);
-   homeTableActivity({box,cylinder,palette},identity,cx,5,side);
+   homeTableActivity({box,cylinder,palette},identity,cx,5,side,life);
    chair(cx-.65,6.2);
    if(identity.id==='family'&&side<0)chair(cx+.65,6.2);
    const bedZ=back+4;
@@ -118,8 +120,6 @@ export function cityInteriorPlan(b){
     box('bedside-coast-sea',photoX,1.025,photoZ+.049,.34,.14,.008,0x829c91);
     box('bedside-coast-island',photoX-.04,1.105,photoZ+.05,.20,.085,.008,0x7d8e67);
    }else for(const dx of [-.09,.09]){box('family-photo-head',photoX+dx,1.13,photoZ+.049,.07,.08,.008,identity.colour);box('family-photo-figure',photoX+dx,1.02,photoZ+.05,.105,.15,.008,identity.colour);}
-   box('flat-wall-picture',side*(b.w/2-.25),1.8,4,.06,.82,1.10,palette.edge);
-   box('flat-picture-print',side*(b.w/2-.29),1.8,4,.025,.66,.92,0xa4ae8f);
    box('kitchen-unit',cx,.49,back+.8,Math.min(3.6,roomW),.98,1.0,palette.wood,true);
    box('kitchen-top',cx,1.02,back+.8,Math.min(3.7,roomW+.1),.10,1.10,palette.paper);
    cylinder('cooking-pot',cx-.4,1.16,back+.8,.23,.22,palette.edge);
@@ -133,6 +133,7 @@ export function cityInteriorPlan(b){
     box('family-breakfast-tray',cx+.65,1.105,back+.8,.80,.06,.56,palette.wood);for(const dx of [-.22,.22])cylinder('family-breakfast-mug',cx+.65+dx,1.23,back+.8,.09,.20,palette.paper);
    }
    label(identity.notice,identity.detail,side*2.29,1.8,-.2,1.7,.34,side*Math.PI/2);
+   homeLife({box,cylinder,palette},b,identity,{cx,side,back,front},life);
    plant(side*(b.w/2-1.2),front-5);
   }
  }else if(kind==='hospital'){
@@ -170,5 +171,5 @@ export function cityInteriorPlan(b){
   label('FOR THE NEXT SHIFT','TAKE WHAT YOU NEED',x,1.54,z-.802,1.65,.30);
   stashAnchor={x:b.x+x,z:b.z+z,y:floor+.70};
  }
- const plan={pieces,solids,kind,identity:identity.id,stashAnchor};plans.set(b,plan);return plan;
+ const plan={pieces,solids,kind,identity:identity.id,life,stashAnchor};plans.set(b,plan);return plan;
 }

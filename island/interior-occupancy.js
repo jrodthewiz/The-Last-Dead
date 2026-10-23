@@ -102,13 +102,14 @@ export function businessOccupancy(k,b,id,{back,front,left,right}){
  }
 }
 
-export function homeTableActivity({box,cylinder,palette},id,x,z,side){
+export function homeTableActivity({box,cylinder,palette},id,x,z,side,life){
  const {wood,edge,paper,metal,cloth}=palette;
  if(id.id==='family'&&side<0){
-  box('family-breakfast-runner',x,.905,z,1.75,.025,.66,cloth);
+  box('family-breakfast-runner',x,.905,z,1.75,.025,.66,life.cloth);
   for(const dx of [-.48,.48]){
    cylinder('breakfast-plate',x+dx,.94,z,.26,.035,paper);
-   box('breakfast-bread',x+dx,.99,z,.30,.065,.25,0xb49a6a);
+   if(dx<0){box('breakfast-bread',x+dx-.06,.99,z,.20,.065,.25,0xb49a6a);box('breakfast-cut-slice',x+dx+.12,.975,z+.05,.10,.035,.19,paper);}
+   else{box('saved-breakfast-parcel',x+dx,1.015,z,.37,.12,.30,paper);box('breakfast-parcel-band',x+dx,1.081,z,.065,.012,.30,life.cloth);}
    cylinder('breakfast-cup',x+dx,1.01,z-.32,.09,.22,paper);
   }
  }else if(id.id==='gardener'){
