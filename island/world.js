@@ -7,7 +7,7 @@ import {cityForecourtPlan} from './city-forecourts.js';
 import {civicCraftPlan} from './civic-craft.js';
 import {routeCraft} from './route-craft.js';
 import {domesticExteriorPlan} from './domestic-exteriors.js';
-import {compileWorldLabels} from './world-labels.js';
+import {compileWorldLabels,worldBoardMaterial} from './world-labels.js';
 import {houseShell} from './house-shell.js';
 import {consoleMaterial} from './retro-materials.js';
 import {paintArchitecture,paintTerrain,skyNoise} from './surface-art.js';
@@ -138,7 +138,7 @@ function compileBuilding(kit,b){
 export function sign(scene,text,x,y,z,width=6,rotation=0,dark=false){
   const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;const c=canvas.getContext('2d');c.fillStyle=dark?'#d6d0ae':'#3d5550';c.fillRect(0,0,512,96);c.strokeStyle=dark?'#4b6255':'#c8c6a5';c.lineWidth=3;c.strokeRect(7,7,498,82);c.fillStyle=dark?'#3d5550':'#e2d8af';c.font='600 36px Georgia';c.textAlign='center';c.textBaseline='middle';c.fillText(text,256,48,475);
   const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;texture.minFilter=T.LinearFilter;
-  const m=new T.Mesh(new T.PlaneGeometry(width,width*96/512),new T.MeshBasicMaterial({map:texture,side:T.DoubleSide}));m.position.set(x,y,z);m.rotation.y=rotation;scene.add(m);return m;
+  const m=new T.Mesh(new T.PlaneGeometry(width,width*96/512),worldBoardMaterial(texture,dark?0xd6d0ae:0x3d5550));m.position.set(x,y,z);m.rotation.y=rotation;scene.add(m);return m;
 }
 function tree(kit,x,y,z,s=1,kind='pine',rotation=0){
   kit.surface=3;kit.add('cylinder',x,y+4*s,z,.27*s,8*s,.27*s,0x695c42);

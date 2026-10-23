@@ -1,4 +1,16 @@
 import * as T from '../vendor/three.module.js';
+// Freestanding boards have painted backs, never reversed lettering. Keep the
+// original texture and draw call; explicit two-faced waymarks own both fronts.
+export function worldBoardMaterial(texture,backColour=0x3d5550){
+ const material=new T.MeshBasicMaterial({map:texture,side:T.DoubleSide});
+ material.onBeforeCompile=shader=>{
+  shader.uniforms.uBoardBack={value:new T.Color(backColour)};
+  shader.fragmentShader='uniform vec3 uBoardBack;\n'+shader.fragmentShader;
+  shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\nif(!gl_FrontFacing)diffuseColor.rgb=uBoardBack;');
+ };
+ material.customProgramCacheKey=()=> 'world-board-facing-v1';
+ return material;
+}
 // Shared low-resolution sign atlas. One texture and spatially merged quads,
 // rather than a canvas, material and draw call for each address or room.
 export function compileWorldLabels(scene,labels){
@@ -11,7 +23,7 @@ export function compileWorldLabels(scene,labels){
   if(p.subline){c.fillStyle='#d5d9b8';c.font='700 15px Trebuchet MS, Arial';c.fillText(p.subline,x+cellW/2,y+66,cellW-34);}
  }
  const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;texture.magFilter=T.NearestFilter;texture.minFilter=T.LinearMipmapLinearFilter;
- const material=new T.MeshBasicMaterial({map:texture,side:T.DoubleSide}),groups=new Map(),meshes=[];
+ const material=worldBoardMaterial(texture),groups=new Map(),meshes=[];
  for(const p of labels){const key=Math.floor(p.x/180)+','+Math.floor(p.z/180);if(!groups.has(key))groups.set(key,{vertices:[],uvs:[]});const g=groups.get(key),cell=entries.get(p.atlasKey).index,col=cell%cols,row=Math.floor(cell/cols),u0=(col*cellW+1)/canvas.width,u1=((col+1)*cellW-1)/canvas.width,v1=1-(row*cellH+1)/canvas.height,v0=1-((row+1)*cellH-1)/canvas.height;
   const a=p.rotation||0,cs=Math.cos(a),sn=Math.sin(a),at=(x,y)=>[p.x+x*cs,p.y+y,p.z-x*sn],l=-p.w/2,r=p.w/2,b=-p.h/2,t=p.h/2;
   g.vertices.push(...at(l,b),...at(r,b),...at(l,t),...at(l,t),...at(r,b),...at(r,t));g.uvs.push(u0,v0,u1,v0,u0,v1,u0,v1,u1,v0,u1,v1);
