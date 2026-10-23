@@ -86,7 +86,7 @@
 #pack-detail button{font:900 11px/1.4 var(--body);min-height:44px;margin:7px 0 0;padding:10px 10px 10px 25px;text-transform:uppercase;background:#263e29;border-bottom:2px solid #0a1e14;box-shadow:2px 2px #0a1c13}
 #pack-detail button+button{background:none;border:0;box-shadow:none;font-size:10px;color:#b7c6a7}
 #pack-detail button:disabled{color:#8a9d80;background:#1c3223;box-shadow:none;border-bottom-color:#182c1e}
-#pack-detail button:focus-visible{outline-offset:-2px}.pack-weapon-facts{gap:28px;border-color:#647c55;padding:9px 0;margin:12px 0}.pack-weapon-facts dd{font:900 14px var(--body)}
+#pack-detail button:focus-visible{outline-offset:-2px}.pack-weapon-facts{gap:28px;border-color:#647c55;padding:6px 0;margin:7px 0}.pack-weapon-facts dd{font:900 13px var(--body)}.pack-weapon-facts dt{font-size:8px}.pack-weapon-facts>div{gap:3px}
 #pack-detail button{font-weight:700;text-shadow:1px 1px #071811}
 .pack-detail-copy>.eyebrow{font:700 9px/1.4 var(--body);color:#d7bc7b;letter-spacing:1px;margin:15px 0 6px}
 .pack-detail-copy>p:not(.eyebrow){font:12px/1.5 var(--body);color:#c4ceb3;margin:9px 0}
@@ -94,6 +94,18 @@
 .pack-recipe{padding:5px 0;margin:0}.pack-recipe>.eyebrow{font-size:8px;letter-spacing:.7px;margin:0 0 5px}.pack-recipe>div{display:flex;align-items:center;gap:12px}.pack-recipe span{display:grid;grid-template-columns:25px 1fr;column-gap:5px;align-items:center;font:10px/1.3 var(--body);color:#a3b597}.pack-recipe svg{width:25px;height:30px;grid-row:1/3}.pack-recipe b{font-size:13px}.pack-recipe .ready{color:#efd290}.pack-recipe i{font-style:normal;color:#b0bf9e}
 #backpack[data-category=supplies] .pack-illustration{height:100px}#backpack[data-category=supplies] .pack-illustration svg{height:92px;width:80px}
 .pack-actions{padding-top:5px;border-top:1px solid #667c57;flex-shrink:0;background:#152c22}
+.pack-confirm>kbd{margin-left:auto;min-width:23px;font-size:10px;flex-shrink:0;border-color:#b5b384;background:#172c20;box-shadow:1px 2px #07180e}.pack-confirm:disabled>kbd{display:none}
+.pack-actions:has(.pack-confirm:not(:disabled)){border-top-color:#aeb77c}.pack-actions .pack-confirm:not(:disabled){color:#ffe4a0;background:#3a4e2c;border-bottom-color:#071a0f}
+.pack-health-preview,.pack-load-preview{padding:7px 1px 5px;margin:0;color:#dce0b6}
+.pack-health-preview>div:first-child,.pack-load-preview>div:first-child{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 10px}
+.pack-health-preview span,.pack-load-preview span{font:700 8px/1.3 var(--body);letter-spacing:.7px;color:#bdcaa5}
+.pack-health-preview strong,.pack-load-preview strong{font:900 20px/1.1 var(--console);font-variant-numeric:tabular-nums;white-space:nowrap}.pack-health-preview strong>i{font-style:normal;font-size:15px;color:#dfbc76}
+.pack-health-preview small,.pack-load-preview>div>b{margin-left:auto;font:700 8px/1.4 var(--body);color:#e6c581;white-space:nowrap}.pack-load-preview strong>small{font:700 12px var(--body);color:#acbe9b}
+.pack-health-track,.pack-load-track{position:relative;height:9px;background:#091e13;border:1px solid #7c9568;margin-top:6px;overflow:hidden}
+.pack-health-track>i,.pack-load-track>i{display:block;height:100%;background:#c8d69b}.pack-health-track>b{position:absolute;top:0;height:100%;background:#e3ba70}
+.pack-health-track::after,.pack-load-track::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 2px),#172d1d calc(10% - 2px) 10%)}
+.pack-load-track::after{background:repeating-linear-gradient(90deg,transparent 0 calc(100% / var(--chambers) - 2px),#172d1d calc(100% / var(--chambers) - 2px) calc(100% / var(--chambers)))}
+#backpack[data-item-kind]:not([data-item-kind=melee]) .pack-illustration{height:94px}#backpack[data-item-kind]:not([data-item-kind=melee]) .pack-illustration svg{height:88px;width:80px}
 .pack-sheet footer{border-color:#71865d;padding-top:8px;gap:18px}.pack-sheet footer p{font-size:11px;line-height:1.45;color:#b3c3a4;min-height:16px}.pack-navigation{justify-content:space-between;font-size:9px;letter-spacing:.5px;margin-top:10px;color:#b7c8aa}
 .pack-sheet #pack-craft{font-size:10px}.pack-sheet #pack-craft small{font-size:9px}
 
@@ -111,6 +123,7 @@
 .loot-manifest{grid-column:2;align-self:center}.loot-manifest p{font:11px/1.5 var(--body);margin:3px 0;color:#d1d8ba}.loot-manifest #pack-leftovers{color:#deaa8a}
 .is-looting #pack-detail .loot-quick-hint{grid-column:2;grid-row:2;font-size:10px!important;margin:7px 0;line-height:1.6!important}
 .is-looting #pack-detail #pack-take-all{grid-column:1/-1;font-size:12px;margin-top:12px;text-align:left;min-height:46px}
+.is-looting #pack-detail #pack-make-room{grid-column:1/-1;color:#ffe3a0;background:#3a4e2c;font-size:12px;min-height:46px;margin-top:12px}
 #pack-take-all>span{font:900 12px var(--body);color:inherit}#pack-take-all kbd{font-size:11px;margin-left:auto}#pack-take-all:disabled kbd{display:none}
 .is-looting .pack-sheet footer p{margin:0;font-size:10px}.pack-full .loot-capacity strong{color:#e3a18a}
 
@@ -166,6 +179,12 @@
  .pack-detail-copy>.pack-illustration{grid-column:1;grid-row:1/4;height:56px}.pack-detail-copy>.pack-illustration svg{height:52px;width:48px}
  .pack-detail-copy>*:not(.pack-illustration){grid-column:2}.pack-detail-copy>.eyebrow{font-size:8px;margin:0 0 4px}.pack-detail-copy h3{font-size:18px!important;margin:0!important}
  .pack-detail-copy>.pack-weapon-facts,.pack-detail-copy>.pack-use-note{display:none}.pack-detail-copy>p:not(.eyebrow){font-size:10px;margin:5px 0}
+ .pack-actions{display:grid;grid-template-columns:1fr 1fr;gap:3px 6px}.pack-actions>.pack-health-preview,.pack-actions>.pack-load-preview,.pack-actions>.pack-recipe{grid-column:1/-1}.pack-actions>.pack-confirm:last-child{grid-column:1/-1}
+ #pack-detail .pack-actions button{margin-top:3px;font-size:10px;padding:7px 7px 7px 18px;min-width:0}.pack-confirm>kbd{min-width:18px;font-size:9px;padding:2px}
+ .pack-health-preview,.pack-load-preview{padding:3px 0}.pack-health-preview strong,.pack-load-preview strong{font-size:17px}.pack-health-track,.pack-load-track{height:6px;margin-top:3px}
+ #backpack[data-category=supplies] .pack-detail-copy>.pack-illustration,#backpack[data-item-kind] .pack-detail-copy>.pack-illustration{height:42px}
+ #backpack[data-category=supplies] .pack-detail-copy>.pack-illustration svg,#backpack[data-item-kind] .pack-detail-copy>.pack-illustration svg{height:39px;width:36px}
+ .is-looting #pack-detail #pack-make-room{grid-column:1;font-size:10px;margin-top:3px}
 }
 @media(pointer:coarse) and (max-height:600px){
  #interaction{left:50%;transform:translateX(-50%);bottom:124px;max-width:44vw;padding:8px 10px;min-width:0}.inventory,.inventory.held-melee{display:block;max-width:220px;min-height:65px;padding:7px 10px 7px 48px}.inventory>#weapon-emblem{width:30px;height:48px;top:7px;left:7px}.inventory>div{display:flex;margin:0 0 3px}.inventory.held-melee>div{display:none}.inventory.held-melee>#weapon-status{padding-top:8px}.inventory>#weapon-status{max-width:160px}.inventory strong{font-size:27px}.inventory>#weapon-name{margin-bottom:3px}#pickup-feed{top:115px;width:205px}
