@@ -1,7 +1,7 @@
 // Occupations change the room silhouette, not only the label on a desk.
 // All coordinates are local to the building and use the shared solid writer.
-export function businessRoomCharacter(k,b,identity,{back,lx}){
- const {box,cylinder,disc,palette}=k,{wood,edge,paper,metal}=palette,z=back+7;
+export function businessRoomCharacter(k,b,identity,{back,lx,featureZ=back+7}){
+ const {box,cylinder,disc,palette}=k,{wood,edge,paper,metal}=palette,z=featureZ;
  if(identity.id==='radio'){
   const x=-4.8;
   // A glazed studio front has a real 1.8 m doorway. Empty window areas retain

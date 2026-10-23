@@ -1,8 +1,8 @@
 // Furnished street levels share one inspectable plan with movement and bullets.
 // The three-metre centre aisle and the front cross aisle remain clear.
 import {cityIdentity} from './city-identity.js';
-import {businessDetails} from './business-details.js';
-import {businessRoomCharacter,residentialActivity} from './interior-character.js';
+import {businessLayout} from './business-layouts.js';
+import {residentialActivity} from './interior-character.js';
 const plans=new WeakMap();
 export function cityInteriorPlan(b){
  if(plans.has(b))return plans.get(b);
@@ -43,9 +43,12 @@ export function cityInteriorPlan(b){
  };
  const lx=-b.w/2+2.4,rx=b.w/2-2.4,back=-b.d/2,front=b.d/2;
  const kind=b.id==='hospital-main'?'hospital':b.district==='downtown'?'tower-lobby':b.district==='industrial'?'workshop':b.district==='civic'?'apartments':b.seed%2?'cafe':'office';
+ const business=kind==='tower-lobby'||kind==='office'||kind==='cafe';
  box('entry-mat',0,.016,front-1.1,2.6,.025,1.4,0x6d7761);
- // A broad runner, ceiling panels and a dado establish a complete room.
- box('aisle-runner',0,.018,0,2.5,.028,b.d-5,kind==='workshop'?0x8e8b6e:0x788979);
+ // Businesses use a short entry runner and local work-area floor treatments.
+ // Their clear central travel spine no longer reads as the same hotel lobby.
+ if(business)box('business-entry-runner',0,.018,front-3.5,2.5,.028,3,0x788979);
+ else box('aisle-runner',0,.018,0,2.5,.028,b.d-5,kind==='workshop'?0x8e8b6e:0x788979);
  for(const side of [-1,1]){
   box('wall-dado',side*(b.w/2-.23),.60,0,.045,1.20,b.d-.45,0xa5aa90);
   box('wall-skirting',side*(b.w/2-.26),.10,0,.08,.20,b.d-.5,palette.edge);
@@ -62,37 +65,13 @@ export function cityInteriorPlan(b){
    box('clerestory-band',side*(b.w/2-.28),3.19,0,.12,.24,b.d-.5,palette.cream);
    for(const z of [-b.d/4,b.d/4])box('lobby-pilaster',side*(b.w/2-.43),roomHeight/2-.1,z,.42,roomHeight-.2,.55,0xb6b69a,true);
   }
-  box('lobby-name-board',0,3.76,back+.26,6.1,.90,.10,palette.edge);
-  label(identity.name,identity.room,0,3.76,back+.316,6,.86);
+  const brandX=(['bank','shipping'].includes(identity.id)?1:-1)*b.w/4;
+  box('business-name-board',brandX,3.76,back+.26,6.1,.90,.10,palette.edge);
+  label(identity.name,identity.room,brandX,3.76,back+.316,6,.86);
  }
- if(kind==='tower-lobby'||kind==='office'){
-  const authored=['radio','press','studio'].includes(identity.id);
-  // Reception, visitors and a closed lift bank explain the tower's street level.
-  desk(lx+1,front-7,4.2,1.55);chair(lx+1,front-8.3);
-  box('reception-front',lx+1,.64,front-6.25,4.3,1.28,.12,b.accent,true);
-  box('reception-directory',lx+1,1.57,front-7.35,1.35,.72,.10,palette.edge);
-  for(let row=0;row<4;row++)box('directory-line',lx+1,1.78-row*.15,front-7.28,.95,.035,.02,palette.paper);
-  for(let i=0;i<3;i++)chair(rx-.2,front-7-i*1.25,-1);
-  // Work pods and a visitors' lounge occupy the middle of the long podium.
-  // Keep every piece beyond the protected centre aisle, with cross aisles.
-  for(const side of [-1,1]){
-   const cx=side*4;
-   for(const z of [-3,3]){
-    desk(cx,z,Math.min(3,b.w/2-4),1.2,false);chair(cx,z+1.1,-1);
-    // The front-left desk owns the working kit. Its neighbours explain the
-    // same business through proofing, packing and equipment put away.
-    const station=side<0?(z>0?'active':'proof'):(z>0?'packing':'offline');
-    businessDetails({box,cylinder,disc,label,palette},identity,cx,z,{station});
-   }
-   if(!authored){box('pod-divider',cx,.65,0,Math.min(4,b.w/2-4),1.3,.12,0x929d88,true);box('noticeboard-frame',cx,1.01,.08,1.2,.54,.05,palette.edge);for(let i=0;i<3;i++)box('noticeboard-paper',cx-.37+i*.37,1.01,.112,.28,.38,.014,palette.paper);}
-  }
-  desk(rx,back+10,2.7,1.0);
-  cylinder('staff-kettle',rx-.7,.99,back+10,.20,.27,palette.metal);
-  for(const dx of [.15,.5,.85])cylinder('staff-cup',rx+dx,.99,back+10,.095,.23,palette.paper);
-  desk(rx-1,back+5,3.2,1.5,false);chair(rx-1,back+6.4,-1);
-  businessDetails({box,cylinder,disc,label,palette},identity,rx-1,back+5,{station:'handover'});
-  shelves(lx,back+1,3.3);businessDetails({box,cylinder,disc,label,palette},identity,authored?-4.8:lx,back+(authored?7:6),{feature:true});
-  businessRoomCharacter({box,cylinder,disc,label,palette},b,identity,{back,lx});
+ if(business){
+  businessLayout({box,cylinder,disc,label,desk,chair,shelves,plant,palette},b,identity,{back,front,lx,rx});
+  if(kind==='tower-lobby'){
   const liftZ=back+.28;
   box('lift-bank-stone',0,1.45,liftZ,5.4,2.9,.16,palette.edge,true);
   for(const side of [-1,1]){
@@ -101,7 +80,7 @@ export function cityInteriorPlan(b){
    box('lift-transom',side*1.12,2.76,liftZ+.14,.8,.18,.025,palette.paper);
   }
   box('lift-call-panel',0,1.32,liftZ+.15,.22,.42,.04,palette.wood);
-  plant(rx,front-3.8);plant(lx,back+10);
+  }
  }else if(kind==='apartments'){
   for(const side of [-1,1]){
    const cx=side*(b.w/4+1.2),roomW=b.w/2-3.8;
@@ -173,16 +152,6 @@ export function cityInteriorPlan(b){
   desk(lx+1,front-6,4,1.5);box('bench-toolbox',lx+.5,1.04,front-6,.85,.28,.48,palette.metal);
   cylinder('workshop-drum',rx,.58,front-6,.48,1.16,palette.metal);
   cylinder('drum-rim',rx,1.17,front-6,.49,.05,palette.edge);
- }else{
-  for(const side of [-1,1])for(let row=0;row<3;row++){
-   const x=side*(b.w/2-3.1),z=back+4+row*6;
-   desk(x,z,2.4,1.3);chair(x,z+1.2,-1);
-   cylinder('cafe-cup',x+.2,.98,z,.10,.18,palette.paper);
-   box('cafe-menu',x-.5,.916,z,.42,.035,.56,palette.edge);
-  }
-  box('service-counter',lx+1,.57,front-6,4.5,1.14,1.5,palette.wood,true);
-  box('service-top',lx+1,1.18,front-6,4.7,.12,1.7,palette.paper);
-  shelves(rx,back+1,2.5);plant(rx,front-4);
  }
  let stashAnchor=null;
  if(b.seed%4===0){
