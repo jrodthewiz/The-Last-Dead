@@ -3,6 +3,7 @@
 import {cityIdentity} from './city-identity.js';
 import {businessLayout} from './business-layouts.js';
 import {residentialActivity} from './interior-character.js';
+import {homeTableActivity} from './interior-occupancy.js';
 const plans=new WeakMap();
 export function cityInteriorPlan(b){
  if(plans.has(b))return plans.get(b);
@@ -97,7 +98,10 @@ export function cityInteriorPlan(b){
    box('living-rug',cx,.022,3,roomW-.7,.035,3.5,b.accent);
    if(side<0&&['gardener','photographer'].includes(identity.id))residentialActivity({box,cylinder,cone,disc,label,palette},identity,cx,2.2,roomW);
    else{box('sofa-base',cx,.44,2.2,Math.min(3,roomW-.4),.70,.95,palette.cloth,true);box('sofa-back',cx,.91,1.8,Math.min(3,roomW-.4),.95,.22,palette.edge,true);}
-   desk(cx,5,Math.min(2.3,roomW-.4),1.1);
+   desk(cx,5,Math.min(2.3,roomW-.4),1.1,false);
+   homeTableActivity({box,cylinder,palette},identity,cx,5,side);
+   chair(cx-.65,6.2);
+   if(identity.id==='family'&&side<0)chair(cx+.65,6.2);
    const bedZ=back+4;
    box('bed-frame',cx,.35,bedZ,2.0,.6,3.2,palette.wood,true);
    box('bed-mattress',cx,.72,bedZ,1.92,.20,3.1,palette.paper);
@@ -110,7 +114,10 @@ export function cityInteriorPlan(b){
    box('family-photo-frame',photoX,1.08,photoZ,.48,.42,.065,palette.edge);
    box('family-photo-stand',photoX,.84,photoZ-.015,.28,.08,.12,palette.edge);
    box('family-photo-paper',photoX,1.08,photoZ+.039,.39,.33,.012,palette.paper);
-   for(const dx of [-.09,.09]){box('family-photo-head',photoX+dx,1.13,photoZ+.049,.07,.08,.008,identity.colour);box('family-photo-figure',photoX+dx,1.02,photoZ+.05,.105,.15,.008,identity.colour);}
+   if(identity.id==='photographer'){
+    box('bedside-coast-sea',photoX,1.025,photoZ+.049,.34,.14,.008,0x829c91);
+    box('bedside-coast-island',photoX-.04,1.105,photoZ+.05,.20,.085,.008,0x7d8e67);
+   }else for(const dx of [-.09,.09]){box('family-photo-head',photoX+dx,1.13,photoZ+.049,.07,.08,.008,identity.colour);box('family-photo-figure',photoX+dx,1.02,photoZ+.05,.105,.15,.008,identity.colour);}
    box('flat-wall-picture',side*(b.w/2-.25),1.8,4,.06,.82,1.10,palette.edge);
    box('flat-picture-print',side*(b.w/2-.29),1.8,4,.025,.66,.92,0xa4ae8f);
    box('kitchen-unit',cx,.49,back+.8,Math.min(3.6,roomW),.98,1.0,palette.wood,true);

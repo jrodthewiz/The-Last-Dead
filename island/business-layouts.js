@@ -1,5 +1,6 @@
 import {businessDetails} from './business-details.js';
 import {businessRoomCharacter} from './interior-character.js';
+import {businessOccupancy} from './interior-occupancy.js';
 
 // Street-level plans are organized around work, customers and goods. All
 // substantial forms use the caller's shared visual/collision writer. The
@@ -149,7 +150,7 @@ export function businessLayout(k,b,identity,{back,front,lx,rx}){
    box('folded-cafe-menu',right-.32,.93,zz,.39,.06,.48,edge);
    mat('cafe-seating-mat',right,zz,4.0,4.0,0x999374);
   }
-  for(const zz of [back+6,0]){
+  for(const zz of [back+6,front-13<3.7?-3:0]){
    bench(left,zz,3.8);desk(left,zz-1.7,2.7,.95,false);
    cylinder('window-table-mug',left,1.0,zz-1.7,.11,.20,paper);
   }
@@ -177,4 +178,5 @@ export function businessLayout(k,b,identity,{back,front,lx,rx}){
   for(const dx of [-1.55,1.55])box('ferry-map-upright',left+dx,.83,-3,.14,1.66,.15,wood,true);
   plant(lx,front-5.2);
  }
+ businessOccupancy(k,b,identity,{back,front,left,right});
 }

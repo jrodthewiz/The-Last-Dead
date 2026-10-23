@@ -66,6 +66,16 @@ export function stepPlayer(state,input,data,grid,dt){
     const underside=b.baseY+(b.interiorHeight||3.4)-.16;
     if(Math.abs(state.x-b.x)<b.w/2-.2&&Math.abs(state.z-b.z)<b.d/2-.2&&previousY+1.8<=underside+.001&&state.y+1.8>underside){state.y=underside-1.8;state.vy=0;}
   }
+  // Suspended work ceilings and upper shelves share the world's solid plan.
+  // Sweep the rising head against their undersides, including furniture jumps.
+  if(state.vy>0&&typeof grid.query==='function'){
+    let underside=Infinity;
+    for(const c of grid.query(state.x,state.z,.42)){
+      const dx=Math.max(Math.abs(state.x-c.x)-c.w/2,0),dz=Math.max(Math.abs(state.z-c.z)-c.d/2,0);
+      if(dx*dx+dz*dz<.42*.42&&previousY+1.8<=c.y+.001&&state.y+1.8>c.y)underside=Math.min(underside,c.y);
+    }
+    if(Number.isFinite(underside)){state.y=underside-1.8;state.vy=0;}
+  }
   const floor=Math.max(-.45,supportHeight(data,state.x,state.z));
   // Follow supported stair treads instead of repeatedly becoming airborne.
   // Upward jumps and real ledges retain the normal gravity trajectory.
