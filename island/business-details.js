@@ -1,6 +1,6 @@
 // Broad silhouettes and a few readable mechanisms survive the console picture.
 // Every substantial feature supplies the same solid volume as its visible kit.
-export function businessDetails({box,cylinder,disc,label,palette},identity,x,z,{feature=false}={}){
+export function businessDetails({box,cylinder,disc,label,palette},identity,x,z,{feature=false,station='active'}={}){
  const {edge,wood,paper,metal}=palette,colour=identity.colour;
  const placard=(text,subline,xx,yy,zz,w,h)=>{
   box('feature-sign-board',xx,yy,zz,w+.10,h+.08,.08,edge,true);
@@ -9,40 +9,89 @@ export function businessDetails({box,cylinder,disc,label,palette},identity,x,z,{
  };
  const crt=(xx,zz)=>{
   box('terminal-base',xx,.95,zz,.65,.12,.55,edge);
-  box('crt-housing',xx,1.26,zz-.13,.79,.55,.68,0xaba98a);
-  box('crt-bezel',xx,1.28,zz+.225,.67,.43,.055,edge);
-  box('crt-screen',xx,1.29,zz+.258,.54,.32,.016,0x536e5d);
-  for(let i=0;i<3;i++)box('terminal-lines',xx-.05,1.36-i*.075,zz+.269,.32-i*.04,.015,.008,0xb1bd8b);
-  box('terminal-keyboard',xx,.943,zz+.56,.68,.07,.29,paper);
-  for(let i=0;i<4;i++)box('keyboard-row',xx,.983,zz+.47+i*.055,.53,.012,.025,edge);
+  box('crt-housing',xx,1.26,zz-.16,.79,.55,.64,0xaba98a);
+  box('crt-bezel',xx,1.28,zz+.185,.67,.43,.055,edge);
+  box('crt-screen',xx,1.29,zz+.221,.54,.32,.016,0x536e5d);
+  for(let i=0;i<3;i++)box('terminal-lines',xx-.05,1.36-i*.075,zz+.232,.32-i*.04,.015,.008,0xb1bd8b);
+  box('terminal-keyboard',xx,.925,zz+.39,.68,.07,.28,paper);
+  for(let i=0;i<3;i++)box('keyboard-row',xx,.966,zz+.31+i*.075,.53,.012,.03,edge);
  };
  if(!feature){
+  // Table tops end at .89 m. Secondary stations use a few broad, supported
+  // forms instead of repeating the full working machine four times.
+  if(station==='handover'){
+   box('handover-folio',x-.25,.909,z,1.22,.038,.82,colour);
+   for(const dx of [-.28,.28]){
+    box('handover-open-page',x-.25+dx,.936,z,.53,.018,.72,paper);
+    for(const dz of [-.19,.02])box('handover-log-entry',x-.25+dx,.951,z+dz,.37,.012,.055,edge);
+   }
+   box('handover-page-marker',x-.25,.953,z-.22,.08,.012,.42,wood);
+   cylinder('handover-cup',x+.85,1.00,z+.12,.14,.22,paper);
+   cylinder('handover-cold-tea',x+.85,1.114,z+.12,.11,.012,edge);
+   return;
+  }
+  if(station==='packing'){
+   const flat=identity.id==='press'||identity.id==='studio';
+   box('outgoing-parcel',x-.27,flat?1.00:1.13,z,.99,flat?.22:.48,.74,wood);
+   box('parcel-cross-strap',x-.27,flat?1.117:1.377,z,.13,.014,.76,paper);
+   box('parcel-address',x-.01,flat?1.117:1.377,z+.10,.36,.014,.27,paper);
+   box('dispatch-docket',x+.69,.91,z+.05,.52,.04,.66,paper);
+   box('docket-heading',x+.69,.938,z-.16,.37,.014,.07,colour);
+   return;
+  }
+  if(station==='proof'){
+   const studio=identity.id==='studio',radio=identity.id==='radio';
+   box(studio?'survey-proof-board':radio?'broadcast-rundown':'paper-proof-board',x-.21,.915,z,1.55,.05,.94,edge);
+   box('proof-sheet',x-.21,.949,z,1.43,.018,.84,paper);
+   if(studio){
+    box('survey-proof-coast',x-.21,.967,z,.12,.018,.68,metal);
+    for(const dx of [-.43,.32])box('survey-proof-block',x-.21+dx,.967,z+.08,.30,.018,.37,colour);
+   }else{
+    for(const dx of [-.34,.34])for(const dz of [-.22,.04])box(radio?'rundown-time-block':'proof-column',x-.21+dx,.967,z+dz,.48,.018,.10,colour);
+   }
+   box('proof-return-folder',x+.91,.93,z+.06,.42,.08,.62,colour);
+   return;
+  }
+  if(station==='offline'){
+   if(identity.id==='radio'){
+    box('standby-receiver',x,1.10,z,1.22,.42,.66,wood);
+    box('receiver-grille',x-.21,1.10,z+.338,.61,.27,.025,edge);
+    disc('receiver-tuning-dial',x+.40,1.12,z+.341,.105,.03,paper);
+    for(const dx of [-.40,.40])box('receiver-handle-upright',x+dx,1.37,z,.08,.12,.10,edge);
+    box('receiver-carry-handle',x,1.47,z,.88,.10,.10,edge);
+   }else{
+    box(identity.id==='press'?'covered-typewriter':identity.id==='studio'?'closed-survey-case':'closed-records-case',x,1.07,z,1.29,.36,.76,identity.id==='press'?palette.cloth:metal);
+    box('equipment-cover-band',x,1.258,z,.13,.016,.78,paper);
+    box('equipment-case-latch',x+.38,1.07,z+.395,.14,.15,.04,wood);
+   }
+   return;
+  }
   if(identity.id==='press'){
    box('typewriter-body',x,1.01,z,.83,.24,.62,edge);
    box('typewriter-platen',x,1.18,z-.16,.64,.17,.17,metal);
    box('typewriter-paper',x,1.33,z-.20,.53,.55,.025,paper);
    for(let i=0;i<4;i++)box('manuscript-line',x,1.46-i*.075,z-.18,.37,.018,.01,edge);
-   for(let i=0;i<5;i++)box('typewriter-keys',x,1.01,z+.24+i*.042,.65,.045,.025,paper);
+   for(let i=0;i<3;i++)box('typewriter-keys',x,1.15,z+.10+i*.075,.65,.04,.04,paper);
   }else if(identity.id==='studio'){
-   box('drawing-board',x,.94,z,1.65,.07,.92,paper);
-   box('plan-outline',x, .982,z,.90,.015,.60,edge);
-   box('plan-paper',x,.993,z,.84,.012,.54,paper);
-   for(const dx of [-.30,.1,.30])box('plan-partition',x+dx,1.003,z,.018,.01,.46,colour);
-   box('set-square',x+.63,1.005,z,.045,.025,.63,wood);
-   box('set-square',x+.42,1.005,z+.28,.46,.025,.045,wood);
+   box('drawing-board',x,.925,z,1.65,.07,.92,paper);
+   box('plan-outline',x,.968,z,.90,.016,.60,edge);
+   box('plan-paper',x,.982,z,.84,.012,.54,paper);
+   for(const dx of [-.30,.1,.30])box('plan-partition',x+dx,.994,z,.035,.012,.46,colour);
+   box('set-square',x+.63,.973,z,.065,.025,.63,wood);
+   box('set-square',x+.42,.973,z+.28,.46,.025,.065,wood);
   }else if(identity.id==='radio'){
    box('mixing-console',x,1.01,z,1.7,.24,.95,edge);
-   for(let i=0;i<7;i++){const xx=x-.67+i*.22;box('fader-channel',xx,1.137,z,.025,.012,.46,paper);box('fader-cap',xx,1.16,z+(i%3-.8)*.12,.10,.05,.09,colour);cylinder('console-knob',xx,1.15,z-.32,.045,.05,paper);}
-   box('console-meter',x,1.18,z-.53,1.30,.18,.08,wood);
-   for(const dx of [-.33,.33])box('meter-window',x+dx,1.20,z-.48,.49,.10,.018,0xb2b887);
+   for(let i=0;i<4;i++){const xx=x-.57+i*.38;box('fader-channel',xx,1.137,z+.08,.045,.012,.42,paper);box('fader-cap',xx,1.16,z+.08+(i%3-.8)*.12,.15,.05,.11,colour);cylinder('console-knob',xx,1.15,z-.24,.065,.05,paper);}
+   box('console-meter',x,1.22,z-.36,1.30,.18,.12,wood);
+   for(const dx of [-.33,.33])box('meter-window',x+dx,1.24,z-.292,.49,.10,.018,0xb2b887);
   }else if(identity.id==='shipping'){
-   box('manifest-board',x,.94,z,1.25,.035,.79,paper);
-   for(let i=0;i<5;i++)box('manifest-lines',x,.965,z-.25+i*.12,.97,.012,.018,edge);
-   box('dispatch-phone',x+.7,1.00,z+.10,.52,.20,.46,colour);
-   box('phone-receiver',x+.7,1.14,z+.08,.64,.10,.15,edge);
+   box('manifest-board',x-.38,.91,z,1.02,.04,.79,paper);
+   for(let i=0;i<4;i++)box('manifest-lines',x-.38,.938,z-.25+i*.15,.78,.014,.035,edge);
+   box('dispatch-phone',x+.65,.99,z+.10,.52,.20,.46,colour);
+   box('phone-receiver',x+.65,1.14,z+.08,.64,.10,.15,edge);
   }else{
-   crt(x,z);box('file-tray',x+.98,.97,z,.44,.14,.59,metal);
-   for(let i=0;i<3;i++)box('file-envelope',x+.98,1.05+i*.028,z,.39,.022,.51,paper);
+   crt(x-.32,z);box('file-tray',x+.84,.96,z,.44,.14,.59,metal);
+   for(let i=0;i<3;i++)box('file-envelope',x+.84,1.04+i*.028,z,.39,.022,.51,paper);
   }
   return;
  }
@@ -75,6 +124,7 @@ export function businessDetails({box,cylinder,disc,label,palette},identity,x,z,{
    box('studio-speaker',x+side*.9,1.12,z,.75,1.85,.62,edge,true);
    for(const y of [.70,1.42])disc('speaker-cone',x+side*.9,y,z+.325,.26,.045,0x374d43);
   }
+  box('tape-stand',x,.395,z,1.04,.79,.75,edge,true);
   box('tape-deck',x,1.1,z,1.04,.62,.75,wood,true);
   for(const dx of [-.28,.28]){disc('tape-reel',x+dx,1.21,z+.39,.21,.06,paper);disc('reel-centre',x+dx,1.21,z+.43,.06,.015,edge);}
   placard('COASTLINE / STUDIO','THE EMERGENCY FREQUENCY',x,2.35,z-.40,3.4,.55);

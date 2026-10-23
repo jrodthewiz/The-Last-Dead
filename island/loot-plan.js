@@ -9,6 +9,15 @@ export function createLootPlan(data,grid,floorAt){
  const result=[];
  const themes=[['Linen trunk','trunk',{cloth:3,bandage:1}],['Pantry crate','crate',{beer:2,cloth:1}],['Tool chest','chest',{scrap:4,'ammo-carbine':8}],['Medical satchel','bag',{antiseptic:2,bandage:1}],['Evacuation bag','bag',{beer:1,scrap:3,'ammo-ossuary':6}],['Transit equipment','chest',{'ammo-arc':2,'ammo-reliquary':1,antiseptic:1,scrap:2}]];
  const rare={lookout:'mourning',quarry:'chainsaw',memorial:'ossuary',market:'carrion'};
+ // Destination supplies express the place. Keep stable stash IDs and existing
+ // weapon rewards; searched saves continue to own their remaining inventory.
+ const placeSupplies={
+  churchyard:['Caretaker’s medical tin','chest',{bandage:2,antiseptic:1,cloth:2}],
+  lookout:['Ranger’s trail ammunition','chest',{'ammo-breach':6,'ammo-carbine':12,scrap:3}],
+  quarry:['Cutting crew tool chest','chest',{'ammo-chainsaw':25,'ammo-carbine':8,scrap:4}],
+  memorial:['Garden relief satchel','bag',{bandage:2,beer:1,cloth:2}],
+  market:['Ferry dispatch chest','chest',{'ammo-breach':6,'ammo-carbine':12,scrap:3}],
+ };
  const add=(id,x,z,theme)=>{const [name,kind,loot]=theme;result.push({id:'stash-'+id,name,kind,x,z,y:floorAt(x,z),loot:{...loot,...(rare[id]?{['weapon-'+rare[id]]:1}:{})}});};
  let originalIndex=0;
  for(const b of data.buildings.filter(b=>b.enterable)){
@@ -22,7 +31,7 @@ export function createLootPlan(data,grid,floorAt){
   if(b.cityInterior){const identity=cityIdentity(b);result.at(-1).name=identity.id==='press'?'Copy desk satchel':identity.id==='radio'?'Broadcast crew supplies':identity.id==='studio'?'Surveyor’s day bag':identity.id==='shipping'?'Dispatch provisions':identity.id==='records'||identity.id==='bank'?'Evening shift bag':result.at(-1).name;}
  }
  for(const [i,p]of PLACES.entries()){
-  for(const [dx,dz]of [[3,2],[-3,2],[2,-3],[-2,-3]]){const x=p.x+dx,z=p.z+dz,y=floorAt(x,z);if(!grid.blocked(x,z,y,.8)){add(p.id,x,z,i%2?['Trail ammunition','chest',{'ammo-breach':6,'ammo-carbine':12,scrap:3}]:['Forgotten provisions','bag',{bandage:2,beer:2,cloth:2}]);break;}}
+  for(const [dx,dz]of [[3,2],[-3,2],[2,-3],[-2,-3]]){const x=p.x+dx,z=p.z+dz,y=floorAt(x,z);if(!grid.blocked(x,z,y,.8)){add(p.id,x,z,placeSupplies[p.id]||(i%2?['Trail ammunition','chest',{'ammo-breach':6,'ammo-carbine':12,scrap:3}]:['Forgotten provisions','bag',{bandage:2,beer:2,cloth:2}]));break;}}
  }
  for(const [i,c]of data.parkedCars.entries())if(i%3===0){for(const side of [-1,1]){const x=c.x+side*3.4,z=c.z,y=floorAt(x,z);if(y>1&&!grid.blocked(x,z,y,.8)){add('road-'+i,x,z,i%2?['Roadside fuel tin','chest',{'ammo-chainsaw':25,'ammo-carrion':20,scrap:2}]:['Abandoned luggage','bag',{beer:1,bandage:1,cloth:2}]);break;}}}
  return result;

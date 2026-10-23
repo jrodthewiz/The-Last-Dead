@@ -61,7 +61,7 @@ export function coastalBotany(kit,data){
   }
  }
  // A few coherent roadside colonies rather than an evenly filled carpet.
- for(const [cx,cz]of [[-738,269],[-723,280],[-860,153],[-843,139],[-477,177],[-486,189]])for(let j=0;j<14;j++)plant(cx+(rng()-.5)*13,cz+(rng()-.5)*12,.8+rng()*.9);
+ for(const [cx,cz]of [[-738,269],[-723,280],[-860,153],[-843,139],[-477,177],[-486,189],[-894,145],[-885,0],[-539,-72],[-658,-30]])for(let j=0;j<14;j++)plant(cx+(rng()-.5)*13,cz+(rng()-.5)*12,.8+rng()*.9);
  return {ferns:count,shrubs,saplings,deadfall};
 }
 

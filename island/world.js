@@ -4,6 +4,9 @@ import {placeDetails} from './place-art.js';
 import {buildInterior,compilePieces} from './interior-plan.js';
 import {cityIdentity} from './city-identity.js';
 import {cityForecourtPlan} from './city-forecourts.js';
+import {civicCraftPlan} from './civic-craft.js';
+import {routeCraft} from './route-craft.js';
+import {domesticExteriorPlan} from './domestic-exteriors.js';
 import {compileWorldLabels} from './world-labels.js';
 import {houseShell} from './house-shell.js';
 import {consoleMaterial} from './retro-materials.js';
@@ -170,13 +173,15 @@ function buildLandmarks(scene,kit){
   const face=document.createElement('canvas');face.width=face.height=128;const fc=face.getContext('2d');fc.fillStyle='#d6cfaa';fc.beginPath();fc.arc(64,64,61,0,Math.PI*2);fc.fill();fc.strokeStyle='#445d50';fc.lineWidth=5;fc.stroke();for(let i=0;i<12;i++){const a=i/12*Math.PI*2;fc.beginPath();fc.moveTo(64+Math.sin(a)*49,64-Math.cos(a)*49);fc.lineTo(64+Math.sin(a)*55,64-Math.cos(a)*55);fc.stroke();}fc.lineWidth=4;fc.beginPath();fc.moveTo(64,64);fc.lineTo(37,45);fc.moveTo(64,64);fc.lineTo(103,76);fc.stroke();
   const clockTexture=new T.CanvasTexture(face);clockTexture.magFilter=T.LinearFilter;clockTexture.colorSpace=T.SRGBColorSpace;
   for(let i=0;i<4;i++){const a=i*Math.PI/2,m=new T.Mesh(new T.PlaneGeometry(4.5,4.5),new T.MeshLambertMaterial({map:clockTexture,transparent:true}));m.position.set(734+Math.sin(a)*3.56,35,Math.cos(a)*3.56);m.rotation.y=a;scene.add(m);}
-  sign(scene,'NORTHPOINT HOSPITAL',970,26,-322.9,24,0,true);
+  // A canopy fascia carries the hospital name clear of the window bays.
+  kit.box(970,18.4,-319.02,13,1.60,.22,COLORS.metal);
+  kit.label({x:970,y:18.4,z:-318.90,w:12.7,h:1.40,text:'NORTHPOINT HOSPITAL',subline:'EMERGENCY / WARD & ADMISSIONS',colour:COLORS.metal});
   // East ferry: pier, mooring posts, hull, cabins, and gangway.
   kit.box(1211,13,300,86,2,24,0x9e9e82);for(let x=1174;x<1250;x+=8)kit.box(x,14.08,300,.15,.04,24,0x6b7465);
   kit.box(1250,8,300,25,8,58,0x3d6667);kit.box(1250,12.2,300,26,.7,58,0xb5baa3);kit.box(1250,15,298,18,5,31,0xd6d0b0);kit.box(1250,18.1,298,20,1,34,0x647f77);kit.box(1250,21,289,13,5,11,0xd7d0af);kit.box(1250,21,283.4,11,2,.1,0x446b70);kit.box(1250,24.4,296,3,5,4,0x9d634a);
   sign(scene,'LAST FERRY',1180,19,292,9);
   for(const p of LANDMARKS){if(p.type==='relay'){const pos=stationPosition(p),gy=groundHeight(pos.x,pos.z);kit.box(pos.x,gy+1.05,pos.z,1.2,2.1,.8,0x5b736c);kit.box(pos.x,gy+1.5,pos.z+.43,.65,.5,.07,0xc69b61);kit.rod([pos.x,gy+2,pos.z],[pos.x,gy+5,pos.z],.045,COLORS.metal);}
-    if(p.type==='camp'){const gy=terrainHeight(p.x,p.z);kit.add('cylinder',p.x,gy+.1,p.z,1.4,.2,1.4,0x686a57);for(let i=0;i<5;i++)kit.box(p.x+Math.cos(i*1.25)*.5,gy+.3,p.z+Math.sin(i*1.25)*.5,.3,.3,1.3,0x5a4a35,i);}
+    if(p.type==='camp'){const gy=groundHeight(p.x,p.z);kit.add('cylinder',p.x,gy+.1,p.z,1.4,.2,1.4,0x686a57);for(let i=0;i<5;i++)kit.box(p.x+Math.cos(i*1.25)*.5,gy+.3,p.z+Math.sin(i*1.25)*.5,.3,.3,1.3,0x5a4a35,i);}
   }
 }
 function streetDetails(scene,kit,data){
@@ -253,14 +258,16 @@ export function createWorld(scene,data){
   buildTerrain(scene);const accessVertices=accessSurface(data.accessPaths,terrainHeight,TERRAIN),accessGeometry=surface(accessVertices),accessUV=[];for(let i=0;i<accessVertices.length;i+=3)accessUV.push(accessVertices[i]/2,accessVertices[i+2]/2);accessGeometry.setAttribute('uv',new T.Float32BufferAttribute(accessUV,2));const accessMesh=new T.Mesh(accessGeometry,new T.MeshLambertMaterial({color:0xb0a17a,map:grain,flatShading:true}));accessMesh.receiveShadow=true;scene.add(accessMesh);buildRoads(scene,kit);for(const b of data.buildings){compileBuilding(kit,b);compilePieces(kit,cityForecourtPlan(b,groundHeight).pieces);}
   for(const t of data.trees)tree(kit,t.x,t.y,t.z,t.scale,t.kind,t.rotation);
   for(const r of data.rocks)kit.add('rock',r.x,r.y+r.s*.35,r.z,r.s,r.s*.7,r.s*.8,0x9da68e,r.r);
-  buildBridge(scene,kit);buildLandmarks(scene,kit);streetDetails(scene,kit,data);authoredDetails(scene,kit,data,sign);placeDetails(scene,kit,data,sign);streetCraft(kit,data);const botany=coastalBotany(kit,data);
+  buildBridge(scene,kit);buildLandmarks(scene,kit);compilePieces(kit,civicCraftPlan().pieces);streetDetails(scene,kit,data);authoredDetails(scene,kit,data,sign);placeDetails(scene,kit,data,sign);streetCraft(kit,data);const botany=coastalBotany(kit,data);
+  const routes=routeCraft(kit,data);
+  compilePieces(kit,domesticExteriorPlan(data,terrainHeight).pieces);
   const settlement=buildSettlement(scene,kit,data,sign);
   // Broken coastline is framed by offshore rock stacks and distant silhouettes.
   const rng=random(6);for(let i=0;i<50;i++){const a=i/50*Math.PI*2,x=-490+Math.cos(a)*700,z=Math.sin(a)*600;if(x>20&&Math.abs(z)<220)continue;kit.add('rock',x,-4,z,12+rng()*25,9+rng()*18,15+rng()*20,0x87998b,rng()*6);}
   for(let i=0;i<12;i++)kit.add('rock',-1600+i*280,-25,-1600,250+rng()*180,90+rng()*70,220,0x91afa7,rng()*6);
   // Grass patches and low coastal scrub share the same seed as the terrain.
   for(let i=0;i<12000;i++){const x=-1030+rng()*1100,z=-440+rng()*850,y=terrainHeight(x,z),r=roadAt(x,z);if(y<5||reservedPlace(x,z,.9)||settlementReserved(x,z,1.5)||accessReserved(data.accessPaths,x,z,1.3)||r.distance<r.width*.5+2||data.buildings.some(b=>Math.abs(x-b.x)<b.w*.5+3&&Math.abs(z-b.z)<b.d*.5+3))continue;const s=.48+rng()*.65;for(let j=0;j<3;j++){const a=j*2.4,x1=x+Math.cos(a)*.65,z1=z+Math.sin(a)*.65,y1=terrainHeight(x1,z1);kit.add('tuft',x1,y1-.015,z1,s,s,s,i%3?0x78864c:0xa2a66b,rng()*6,null,4);}if(i%5===0)kit.add('rock',x,y+.22,z,.6,.38,.6,0x738657);}
-  const stats=kit.finish();stats.botany=botany;addContactShadows(scene,data);const movingRoots=new Set([sky.sky,sun,sun.target,settlement.boat]);for(const root of scene.children)if(!root.isCamera&&!movingRoots.has(root))freezeLocalTransforms(root);const coastalMotion=createCoastalMotion(scene),life=createSettlementLife(scene,data);
+  const stats=kit.finish();stats.botany=botany;stats.routes=routes;addContactShadows(scene,data);const movingRoots=new Set([sky.sky,sun,sun.target,settlement.boat]);for(const root of scene.children)if(!root.isCamera&&!movingRoots.has(root))freezeLocalTransforms(root);const coastalMotion=createCoastalMotion(scene),life=createSettlementLife(scene,data);
   const birds=new T.Group();const birdMat=new T.MeshBasicMaterial({color:0x3e5754});for(let i=0;i<12;i++){const geo=surface([-1,0,0,0,.25,0,0,0,.3,0,.25,0,1,0,0,0,0,.3]);const bird=new T.Mesh(geo,birdMat);bird.userData.phase=i*.52;birds.add(bird);}scene.add(birds);
   return {stats,sun,hemi,water,sky,coastalMotion,life,settlement,update(time,player,day=.64,relays=[]){stats.update(player);kit.material.userData.wind.value=time;life.update(time,player);settlement.update(time,player);water.time.value=time;sky.uniforms.time.value=time;sky.sky.position.copy(player);coastalMotion.update(time,relays);const light=.55+.45*Math.max(0,Math.sin(day*Math.PI));sun.intensity=2.1*light;hemi.intensity=.65+.25*light;const sx=Math.round(player.x),sz=Math.round(player.z),sy=groundHeight(sx,sz);sun.target.position.set(sx,sy,sz);sun.position.set(sx-110,sy+160,sz+65);for(let i=0;i<birds.children.length;i++){const b=birds.children[i],a=time*.06+i*.52;b.position.set(-490+Math.cos(a)*330,95+Math.sin(a*3)*12,30+Math.sin(a)*230);b.rotation.y=-a;b.scale.y=.6+Math.sin(time*3+i)*.4;}}};
 }

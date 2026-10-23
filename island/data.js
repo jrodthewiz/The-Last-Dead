@@ -6,6 +6,9 @@ import {createAccessPaths,accessReserved} from './access-plan.js';
 import {orchardReserved,orchardTrees} from './land-use.js';
 import {cityIdentity} from './city-identity.js';
 import {cityForecourtPlan,cityStreetTreePlan} from './city-forecourts.js';
+import {CIVIC_CAMP,civicSurface,civicCraftPlan} from './civic-craft.js';
+import {routeCraftSolids} from './route-craft.js';
+import {domesticExteriorPlan} from './domestic-exteriors.js';
 // Blackwater: one deterministic world description shared by art, physics and map.
 export const SEED = 641979;
 export const SAVE_KEY = 'last-dead-blackwater-64-v1';
@@ -53,6 +56,7 @@ export const TERRAIN = {minX:-1400,maxX:1550,minZ:-1000,maxZ:1000,step:10};
 export const CITY_GROUND={x:790,z:0,w:858,d:1000,roadY:14.05,walkY:14.16,originX:392,originZ:-456,spacing:76,blocksX:10,blocksZ:12,walkWidth:61};
 export function effectFloorHeight(x,z,physicalHeight){
  const c=CITY_GROUND;let y=physicalHeight;
+ const civic=civicSurface(x,z);if(civic!==null)y=Math.max(y,civic);
  if(Math.abs(x-c.x)<=c.w/2&&Math.abs(z-c.z)<=c.d/2){
   y=Math.max(y,c.roadY);const col=Math.floor((x-c.originX)/c.spacing),row=Math.floor((z-c.originZ)/c.spacing);
   if(col>=0&&col<c.blocksX&&row>=0&&row<c.blocksZ&&Math.abs(x-(c.originX+(col+.5)*c.spacing))<=c.walkWidth/2&&Math.abs(z-(c.originZ+(row+.5)*c.spacing))<=c.walkWidth/2)y=Math.max(y,c.walkY);
@@ -70,6 +74,7 @@ export function terrainHeight(x,z) {
 export function bridgeHeight(x) {return 16+Math.sin(clamp((x-70)/300,0,1)*Math.PI)*6;}
 export const SIGNAL_STAIRS={x:-432,z:-286,run:24,width:3,rise:6,base:terrainHeight(-432,-286)};
 export function groundHeight(x,z) {
+  const civic=civicSurface(x,z);if(civic!==null)return civic;
   if(x>=68&&x<=372&&Math.abs(z)<12)return bridgeHeight(x);
   if(x>=1176&&x<=1204&&(Math.abs(z-170)<22.5||Math.abs(z-360)<22.5))return 14.7;
   const s=SIGNAL_STAIRS;if(x>=s.x&&x<=s.x+s.run&&Math.abs(z-s.z)<=s.width/2)return s.base+Math.ceil((x-s.x)/.8)*.2;
@@ -78,7 +83,7 @@ export function groundHeight(x,z) {
 }
 export const KEEPER_FUSE={id:'keeper-fuse',x:-792,z:-279};
 export const HOSPITAL_GENERATOR={id:'hospital-generator',x:1000,z:-300};
-export function stationPosition(p){return p.id==='ridge'?{x:-404,z:-286}:{x:p.x+10,z:p.z+5};}
+export function stationPosition(p){return p.id==='ridge'?{x:-404,z:-286}:p.id==='hospital'?{x:984,z:-315}:{x:p.x+10,z:p.z+5};}
 export const PARKED_CARS=Array.from({length:32},(_,i)=>({x:465+(i%8)*76,z:-350+Math.floor(i/8)*210,angle:0}));
 export const BRIDGE_WRECKS=[{x:-56,z:-3.7,angle:Math.PI/2},{x:-34,z:-4,angle:1.4},{x:106,z:-4.6,angle:1.65},{x:184,z:-5,angle:1.45},{x:253,z:4.8,angle:1.9},{x:283,z:-4.5,angle:1.5}];
 export const LANDMARKS = [
@@ -89,7 +94,7 @@ export const LANDMARKS = [
   {id:'orchard',name:'The Old Orchard',short:'OLD ORCHARD',x:-740,z:65,type:'ruin',description:'The trees outlived their keepers.'},
   {id:'bridge',name:'Saint Orin Bridge',short:'SAINT ORIN BRIDGE',x:210,z:0,type:'bridge',description:'Three hundred metres above the strait.'},
   {id:'oldtown',name:'Saint Orin',short:'OLD TOWN',x:500,z:80,type:'city',description:'The mainland is quieter than it should be.'},
-  {id:'civic',name:'Civic Square',short:'CIVIC SQUARE',x:740,z:0,type:'camp',description:'A shelter in the heart of the city.'},
+  {id:'civic',name:'Civic Square',short:'CIVIC SQUARE',...CIVIC_CAMP,type:'camp',description:'A shelter in the heart of the city.'},
   {id:'hospital',name:'Northpoint Hospital',short:'NORTHPOINT',x:960,z:-320,type:'relay',description:'Restore the emergency broadcast.'},
   {id:'ferry',name:'The Last Ferry',short:'EAST DOCKS',x:1180,z:300,type:'exit',description:'Transmit the all-clear. Get off the island.'},
 ];
@@ -191,7 +196,7 @@ export function createColliders(data) {
   box(608,-6,10,2.7,14,2.5,'abandoned-coach');
   for(const z of [170,360]){for(const x of [1180,1200])for(const side of [-1,1])box(x,z+side*5,1,1,14.7,18,'crane-leg');for(let j=0;j<6;j++)box(1179+(j%3)*4,z-12+Math.floor(j/3)*7,3,5,14,2.8,'cargo');}
   for(const x of [-85,-60,-35,-10,30,385])for(const z of [-8.4,8.4])box(x,z,3.8,.7,groundHeight(x,z),.8,'road-barrier');
-  return [...colliders,...settlementColliders(data,terrainHeight)];
+  return [...colliders,...settlementColliders(data,terrainHeight),...civicCraftPlan().solids,...routeCraftSolids(data),...domesticExteriorPlan(data,terrainHeight).solids];
 }
 export class SpatialGrid {
   constructor(items,cell=32){this.cell=cell;this.cells=new Map();for(const b of items){for(let x=Math.floor((b.x-b.w/2)/cell);x<=Math.floor((b.x+b.w/2)/cell);x++)for(let z=Math.floor((b.z-b.d/2)/cell);z<=Math.floor((b.z+b.d/2)/cell);z++){const key=`${x},${z}`;if(!this.cells.has(key))this.cells.set(key,[]);this.cells.get(key).push(b);}}}

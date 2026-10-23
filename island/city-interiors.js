@@ -14,11 +14,10 @@ export function cityInteriorPlan(b){
  const cylinder=(role,x,y,z,r,h,color)=>pieces.push({shape:'cylinder',role,x:b.x+x,y:floor+y,z:b.z+z,w:r,h,d:r,color,rotation:0});
  const disc=(role,x,y,z,r,depth,color)=>pieces.push({shape:'dial',role,x:b.x+x,y:floor+y,z:b.z+z,w:r,h:r,d:depth,color,rotation:0});
  const label=(text,subline,x,y,z,w,h,rotation=0)=>pieces.push({shape:'label',x:b.x+x,y:floor+y,z:b.z+z,w,h,text,subline,colour:identity.colour,rotation});
- const desk=(x,z,w=2.4,d=1.2)=>{
+ const desk=(x,z,w=2.4,d=1.2,dressed=true)=>{
   box('desk-top',x,.82,z,w,.14,d,palette.wood,true);
   for(const dx of [-w*.4,w*.4])box('desk-pedestal',x+dx,.39,z,.32,.72,d*.8,palette.edge,true);
-  box('desk-paper',x-.42,.907,z+.12,.62,.025,.43,palette.paper);
-  box('desk-ledger',x+.58,.94,z-.09,.44,.09,.61,b.accent);
+  if(dressed){box('desk-paper',x-.42,.907,z+.12,.62,.025,.43,palette.paper);box('desk-ledger',x+.58,.94,z-.09,.44,.09,.61,b.accent);}
  };
  const chair=(x,z,back=1)=>{
   box('chair-seat',x,.48,z,.72,.12,.70,palette.cloth,true);
@@ -75,7 +74,13 @@ export function cityInteriorPlan(b){
   // Keep every piece beyond the protected centre aisle, with cross aisles.
   for(const side of [-1,1]){
    const cx=side*4;
-   for(const z of [-3,3]){desk(cx,z,Math.min(3,b.w/2-4),1.2);chair(cx,z+1.1,-1);businessDetails({box,cylinder,disc,label,palette},identity,cx,z);}
+   for(const z of [-3,3]){
+    desk(cx,z,Math.min(3,b.w/2-4),1.2,false);chair(cx,z+1.1,-1);
+    // The front-left desk owns the working kit. Its neighbours explain the
+    // same business through proofing, packing and equipment put away.
+    const station=side<0?(z>0?'active':'proof'):(z>0?'packing':'offline');
+    businessDetails({box,cylinder,disc,label,palette},identity,cx,z,{station});
+   }
    box('pod-divider',cx,.65,0,Math.min(4,b.w/2-4),1.3,.12,0x929d88,true);
    box('noticeboard-frame',cx,1.01,.08,1.2,.54,.05,palette.edge);
    for(let i=0;i<3;i++)box('noticeboard-paper',cx-.37+i*.37,1.01,.112,.28,.38,.014,palette.paper);
@@ -83,7 +88,8 @@ export function cityInteriorPlan(b){
   desk(rx,back+10,2.7,1.0);
   cylinder('staff-kettle',rx-.7,.99,back+10,.20,.27,palette.metal);
   for(const dx of [.15,.5,.85])cylinder('staff-cup',rx+dx,.99,back+10,.095,.23,palette.paper);
-  desk(rx-1,back+5,3.2,1.5);chair(rx-1,back+6.4,-1);
+  desk(rx-1,back+5,3.2,1.5,false);chair(rx-1,back+6.4,-1);
+  businessDetails({box,cylinder,disc,label,palette},identity,rx-1,back+5,{station:'handover'});
   shelves(lx,back+1,3.3);businessDetails({box,cylinder,disc,label,palette},identity,lx,back+6,{feature:true});
   const liftZ=back+.28;
   box('lift-bank-stone',0,1.45,liftZ,5.4,2.9,.16,palette.edge,true);
