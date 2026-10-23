@@ -3,6 +3,7 @@ import {reservedPlace} from './places.js';
 import {accessReserved} from './access-plan.js';
 import {settlementReserved} from './settlement-plan.js';
 import {orchardReserved} from './land-use.js';
+import {westernWayfindingPlan} from './western-wayfinding.js';
 
 // Four authored pauses on existing routes. These bounds include their loose
 // pieces; the same reservation check gates rendering and physical markers.
@@ -102,7 +103,9 @@ export function routeCraft(kit,data){
  let clusters=0;
  for(const [p,draw] of [[LANDING,landingMarker],[KEEPER,keeperMarker],[NURSE,nurseLog],[TOOLS,toolRest]])
   if(clear(data,p)){draw(kit);clusters++;}
- return {clusters};
+ const wayfinding=westernWayfindingPlan(data);
+ for(const p of wayfinding.pieces){if(p.shape==='label')kit.label(p);else kit.add(p.shape,p.x,p.y,p.z,p.w,p.h,p.d,p.color,p.rotation||0);}
+ return {clusters,blazes:wayfinding.blazes,signs:wayfinding.signs};
 }
 
 export function routeCraftSolids(data){
@@ -120,5 +123,5 @@ export function routeCraftSolids(data){
   box(KEEPER,'post',.25,.96,.25,.48);
   box(KEEPER,'board',1.40,.27,.10,.69);
  }
- return solids;
+ return [...solids,...westernWayfindingPlan(data).solids];
 }

@@ -2,6 +2,7 @@
 // The three-metre centre aisle and the front cross aisle remain clear.
 import {cityIdentity} from './city-identity.js';
 import {businessDetails} from './business-details.js';
+import {businessRoomCharacter,residentialActivity} from './interior-character.js';
 const plans=new WeakMap();
 export function cityInteriorPlan(b){
  if(plans.has(b))return plans.get(b);
@@ -11,7 +12,8 @@ export function cityInteriorPlan(b){
   pieces.push({shape:'box',role,x:b.x+x,y:floor+y,z:b.z+z,w,h,d,color,rotation:0});
   if(solid)solids.push({id:b.id+'-'+role,x:b.x+x,z:b.z+z,w,d,y:floor+y-h/2,h});
  };
- const cylinder=(role,x,y,z,r,h,color)=>pieces.push({shape:'cylinder',role,x:b.x+x,y:floor+y,z:b.z+z,w:r,h,d:r,color,rotation:0});
+ const cylinder=(role,x,y,z,r,h,color,solid=false)=>{pieces.push({shape:'cylinder',role,x:b.x+x,y:floor+y,z:b.z+z,w:r,h,d:r,color,rotation:0});if(solid)solids.push({id:b.id+'-'+role,x:b.x+x,z:b.z+z,w:r*2,d:r*2,y:floor+y-h/2,h});};
+ const cone=(role,x,y,z,w,h,d,color,rotation=0)=>pieces.push({shape:'cone',role,x:b.x+x,y:floor+y,z:b.z+z,w,h,d,color,rotation});
  const disc=(role,x,y,z,r,depth,color)=>pieces.push({shape:'dial',role,x:b.x+x,y:floor+y,z:b.z+z,w:r,h:r,d:depth,color,rotation:0});
  const label=(text,subline,x,y,z,w,h,rotation=0)=>pieces.push({shape:'label',x:b.x+x,y:floor+y,z:b.z+z,w,h,text,subline,colour:identity.colour,rotation});
  const desk=(x,z,w=2.4,d=1.2,dressed=true)=>{
@@ -64,6 +66,7 @@ export function cityInteriorPlan(b){
   label(identity.name,identity.room,0,3.76,back+.316,6,.86);
  }
  if(kind==='tower-lobby'||kind==='office'){
+  const authored=['radio','press','studio'].includes(identity.id);
   // Reception, visitors and a closed lift bank explain the tower's street level.
   desk(lx+1,front-7,4.2,1.55);chair(lx+1,front-8.3);
   box('reception-front',lx+1,.64,front-6.25,4.3,1.28,.12,b.accent,true);
@@ -81,16 +84,15 @@ export function cityInteriorPlan(b){
     const station=side<0?(z>0?'active':'proof'):(z>0?'packing':'offline');
     businessDetails({box,cylinder,disc,label,palette},identity,cx,z,{station});
    }
-   box('pod-divider',cx,.65,0,Math.min(4,b.w/2-4),1.3,.12,0x929d88,true);
-   box('noticeboard-frame',cx,1.01,.08,1.2,.54,.05,palette.edge);
-   for(let i=0;i<3;i++)box('noticeboard-paper',cx-.37+i*.37,1.01,.112,.28,.38,.014,palette.paper);
+   if(!authored){box('pod-divider',cx,.65,0,Math.min(4,b.w/2-4),1.3,.12,0x929d88,true);box('noticeboard-frame',cx,1.01,.08,1.2,.54,.05,palette.edge);for(let i=0;i<3;i++)box('noticeboard-paper',cx-.37+i*.37,1.01,.112,.28,.38,.014,palette.paper);}
   }
   desk(rx,back+10,2.7,1.0);
   cylinder('staff-kettle',rx-.7,.99,back+10,.20,.27,palette.metal);
   for(const dx of [.15,.5,.85])cylinder('staff-cup',rx+dx,.99,back+10,.095,.23,palette.paper);
   desk(rx-1,back+5,3.2,1.5,false);chair(rx-1,back+6.4,-1);
   businessDetails({box,cylinder,disc,label,palette},identity,rx-1,back+5,{station:'handover'});
-  shelves(lx,back+1,3.3);businessDetails({box,cylinder,disc,label,palette},identity,lx,back+6,{feature:true});
+  shelves(lx,back+1,3.3);businessDetails({box,cylinder,disc,label,palette},identity,authored?-4.8:lx,back+(authored?7:6),{feature:true});
+  businessRoomCharacter({box,cylinder,disc,label,palette},b,identity,{back,lx});
   const liftZ=back+.28;
   box('lift-bank-stone',0,1.45,liftZ,5.4,2.9,.16,palette.edge,true);
   for(const side of [-1,1]){
@@ -114,8 +116,8 @@ export function cityInteriorPlan(b){
    const gapZ=front-7;
    box('flat-door-jamb',side*2.2,1.32,gapZ-1.1,.16,2.64,.18,palette.edge,true);
    box('living-rug',cx,.022,3,roomW-.7,.035,3.5,b.accent);
-   box('sofa-base',cx,.44,2.2,Math.min(3,roomW-.4),.70,.95,palette.cloth,true);
-   box('sofa-back',cx,.91,1.8,Math.min(3,roomW-.4),.95,.22,palette.edge,true);
+   if(side<0&&['gardener','photographer'].includes(identity.id))residentialActivity({box,cylinder,cone,disc,label,palette},identity,cx,2.2,roomW);
+   else{box('sofa-base',cx,.44,2.2,Math.min(3,roomW-.4),.70,.95,palette.cloth,true);box('sofa-back',cx,.91,1.8,Math.min(3,roomW-.4),.95,.22,palette.edge,true);}
    desk(cx,5,Math.min(2.3,roomW-.4),1.1);
    const bedZ=back+4;
    box('bed-frame',cx,.35,bedZ,2.0,.6,3.2,palette.wood,true);

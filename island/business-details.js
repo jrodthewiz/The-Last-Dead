@@ -101,7 +101,11 @@ export function businessDetails({box,cylinder,disc,label,palette},identity,x,z,{
   for(let i=0;i<3;i++)box('press-print-stack',x,.68+i*.085,z+.70,1.45,.07,.91,paper);
   box('press-upper-platen',x,1.87,z,2.4,.18,1.8,wood);
   box('press-ink-drum',x,1.50,z-.12,1.60,.38,.52,edge);
-  placard(identity.notice,identity.detail,x,2.35,z-.70,3.7,.64);
+  box('press-crosshead',x,2.32,z-.12,2.05,.18,.50,paper);
+  box('press-piston',x,2.09,z-.12,.25,.42,.25,metal);
+  disc('press-handwheel',x+1.20,1.30,z+.94,.34,.075,wood);
+  disc('press-wheel-hub',x+1.20,1.30,z+.985,.11,.035,paper);
+  box('press-wheel-handle',x+1.20,1.05,z+1.04,.10,.12,.20,paper);
  }else if(identity.id==='bank'){
   box('vault-plinth',x,.12,z,2.2,.24,1.4,edge,true);
   box('safe-body',x,1.23,z,1.86,2.22,1.16,metal,true);
@@ -118,7 +122,8 @@ export function businessDetails({box,cylinder,disc,label,palette},identity,x,z,{
   for(const side of [-1,1])for(let i=0;i<3;i++)box('model-city',x-.85+i*.85,1.15+(i%2)*.17,z+side*.6,.47,.38+(i%2)*.34,.43,paper);
   box('model-bridge',x,.99,z,.48,.06,1.30,wood);
   for(const side of [-1,1])box('model-bridge-pier',x,1.20,z+side*.40,.055,.46,.07,edge);
-  placard(identity.notice,identity.detail,x,2.12,z-.75,3.8,.62);
+  // The upright crossing drawing supplies the skyline above this model.
+  // Keep the lower tabletop readable instead of masking it with a placard.
  }else if(identity.id==='radio'){
   for(const side of [-1,1]){
    box('studio-speaker',x+side*.9,1.12,z,.75,1.85,.62,edge,true);
