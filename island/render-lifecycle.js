@@ -2,6 +2,12 @@
 // shader wind and vertex buffers may still animate normally.
 export function freezeLocalTransforms(root){
  root.traverse(o=>{o.updateMatrix();o.matrixAutoUpdate=false;});
+ // These world/scenery roots stay under the fixed scene. Bake their world
+ // matrices once as well: the renderer otherwise revisits every static child
+ // on each colour and shadow draw. Explicit updateWorldMatrix queries remain
+ // available; visibility, vertex-buffer edits and shader wind are independent.
+ root.updateWorldMatrix(true,true);
+ root.updateMatrixWorld=function(){};
 }
 
 // Three normally updates invisible descendants too. These explicitly owned
@@ -9,7 +15,7 @@ export function freezeLocalTransforms(root){
 // Explicit updateWorldMatrix()/getWorldPosition() queries remain available.
 export function sleepHiddenBranch(root){
  const update=root.updateMatrixWorld;
- root.updateMatrixWorld=function(force){if(this.visible)update.call(this,force);};
+ root.updateMatrixWorld=function(force){if(this.visible||force)update.call(this,force);};
 }
 
 // Prepare all weapon/actor/material variants before Begin becomes available.

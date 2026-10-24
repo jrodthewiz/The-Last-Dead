@@ -45,6 +45,15 @@ export async function loadActors(scene,data,onProgress){
   onProgress?.();return {enemies,vehicles,animationNames:zombie.animations.map(a=>a.name)};
 }
 const clips={idle:'AshWitness_Idle',walk:'AshWitness_Shuffle',run:'AshWitness_Run',attack:'AshWitness_AttackLunge',hit:'AshWitness_HitRecoil',dead:'AshWitness_Collapse'};
+const actorFrustum=new T.Frustum(),actorProjection=new T.Matrix4(),actorBounds=new T.Sphere(new T.Vector3(),5.5);
+// These rigs deliberately disable per-mesh frustum tests to avoid expensive
+// pose-bound reconstruction. Cull the whole rig against a generous world-space
+// envelope instead; AI and animation still advance outside the camera view.
+export function cullActorViews(enemies,camera,range=150){
+ camera.updateWorldMatrix(true,false);
+ actorFrustum.setFromProjectionMatrix(actorProjection.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse));
+ for(const e of enemies){actorBounds.center.copy(e.root.position);actorBounds.center.y+=1;e.root.visible=e.root.position.distanceToSquared(camera.position)<range*range&&actorFrustum.intersectsSphere(actorBounds);}
+}
 export function setEnemyAction(e,state){
   if(e.state===state)return;if(state!=='dead')clearCorpseSupport(e);const wasMoving=['walk','run'].includes(e.state),phase=e.action?e.action.time/e.action.getClip().duration:0;e.state=state;
   const action=e.actions[state==='run'?ENEMY_ROLES[e.role||'shambler'].runClip:clips[state]]||e.actions[clips.idle]||Object.values(e.actions)[0];if(!action)return;

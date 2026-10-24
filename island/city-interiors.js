@@ -88,7 +88,7 @@ export function cityInteriorPlan(b){
   }
  }else if(kind==='apartments'){
   for(const side of [-1,1]){
-   const room=homeRoomLayout(b,identity,side),{cx,roomW}=room,kit={box,cylinder,cone,disc,label,desk,chair,shelves,plant,palette};rooms.push(room);
+   const room=homeRoomLayout(b,identity,side,life),{cx,roomW}=room,kit={box,cylinder,cone,disc,label,desk,chair,shelves,plant,palette};rooms.push(room);
    // Separate living and sleeping zones, with a real 1.6 m room opening.
    const openings=[...room.openings].sort((a,c)=>a-c),start=back+.5,end=front-4;
    let cursor=start;
@@ -102,7 +102,7 @@ export function cityInteriorPlan(b){
    homeRoomStructure(kit,b,room);
    box('living-rug',cx,.022,identity.id==='family'?front-8.5:room.dining.z,roomW-.7,.035,identity.id==='family'?7.4:4.8,b.accent);
    if(identity.id==='family')familyLounge(kit,room);
-   else residentialActivity(interiorPlacement(kit,room.living),identity,0,0,roomW);
+   else residentialActivity(interiorPlacement(kit,room.living),identity,0,0,roomW,life);
    const dining=interiorPlacement(kit,room.dining);
    dining.desk(0,0,Math.min(2.3,roomW-.4),1.1,false);
    homeTableActivity(dining,identity,0,0,side,life);

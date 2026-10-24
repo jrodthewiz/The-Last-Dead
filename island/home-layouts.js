@@ -1,13 +1,15 @@
 // Functional room anchors are shared by furniture, personal objects and QA.
 // The public corridor/doors remain fixed while the flats use different plans.
-export function homeRoomLayout(b,id,side){
- const back=-b.d/2,front=b.d/2,cx=side*(b.w/4+1.2),outer=side*(b.w/2-1.1),garden=id.id==='gardener',photo=id.id==='photographer';
- return {id:id.id,side,cx,roomW:b.w/2-3.8,
+import {interiorLifeProfile} from './interior-life.js';
+import {interiorPlacement} from './interior-placement.js';
+export function homeRoomLayout(b,id,side,life=interiorLifeProfile(b)){
+ const back=-b.d/2,front=b.d/2,cx=side*(b.w/4+1.2),outer=side*(b.w/2-1.1),garden=id.id==='gardener',photo=id.id==='photographer',arrangement=(life.take+(side>0?1:0))%3,diningLed=id.id==='family'&&arrangement===1;
+ return {id:id.id,side,cx,arrangement,roomW:b.w/2-3.8,
   openings:[back+8,2,front-7],wallMount:{z:front-9.6},
   bed:{x:cx,z:back+4},kitchen:{x:cx,z:front-1.65,q:2},
-  living:garden?{x:outer,z:front-10,q:side}:photo?{x:cx,z:-2.4,q:0}:{x:outer,z:front-10,q:side},
-  dining:garden?{x:cx,z:front-10,q:side}:photo?{x:cx,z:front-7.3,q:0}:{x:cx,z:front-6.1,q:0},
-  bedroom:{z:back+10.7,doorX:side*4,doorW:1.9},
+  living:garden?{x:outer,z:front-10,q:side}:photo?{x:cx,z:-2.4,q:0}:{x:outer,z:front-(diningLed?12:10),q:side},
+  dining:garden?{x:cx,z:front-10,q:side}:photo?{x:cx,z:front-7.3,q:0}:{x:cx,z:front-(diningLed?7.2:6.1),q:diningLed?side:0},
+  bedroom:{z:back+10.7,doorX:side*(arrangement===2?b.w/2-2:4),doorW:1.9},
   workspace:photo?{x:cx,z:-2.4}:null};
 }
 
@@ -51,11 +53,35 @@ export function homeRoomStructure({box,palette},b,p){
  }
 }
 
-export function familyLounge({box,palette},p){
+export function familyLounge(k,p){
+ const {box,palette}=k;
  const {wood,cloth,edge}=palette,{x,z}=p.living,side=p.side;
  box('family-sofa-base',x,.44,z,.95,.70,3,cloth,true);
  box('family-sofa-back',x+side*.36,.91,z,.22,.95,3,edge,true);
  for(const dx of [-.31,.31])for(const dz of [-1.15,1.15])box('family-sofa-foot',x+dx,.06,z+dz,.11,.12,.14,wood);
  for(const dz of [-1.36,1.36])box('family-sofa-arm',x,.72,z+dz,1.02,.28,.25,wood,true);
  for(const dz of [-.76,.76])box('family-sofa-cushion',x-side*.12,.83,z+dz,.62,.08,1.25,cloth);
+ // A low, usable focus gives the sofa a purpose. Whole activity groups face
+ // the seat and stay outside the inner route between dining and the bedroom.
+ const table=interiorPlacement(k,{x:x-side*1.9,z,q:side<0?1:-1}),{paper,metal}=palette;
+ table.box('family-low-table',0,.45,0,2.1,.10,1.25,wood,true);
+ for(const dx of [-.84,.84])for(const dz of [-.43,.43])table.box('low-table-foot',dx,.20,dz,.10,.40,.10,edge,true);
+ if(p.arrangement===0){
+  table.box('family-radio-case',0,.69,0,.85,.38,.45,wood);
+  table.box('family-radio-grille',-.13,.69,.234,.45,.25,.025,edge);
+  table.disc('family-radio-dial',.28,.69,.24,.075,.04,paper);
+  for(const dx of [-.31,.31])table.box('radio-handle-post',dx,.93,0,.06,.10,.07,edge);
+  table.box('radio-carry-handle',0,1.005,0,.68,.06,.07,edge);
+ }else if(p.arrangement===1){
+  table.box('family-crossing-board',0,.522,0,1.45,.044,1.03,edge);
+  table.box('crossing-board-water',0,.552,0,1.32,.016,.90,metal);
+  table.box('crossing-board-island',-.34,.569,0,.48,.018,.67,cloth);
+  table.box('crossing-board-city',.48,.569,0,.19,.018,.68,paper);
+  table.box('crossing-board-bridge',.12,.583,.02,.47,.012,.055,wood);
+  for(const dx of [-.37,.43])table.cylinder('crossing-game-piece',dx,.613,.03,.085,.07,paper);
+ }else{
+  table.box('family-storybook',-.22,.55,0,.88,.10,.70,cloth);
+  table.box('storybook-page',-.22,.607,0,.77,.014,.60,paper);
+  for(const dx of [.43,.73])table.cylinder('reading-cup',dx,.61,.04,.095,.22,paper);
+ }
 }

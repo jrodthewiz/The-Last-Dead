@@ -144,7 +144,7 @@ export function businessLife(k,b,id,{back,front,left,right,spaces},life){
   box('cafe-service-towel',left-1.75,.70,z+.80,.54,.58,.035,life.cloth);
   box('cafe-towel-band',left-1.75,.48,z+.825,.54,.065,.012,paper);
  }else if(id.id==='office'){
-  const seat=interiorPlacement(k,spaces.waiting[1]),x=-.85,z=-.05;
+  const seat=interiorPlacement(k,spaces.waiting[life.take]),x=-.85,z=-.05;
   seat.box('waiting-passenger-case',x,.855,z,.90,.60,.56,life.cloth,true);
   seat.box('case-seam',x,.855,z-.286,.86,.035,.018,wood);
   for(const dx of [-.28,.28])seat.box('case-travel-strap',x+dx,.855,z-.293,.07,.56,.025,paper);

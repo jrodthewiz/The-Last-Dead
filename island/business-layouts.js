@@ -10,7 +10,7 @@ import {businessRoomLayout} from './business-spaces.js';
 // centre spine, front crossover and saved supply-bench anchors stay clear.
 export function businessLayout(k,b,identity,{back,front,lx,rx}){
  const {box,cylinder,disc,label,desk,chair,shelves,plant,palette}=k;
- const {wood,edge,paper,metal,cloth}=palette,left=-Math.min(5.2,b.w/2-3.4),right=-left,spaces=businessRoomLayout(b,identity);
+ const {wood,edge,paper,metal,cloth}=palette,left=-Math.min(5.2,b.w/2-3.4),right=-left,life=interiorLifeProfile(b),spaces=businessRoomLayout(b,identity,life);
  const details=(x,z,options={})=>businessDetails(k,identity,x,z,options);
  const mat=(role,x,z,w,d,color=cloth)=>box(role,x,.025,z,w,.035,d,color);
  const bench=(x,z,w=3.8,write=box)=>{
@@ -156,10 +156,11 @@ export function businessLayout(k,b,identity,{back,front,lx,rx}){
    for(const dz of [-.39,.39]){cylinder('banquette-mug',tx,1.0,seat.z+dz,.11,.22,paper);box('banquette-menu',tx-.61,.92,seat.z+dz,.40,.06,.46,edge);}
    mat('cafe-banquette-rug',tx,seat.z,3.3,4.2,0x999374);
   }
-  desk(spaces.communal.x,0,2.4,4.6,false);
-  for(const side of [-1,1])bench(0,0,3.6,interiorPlacement(k,{x:right+side*1.8,z:0,q:side<0?1:-1}).box);
-  for(const dz of [-1.5,0,1.5]){cylinder('communal-cup',right-.55,1.0,dz,.11,.22,paper);box('communal-open-book',right+.35,.93,dz,.65,.08,.76,edge);}
-  mat('cafe-communal-rug',right,0,6.0,5.6,0x999374);
+  const communal=interiorPlacement(k,spaces.communal);
+  communal.desk(0,0,2.4,4.6,false);
+  for(const side of [-1,1])bench(0,0,3.6,interiorPlacement(communal,{x:side*1.8,z:0,q:side<0?1:-1}).box);
+  for(const dz of [-1.5,0,1.5]){communal.cylinder('communal-cup',-.55,1.0,dz,.11,.22,paper);communal.box('communal-open-book',.35,.93,dz,.65,.08,.76,edge);}
+  communal.box('cafe-communal-rug',0,.025,0,6.0,.035,5.6,0x999374);
   bench(left,spaces.reading.z,3.8);desk(left,spaces.reading.z-1.7,2.7,.95,false);
   cylinder('reading-table-mug',left,1.0,spaces.reading.z-1.7,.11,.20,paper);
   // The side return connects preparation and serving into one working L.
@@ -187,7 +188,7 @@ export function businessLayout(k,b,identity,{back,front,lx,rx}){
   // The terminal, its stock shelf and the chair occupy the same staff bay.
   // Screen faces the seated clerk, who faces outward toward the ticket hall.
   const work=interiorPlacement(k,spaces.staffWork);
-  work.desk(0,0,3.3,1.4,false);businessDetails(work,identity,0,0);work.chair(0,1.15);
+  work.desk(0,0,3.3,1.4,false);businessDetails(work,identity,0,0,{station:['active','handover','offline'][life.take]});work.chair(0,1.15);
   shelves(lx,back+1,3.3);tea(right,back+5);
   box('ferry-office-map-frame',left,1.85,-3,3.9,1.70,.15,wood,true);
   box('ferry-office-map-water',left,1.85,-2.91,3.66,1.45,.025,0x769a92);
@@ -198,5 +199,5 @@ export function businessLayout(k,b,identity,{back,front,lx,rx}){
   plant(lx,front-5.2);
  }
  businessOccupancy(k,b,identity,{back,front,left,right,spaces});
- businessLife(k,b,identity,{back,front,left,right,spaces},interiorLifeProfile(b));
+ businessLife(k,b,identity,{back,front,left,right,spaces},life);
 }

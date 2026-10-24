@@ -26,7 +26,7 @@ import {hearNoise} from './enemy-behavior.js';
 import * as T from '../vendor/three.module.js';
 import {createWorldData,createColliders,SpatialGrid,LANDMARKS,SPAWN,regionAt,groundHeight,effectFloorHeight,clamp,SAVE_KEY,stationPosition,KEEPER_FUSE,HOSPITAL_GENERATOR} from './data.js';
 import {createWorld} from './world.js';
-import {loadActors,updateEnemies,damageEnemy,Soundscape,setEnemyAction,resetNavigation} from './actors.js';
+import {loadActors,updateEnemies,damageEnemy,Soundscape,setEnemyAction,resetNavigation,cullActorViews} from './actors.js';
 import {freshState,readSave,writeSave,stepPlayer,supportHeight,viewCeiling,objective,rayBox,clearShot} from './simulation.js';
 import {makeRifle} from './carbine.js';
 import {createFeedback} from './feedback.js';
@@ -289,7 +289,7 @@ function frame(now){
   actionHands?.update({dt:mode==='playing'?dt:0,visible:mode==='playing'&&!vehicle,action:locomotion(state).vault?{...locomotion(state).vault,kind:'vault'}:shove|| (crimson?{...crimson,kind:'crimson',duration:CRIMSON.duration}:punch|| (healing?{...healing,kind:'heal'}:searchAction?{...searchAction,kind:'search',duration:SEARCH_DURATION}:null))});crimsonVisuals?.update(mode==='playing'?dt:0);
   localBody?.update(state,movementFrame,firstPersonMotion.stride,mode==='playing'?dt:0,{visible:hasRun&&!vehicle&&state.health>0&&['playing','pause','settings','map','backpack','record'].includes(mode),vault:locomotion(state).vault});
   for(const flame of campVisuals){flame.scale.y=1+Math.sin(elapsed*8)*.15;flame.rotation.y=elapsed;}
-  if(mode!=='inspection'){updateWeaponFinds(cacheVisuals,state,camera.position);world?.update(fixedTime??elapsed,camera.position,.64,state.relays);scenery?.update(camera.position);lootVisuals?.update(mode==='playing'?dt:0,state,camera.position,searchAction);exploration?.update(mode==='playing'?dt:0,state,camera.position);}presentation.render(reviewScene?.scene||(mode==='inspection'?inspection.scene:scene),reviewScene?.camera||(mode==='inspection'?inspection.camera:camera));requestAnimationFrame(frame);
+  if(mode!=='inspection'){if(actors)cullActorViews(actors.enemies,camera,mode==='flight'?180:150);updateWeaponFinds(cacheVisuals,state,camera.position);world?.update(fixedTime??elapsed,camera.position,.64,state.relays,camera.fov);scenery?.update(camera.position);lootVisuals?.update(mode==='playing'?dt:0,state,camera.position,searchAction);exploration?.update(mode==='playing'?dt:0,state,camera.position);}presentation.render(reviewScene?.scene||(mode==='inspection'?inspection.scene:scene),reviewScene?.camera||(mode==='inspection'?inspection.camera:camera));requestAnimationFrame(frame);
 }
 function bindControls(){
   $('crimson-hint').onclick=startCrimson;
@@ -341,7 +341,10 @@ async function init(){
     // and shaders. Gameplay queries conservative, bone-deformed triangle bounds.
     await crimsonVisuals.prepare(actors.enemies);prepareImpactContacts(actors.enemies);
 
-    for(const branch of [rifle.root,armoryModels.rig,...armoryModels.groups,actionHands.root])sleepHiddenBranch(branch);
+    // Keep hidden first-person and survivor rigs out of the matrix walk.
+    // Enemy roots own the same lifecycle in actors.js. Explicit pose queries
+    // can still force a hidden rig to refresh its matrices.
+    for(const branch of [rifle.root,armoryModels.rig,...armoryModels.groups,actionHands.root,localBody.actor])sleepHiddenBranch(branch);
     grid=new SpatialGrid([...createColliders(data),...scenery.colliders,...exploration.colliders]);grid.floorAt=(x,z)=>supportHeight(data,x,z);grid.effectFloorAt=(x,z)=>effectFloorHeight(x,z,grid.floorAt(x,z));loot=createLootPlan(data,grid,grid.floorAt);lootVisuals=createLootVisuals(scene,loot);
     grid=new SpatialGrid([...createColliders(data),...scenery.colliders,...exploration.colliders,...lootVisuals.colliders]);grid.floorAt=(x,z)=>supportHeight(data,x,z);grid.effectFloorAt=(x,z)=>effectFloorHeight(x,z,grid.floorAt(x,z));dressWeaponFinds(cacheVisuals,armoryModels);updateWeaponFinds(cacheVisuals,state,camera.position);flight=createFlight(renderer,camera);
     camera.position.set(-610,155,550);camera.lookAt(-85,26,-45);camera.fov=58;camera.updateProjectionMatrix();rifle.root.visible=armoryModels.rig.visible=false;

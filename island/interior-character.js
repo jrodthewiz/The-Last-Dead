@@ -70,7 +70,7 @@ export function businessRoomCharacter(k,b,identity,{back,lx,featureZ=back+7}){
  }
 }
 
-export function residentialActivity(k,identity,cx,z,width){
+export function residentialActivity(k,identity,cx,z,width,life={take:0}){
  const {box,cylinder,cone,palette}=k,{wood,edge,paper,metal}=palette,w=Math.min(identity.id==='gardener'?4.2:3.0,width-.4);
  box('resident-workbench',cx,.78,z,w,.14,1.0,wood,true);
  for(const dx of [-w*.4,w*.4])box('resident-bench-leg',cx+dx,.36,z,.14,.72,.78,edge,true);
@@ -81,8 +81,10 @@ export function residentialActivity(k,identity,cx,z,width){
    const x=cx-.78+i*.48;
    cylinder('potting-clay-pot',x,1.13,z,.17,.24,0x9d7956);
    cylinder('potting-pot-rim',x,1.25,z,.20,.055,0xb0946b);
-   cylinder('seedling-stem',x,1.42,z,.024,.32,0x667c48);
-   for(const [dx,dz,h]of [[-.10,.02,.28],[.10,-.04,.34],[0,.04,.48]])cone('tapered-seedling-leaf',x+dx,1.27+h/2,z+dz,.14,h,.095,dx>0?0x91a063:0x738b51,i*.7);
+   if(life.take===1&&i!==1||life.take===2&&i===1)continue;
+   const growth=life.take===0?1.8:life.take===1?.65:1;
+   cylinder('seedling-stem',x,1.26+.16*growth,z,.024,.32*growth,0x667c48);
+   for(const [dx,dz,h]of [[-.10,.02,.28],[.10,-.04,.34],[0,.04,.48]])cone('tapered-seedling-leaf',x+dx,1.27+h*growth/2,z+dz,.14*growth,h*growth,.095*growth,dx>0?0x91a063:0x738b51,i*.7);
   }
   cylinder('watering-can',cx+.98,1.04,z,.22,.37,metal);
   box('watering-can-handle',cx+.98,1.33,z,.36,.07,.07,paper);
@@ -93,7 +95,7 @@ export function residentialActivity(k,identity,cx,z,width){
   box('plant-shelf-top',cx,2.25,z-.40,w,.13,.40,wood,true);
   for(const dx of [-.68,.42]){
    cylinder('shelf-pot',cx+dx,2.45,z-.40,.18,.29,0xa2805e);
-   for(const [ox,oz,h]of [[-.09,0,.29],[.09,-.04,.34],[0,.04,.40]])cone('shelf-plant-leaf',cx+dx+ox,2.59+h/2,z-.40+oz,.13,h,.095,ox>0?0x91a063:0x738b51,dx);
+   if(life.take!==1)for(const [ox,oz,h]of [[-.09,0,.29],[.09,-.04,.34],[0,.04,.40]])cone('shelf-plant-leaf',cx+dx+ox,2.59+h/2,z-.40+oz,.13,h,.095,ox>0?0x91a063:0x738b51,dx);
   }
  }else{
   // An enlarger and hanging proofs explain the photographer without a caption.

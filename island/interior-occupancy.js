@@ -105,7 +105,7 @@ export function businessOccupancy(k,b,id,{back,front,left,right,spaces}){
 
 export function homeTableActivity({box,cylinder,palette},id,x,z,side,life){
  const {wood,edge,paper,metal,cloth}=palette;
- if(id.id==='family'&&side<0){
+ if(id.id==='family'&&side<0&&life.take!==2){
   box('family-breakfast-runner',x,.905,z,1.75,.025,.66,life.cloth);
   for(const dx of [-.48,.48]){
    cylinder('breakfast-plate',x+dx,.94,z,.26,.035,paper);
@@ -116,7 +116,7 @@ export function homeTableActivity({box,cylinder,palette},id,x,z,side,life){
  }else if(id.id==='gardener'){
   box('garden-journal',x-.35,.93,z,.86,.08,.67,cloth);
   box('garden-journal-page',x-.35,.976,z,.72,.014,.56,paper);
-  for(const dx of [-.16,.16])for(const dz of [-.13,.13])box('journal-planting-square',x-.35+dx,.99,z+dz,.21,.012,.16,metal);
+  for(let i=0;i<3;i++)if(!(life.take===1&&i!==1||life.take===2&&i===1))box('journal-planting-square',x-.35+(i-1)*.21,.99,z,.15,.012,.28,metal);
   for(let i=0;i<3;i++)box('saved-seed-envelope',x+.45+i*.17,.93+i*.035,z,.35,.06,.48,i%2?wood:paper);
  }else if(id.id==='photographer'){
   box('coastal-photo-album',x,.93,z,1.55,.08,.84,edge);
