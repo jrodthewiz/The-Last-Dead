@@ -2,6 +2,12 @@
 
 The browser edition has been rebuilt as **Blackwater**: a solo or two-player, N64-inspired horror-survival journey across a forested island, a 300-metre suspension bridge and the procedural city of Saint Orin.
 
+## Where this project lives
+
+Blackwater is developed locally on Windows in **C:/Users/wolfk/Desktop/thelastdead**, registered in Codex as the local project **thelastdead**. GitHub stores the source; the existing ChatGPT Site hosts a published copy for players. The ChatGPT account connection does not move development into a cloud environment.
+
+Use **local checkout → GitHub source → explicit Sites publication**. Local and public play need no account login or API key. ChatGPT ownership manages the hosted Site; GitHub authentication manages repository access. Solo saves stay in the browser and do not sync between localhost and the public game. See [local development, accounts and login recovery](docs/local-development-and-accounts.md).
+
 ## Play Blackwater
 
 [**Play the public game**](https://the-last-dead-blackwater.jrodonthebeat.chatgpt.site) ·
