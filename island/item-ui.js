@@ -17,6 +17,10 @@ export function itemPurpose(id){
  return '';
 }
 
+export function weaponSupplyLabel(weapon,count){
+ return `+${count} ${weapon.kind==='saw'?'fuel':'ammo'}`;
+}
+
 // Prompt and touch input share availability, rather than displaying a blocked
 // find beside an active Use control. Transfers still enforce their own limits.
 export function canPickup(target,state){
