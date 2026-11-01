@@ -12,6 +12,7 @@ import {createCrimsonVisuals} from './crimson-visuals.js';
 import {CRIMSON,crimsonCandidate,inCrimsonReach,advanceCrimson} from './close-combat.js';
 import {createBackpackUI} from './backpack-ui.js';
 import {createFieldUI} from './field-ui.js';
+import {canPickup} from './item-ui.js';
 import {canReachPickup} from './interaction-target.js';
 import {searchFocused,SEARCH_DURATION} from './search-motion.js';
 import {itemDefinition,consumeRemedy,openStash,weaponDamageMultiplier} from './backpack.js';
@@ -66,7 +67,7 @@ function resetInput(){weaponWasVisible=false;pointerControls?.reset();cancelActi
 function handsFree(){return !healing&&!crimson&&!shove&&!locomotion(state).vault&&!punch;}
 function canUseWeapon(){return mode==='playing'&&!vehicle&&reload<=0&&handsFree();}
 function canFireInput(){return canUseWeapon()&&!searchAction&&(['melee','saw'].includes(weaponProfile(state).kind)||!firstPersonMotion.obstructed);}
-function canInteract(target){return mode==='playing'&&handsFree()&&!pendingStrike&&!searchAction&&!restore&&!!target&&(!['weapon','stash'].includes(target.kind)||reload<=0);}
+function canInteract(target){return mode==='playing'&&handsFree()&&!pendingStrike&&!searchAction&&!restore&&!!target&&canPickup(target,state)&&(!['weapon','stash'].includes(target.kind)||reload<=0);}
 function canAim(){return canFireInput()&&!firstPersonMotion.obstructed&&!['melee','saw'].includes(weaponProfile(state).kind);}
 function releaseCombat(){meleeFollowup=null;firing=aiming=false;charge=0;pointerControls?.releaseCombat();}
 function resetTravel(){input.jump=false;state.vy=0;resetLocomotion(state);firstPersonMotion.reset();movementFrame={};footstep=0;releaseCombat();}

@@ -1,5 +1,17 @@
 # The Last Dead interface direction
 
+## Blackwater item readability — November 1, 2026
+
+The playable interface keeps its ivory, amber and olive console treatment. `island/console-ui.css` owns shared caption, body, item and number sizes: supporting desktop text starts at 12 pixels, decision text at 14 pixels, and item names at 20 pixels. Health, ammunition, pickup silhouettes and quantities have more space. Discovery receipts and active prompts reserve separate regions from the touch controls.
+
+`island/item-ui.js` supplies the same short item names to container rows, transfer results, receipts and selected supplies. Each find presents its name, a short benefit or actual stock, and one immediate action. Use **Take all**, **Take what fits** and **Make room** consistently; E performs that visible action. Omit generic fit paragraphs and repeated empty-state copy. Partial collections retain exact Will pack / Stays here lists, with the actual pouch forecast attached to its count. Full medical belts and ammunition reserves explain the relevant limit and disable the same interaction on both keyboard and touch.
+
+Make room opens Supplies without discarding anything. That explicit recovery context promotes the first available action; ordinary disabled treatment never silently turns E into discard. Crafting and treatment retain held-key protection and authoritative quantities. Weapon facts distinguish Range from melee Reach. Undiscovered equipment has no fabricated loaded count.
+
+On narrow screens, the item grid and selected description scroll independently while actions stay inside the selected panel. Short portrait reserves more height for actions; extra actions share a second row. Short landscape keeps the container list beside its transfer forecast. Selected supplies as well as weapons reveal themselves after resizing. These rules supersede the earlier smaller typography, four-column rack and longer transfer labels below.
+
+Evidence is retained in `output/ui-readability-2026-11-01/`: guarded private game contexts with legal inventory stocks seeded and enemies moved away to isolate UI. Native keyboard and touch journeys cover search, weapon discovery, partial transfer and retained leftovers, explicit full-pouch recovery, craft repeat protection, healing, equip and blocked pickups. Viewports include 1280×720, 1920×1080, 390×844, 390×700, 320×568 and 844×390. GPT-6.1 Terra and a separate newcomer visual reviewer inspect actual captures; this is bounded UI verification, not a human comprehension study or all-combat-state certification. No test files are added or changed.
+
 ## Blackwater playable interface — October 22, 2026
 
 During play, the player needs to recognise a find, understand whether it can be taken, and return to the world quickly. The visual anchor is the same low-resolution island as the title screen. The interface borrows the cartridge title's chunky ivory lettering, cut amber cursor and short olive shadows. No downloaded font, soft glass, continuous motion or decorative telemetry is needed.
