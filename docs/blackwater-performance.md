@@ -75,7 +75,7 @@ QA browser closed included 80% GPU utilization, 3112/4096 MiB VRAM use and
 1519 MiB available RAM. This is a confounder, not proof of the cause of each gap.
 Do not describe this change as eliminating all hitches or guaranteeing 60 FPS.
 
-The existing world/batching checks pass 12 of 13 assertions. The remaining
+The existing world/batching checks pass 12 of 13 test cases. The remaining
 navigation fixture requests a non-enterable Old Town building, but the current
 world has zero such buildings. It fails before navigation is called and does
 not import the changed rendering helper. Test files are unchanged. Temporary
@@ -89,3 +89,12 @@ Evidence: `output/performance-2026-11-01/merged/abba.json`,
 `soak-final/report.json`, and `checks.log`. The original actor source is retained
 as one small allowlisted comparison file; there is no duplicate checkout.
 No test files were added or edited. The user's game tab and local server are preserved.
+
+## Published verification
+
+Site version 47 serves the measured actor/batching modules, confirmed by normalized
+SHA-256 comparison. A separate guarded production browser confirmed all 38 cars
+in 20 batches, both drivable trucks, static shadow flags, search/take-all, sword
+pickup and backpack use. Browser/network errors are empty and the context is
+healthy. The lobby directory returns HTTP 200. This smoke check is not a hosted
+FPS benchmark or a two-player session test.
