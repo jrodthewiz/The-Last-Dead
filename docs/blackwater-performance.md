@@ -66,7 +66,9 @@ empty and the WebGL context remains healthy. These are paired observations
 under variable desktop load; the exact number of rare stalls is not guaranteed.
 The baseline walks coast for 80 seconds, bridge for 65 seconds and city for
 80 seconds using native keyboard input. The final implementation repeats these
-same routes and durations with normal gameplay and weapon switching.
+same route segments and durations through the real movement, collision, rendering
+and weapon-switching paths. Health and ammunition are controlled for sustained
+sampling; this is not an unassisted campaign playthrough.
 
 Long frame gaps remain in stress runs. Background load measured with the owned
 QA browser closed included 80% GPU utilization, 3112/4096 MiB VRAM use and
