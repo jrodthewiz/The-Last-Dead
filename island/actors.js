@@ -9,6 +9,7 @@ import {terrainHeight,groundHeight,clamp} from './data.js';
 import {walkableLine,createPathQueue} from './navigation.js';
 import {clearShot} from './simulation.js';
 import {stylizeModel} from './retro-materials.js';
+import {createParkedVehicleBatches} from './parked-vehicle-batches.js';
 
 export async function loadActors(scene,data,onProgress){
   const [zombie,truck,sedan,runner,dockworker]=await Promise.all([
@@ -40,9 +41,12 @@ export async function loadActors(scene,data,onProgress){
     stylizeModel(model);const root=new T.Group();root.add(model);root.position.set(x,groundHeight(x,z)+.12,z);root.rotation.y=angle+Math.PI;scene.add(root);if(!drive)freezeLocalTransforms(root);return {root,x,z,angle,speed:0,drive,home:{x,z,angle}};
   }
   const vehicles=[vehicle(truck,-690,260,1.76,true),vehicle(truck,752,76,Math.PI/2,true)];
-  for(const w of data.wrecks){const v=vehicle(sedan,w.x,w.z,w.angle);v.root.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.color.multiplyScalar(.65);}});}
-  for(const v of data.parkedCars)vehicle(sedan,v.x,v.z,v.angle);
-  onProgress?.();return {enemies,vehicles,animationNames:zombie.animations.map(a=>a.name)};
+  const parked=createParkedVehicleBatches(scene,sedan,[...data.wrecks.map(w=>({...w,wreck:true})),...data.parkedCars],groundHeight);
+  if(!parked){
+    for(const w of data.wrecks){const v=vehicle(sedan,w.x,w.z,w.angle);v.root.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.color.multiplyScalar(.65);}});}
+    for(const v of data.parkedCars)vehicle(sedan,v.x,v.z,v.angle);
+  }
+  onProgress?.();return {enemies,vehicles,parked,animationNames:zombie.animations.map(a=>a.name)};
 }
 const clips={idle:'AshWitness_Idle',walk:'AshWitness_Shuffle',run:'AshWitness_Run',attack:'AshWitness_AttackLunge',hit:'AshWitness_HitRecoil',dead:'AshWitness_Collapse'};
 const actorFrustum=new T.Frustum(),actorProjection=new T.Matrix4(),actorBounds=new T.Sphere(new T.Vector3(),5.5);
