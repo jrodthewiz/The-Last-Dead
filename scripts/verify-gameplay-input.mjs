@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {installGameplayInput,createLookInput,wrapHeading} from '../island/gameplay-input.js';
-import {finishReload} from '../island/armory-state.js';
+import {finishReload,spentCases} from '../island/armory-state.js';
 
 class Target extends EventTarget{
  constructor(name=''){super();this.name=name;this.firstElementChild={style:{}};this.dataset={touch:name};}
@@ -50,10 +50,23 @@ const reloadFn=game.split('\n').find(line=>line.startsWith('function doReload(){
 const marker=game.indexOf('if(reload>0){reload=Math.max(0,reload-dt);');assert.ok(marker>0);
 let end=marker,depth=0;for(let i=game.indexOf('{',marker);i<game.length;i++){if(game[i]==='{')depth++;if(game[i]==='}'&&--depth===0){end=i+1;break;}}
 const actualTick=game.slice(marker,end),state={weapon:'carbine',ammo:0,reserve:48,armory:{carbine:{ammo:0,reserve:48,owned:true}}};
-const context=vm.createContext({state,touch:false,mode:'playing',vehicle:null,healing:null,searchAction:null,crimson:null,shove:null,punch:null,pendingStrike:null,reload:0,reloadCount:0,reloadSpent:0,reloadEjected:false,reloadCue:0,charge:0,firing:true,aiming:true,pointerControls:{releaseCombat(){}},locomotion:()=>({vault:null}),weaponProfile:()=>({id:'carbine',kind:'bullet',capacity:8,reload:1.6}),sound:{play(){}},notify(){},finishReload,updateHUD(){},dt:1/60});
-vm.runInContext(reloadFn,context);vm.runInContext('doReload()',context);assert.equal(context.firing,false);assert.equal(context.aiming,false);assert.equal(context.reload,1.6);
+let releases=0,hudUpdates=0;
+const context=vm.createContext({state,touch:false,mode:'playing',vehicle:null,healing:null,searchAction:null,crimson:null,shove:null,punch:null,pendingStrike:null,reload:0,reloadCount:0,reloadSpent:0,reloadEjected:false,reloadCue:0,charge:0,firing:true,aiming:true,pointerControls:{releaseCombat(){releases++;}},locomotion:()=>({vault:null}),weaponProfile:()=>({id:'carbine',kind:'bullet',capacity:8,reload:1.6}),sound:{play(){}},notify(){},finishReload,spentCases,updateHUD(){hudUpdates++;},dt:1/60});
+vm.runInContext(reloadFn,context);
+const invoke=()=>vm.runInContext('doReload()',context);
+const reject=()=>{context.firing=context.aiming=true;const r=releases,h=hudUpdates;invoke();assert.equal(context.firing,true);assert.equal(context.aiming,true);assert.equal(releases,r);assert.equal(hudUpdates,h);};
+state.ammo=8;reject();state.ammo=0;
+state.reserve=0;reject();state.reserve=48;
+for(const key of ['vehicle','healing','searchAction','crimson','shove','punch','pendingStrike']){context[key]={};reject();context[key]=null;}
+context.mode='paused';reject();context.mode='playing';
+context.locomotion=()=>({vault:{}});reject();context.locomotion=()=>({vault:null});
+const profile=context.weaponProfile;context.weaponProfile=()=>({capacity:0});reject();context.weaponProfile=profile;
+invoke();assert.equal(releases,1);assert.equal(hudUpdates,1);assert.equal(state.ammo,0);assert.equal(state.reserve,48);assert.equal(context.reloadCount,8);
+const timer=context.reload;invoke();assert.equal(context.reload,timer);assert.equal(releases,1);assert.equal(hudUpdates,1);
+assert.equal(context.firing,false);assert.equal(context.aiming,false);assert.equal(context.reload,1.6);
 for(let i=0;i<600;i++)vm.runInContext(actualTick,context);
 assert.equal(context.reload,0);assert.equal(state.ammo,8);assert.equal(state.reserve,40);assert.equal(context.firing,false,'Reload completion must not resume an old held trigger');
-state.ammo=0;state.reserve=0;context.firing=true;vm.runInContext('doReload()',context);assert.equal(context.firing,false);assert.equal(context.reload,0);
+state.ammo=0;state.reserve=0;context.firing=true;vm.runInContext('doReload()',context);assert.equal(context.firing,true);assert.equal(context.reload,0);
+assert.equal(hudUpdates,2,'HUD updates once at start and once on completion');
 assert.ok(game.includes("camera.rotation.set(state.pitch,-state.yaw,0,'YXZ')"),'On-foot view must retain player pitch during vaults');
 console.log(JSON.stringify({passed:true,releasePaths:8,multitouchOwnership:true,lookJumpGuards:true,reloadFrames:600,reloadCompletesOnce:true}));
