@@ -9,6 +9,16 @@ import {domesticExteriorPlan} from './domestic-exteriors.js';
 import {SPAWN,LANDMARKS,terrainHeight,groundHeight,clamp,SAVE_KEY,KEEPER_FUSE,HOSPITAL_GENERATOR,stationPosition,entranceHeight} from './data.js';
 import {ensureArmory,storeAmmo,weaponProfile} from './armory-state.js';
 export const relayIds=LANDMARKS.filter(p=>p.type==='relay').map(p=>p.id);
+export const allRelaysRestored=state=>relayIds.every(id=>state.relays.includes(id));
+export function restoredRelayCount(state){let count=0;for(const id of relayIds)if(state.relays.includes(id))count++;return count;}
+// Network progress can arrive while a local restoration is still counting down.
+// Each required station owns one completion and one local recovery award.
+export function restoreRelay(state,id){
+ if(!relayIds.includes(id))return false;
+ state.relays=[...new Set(state.relays.filter(value=>relayIds.includes(value)))];
+ if(state.relays.includes(id))return false;
+ state.relays.push(id);state.health=clamp(state.health+25,0,100);return true;
+}
 export function freshState(){return ensureArmory({version:1,armoryRevision:2,discovered:[],records:[],contactStage:-1,fuse:false,generatorReady:false,x:SPAWN.x,z:SPAWN.z,y:groundHeight(SPAWN.x,SPAWN.z),yaw:SPAWN.yaw,pitch:0,vy:0,health:100,stamina:100,ammo:8,reserve:48,medkits:2,backpack:validatePack(),relays:[],collected:[],kills:[],vehicles:[],activeVehicle:null,checkpoint:'arrival',time:0,won:false});}
 export function readSave(storage){try{const s=JSON.parse(storage.getItem(SAVE_KEY));if(!s||s.version!==1)return null;const out=freshState();for(const k of ['x','z','y','yaw','pitch','health','ammo','reserve','medkits','time']){if(!Number.isFinite(s[k]))return null;out[k]=s[k];}if(Math.abs(out.x)>1400||Math.abs(out.z)>900||out.health<=0)return null;out.health=clamp(out.health,1,100);out.ammo=clamp(Math.floor(out.ammo),0,8);out.reserve=clamp(Math.floor(out.reserve),0,999);out.medkits=clamp(Math.floor(out.medkits),0,20);out.pitch=clamp(out.pitch,-1.35,1.35);out.relays=Array.isArray(s.relays)?[...new Set(s.relays.filter(v=>relayIds.includes(v)))]:[];out.collected=Array.isArray(s.collected)?s.collected.filter(v=>typeof v==='string').slice(0,2000):[];out.kills=Array.isArray(s.kills)?s.kills.filter(v=>typeof v==='string').slice(0,200):[];out.checkpoint=LANDMARKS.some(p=>p.id===s.checkpoint&&p.type==='camp')?s.checkpoint:'arrival';out.vehicles=Array.isArray(s.vehicles)?s.vehicles.slice(0,2).map(v=>v&&Number.isFinite(v.x)&&Number.isFinite(v.z)&&Number.isFinite(v.angle)&&Math.abs(v.x)<1400&&Math.abs(v.z)<900&&groundHeight(v.x,v.z)>1?{x:v.x,z:v.z,angle:v.angle}:null):[];out.activeVehicle=Number.isInteger(s.activeVehicle)&&s.activeVehicle>=0&&s.activeVehicle<2&&out.vehicles[s.activeVehicle]?s.activeVehicle:null;out.discovered=Array.isArray(s.discovered)?[...new Set(s.discovered.filter(id=>PLACES.some(p=>p.id===id)))]:[];out.records=Array.isArray(s.records)?[...new Set(s.records.filter(id=>PLACES.some(p=>p.id===id)))]:[];out.contactStage=Number.isInteger(s.contactStage)?clamp(s.contactStage,-1,3):-1;out.fuse=s.fuse===true;out.generatorReady=s.generatorReady===true;out.won=!!s.won;out.backpack=validatePack(s.backpack);out.weapon=s.weapon;ensureArmory(out,s.armory);out.ammo=clamp(Math.floor(s.ammo),0,weaponProfile(out).capacity);out.reserve=clamp(Math.floor(s.reserve)+(out.weapon==='breach'&&s.armoryRevision!==2?clamp(s.ammo-2,0,3):0),0,999);storeAmmo(out);return recoverCivicSave(out);}catch{return null;}}
 export function writeSave(storage,state){try{storeAmmo(state);storage.setItem(SAVE_KEY,JSON.stringify({...state,vy:0}));return true;}catch{return false;}}
@@ -89,12 +99,12 @@ export function viewCeiling(grid,x,y,z){
 }
 export function objective(state){
   if(state.won)return {title:'The coast is yours',detail:'The broadcast is alive. Keep exploring Blackwater.',target:null};
-  if(state.relays.length===3)return {title:'The last crossing',detail:'Reach the evacuation ferry at East Docks.',target:LANDMARKS.find(p=>p.id==='ferry')};
+  if(allRelaysRestored(state))return {title:'The last crossing',detail:'Reach the evacuation ferry at East Docks.',target:LANDMARKS.find(p=>p.id==='ferry')};
   const target=LANDMARKS.filter(p=>p.type==='relay'&&!state.relays.includes(p.id)).sort((a,b)=>Math.hypot(a.x-state.x,a.z-state.z)-Math.hypot(b.x-state.x,b.z-state.z))[0];
   if(target.id==='lighthouse'&&!state.fuse)return {title:'The keeper’s last light',detail:'Find the spare fuse inside the keeper’s house. Then restore Westlight.',target:{...target,...KEEPER_FUSE,id:target.id,name:'Keeper’s house'}};
   if(target.id==='hospital'&&!state.generatorReady)return {title:'Wake the emergency ward',detail:'Start the courtyard generator. Stay close until it warms up.',target:{...target,...HOSPITAL_GENERATOR,id:target.id,name:'Hospital generator'}};
   if(target.id==='ridge')return {title:'Above the treeline',detail:'Climb the survey stairs to the transmitter platform.',target:{...target,...(state.y<80?{x:-432,z:-286}:stationPosition(target))}};
-  return {title:'A signal in the silence',detail:'Restore '+target.name+'. '+state.relays.length+' / 3 stations online.',target:{...target,...stationPosition(target)}};
+  return {title:'A signal in the silence',detail:'Restore '+target.name+'. '+restoredRelayCount(state)+' / 3 stations online.',target:{...target,...stationPosition(target)}};
 }
 // Slab intersection for firearm visibility. Building height matters: a shot
 // above a fence may pass; walls cannot be bypassed by aiming at a hidden actor.

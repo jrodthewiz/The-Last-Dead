@@ -28,7 +28,7 @@ import * as T from '../vendor/three.module.js';
 import {createWorldData,createColliders,SpatialGrid,LANDMARKS,SPAWN,regionAt,groundHeight,effectFloorHeight,clamp,SAVE_KEY,stationPosition,KEEPER_FUSE,HOSPITAL_GENERATOR} from './data.js';
 import {createWorld} from './world.js';
 import {loadActors,updateEnemies,damageEnemy,Soundscape,setEnemyAction,resetNavigation,cullActorViews} from './actors.js';
-import {freshState,readSave,writeSave,stepPlayer,supportHeight,viewCeiling,objective,rayBox,clearShot} from './simulation.js';
+import {freshState,readSave,writeSave,stepPlayer,supportHeight,viewCeiling,objective,allRelaysRestored,restoredRelayCount,restoreRelay,rayBox,clearShot} from './simulation.js';
 import {makeRifle} from './carbine.js';
 import {createFeedback} from './feedback.js';
 import {createPresentation} from './presentation.js';
@@ -189,13 +189,20 @@ function nearestInteraction(){
   if(vehicle)return {kind:'vehicle-exit',label:'Leave utility truck',distance:0};
   const choices=[];const add=(kind,item,x,z,label,radius=3.2,priority=0)=>{const d=Math.hypot(state.x-x,state.z-z);if(d>=radius)return;const y=item?.y??supportHeight(data,x,z);if(Math.abs(state.y-y)>=3)return;if(['stash','supply','weapon','fuse'].includes(kind)&&!canReachPickup(state,{x,y,z},grid,radius))return;choices.push({kind,item,x,z,label,distance:d,priority});};
   for(const p of PLACES)add('record',p,p.x,p.z,'Read '+p.note,2.8);add('contact',CONTACT,CONTACT.x,CONTACT.z,'Speak with Elias',3.0);
-  for(const c of loot){const searched=state.backpack.searched.includes(c.id),focused=searchFocused(state,c);if(!searched&&!focused)continue;const empty=searched&&!Object.values(state.backpack.remaining[c.id]||{}).some(n=>n>0);if(empty&&!focused)continue;const dx=c.x-state.x,dz=c.z-state.z,d=Math.hypot(dx,dz),oy=state.y+1.7,ty=c.y+.5,ray=new T.Vector3(dx,ty-oy,dz),length=ray.length();if(d<2.6&&clearShot([state.x,oy,state.z],ray.normalize().toArray(),Math.max(0,length-.7),grid))add('stash',c,c.x,c.z,(searched?'Open ':'Search ')+c.name,empty?2:2.6,empty?2:0);}
+  for(const c of loot){
+    const dx=c.x-state.x,dz=c.z-state.z;
+    // Distant containers cannot become candidates. Reject them before focus
+    // tests and ray allocations, retaining the exact circular range check.
+    if(Math.abs(dx)>=2.6||Math.abs(dz)>=2.6)continue;
+    const d=Math.hypot(dx,dz);if(!(d<2.6))continue;
+    const searched=state.backpack.searched.includes(c.id),focused=searchFocused(state,c);if(!searched&&!focused)continue;const empty=searched&&!Object.values(state.backpack.remaining[c.id]||{}).some(n=>n>0);if(empty&&!focused)continue;const oy=state.y+1.7,ty=c.y+.5,ray=new T.Vector3(dx,ty-oy,dz),length=ray.length();if(clearShot([state.x,oy,state.z],ray.normalize().toArray(),Math.max(0,length-.7),grid))add('stash',c,c.x,c.z,(searched?'Open ':'Search ')+c.name,empty?2:2.6,empty?2:0);
+  }
   for(const person of SURVIVORS)add('survivor',person,person.x,person.z,'Speak with '+person.name.split(' · ')[0],2.8);
   for(const s of data.supplies)if(!state.collected.includes(s.id))add('supply',s,s.x,s.z,s.type==='ammo'?'Take ammunition & fuel':'Take field dressing',2.4);
   for(const c of caches)if(!state.collected.includes(c.id))add('weapon',c,c.x,c.z,'Take '+WEAPONS.find(w=>w.id===c.weapon).name,2.5);
   for(const v of actors.vehicles)add('vehicle',v,v.x,v.z,'Drive utility truck',4.5);
   if(!state.fuse)add('fuse',KEEPER_FUSE,KEEPER_FUSE.x,KEEPER_FUSE.z,'Take the keeper’s spare fuse',2.4);if(!state.generatorReady)add('generator',HOSPITAL_GENERATOR,HOSPITAL_GENERATOR.x,HOSPITAL_GENERATOR.z+2.5,generatorRun?'Generator warming up…':'Start emergency generator',3.4);
-  for(const p of LANDMARKS){if(p.type==='relay'){const pos=stationPosition(p);add('relay',p,pos.x,pos.z,state.relays.includes(p.id)?'Station online':'Restore '+p.name,3.4);}if(p.type==='camp')add('camp',p,p.x,p.z,'Rest & save journey',3.6);if(p.type==='exit')add('exit',p,p.x,p.z,state.relays.length===3?'Signal the ferry':'Ferry · waiting for three signals',5);}
+  for(const p of LANDMARKS){if(p.type==='relay'){const pos=stationPosition(p);add('relay',p,pos.x,pos.z,state.relays.includes(p.id)?'Station online':'Restore '+p.name,3.4);}if(p.type==='camp')add('camp',p,p.x,p.z,'Rest & save journey',3.6);if(p.type==='exit')add('exit',p,p.x,p.z,allRelaysRestored(state)?'Signal the ferry':'Ferry · waiting for three signals',5);}
   // A focused empty container can confirm it is picked clean, but fresh finds
   // and useful interactions win when another object shares the same approach.
   return choices.sort((a,b)=>(a.distance+a.priority)-(b.distance+b.priority))[0]||null;
@@ -215,7 +222,7 @@ function interact(){
   }
   if(i.kind==='camp'){state.checkpoint=i.item.id;state.health=100;state.stamina=100;save(true);sound.play('collect');}
   if(i.kind==='relay'){if(i.item.id==='lighthouse'&&!state.fuse){notify('The fuse is missing. Search the keeper’s house to the east.',6);return;}if(i.item.id==='hospital'&&!state.generatorReady){notify('No power. Start the generator in the hospital courtyard.',6);return;}if(state.relays.includes(i.item.id)){notify('This station is already transmitting.');return;}if(actors.enemies.some(e=>e.alive&&Math.hypot(e.x-state.x,e.z-state.z)<7)){notify('Clear the infected before restoring the station.');return;}restore={item:i.item,x:state.x,z:state.z,time:0};sound.play('reload');notify('Restoring the emergency signal…',2.5);}
-  if(i.kind==='exit'){if(state.relays.length<3){notify('Restore all three stations. The captain needs the all-clear.');return;}state.won=true;save();showOverlay('won');sound.play('collect');}
+  if(i.kind==='exit'){if(!allRelaysRestored(state)){notify('Restore all three stations. The captain needs the all-clear.');return;}state.won=true;save();showOverlay('won');sound.play('collect');}
 }
 function updateVehicle(dt){
   const v=vehicle,throttle=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0)+stick.forward,steer=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0)+stick.strafe;
@@ -237,7 +244,7 @@ function updateHUD(){
   if(target){$('target-name').textContent=target.name;const d=Math.round(Math.hypot(target.x-state.x,target.z-state.z));$('target-distance').textContent=d>999?(d/1000).toFixed(1)+' km':d+' m';const relative=Math.atan2(target.x-state.x,-(target.z-state.z))-state.yaw;$('bearing').style.marginLeft=clamp(Math.atan2(Math.sin(relative),Math.cos(relative))*95,touch?-45:-160,touch?45:160)+'px';}
   const dirs=['N','NE','E','SE','S','SW','W','NW'],index=((Math.round(state.yaw/(Math.PI/4))%8)+8)%8;$('heading').textContent=dirs[index];$('compass-left').textContent=dirs[(index+7)%8];$('compass-right').textContent=dirs[(index+1)%8];
   document.querySelector('.inventory').classList.toggle('held-melee',!vehicle&&weaponProfile(state).kind==='melee');$('health-number').textContent=Math.ceil(state.health);document.querySelector('.health').classList.toggle('exhausted',!!movementFrame.exhausted);document.querySelector('.health>span').textContent=movementFrame.exhausted?'EXHAUSTED':'HEALTH';document.querySelector('.inventory').classList.toggle('is-cooling',!vehicle&&state.weapon==='carrion'&&barrelCooling);document.querySelector('.health').classList.toggle('critical',state.health<30);$('health-fill').style.width=state.health+'%';$('health-fill').style.background=state.health<30?'#c57658':'';$('stamina-fill').style.width=state.stamina+'%';const w=weaponProfile(state);$('ammo').textContent=vehicle?Math.abs(Math.round(vehicle.speed*3.6)).toString():w.kind==='melee'?'—':String(state.ammo).padStart(2,'0');$('reserve').textContent=vehicle?'km/h':w.kind==='melee'?'':w.kind==='saw'?state.reserve+' FUEL':state.reserve;$('ammo-divider').hidden=!vehicle&&w.kind==='melee';$('weapon-name').textContent=vehicle?'UTILITY TRUCK':w.name.toUpperCase();$('weapon-status').textContent=searchAction?'SEARCHING':healing?(healing.id==='beer'?'DRINKING':'APPLYING TREATMENT'):crimson?'CRIMSON PUNCH':punch?'PUNCH':shove?'SHOVE':locomotion(state).vault?'VAULTING':vehicle?(touch?'USE · LEAVE TRUCK':'E · LEAVE TRUCK'):reload>0?((w.kind==='saw'?'REFUELLING ':'RELOADING ')+Math.floor((1-reload/w.reload)*100)+'%'):w.kind==='melee'?(shotCooldown>0?'RECOVERING':'SWING READY'):!['melee','saw'].includes(w.kind)&&firstPersonMotion.obstructed?'LOWERED · STEP BACK':w.capacity&&state.ammo===0?(state.reserve>0?(touch?'RELOAD':'R · RELOAD'):w.kind==='saw'?'NO FUEL':'NO AMMUNITION'):w.id==='arc'?(charge>0?'CHARGE '+Math.round(charge*100)+'%':'HOLD FIRE · CHARGE'):w.id==='carrion'&&barrelCooling?'COOLING · '+Math.round(clamp(heat,0,1)*100)+'%':w.id==='carrion'&&heat>.15?'HEAT '+Math.round(clamp(heat,0,1)*100)+'%':w.kind==='saw'?'HOLD FIRE · CUT':w.id==='carrion'?'HOLD FIRE · AUTO':touch?'TAP FIRE · SINGLE':'SINGLE FIRE · R RELOAD';$('medical').textContent=`${state.medkits+state.backpack.items.bandage} DRESSINGS · ${state.backpack.items.beer} STOUT`;
-  document.querySelectorAll('.relay-dots i').forEach((el,i)=>el.classList.toggle('active',i<state.relays.length));
+  document.querySelectorAll('.relay-dots i').forEach((el,i)=>el.classList.toggle('active',i<restoredRelayCount(state)));
   interaction=nearestInteraction();if(touch){const action=$('touch-actions').querySelector('[data-touch=fire]');action.textContent=w.kind==='melee'?'SWING':w.kind==='saw'?'CUT':'FIRE';action.setAttribute('aria-label',w.kind==='melee'?'Swing held weapon':w.kind==='saw'?'Cut with Ripper':'Fire');const ready=canUseWeapon(),availability={fire:canFireInput(),interact:canInteract(interaction),jump:!vehicle,reload:ready&&!searchAction&&!pendingStrike&&state.ammo<w.capacity&&state.reserve>0,heal:ready&&state.health<100&&(state.medkits+state.backpack.items.bandage+state.backpack.items.beer)>0,melee:ready&&shotCooldown<=0,shove:ready&&!pendingStrike&&state.stamina>=SHOVE.cost&&shoveCooldown<=0};for(const button of document.querySelectorAll('[data-touch]'))button.disabled=!availability[button.dataset.touch];}
   fieldUI.update(interaction,state,{search:searchAction,healing,restore,reloading:reload>0,vehicle:!!vehicle});
   for(const s of stationVisuals)s.mesh.material.color.setHex(state.relays.includes(s.id)?0xc2e6a7:0xc58c58);
@@ -270,7 +277,7 @@ function frame(now){
     if(!coop?.guest)updateEnemies(actors.enemies,state,grid,dt,state.time,takeDamage,coop?.remote?[coop.remote]:[]);
     voiceTimer-=dt;if(voiceTimer<=0){voiceTimer=6+Math.random()*4;const e=actors.enemies.find(e=>e.alive&&Math.hypot(e.x-state.x,e.z-state.z)<24);if(e){const d=Math.hypot(e.x-state.x,e.z-state.z),pan=Math.sin(Math.atan2(e.x-state.x,-(e.z-state.z))-state.yaw);sound.play('voice',.2*(1-d/28),e.role==='runner'?1.12:.82,pan);}}
     for(const p of discoverPlaces(state)){notify(p.name+' · added to your field map',5);save();}
-    if(restore){if(Math.hypot(state.x-restore.x,state.z-restore.z)>1)restore=null;else{restore.time+=dt;if(restore.time>=2.5){state.relays.push(restore.item.id);state.health=clamp(state.health+25,0,100);notify(`${restore.item.name} is transmitting. ${state.relays.length} / 3 stations online.`,6);restore=null;save();sound.play('collect');}}}
+    if(restore){if(Math.hypot(state.x-restore.x,state.z-restore.z)>1)restore=null;else{restore.time+=dt;if(restore.time>=2.5){const station=restore.item;restore=null;if(restoreRelay(state,station.id)){notify(`${station.name} is transmitting. ${restoredRelayCount(state)} / 3 stations online.`,6);save();sound.play('collect');}else notify(`${station.name} is already transmitting.`,4);}}}
 
     autosave+=dt;if(autosave>45){save();autosave=0;}if(state.health<=0&&mode==='playing')showOverlay('dead');
     uiElapsed+=dt;if(uiElapsed>.12){updateHUD();uiElapsed=0;}updateScavenging(dt);
@@ -360,6 +367,14 @@ async function init(){
     if(debug||params.has('dev'))window.__BLACKWATER__={get state(){return state;},get mode(){return mode;},get vehicle(){return vehicle;},data,grid,actors,scene,camera,renderer,world,rifle,presentation,warmup,scenery,exploration,inspection,armoryModels,localBody,flight,caches,projectiles,loot,lootVisuals,actionHands,crimsonVisuals,feedback,beginShove,get shove(){return shove;},get locomotion(){return locomotion(state);},get movement(){return movementFrame;},get stride(){return firstPersonMotion.stride;},startCrimson,get crimson(){return crimson;},get punch(){return punch;},get healing(){return healing;},get searching(){return searchAction;},openPack,closePack,useRemedy,get combat(){return {heat,cooling:barrelCooling,charge,reload,reloadCount,reloadSpent,shotCooldown,generatorRun};},holdFire(value){firing=!!value;},holdAim(value){aiming=!!value&&canAim();},toggleFlight,toggleInspection,selectWeapon,collectWeapon(id){collectWeapon(state,id);},setTime(t){fixedTime=t;},setReviewScene(value){reviewScene=value;},begin,interact,shoot,heal,save,retry,openMap,doReload,takeDamage,teleport(x,z,yaw=state.yaw){resetLocomotion(state);firstPersonMotion.reset();state.x=x;state.z=z;state.y=supportHeight(data,x,z);state.yaw=yaw;state.pitch=0;state.vy=0;vehicle=null;updateHUD();},setPhoto(x,y,z,tx,ty,tz){mode='photo';photo={position:new T.Vector3(x,y,z),yaw:Math.atan2(tx-x,-(tz-z)),pitch:Math.atan2(ty-y,Math.hypot(tx-x,tz-z))};$('title').hidden=true;$('hud').hidden=true;},metrics(){const sorted=[...frameSamples].sort((a,b)=>a-b);return {frameMs:sorted[Math.floor(sorted.length/2)],p95:sorted[Math.floor(sorted.length*.95)],calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures,buildings:data.buildings.length,trees:data.trees.length,modules:world.stats.modules,scenery:scenery.stats,heritage:exploration.stats,weapon:state.weapon,animationClips:actors.animationNames};}};
     if(debug||params.has('dev'))window.__BLACKWATER__.coop=coop;
     if(params.has('dev'))toggleFlight();
-  }catch(error){console.error(error);$('loading').textContent='The coast could not load. '+error.message;$('begin').disabled=true;$('begin').textContent='Reload to try again';}
+  }catch(error){
+    console.error(error);mode='load-error';
+    $('loading').textContent='The coast could not load. '+error.message;
+    // Startup may fail before normal controls are bound. Offer one working
+    // recovery action without touching the saved journey or partial runtime.
+    for(const button of document.querySelectorAll('.title-actions button'))button.disabled=button.id!=='begin';
+    const retry=$('begin');retry.textContent='Reload to try again';retry.onclick=()=>location.reload();
+    focusControl('begin');
+  }
 }
 init();

@@ -17,6 +17,7 @@ import {createSettlementLife} from './settlement-life.js';
 import {buildSettlement} from './settlement-art.js';
 import {FRONTAGES,settlementReserved} from './settlement-plan.js';
 import {accessSurface,accessReserved} from './access-plan.js';
+import {treeContactShadowGeometry} from './tree-contact-shadows.js';
 import * as T from '../vendor/three.module.js';
 import {TERRAIN,CITY_GROUND,ROADS,LANDMARKS,random,terrainHeight,baseHeight,bridgeHeight,roadAt,clamp,groundHeight,stationPosition,entranceHeight} from './data.js';
 
@@ -298,5 +299,9 @@ export function createWorld(scene,data){
 
 function addContactShadows(scene,data){
   const canvas=document.createElement('canvas');canvas.width=canvas.height=64;const c=canvas.getContext('2d'),gradient=c.createRadialGradient(32,32,2,32,32,32);gradient.addColorStop(0,'rgba(24,43,27,.45)');gradient.addColorStop(.45,'rgba(24,43,27,.24)');gradient.addColorStop(1,'rgba(24,43,27,0)');c.fillStyle=gradient;c.fillRect(0,0,64,64);const texture=new T.CanvasTexture(canvas),material=new T.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2});
-  const entries=[...data.trees.map(t=>({x:t.x,z:t.z,sx:t.scale*5,sz:t.scale*4})),...data.buildings.map(b=>({x:b.x,z:b.z,sx:b.w*.8,sz:b.d*.8}))];const geometry=new T.PlaneGeometry(2,2);geometry.rotateX(-Math.PI/2);const mesh=new T.InstancedMesh(geometry,material,entries.length),normal=new T.Vector3();for(let i=0;i<entries.length;i++){const p=entries[i],y=terrainHeight(p.x,p.z);normal.set(terrainHeight(p.x-1,p.z)-terrainHeight(p.x+1,p.z),2,terrainHeight(p.x,p.z-1)-terrainHeight(p.x,p.z+1)).normalize();dummy.position.set(p.x+.35,y+.11,p.z);dummy.quaternion.setFromUnitVectors(up,normal);dummy.scale.set(p.sx,1,p.sz);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);}mesh.computeBoundingSphere();scene.add(mesh);
+  const entries=[...data.trees.filter(t=>t.urban).map(t=>({x:t.x,z:t.z,sx:t.scale*5,sz:t.scale*4})),...data.buildings.map(b=>({x:b.x,z:b.z,sx:b.w*.8,sz:b.d*.8}))];const geometry=new T.PlaneGeometry(2,2);geometry.rotateX(-Math.PI/2);const mesh=new T.InstancedMesh(geometry,material,entries.length),normal=new T.Vector3();for(let i=0;i<entries.length;i++){const p=entries[i],y=terrainHeight(p.x,p.z);normal.set(terrainHeight(p.x-1,p.z)-terrainHeight(p.x+1,p.z),2,terrainHeight(p.x,p.z-1)-terrainHeight(p.x,p.z+1)).normalize();dummy.position.set(p.x+.35,y+.11,p.z);dummy.quaternion.setFromUnitVectors(up,normal);dummy.scale.set(p.sx,1,p.sz);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);}mesh.computeBoundingSphere();scene.add(mesh);
+  // Natural trees span terrain folds; clip their decals to the same triangles
+  // as the ground. One shared mesh/material replaces their tangent instances.
+  const natural=treeContactShadowGeometry(data.trees,terrainHeight,TERRAIN);
+  if(natural.positions.length){const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(natural.positions,3));geometry.setAttribute('uv',new T.Float32BufferAttribute(natural.uvs,2));geometry.computeBoundingSphere();const mesh=new T.Mesh(geometry,material);mesh.name='Natural tree contact shadows';scene.add(mesh);}
 }

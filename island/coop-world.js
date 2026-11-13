@@ -8,7 +8,7 @@ import {captureWeaponVisual} from '../chest-finisher-visuals.js';
 import {batchFieldWeapon} from './field-weapon-batches.js';
 import {setEnemyAction} from './actors.js';
 import {supportCorpse} from './corpse-support.js';
-import {clearShot} from './simulation.js';
+import {clearShot,allRelaysRestored} from './simulation.js';
 import {WEAPONS} from './armory-state.js';
 import {hearNoise} from './enemy-behavior.js';
 import {SHOVE,shoveTarget,interruptEnemy} from './shove.js';
@@ -50,7 +50,7 @@ export function createCoopWorld({scene,gltf,actors,rifle,armory,getState,getGrid
     if(event.kind==='release'&&remoteGrab?.enemy.id===event.enemy)releaseGrab();
     if(event.kind==='vehicle-claim'&&remotePose){const index=event.index,car=actors.vehicles[index],allowed=Number.isInteger(index)&&!!car&&getVehicle()!==index&&(vehicleOwner<0||vehicleOwner===index)&&Math.hypot(remotePose.x-car.x,remotePose.z-car.z)<6;vehicleGrant={id:event.id,index,allowed,at:performance.now()};if(allowed)vehicleOwner=index;}
     if(event.kind==='vehicle-release'&&event.index===vehicleOwner){const car=actors.vehicles[vehicleOwner],v=event.pose;if(v&&[v.x,v.z,v.angle].every(Number.isFinite)&&Math.hypot(v.x-car.x,v.z-car.z)<15){Object.assign(car,v);car.root.position.set(car.x,getGrid().floorAt(car.x,car.z)+.1,car.z);car.root.rotation.y=car.angle+Math.PI;}vehicleOwner=-1;}
-    if(event.kind==='progress'&&event.value&&remotePose){const v=event.value,s=getState();if(v.fuse)s.fuse=true;if(v.generatorReady)s.generatorReady=true;s.relays=union(s.relays,(v.relays||[]).filter(id=>['lighthouse','ridge','hospital'].includes(id)));if(v.won&&s.relays.length===3)s.won=true;}
+    if(event.kind==='progress'&&event.value&&remotePose){const v=event.value,s=getState();if(v.fuse)s.fuse=true;if(v.generatorReady)s.generatorReady=true;s.relays=union(s.relays,(v.relays||[]).filter(id=>['lighthouse','ridge','hospital'].includes(id)));if(v.won&&allRelaysRestored(s))s.won=true;}
    }
    const v=net.vehicle;if(v&&v.index===vehicleOwner&&Number.isInteger(v.index)&&v.index>=0&&v.index<actors.vehicles.length&&Number.isFinite(v.x)&&Number.isFinite(v.z)&&Number.isFinite(v.angle)&&Math.abs(v.x)<1400&&Math.abs(v.z)<900&&v.seq>=vehicleAck){vehicleAck=v.seq;const car=actors.vehicles[v.index];Object.assign(car,{x:v.x,z:v.z,angle:v.angle});car.root.position.set(car.x,getGrid().floorAt(car.x,car.z)+.1,car.z);car.root.rotation.y=car.angle+Math.PI;}
   }else{
@@ -58,7 +58,7 @@ export function createCoopWorld({scene,gltf,actors,rifle,armory,getState,getGrid
    if(net.vehicleGrant&&vehicleRequest===net.vehicleGrant.id){const decision=net.vehicleGrant;vehicleRequest=null;if(decision.allowed)enterVehicle(decision.index);else notify('Your partner is already using that truck.');}
    if(lastDriven&&remoteVehicle<0&&releaseId&&net.ack>=releaseId){lastDriven=null;releaseId=0;}
    if(net.grabDecision&&grabRequest?.id===net.grabDecision.id){if(!net.grabDecision.accepted){cancelGrab(grabRequest.enemy);notify('That infected is already out of reach or held.');}grabRequest=null;}
-   const s=getState();if(net.progress){s.relays=union(s.relays,net.progress.relays||[]);s.fuse||=!!net.progress.fuse;s.generatorReady||=!!net.progress.generatorReady;s.won||=!!net.progress.won;s.kills=union(s.kills,net.progress.kills||[]);}if(Number.isFinite(net.time))s.time=net.time;
+   const s=getState();if(net.progress){s.relays=union(s.relays,net.progress.relays||[]);s.fuse||=!!net.progress.fuse;s.generatorReady||=!!net.progress.generatorReady;s.won||=!!net.progress.won&&allRelaysRestored(s);s.kills=union(s.kills,net.progress.kills||[]);}if(Number.isFinite(net.time))s.time=net.time;
    if(Number.isFinite(net.damage)&&net.damage>=receivedDamage){const delta=net.damage-receivedDamage;receivedDamage=net.damage;if(delta>0)takeDamage(delta);}
    for(const row of Array.isArray(net.enemies)?net.enemies:[]){const e=enemyMap.get(row[0]);if(!e||row.length<8||!row.slice(1,6).every(Number.isFinite)||Math.abs(row[1])>1400||Math.abs(row[3])>900)continue;targets.set(e.id,row);e.remoteHeld=!!row[8];if(!e.finisherHeld){e.health=row[5];e.alive=e.health>0;e.crimsonWindow=row[7];setEnemyAction(e,['idle','walk','run','attack','hit','dead'].includes(row[6])?row[6]:'idle');}}
    for(const [i,row]of(net.vehicles||[]).entries()){if(i===remoteVehicle||i===lastDriven?.index||!actors.vehicles[i]||!row.every(Number.isFinite))continue;const car=actors.vehicles[i];Object.assign(car,{x:row[0],z:row[1],angle:row[2]});car.root.position.set(car.x,getGrid().floorAt(car.x,car.z)+.1,car.z);car.root.rotation.y=car.angle+Math.PI;}
