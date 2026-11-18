@@ -96,6 +96,7 @@ try {
   console.log('Guest joined');
   await host.locator('#coop-start').tap();
   for(const page of [host,guest]) await page.waitForFunction(()=>__BLACKWATER__.coop.playing && __BLACKWATER__.coop.avatar.visible);
+  await host.evaluate(()=>__BLACKWATER__.teleport(379,3,-Math.PI/2));
   await guest.evaluate(()=>__BLACKWATER__.teleport(368,0,Math.PI/2));
   await guest.keyboard.down('KeyW');
   try{await guest.waitForFunction(()=>__BLACKWATER__.state.x>375);}finally{await guest.keyboard.up('KeyW');}
