@@ -26,10 +26,10 @@ try {
     const url=new URL(entry,'http://127.0.0.1:'+server.port);
     url.searchParams.set('debug','');
     await page.goto(url.href,{waitUntil:'domcontentloaded'});
-    await page.waitForFunction(()=>window.__BLACKWATER__?.coop);
+    await page.waitForFunction(()=>window.__BLACKWATER__?.coop,null,{timeout:cpu?300000:120000});
     return page;
   }
-  let host=await player();
+  const host=await player();
   console.log("Host ready");
   report.adapter=await host.evaluate(()=>{
     const gl=__BLACKWATER__.renderer.getContext();
@@ -78,15 +78,16 @@ try {
   report.reload=await host.evaluate(()=>reloadSources);
   assert.ok(report.reload.length && report.reload.every(source=>source.rms>0),'Decoded reload audio must start');
   console.log("Reload",report.reload);
-  for(const [end,x,y,target] of [['west',87,14,71],['east',351,14.5,369]]){
-    await host.evaluate(([x,y,target])=>__BLACKWATER__.setPhoto(x,y,24,target,y,0),[x,y,target]);
-    await host.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
-    await host.screenshot({path:join(output,end+'-bearing.png')});
-  }
-  await host.context().close();
-  host=await player();
-  console.log('Co-op host ready');
-  const guest=await player();
+  await host.keyboard.press('Escape');
+  await host.locator('#save-quit').tap();
+  // A title screen still draws the island. Give the guest the software
+  // renderer during startup, before either player opens a network room.
+  const session=await host.context().newCDPSession(host);
+  await session.send('Page.setWebLifecycleState',{state:'frozen'});
+  let guest;
+  try{guest=await player();}
+  finally{await session.send('Page.setWebLifecycleState',{state:'active'});await session.detach();}
+  console.log('Both players ready');
   await host.locator('#title-coop').tap();
   await host.locator('#coop-lobby-name').fill('Bridge QA');
   await host.locator('#coop-host').tap();
@@ -103,6 +104,12 @@ try {
   const x=await guest.evaluate(()=>__BLACKWATER__.state.x);
   await host.waitForFunction(x=>Math.abs(__BLACKWATER__.coop.avatar.position.x-x)<1,x);
   report.partner=await host.evaluate(()=>({position:__BLACKWATER__.coop.avatar.position.toArray(),direct:__BLACKWATER__.coop.connection.fast}));
+  await guest.context().close();
+  for(const [end,x,y,target] of [['west',87,14,71],['east',351,14.5,369]]){
+    await host.evaluate(([x,y,target])=>__BLACKWATER__.setPhoto(x,y,24,target,y,0),[x,y,target]);
+    await host.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
+    await host.screenshot({path:join(output,end+'-bearing.png')});
+  }
   assert.deepEqual(report.errors,[]);
   report.passed=true;
 } catch(error){report.failure=String(error);throw error;}
