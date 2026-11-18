@@ -16,12 +16,12 @@ await mkdir(output,{recursive:true});
 const server=await startServer({root,port:0});
 const browsers=[];
 try {
-  async function player(){
+  async function player(viewport={width:720,height:480}){
     const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH,
     args:cpu?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
     browsers.push(browser);
-    const page=await browser.newPage({viewport:{width:720,height:480},hasTouch:true});
-    page.setDefaultTimeout(120000);
+    const page=await browser.newPage({viewport,hasTouch:true});
+    page.setDefaultTimeout(cpu?300000:120000);
     await guardBackgroundInput(page);
     page.on('pageerror',error=>report.errors.push(error.message));
     const url=new URL(entry,'http://127.0.0.1:'+server.port);
@@ -88,15 +88,21 @@ try {
   const session=await host.context().newCDPSession(host);
   await session.send('Page.setWebLifecycleState',{state:'frozen'});
   let guest;
-  try{guest=await player();}
+  try{guest=await player({width:560,height:360});}
   finally{await session.send('Page.setWebLifecycleState',{state:'active'});await session.detach();}
+  await host.setViewportSize({width:560,height:360});
   console.log('Both players ready');
   await host.locator('#title-coop').tap();
   await host.locator('#coop-lobby-name').fill('Bridge QA');
   await host.locator('#coop-host').tap();
   console.log('Room hosted');
   await guest.locator('#title-coop').tap();
-  await guest.getByRole('button',{name:'Join Bridge QA',exact:true}).tap();
+  await guest.getByRole('button',{name:'Join Bridge QA',exact:true}).waitFor();
+  // Discovery rows regenerate while polling. The fixed code field is also a
+  // real player entry path and stays mounted even at software-renderer speeds.
+  const code=await host.evaluate(()=>__BLACKWATER__.coop.connection.code);
+  await guest.locator('#coop-code').fill(code);
+  await guest.locator('#coop-join').tap();
   console.log('Guest joined');
   await host.locator('#coop-start').tap();
   for(const page of [host,guest]) await page.waitForFunction(()=>__BLACKWATER__.coop.playing && __BLACKWATER__.coop.avatar.visible);
@@ -108,6 +114,7 @@ try {
   await host.waitForFunction(x=>Math.abs(__BLACKWATER__.coop.avatar.position.x-x)<1,x);
   report.partner=await host.evaluate(()=>({position:__BLACKWATER__.coop.avatar.position.toArray(),direct:__BLACKWATER__.coop.connection.fast}));
   await guest.context().close();
+  await host.setViewportSize({width:720,height:480});
   for(const [end,x,y,target] of [['west',87,14,71],['east',351,14.5,369]]){
     await host.evaluate(([x,y,target])=>__BLACKWATER__.setPhoto(x,y,24,target,y,0),[x,y,target]);
     await host.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
