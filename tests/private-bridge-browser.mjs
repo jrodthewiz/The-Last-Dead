@@ -49,6 +49,7 @@ try {
       const game=__BLACKWATER__;
       game.setTime(42);
       game.camera.fov=74;
+      game.camera.aspect=720/480;
       game.camera.updateProjectionMatrix();
     });
     for(const [name,pose] of views){
@@ -61,7 +62,7 @@ try {
     }
   }
   const visual=process.env.BLACKWATER_QA_VISUAL;
-  if(visual==='baseline'){
+  if(visual==='only'){
     await captureWorld(host);
   }else{
   await host.locator('#begin').tap();
@@ -141,8 +142,6 @@ try {
   await guest.evaluate(()=>__BLACKWATER__.coop.leave());
   await host.evaluate(()=>__BLACKWATER__.coop.leave());
   await guest.context().close();
-  await host.setViewportSize({width:720,height:480});
-  if(visual==='candidate')await captureWorld(host);
   }
   assert.deepEqual(report.errors,[]);
   report.passed=true;

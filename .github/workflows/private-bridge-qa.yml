@@ -16,22 +16,24 @@ jobs:
           node-version: 22
       - run: npm install --prefix "$RUNNER_TEMP/qa" playwright@1.56.1
       - name: Exercise the private loopback game
-        env:
-          BLACKWATER_QA_VISUAL: candidate
         run: CHROME_PATH="$(command -v google-chrome)" PLAYWRIGHT_PATH="$RUNNER_TEMP/qa/node_modules/playwright" node tests/private-bridge-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always() && (github.event.repository.private || startsWith(github.ref, 'refs/heads/codex/blackwater-art-'))
         with:
-          name: candidate-${{ github.sha }}
+          name: gameplay-${{ github.sha }}
           path: output/playwright/private-bridge/
           retention-days: 7
-  baseline-views:
+  visual-views:
     if: startsWith(github.ref, 'refs/heads/codex/blackwater-art-')
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      matrix:
+        scene: [baseline, candidate]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
+        if: matrix.scene == 'baseline'
         with:
           ref: 4a5a99cc026bccf5594ebdbc4dc51b88919cdc98
           path: baseline
@@ -39,14 +41,14 @@ jobs:
         with:
           node-version: 22
       - run: npm install --prefix "$RUNNER_TEMP/qa" playwright@1.56.1
-      - name: Capture the baseline using the same camera and renderer
+      - name: Capture from a fresh game using the same camera and renderer
         env:
-          BLACKWATER_QA_ROOT: baseline
-          BLACKWATER_QA_VISUAL: baseline
+          BLACKWATER_QA_ROOT: ${{ matrix.scene == 'baseline' && 'baseline' || '.' }}
+          BLACKWATER_QA_VISUAL: only
         run: CHROME_PATH="$(command -v google-chrome)" PLAYWRIGHT_PATH="$RUNNER_TEMP/qa/node_modules/playwright" node tests/private-bridge-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: baseline-4a5a99c
+          name: ${{ matrix.scene }}-views
           path: output/playwright/private-bridge/
           retention-days: 7
