@@ -15,9 +15,8 @@ jobs:
         with:
           node-version: 22
       - run: npm install --prefix "$RUNNER_TEMP/qa" playwright@1.56.1
-      - run: '"$RUNNER_TEMP/qa/node_modules/.bin/playwright" install --with-deps chromium'
       - name: Exercise the private loopback game
-        run: PLAYWRIGHT_PATH="$RUNNER_TEMP/qa/node_modules/playwright" node tests/private-bridge-browser.mjs
+        run: CHROME_PATH="$(command -v google-chrome)" PLAYWRIGHT_PATH="$RUNNER_TEMP/qa/node_modules/playwright" node tests/private-bridge-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always() && github.event.repository.private
         with:
