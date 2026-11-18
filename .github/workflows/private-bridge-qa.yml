@@ -1,8 +1,14 @@
 name: Blackwater private browser QA
 on:
   workflow_dispatch:
+    inputs:
+      target:
+        description: Browser QA target
+        type: choice
+        options: [loopback, hosted]
+        default: loopback
   push:
-    branches: [codex/private-bridge-qa, 'codex/blackwater-art-*']
+    branches: [codex/private-bridge-qa, 'codex/blackwater-art-*', codex/blackwater-hosted-qa]
 permissions:
   contents: read
 jobs:
@@ -15,10 +21,12 @@ jobs:
         with:
           node-version: 22
       - run: npm install --prefix "$RUNNER_TEMP/qa" playwright@1.56.1
-      - name: Exercise the private loopback game
+      - name: Exercise the game with SwiftShader
+        env:
+          BLACKWATER_QA_HOSTED: ${{ (inputs.target == 'hosted' || github.ref == 'refs/heads/codex/blackwater-hosted-qa') && '1' || '0' }}
         run: CHROME_PATH="$(command -v google-chrome)" PLAYWRIGHT_PATH="$RUNNER_TEMP/qa/node_modules/playwright" node tests/private-bridge-browser.mjs
       - uses: actions/upload-artifact@v4
-        if: always() && (github.event.repository.private || startsWith(github.ref, 'refs/heads/codex/blackwater-art-'))
+        if: always() && (github.event.repository.private || inputs.target == 'hosted' || github.ref == 'refs/heads/codex/blackwater-hosted-qa' || startsWith(github.ref, 'refs/heads/codex/blackwater-art-'))
         with:
           name: gameplay-${{ github.sha }}
           path: output/playwright/private-bridge/

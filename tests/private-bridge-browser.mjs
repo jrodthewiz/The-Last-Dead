@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
@@ -11,9 +13,13 @@ const output=resolve(process.env.BLACKWATER_QA_OUTPUT || 'output/playwright/priv
 const cpu=process.env.BLACKWATER_RENDERER !== 'gpu';
 const entry=process.env.BLACKWATER_QA_ENTRY || '/';
 assert.ok(entry.startsWith('/') && !entry.startsWith('//') && !entry.includes('\\'));
-const report={root,entry,errors:[],crossings:[]};
+const hosted=process.env.BLACKWATER_QA_HOSTED==='1';
+const origin='https://blackwater-private-quality-review.jrodonthebeat.chatgpt.site';
+const roomName=hosted?'Bridge QA '+Date.now().toString(36):'Bridge QA';
+const report={root,entry,errors:[],crossings:[],...(hosted?{origin,roomResponses:[]}: {})};
 await mkdir(output,{recursive:true});
-const server=await startServer({root,port:0});
+const server=hosted?null:await startServer({root,port:0});
+const baseUrl=hosted?origin:'http://127.0.0.1:'+server.port;
 const browsers=[];
 try {
   async function player(viewport={width:720,height:480}){
@@ -24,7 +30,14 @@ try {
     page.setDefaultTimeout(cpu?300000:120000);
     await guardBackgroundInput(page);
     page.on('pageerror',error=>report.errors.push(error.message));
-    const url=new URL(entry,'http://127.0.0.1:'+server.port);
+    if(hosted)page.on('response',response=>{
+      const url=new URL(response.url());
+      if(url.origin!==origin || !url.pathname.startsWith('/api/blackwater/rooms'))return;
+      const action=url.pathname.split('/')[5] || (url.pathname.endsWith('/rooms')?'lobby':'room');
+      const receipt=response.request().method()+' '+action+' '+response.status();
+      if(!report.roomResponses.includes(receipt))report.roomResponses.push(receipt);
+    });
+    const url=new URL(entry,baseUrl);
     url.searchParams.set('debug','');
     await page.goto(url.href,{waitUntil:'domcontentloaded'});
     page.on('console',m=>{if(m.type()==='error')console.error('Game console:',m.text());});
@@ -34,6 +47,17 @@ try {
   }
   const host=await player();
   console.log("Host ready");
+  if(hosted){
+    report.verifiedFiles=[];
+    for(const path of ['island/data.js','island/world.js','island/surface-art.js','island/game.js','coop/rooms.js']){
+      const expected=createHash('sha256').update(await readFile(join(root,path))).digest('hex');
+      const response=await host.request.get(new URL(path,origin).href,{maxRedirects:0});
+      assert.equal(response.status(),200,path);
+      assert.equal(createHash('sha256').update(await response.body()).digest('hex'),expected,path);
+      report.verifiedFiles.push(path);
+    }
+    console.log('Hosted graphics and gameplay files match the checkout');
+  }
   report.adapter=await host.evaluate(()=>{
     const gl=__BLACKWATER__.renderer.getContext();
     return gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL);
@@ -119,11 +143,11 @@ try {
   await host.setViewportSize({width:560,height:360});
   console.log('Both players ready');
   await host.locator('#title-coop').tap();
-  await host.locator('#coop-lobby-name').fill('Bridge QA');
+  await host.locator('#coop-lobby-name').fill(roomName);
   await host.locator('#coop-host').tap();
   console.log('Room hosted');
   await guest.locator('#title-coop').tap();
-  await guest.getByRole('button',{name:'Join Bridge QA',exact:true}).waitFor();
+  await guest.getByRole('button',{name:'Join '+roomName,exact:true}).waitFor();
   // Discovery rows regenerate while polling. The fixed code field is also a
   // real player entry path and stays mounted even at software-renderer speeds.
   const code=await host.evaluate(()=>__BLACKWATER__.coop.connection.code);
@@ -143,12 +167,15 @@ try {
   await host.evaluate(()=>__BLACKWATER__.coop.leave());
   await guest.context().close();
   }
+  if(hosted)for(const receipt of ['GET lobby 200','POST lobby 201','POST join 200','POST start 200','POST sync 200','DELETE room 200']){
+    assert.ok(report.roomResponses.includes(receipt),'Missing hosted request '+receipt);
+  }
   assert.deepEqual(report.errors,[]);
   report.passed=true;
 } catch(error){report.failure=String(error);throw error;}
 finally{
   await Promise.all(browsers.map(browser=>browser.close()));
-  await new Promise(done=>server.server.close(done));
+  if(server)await new Promise(done=>server.server.close(done));
   await writeFile(join(output,'report.json'),JSON.stringify(report,null,2));
   console.log(report);
 }
