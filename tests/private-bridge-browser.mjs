@@ -45,7 +45,12 @@ try {
       ['west-bearing',[87,14,24,71,14,0]],
       ['strait',[210,57,92,236,20,0]]
     ];
-    await page.evaluate(()=>__BLACKWATER__.setTime(42));
+    await page.evaluate(()=>{
+      const game=__BLACKWATER__;
+      game.setTime(42);
+      game.camera.fov=74;
+      game.camera.updateProjectionMatrix();
+    });
     for(const [name,pose] of views){
       await page.evaluate(pose=>__BLACKWATER__.setPhoto(...pose),pose);
       await page.waitForFunction(([x,y,z])=>{
