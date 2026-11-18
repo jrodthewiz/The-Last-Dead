@@ -92,3 +92,27 @@ export function paintArchitecture(material){
 }
 
 export const skyNoise=noise;
+
+export function paintBridge(material,finish){
+ material.customProgramCacheKey=()=>`blackwater-bridge-${finish}`;
+ material.onBeforeCompile=shader=>{
+  shader.vertexShader='varying vec3 vBridge;\n'+shader.vertexShader;
+  shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvBridge=position;');
+  shader.fragmentShader='varying vec3 vBridge;\n'+noise+shader.fragmentShader;
+  const detail=finish==='asphalt'?`
+   vec2 p=vBridge.xz;
+   float wear=artField(p*vec2(.2,.68));
+   float grain=artNoise(p*3.7)* (1.-smoothstep(.16,.48,length(fwidth(p))));
+   float tracked=1.-smoothstep(.35,1.5,abs(abs(p.y)-3.8));
+   float repair=smoothstep(.71,.79,artField(p*vec2(.14,.38)));
+   diffuseColor.rgb*=.79+wear*.23+grain*.11+tracked*.17-repair*.18;
+  `:`
+   vec2 p=vec2(vBridge.x,vBridge.z+vBridge.y*2.);
+   float stain=artField(p*vec2(.25,.39));
+   float runoff=artNoise(vec2(p.x*.93,p.y*.12));
+   float joint=1.-smoothstep(.012,.012+max(.006,fwidth(p.x)*.1),abs(fract(p.x*.1)-.5));
+   diffuseColor.rgb*=.76+stain*.27-smoothstep(.59,.82,runoff)*.2-joint*.13;
+  `;
+  shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\n'+detail);
+ };
+}

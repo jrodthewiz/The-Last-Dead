@@ -39,6 +39,23 @@ try {
     return gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL);
   });
   assert.equal(/SwiftShader|llvmpipe|software/i.test(report.adapter),cpu,report.adapter);
+  async function captureWorld(page){
+    const views=[
+      ['east-road',[388,16.2,0,310,18.4,0]],
+      ['west-bearing',[87,14,24,71,14,0]],
+      ['strait',[210,57,92,236,20,0]]
+    ];
+    await page.evaluate(()=>__BLACKWATER__.setTime(42));
+    for(const [name,pose] of views){
+      await page.evaluate(pose=>__BLACKWATER__.setPhoto(...pose),pose);
+      await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
+      await page.screenshot({path:join(output,name+'.png'),timeout:120000});
+    }
+  }
+  const visual=process.env.BLACKWATER_QA_VISUAL;
+  if(visual==='baseline'){
+    await captureWorld(host);
+  }else{
   await host.locator('#begin').tap();
   await host.waitForFunction(()=>__BLACKWATER__.mode==='playing');
   // Associate actual Web Audio source starts with their decoded reload buffer.
@@ -119,6 +136,8 @@ try {
     await host.evaluate(([x,y,target])=>__BLACKWATER__.setPhoto(x,y,24,target,y,0),[x,y,target]);
     await host.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
     await host.screenshot({path:join(output,end+'-bearing.png')});
+  }
+  if(visual==='candidate')await captureWorld(host);
   }
   assert.deepEqual(report.errors,[]);
   report.passed=true;

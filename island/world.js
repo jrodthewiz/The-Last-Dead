@@ -10,7 +10,7 @@ import {domesticExteriorPlan} from './domestic-exteriors.js';
 import {compileWorldLabels,worldBoardMaterial} from './world-labels.js';
 import {houseShell} from './house-shell.js';
 import {consoleMaterial} from './retro-materials.js';
-import {paintArchitecture,paintTerrain,skyNoise} from './surface-art.js';
+import {paintArchitecture,paintTerrain,paintBridge,skyNoise} from './surface-art.js';
 import {coastalBotany,streetCraft} from './visual-details.js';
 import {createCoastalMotion} from './coastal-motion.js';
 import {createSettlementLife} from './settlement-life.js';
@@ -78,9 +78,9 @@ function buildTerrain(scene){
   material.onBeforeCompile=shader=>paintTerrain(shader,segments);
   const mesh=new T.Mesh(geometry,material);mesh.receiveShadow=true;scene.add(mesh);return mesh;
 }
-function ribbon(scene,points,width,color,offset=.12,drape=true){
+function ribbon(scene,points,width,color,offset=.12,drape=true,finish){
   const p=[];for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i],l=Math.hypot(b[0]-a[0],b[2]-a[2]),nx=-(b[2]-a[2])/l*width*.5,nz=(b[0]-a[0])/l*width*.5;for(let j=0;j<6;j++){const left=-1+j/3,right=-1+(j+1)/3;const point=(v,t)=>{const x=v[0]+nx*t,z=v[2]+nz*t;return [x,(drape?terrainHeight(x,z):v[1])+offset,z];};const al=point(a,left),ar=point(a,right),bl=point(b,left),br=point(b,right);p.push(...al,...ar,...bl,...bl,...ar,...br);}}
-  const mesh=new T.Mesh(surface(p),new T.MeshLambertMaterial({color,side:T.DoubleSide}));mesh.receiveShadow=true;scene.add(mesh);
+  const mesh=new T.Mesh(surface(p),new T.MeshLambertMaterial({color,side:T.DoubleSide}));finish?.(mesh.material);mesh.receiveShadow=true;scene.add(mesh);
 }
 function buildRoads(scene,kit){
   for(const road of ROADS){const points=[];for(let i=1;i<road.points.length;i++){const a=road.points[i-1],b=road.points[i],n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/2);for(let j=0;j<n;j++){const t=j/n,x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;points.push([x,terrainHeight(x,z),z]);}}const a=road.points.at(-1);points.push([a[0],terrainHeight(a[0],a[1]),a[1]]);
@@ -175,7 +175,8 @@ function tree(kit,x,y,z,s=1,kind='pine',rotation=0){
   kit.surface=0;
 }
 function buildBridge(scene,kit){
-  const p=[];for(let x=70;x<=370;x+=5)p.push([x,bridgeHeight(x),0]);ribbon(scene,p,23,0xaeb6a3,.07,false);ribbon(scene,p,16,0x72796d,.10,false);
+  const p=[];for(let x=70;x<=370;x+=5)p.push([x,bridgeHeight(x),0]);ribbon(scene,p,23,0x999689,.07,false,material=>paintBridge(material,'concrete'));
+  ribbon(scene,p,16,0x696c67,.10,false,material=>paintBridge(material,'asphalt'));
   // Continue the deck edges below the pavement and seat each end in its bank.
   const shell=[];
   const quad=(a,b,c,d)=>shell.push(...a,...b,...c,...a,...c,...d);
@@ -185,10 +186,29 @@ function buildBridge(scene,kit){
     quad([x0,h0-.7,-11.5],[x1,h1-.7,-11.5],[x1,h1-.7,11.5],[x0,h0-.7,11.5]);
   }
   const soffit=new T.Mesh(surface(shell),new T.MeshLambertMaterial({color:0x82877b,side:T.DoubleSide}));
+  paintBridge(soffit.material,'concrete');
   soffit.castShadow=soffit.receiveShadow=true;scene.add(soffit);
-  for(const {x,y,h,w,d} of bridgeAbutments)kit.box(x,y+h/2,0,w,h,d,0x929e8d);
-  for(let x=75;x<370;x+=10){const y=bridgeHeight(x);kit.box(x,y+.12,0,5,.03,.18,0xded0a0);for(const z of [-9.7,9.7]){kit.box(x,y+.5,z,.2,1,.2,COLORS.metal);kit.box(x,y+1,z,10,.16,.16,COLORS.metal);}}
-  for(const x of [120,320])for(const z of [-10.5,10.5]){kit.box(x,34,z,3,84,3,0xb5bca5);kit.box(x,69,0,3,2,23,0xc2c6ae);kit.box(x,43,0,3,2,23,0xc2c6ae);kit.box(x,2,z,8,10,7,0x929e8d);}
+  for(const {x,y,h,w,d} of bridgeAbutments)kit.box(x,y+h/2,0,w,h,d,0x8d8a78,0,1);
+  // Guardrails follow the grade on each bay. The existing collision and road
+  // widths stay fixed, with faded edge lines to mark the pedestrian margin.
+  for(let x=70;x<370;x+=5){
+    const y=bridgeHeight(x),next=bridgeHeight(x+5);
+    if(x%10===0)kit.box(x+2.5,bridgeHeight(x+2.5)+.13,0,3,.02,.14,0xb8a473);
+    for(const z of [-9.7,9.7]){
+      kit.box(x,y+.51,z,.18,.98,.18,0x565d57);
+      for(const [h,r] of [[.96,.08],[.48,.043]])kit.rod([x,y+h,z],[x+5,next+h,z],r,0x48524e);
+      kit.box(x+2.5,bridgeHeight(x+2.5)+.13,Math.sign(z)*7.3,2.8,.018,.1,0xa4a194);
+    }
+  }
+  for(const x of [120,320]){
+    for(const z of [-10.5,10.5]){
+      kit.box(x,34,z,3,84,3,0x9d9b88,0,1);
+      kit.box(x,2,z,8,10,7,0x858477,0,1);
+      for(const y of [43,69])kit.box(x,y,z,3.4,2.65,3.4,0x838577,0,1);
+    }
+    kit.box(x,69,0,3,2,20.8,0xada692,0,1);
+    kit.box(x,43,0,3,2,20.8,0xada692,0,1);
+  }
   for(const z of [-10.5,10.5]){let prev=null;for(let x=70;x<=370;x+=5){const y=x<120?16+(x-70)*1.12:x>320?72-(x-320)*1.12:29+43*((x-220)/100)**2;if(prev)kit.rod(prev,[x,y,z],.16,0x495f59);if(x%10===0)kit.rod([x,bridgeHeight(x)+1,z],[x,y,z],.055,0x5e7469);prev=[x,y,z];}}
   sign(scene,'SAINT ORIN',65,22,0,10,Math.PI/2);
 }
@@ -236,7 +256,7 @@ function streetDetails(scene,kit,data){
   // house footprints and access paths. A second scenery grid grew into homes.
 }
 function createSky(scene){
-  const uniforms={time:{value:0},sun:{value:new T.Vector3(-110,160,65).normalize()},top:{value:new T.Color(0x698e9f)},bottom:{value:new T.Color(0xd5c4a6)},cloudLight:{value:new T.Color(0xe5ddc4)},cloudShade:{value:new T.Color(0x8a9b9e)}};
+  const uniforms={time:{value:0},sun:{value:new T.Vector3(-110,160,65).normalize()},top:{value:new T.Color(0x52717e)},bottom:{value:new T.Color(0xc2bbaa)},cloudLight:{value:new T.Color(0xd9d5c5)},cloudShade:{value:new T.Color(0x71848b)}};
   const material=new T.ShaderMaterial({side:T.BackSide,depthWrite:false,uniforms,vertexShader:'varying vec3 vDir; void main(){vDir=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:`
    varying vec3 vDir;uniform float time;uniform vec3 sun,top,bottom,cloudLight,cloudShade;
    ${skyNoise}
@@ -284,7 +304,7 @@ function createWater(scene){
   const water=new T.Mesh(new T.PlaneGeometry(8000,8000,200,200),material);water.rotation.x=-Math.PI/2;water.position.y=.2;scene.add(water);return uniforms;
 }
 export function createWorld(scene,data){
-  scene.background=new T.Color(0xc1c5b3);scene.fog=new T.Fog(0xb7c0b2,340,2300);
+  scene.background=new T.Color(0xc1c5b3);scene.fog=new T.Fog(0xa2afb0,230,1900);
   const sky=createSky(scene),water=createWater(scene),kit=new Kit(scene);
   const hemi=new T.HemisphereLight(0xd8e7ed,0x758d65,1.15);scene.add(hemi);
   const sun=new T.DirectionalLight(0xffe6bc,1.8);sun.position.set(-700,850,250);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-90,right:90,top:90,bottom:-90,near:1,far:400});sun.shadow.bias=-.00025;sun.shadow.normalBias=.08;sun.shadow.autoUpdate=false;sun.shadow.needsUpdate=true;scene.add(sun,sun.target);let shadowAt=-Infinity,shadowX=NaN,shadowZ=NaN;
