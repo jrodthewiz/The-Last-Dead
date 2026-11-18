@@ -71,7 +71,12 @@ export function terrainHeight(x,z) {
   const u=(x-x0)/s,v=(z-z0)/s,a=baseHeight(x0,z0),b=baseHeight(x0+s,z0),c=baseHeight(x0,z0+s),d=baseHeight(x0+s,z0+s);
   return u+v<=1?a+(b-a)*u+(c-a)*v:d+(c-d)*(1-u)+(b-d)*(1-v);
 }
-export function bridgeHeight(x) {return 16+Math.sin(clamp((x-70)/300,0,1)*Math.PI)*6;}
+export function bridgeHeight(x) {return 16+Math.sin(clamp((x-70)/300,0,1)*Math.PI)*6-2*smooth(340,370,x);}
+export const bridgeAbutments=[71,369].map(x=>{
+  const top=bridgeHeight(x)-.65;
+  const y=Math.min(top-1,terrainHeight(x,-11.5),terrainHeight(x,11.5))-1;
+  return {id:'bridge-abutment',x,z:0,w:2,d:23,y,h:top-y};
+});
 export const SIGNAL_STAIRS={x:-432,z:-286,run:24,width:3,rise:6,base:terrainHeight(-432,-286)};
 export function groundHeight(x,z) {
   const civic=civicSurface(x,z);if(civic!==null)return civic;
@@ -183,6 +188,7 @@ export function createColliders(data) {
     else {const h=b.interiorHeight||3.4;box(b.x,b.z,b.w-.4,b.d-.4,y+h-.16,.16,b.id+'-ceiling');for(let floor=0;floor<h/3.4;floor++)for(const w of houseShell({...b,upper:floor>0}).walls)box(b.x+w.x,b.z+w.z,w.w,w.d,y+w.y+floor*3.4,w.h,b.id);if(b.height>h)box(b.x,b.z,b.w,b.d,y+h,b.height-h,b.id);colliders.push(...interiorPlan(b).solids,...cityForecourtPlan(b,groundHeight).solids);}
   }
   for(const tree of data.trees)box(tree.x,tree.z,.7*tree.scale,.7*tree.scale,tree.y,9,'tree');
+  colliders.push(...bridgeAbutments);
   for(let i=0;i<30;i++){const x=75+i*10;for(const z of [-11.4,11.4])box(x,z,10,.45,bridgeHeight(x),2,'bridge-rail');}
   box(-820,-260,7,7,terrainHeight(-820,-260),30,'lighthouse');
   for(const v of data.parkedCars)box(v.x,v.z,2.1,4.8,groundHeight(v.x,v.z),1.5,'parked-car');

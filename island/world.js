@@ -19,7 +19,7 @@ import {FRONTAGES,settlementReserved} from './settlement-plan.js';
 import {accessSurface,accessReserved} from './access-plan.js';
 import {treeContactShadowGeometry} from './tree-contact-shadows.js';
 import * as T from '../vendor/three.module.js';
-import {TERRAIN,CITY_GROUND,ROADS,LANDMARKS,random,terrainHeight,baseHeight,bridgeHeight,roadAt,clamp,groundHeight,stationPosition,entranceHeight} from './data.js';
+import {TERRAIN,CITY_GROUND,ROADS,LANDMARKS,random,terrainHeight,baseHeight,bridgeHeight,bridgeAbutments,roadAt,clamp,groundHeight,stationPosition,entranceHeight} from './data.js';
 
 import {authoredDetails} from './authored-details.js';
 
@@ -176,6 +176,17 @@ function tree(kit,x,y,z,s=1,kind='pine',rotation=0){
 }
 function buildBridge(scene,kit){
   const p=[];for(let x=70;x<=370;x+=5)p.push([x,bridgeHeight(x),0]);ribbon(scene,p,23,0xaeb6a3,.07,false);ribbon(scene,p,16,0x72796d,.10,false);
+  // Continue the deck edges below the pavement and seat each end in its bank.
+  const shell=[];
+  const quad=(a,b,c,d)=>shell.push(...a,...b,...c,...a,...c,...d);
+  for(let i=1;i<p.length;i++){
+    const [x0,h0]=p[i-1],[x1,h1]=p[i];
+    for(const z of [-11.5,11.5])quad([x0,h0+.07,z],[x1,h1+.07,z],[x1,h1-.7,z],[x0,h0-.7,z]);
+    quad([x0,h0-.7,-11.5],[x1,h1-.7,-11.5],[x1,h1-.7,11.5],[x0,h0-.7,11.5]);
+  }
+  const soffit=new T.Mesh(surface(shell),new T.MeshLambertMaterial({color:0x82877b,side:T.DoubleSide}));
+  soffit.castShadow=soffit.receiveShadow=true;scene.add(soffit);
+  for(const {x,y,h,w,d} of bridgeAbutments)kit.box(x,y+h/2,0,w,h,d,0x929e8d);
   for(let x=75;x<370;x+=10){const y=bridgeHeight(x);kit.box(x,y+.12,0,5,.03,.18,0xded0a0);for(const z of [-9.7,9.7]){kit.box(x,y+.5,z,.2,1,.2,COLORS.metal);kit.box(x,y+1,z,10,.16,.16,COLORS.metal);}}
   for(const x of [120,320])for(const z of [-10.5,10.5]){kit.box(x,34,z,3,84,3,0xb5bca5);kit.box(x,69,0,3,2,23,0xc2c6ae);kit.box(x,43,0,3,2,23,0xc2c6ae);kit.box(x,2,z,8,10,7,0x929e8d);}
   for(const z of [-10.5,10.5]){let prev=null;for(let x=70;x<=370;x+=5){const y=x<120?16+(x-70)*1.12:x>320?72-(x-320)*1.12:29+43*((x-220)/100)**2;if(prev)kit.rod(prev,[x,y,z],.16,0x495f59);if(x%10===0)kit.rod([x,bridgeHeight(x)+1,z],[x,y,z],.055,0x5e7469);prev=[x,y,z];}}
