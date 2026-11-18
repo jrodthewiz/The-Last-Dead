@@ -48,7 +48,10 @@ try {
     await page.evaluate(()=>__BLACKWATER__.setTime(42));
     for(const [name,pose] of views){
       await page.evaluate(pose=>__BLACKWATER__.setPhoto(...pose),pose);
-      await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
+      await page.waitForFunction(([x,y,z])=>{
+        const camera=__BLACKWATER__.camera.position;
+        return __BLACKWATER__.mode==='photo' && Math.hypot(camera.x-x,camera.y-y,camera.z-z)<.01;
+      },pose);
       await page.screenshot({path:join(output,name+'.png'),timeout:120000});
     }
   }
@@ -130,13 +133,10 @@ try {
   const x=await guest.evaluate(()=>__BLACKWATER__.state.x);
   await host.waitForFunction(x=>Math.abs(__BLACKWATER__.coop.avatar.position.x-x)<1,x);
   report.partner=await host.evaluate(()=>({position:__BLACKWATER__.coop.avatar.position.toArray(),direct:__BLACKWATER__.coop.connection.fast}));
+  await guest.evaluate(()=>__BLACKWATER__.coop.leave());
+  await host.evaluate(()=>__BLACKWATER__.coop.leave());
   await guest.context().close();
   await host.setViewportSize({width:720,height:480});
-  for(const [end,x,y,target] of [['west',87,14,71],['east',351,14.5,369]]){
-    await host.evaluate(([x,y,target])=>__BLACKWATER__.setPhoto(x,y,24,target,y,0),[x,y,target]);
-    await host.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
-    await host.screenshot({path:join(output,end+'-bearing.png')});
-  }
   if(visual==='candidate')await captureWorld(host);
   }
   assert.deepEqual(report.errors,[]);
