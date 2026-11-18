@@ -14,11 +14,12 @@ assert.ok(entry.startsWith('/') && !entry.startsWith('//') && !entry.includes('\
 const report={root,entry,errors:[],crossings:[]};
 await mkdir(output,{recursive:true});
 const server=await startServer({root,port:0});
-let browser;
+const browsers=[];
 try {
-  browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH,
-    args:cpu?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
   async function player(){
+    const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH,
+    args:cpu?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});
+    browsers.push(browser);
     const page=await browser.newPage({viewport:{width:720,height:480},hasTouch:true});
     page.setDefaultTimeout(120000);
     await guardBackgroundInput(page);
@@ -26,7 +27,9 @@ try {
     const url=new URL(entry,'http://127.0.0.1:'+server.port);
     url.searchParams.set('debug','');
     await page.goto(url.href,{waitUntil:'domcontentloaded'});
-    await page.waitForFunction(()=>window.__BLACKWATER__?.coop,null,{timeout:cpu?300000:120000});
+    page.on('console',m=>{if(m.type()==='error')console.error('Game console:',m.text());});
+    await page.waitForFunction(()=>window.__BLACKWATER__?.coop || document.querySelector('#begin')?.textContent.includes('Reload to try again'),null,{timeout:cpu?300000:120000});
+    assert.ok(await page.evaluate(()=>!!window.__BLACKWATER__?.coop),await page.locator('#loading').innerText());
     return page;
   }
   const host=await player();
@@ -114,7 +117,7 @@ try {
   report.passed=true;
 } catch(error){report.failure=String(error);throw error;}
 finally{
-  await browser?.close();
+  await Promise.all(browsers.map(browser=>browser.close()));
   await new Promise(done=>server.server.close(done));
   await writeFile(join(output,'report.json'),JSON.stringify(report,null,2));
   console.log(report);
