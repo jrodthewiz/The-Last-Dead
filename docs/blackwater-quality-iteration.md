@@ -385,3 +385,14 @@ Evidence spans `/workspace/scratch/blackwater-evidence/map-callout/`, `baseline-
 The close approach showed grass through the existing walkable stairs and low treads blending into the dirt. Grass tufts and incidental rocks from the ground-cover pass now respect the arrival-house stair footprint. The grass generator consumes the same seeded random values, preserving surrounding placement. The opt-in material gives the four lowest treads a paler wear color. This follows the localized entry contrast in the peat-and-pine concept and the focal-cue example from the DREDGE press kit.
 
 The matched 720×480 SwiftShader capture in `/workspace/scratch/blackwater-evidence/arrival-treads-detail/` shows the cleared stair lane and retains the scrub along its edge. Keyboard traversal reached the same stair position and height as the previous trial. Waypoint clearing and return passed with zero browser page errors. The Node suite returned 102 passes and the same eight known failures.
+
+### Arrival shelter and keeper’s workshop interiors
+
+Inside each shelter, the player can tell what the room was for without losing sight of the open aisle. These details use existing room geometry and the shared sign atlas.
+
+| Observed friction | Change | Evidence |
+| --- | --- | --- |
+| The arrival shelter’s empty grid and dark benches gave little indication that this was an evacuation waiting room. | Add a board heading, pinned slips and lighter seat tops. | The matched doorway view distinguishes the board and the line of seats. The small lettering is intended for closer inspection. |
+| The keeper’s rack used repeated flat strips. | Add a service heading and varied tool silhouettes. | The rack reads as workshop equipment in the matched interior view. |
+
+The 720×480 SwiftShader replays in `/workspace/scratch/blackwater-evidence/interiors-before/` and `interiors-after/` walked two meters into each room with keyboard input and captured identical camera coordinates at time 42. Both replays reported zero page errors. The generated collision volumes in both rooms match the baseline exactly. The runtime commit is `2e30156a9cdcd587005d6bfa900d28489cb94ba5`. The Cloud Node suite returned the same 102 passes and eight known failures.
