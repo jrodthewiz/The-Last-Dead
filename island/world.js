@@ -176,6 +176,11 @@ function compileBuilding(kit,b){
   if(FRONTAGES[b.id]){kit.surface=0;return;}
   if(b.enterable){kit.box(b.x,y+2.85,b.z+b.d/2+.85,b.cityInterior?5.4:4.3,b.cityInterior?.18:.25,2.2,b.accent);for(const sign of [-1,1])kit.box(b.x+sign*(b.cityInterior?2.45:2),y+1.3,b.z+b.d/2+1.5,b.cityInterior?.22:.16,2.6,b.cityInterior?.22:.16,b.cityInterior?COLORS.metal:COLORS.wood);}
   else{const color=[0x8b5945,0x536d65,0xb9a267][b.seed%3];kit.box(b.x,y+3,b.z+b.d/2+.8,b.w-2,.3,1.8,color);for(let k=0;k<3;k++)kit.box(b.x-6+k*6,y+1.5,b.z+b.d/2+.1,3.6,2.3,.13,0x3c5353,0,5);}kit.surface=0;
+  if(b.id==='arrival-house'){
+    // Mount the shelter name on the gable, above the porch roof.
+    kit.box(b.x,y+4,b.entry.z+.19,6.5,1.22,.38,COLORS.darkwood);
+    sign(kit.scene,'MARINER’S REST',b.x,y+4,b.entry.z+.39,6.5);
+  }
   if(b.cityInterior){const identity=cityIdentity(b);kit.label({x:b.x,y:y+2.36,z:b.entry.z+1.97,w:4.9,h:.72,text:identity.name,subline:identity.room,colour:identity.colour});}
 }
 export function sign(scene,text,x,y,z,width=6,rotation=0,dark=false){

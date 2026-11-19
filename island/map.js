@@ -11,9 +11,19 @@ export class FieldMap {
     c.fillStyle='#3e5a52';c.font='bold 23px Georgia';c.fillText('Blackwater Island',135,550);c.fillText('Saint Orin',690,570);c.font='bold 16px Georgia';c.fillStyle='#d8dfc9';c.fillText('The Orin Strait',460,195);c.font='bold 18px Georgia';c.fillText('N',36,38);c.beginPath();c.moveTo(42,49);c.lineTo(42,85);c.stroke();c.fillText('↑',35,64);
   }
   draw(state,pin){const {canvas}=this;canvas.width=1000;canvas.height=700;const c=canvas.getContext('2d');c.drawImage(this.base,0,0);
-    for(const p of LANDMARKS){const [x,y]=this.point(p.x,p.z);c.fillStyle=state.relays.includes(p.id)?'#e0d6a7':p.type==='relay'?'#a36243':'#3a574d';c.beginPath();c.arc(x,y,p.type==='relay'?6:4,0,Math.PI*2);c.fill();c.font='600 12px Trebuchet MS, Arial';c.fillStyle='#263e36';c.textAlign='center';c.fillText(p.name,x,y-11);}
+    c.textAlign='center';
+    c.font='700 20px Trebuchet MS, Arial';
+    c.lineJoin='round';
+    for(const p of LANDMARKS){
+      const [x,y]=this.point(p.x,p.z),relay=p.type==='relay';
+      c.fillStyle=state.relays.includes(p.id)?'#f3e2a7':relay?'#874829':'#304f45';
+      c.strokeStyle='#f5ebc7';c.lineWidth=2;
+      c.beginPath();c.arc(x,y,relay?7:5,0,Math.PI*2);c.fill();c.stroke();
+      c.lineWidth=5;c.strokeText(p.name,x,y-13);
+      c.fillStyle='#233b33';c.fillText(p.name,x,y-13);
+    }
     for(const place of PLACES){if(!state.discovered.includes(place.id))continue;const [x,y]=this.point(place.x,place.z);c.fillStyle=state.records.includes(place.id)?'#617047':'#a46540';c.fillRect(x-4,y-4,8,8);c.font='11px Trebuchet MS, Arial';c.textAlign='center';c.fillText(place.name,x,y+17);}
     if(pin){const p=this.point(pin.x,pin.z);c.strokeStyle='#a45f41';c.lineWidth=2;c.beginPath();c.arc(p[0],p[1],9,0,Math.PI*2);c.moveTo(p[0]-13,p[1]);c.lineTo(p[0]+13,p[1]);c.moveTo(p[0],p[1]-13);c.lineTo(p[0],p[1]+13);c.stroke();}
-    const p=this.point(state.x,state.z);c.save();c.translate(...p);c.rotate(state.yaw);c.fillStyle='#fff4ca';c.strokeStyle='#304f45';c.lineWidth=2;c.beginPath();c.moveTo(0,-10);c.lineTo(-6,7);c.lineTo(0,4);c.lineTo(6,7);c.closePath();c.fill();c.stroke();c.restore();
+    const p=this.point(state.x,state.z);c.save();c.translate(...p);c.rotate(state.yaw);c.fillStyle='#fff4ca';c.strokeStyle='#304f45';c.lineWidth=2;c.beginPath();c.moveTo(0,-13);c.lineTo(-8,9);c.lineTo(0,5);c.lineTo(8,9);c.closePath();c.fill();c.stroke();c.restore();
   }
 }

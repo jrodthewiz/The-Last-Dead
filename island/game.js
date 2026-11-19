@@ -87,7 +87,15 @@ function begin(continuing=false){expeditionSession=!!coop?.playing;fieldUI.clear
   for(const s of supplyVisuals)s.mesh.visible=!state.collected.includes(s.id);resume();sound.start().then(()=>sound.setVolume(settings.volume)).catch(()=>{});if(continuing)notify('Your journey continues.',3);updateHUD();
 }
 function returnTitle(){if(hasRun&&!expeditionSession)save();if(coop?.connection.active||coop?.session)coop.leave();closePanels();hasRun=false;mode='title';unlock();sound.pause(true);$('overlay').hidden=true;$('hud').hidden=true;$('title').hidden=false;$('continue').hidden=!readSave(localStorage);$('begin').textContent='New journey';focusControl($('continue').hidden?'begin':'continue');}
-function openMap(){if(!['playing','pause','map'].includes(mode))return;if(mode==='map'){resume();return;}mode='map';unlock();sound.pause(true);$('overlay').hidden=true;$('hud').hidden=true;$('map-screen').hidden=false;map.draw(state,pin);renderRecords();$('journal-relays').innerHTML=LANDMARKS.filter(p=>p.type==='relay').map((p,i)=>`<li class="${state.relays.includes(p.id)?'done':''}"><span>${state.relays.includes(p.id)?'✓':`0${i+1}`}</span>${p.name}</li>`).join('');$('map-save').textContent=saveNotice||'Progress saves at shelters, stations and every 45 seconds.';$('close-map').focus();}
+let mapFromPause=false;
+function openMap(){if(!['playing','pause','map'].includes(mode))return;
+  if(mode==='map'){
+    $('map-screen').hidden=true;
+    if(mapFromPause){showOverlay('pause');focusControl('pause-map');}
+    else resume();
+    return;
+  }
+  mapFromPause=mode==='pause';mode='map';unlock();sound.pause(true);$('overlay').hidden=true;$('hud').hidden=true;$('map-screen').hidden=false;map.draw(state,pin);renderRecords();$('journal-relays').innerHTML=LANDMARKS.filter(p=>p.type==='relay').map((p,i)=>`<li class="${state.relays.includes(p.id)?'done':''}"><span>${state.relays.includes(p.id)?'✓':`0${i+1}`}</span>${p.name}</li>`).join('');$('map-save').textContent=saveNotice||'Progress saves at shelters, stations and every 45 seconds.';$('close-map').focus();}
 function showSettings(from){settingsFrom=from;showOverlay('settings');}
 function retry(){resetNavigation(grid);resetLocomotion(state);searchAction=healing=null;const camp=LANDMARKS.find(p=>p.id===state.checkpoint)||LANDMARKS[0];Object.assign(state,{x:camp.x+3,z:camp.z-4,health:100,stamina:100,vy:0,y:supportHeight(data,camp.x+3,camp.z-4)});state.reserve=Math.max(state.reserve,Math.min(16,weaponProfile(state).reserve));storeAmmo(state);for(const p of projectiles)p.mesh.removeFromParent();projectiles.length=0;pendingStrike=null;charge=heat=0;barrelCooling=false;generatorRun=null;state.medkits=Math.max(state.medkits,1);vehicle=null;reload=0;restore=null;damageTimer=contactSoundTimer=0;for(const e of actors.enemies){e.notice=0;e.lastKnown=null;e.path=[];e.navTimer=0;e.attackTimer=0;e.seesPlayer=false;e.cooldown=1;}save();resume();notify('Back at shelter. The signal is still alive.');}
 function openPack(container=null){if(!['playing','pause'].includes(mode)||vehicle||reload>0||crimson)return;if(healing){notify('Finish applying the dressing first.');return;}clearNotice('search');packFrom=mode;searchAction=null;pendingStrike=null;mode='backpack';unlock();sound.pause(true);$('overlay').hidden=true;$('hud').hidden=true;backpackUI.open(container);}
