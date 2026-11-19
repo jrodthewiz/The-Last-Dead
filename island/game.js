@@ -88,6 +88,38 @@ function begin(continuing=false){expeditionSession=!!coop?.playing;fieldUI.clear
 }
 function returnTitle(){if(hasRun&&!expeditionSession)save();if(coop?.connection.active||coop?.session)coop.leave();closePanels();hasRun=false;mode='title';unlock();sound.pause(true);$('overlay').hidden=true;$('hud').hidden=true;$('title').hidden=false;$('continue').hidden=!readSave(localStorage);$('begin').textContent='New journey';focusControl($('continue').hidden?'begin':'continue');}
 let mapFromPause=false;
+function bearingDistance(target){
+  const meters=Math.round(Math.hypot(target.x-state.x,target.z-state.z));
+  return meters>999?(meters/1000).toFixed(1)+' km':meters+' m';
+}
+function drawMap(){
+  const target=pin??objective(state).target;
+  map.draw(state,pin,target);
+  $('map-bearing').textContent=target
+    ?`${pin?'◆ Waypoint':'◇ Objective'} · ${target.name} · ${bearingDistance(target)}`
+    :'No active objective';
+  $('clear-pin').hidden=!pin;
+  for(const button of $('journal-relays').querySelectorAll('button')){
+    button.setAttribute('aria-pressed',String(button.dataset.relay===pin?.id));
+  }
+}
+function setMapPin(value){pin=value;drawMap();}
+function renderMapRelays(){
+  const list=$('journal-relays');
+  list.replaceChildren();
+  for(const relay of LANDMARKS.filter(p=>p.type==='relay')){
+    const restored=state.relays.includes(relay.id);
+    const row=document.createElement('li');
+    row.classList.toggle('done',restored);
+    const button=document.createElement('button');
+    button.type='button';
+    button.dataset.relay=relay.id;
+    button.textContent=relay.name+(restored?' · Restored':'');
+    button.onclick=()=>setMapPin(pin?.id===relay.id?null:relay);
+    row.append(button);
+    list.append(row);
+  }
+}
 function openMap(){if(!['playing','pause','map'].includes(mode))return;
   if(mode==='map'){
     $('map-screen').hidden=true;
@@ -95,7 +127,7 @@ function openMap(){if(!['playing','pause','map'].includes(mode))return;
     else resume();
     return;
   }
-  mapFromPause=mode==='pause';mode='map';unlock();sound.pause(true);$('overlay').hidden=true;$('hud').hidden=true;$('map-screen').hidden=false;map.draw(state,pin);renderRecords();$('journal-relays').innerHTML=LANDMARKS.filter(p=>p.type==='relay').map((p,i)=>`<li class="${state.relays.includes(p.id)?'done':''}"><span>${state.relays.includes(p.id)?'✓':`0${i+1}`}</span>${p.name}</li>`).join('');$('map-save').textContent=saveNotice||'Progress saves at shelters, stations and every 45 seconds.';$('close-map').focus();}
+  mapFromPause=mode==='pause';mode='map';unlock();sound.pause(true);$('overlay').hidden=true;$('hud').hidden=true;$('map-screen').hidden=false;renderMapRelays();renderRecords();drawMap();$('map-save').textContent=saveNotice||'Progress saves at shelters, stations and every 45 seconds.';$('close-map').focus();}
 function showSettings(from){settingsFrom=from;showOverlay('settings');}
 function retry(){resetNavigation(grid);resetLocomotion(state);searchAction=healing=null;const camp=LANDMARKS.find(p=>p.id===state.checkpoint)||LANDMARKS[0];Object.assign(state,{x:camp.x+3,z:camp.z-4,health:100,stamina:100,vy:0,y:supportHeight(data,camp.x+3,camp.z-4)});state.reserve=Math.max(state.reserve,Math.min(16,weaponProfile(state).reserve));storeAmmo(state);for(const p of projectiles)p.mesh.removeFromParent();projectiles.length=0;pendingStrike=null;charge=heat=0;barrelCooling=false;generatorRun=null;state.medkits=Math.max(state.medkits,1);vehicle=null;reload=0;restore=null;damageTimer=contactSoundTimer=0;for(const e of actors.enemies){e.notice=0;e.lastKnown=null;e.path=[];e.navTimer=0;e.attackTimer=0;e.seesPlayer=false;e.cooldown=1;}save();resume();notify('Back at shelter. The signal is still alive.');}
 function openPack(container=null){if(!['playing','pause'].includes(mode)||vehicle||reload>0||crimson)return;if(healing){notify('Finish applying the dressing first.');return;}clearNotice('search');packFrom=mode;searchAction=null;pendingStrike=null;mode='backpack';unlock();sound.pause(true);$('overlay').hidden=true;$('hud').hidden=true;backpackUI.open(container);}
@@ -191,7 +223,7 @@ function openRecord(record){
  $('record-close').focus();
 }
 function closeRecord(){$('record-screen').hidden=true;recordOpen=null;resume();}
-function renderRecords(){const list=$('journal-records');list.replaceChildren();for(const p of PLACES){const button=document.createElement('button'),known=state.discovered.includes(p.id);button.className='journal-place text-button';button.textContent=known?p.name:'Uncharted place';button.disabled=!known;button.onclick=()=>{pin={x:p.x,z:p.z};map.draw(state,pin);$('journal-excerpt').textContent=state.records.includes(p.id)?p.text:'A place you discovered. The field record is still there.';};list.append(button);} $('journal-count').textContent=state.discovered.length+' / '+PLACES.length+' PLACES DISCOVERED';}
+function renderRecords(){const list=$('journal-records');list.replaceChildren();for(const p of PLACES){const button=document.createElement('button'),known=state.discovered.includes(p.id);button.className='journal-place text-button';button.textContent=known?p.name:'Uncharted place';button.disabled=!known;button.onclick=()=>{setMapPin({x:p.x,z:p.z,name:p.name});$('journal-excerpt').textContent=state.records.includes(p.id)?p.text:'A place you discovered. The field record is still there.';};list.append(button);} $('journal-count').textContent=state.discovered.length+' / '+PLACES.length+' PLACES DISCOVERED';}
 function toggleFlight(){if(coop?.playing){notify('Developer flight is available outside co-op expeditions.');return;}if(mode==='flight'){const previous=flight.exit();unlock();if(previous==='title'){mode='title';$('title').hidden=false;focusControl('title-fly');}else if(previous==='pause'){showOverlay('pause');focusControl('pause-fly');}else resume();return;}if(!['playing','pause','title'].includes(mode)||!flight)return;const previous=mode;unlock();sound.pause(true);mode='flight';$('hud').hidden=true;$('title').hidden=true;$('overlay').hidden=true;flight.enter(previous);}
 function nearestInteraction(){
   if(vehicle)return {kind:'vehicle-exit',label:'Leave utility truck',distance:0};
@@ -248,8 +280,8 @@ function createInteractables(){
 }
 function updateHUD(){
   if(toastReason&&(toastReason==='exhaustion'?!movementFrame.exhausted:toastReason!=='search'&&(state.weapon!==toastWeapon||(toastReason==='empty'?state.ammo+state.reserve>0:state.reserve>0)))){toastTimer=0;toastReason=null;$('toast').classList.remove('show');}
-  fuseVisual.visible=!state.fuse;const o=objective(state);if(generatorRun){o.title='Hold the courtyard';o.detail='Stay near the generator · '+Math.ceil(18-generatorRun.time)+' seconds';}$('objective-title').textContent=o.title;$('objective-detail').textContent=o.detail;const target=pin?{...pin,name:'Your waypoint'}:o.target;$('bearing').hidden=!target;
-  if(target){$('target-name').textContent=target.name;const d=Math.round(Math.hypot(target.x-state.x,target.z-state.z));$('target-distance').textContent=d>999?(d/1000).toFixed(1)+' km':d+' m';const relative=Math.atan2(target.x-state.x,-(target.z-state.z))-state.yaw;$('bearing').style.marginLeft=clamp(Math.atan2(Math.sin(relative),Math.cos(relative))*95,touch?-45:-160,touch?45:160)+'px';}
+  fuseVisual.visible=!state.fuse;const o=objective(state);if(generatorRun){o.title='Hold the courtyard';o.detail='Stay near the generator · '+Math.ceil(18-generatorRun.time)+' seconds';}$('objective-title').textContent=o.title;$('objective-detail').textContent=o.detail;const target=pin??o.target;$('bearing').hidden=!target;
+  if(target){$('target-name').textContent=target.name;$('target-distance').textContent=bearingDistance(target);const relative=Math.atan2(target.x-state.x,-(target.z-state.z))-state.yaw;$('bearing').style.marginLeft=clamp(Math.atan2(Math.sin(relative),Math.cos(relative))*95,touch?-45:-160,touch?45:160)+'px';}
   const dirs=['N','NE','E','SE','S','SW','W','NW'],index=((Math.round(state.yaw/(Math.PI/4))%8)+8)%8;$('heading').textContent=dirs[index];$('compass-left').textContent=dirs[(index+7)%8];$('compass-right').textContent=dirs[(index+1)%8];
   document.querySelector('.inventory').classList.toggle('held-melee',!vehicle&&weaponProfile(state).kind==='melee');$('health-number').textContent=Math.ceil(state.health);document.querySelector('.health').classList.toggle('exhausted',!!movementFrame.exhausted);document.querySelector('.health>span').textContent=movementFrame.exhausted?'EXHAUSTED':'HEALTH';document.querySelector('.inventory').classList.toggle('is-cooling',!vehicle&&state.weapon==='carrion'&&barrelCooling);document.querySelector('.health').classList.toggle('critical',state.health<30);$('health-fill').style.width=state.health+'%';$('health-fill').style.background=state.health<30?'#c57658':'';$('stamina-fill').style.width=state.stamina+'%';const w=weaponProfile(state);$('ammo').textContent=vehicle?Math.abs(Math.round(vehicle.speed*3.6)).toString():w.kind==='melee'?'—':String(state.ammo).padStart(2,'0');$('reserve').textContent=vehicle?'km/h':w.kind==='melee'?'':w.kind==='saw'?state.reserve+' FUEL':state.reserve;$('ammo-divider').hidden=!vehicle&&w.kind==='melee';$('weapon-name').textContent=vehicle?'UTILITY TRUCK':w.name.toUpperCase();$('weapon-status').textContent=searchAction?'SEARCHING':healing?(healing.id==='beer'?'DRINKING':'APPLYING TREATMENT'):crimson?'CRIMSON PUNCH':punch?'PUNCH':shove?'SHOVE':locomotion(state).vault?'VAULTING':vehicle?(touch?'USE · LEAVE TRUCK':'E · LEAVE TRUCK'):reload>0?((w.kind==='saw'?'REFUELLING ':'RELOADING ')+Math.floor((1-reload/w.reload)*100)+'%'):w.kind==='melee'?(shotCooldown>0?'RECOVERING':'SWING READY'):!['melee','saw'].includes(w.kind)&&firstPersonMotion.obstructed?'LOWERED · STEP BACK':w.capacity&&state.ammo===0?(state.reserve>0?(touch?'RELOAD':'R · RELOAD'):w.kind==='saw'?'NO FUEL':'NO AMMUNITION'):w.id==='arc'?(charge>0?'CHARGE '+Math.round(charge*100)+'%':'HOLD FIRE · CHARGE'):w.id==='carrion'&&barrelCooling?'COOLING · '+Math.round(clamp(heat,0,1)*100)+'%':w.id==='carrion'&&heat>.15?'HEAT '+Math.round(clamp(heat,0,1)*100)+'%':w.kind==='saw'?'HOLD FIRE · CUT':w.id==='carrion'?'HOLD FIRE · AUTO':touch?'TAP FIRE · SINGLE':'SINGLE FIRE · R RELOAD';$('medical').textContent=`${state.medkits+state.backpack.items.bandage} DRESSINGS · ${state.backpack.items.beer} STOUT`;
   document.querySelectorAll('.relay-dots i').forEach((el,i)=>el.classList.toggle('active',i<restoredRelayCount(state)));
@@ -321,7 +353,7 @@ function bindControls(){
   $('title-fly').onclick=toggleFlight;$('pause-fly').onclick=toggleFlight;$('flight-close').onclick=toggleFlight;$('title-inspect').onclick=toggleInspection;$('pause-inspect').onclick=toggleInspection;$('inspect-close').onclick=toggleInspection;$('inspect-animation').onchange=e=>inspection.setAnimation(e.target.value);
   let orbitPointer=null,lastX=0,lastY=0;canvas.addEventListener('pointerdown',e=>{if(mode==='inspection'){orbitPointer=e.pointerId;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture(e.pointerId);}});canvas.addEventListener('pointermove',e=>{if(mode==='inspection'&&orbitPointer===e.pointerId){inspection.orbit(e.clientX-lastX,e.clientY-lastY);lastX=e.clientX;lastY=e.clientY;}});canvas.addEventListener('pointerup',()=>orbitPointer=null);canvas.addEventListener('pointercancel',()=>orbitPointer=null);canvas.addEventListener('wheel',e=>{if(mode==='inspection'){e.preventDefault();inspection.zoom(e.deltaY);}else if(mode==='flight'){e.preventDefault();flight.zoom(e.deltaY);}else if(mode==='playing'&&!vehicle){e.preventDefault();const owned=WEAPONS.filter(w=>state.armory[w.id].owned),i=owned.findIndex(w=>w.id===state.weapon);selectWeapon(owned[(i+(e.deltaY>0?1:-1)+owned.length)%owned.length].id);}},{passive:false});
 
-  $('begin').onclick=()=>begin(false);$('continue').onclick=()=>begin(true);$('title-settings').onclick=()=>showSettings('title');$('resume').onclick=resume;$('pause-map').onclick=openMap;$('pause-settings').onclick=()=>showSettings('pause');$('save-quit').onclick=returnTitle;$('retry').onclick=retry;$('keep-exploring').onclick=resume;$('settings-back').onclick=()=>{if(settingsFrom==='title'){returnTitle();focusControl('title-settings');}else{showOverlay('pause');focusControl('pause-settings');}};$('close-map').onclick=openMap;$('mobile-map').onclick=openMap;$('clear-pin').onclick=()=>{pin=null;map.draw(state,pin);};
+  $('begin').onclick=()=>begin(false);$('continue').onclick=()=>begin(true);$('title-settings').onclick=()=>showSettings('title');$('resume').onclick=resume;$('pause-map').onclick=openMap;$('pause-settings').onclick=()=>showSettings('pause');$('save-quit').onclick=returnTitle;$('retry').onclick=retry;$('keep-exploring').onclick=resume;$('settings-back').onclick=()=>{if(settingsFrom==='title'){returnTitle();focusControl('title-settings');}else{showOverlay('pause');focusControl('pause-settings');}};$('close-map').onclick=openMap;$('mobile-map').onclick=openMap;$('clear-pin').onclick=()=>{setMapPin(null);focusControl('close-map');};
   document.querySelector('.title-actions').addEventListener('pointermove',e=>{const button=e.target.closest('button');if(e.pointerType==='mouse'&&button&&!button.disabled&&button!==document.activeElement)button.focus({preventScroll:true});});
   for(const k of ['sensitivity','volume','quality']){$(k).value=settings[k];$(k).oninput=applySettings;}$('motion').checked=settings.motion;$('motion').onchange=applySettings;settingReadouts();
   window.addEventListener('resize',resize);window.addEventListener('contextmenu',e=>e.preventDefault());window.addEventListener('blur',()=>{resetInput();if(mode==='playing')showOverlay('pause');});document.addEventListener('visibilitychange',()=>{if(document.hidden&&mode==='playing')showOverlay('pause');});
@@ -341,7 +373,7 @@ function bindControls(){
 async function init(){
   try{
     renderer=new T.WebGLRenderer({canvas,antialias:false,logarithmicDepthBuffer:true,powerPreference:'high-performance'});renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.03;scene=new T.Scene();scene.matrixAutoUpdate=false;camera=new T.PerspectiveCamera(74,innerWidth/innerHeight,.06,4800);scene.add(camera);presentation=createPresentation(renderer);resize();
-    data=createWorldData();grid=new SpatialGrid(createColliders(data));grid.floorAt=(x,z)=>supportHeight(data,x,z);grid.effectFloorAt=(x,z)=>effectFloorHeight(x,z,grid.floorAt(x,z));const effectsFloor=(x,z)=>effectFloorHeight(x,z,supportHeight(data,x,z));$('loading').textContent='Raising the island and Saint Orin';await new Promise(requestAnimationFrame);world=createWorld(scene,data);rifle=makeRifle(camera);feedback=createFeedback(scene,effectsFloor);createInteractables();map=new FieldMap($('field-map'),data,value=>{pin=value;map.draw(state,pin);});
+    data=createWorldData();grid=new SpatialGrid(createColliders(data));grid.floorAt=(x,z)=>supportHeight(data,x,z);grid.effectFloorAt=(x,z)=>effectFloorHeight(x,z,grid.floorAt(x,z));const effectsFloor=(x,z)=>effectFloorHeight(x,z,supportHeight(data,x,z));$('loading').textContent='Raising the island and Saint Orin';await new Promise(requestAnimationFrame);world=createWorld(scene,data);rifle=makeRifle(camera);feedback=createFeedback(scene,effectsFloor);createInteractables();map=new FieldMap($('field-map'),data,setMapPin);
     // Asset parsing and shader preparation own startup. Do not render partially
     // loaded rigs and synchronously compile their materials between fetches.
     $('loading').textContent='Unpacking the coast, survivor & expedition arsenal';

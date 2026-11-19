@@ -41,3 +41,11 @@ input[type=range]{appearance:none;background:transparent}input[type=range]::-web
 @media(max-width:600px){.inventory>span{font-size:10px}.objective h2{font-size:16px}}
 
 #hitmarker::before,#hitmarker::after{content:"";position:absolute;left:0;top:8px;width:19px;height:2px;background:linear-gradient(to right,currentColor 0 32%,transparent 32% 68%,currentColor 68%);transform:rotate(45deg)}#hitmarker::after{transform:rotate(-45deg)}#hitmarker.kill{color:#d27a56}
+
+.map-navigation{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:8px 10px;background:#20372e;color:#f2e6bf}
+.map-navigation p{margin:0;font-size:12px;font-weight:700}
+#clear-pin{min-height:36px;padding:4px 8px;font-size:11px}
+#journal-relays li{padding:0}
+#journal-relays button{width:100%;min-height:44px;padding:8px;text-align:left;background:transparent;border:1px solid transparent;color:inherit}
+#journal-relays button:hover,#journal-relays button:focus-visible{border-color:var(--accent)}
+#journal-relays button[aria-pressed="true"]{background:#354d3d;border-color:var(--accent)}

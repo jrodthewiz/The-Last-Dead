@@ -349,3 +349,15 @@ A survivor starts at Mariner’s Rest, uses the shelter and its field map to ori
 | Return from the map always goes into live play. | Inspecting the map from Pause can unpause the coast unexpectedly. | Return to Pause with focus on Field map & journal when entered there. | Exercise the Pause button path and the direct M-key round trip. |
 
 The Cloud baseline is `a2ce1ddefe73a72bf21877af672513bbf6558941`. The candidate runtime is `5cea1dfd0e0cee2cc4d40c705361da428538a1d8`. The local evidence under `/workspace/scratch/blackwater-evidence/` includes the fixed `baseline-views` captures and the paired `baseline-route` and `candidate-5cea1df-route` captures. The route uses a fresh solo game, actual keyboard walking, and a reset to a common approach position before capture. Chromium 156 reports ANGLE Vulkan SwiftShader Device (Subzero) via the unmasked WebGL renderer. Cloud Node runs on baseline and during the candidate pass reported the same 102 passes and eight failures. The portrait image uses viewport emulation.
+
+### Field map navigation follow-up
+
+From Mariner’s Rest, the player can read the next objective, choose a waypoint, and confirm the chosen bearing on returning to play.
+
+| Observed friction | Change | Evidence |
+| --- | --- | --- |
+| The HUD named the keeper’s house while the map showed only general landmarks. Road strokes blended into the land. | Show the current HUD target on the map, including prerequisites. Outline roads and emphasize the bridge with a two-tone stroke. | Compare the unpinned maps from the same arrival route. |
+| Emergency stations were static rows and the waypoint clear action sat below the journal. | Make station rows selectable. Keep the current destination, distance, and clear action together beside the map. | Select Westlight with a keyboard, check the bearing in play, then clear the waypoint and check that the original objective returns. |
+| A free waypoint had little visible confirmation. | Mark it with a filled diamond and identify it in the map status and HUD. | Tap the portrait map and confirm the waypoint status and clear action. |
+
+Cloud captures and the route report are in `/workspace/scratch/blackwater-evidence/map-navigation-final/`. The comparison uses the previous candidate’s `candidate-5cea1df-route` captures and Chromium with ANGLE SwiftShader. The Node suite, run with test process isolation disabled in this Cloud sandbox, reports 102 passes and the same eight known failures.
