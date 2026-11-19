@@ -358,10 +358,18 @@ async function init(){
     camera.position.set(-610,155,550);camera.lookAt(-85,26,-45);camera.fov=58;camera.updateProjectionMatrix();rifle.root.visible=armoryModels.rig.visible=false;
     world.update(0,camera.position,.64,state.relays);scenery.update(camera.position);lootVisuals.update(0,state,camera.position);exploration.update(0,state,camera.position);
     $('loading').textContent='Preparing the coast';warmup=await prepareRenderer(renderer,presentation,scene,camera,inspection);crimsonVisuals.finishWarmup();
-    // Present the completed title before accepting input, including the final
-    // RGB555 pass. The first playable frame never owns startup compilation.
-    presentation.render(scene,camera);bindControls();mode='title';frameTime=performance.now();requestAnimationFrame(frame);
+    // The frame loop owns presentation from here. A separate synchronous
+    // title draw would queue a second full render before input can take over.
+    bindControls();mode='title';frameTime=performance.now();requestAnimationFrame(frame);
     $('begin').disabled=false;$('title-coop').disabled=false;$('begin').textContent='Begin journey';$('continue').hidden=!readSave(localStorage);if(!$('continue').hidden)$('begin').className='text-button';$('loading').textContent='';focusControl($('continue').hidden?'begin':'continue');
+    const urlParams=new URLSearchParams(location.search);
+    const coopCode=(urlParams.get('room')||urlParams.get('code')||urlParams.get('joinId')||'').trim().toUpperCase();
+    const quickJoinCoop=urlParams.get('quickJoin')==='1'||urlParams.get('autoJoin')==='1'||Boolean(coopCode);
+    if(quickJoinCoop){
+      const callsign=(urlParams.get('name')||urlParams.get('playerName')||('Survivor-'+Math.floor(1000+Math.random()*9000))).slice(0,28);
+      if(coopCode){coop?.connection.connect('guest',{player:callsign,code:coopCode}).catch(()=>{});}
+      else{coop?.connection.list().then(rooms=>{if(rooms&&rooms[0]?.code)coop?.connection.connect('guest',{player:callsign,code:rooms[0].code}).catch(()=>{});}).catch(()=>{});}
+    }
     // An explicitly requested developer mode owns diagnostics; normal players
     // receive no dev panel or mutable globals. Browser QA uses this same runtime.
     if(debug||params.has('dev'))window.__BLACKWATER__={get state(){return state;},get mode(){return mode;},get vehicle(){return vehicle;},data,grid,actors,scene,camera,renderer,world,rifle,presentation,warmup,scenery,exploration,inspection,armoryModels,localBody,flight,caches,projectiles,loot,lootVisuals,actionHands,crimsonVisuals,feedback,beginShove,get shove(){return shove;},get locomotion(){return locomotion(state);},get movement(){return movementFrame;},get stride(){return firstPersonMotion.stride;},startCrimson,get crimson(){return crimson;},get punch(){return punch;},get healing(){return healing;},get searching(){return searchAction;},openPack,closePack,useRemedy,get combat(){return {heat,cooling:barrelCooling,charge,reload,reloadCount,reloadSpent,shotCooldown,generatorRun};},holdFire(value){firing=!!value;},holdAim(value){aiming=!!value&&canAim();},toggleFlight,toggleInspection,selectWeapon,collectWeapon(id){collectWeapon(state,id);},setTime(t){fixedTime=t;},setReviewScene(value){reviewScene=value;},begin,interact,shoot,heal,save,retry,openMap,doReload,takeDamage,teleport(x,z,yaw=state.yaw){resetLocomotion(state);firstPersonMotion.reset();state.x=x;state.z=z;state.y=supportHeight(data,x,z);state.yaw=yaw;state.pitch=0;state.vy=0;vehicle=null;updateHUD();},setPhoto(x,y,z,tx,ty,tz){mode='photo';photo={position:new T.Vector3(x,y,z),yaw:Math.atan2(tx-x,-(tz-z)),pitch:Math.atan2(ty-y,Math.hypot(tx-x,tz-z))};$('title').hidden=true;$('hud').hidden=true;},metrics(){const sorted=[...frameSamples].sort((a,b)=>a-b);return {frameMs:sorted[Math.floor(sorted.length/2)],p95:sorted[Math.floor(sorted.length*.95)],calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures,buildings:data.buildings.length,trees:data.trees.length,modules:world.stats.modules,scenery:scenery.stats,heritage:exploration.stats,weapon:state.weapon,animationClips:actors.animationNames};}};

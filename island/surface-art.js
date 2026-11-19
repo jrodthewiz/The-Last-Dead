@@ -9,10 +9,18 @@ float artField(vec2 p){return artNoise(p)*.62+artNoise(p*2.03+9.1)*.26+artNoise(
 `;
 const rgb=hex=>'vec3('+new T.Color(hex).toArray().map(v=>v.toFixed(5)).join(',')+')';
 
-export function paintTerrain(shader,segments){
+export function paintTerrain(shader,segments,roadPaint,roadBounds){
  shader.vertexShader='attribute float artSlope;varying float vSlope;varying vec3 vGround;\n'+shader.vertexShader;
  shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvGround=position;vSlope=artSlope;');
- shader.fragmentShader='varying float vSlope;varying vec3 vGround;\n'+noise+shader.fragmentShader;
+ // Keep a single loop in the driver instead of generating a large shader
+ // with a separate copy of the distance calculation for each road segment.
+ shader.uniforms.artRoadSegments={value:segments};
+ shader.uniforms.artRoadPaint={value:roadPaint};
+ shader.uniforms.artRoadCount={value:segments.length};
+ shader.fragmentShader=`varying float vSlope;varying vec3 vGround;
+ uniform vec4 artRoadSegments[${segments.length}];
+ uniform vec4 artRoadPaint[${segments.length}];
+ uniform int artRoadCount;\n`+noise+shader.fragmentShader;
  shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
  vec2 land=vGround.xz;float field=artField(land*.022),tuft=artNoise(land*.37);
  vec3 soil=mix(${rgb(0x607c4b)},${rgb(0x9b9e61)},smoothstep(.22,.8,field));
@@ -25,7 +33,13 @@ export function paintTerrain(shader,segments){
  vec3 sand=mix(${rgb(0x93997c)},${rgb(0xc3b992)},smoothstep(.2,3.8,vGround.y))*(.94+tuft*.1);
  soil=mix(soil,sand,shore*(1.-exposed*.5));
  diffuseColor.rgb=mix(diffuseColor.rgb,soil,.84);
- if(vGround.x<110.){float rd=9999.;float rw=0.;vec3 rc=vec3(0.);${segments.join('')}
+ if(vGround.x<110.&&${roadBounds}){float rd=9999.;float rw=0.;vec3 rc=vec3(0.);
+ for(int i=0;i<artRoadCount;i++){
+   vec4 segment=artRoadSegments[i];vec2 a=segment.xy,ab=segment.zw-a;
+   float t=clamp(dot(land-a,ab)/dot(ab,ab),0.,1.);
+   float d=length(land-a-ab*t);
+   if(d<rd){rd=d;vec4 paint=artRoadPaint[i];rw=paint.w;rc=paint.rgb;}
+ }
  float edge=artNoise(land*1.7)*.16;float shoulder=1.-smoothstep(rw+.55,rw+.85,rd+edge);
  float paving=1.-smoothstep(rw-.07,rw+.07,rd+edge*.35);
  diffuseColor.rgb=mix(diffuseColor.rgb,${rgb(0x666e4e)},shoulder);

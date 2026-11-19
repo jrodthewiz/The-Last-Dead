@@ -56,17 +56,22 @@ class Kit {
 }
 function surface(vertices,colors){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(vertices,3));if(colors)g.setAttribute('color',new T.Float32BufferAttribute(colors,3));g.computeVertexNormals();return g;}
 function buildTerrain(scene){
-  const {minX,maxX,minZ,maxZ,step:s}=TERRAIN,positions=[],colors=[],slopes=[],slopeCache=new Map(),color=new T.Color(),rng=random(711);
+  const {minX,maxX,minZ,maxZ,step:s}=TERRAIN,positions=[],colors=[],slopes=[],color=new T.Color(),rng=random(711);
+  const columns=Math.ceil((maxX-minX)/s),rows=Math.ceil((maxZ-minZ)/s),stride=columns+3;
+  const heights=new Float64Array(stride*(rows+3));
+  for(let row=-1;row<=rows+1;row++)for(let col=-1;col<=columns+1;col++)
+    heights[(row+1)*stride+col+1]=baseHeight(minX+col*s,minZ+row*s);
   // Interpolate a shared slope field across grid edges; material transitions
   // should follow a bank rather than expose each triangle's separate normal.
-  const slopeAt=(x,z)=>{const key=x+','+z;if(!slopeCache.has(key)){const dx=(baseHeight(x+s,z)-baseHeight(x-s,z))/(2*s),dz=(baseHeight(x,z+s)-baseHeight(x,z-s))/(2*s);slopeCache.set(key,1-1/Math.sqrt(1+dx*dx+dz*dz));}return slopeCache.get(key);};
-  for(let z=minZ;z<maxZ;z+=s)for(let x=minX;x<maxX;x+=s){
-    const a=[x,baseHeight(x,z),z],b=[x+s,baseHeight(x+s,z),z],c=[x,baseHeight(x,z+s),z+s],d=[x+s,baseHeight(x+s,z+s),z+s];
+  const slopeAt=i=>{const dx=(heights[i+1]-heights[i-1])/(2*s),dz=(heights[i+stride]-heights[i-stride])/(2*s);return 1-1/Math.sqrt(1+dx*dx+dz*dz);};
+  for(let row=0;row<rows;row++)for(let col=0;col<columns;col++){
+    const x=minX+col*s,z=minZ+row*s,i=(row+1)*stride+col+1;
+    const a=[x,heights[i],z,i],b=[x+s,heights[i+1],z,i+1],c=[x,heights[i+stride],z+s,i+stride],d=[x+s,heights[i+stride+1],z+s,i+stride+1];
     for(const tri of [[a,c,b],[b,c,d]]){
       const y=(tri[0][1]+tri[1][1]+tri[2][1])/3;
       color.setHex(y<3.8?0xc4c199:y>62?0x8b9668:x>330?0x819875:0x718b4d);
       color.multiplyScalar(.93+rng()*.13);
-      for(const p of tri){positions.push(...p);colors.push(color.r,color.g,color.b);slopes.push(slopeAt(p[0],p[2]));}
+      for(const [px,py,pz,index] of tri){positions.push(px,py,pz);colors.push(color.r,color.g,color.b);slopes.push(slopeAt(index));}
     }
   }
   const geometry=surface(positions,colors),uv=[];for(let i=0;i<positions.length;i+=3)uv.push(positions[i]/12,positions[i+2]/12);geometry.setAttribute('uv',new T.Float32BufferAttribute(uv,2));
@@ -74,8 +79,24 @@ function buildTerrain(scene){
   const material=new T.MeshLambertMaterial({vertexColors:true,flatShading:true,map:grain});
   // Paint the roads on their actual terrain triangles. Separate draped strips
   // fight the ground at grid diagonals and create ragged shoulders on hills.
-  const f=n=>Number(n).toFixed(3),segments=[];for(const road of [...TRAILS,...ROADS])for(let i=1;i<road.points.length;i++){const a=road.points[i-1],b=road.points[i],color=new T.Color(road.width<6?0xb5ae86:COLORS.road);segments.push(`{vec2 a=vec2(${f(a[0])},${f(a[1])});vec2 b=vec2(${f(b[0])},${f(b[1])});vec2 ab=b-a;float t=clamp(dot(vGround.xz-a,ab)/dot(ab,ab),0.,1.);float d=length(vGround.xz-a-ab*t);if(d<rd){rd=d;rw=${f(road.width*.5)};rc=vec3(${color.toArray().map(f).join(',')});}}`);}
-  material.onBeforeCompile=shader=>paintTerrain(shader,segments);
+  const f=n=>Number(n).toFixed(3),segments=[],roadPaint=[],roads=[...TRAILS,...ROADS];
+  const points=roads.flatMap(road=>road.points),padding=Math.ceil(Math.max(...roads.map(road=>road.width*.5))+.85);
+  const low=axis=>f(Math.floor(Math.min(...points.map(p=>p[axis])))-padding);
+  const high=axis=>f(Math.ceil(Math.max(...points.map(p=>p[axis])))+padding);
+  // Outside this conservative rectangle even the widest shoulder contributes
+  // zero. Inside it, keep the original nearest-segment and paint calculations.
+  const roadBounds=`all(greaterThanEqual(land,vec2(${low(0)},${low(1)})))&&all(lessThanEqual(land,vec2(${high(0)},${high(1)})))`;
+  const rounded=n=>Number(f(n));
+  for(const road of roads){
+    const color=new T.Color(road.width<6?0xb5ae86:COLORS.road);
+    const paint=new T.Vector4(...[color.r,color.g,color.b,road.width*.5].map(rounded));
+    for(let i=1;i<road.points.length;i++){
+      const a=road.points[i-1],b=road.points[i];
+      segments.push(new T.Vector4(...[a[0],a[1],b[0],b[1]].map(rounded)));
+      roadPaint.push(paint);
+    }
+  }
+  material.onBeforeCompile=shader=>paintTerrain(shader,segments,roadPaint,roadBounds);
   const mesh=new T.Mesh(geometry,material);mesh.receiveShadow=true;scene.add(mesh);return mesh;
 }
 function ribbon(scene,points,width,color,offset=.12,drape=true,finish){
