@@ -93,6 +93,19 @@ export function paintArchitecture(material){
     vec2 f=fract(slab),aa=max(fwidth(slab),vec2(.012));
     float joint=max(1.-smoothstep(.016,.016+aa.x,f.x),1.-smoothstep(.02,.02+aa.y,f.y));
     diffuseColor.rgb*=.92+.1*artHash(floor(slab))-.13*joint;
+   }else if(vArtRole>10.5){
+    // Along the aisle at the shelter, across the workroom at Westlight.
+    if(n.y>.7){
+     vec2 plank=vArtRole<11.5?vArtWorld.xz:vArtWorld.zx;
+     plank*=vec2(2.15,.25);
+     plank.y+=mod(floor(plank.x),3.)*.33;
+     vec2 cell=fract(plank),aa=max(fwidth(plank),vec2(.014));
+     vec2 edge=min(cell,1.-cell);
+     float joint=max(1.-smoothstep(.021,.021+aa.x,edge.x),1.-smoothstep(.016,.016+aa.y,edge.y));
+     float boards=artHash(floor(plank));
+     float wear=artNoise(uv*vec2(1.1,.33));
+     diffuseColor.rgb*=.9+boards*.22+wear*.10-joint*.32;
+    }
    }else if(vArtRole>9.5){
     // Worn upper faces lead to the threshold. Keep the risers in cool shadow.
     vec3 treadWear=vec3(1.25,1.18,1.08)*(.94+patina*.11);
@@ -105,7 +118,7 @@ export function paintArchitecture(material){
   shader.fragmentShader=shader.fragmentShader.replace('#include <emissivemap_fragment>',`#include <emissivemap_fragment>
    if(vArtRole>5.5&&vArtRole<6.5)totalEmissiveRadiance+=${rgb(0xb7965c)}*.22;`);
  };
- const key=material.customProgramCacheKey.bind(material);material.customProgramCacheKey=()=>key()+'-authored-surfaces-v2';
+ const key=material.customProgramCacheKey.bind(material);material.customProgramCacheKey=()=>key()+'-authored-surfaces-v3';
  return material;
 }
 

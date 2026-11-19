@@ -139,7 +139,9 @@ function compileBuilding(kit,b,arrivalTreads){
     const yy=y+tier.y;
     if(b.enterable&&tier.y===0){
       if(tier.h>roomHeight)kit.box(b.x,yy+roomHeight+(tier.h-roomHeight)/2,b.z,tier.w,tier.h-roomHeight,tier.d,b.color);
-      kit.box(b.x,yy+.10,b.z,b.w,.2,b.d,0xb6aa85);
+      const floorRole=b.id==='arrival-house'?11:b.id==='lightkeeper'?12:kit.surface;
+      const floorColor=floorRole===11?0xb5a281:floorRole===12?0x998164:0xb6aa85;
+      kit.box(b.x,yy+.10,b.z,b.w,.2,b.d,floorColor,0,floorRole);
       for(let floor=0;floor<roomHeight/3.4;floor++)for(const w of houseShell({...b,upper:floor>0}).walls)kit.box(b.x+w.x,yy+w.y+w.h/2+floor*3.4,b.z+w.z,w.w,w.h,w.d,b.color);
       kit.box(b.x,yy+roomHeight-.08,b.z,b.w-.4,.16,b.d-.4,0xb8b496);
       // Furniture and room linings have a shorter spatial budget than the

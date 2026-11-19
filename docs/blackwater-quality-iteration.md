@@ -396,3 +396,16 @@ Inside each shelter, the player can tell what the room was for without losing si
 | The keeper’s rack used repeated flat strips. | Add a service heading and varied tool silhouettes. | The rack reads as workshop equipment in the matched interior view. |
 
 The 720×480 SwiftShader replays in `/workspace/scratch/blackwater-evidence/interiors-before/` and `interiors-after/` walked two meters into each room with keyboard input and captured identical camera coordinates at time 42. Both replays reported zero page errors. The generated collision volumes in both rooms match the baseline exactly. The runtime commit is `2e30156a9cdcd587005d6bfa900d28489cb94ba5`. The Cloud Node suite returned the same 102 passes and eight known failures.
+
+### Interior materials and readable signs
+
+The shelter’s floor looked like the same diffuse surface as the keeper’s workroom, and both signs were hard to read from the doorway. Existing floor surfaces now use two board orientations and palettes. The shelter boards lead along the central aisle, while darker boards run across the keeper’s room. The two existing sign plates use larger lettering. Rendering adds no new floor geometry or collision.
+
+Two reviewers independently scored matched 720×480 SwiftShader screenshots with the order hidden and reversed between rooms. Each scored both rooms one point higher overall. Identity and material craft gained 1.5 to 2 points. Route and focal readability gained 1 to 1.5 points. Atmosphere gained 0 to 1 point. The reviewers flagged strong foreground floor seams, a dark ceiling, and limited guidance to the fuse. This is a visual comparison of two views.
+
+| Room | Reviewer 1, overall | Reviewer 2, overall |
+| --- | --- | --- |
+| Mariner’s Rest | 6 to 7 | 5.5 to 6.5 |
+| Keeper’s workshop | 6 to 7 | 5.5 to 6.5 |
+
+The replay verified keyboard entry, identical camera positions and time 42 in both room pairs, and zero browser page errors. The room collision plans match the baseline. Evidence is under `/workspace/scratch/blackwater-evidence/interiors-after/` and `interiors-floor/`. The Node suite returned 102 passes and the same eight known failures.

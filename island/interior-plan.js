@@ -9,7 +9,7 @@ function authoredInterior(k,b,y){
   table(x-3,z-3,4,1.4);k.box(x-3,y+1.08,z-3,1.1,.32,.75,metal);for(let j=0;j<4;j++)k.add('cylinder',x-3.35+j*.22,y+1.28,z-3,.055,.06,.055,cream);
   for(let i=0;i<3;i++){const xx=x+2+i*.6;k.add('cylinder',xx,y+1,z-4,.17,1.7,.17,0x7f8b68);k.box(xx,y+1.9,z-4,.45,.15,.45,cream);}
   k.box(x+3,y+1.5,z-5.7,4,2,.12,0x525e46);
-  k.label({x:x+3,y:y+2.27,z:z-5.62,w:3.7,h:.36,text:'WESTLIGHT SERVICE',colour:0x394e47});
+  k.label({x:x+3,y:y+2.27,z:z-5.62,w:3.7,h:.48,text:'WESTLIGHT SERVICE',large:true,colour:0x394e47});
   const tools=[
    [-1.4,.72,1.34,0x8d9e96],[-.73,.34,1.56,0xbd9b67],
    [-.05,.18,1.28,0x94a39a],[.63,.48,1.6,0x9a7052],[1.31,.25,1.35,0x8e9f8d],
@@ -35,7 +35,7 @@ function authoredInterior(k,b,y){
  if(b.id==='arrival-house'){
   table(x-3,z-3,4,1.6);for(let i=0;i<4;i++)k.box(x-4+i*.7,y+.96,z-3,.5,.035,.7,i%2?cream:0xa7b295);
   k.box(x,y+1.7,z-6.25,4,2,.12,0x516b5a);k.box(x,y+1.7,z-6.16,3.5,1.5,.025,0xb8b88f);k.box(x,y+1.7,z-6.13,.1,1.2,.02,0x616f57);k.box(x,y+1.7,z-6.13,3,.06,.02,0x616f57);
-  k.label({x,y:y+2.46,z:z-6.10,w:3.5,h:.39,text:'EVACUATION BOARD',colour:0x425d51});
+  k.label({x,y:y+2.46,z:z-6.10,w:3.5,h:.49,text:'EVACUATION BOARD',large:true,colour:0x425d51});
   // Pinned slips sit inside the existing grid and leave the board frame readable.
   for(const [dx,dy,color] of [[-1.1,1.4,cream],[-.55,1.89,0xa6b18a],[.53,1.44,0xbfa575],[1.07,1.81,cream]]){
    k.box(x+dx,y+dy,z-6.10,.35,.29,.025,color);

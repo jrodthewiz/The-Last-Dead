@@ -14,12 +14,12 @@ export function worldBoardMaterial(texture,backColour=0x3d5550){
 // Shared low-resolution sign atlas. One texture and spatially merged quads,
 // rather than a canvas, material and draw call for each address or room.
 export function compileWorldLabels(scene,labels,roomBounds=new Map()){
- const entries=new Map();for(const p of labels){const key=JSON.stringify([p.text,p.subline||'',p.colour||0x516b5c]);if(!entries.has(key))entries.set(key,{...p,index:entries.size});p.atlasKey=key;}
+ const entries=new Map();for(const p of labels){const key=JSON.stringify([p.text,p.subline||'',p.colour||0x516b5c,!!p.large]);if(!entries.has(key))entries.set(key,{...p,index:entries.size});p.atlasKey=key;}
  const cellW=512,cellH=96,cols=2,rows=2**Math.ceil(Math.log2(Math.max(1,Math.ceil(entries.size/cols)))),canvas=document.createElement('canvas');canvas.width=cellW*cols;canvas.height=cellH*rows;const c=canvas.getContext('2d');
  for(const p of entries.values()){
   const x=p.index%cols*cellW,y=Math.floor(p.index/cols)*cellH;
   c.fillStyle='#'+new T.Color(p.colour||0x516b5c).getHexString();c.fillRect(x,y,cellW,cellH);
-  c.strokeStyle='#c6c6a3';c.lineWidth=3;c.strokeRect(x+7,y+7,cellW-14,cellH-14);c.fillStyle='#f0e5bb';c.textAlign='center';c.textBaseline='middle';c.font='900 28px Trebuchet MS, Arial';c.fillText(p.text,x+cellW/2,y+(p.subline?35:49),cellW-34);
+  c.strokeStyle='#c6c6a3';c.lineWidth=3;c.strokeRect(x+7,y+7,cellW-14,cellH-14);c.fillStyle='#f0e5bb';c.textAlign='center';c.textBaseline='middle';c.font=p.large?'900 49px Trebuchet MS, Arial':'900 28px Trebuchet MS, Arial';c.fillText(p.text,x+cellW/2,y+(p.subline?35:49),cellW-34);
   if(p.subline){c.fillStyle='#d5d9b8';c.font='700 15px Trebuchet MS, Arial';c.fillText(p.subline,x+cellW/2,y+66,cellW-34);}
  }
  const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;texture.magFilter=T.NearestFilter;texture.minFilter=T.LinearMipmapLinearFilter;
