@@ -130,7 +130,8 @@ function compileBuilding(kit,b,arrivalTreads){
     for(let i=0;i<b.entry.steps;i++){
       const z=b.entry.z+(i+.5)*b.entry.length/b.entry.steps;
       const top=entranceHeight(b,b.x,z),bottom=terrainHeight(b.x,z)-.15;
-      kit.box(b.x,(top+bottom)/2,z,3,Math.max(.12,top-bottom),stepDepth,0xb3a789,0,treadRole);
+      const treadColor=treadRole===10&&i>=b.entry.steps-4?0xb9b394:0xb3a789;
+      kit.box(b.x,(top+bottom)/2,z,3,Math.max(.12,top-bottom),stepDepth,treadColor,0,treadRole);
     }
   }
   for(const side of [-1,1])for(let k=0;k<Math.ceil(b.d/2);k++){const z=b.z-b.d/2+(k+.5)*b.d/Math.ceil(b.d/2),bottom=terrainHeight(b.x+side*b.w/2,z);if(y-bottom>.35)kit.box(b.x+side*(b.w/2+.28),(y+bottom)/2,z,.08,y-bottom,b.d/Math.ceil(b.d/2)-.1,0x727d6c);}
@@ -353,7 +354,19 @@ export function createWorld(scene,data,{arrivalTreads=false}={}){
   const rng=random(6);for(let i=0;i<50;i++){const a=i/50*Math.PI*2,x=-490+Math.cos(a)*700,z=Math.sin(a)*600;if(x>20&&Math.abs(z)<220)continue;kit.add('rock',x,-4,z,12+rng()*25,9+rng()*18,15+rng()*20,0x87998b,rng()*6);}
   for(let i=0;i<12;i++)kit.add('rock',-1600+i*280,-25,-1600,250+rng()*180,90+rng()*70,220,0x91afa7,rng()*6);
   // Grass patches and low coastal scrub share the same seed as the terrain.
-  for(let i=0;i<12000;i++){const x=-1030+rng()*1100,z=-440+rng()*850,y=terrainHeight(x,z),r=roadAt(x,z);if(y<5||reservedPlace(x,z,.9)||settlementReserved(x,z,1.5)||accessReserved(data.accessPaths,x,z,1.3)||r.distance<r.width*.5+2||data.buildings.some(b=>Math.abs(x-b.x)<b.w*.5+3&&Math.abs(z-b.z)<b.d*.5+3))continue;const s=.48+rng()*.65;for(let j=0;j<3;j++){const a=j*2.4,x1=x+Math.cos(a)*.65,z1=z+Math.sin(a)*.65,y1=terrainHeight(x1,z1);kit.add('tuft',x1,y1-.015,z1,s,s,s,i%3?0x78864c:0xa2a66b,rng()*6,null,4);}if(i%5===0)kit.add('rock',x,y+.22,z,.6,.38,.6,0x738657);}
+  const arrivalHouse=data.buildings.find(b=>b.id==='arrival-house');
+  for(let i=0;i<12000;i++){
+    const x=-1030+rng()*1100,z=-440+rng()*850,y=terrainHeight(x,z),r=roadAt(x,z);
+    if(y<5||reservedPlace(x,z,.9)||settlementReserved(x,z,1.5)||accessReserved(data.accessPaths,x,z,1.3)||r.distance<r.width*.5+2||data.buildings.some(b=>Math.abs(x-b.x)<b.w*.5+3&&Math.abs(z-b.z)<b.d*.5+3))continue;
+    const s=.48+rng()*.65;
+    for(let j=0;j<3;j++){
+      const a=j*2.4,x1=x+Math.cos(a)*.65,z1=z+Math.sin(a)*.65;
+      const rotation=rng()*6;
+      if(arrivalHouse&&entranceHeight(arrivalHouse,x1,z1)!==null)continue;
+      kit.add('tuft',x1,terrainHeight(x1,z1)-.015,z1,s,s,s,i%3?0x78864c:0xa2a66b,rotation,null,4);
+    }
+    if(i%5===0&&(!arrivalHouse||entranceHeight(arrivalHouse,x,z)===null))kit.add('rock',x,y+.22,z,.6,.38,.6,0x738657);
+  }
   const stats=kit.finish();stats.botany=botany;stats.routes=routes;addContactShadows(scene,data);const movingRoots=new Set([sky.sky,sun,sun.target,settlement.boat]);for(const root of scene.children)if(!root.isCamera&&!movingRoots.has(root))freezeLocalTransforms(root);const coastalMotion=createCoastalMotion(scene),life=createSettlementLife(scene,data);
   const birds=new T.Group();const birdMat=new T.MeshBasicMaterial({color:0x3e5754});for(let i=0;i<12;i++){const geo=surface([-1,0,0,0,.25,0,0,0,.3,0,.25,0,1,0,0,0,0,.3]);const bird=new T.Mesh(geo,birdMat);bird.userData.phase=i*.52;birds.add(bird);}scene.add(birds);
   return {stats,sun,hemi,water,sky,coastalMotion,life,settlement,update(time,player,day=.64,relays=[],fov=60){const roomScale=Math.max(1,Math.min(2.4,Math.tan(Math.PI/6)/Math.tan(fov*Math.PI/360)));stats.update(player,roomScale);kit.material.userData.wind.value=time;life.update(time,player);settlement.update(time,player);water.time.value=time;sky.uniforms.time.value=time;sky.sky.position.copy(player);coastalMotion.update(time,relays);const light=.55+.45*Math.max(0,Math.sin(day*Math.PI));sun.intensity=2.1*light;hemi.intensity=.65+.25*light;const sx=Math.round(player.x),sz=Math.round(player.z),sy=groundHeight(sx,sz);sun.target.position.set(sx,sy,sz);sun.position.set(sx-110,sy+160,sz+65);// Keep the 2048px shadow pass at 30Hz; lighting and colour still draw every frame.
