@@ -96,7 +96,7 @@ function drawMap(){
   const target=pin??objective(state).target;
   map.draw(state,pin,target);
   $('map-bearing').textContent=target
-    ?`${pin?'◆ Waypoint':'◇ Objective'} · ${target.name} · ${bearingDistance(target)}`
+    ?`${pin?'◆ '+(target.name==='Your waypoint'?target.name:'Waypoint · '+target.name):'◇ Objective · '+target.name} · ${bearingDistance(target)}`
     :'No active objective';
   $('clear-pin').hidden=!pin;
   for(const button of $('journal-relays').querySelectorAll('button')){
@@ -373,7 +373,7 @@ function bindControls(){
 async function init(){
   try{
     renderer=new T.WebGLRenderer({canvas,antialias:false,logarithmicDepthBuffer:true,powerPreference:'high-performance'});renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.03;scene=new T.Scene();scene.matrixAutoUpdate=false;camera=new T.PerspectiveCamera(74,innerWidth/innerHeight,.06,4800);scene.add(camera);presentation=createPresentation(renderer);resize();
-    data=createWorldData();grid=new SpatialGrid(createColliders(data));grid.floorAt=(x,z)=>supportHeight(data,x,z);grid.effectFloorAt=(x,z)=>effectFloorHeight(x,z,grid.floorAt(x,z));const effectsFloor=(x,z)=>effectFloorHeight(x,z,supportHeight(data,x,z));$('loading').textContent='Raising the island and Saint Orin';await new Promise(requestAnimationFrame);world=createWorld(scene,data);rifle=makeRifle(camera);feedback=createFeedback(scene,effectsFloor);createInteractables();map=new FieldMap($('field-map'),data,setMapPin);
+    data=createWorldData();grid=new SpatialGrid(createColliders(data));grid.floorAt=(x,z)=>supportHeight(data,x,z);grid.effectFloorAt=(x,z)=>effectFloorHeight(x,z,grid.floorAt(x,z));const effectsFloor=(x,z)=>effectFloorHeight(x,z,supportHeight(data,x,z));$('loading').textContent='Raising the island and Saint Orin';await new Promise(requestAnimationFrame);world=createWorld(scene,data,{arrivalTreads:params.get('art')==='arrival-treads'});rifle=makeRifle(camera);feedback=createFeedback(scene,effectsFloor);createInteractables();map=new FieldMap($('field-map'),data,setMapPin);
     // Asset parsing and shader preparation own startup. Do not render partially
     // loaded rigs and synchronously compile their materials between fetches.
     $('loading').textContent='Unpacking the coast, survivor & expedition arsenal';

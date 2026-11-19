@@ -121,10 +121,18 @@ function gable(kit,b,y){const angle=Math.atan2(3.4,b.w*.5+1),length=Math.hypot(b
   const positions=[];for(const sign of [-1,1])positions.push(b.x-b.w/2,y,b.z+sign*b.d/2,b.x+b.w/2,y,b.z+sign*b.d/2,b.x,y+3.4,b.z+sign*b.d/2);const caps=new T.Mesh(surface(positions),new T.MeshLambertMaterial({color:b.color,side:T.DoubleSide}));kit.scene.add(caps);
   kit.box(b.x+b.w*.28,y+2,b.z-2,.9,3,1.2,0x8d8168);
 }
-function compileBuilding(kit,b){
+function compileBuilding(kit,b,arrivalTreads){
   const y=b.baseY,rng=random(b.seed),roomHeight=b.interiorHeight||3.4;kit.surface=1;
   kit.box(b.x,(y+b.foundationBottom)/2,b.z,b.w+.5,y-b.foundationBottom,b.d+.5,0x858d78,0,7);
-  if(b.enterable)for(let i=0;i<b.entry.steps;i++){const z=b.entry.z+(i+.5)*b.entry.length/b.entry.steps,top=entranceHeight(b,b.x,z),bottom=terrainHeight(b.x,z)-.15;kit.box(b.x,(top+bottom)/2,z,3,Math.max(.12,top-bottom),b.entry.length/b.entry.steps,0xb3a789);}
+  if(b.enterable){
+    const stepDepth=b.entry.length/b.entry.steps;
+    const treadRole=arrivalTreads&&b.id==='arrival-house'?10:kit.surface;
+    for(let i=0;i<b.entry.steps;i++){
+      const z=b.entry.z+(i+.5)*b.entry.length/b.entry.steps;
+      const top=entranceHeight(b,b.x,z),bottom=terrainHeight(b.x,z)-.15;
+      kit.box(b.x,(top+bottom)/2,z,3,Math.max(.12,top-bottom),stepDepth,0xb3a789,0,treadRole);
+    }
+  }
   for(const side of [-1,1])for(let k=0;k<Math.ceil(b.d/2);k++){const z=b.z-b.d/2+(k+.5)*b.d/Math.ceil(b.d/2),bottom=terrainHeight(b.x+side*b.w/2,z);if(y-bottom>.35)kit.box(b.x+side*(b.w/2+.28),(y+bottom)/2,z,.08,y-bottom,b.d/Math.ceil(b.d/2)-.1,0x727d6c);}
   for(const tier of b.tiers){
     const yy=y+tier.y;
@@ -329,12 +337,12 @@ function createWater(scene){
   };
   const water=new T.Mesh(new T.PlaneGeometry(8000,8000,200,200),material);water.rotation.x=-Math.PI/2;water.position.y=.2;scene.add(water);return uniforms;
 }
-export function createWorld(scene,data){
+export function createWorld(scene,data,{arrivalTreads=false}={}){
   scene.background=new T.Color(0xc1c5b3);scene.fog=new T.Fog(0xa2afb0,230,1900);
   const sky=createSky(scene),water=createWater(scene),kit=new Kit(scene);
   const hemi=new T.HemisphereLight(0xd8e7ed,0x758d65,1.15);scene.add(hemi);
   const sun=new T.DirectionalLight(0xffe6bc,1.8);sun.position.set(-700,850,250);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-90,right:90,top:90,bottom:-90,near:1,far:400});sun.shadow.bias=-.00025;sun.shadow.normalBias=.08;sun.shadow.autoUpdate=false;sun.shadow.needsUpdate=true;scene.add(sun,sun.target);let shadowAt=-Infinity,shadowX=NaN,shadowZ=NaN;
-  buildTerrain(scene);const accessVertices=accessSurface(data.accessPaths,terrainHeight,TERRAIN),accessGeometry=surface(accessVertices),accessUV=[];for(let i=0;i<accessVertices.length;i+=3)accessUV.push(accessVertices[i]/2,accessVertices[i+2]/2);accessGeometry.setAttribute('uv',new T.Float32BufferAttribute(accessUV,2));const accessMesh=new T.Mesh(accessGeometry,new T.MeshLambertMaterial({color:0xb0a17a,map:grain,flatShading:true}));accessMesh.receiveShadow=true;scene.add(accessMesh);buildRoads(scene,kit);for(const b of data.buildings){compileBuilding(kit,b);compilePieces(kit,cityForecourtPlan(b,groundHeight).pieces);}
+  buildTerrain(scene);const accessVertices=accessSurface(data.accessPaths,terrainHeight,TERRAIN),accessGeometry=surface(accessVertices),accessUV=[];for(let i=0;i<accessVertices.length;i+=3)accessUV.push(accessVertices[i]/2,accessVertices[i+2]/2);accessGeometry.setAttribute('uv',new T.Float32BufferAttribute(accessUV,2));const accessMesh=new T.Mesh(accessGeometry,new T.MeshLambertMaterial({color:0xb0a17a,map:grain,flatShading:true}));accessMesh.receiveShadow=true;scene.add(accessMesh);buildRoads(scene,kit);for(const b of data.buildings){compileBuilding(kit,b,arrivalTreads);compilePieces(kit,cityForecourtPlan(b,groundHeight).pieces);}
   for(const t of data.trees)tree(kit,t.x,t.y,t.z,t.scale,t.kind,t.rotation);
   for(const r of data.rocks)kit.add('rock',r.x,r.y+r.s*.35,r.z,r.s,r.s*.7,r.s*.8,0x9da68e,r.r);
   buildBridge(scene,kit);buildLandmarks(scene,kit);compilePieces(kit,civicCraftPlan().pieces);streetDetails(scene,kit,data);authoredDetails(scene,kit,data,sign);placeDetails(scene,kit,data,sign);streetCraft(kit,data);const botany=coastalBotany(kit,data);

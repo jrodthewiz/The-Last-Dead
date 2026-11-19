@@ -93,6 +93,10 @@ export function paintArchitecture(material){
     vec2 f=fract(slab),aa=max(fwidth(slab),vec2(.012));
     float joint=max(1.-smoothstep(.016,.016+aa.x,f.x),1.-smoothstep(.02,.02+aa.y,f.y));
     diffuseColor.rgb*=.92+.1*artHash(floor(slab))-.13*joint;
+   }else if(vArtRole>9.5){
+    // Worn upper faces lead to the threshold. Keep the risers in cool shadow.
+    vec3 treadWear=vec3(1.25,1.18,1.08)*(.94+patina*.11);
+    diffuseColor.rgb*=n.y>.7?treadWear:vec3(.79,.82,.83);
    }else{
     float aggregate=artNoise(vArtWorld.xz*2.7),repair=artNoise(vArtWorld.xz*.09);
     diffuseColor.rgb*=.94+aggregate*.085-smoothstep(.7,.82,repair)*.055;
@@ -101,7 +105,7 @@ export function paintArchitecture(material){
   shader.fragmentShader=shader.fragmentShader.replace('#include <emissivemap_fragment>',`#include <emissivemap_fragment>
    if(vArtRole>5.5&&vArtRole<6.5)totalEmissiveRadiance+=${rgb(0xb7965c)}*.22;`);
  };
- const key=material.customProgramCacheKey.bind(material);material.customProgramCacheKey=()=>key()+'-authored-surfaces-v1';
+ const key=material.customProgramCacheKey.bind(material);material.customProgramCacheKey=()=>key()+'-authored-surfaces-v2';
  return material;
 }
 
