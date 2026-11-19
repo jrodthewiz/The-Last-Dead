@@ -8,7 +8,16 @@ function authoredInterior(k,b,y){
  if(b.id==='lightkeeper'){
   table(x-3,z-3,4,1.4);k.box(x-3,y+1.08,z-3,1.1,.32,.75,metal);for(let j=0;j<4;j++)k.add('cylinder',x-3.35+j*.22,y+1.28,z-3,.055,.06,.055,cream);
   for(let i=0;i<3;i++){const xx=x+2+i*.6;k.add('cylinder',xx,y+1,z-4,.17,1.7,.17,0x7f8b68);k.box(xx,y+1.9,z-4,.45,.15,.45,cream);}
-  k.box(x+3,y+1.5,z-5.7,4,2,.12,0x525e46);for(let j=0;j<5;j++)k.box(x+1.5+j*.65,y+1.5,z-5.58,.05,1.4,.03,0xc9b486);
+  k.box(x+3,y+1.5,z-5.7,4,2,.12,0x525e46);
+  k.label({x:x+3,y:y+2.27,z:z-5.62,w:3.7,h:.36,text:'WESTLIGHT SERVICE',colour:0x394e47});
+  const tools=[
+   [-1.4,.72,1.34,0x8d9e96],[-.73,.34,1.56,0xbd9b67],
+   [-.05,.18,1.28,0x94a39a],[.63,.48,1.6,0x9a7052],[1.31,.25,1.35,0x8e9f8d],
+  ];
+  for(const [dx,width,height,color] of tools){
+   k.box(x+3+dx,y+height,z-5.58,.09,.76,.06,color);
+   k.box(x+3+dx,y+height+.32,z-5.55,width,.14,.08,color);
+  }
   table(x+3,z,2.3,1.1);k.box(x+3,y+.96,z,1.6,.02,.8,0xd4cb9c);k.box(x+3,y+1,z,.12,.035,.7,metal);
   // The keeper lived here as well as tending the beacon. A narrow cot stays
   // against the side wall, clear of the supply/fuse and workshop approaches.
@@ -26,7 +35,13 @@ function authoredInterior(k,b,y){
  if(b.id==='arrival-house'){
   table(x-3,z-3,4,1.6);for(let i=0;i<4;i++)k.box(x-4+i*.7,y+.96,z-3,.5,.035,.7,i%2?cream:0xa7b295);
   k.box(x,y+1.7,z-6.25,4,2,.12,0x516b5a);k.box(x,y+1.7,z-6.16,3.5,1.5,.025,0xb8b88f);k.box(x,y+1.7,z-6.13,.1,1.2,.02,0x616f57);k.box(x,y+1.7,z-6.13,3,.06,.02,0x616f57);
-  for(let i=0;i<3;i++){const xx=x+3.7,zz=z-3+i*2.2;k.box(xx,y+.48,zz,2.6,.2,1.1,wood);for(const dx of [-1,1])k.box(xx+dx,y+.23,zz,.1,.46,.7,metal);k.box(xx,y+.95,zz-.47,2.6,.8,.12,wood);}
+  k.label({x,y:y+2.46,z:z-6.10,w:3.5,h:.39,text:'EVACUATION BOARD',colour:0x425d51});
+  // Pinned slips sit inside the existing grid and leave the board frame readable.
+  for(const [dx,dy,color] of [[-1.1,1.4,cream],[-.55,1.89,0xa6b18a],[.53,1.44,0xbfa575],[1.07,1.81,cream]]){
+   k.box(x+dx,y+dy,z-6.10,.35,.29,.025,color);
+   k.box(x+dx,y+dy+.085,z-6.08,.23,.022,.009,metal);
+  }
+  for(let i=0;i<3;i++){const xx=x+3.7,zz=z-3+i*2.2;k.box(xx,y+.48,zz,2.6,.2,1.1,0x988160);for(const dx of [-1,1])k.box(xx+dx,y+.23,zz,.1,.46,.7,metal);k.box(xx,y+.95,zz-.47,2.6,.8,.12,wood);}
   for(let j=0;j<3;j++)k.box(x-5,y+.4+j*.65,z+2,1.6,.55,1.3,j%2?0x788464:0xa59873);return true;
  }
  return false;
@@ -37,7 +52,7 @@ function authoredInterior(k,b,y){
 export function interiorPlan(b){
  if(b.cityInterior)return cityInteriorPlan(b);
  const pieces=[],solids=[],floor=b.baseY+.2;
- const k={box(x,y,z,w,h,d,color,rotation=0){pieces.push({shape:'box',x,y,z,w,h,d,color,rotation});},add(shape,x,y,z,w,h,d,color,rotation=0){pieces.push({shape,x,y,z,w,h,d,color,rotation});},rod(a,c,r,color){pieces.push({shape:'rod',a,c,r,color});},lastRole(role){pieces.at(-1).role=role;}};
+ const k={label(label){pieces.push({shape:'label',...label});},box(x,y,z,w,h,d,color,rotation=0){pieces.push({shape:'box',x,y,z,w,h,d,color,rotation});},add(shape,x,y,z,w,h,d,color,rotation=0){pieces.push({shape,x,y,z,w,h,d,color,rotation});},rod(a,c,r,color){pieces.push({shape:'rod',a,c,r,color});},lastRole(role){pieces.at(-1).role=role;}};
  const solid=(name,x,z,w,d,h,bottom=0)=>solids.push({id:b.id+'-'+name,x:b.x+x,z:b.z+z,w,d,y:floor+bottom,h});
  if(authoredInterior(k,b,floor)){
   // Existing landmark furniture remains authored; collision uses its actual
