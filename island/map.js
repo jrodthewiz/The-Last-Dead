@@ -25,15 +25,18 @@ export class FieldMap {
     c.textAlign='center';
     c.font='700 20px Trebuchet MS, Arial';
     c.lineJoin='round';
+    const labels=[];
     for(const p of LANDMARKS){
       const [x,y]=this.point(p.x,p.z),relay=p.type==='relay';
       c.fillStyle=state.relays.includes(p.id)?'#f3e2a7':relay?'#874829':'#304f45';
       c.strokeStyle='#f5ebc7';c.lineWidth=2;
       c.beginPath();c.arc(x,y,relay?7:5,0,Math.PI*2);c.fill();c.stroke();
+      if(p.name===target?.name)continue;
       c.lineWidth=5;c.strokeText(p.name,x,y-13);
       c.fillStyle='#233b33';c.fillText(p.name,x,y-13);
+      labels.push([x-c.measureText(p.name).width/2-3,y-34,c.measureText(p.name).width+6,25]);
     }
-    for(const place of PLACES){if(!state.discovered.includes(place.id))continue;const [x,y]=this.point(place.x,place.z);c.fillStyle=state.records.includes(place.id)?'#617047':'#a46540';c.fillRect(x-4,y-4,8,8);c.font='11px Trebuchet MS, Arial';c.textAlign='center';c.fillText(place.name,x,y+17);}
+    for(const place of PLACES){if(!state.discovered.includes(place.id))continue;const [x,y]=this.point(place.x,place.z);c.fillStyle=state.records.includes(place.id)?'#617047':'#a46540';c.fillRect(x-4,y-4,8,8);c.font='11px Trebuchet MS, Arial';c.textAlign='center';c.fillText(place.name,x,y+17);const w=c.measureText(place.name).width;labels.push([x-w/2-3,y+5,w+6,15]);}
     if(target){
       const [x,y]=this.point(target.x,target.z);
       c.beginPath();c.moveTo(x,y-10);c.lineTo(x+10,y);c.lineTo(x,y+10);c.lineTo(x-10,y);c.closePath();
@@ -45,5 +48,38 @@ export class FieldMap {
       }
     }
     const p=this.point(state.x,state.z);c.save();c.translate(...p);c.rotate(state.yaw);c.fillStyle='#fff4ca';c.strokeStyle='#304f45';c.lineWidth=2;c.beginPath();c.moveTo(0,-13);c.lineTo(-8,9);c.lineTo(0,5);c.lineTo(8,9);c.closePath();c.fill();c.stroke();c.restore();
+    if(target)this.drawTargetLabel(c,target,!!pin,[...labels,[p[0]-15,p[1]-15,30,30]]);
+  }
+  drawTargetLabel(c,target,waypoint,labels){
+    const [x,y]=this.point(target.x,target.z);
+    c.font='700 26px Trebuchet MS, Arial';
+    const textWidth=Math.min(c.measureText(target.name).width,340);
+    const w=textWidth+24,h=38,gap=27;
+    const candidates=[
+      [x+w/2+gap,y-h/2],[x-w/2-gap,y-h/2],
+      [x,y-h-gap],[x,y+gap],
+    ].map(([cx,top])=>[
+      Math.max(8,Math.min(this.canvas.width-w-8,cx-w/2)),
+      Math.max(8,Math.min(this.canvas.height-h-8,top)),
+    ]);
+    const [left,top]=candidates.find(([l,t])=>(
+      (x<l-12||x>l+w+12||y<t-12||y>t+h+12) &&
+      !labels.some(([lx,ly,lw,lh])=>l<lx+lw&&l+w>lx&&t<ly+lh&&t+h>ly)
+    ))??candidates[0];
+    const endX=Math.max(left,Math.min(left+w,x));
+    const endY=Math.max(top,Math.min(top+h,y));
+    const distance=Math.hypot(endX-x,endY-y);
+    if(distance>10){
+      c.beginPath();
+      c.moveTo(x+(endX-x)*10/distance,y+(endY-y)*10/distance);
+      c.lineTo(endX,endY);
+      c.lineWidth=6;c.strokeStyle='#fff2ca';c.stroke();
+      c.lineWidth=2.5;c.strokeStyle='#304f45';c.stroke();
+    }
+    c.fillStyle=waypoint?'#633626':'#20372e';
+    c.fillRect(left,top,w,h);
+    c.lineWidth=2;c.strokeStyle='#fff2ca';c.strokeRect(left,top,w,h);
+    c.fillStyle='#fff2ca';c.textAlign='center';c.textBaseline='middle';
+    c.fillText(target.name,left+w/2,top+h/2,textWidth);
   }
 }

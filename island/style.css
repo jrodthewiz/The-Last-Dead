@@ -49,3 +49,4 @@ input[type=range]{appearance:none;background:transparent}input[type=range]::-web
 #journal-relays button{width:100%;min-height:44px;padding:8px;text-align:left;background:transparent;border:1px solid transparent;color:inherit}
 #journal-relays button:hover,#journal-relays button:focus-visible{border-color:var(--accent)}
 #journal-relays button[aria-pressed="true"]{background:#354d3d;border-color:var(--accent)}
+#bearing-kind{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}

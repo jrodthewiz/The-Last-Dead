@@ -361,3 +361,11 @@ From Mariner’s Rest, the player can read the next objective, choose a waypoint
 | A free waypoint had little visible confirmation. | Mark it with a filled diamond and identify it in the map status and HUD. | Tap the portrait map and confirm the waypoint status and clear action. |
 
 Cloud captures and the route report are in `/workspace/scratch/blackwater-evidence/map-navigation-final/`. The comparison uses the previous candidate’s `candidate-5cea1df-route` captures and Chromium with ANGLE SwiftShader. The Node suite, run with test process isolation disabled in this Cloud sandbox, reports 102 passes and the same eight known failures.
+
+### Tracked destination clarity
+
+Two independent visual reviews found that the keeper’s-house marker nearly touched Westlight without its own label and that the filled waypoint diamond became hollow on returning to play. The map now labels the tracked location at its exact marker, using a short leader and keeping the plate inside the map. The HUD carries the same hollow objective and filled waypoint shapes.
+
+Design references included [the Breath of the Wild Explorer’s Guide](https://zelda.nintendo.com/breath-of-the-wild/assets/pdfs/ExplorersGuide.pdf) for carrying a player-placed pin into play, [Sucker Punch’s Guiding Wind Q&A](https://blog.playstation.com/2020/05/29/ghost-of-tsushima-your-questions-answered/) for keeping one tracked destination prominent, and [The Long Dark’s Faithful Cartographer update](https://www.thelongdark.com/news/the-long-dark-faithful-cartographer-update/) for the value of terrain and landmarks at a local scale.
+
+SwiftShader captures in `/workspace/scratch/blackwater-evidence/map-callout/` cover the 720×480 desktop route, 390×640 portrait map and a lower-right edge waypoint. Keyboard station selection, HUD handoff, touch placement, clear, and both map return paths passed without page errors. Visual reviewers confirmed that the callout distinguishes the keeper’s house from Westlight, stays on the map at the tested edge, and preserves the HUD bearing layout.
