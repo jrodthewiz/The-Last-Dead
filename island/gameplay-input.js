@@ -23,12 +23,20 @@ export function installGameplayInput({canvas,look,joystick,buttons,win=window,do
  function reset(){releaseCombat();lookId=null;clearStick();mouseLook.reset();touchLook.reset();}
  function pressFire(source){if(!canFire())return;fireSource=source;fire(true);shoot();}
  function releasePointer(e){if(fireSource===e.pointerId)releaseFire();if(aimSource===e.pointerId)releaseAim();if(lookId===e.pointerId)lookId=null;if(stickId===e.pointerId)clearStick();}
- canvas.addEventListener('pointerdown',e=>{
+ function pressCanvas(e,source){
   if(getMode()==='playing'){
    if(!isTouch&&doc.pointerLockElement!==canvas){lock();return;}
-   if(e.button===0)pressFire(e.pointerType==='mouse'?'mouse':e.pointerId);
-   if(e.button===2){aimSource='mouse';aim(true);}
+   if(e.button===0)pressFire(source);
+   if(e.button===2){aimSource=source;aim(true);}
   }else if(['photo','flight'].includes(getMode()))canvas.requestPointerLock?.()?.catch?.(()=>{});
+ }
+ // Mouse pointerdown only fires for the first button in a chord. mousedown
+ // reports each press, so FIRE and AIM work in either order while held.
+ canvas.addEventListener('mousedown',e=>pressCanvas(e,'mouse'));
+ canvas.addEventListener('pointerdown',e=>{
+  if(e.pointerType==='mouse')return;
+  e.preventDefault(); // Suppress compatibility mouse presses for touch/pen.
+  pressCanvas(e,e.pointerId);
  });
  function mouseRelease(e){if(e.button===0&&fireSource==='mouse')releaseFire();if(e.button===2&&aimSource==='mouse')releaseAim();}
  // Both mouse and pointer releases matter while pointer lock is active.

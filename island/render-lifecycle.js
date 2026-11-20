@@ -18,9 +18,9 @@ export function sleepHiddenBranch(root){
  root.updateMatrixWorld=function(force){if(this.visible||force)update.call(this,force);};
 }
 
-// Compile color materials, including hidden branches, before enabling Begin.
-// Upload geometry and render shadow maps from the real views. A one-pixel
-// viewport still submits every vertex, and does not shrink the shadow map.
+// Prepare all weapon/actor/material variants before Begin becomes available.
+// Keep shader error checking enabled; wait on the driver's parallel compiler
+// instead of discovering a program synchronously on its first gameplay draw.
 export async function prepareRenderer(renderer,presentation,scene,camera,inspection){
  const start=performance.now(),textures=new Set(),roots=[scene,inspection.scene];
  for(const root of roots)root.traverse(o=>{for(const material of(Array.isArray(o.material)?o.material:[o.material]))if(material)for(const value of Object.values(material))if(value?.isTexture&&!value.isRenderTargetTexture)textures.add(value);});
@@ -30,6 +30,21 @@ export async function prepareRenderer(renderer,presentation,scene,camera,inspect
   renderer.setRenderTarget(presentation.enabled?presentation.target:null);
   await renderer.compileAsync(scene,camera);
   await renderer.compileAsync(inspection.scene,inspection.camera);
+  // compileAsync prepares colour materials, but Three creates shadow-depth
+  // variants only during an actual shadow pass. Draw every loaded branch once
+  // into the offscreen target while loading, including distant/hidden actors.
+  // This also uploads their geometry; no visibility or culling change survives.
+  const viewport=presentation.target.viewport.clone();
+  try{
+   presentation.target.viewport.set(0,0,1,1);
+   for(const [root,view] of [[scene,camera],[inspection.scene,inspection.camera]]){
+    await new Promise(requestAnimationFrame);
+    const saved=[];
+    root.traverse(o=>{saved.push([o,o.visible,o.frustumCulled]);if(!o.isLight)o.visible=true;o.frustumCulled=false;});
+    try{renderer.setRenderTarget(presentation.target);renderer.render(root,view);}
+    finally{for(const [o,visible,culled]of saved){o.visible=visible;o.frustumCulled=culled;}}
+   }
+  }finally{presentation.target.viewport.copy(viewport);}
  }finally{renderer.setRenderTarget(target);}
  return {milliseconds:performance.now()-start,textures:textures.size,programs:renderer.info.programs.length,parallelCompile:renderer.extensions.has('KHR_parallel_shader_compile')};
 }
