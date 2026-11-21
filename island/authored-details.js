@@ -59,7 +59,7 @@ export function authoredDetails(scene,kit,data,sign){
   // An interrupted evacuation route forces a readable choice: pedestrians can
   // take the shop-side pavement; trucks must use the neighbouring boulevard.
   for(const z of [-3.3,0,3.3]){kit.box(620,14.55,z,1.4,1.1,3.1,0xb6ad8a);for(let i=0;i<3;i++)kit.box(619.27,14.7,z-1+i,.03,.3,.4,0x5f6856);}
-  sign(scene,'EVACUATION · USE NORTH ROAD',619,17.3,0,11,-Math.PI/2);
+  sign(scene,'EVACUATION · USE NORTH ROAD',619,17.3,0,11,-Math.PI/2,false,true);
   kit.box(608,15.3,-6,10,2.1,2.7,0xa6ad91);kit.box(608,14.5,-6,10,.45,2.75,0x496c61);kit.box(608,16.45,-6,10.2,.25,2.85,0x48665c);
   for(let i=0;i<7;i++)for(const z of [-7.38,-4.62])kit.box(604.4+i*1.2,15.9,z,.95,.8,.07,0x3c5753);
   for(const x of [604.5,611.5])for(const z of [-7.3,-4.7]){kit.rod([x,14.55,z-.12],[x,14.55,z+.12],.58,0x3d453b);}

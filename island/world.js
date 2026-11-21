@@ -194,10 +194,22 @@ function compileBuilding(kit,b,arrivalTreads){
   }
   if(b.cityInterior){const identity=cityIdentity(b);kit.label({x:b.x,y:y+2.36,z:b.entry.z+1.97,w:4.9,h:.72,text:identity.name,subline:identity.room,colour:identity.colour});}
 }
-export function sign(scene,text,x,y,z,width=6,rotation=0,dark=false){
+export function sign(scene,text,x,y,z,width=6,rotation=0,dark=false,posts=false){
   const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;const c=canvas.getContext('2d');c.fillStyle=dark?'#d6d0ae':'#3d5550';c.fillRect(0,0,512,96);c.strokeStyle=dark?'#4b6255':'#c8c6a5';c.lineWidth=3;c.strokeRect(7,7,498,82);c.fillStyle=dark?'#3d5550':'#e2d8af';c.font='600 36px Georgia';c.textAlign='center';c.textBaseline='middle';c.fillText(text,256,48,475);
   const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;texture.minFilter=T.LinearFilter;
-  const m=new T.Mesh(new T.PlaneGeometry(width,width*96/512),worldBoardMaterial(texture,dark?0xd6d0ae:0x3d5550));m.position.set(x,y,z);m.rotation.y=rotation;scene.add(m);return m;
+  const m=new T.Mesh(new T.PlaneGeometry(width,width*96/512),worldBoardMaterial(texture,dark?0xd6d0ae:0x3d5550));m.position.set(x,y,z);m.rotation.y=rotation;scene.add(m);
+  // Free-standing road signs need their own supports; building-mounted signs do
+  // not. Posts land on the actual ground and stop just under the board so the
+  // sign never reads as a floating slab.
+  if(posts){
+    const h=width*96/512,postMaterial=new T.MeshLambertMaterial({color:0x4a5d53,flatShading:true});
+    for(const side of [-1,1]){
+      const lx=(width/2-.4)*side,wx=x+Math.cos(rotation)*lx,wz=z-Math.sin(rotation)*lx,gy=groundHeight(wx,wz),top=y-h/2,height=Math.max(.8,top-gy);
+      const post=new T.Mesh(new T.BoxGeometry(.16,height,.16),postMaterial);
+      post.position.set(wx,gy+height/2,wz);post.castShadow=true;post.receiveShadow=true;scene.add(post);
+    }
+  }
+  return m;
 }
 function tree(kit,x,y,z,s=1,kind='pine',rotation=0){
   kit.surface=3;kit.add('cylinder',x,y+4*s,z,.27*s,8*s,.27*s,0x695c42);
@@ -247,7 +259,7 @@ function buildBridge(scene,kit){
     kit.box(x,43,0,3,2,20.8,0xada692,0,1);
   }
   for(const z of [-10.5,10.5]){let prev=null;for(let x=70;x<=370;x+=5){const y=x<120?16+(x-70)*1.12:x>320?72-(x-320)*1.12:29+43*((x-220)/100)**2;if(prev)kit.rod(prev,[x,y,z],.16,0x495f59);if(x%10===0)kit.rod([x,bridgeHeight(x)+1,z],[x,y,z],.055,0x5e7469);prev=[x,y,z];}}
-  sign(scene,'SAINT ORIN',65,22,0,10,Math.PI/2);
+  sign(scene,'SAINT ORIN',65,22,0,10,Math.PI/2,false,true);
 }
 function buildLandmarks(scene,kit){
   const y=terrainHeight(-820,-260);
@@ -260,7 +272,7 @@ function buildLandmarks(scene,kit){
   kit.add('cylinder',734,15,0,9,1.4,9,0xc2bca1);kit.add('cylinder',734,15.7,0,7,.2,7,0x719c99);kit.box(734,27,0,7,24,7,0xc9c1a2);kit.box(734,39.5,0,9,2,9,0xe0d7b2);kit.add('cone',734,45,0,7,10,7,0x53756c,Math.PI/4);
   for(const x of [690,778])for(let z=-54;z<=54;z+=27)tree(kit,x,14.4,z,.9,'broad');
   for(const side of [-1,1])sign(scene,'SAINT ORIN · 1894',734,18,side*3.55,6,side>0?0:Math.PI,true);
-  const face=document.createElement('canvas');face.width=face.height=128;const fc=face.getContext('2d');fc.fillStyle='#d6cfaa';fc.beginPath();fc.arc(64,64,61,0,Math.PI*2);fc.fill();fc.strokeStyle='#445d50';fc.lineWidth=5;fc.stroke();for(let i=0;i<12;i++){const a=i/12*Math.PI*2;fc.beginPath();fc.moveTo(64+Math.sin(a)*49,64-Math.cos(a)*49);fc.lineTo(64+Math.sin(a)*55,64-Math.cos(a)*55);fc.stroke();}fc.lineWidth=4;fc.beginPath();fc.moveTo(64,64);fc.lineTo(37,45);fc.moveTo(64,64);fc.lineTo(103,76);fc.stroke();
+  const face=document.createElement('canvas');face.width=face.height=512;const fc=face.getContext('2d');fc.scale(4,4);fc.fillStyle='#d6cfaa';fc.beginPath();fc.arc(64,64,61,0,Math.PI*2);fc.fill();fc.strokeStyle='#445d50';fc.lineWidth=5;fc.stroke();for(let i=0;i<12;i++){const a=i/12*Math.PI*2;fc.beginPath();fc.moveTo(64+Math.sin(a)*49,64-Math.cos(a)*49);fc.lineTo(64+Math.sin(a)*55,64-Math.cos(a)*55);fc.stroke();}fc.lineWidth=4;fc.beginPath();fc.moveTo(64,64);fc.lineTo(37,45);fc.moveTo(64,64);fc.lineTo(103,76);fc.stroke();
   const clockTexture=new T.CanvasTexture(face);clockTexture.magFilter=T.LinearFilter;clockTexture.colorSpace=T.SRGBColorSpace;
   for(let i=0;i<4;i++){const a=i*Math.PI/2,m=new T.Mesh(new T.PlaneGeometry(4.5,4.5),new T.MeshLambertMaterial({map:clockTexture,transparent:true}));m.position.set(734+Math.sin(a)*3.56,35,Math.cos(a)*3.56);m.rotation.y=a;scene.add(m);}
   // A canopy fascia carries the hospital name clear of the window bays.

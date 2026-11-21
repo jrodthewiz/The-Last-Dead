@@ -10,6 +10,20 @@ import {SPAWN,LANDMARKS,terrainHeight,groundHeight,clamp,SAVE_KEY,KEEPER_FUSE,HO
 import {ensureArmory,storeAmmo,weaponProfile} from './armory-state.js';
 export const relayIds=LANDMARKS.filter(p=>p.type==='relay').map(p=>p.id);
 export const allRelaysRestored=state=>relayIds.every(id=>state.relays.includes(id));
+// Maximum vertical step the body can mount without a jump or vault. Stair
+// treads and the authored entrance ramps rise at most 0.18 m, so 0.45 m keeps
+// every walkable route while refusing crates, ledges and building faces that
+// the old 1.2 m limit let the player slide up.
+export const STEP_UP=.45;
+// A stair descent snaps at most this far in one frame; anything deeper falls
+// under gravity, so stepping off a landing is no longer a teleport.
+// Measured support gaps on the authored stair runs reach 0.35 m in a frame
+// (the treads are terrain-quantised), so the descent snap keeps that budget;
+// anything deeper is a real ledge and falls under gravity.
+const STEP_DOWN=.35;
+// Pure guard used by horizontal movement: a support surface at or above the
+// body plus one step is a wall, not a stair.
+export const canStepUp=(y,floor)=>floor<y+STEP_UP;
 export function restoredRelayCount(state){let count=0;for(const id of relayIds)if(state.relays.includes(id))count++;return count;}
 // Network progress can arrive while a local restoration is still counting down.
 // Each required station owns one completion and one local recovery award.
@@ -63,7 +77,7 @@ export function stepPlayer(state,input,data,grid,dt){
   const oldX=state.x,oldZ=state.z,steps=Math.max(1,Math.ceil(Math.hypot(travelX,travelZ)/.22));
   for(let i=0;i<steps;i++){
     const dx=travelX/steps,dz=travelZ/steps;
-    const can=(x,z)=>Math.abs(x)<1400&&Math.abs(z)<900&&!grid.blocked(x,z,state.y,.42)&&supportHeight(data,x,z)<state.y+1.2;
+    const can=(x,z)=>Math.abs(x)<1400&&Math.abs(z)<900&&!grid.blocked(x,z,state.y,.42)&&canStepUp(state.y,supportHeight(data,x,z));
     if(can(state.x+dx,state.z))state.x+=dx;else motion.vx=0;if(can(state.x,state.z+dz))state.z+=dz;else motion.vz=0;
   }
   const distance=Math.hypot(state.x-oldX,state.z-oldZ),actualSpeed=distance/Math.max(.001,dt),moving=actualSpeed>.08,sprinting=!!wantsSprint&&actualSpeed>5.4;
@@ -88,8 +102,9 @@ export function stepPlayer(state,input,data,grid,dt){
   }
   const floor=Math.max(-.45,supportHeight(data,state.x,state.z));
   // Follow supported stair treads instead of repeatedly becoming airborne.
-  // Upward jumps and real ledges retain the normal gravity trajectory.
-  const stepDown=onGround&&!swimming&&state.vy<=0&&previousY>=floor&&previousY-floor<=.35;
+  // Upward jumps and real ledges retain the normal gravity trajectory. A drop
+  // deeper than one stair tread is left to gravity rather than snapped.
+  const stepDown=onGround&&!swimming&&state.vy<=0&&previousY>=floor&&previousY-floor<=STEP_DOWN;
   if(state.y<floor||stepDown){if(!stepDown&&state.vy<-2)motion.landing=Math.min(1,-state.vy/12);state.y=floor;state.vy=0;}
   const exhausted=swimming&&state.stamina<=0,environmentalDamage=exhausted?5*dt:0;
   return {moving,sprinting,swimming,exhausted,environmentalDamage,onGround:state.vy===0&&state.y<=floor+.08,landing:motion.landing,vaulting:false,distance,speed:actualSpeed};
