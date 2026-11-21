@@ -57,9 +57,13 @@ const measure=(page,profile=false)=>page.evaluate(async profile=>{
   const pick=p=>+(sorted[Math.min(sorted.length-1,Math.floor(sorted.length*p))]||0).toFixed(2);
   let metrics=null;
   try{metrics=app.metrics?.()||null;}catch{}
+  const gl=gfx.getContext?.();
+  const debugInfo=gl?.getExtension?.('WEBGL_debug_renderer_info');
+  const gpu=debugInfo?gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL):'unavailable';
   return {
     mode:app.mode,
     renderer:gfx.isWebGPURenderer?'webgpu':'webgl',
+    gpu,
     frames:intervals.length,
     elapsedMs:+elapsed.toFixed(1),
     observedFps:+(intervals.length/elapsed*1000).toFixed(1),
@@ -74,7 +78,7 @@ const measure=(page,profile=false)=>page.evaluate(async profile=>{
 const queries={island:'?debug=1&world=island',dungeon:'?debug=1&dungeon=0'};
 
 try{
-  browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH,args:['--enable-unsafe-webgpu','--ignore-gpu-blocklist','--disable-background-timer-throttling','--disable-renderer-backgrounding']});
+  browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH,args:['--enable-unsafe-webgpu','--ignore-gpu-blocklist','--disable-background-timer-throttling','--disable-renderer-backgrounding',...(process.env.PERFORMANCE_UNCAPPED?['--disable-frame-rate-limit']:[])]});
   for(const name of worlds){
     const query=queries[name]||`?debug=1&world=${name}`;
     const context=await browser.newContext({viewport:{width:1280,height:720},deviceScaleFactor:1});
@@ -87,8 +91,12 @@ try{
     await page.click('#begin');
     await page.waitForFunction(()=>!!window.__BLACKWATER__?.renderer,undefined,{timeout:120000});
     await page.waitForTimeout(2500);
-    const row=await measure(page,!!process.env.PERFORMANCE_PROFILE);
-    report.rows.push({name,variant:'default',...row});
+    const runs=[];
+    for(let run=0;run<3;run++)runs.push(await measure(page,run===0&&!!process.env.PERFORMANCE_PROFILE));
+    const row=runs[runs.length-1];
+    const medians=runs.map(r=>r.frameMs.median).sort((a,b)=>a-b);
+    report.gpu=row.gpu;
+    report.rows.push({name,variant:'default',stableMedianMs:medians[1],runs,...row});
     await page.screenshot({path:`${directory}/${report.label}-${name}.png`});
     await writeFile(`${directory}/${report.label}.json`,JSON.stringify(report,null,2));
     console.log(JSON.stringify({name,...row}));
