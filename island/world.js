@@ -194,10 +194,22 @@ function compileBuilding(kit,b,arrivalTreads){
   }
   if(b.cityInterior){const identity=cityIdentity(b);kit.label({x:b.x,y:y+2.36,z:b.entry.z+1.97,w:4.9,h:.72,text:identity.name,subline:identity.room,colour:identity.colour});}
 }
-export function sign(scene,text,x,y,z,width=6,rotation=0,dark=false){
+export function sign(scene,text,x,y,z,width=6,rotation=0,dark=false,posts=false){
   const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;const c=canvas.getContext('2d');c.fillStyle=dark?'#d6d0ae':'#3d5550';c.fillRect(0,0,512,96);c.strokeStyle=dark?'#4b6255':'#c8c6a5';c.lineWidth=3;c.strokeRect(7,7,498,82);c.fillStyle=dark?'#3d5550':'#e2d8af';c.font='600 36px Georgia';c.textAlign='center';c.textBaseline='middle';c.fillText(text,256,48,475);
   const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;texture.minFilter=T.LinearFilter;
-  const m=new T.Mesh(new T.PlaneGeometry(width,width*96/512),worldBoardMaterial(texture,dark?0xd6d0ae:0x3d5550));m.position.set(x,y,z);m.rotation.y=rotation;scene.add(m);return m;
+  const m=new T.Mesh(new T.PlaneGeometry(width,width*96/512),worldBoardMaterial(texture,dark?0xd6d0ae:0x3d5550));m.position.set(x,y,z);m.rotation.y=rotation;scene.add(m);
+  // Free-standing road signs need their own supports; building-mounted signs do
+  // not. Posts land on the actual ground and stop just under the board so the
+  // sign never reads as a floating slab.
+  if(posts){
+    const h=width*96/512,postMaterial=new T.MeshLambertMaterial({color:0x4a5d53,flatShading:true});
+    for(const side of [-1,1]){
+      const lx=(width/2-.4)*side,wx=x+Math.cos(rotation)*lx,wz=z-Math.sin(rotation)*lx,gy=groundHeight(wx,wz),top=y-h/2,height=Math.max(.8,top-gy);
+      const post=new T.Mesh(new T.BoxGeometry(.16,height,.16),postMaterial);
+      post.position.set(wx,gy+height/2,wz);post.castShadow=true;post.receiveShadow=true;scene.add(post);
+    }
+  }
+  return m;
 }
 function tree(kit,x,y,z,s=1,kind='pine',rotation=0){
   kit.surface=3;kit.add('cylinder',x,y+4*s,z,.27*s,8*s,.27*s,0x695c42);
@@ -247,7 +259,7 @@ function buildBridge(scene,kit){
     kit.box(x,43,0,3,2,20.8,0xada692,0,1);
   }
   for(const z of [-10.5,10.5]){let prev=null;for(let x=70;x<=370;x+=5){const y=x<120?16+(x-70)*1.12:x>320?72-(x-320)*1.12:29+43*((x-220)/100)**2;if(prev)kit.rod(prev,[x,y,z],.16,0x495f59);if(x%10===0)kit.rod([x,bridgeHeight(x)+1,z],[x,y,z],.055,0x5e7469);prev=[x,y,z];}}
-  sign(scene,'SAINT ORIN',65,22,0,10,Math.PI/2);
+  sign(scene,'SAINT ORIN',65,22,0,10,Math.PI/2,false,true);
 }
 function buildLandmarks(scene,kit){
   const y=terrainHeight(-820,-260);
