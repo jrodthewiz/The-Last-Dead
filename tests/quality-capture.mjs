@@ -37,6 +37,41 @@ await page.evaluate(() => window.__BLACKWATER__.setTime?.(48));
 await page.waitForTimeout(2500);
 await page.screenshot({ path: `${out}/00-spawn.png` });
 
+// Gameplay-eye-level frames: normal HUD, first-person camera at 1.7 m, no photo
+// mode. These are the frames every judge asked for; the setPhoto poses below
+// are only for stable material close-ups.
+const eyePoses = [
+  ['g1-street', [590, 7, Math.PI / 2]],
+  ['g2-keeper-interior', [-795, -277, 0]],
+  ['g3-waterfront', [1174, 235, Math.PI]],
+  ['g4-forest', [-870, 170, Math.PI / 2]],
+];
+for (const [name, [x, z, yaw]] of eyePoses) {
+  await page.evaluate(([x, z, yaw]) => window.__BLACKWATER__.teleport(x, z, yaw), [x, z, yaw]);
+  await page.waitForTimeout(900);
+  await page.screenshot({ path: `${out}/${name}.png` });
+}
+// Record a short play-mode cadence sample so the stills are paired with motion.
+const motion = await page.evaluate(async () => {
+  const app = window.__BLACKWATER__;
+  app.teleport?.(590, 7, Math.PI / 2);
+  const samples = [];
+  await new Promise((resolve) => {
+    let last = 0;
+    const start = performance.now();
+    const tick = (now) => {
+      if (last) samples.push(now - last);
+      last = now;
+      if (now - start < 6000) requestAnimationFrame(tick);
+      else resolve();
+    };
+    requestAnimationFrame(tick);
+  });
+  const sorted = [...samples].sort((a, b) => a - b);
+  const at = (q) => +sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * q))].toFixed(2);
+  return { frames: samples.length, median: at(0.5), p95: at(0.95), p99: at(0.99), max: at(1) };
+});
+
 const poses = [
   ['02-oldtown', [590, 16, 7, 635, 16.5, -2]],
   ['03-civic', [672, 16, 8, 742, 27, 0]],
@@ -66,8 +101,8 @@ const metrics = await page.evaluate(() => {
     return null;
   }
 });
-await writeFile(`${out}/metrics.json`, JSON.stringify({ label, metrics, errors: [...new Set(errors)].slice(0, 8), capturedAt: new Date().toISOString() }, null, 2));
-console.log(JSON.stringify({ label, out, shots: poses.length + 1, metrics, errors: [...new Set(errors)].slice(0, 5) }, null, 1));
+await writeFile(`${out}/metrics.json`, JSON.stringify({ label, metrics, motion, errors: [...new Set(errors)].slice(0, 8), capturedAt: new Date().toISOString() }, null, 2));
+console.log(JSON.stringify({ label, out, shots: poses.length + eyePoses.length + 1, metrics, motion, errors: [...new Set(errors)].slice(0, 5) }, null, 1));
 await browser.close();
 server.close?.();
 process.exit(0);
