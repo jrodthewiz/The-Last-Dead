@@ -97,7 +97,7 @@ try{
     const medians=runs.map(r=>r.frameMs.median).sort((a,b)=>a-b);
     report.gpu=row.gpu;
     report.rows.push({name,variant:'default',stableMedianMs:medians[1],runs,...row});
-    await page.screenshot({path:`${directory}/${report.label}-${name}.png`});
+    if(process.env.PERFORMANCE_SCREENSHOT!=='0')await page.screenshot({path:`${directory}/${report.label}-${name}.png`});
     await writeFile(`${directory}/${report.label}.json`,JSON.stringify(report,null,2));
     console.log(JSON.stringify({name,...row}));
     assert.equal(row.mode,'playing',`${name}: did not reach the play screen`);

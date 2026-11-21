@@ -20,7 +20,7 @@ try{
  browser=await chromium.launch({
   headless:process.env.HEADFUL!=='1',
   executablePath:process.env.CHROME_PATH,
-  args:['--enable-unsafe-webgpu','--ignore-gpu-blocklist','--disable-background-timer-throttling','--disable-renderer-backgrounding'],
+  args:['--enable-unsafe-webgpu','--ignore-gpu-blocklist','--disable-background-timer-throttling','--disable-renderer-backgrounding',...(process.env.PERFORMANCE_UNCAPPED?['--disable-frame-rate-limit']:[])],
  });
  const context=await browser.newContext({viewport:{width:1280,height:720},deviceScaleFactor:1});
  const page=await context.newPage();
@@ -81,8 +81,9 @@ try{
    isWebGLRenderer:!!gfx.isWebGLRenderer,
    frames:intervals.length,
    observedFps:+(intervals.length/elapsed*1000).toFixed(1),
-   frameMs:{median:pick(.5),p95:pick(.95),max:pick(1)},
+   frameMs:{median:pick(.5),p95:pick(.95),p99:pick(.99),max:pick(1)},
    render:{drawCalls:info.render.drawCalls,triangles:info.render.triangles,frame:info.render.frame},
+   programs:info.programs?.length??null,
    memory:info.memory.total,
    metrics,
    stages:Object.fromEntries(Object.entries(stages).map(([key,value])=>[key,{calls:value.calls,meanMs:+(value.totalMs/value.calls).toFixed(2)}])),
@@ -91,7 +92,7 @@ try{
  });
 
  const shot=`${outDir}/${label}-${world}.png`;
- await page.screenshot({path:shot});
+ if(process.env.PERFORMANCE_SCREENSHOT!=='0')await page.screenshot({path:shot});
  const report={label,world,root,measuredAt:new Date().toISOString(),row,errors:[...new Set(errors)].slice(0,10),screenshot:shot};
  await writeFile(`${outDir}/${label}-${world}.json`,JSON.stringify(report,null,2));
  console.log(JSON.stringify(report,null,1));

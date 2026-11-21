@@ -1,10 +1,11 @@
 import * as T from '../vendor/three.module.js';
 
-// Shared, procedural detail surfaces for the island renderer. One normal atlas
-// and one packed ARM atlas are reused by every architectural and ground draw:
-// no per-asset tangents, no extra render pass, no texture downloads.
-const SIZE = 512;
-const NORMAL_STRENGTH = 5.2;
+// One 256² RGBA array serves every modular surface: RG = normal.xy,
+// B = roughness, A = wear/micro-AO. Dominant-axis projection means one tap,
+// no per-asset tangents and no material splitting.
+const SIZE = 256;
+const LAYERS = 8;
+const TILE_METRES = 2.2;
 
 function hash2(x, y, seed) {
   let h = Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263) ^ Math.imul(seed | 0, 1442695041);
@@ -22,98 +23,120 @@ function noise(x, y, period, seed = 0) {
   const d = hash2(wrap(xi + 1, period), wrap(yi + 1, period), seed);
   return mix(mix(a, b, u), mix(c, d, u), v);
 }
-function height(u, v) {
-  let h = .5;
-  h += (noise(u * 7, v * 7, 7, 11) - .5) * .30;
-  h += (noise(u * 17, v * 17, 17, 23) - .5) * .22;
-  h += (noise(u * 37, v * 37, 37, 47) - .5) * .13;
-  h += (noise(u * 79, v * 79, 79, 71) - .5) * .065;
-  h += (noise(u * 151, v * 151, 151, 101) - .5) * .028;
-  // Shallow mineral cracks: a narrow dark groove, not a closed contour.
-  const groove = 1 - Math.min(1, Math.abs(noise(u * 7 + .13, v * 7 - .29, 7, 91) - .5) / .045);
-  h -= groove * .14;
-  return h;
+function surfaceHeight(kind, u, v) {
+  if (kind === 'brick') {
+    const row = Math.floor(v * 12), fy = v * 12 - row, fx = (u * 6 + (row % 2) * .5) % 1;
+    const joint = fx < .055 || fy < .09;
+    return (joint ? .34 : .61) + (noise(u * 31, v * 31, 31, 17) - .5) * .07;
+  }
+  if (kind === 'wood') {
+    return .50 + Math.sin(u * 78 + noise(u * 3, v * 3, 3, 31) * 5.5) * .095 + (noise(u * 17, v * 41, 41, 43) - .5) * .06;
+  }
+  if (kind === 'metal') {
+    return .50 + Math.sin(v * 150) * .028 + (noise(u * 53, v * 19, 53, 61) - .5) * .035;
+  }
+  if (kind === 'wet') {
+    return .50 + (noise(u * 7, v * 7, 7, 73) - .5) * .12 + (noise(u * 29, v * 29, 29, 79) - .5) * .035;
+  }
+  if (kind === 'stone') {
+    return .50 + (noise(u * 5, v * 5, 5, 83) - .5) * .30 + (noise(u * 17, v * 17, 17, 89) - .5) * .17 + (noise(u * 47, v * 47, 47, 97) - .5) * .08;
+  }
+  if (kind === 'plaster') {
+    return .50 + (noise(u * 9, v * 9, 9, 101) - .5) * .16 + (noise(u * 23, v * 23, 23, 103) - .5) * .09 + (noise(u * 61, v * 61, 61, 107) - .5) * .04;
+  }
+  return .50 + (noise(u * 13, v * 13, 13, 109) - .5) * .18 + (noise(u * 37, v * 37, 37, 113) - .5) * .10 + (noise(u * 79, v * 79, 79, 127) - .5) * .04;
 }
 
-function makeNormalAtlas() {
-  const data = new Uint8Array(SIZE * SIZE * 4);
-  const h = new Float32Array(SIZE * SIZE);
-  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) h[y * SIZE + x] = height(x / SIZE, y / SIZE);
-  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
-    const l = h[y * SIZE + ((x + SIZE - 1) % SIZE)], r = h[y * SIZE + ((x + 1) % SIZE)];
-    const d = h[((y + SIZE - 1) % SIZE) * SIZE + x], u = h[((y + 1) % SIZE) * SIZE + x];
-    let nx = (l - r) * NORMAL_STRENGTH, ny = (d - u) * NORMAL_STRENGTH, nz = 1;
-    const inv = 1 / Math.hypot(nx, ny, nz);
-    const i = (y * SIZE + x) * 4;
-    data[i] = Math.round((nx * inv * .5 + .5) * 255);
-    data[i + 1] = Math.round((ny * inv * .5 + .5) * 255);
-    data[i + 2] = Math.round((nz * inv * .5 + .5) * 255);
-    data[i + 3] = 255;
+const LAYER_SPEC = [
+  { kind: 'plaster', rough: .82, wear: .64 },
+  { kind: 'brick', rough: .86, wear: .70 },
+  { kind: 'asphalt', rough: .92, wear: .56 },
+  { kind: 'wood', rough: .68, wear: .80 },
+  { kind: 'metal', rough: .32, wear: .92 },
+  { kind: 'stone', rough: .93, wear: .62 },
+  { kind: 'wet', rough: .42, wear: .95 },
+  { kind: 'generic', rough: .78, wear: .74 },
+];
+
+function makeDetailArray() {
+  const data = new Uint8Array(SIZE * SIZE * LAYERS * 4);
+  for (let layer = 0; layer < LAYERS; layer++) {
+    const spec = LAYER_SPEC[layer], h = new Float32Array(SIZE * SIZE);
+    for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) h[y * SIZE + x] = surfaceHeight(spec.kind, x / SIZE, y / SIZE);
+    for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
+      const l = h[y * SIZE + ((x + SIZE - 1) % SIZE)], r = h[y * SIZE + ((x + 1) % SIZE)];
+      const d = h[((y + SIZE - 1) % SIZE) * SIZE + x], u = h[((y + 1) % SIZE) * SIZE + x];
+      let nx = (l - r) * 2.6, ny = (d - u) * 2.6, nz = 1;
+      const inv = 1 / Math.hypot(nx, ny, nz); nx *= inv; ny *= inv;
+      const fine = noise(x / SIZE * 43, y / SIZE * 43, 43, 137);
+      const rough = Math.min(.99, Math.max(.18, spec.rough + (fine - .5) * .08));
+      const wear = Math.min(1, Math.max(.25, spec.wear + (noise(x / SIZE * 11, y / SIZE * 11, 11, 139) - .5) * .22));
+      const i = ((layer * SIZE * SIZE) + y * SIZE + x) * 4;
+      data[i] = Math.round((nx * .5 + .5) * 255);
+      data[i + 1] = Math.round((ny * .5 + .5) * 255);
+      data[i + 2] = Math.round(rough * 255);
+      data[i + 3] = Math.round(wear * 255);
+    }
   }
-  const map = new T.DataTexture(data, SIZE, SIZE, T.RGBAFormat);
+  const map = new T.DataArrayTexture(data, SIZE, SIZE, LAYERS);
   map.wrapS = map.wrapT = T.RepeatWrapping;
   map.magFilter = T.LinearFilter; map.minFilter = T.LinearMipmapLinearFilter;
-  map.generateMipmaps = true; map.anisotropy = 4; map.colorSpace = T.NoColorSpace; map.needsUpdate = true;
+  map.generateMipmaps = true; map.anisotropy = 2; map.colorSpace = T.NoColorSpace; map.needsUpdate = true;
   return map;
 }
 
-function makeArmAtlas() {
-  const data = new Uint8Array(SIZE * SIZE * 4);
-  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
-    const u = x / SIZE, v = y / SIZE, h = height(u, v);
-    const broad = noise(u * 5, v * 5, 5, 131), fine = noise(u * 39, v * 39, 39, 151);
-    const cavity = Math.max(0, .52 - h);
-    const ao = Math.min(1, Math.max(.28, .82 + h * .22 - cavity * .7));
-    const rough = Math.min(.98, Math.max(.32, .62 + (1 - h) * .22 + (fine - .5) * .16));
-    // B is a metal/polish potential, not a global metalness. The shader gates
-    // it by material role so plaster and brick never turn into chrome.
-    const metal = Math.min(1, Math.max(.04, .12 + broad * .34 + (1 - h) * .18));
-    const i = (y * SIZE + x) * 4;
-    data[i] = Math.round(ao * 255); data[i + 1] = Math.round(rough * 255);
-    data[i + 2] = Math.round(metal * 255); data[i + 3] = 255;
-  }
-  const map = new T.DataTexture(data, SIZE, SIZE, T.RGBAFormat);
-  map.wrapS = map.wrapT = T.RepeatWrapping;
-  map.magFilter = T.LinearFilter; map.minFilter = T.LinearMipmapLinearFilter;
-  map.generateMipmaps = true; map.anisotropy = 4; map.colorSpace = T.NoColorSpace; map.needsUpdate = true;
-  return map;
-}
-
-export const detailNormalTexture = makeNormalAtlas();
-export const detailArmTexture = makeArmAtlas();
+export const detailArrayTexture = makeDetailArray();
 export const artDetailDebug = { value: 0 };
+export const ART_DETAIL_TILE = TILE_METRES;
 
 export const DETAIL_PARS = `
-uniform sampler2D uDetailNormal;
-uniform sampler2D uDetailARM;
+uniform sampler2DArray uDetailArray;
 uniform float uArtDebug;
-vec3 artTriNormal(vec3 p,vec3 n,float scale){
- vec3 w=pow(abs(n),vec3(4.));w/=max(dot(w,vec3(1.)),.0001);
- vec3 tx=texture2D(uDetailNormal,p.zy*scale).xyz*2.-1.;
- vec3 ty=texture2D(uDetailNormal,p.xz*scale).xyz*2.-1.;
- vec3 tz=texture2D(uDetailNormal,p.xy*scale).xyz*2.-1.;
- return normalize(vec3(tx.z,tx.y,tx.x)*w.x+vec3(ty.x,ty.z,ty.y)*w.y+vec3(tz.x,tz.y,tz.z)*w.z);
+vec2 artDetailUv(vec3 p,vec3 n){
+ vec3 a=abs(n);
+ if(a.y>=a.x&&a.y>=a.z)return p.xz;
+ if(a.x>=a.z)return p.zy;
+ return p.xy;
 }
-vec3 artDetailNormal(vec3 p,vec3 n){
- vec3 base=normalize(n);
- float dist=length(cameraPosition-p);
- float aa=max(fwidth(p.x),max(fwidth(p.y),fwidth(p.z)));
- float fade=(1.-smoothstep(10.,16.,dist))*(1.-smoothstep(.025,.085,aa));
- vec3 lo=artTriNormal(p,base,.455);
- vec3 hi=artTriNormal(p,base,1.818);
- return normalize(base+(lo-base)*.18+(hi-base)*.45*fade);
+vec4 artDetailTap(vec3 p,vec3 n,float layer,float fade){
+ if(fade<=.001)return vec4(.5,.5,.75,.8);
+ return texture(uDetailArray,vec3(artDetailUv(p,n)*.455,layer));
 }
-vec3 artTriArm(vec3 p,vec3 n){
- vec3 w=pow(abs(n),vec3(4.));w/=max(dot(w,vec3(1.)),.0001);
- return texture2D(uDetailARM,p.zy*.455).rgb*w.x+texture2D(uDetailARM,p.xz*.455).rgb*w.y+texture2D(uDetailARM,p.xy*.455).rgb*w.z;
+vec3 artApplyDetail(vec3 n,vec4 d,float strength){
+ vec2 s=(d.xy*2.-1.)*.35*strength;
+ vec3 a=abs(n);
+ if(a.y>=a.x&&a.y>=a.z)return normalize(vec3(s.x*sign(n.y),n.y,s.y*sign(n.y)));
+ if(a.x>=a.z)return normalize(vec3(n.x,s.y*sign(n.x),s.x*sign(n.x)));
+ return normalize(vec3(s.x*sign(n.z),s.y*sign(n.z),n.z));
 }
 `;
 
 export function attachDetailUniforms(shader) {
-  shader.uniforms.uDetailNormal = { value: detailNormalTexture };
-  shader.uniforms.uDetailARM = { value: detailArmTexture };
+  shader.uniforms.uDetailArray = { value: detailArrayTexture };
   shader.uniforms.uArtDebug = artDetailDebug;
 }
+
+// Keep the existing Lambert diffuse but replace its smooth N.L with a printed
+// three-band ramp. Warm band on the lit side, cool tint through the indirect
+// term; no material subclass, no extra draw.
+export const toonLambertChunk = (() => {
+  const source = T.ShaderChunk.lights_lambert_pars_fragment;
+  const direct = `void RE_Direct_Lambert( const in IncidentLight directLight, const in vec3 geometryPosition, const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal, const in LambertMaterial material, inout ReflectedLight reflectedLight ) {
+	float ndl = dot( geometryNormal, directLight.direction );
+	float aa = max( fwidth( ndl ), .002 );
+	float ramp = .30;
+	ramp += smoothstep( .05 - aa, .05 + aa, ndl ) * .25;
+	ramp += smoothstep( .45 - aa, .45 + aa, ndl ) * .45;
+	vec3 tint = mix( vec3( .74, .85, 1.0 ), vec3( 1.06, 1.0, .86 ), ramp );
+	reflectedLight.directDiffuse += ramp * directLight.color * BRDF_Lambert( material.diffuseColor * tint );
+}`;
+  const indirect = `void RE_IndirectDiffuse_Lambert( const in vec3 irradiance, const in vec3 geometryPosition, const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal, const in LambertMaterial material, inout ReflectedLight reflectedLight ) {
+	reflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor * vec3( .84, .92, 1.0 ) );
+}`;
+  return source
+    .replace(/void RE_Direct_Lambert\([^)]*\) \{[\s\S]*?\n\}/, direct)
+    .replace(/void RE_IndirectDiffuse_Lambert\([^)]*\) \{[\s\S]*?\n\}/, indirect);
+})();
 
 // Cheap local-space occlusion baked into the shared primitive geometries.
 // It darkens lower faces and undersides without another texture or draw.
