@@ -4,19 +4,27 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {startServer} from '../server.mjs';
 
-// Measure the production build in isolated desktop Chrome contexts. WebGPU
-// work is asynchronous, so these are observed presentation intervals, not
-// synthetic gl.finish() timings from the retired WebGL renderer.
+// Measure the production build in isolated desktop Chrome contexts. These are
+// observed presentation intervals from the live loop (rAF cadence), plus the
+// renderer's own counters, not synthetic gl.finish() timings.
+//
+// Start flow: the title button is `#begin`, disabled until the coast is
+// charted; the debug handle is `window.__BLACKWATER__` and only exists after
+// the journey starts. Set PERFORMANCE_PROFILE=1 for per-stage wrap timings and
+// PERFORMANCE_WORLDS="island,dungeon" for more than the default island row.
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_PATH||'playwright');
 const server=await startServer({root:fileURLToPath(new URL('../dist/',import.meta.url)),port:0});
 const directory='output/playwright/performance';
-const report={label:process.argv[2]||'latest',viewport:[1280,720],mode:'desktop Chrome / native WebGPU / live presentation',rows:[],errors:[]};
+const worlds=(process.env.PERFORMANCE_WORLDS||'island').split(',').map(s=>s.trim()).filter(Boolean);
+const report={label:process.argv[2]||'latest',viewport:[1280,720],mode:'desktop Chrome / live presentation / current renderer',rows:[],errors:[]};
 await mkdir(directory,{recursive:true});
 let browser;
 
 const measure=(page,profile=false)=>page.evaluate(async profile=>{
-  const app=window.__DEAD_ARRIVAL__,gfx=app.renderer;
-  const before={...gfx.renderer.info.memory};
+  const app=window.__BLACKWATER__,gfx=app?.renderer;
+  if(!gfx) throw new Error('No renderer on window.__BLACKWATER__');
+  const info=gfx.info;
+  const before={...info.memory};
   const intervals=[];
   const stages={},originals=[];
   const wrap=(object,key,name=key)=>{
@@ -25,13 +33,14 @@ const measure=(page,profile=false)=>page.evaluate(async profile=>{
     object[key]=function(...args){const start=performance.now();try{return original.apply(this,args);}finally{const slot=stages[name]||{calls:0,totalMs:0};slot.calls++;slot.totalMs+=performance.now()-start;stages[name]=slot;}};
   };
   wrap(gfx,'render','wholeRender');
+  wrap(gfx,'harborWorld','worldObject');
   wrap(gfx.harborWorld,'update','worldUpdate');
-  wrap(gfx.afterlifeLighting,'update','lighting');
+  wrap(gfx,'afterlifeLighting','lightingObject');
+  wrap(gfx.afterlifeLighting,'update','lightingUpdate');
   wrap(gfx,'_updateEnemies','enemyVisuals');
   wrap(gfx,'_updateCombat','combatVisuals');
   wrap(gfx,'_renderScene','sceneSubmit');
   wrap(gfx.bodycam,'render','imagePass');
-  wrap(gfx,'_collectDiagnostics','diagnostics');
   const started=performance.now();
   try{await new Promise(resolve=>{
     let last=0;
@@ -43,58 +52,49 @@ const measure=(page,profile=false)=>page.evaluate(async profile=>{
     };
     requestAnimationFrame(sample);
   });}finally{for(const [object,key,original] of originals.reverse())object[key]=original;}
-  intervals.sort((a,b)=>a-b);
-  const pick=p=>+intervals[Math.min(intervals.length-1,Math.floor(intervals.length*p))].toFixed(2);
   const elapsed=performance.now()-started;
+  const sorted=[...intervals].sort((a,b)=>a-b);
+  const pick=p=>+(sorted[Math.min(sorted.length-1,Math.floor(sorted.length*p))]||0).toFixed(2);
+  let metrics=null;
+  try{metrics=app.metrics?.()||null;}catch{}
   return {
-    course:app.run.course.name||app.run.course.id,
-    screen:app.screen,
-    backend:!!gfx.renderer.isWebGPURenderer,
+    mode:app.mode,
+    renderer:gfx.isWebGPURenderer?'webgpu':'webgl',
     frames:intervals.length,
     elapsedMs:+elapsed.toFixed(1),
     observedFps:+(intervals.length/elapsed*1000).toFixed(1),
     frameMs:{median:pick(.5),p95:pick(.95),max:pick(1)},
-    render:{drawCalls:gfx.renderer.info.render.drawCalls,triangles:gfx.renderer.info.render.triangles},
-    memory:{beforeBytes:before.total,afterBytes:gfx.renderer.info.memory.total},
-    enemyCount:app.run.course.enemies.length,
+    render:{drawCalls:info.render.calls??metrics?.calls??0,triangles:info.render.triangles??metrics?.triangles??0,frame:info.render.frame??0},
+    memory:{beforeBytes:before.total??0,afterBytes:info.memory.total??0},
+    metrics,
     stages:Object.fromEntries(Object.entries(stages).map(([key,slot])=>[key,{calls:slot.calls,meanMs:+(slot.totalMs/slot.calls).toFixed(2)}])),
   };
 },profile);
 
+const queries={island:'?debug=1&world=island',dungeon:'?debug=1&dungeon=0'};
+
 try{
-  browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH,args:['--disable-background-timer-throttling','--disable-renderer-backgrounding']});
-  for(const [name,query] of [['dungeon','?debug=1&dungeon=0'],['island','?debug=1&world=island']]){
+  browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH,args:['--enable-unsafe-webgpu','--ignore-gpu-blocklist','--disable-background-timer-throttling','--disable-renderer-backgrounding']});
+  for(const name of worlds){
+    const query=queries[name]||`?debug=1&world=${name}`;
     const context=await browser.newContext({viewport:{width:1280,height:720},deviceScaleFactor:1});
     const page=await context.newPage();
     page.on('pageerror',error=>report.errors.push(`${name}: ${error.message}`));
     page.on('console',message=>{if(message.type()==='error')report.errors.push(`${name}: ${message.text()}`);});
     page.on('response',response=>{if(response.status()>=400)report.errors.push(`${name}: ${response.status()} ${response.url()}`);});
-    await page.goto(`http://127.0.0.1:${server.port}/${query}`,{waitUntil:'domcontentloaded',timeout:90000});
-    await page.waitForFunction(()=>!!window.__DEAD_ARRIVAL__?.renderer,undefined,{timeout:90000});
-    await page.locator('[data-action="start"]').click();
-    await page.waitForFunction(()=>window.__DEAD_ARRIVAL__?.screen==='play'&&window.__DEAD_ARRIVAL__.renderer._weaponsPrepared,undefined,{timeout:180000});
-    await page.evaluate(()=>{window.__DEAD_ARRIVAL__.run.health=10000;});
+    await page.goto(`http://127.0.0.1:${server.port}/${query}`,{waitUntil:'load',timeout:90000});
+    await page.waitForSelector('#begin:not([disabled])',{timeout:120000});
+    await page.click('#begin');
+    await page.waitForFunction(()=>!!window.__BLACKWATER__?.renderer,undefined,{timeout:120000});
+    await page.waitForTimeout(2500);
     const row=await measure(page,!!process.env.PERFORMANCE_PROFILE);
     report.rows.push({name,variant:'default',...row});
     await page.screenshot({path:`${directory}/${report.label}-${name}.png`});
     await writeFile(`${directory}/${report.label}.json`,JSON.stringify(report,null,2));
     console.log(JSON.stringify({name,...row}));
-    assert.equal(row.screen,'play');
-    assert.equal(row.backend,true);
+    assert.equal(row.mode,'playing',`${name}: did not reach the play screen`);
     assert.ok(row.frames>=60,`${name}: presentation stalled`);
     assert.ok(row.render.drawCalls>0,`${name}: no world draw calls`);
-    if(name==='island'&&process.env.PERFORMANCE_DIAGNOSE){
-      for(const [variant,configure] of [
-        ['direct',()=>{const gfx=window.__DEAD_ARRIVAL__.renderer;gfx.settings.bodycam=false;}],
-        ['scale-80',()=>{const gfx=window.__DEAD_ARRIVAL__.renderer;gfx.settings.bodycam=true;gfx._renderScale=.8;gfx.resize();}],
-      ]){
-        await page.evaluate(configure);
-        await page.waitForTimeout(500);
-        const diagnostic=await measure(page);
-        report.rows.push({name,variant,...diagnostic});
-        console.log(JSON.stringify({name,variant,...diagnostic}));
-      }
-    }
     await context.close();
   }
   assert.deepEqual(report.errors,[]);
