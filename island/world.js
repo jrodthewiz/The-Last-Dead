@@ -10,6 +10,7 @@ import {domesticExteriorPlan} from './domestic-exteriors.js';
 import {compileWorldLabels,worldBoardMaterial} from './world-labels.js';
 import {houseShell} from './house-shell.js';
 import {consoleMaterial} from './retro-materials.js';
+import {bakeLocalAO,artDetailDebug} from './detail-materials.js';
 import {paintArchitecture,paintTerrain,paintBridge,skyNoise} from './surface-art.js';
 import {coastalBotany,streetCraft} from './visual-details.js';
 import {createCoastalMotion} from './coastal-motion.js';
@@ -30,7 +31,7 @@ const COLORS={stone:0xb3baa5,wood:0x796849,darkwood:0x4b5141,roof:0x5b7976,road:
 function grainTexture(){const c=document.createElement('canvas');c.width=c.height=64;const ctx=c.getContext('2d'),rng=random(817),pixels=ctx.createImageData(64,64);for(let i=0;i<pixels.data.length;i+=4){const n=222+Math.floor(rng()*30);pixels.data[i]=n;pixels.data[i+1]=n;pixels.data[i+2]=n;pixels.data[i+3]=255;}ctx.putImageData(pixels,0,0);const texture=new T.CanvasTexture(c);texture.wrapS=texture.wrapT=T.RepeatWrapping;texture.magFilter=T.LinearFilter;texture.colorSpace=T.SRGBColorSpace;return texture;}
 const grain=grainTexture();
 class Kit {
-  constructor(scene){this.scene=scene;this.parts=new Map();this.labels=[];this.surface=0;this.geometries={box:new T.BoxGeometry(1,1,1),cone:new T.ConeGeometry(1,1,7),dial:new T.CylinderGeometry(1,1,1,12).rotateX(Math.PI/2),cylinder:new T.CylinderGeometry(1,1,1,7),basin:new T.LatheGeometry([[0,-.5],[.66,-.5],[.85,-.40],[1,.30],[1.02,.43],[.96,.50],[.88,.43],[.86,.27],[.65,-.22],[0,-.22]].map(([r,y])=>new T.Vector2(r,y)),10),mug:new T.LatheGeometry([[0,-.5],[.80,-.5],[.91,-.43],[1,.40],[1,.47],[.96,.50],[.82,.47],[.82,.37],[.75,-.31],[0,-.31]].map(([r,y])=>new T.Vector2(r,y)),8),rock:new T.IcosahedronGeometry(1,0),sphere:new T.IcosahedronGeometry(1,1)};this.material=paintArchitecture(consoleMaterial(new T.MeshLambertMaterial({color:0xffffff,flatShading:true,map:grain})));this.count=0;}
+  constructor(scene){this.scene=scene;this.parts=new Map();this.labels=[];this.surface=0;this.geometries={box:new T.BoxGeometry(1,1,1),cone:new T.ConeGeometry(1,1,7),dial:new T.CylinderGeometry(1,1,1,12).rotateX(Math.PI/2),cylinder:new T.CylinderGeometry(1,1,1,7),basin:new T.LatheGeometry([[0,-.5],[.66,-.5],[.85,-.40],[1,.30],[1.02,.43],[.96,.50],[.88,.43],[.86,.27],[.65,-.22],[0,-.22]].map(([r,y])=>new T.Vector2(r,y)),10),mug:new T.LatheGeometry([[0,-.5],[.80,-.5],[.91,-.43],[1,.40],[1,.47],[.96,.50],[.82,.47],[.82,.37],[.75,-.31],[0,-.31]].map(([r,y])=>new T.Vector2(r,y)),8),rock:new T.IcosahedronGeometry(1,0),sphere:new T.IcosahedronGeometry(1,1)};for(const geometry of Object.values(this.geometries))bakeLocalAO(geometry);this.material=paintArchitecture(consoleMaterial(new T.MeshLambertMaterial({color:0xffffff,flatShading:true,map:grain})));this.count=0;}
   add(shape,x,y,z,sx,sy,sz,color,ry=0,q=null,role=this.surface){const foliage=shape==='fern'||shape==='tuft',interior=!!this.interior,tile=interior?90:foliage?72:180,distance=interior?96:shape==='tuft'?65:shape==='fern'?100:270,detail=interior||foliage||Math.max(sx,sy,sz)<2.1,key=interior?`room:${shape}:${this.interior}`:`world:${shape}:${Math.floor(x/tile)},${Math.floor(z/tile)}:${detail}`;if(!this.parts.has(key))this.parts.set(key,{shape,items:[],detail,distance,roomTile:this.interior||null});this.parts.get(key).items.push({x,y,z,sx,sy,sz,color,ry,q,role});this.count++;}
   label(p){this.labels.push({...p,roomTile:this.interior||null});this.count++;}
   box(x,y,z,w,h,d,c,r=0,role=this.surface){this.add('box',x,y,z,w,h,d,c,r,null,role);}
@@ -76,7 +77,7 @@ function buildTerrain(scene){
   }
   const geometry=surface(positions,colors),uv=[];for(let i=0;i<positions.length;i+=3)uv.push(positions[i]/12,positions[i+2]/12);geometry.setAttribute('uv',new T.Float32BufferAttribute(uv,2));
   geometry.setAttribute('artSlope',new T.Float32BufferAttribute(slopes,1));
-  const material=new T.MeshLambertMaterial({vertexColors:true,flatShading:true,map:grain});
+  const material=new T.MeshLambertMaterial({vertexColors:true,flatShading:true,map:grain});material.userData.artDebug=artDetailDebug;
   // Paint the roads on their actual terrain triangles. Separate draped strips
   // fight the ground at grid diagonals and create ragged shoulders on hills.
   const f=n=>Number(n).toFixed(3),segments=[],roadPaint=[],roads=[...TRAILS,...ROADS];
@@ -316,6 +317,9 @@ function createSky(scene){
     float coverage=smoothstep(.535,.72,field+wisps*.07)*smoothstep(.025,.18,d.y);
     float lit=clamp(.48+(artField(p+sun.xz*.18)-field)*4.+d.y*.22,0.,1.);
     vec3 cloud=mix(cloudShade,cloudLight,lit);cloud+=vec3(.1,.065,.025)*pow(max(s,0.),8.);
+    // The faceted world needs a printed sky, not a photographic one. Keep the
+    // banding in the cloud mass and leave the base gradient smooth.
+    cloud=mix(cloud,floor(cloud*12.+.5)/12.,.34);
     c=mix(c,cloud,coverage*.90);
     c=mix(c,vec3(1.,.86,.57),smoothstep(.9993,.99965,s)*(1.-coverage*.8));
     gl_FragColor=vec4(c,1.);

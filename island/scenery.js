@@ -60,6 +60,18 @@ export async function loadScenery(scene,data){
   }
   const meshes=[];for(const [key,geometries] of tiles){const geometry=mergeGeometries(geometries);geometry.computeBoundingSphere();const mesh=new T.Mesh(geometry,material);mesh.name='Survival scenery '+key;mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.distance=key.endsWith('detail')?230:600;scene.add(mesh);freezeLocalTransforms(mesh);meshes.push(mesh);for(const g of geometries)g.dispose();}
   if(footings.length){const geometry=mergeGeometries(footings),mesh=new T.Mesh(geometry,new T.MeshLambertMaterial({color:0x726247,flatShading:true}));mesh.name='Grounded timber feet';mesh.castShadow=mesh.receiveShadow=true;scene.add(mesh);freezeLocalTransforms(mesh);for(const g of footings)g.dispose();}footingBox.dispose();
+  // One instanced contact patch for the authored survival props. The world's
+  // tree/building decals already cover vegetation and structures; this keeps
+  // barrels, crates, tents and workbenches from reading as detached boxes.
+  if(items.length){
+   const canvas=document.createElement('canvas');canvas.width=canvas.height=64;const ctx=canvas.getContext('2d'),gradient=ctx.createRadialGradient(32,32,2,32,32,32);
+   gradient.addColorStop(0,'rgba(19,31,22,.34)');gradient.addColorStop(.5,'rgba(19,31,22,.17)');gradient.addColorStop(1,'rgba(19,31,22,0)');
+   ctx.fillStyle=gradient;ctx.fillRect(0,0,64,64);
+   const texture=new T.CanvasTexture(canvas),material=new T.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2});
+   const geometry=new T.CircleGeometry(1,10).rotateX(-Math.PI/2),shadows=new T.InstancedMesh(geometry,material,items.length),shadowDummy=new T.Object3D();
+   for(let i=0;i<items.length;i++){const p=items[i];shadowDummy.position.set(p.x,p.y+.028,p.z);shadowDummy.scale.setScalar(Math.max(.22,p.size*.42));shadowDummy.updateMatrix();shadows.setMatrixAt(i,shadowDummy.matrix);}
+   shadows.name='Prop contact shadows';shadows.instanceMatrix.needsUpdate=true;scene.add(shadows);freezeLocalTransforms(shadows);
+  }
   for(const a of assets.values())a.geometry.dispose();assets.clear();tiles.clear();
   return {items,colliders,footingPoints,stats:{assets:SCENERY_ASSETS.length,props:items.length,batches:meshes.length+(footings.length?1:0),footings:footings.length},update(camera){for(const m of meshes){const b=m.geometry.boundingSphere;m.visible=camera.distanceToSquared(b.center)<(m.userData.distance+b.radius)**2;}}};
 }

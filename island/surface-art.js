@@ -1,7 +1,9 @@
 import * as T from '../vendor/three.module.js';
+import {DETAIL_PARS,attachDetailUniforms,artDetailDebug} from './detail-materials.js';
 
-// Low-frequency painted colour and small material-specific marks. These run in
-// the existing Lambert draw, before lighting, fog and the single output pass.
+// Low-frequency painted colour, shared procedural normal/ARM detail and
+// material-specific marks. These run in the existing Lambert draws, before
+// lighting, fog and the single output pass.
 const noise=`
 float artHash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float artNoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(artHash(i),artHash(i+vec2(1,0)),f.x),mix(artHash(i+vec2(0,1)),artHash(i+vec2(1,1)),f.x),f.y);}
@@ -10,18 +12,23 @@ float artField(vec2 p){return artNoise(p)*.62+artNoise(p*2.03+9.1)*.26+artNoise(
 const rgb=hex=>'vec3('+new T.Color(hex).toArray().map(v=>v.toFixed(5)).join(',')+')';
 
 export function paintTerrain(shader,segments,roadPaint,roadBounds){
- shader.vertexShader='attribute float artSlope;varying float vSlope;varying vec3 vGround;\n'+shader.vertexShader;
- shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvGround=position;vSlope=artSlope;');
+ shader.vertexShader='attribute float artSlope;varying float vSlope;varying vec3 vGround;varying vec3 vGroundWorld;varying vec3 vGroundNormal;\n'+shader.vertexShader;
+ shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvGround=position;vSlope=artSlope;vGroundWorld=(modelMatrix*vec4(position,1.)).xyz;vGroundNormal=normalize(mat3(modelMatrix)*normal);');
  // Keep a single loop in the driver instead of generating a large shader
  // with a separate copy of the distance calculation for each road segment.
  shader.uniforms.artRoadSegments={value:segments};
  shader.uniforms.artRoadPaint={value:roadPaint};
  shader.uniforms.artRoadCount={value:segments.length};
- shader.fragmentShader=`varying float vSlope;varying vec3 vGround;
+ attachDetailUniforms(shader);
+ shader.fragmentShader=`varying float vSlope;varying vec3 vGround;varying vec3 vGroundWorld;varying vec3 vGroundNormal;
  uniform vec4 artRoadSegments[${segments.length}];
  uniform vec4 artRoadPaint[${segments.length}];
- uniform int artRoadCount;\n`+noise+shader.fragmentShader;
+ uniform int artRoadCount;\n`+DETAIL_PARS+noise+shader.fragmentShader;
  shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+ vec3 artWorldNormal=normalize(vGroundNormal);
+ vec3 artArm=artTriArm(vGroundWorld,artWorldNormal);
+ float artRough=clamp(.88+(artArm.g-.5)*.18,.55,.99);
+ float artMetal=0.;
  vec2 land=vGround.xz;float field=artField(land*.022),tuft=artNoise(land*.37);
  vec3 soil=mix(${rgb(0x607c4b)},${rgb(0x9b9e61)},smoothstep(.22,.8,field));
  soil*=.93+tuft*.12;
@@ -51,60 +58,83 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds){
  float useMark=rw<3.?(.89+.13*artNoise(land*.35)):(.90+.12*artNoise(land*.8)-roadPatch*.07-wheel*.045);
  diffuseColor.rgb=mix(diffuseColor.rgb,rc*useMark,paving);}
  `);
+ shader.fragmentShader=shader.fragmentShader.replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
+  artWorldNormal=artDetailNormal(vGroundWorld,artWorldNormal);
+  normal=normalize((viewMatrix*vec4(artWorldNormal,0.)).xyz);`);
+ shader.fragmentShader=shader.fragmentShader.replace('vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;',`vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;
+  if(uArtDebug>.5&&uArtDebug<1.5)outgoingLight=artWorldNormal*.5+.5;
+  else if(uArtDebug>1.5&&uArtDebug<2.5)outgoingLight=vec3(clamp((artRough-.5)*2.4,0.,1.));`);
 }
 
 export function paintArchitecture(material){
- const wind={value:0};material.userData.wind=wind;
+ const wind={value:0};material.userData.wind=wind;material.userData.artDebug=artDetailDebug;
  const previous=material.onBeforeCompile;
  material.onBeforeCompile=function(shader,renderer){
   previous.call(this,shader,renderer);
-  shader.uniforms.uArtWind=wind;shader.vertexShader='uniform float uArtWind;attribute float artRole;varying float vArtRole;varying vec3 vArtWorld;varying vec2 vArtUv;\n'+shader.vertexShader;
+  attachDetailUniforms(shader);
+  shader.uniforms.uArtWind=wind;shader.vertexShader='uniform float uArtWind;attribute float artRole;attribute float artAO;varying float vArtRole;varying float vArtAO;varying vec3 vArtWorld;varying vec2 vArtUv;\n'+shader.vertexShader;
   shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
-   vArtRole=artRole;vArtUv=uv;vec4 artPoint=vec4(position,1.);
+   vArtRole=artRole;vArtAO=artAO;vArtUv=uv;vec4 artPoint=vec4(position,1.);
    #ifdef USE_INSTANCING
    artPoint=instanceMatrix*artPoint;
    #endif
    vArtWorld=(modelMatrix*artPoint).xyz;
    if(artRole>3.5&&artRole<4.5){float wind=sin(uArtWind*1.25+vArtWorld.x*.08+vArtWorld.z*.06);transformed.x+=wind*.028*max(0.,position.y+.6);transformed.z+=sin(uArtWind*.9+vArtWorld.x*.09)*.016*max(0.,position.y+.6);}`);
-  shader.fragmentShader='varying float vArtRole;varying vec3 vArtWorld;varying vec2 vArtUv;\n'+noise+shader.fragmentShader;
+  shader.fragmentShader='varying float vArtRole;varying float vArtAO;varying vec3 vArtWorld;varying vec2 vArtUv;\n'+DETAIL_PARS+noise+shader.fragmentShader;
   shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
-  if(vArtRole>.5){
-   vec3 n=abs(normalize(cross(dFdx(vArtWorld),dFdy(vArtWorld))));
+  vec3 artWorldNormal=vec3(0.,1.,0.);float artRough=.82,artMetal=.02;
+  if(vArtRole>-.5){
+   vec3 nWorld=normalize(cross(dFdx(vArtWorld),dFdy(vArtWorld)));
+   if(dot(nWorld,cameraPosition-vArtWorld)<0.)nWorld=-nWorld;
+   artWorldNormal=nWorld;
+   vec3 n=abs(nWorld);
    vec2 uv=n.y>.7?vArtWorld.xz:(n.x>n.z?vArtWorld.zy:vArtWorld.xy);
+   vec3 arm=artTriArm(vArtWorld,nWorld);
    float baseGrime=1.-smoothstep(.035,.24,vArtUv.y);
    float patina=artField(uv*.22);
-   if(vArtRole<1.5){
+   if(vArtRole<.5){
+    diffuseColor.rgb*=.92+artNoise(vArtWorld.xz*1.1)*.13;
+    artRough=.55;artMetal=.32;
+   }else if(vArtRole<1.5){
     float runoff=artNoise(vec2(uv.x*.65,uv.y*.085));
     diffuseColor.rgb*=.85+patina*.19;
     diffuseColor.rgb*=1.-baseGrime*.12;
     diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(.64,.72,.65),smoothstep(.68,.86,runoff)*.32);
+    artRough=.80;artMetal=.02;
    }else if(vArtRole<2.5){
     vec2 tile=vArtWorld.xz*vec2(1.8,2.5);tile.x+=mod(floor(tile.y),2.)*.5;
     vec2 cell=fract(tile),aa=max(fwidth(tile),vec2(.02));
     float seam=(1.-smoothstep(.025,.025+aa.x,cell.x))+(1.-smoothstep(.06,.06+aa.y,cell.y));
     diffuseColor.rgb*=.92+.14*artHash(floor(tile))-.12*min(1.,seam);
+    artRough=.58;artMetal=.32;
    }else if(vArtRole<3.5){
     diffuseColor.rgb*=.82+.25*artNoise(uv*vec2(3.,.18));
+    artRough=.92;artMetal=0.;
    }else if(vArtRole<4.5){
     diffuseColor.rgb*=.92+.16*artNoise(vArtWorld.xz*.55);
+    artRough=.80;artMetal=0.;
    }else if(vArtRole<5.5){
     float sheen=pow(1.-abs(fract((vArtUv.x+vArtUv.y*.32)*.3)-.5)*2.,5.);
     diffuseColor.rgb*=.82+sheen*.16;
     diffuseColor.rgb+=vec3(.012,.020,.022)*smoothstep(.35,1.,vArtUv.y);
+    artRough=.20;artMetal=.06;
    }else if(vArtRole<6.5){
     float sheen=pow(1.-abs(fract((vArtUv.x+vArtUv.y*.32)*.3)-.5)*2.,5.);
     diffuseColor.rgb*=.84+sheen*.17;
     diffuseColor.rgb+=vec3(.020,.013,.004)*smoothstep(.30,1.,vArtUv.y);
+    artRough=.20;artMetal=.06;
    }else if(vArtRole<7.5){
     vec2 brick=uv*vec2(.8,2.);brick.x+=mod(floor(brick.y),2.)*.5;
     vec2 f=fract(brick),aa=max(fwidth(brick),vec2(.015));
     float joint=max(1.-smoothstep(.025,.025+aa.x,f.x),1.-smoothstep(.05,.05+aa.y,f.y));
     diffuseColor.rgb*=.86+artHash(floor(brick))*.2-joint*.18;
+    artRough=.84;artMetal=.0;
    }else if(vArtRole<8.5){
     vec2 slab=vArtWorld.xz*.6;slab.x+=mod(floor(slab.y),2.)*.5;
     vec2 f=fract(slab),aa=max(fwidth(slab),vec2(.012));
     float joint=max(1.-smoothstep(.016,.016+aa.x,f.x),1.-smoothstep(.02,.02+aa.y,f.y));
     diffuseColor.rgb*=.92+.1*artHash(floor(slab))-.13*joint;
+    artRough=.90;artMetal=0.;
    }else if(vArtRole>10.5){
     // Along the aisle at the shelter, across the workroom at Westlight.
     if(n.y>.7){
@@ -118,22 +148,68 @@ export function paintArchitecture(material){
      float wear=artNoise(uv*vec2(1.1,.33));
      diffuseColor.rgb*=.9+boards*.22+wear*.10-joint*.32;
     }
+    artRough=.66;artMetal=.04;
    }else if(vArtRole>9.5){
     // Worn upper faces lead to the threshold. Keep the risers in cool shadow.
     vec3 treadWear=vec3(1.25,1.18,1.08)*(.94+patina*.11);
     diffuseColor.rgb*=n.y>.7?treadWear:vec3(.79,.82,.83);
+    artRough=.72;artMetal=.04;
    }else{
     float aggregate=artNoise(vArtWorld.xz*2.7),repair=artNoise(vArtWorld.xz*.09);
     // Broad damp/dry wear keeps large quays and lots from reading as one chip.
     float lotWear=artNoise(vArtWorld.xz*.06);
     diffuseColor.rgb*=.87+lotWear*.18;
     diffuseColor.rgb*=.94+aggregate*.085-smoothstep(.70,.82,repair)*.065;
+    artRough=.93;artMetal=0.;
    }
+   if(vArtRole<2.5||vArtRole>6.5){
+    float grimeFine=artNoise(vArtWorld.xz*2.8+vArtWorld.y*.15);
+    float grimeBroad=artNoise(vArtWorld.xz*.48+vArtWorld.y*.08);
+    float grime=grimeFine*.45+grimeBroad*.55;
+    float rain=baseGrime*artNoise(vec2(vArtWorld.x*.9,vArtWorld.y*.085));
+    diffuseColor.rgb*=.91+grime*.16-rain*.08;
+    artRough=clamp(artRough+(grime-.5)*.18+baseGrime*.15,.08,.99);
+    vec3 viewDir=normalize(cameraPosition-vArtWorld);
+    float facing=abs(dot(nWorld,viewDir));
+    diffuseColor.rgb*=1.-pow(1.-facing,3.)*.03;
+    diffuseColor.rgb+=vec3(.012,.011,.008)*pow(1.-facing,4.);
+   }
+   artRough=clamp(artRough+(arm.g-.5)*.14,.08,.99);
+   artMetal=clamp(artMetal*arm.b,0.,1.);
   }`);
+  shader.fragmentShader=shader.fragmentShader.replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
+   if(vArtRole<3.5||vArtRole>4.5)artWorldNormal=artDetailNormal(vArtWorld,artWorldNormal);
+   normal=normalize((viewMatrix*vec4(artWorldNormal,0.)).xyz);`);
+  shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_end>',`#include <lights_fragment_end>
+   reflectedLight.indirectDiffuse*=mix(1.,vArtAO,.45);`);
   shader.fragmentShader=shader.fragmentShader.replace('#include <emissivemap_fragment>',`#include <emissivemap_fragment>
    if(vArtRole>5.5&&vArtRole<6.5)totalEmissiveRadiance+=${rgb(0xb7965c)}*.22;`);
+  shader.fragmentShader=shader.fragmentShader.replace('vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;',`vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;
+   #if NUM_DIR_LIGHTS > 0
+   vec3 artV=normalize(vViewPosition);
+   vec3 artL=normalize(directionalLights[0].direction);
+   vec3 artH=normalize(artV+artL);
+   if(vArtRole<3.5||vArtRole>4.5){
+    float spec=pow(saturate(dot(normal,artH)),mix(8.,48.,1.-artRough));
+    float bands=step(.12,spec)+step(.38,spec)+step(.68,spec);
+    float fres=pow(1.-saturate(dot(normal,artV)),4.);
+    vec3 tint=mix(vec3(.12,.14,.15),vec3(.72,.58,.36),artMetal);
+    outgoingLight+=directionalLights[0].color*tint*bands*(.08+.18*fres)*(1.-artRough*.55);
+    // A small view-dependent sky sheen keeps wet edges and glass legible even
+    // when the face is out of the sun.
+    outgoingLight+=mix(vec3(.018,.026,.032),vec3(.10,.08,.05),artMetal)*fres*(1.-artRough)*.9;
+   }
+   if(vArtRole>3.5&&vArtRole<4.5){
+    float wrap=saturate(dot(normal,artL)*.5+.5);
+    float back=pow(saturate(dot(-normal,artL)),2.);
+    outgoingLight+=directionalLights[0].color*diffuseColor.rgb*(wrap*.12+back*.14);
+    outgoingLight+=diffuseColor.rgb*vec3(.025,.034,.020);
+   }
+   #endif
+   if(uArtDebug>.5&&uArtDebug<1.5)outgoingLight=artWorldNormal*.5+.5;
+   else if(uArtDebug>1.5&&uArtDebug<2.5)outgoingLight=vec3(clamp((artRough-.5)*2.4,0.,1.));`);
  };
- const key=material.customProgramCacheKey.bind(material);material.customProgramCacheKey=()=>key()+'-authored-surfaces-v3';
+ const key=material.customProgramCacheKey.bind(material);material.customProgramCacheKey=()=>key()+'-authored-surfaces-v4';
  return material;
 }
 
