@@ -1,0 +1,42 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "the-last-dead",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-11-21",
+  // Canonical public hostname is thelastdead.jrod.download. blackwater was
+  // retired (detached) on 2026-11-21; lastdead stays attached for its documented
+  // legacy links. The Worker 308s retired hosts to the canonical name.
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    // Host checks run in the Worker, so every request reaches it first.
+    // NOTE: Workers assets cap a file at 25 MiB. dist/assets/models/
+    // bloodworks-warden.glb is currently 32.6 MiB and blocks `wrangler deploy`
+    // until it is split, compressed or excluded.
+    "run_worker_first": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "blackwater-rooms",
+      "database_id": "3ca900e8-33ed-4f62-9114-46d4aedb2c2d"
+    }
+  ],
+  // One public name: thelastdead.jrod.download. All hosts share the same D1
+  // room directory; retired hosts only issue 308s.
+  "routes": [
+    // Canonical hostname: attached as a zone route (its proxied DNS record was
+    // added during the 2026-11-20 cleanup). blackwater was detached on
+    // 2026-11-21 and is retired; its old links are handled by a jrod-hub route
+    // if DNS is ever restored. lastdead remains attached for its documented
+    // legacy links and analytics until the owner retires it too.
+    { "pattern": "thelastdead.jrod.download/*", "zone_name": "jrod.download" },
+    { "pattern": "lastdead.jrod.download", "custom_domain": true }
+  ],
+  "observability": {
+    "enabled": true,
+    "traces": {
+      "enabled": true
+    }
+  }
+}
