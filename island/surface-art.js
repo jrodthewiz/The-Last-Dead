@@ -25,6 +25,8 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds){
  vec2 land=vGround.xz;float field=artField(land*.022),tuft=artNoise(land*.37);
  vec3 soil=mix(${rgb(0x607c4b)},${rgb(0x9b9e61)},smoothstep(.22,.8,field));
  soil*=.93+tuft*.12;
+ // Mid-scale clumping stops a whole hillside reading as one flat painted plane.
+ soil*=.94+artNoise(land*.63)*.10;
  float exposed=smoothstep(.025,.11,vSlope+(field-.5)*.035);
  float strata=sin(vGround.y*.65+artNoise(land*.045)*2.8);
  vec3 rock=mix(${rgb(0x69736f)},${rgb(0xa8ab9c)},artField(land*.1))*(.92+strata*.13);
@@ -43,7 +45,10 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds){
  float edge=artNoise(land*1.7)*.16;float shoulder=1.-smoothstep(rw+.55,rw+.85,rd+edge);
  float paving=1.-smoothstep(rw-.07,rw+.07,rd+edge*.35);
  diffuseColor.rgb=mix(diffuseColor.rgb,${rgb(0x666e4e)},shoulder);
- float useMark=rw<3.?(.89+.13*artNoise(land*.35)):(.94+.08*artNoise(land*.8));
+ float asphalt=artNoise(land*.16);
+ float roadPatch=smoothstep(.72,.88,asphalt);
+ float wheel=1.-smoothstep(.035,.11,abs(abs(rd/max(rw,.001))-.58));
+ float useMark=rw<3.?(.89+.13*artNoise(land*.35)):(.90+.12*artNoise(land*.8)-roadPatch*.07-wheel*.045);
  diffuseColor.rgb=mix(diffuseColor.rgb,rc*useMark,paving);}
  `);
 }
@@ -53,23 +58,25 @@ export function paintArchitecture(material){
  const previous=material.onBeforeCompile;
  material.onBeforeCompile=function(shader,renderer){
   previous.call(this,shader,renderer);
-  shader.uniforms.uArtWind=wind;shader.vertexShader='uniform float uArtWind;attribute float artRole;varying float vArtRole;varying vec3 vArtWorld;\n'+shader.vertexShader;
+  shader.uniforms.uArtWind=wind;shader.vertexShader='uniform float uArtWind;attribute float artRole;varying float vArtRole;varying vec3 vArtWorld;varying vec2 vArtUv;\n'+shader.vertexShader;
   shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
-   vArtRole=artRole;vec4 artPoint=vec4(position,1.);
+   vArtRole=artRole;vArtUv=uv;vec4 artPoint=vec4(position,1.);
    #ifdef USE_INSTANCING
    artPoint=instanceMatrix*artPoint;
    #endif
    vArtWorld=(modelMatrix*artPoint).xyz;
    if(artRole>3.5&&artRole<4.5){float wind=sin(uArtWind*1.25+vArtWorld.x*.08+vArtWorld.z*.06);transformed.x+=wind*.028*max(0.,position.y+.6);transformed.z+=sin(uArtWind*.9+vArtWorld.x*.09)*.016*max(0.,position.y+.6);}`);
-  shader.fragmentShader='varying float vArtRole;varying vec3 vArtWorld;\n'+noise+shader.fragmentShader;
+  shader.fragmentShader='varying float vArtRole;varying vec3 vArtWorld;varying vec2 vArtUv;\n'+noise+shader.fragmentShader;
   shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
   if(vArtRole>.5){
    vec3 n=abs(normalize(cross(dFdx(vArtWorld),dFdy(vArtWorld))));
    vec2 uv=n.y>.7?vArtWorld.xz:(n.x>n.z?vArtWorld.zy:vArtWorld.xy);
+   float baseGrime=1.-smoothstep(.035,.24,vArtUv.y);
    float patina=artField(uv*.22);
    if(vArtRole<1.5){
     float runoff=artNoise(vec2(uv.x*.65,uv.y*.085));
     diffuseColor.rgb*=.85+patina*.19;
+    diffuseColor.rgb*=1.-baseGrime*.12;
     diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(.64,.72,.65),smoothstep(.68,.86,runoff)*.32);
    }else if(vArtRole<2.5){
     vec2 tile=vArtWorld.xz*vec2(1.8,2.5);tile.x+=mod(floor(tile.y),2.)*.5;
@@ -80,9 +87,14 @@ export function paintArchitecture(material){
     diffuseColor.rgb*=.82+.25*artNoise(uv*vec2(3.,.18));
    }else if(vArtRole<4.5){
     diffuseColor.rgb*=.92+.16*artNoise(vArtWorld.xz*.55);
+   }else if(vArtRole<5.5){
+    float sheen=pow(1.-abs(fract((vArtUv.x+vArtUv.y*.32)*.3)-.5)*2.,5.);
+    diffuseColor.rgb*=.82+sheen*.16;
+    diffuseColor.rgb+=vec3(.012,.020,.022)*smoothstep(.35,1.,vArtUv.y);
    }else if(vArtRole<6.5){
-    float sheen=pow(1.-abs(fract((uv.x+uv.y*.32)*.3)-.5)*2.,5.);
-    diffuseColor.rgb*=.83+sheen*.18;
+    float sheen=pow(1.-abs(fract((vArtUv.x+vArtUv.y*.32)*.3)-.5)*2.,5.);
+    diffuseColor.rgb*=.84+sheen*.17;
+    diffuseColor.rgb+=vec3(.020,.013,.004)*smoothstep(.30,1.,vArtUv.y);
    }else if(vArtRole<7.5){
     vec2 brick=uv*vec2(.8,2.);brick.x+=mod(floor(brick.y),2.)*.5;
     vec2 f=fract(brick),aa=max(fwidth(brick),vec2(.015));
@@ -112,7 +124,10 @@ export function paintArchitecture(material){
     diffuseColor.rgb*=n.y>.7?treadWear:vec3(.79,.82,.83);
    }else{
     float aggregate=artNoise(vArtWorld.xz*2.7),repair=artNoise(vArtWorld.xz*.09);
-    diffuseColor.rgb*=.94+aggregate*.085-smoothstep(.7,.82,repair)*.055;
+    // Broad damp/dry wear keeps large quays and lots from reading as one chip.
+    float lotWear=artNoise(vArtWorld.xz*.06);
+    diffuseColor.rgb*=.87+lotWear*.18;
+    diffuseColor.rgb*=.94+aggregate*.085-smoothstep(.70,.82,repair)*.065;
    }
   }`);
   shader.fragmentShader=shader.fragmentShader.replace('#include <emissivemap_fragment>',`#include <emissivemap_fragment>

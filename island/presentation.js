@@ -24,15 +24,20 @@ export function createPresentation(renderer){
     #include <colorspace_fragment>
     vec3 c=gl_FragColor.rgb;
     float l=dot(c,vec3(.2126,.7152,.0722));
-    vec3 graded=mix(vec3(l),c,1.035);
-    graded+=(1.-smoothstep(.08,.52,l))*vec3(-.007,.003,.010);
-    graded+=smoothstep(.42,.9,l)*vec3(.020,.009,-.008);
-    graded=(graded-.5)*1.055+.5;
+    vec3 graded=mix(vec3(l),c,1.06);
+    // Split-tone only where the image has room for it: cool damp shadows,
+    // warm sunlit edges. The low-gain S-curve returns midtone separation that
+    // haze and the flat Lambert fill had compressed, without clipping signage.
+    graded+=(1.-smoothstep(.10,.55,l))*vec3(-.008,.001,.012);
+    graded+=smoothstep(.50,.94,l)*vec3(.022,.010,-.010);
+    graded=mix(graded,smoothstep(0.,1.,clamp(graded,0.,1.)),.12);
+    graded=(graded-.5)*1.09+.5;
+    graded+=.003;
     float edge=smoothstep(.25,.72,length(vUv-.5));
-    graded*=1.-edge*.065;
+    graded*=1.-edge*.075;
     // Fine, stationary grain: no crawling noise or thick scanline overlay.
     float grain=fract(sin(dot(floor(gl_FragCoord.xy),vec2(12.9898,78.233)))*43758.5453)-.5;
-    graded+=grain*.0022;
+    graded+=grain*.0026;
     c=mix(c,graded,finish);
     vec3 quantized=floor(clamp(c,0.,1.)*63.+bayer(gl_FragCoord.xy))/63.;
     gl_FragColor.rgb=clamp(mix(c,quantized,strength*finish),0.,1.);
