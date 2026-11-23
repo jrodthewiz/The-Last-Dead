@@ -11,7 +11,7 @@ import {supportHeight} from './simulation.js';
 export function createSurvivorNPCs(scene,gltf,data){
  const people=[],colliders=[];
  for(const definition of SURVIVORS){
-  const actor=createMeshySurvivor(gltf.scene,gltf.animations);stylizeModel(actor);dressSurvivor(actor,{operator:true,palette:definition.palette});
+  const actor=createMeshySurvivor(gltf.scene,gltf.animations);stylizeModel(actor,{entity:'survivor'});dressSurvivor(actor,{operator:true,palette:definition.palette});
   const bounds=new T.Box3().setFromObject(actor),scale=(definition.id==='mara'?1.72:1.81)/(bounds.max.y-bounds.min.y),floor=supportHeight(data,definition.x,definition.z);
   actor.scale.setScalar(scale);actor.position.set(definition.x,floor-bounds.min.y*scale,definition.z);actor.rotation.y=definition.yaw;actor.name=definition.name;scene.add(actor);actor.updateMatrixWorld(true);
   const s=actor.userData,b=s.bones,rest=[b.LeftArm,b.LeftForeArm,b.LeftHand,b.RightArm,b.RightForeArm,b.RightHand,b.Head,b.Spine02].map(bone=>({bone,q:bone.quaternion.clone()}));

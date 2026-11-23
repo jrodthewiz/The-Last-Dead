@@ -3,6 +3,7 @@ import {loadGlb} from '../assets/load-glb.js';
 import {installFPSArms,sampleFPSClip} from '../assets/survivor/fps-arms.js';
 import {FIRST_PERSON_HOLD_POSES} from '../assets/survivor/viewmodel-hold-poses.js';
 import {consoleMaterial} from './retro-materials.js';
+import {paintWeaponHero} from './detail-materials.js';
 import {chestHandPoint,chestTissueState} from '../chest-finisher-visuals.js';
 import {CRIMSON} from './close-combat.js';
 import {punchMotion,searchLidAngle} from './search-motion.js';
@@ -15,7 +16,7 @@ export async function createActionHands(camera,source=loadGlb(new URL('../assets
  const [asset,anatomy]=await Promise.all([source,loadGlb(new URL('../assets/models/chest-anatomy-v2.glb',import.meta.url).href)]);
  installFPSArms({weaponGroups:[group],fpsSourceIndices:[1],weaponRig:root,camera,_findWeaponSocket:(m,name)=>m.userData[name]},asset);
  const frame=group.userData.authoredFPS,parts=frame.arms.map(a=>{a.grip.matrixAutoUpdate=false;return {...a,inverse:a.offset.clone().invert(),base:camera.getWorldQuaternion(new T.Quaternion()).invert().multiply(a.hand.getWorldQuaternion(new T.Quaternion())),fingerAxis:a.hand.worldToLocal(group.getObjectByName('FPS_breach_'+a.side+'_Middle0').getWorldPosition(new T.Vector3())).normalize()};});
- root.traverse(o=>{o.layers.set(0);if(o.isMesh){o.renderOrder=0;for(const m of(Array.isArray(o.material)?o.material:[o.material])){m.userData.viewmodelDepth=false;consoleMaterial(m);m.color?.setHex(m.userData.surfaceRole==='authored-canvas'?0x91aeb4:0xa29674);}}});
+ root.traverse(o=>{o.layers.set(0);if(o.isMesh){o.renderOrder=0;for(const m of(Array.isArray(o.material)?o.material:[o.material])){m.userData.viewmodelDepth=false;consoleMaterial(m);m.color?.setHex(m.userData.surfaceRole==='authored-canvas'?0x91aeb4:0xa29674);paintWeaponHero(m,m.userData.surfaceRole==='authored-canvas'?'cloth':'glove');}}});
  const blood={value:0},bloodMaterials=new Set();
  function bloodSurface(branch){branch?.traverse(o=>{if(!o.isMesh)return;for(const m of(Array.isArray(o.material)?o.material:[o.material])){
   if(m.userData.surfaceRole!=='authored-glove'||bloodMaterials.has(m))continue;bloodMaterials.add(m);const prior=m.onBeforeCompile,key=m.customProgramCacheKey();

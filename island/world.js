@@ -10,7 +10,7 @@ import {domesticExteriorPlan} from './domestic-exteriors.js';
 import {compileWorldLabels,worldBoardMaterial} from './world-labels.js';
 import {houseShell} from './house-shell.js';
 import {consoleMaterial} from './retro-materials.js';
-import {bakeLocalAO,artDetailDebug} from './detail-materials.js';
+import {bakeLocalAO,bakeFoliageAO,artDetailDebug} from './detail-materials.js';
 import {paintArchitecture,paintTerrain,paintBridge,skyNoise} from './surface-art.js';
 import {coastalBotany,streetCraft} from './visual-details.js';
 import {createCoastalMotion} from './coastal-motion.js';
@@ -39,7 +39,21 @@ class Kit {
   finish(){
     let calls=0;const detailMeshes=[],roomBounds=new Map();
     for(const {shape,items,detail,distance,roomTile} of this.parts.values()){
-      const geometry=this.geometries[shape].clone();geometry.setAttribute('artRole',new T.InstancedBufferAttribute(new Float32Array(items.map(p=>p.role)),1));
+      const sourceGeo=this.geometries[shape];
+      if(!sourceGeo.attributes.artAO){
+        if(shape==='fern'||shape==='tuft')bakeFoliageAO(sourceGeo);else bakeLocalAO(sourceGeo);
+      }
+      const geometry=sourceGeo.clone();
+      const roles=new Float32Array(items.length),meta=new Float32Array(items.length*4);
+      for(let i=0;i<items.length;i++){
+        const p=items[i],r=p.role;roles[i]=r;
+        const isWall=r===1,isFoundation=r===7,isRoom=!!roomTile;
+        const topAO=isRoom?.66:isWall?.50:isFoundation?.62:1.;
+        const botAO=isRoom?.60:(isWall||isFoundation)?.54:r===2?.76:1.;
+        meta[i*4]=topAO;meta[i*4+1]=botAO;meta[i*4+2]=isRoom?1:0;meta[i*4+3]=p.sy;
+      }
+      geometry.setAttribute('artRole',new T.InstancedBufferAttribute(roles,1));
+      geometry.setAttribute('artMeta',new T.InstancedBufferAttribute(meta,4));
       const mesh=new T.InstancedMesh(geometry,this.material,items.length);
       for(let i=0;i<items.length;i++){const p=items[i];dummy.position.set(p.x,p.y,p.z);dummy.scale.set(p.sx,p.sy,p.sz);dummy.rotation.set(0,p.ry,0);if(p.q)dummy.quaternion.copy(p.q);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);mesh.setColorAt(i,new T.Color(p.color));}
       mesh.computeBoundingSphere();mesh.receiveShadow=true;mesh.castShadow=shape!=='fern'&&shape!=='tuft';this.scene.add(mesh);
@@ -306,22 +320,22 @@ function streetDetails(scene,kit,data){
   // house footprints and access paths. A second scenery grid grew into homes.
 }
 function createSky(scene){
-  const uniforms={time:{value:0},sun:{value:new T.Vector3(-110,160,65).normalize()},top:{value:new T.Color(0x3b6070)},bottom:{value:new T.Color(0xb4c2ba)},cloudLight:{value:new T.Color(0xd0d8d2)},cloudShade:{value:new T.Color(0x5d747b)}};
+  const uniforms={time:{value:0},sun:{value:new T.Vector3(-110,160,65).normalize()},top:{value:new T.Color(0x2c526b)},bottom:{value:new T.Color(0xb8cdd2)},cloudLight:{value:new T.Color(0xe6e4d8)},cloudShade:{value:new T.Color(0x5c7382)}};
   const material=new T.ShaderMaterial({side:T.BackSide,depthWrite:false,uniforms,vertexShader:'varying vec3 vDir; void main(){vDir=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:`
    varying vec3 vDir;uniform float time;uniform vec3 sun,top,bottom,cloudLight,cloudShade;
    ${skyNoise}
-   void main(){vec3 d=normalize(vDir);float h=pow(max(d.y,0.),.65),s=dot(d,sun);
-    vec3 c=mix(bottom,top,h);c+=vec3(.16,.09,.035)*pow(max(s,0.),18.);
+   void main(){vec3 d=normalize(vDir);float h=pow(max(d.y,0.),.62),s=dot(d,sun);
+    vec3 c=mix(bottom,top,h);c+=vec3(.22,.13,.045)*pow(max(s,0.),11.);
     vec2 p=d.xz/max(.16,d.y+.2)*1.8+vec2(time*.0014,0.);
     float field=artField(p),wisps=artNoise(p*3.2+vec2(1.3,-2.));
-    float coverage=smoothstep(.535,.72,field+wisps*.07)*smoothstep(.025,.18,d.y);
-    float lit=clamp(.48+(artField(p+sun.xz*.18)-field)*4.+d.y*.22,0.,1.);
-    vec3 cloud=mix(cloudShade,cloudLight,lit);cloud+=vec3(.1,.065,.025)*pow(max(s,0.),8.);
+    float coverage=smoothstep(.515,.71,field+wisps*.08)*smoothstep(.02,.18,d.y);
+    float lit=clamp(.46+(artField(p+sun.xz*.20)-field)*4.5+d.y*.24,0.,1.);
+    vec3 cloud=mix(cloudShade,cloudLight,lit);cloud+=vec3(.13,.08,.03)*pow(max(s,0.),7.);
     // The faceted world needs a printed sky, not a photographic one. Keep the
     // banding in the cloud mass and leave the base gradient smooth.
-    cloud=mix(cloud,floor(cloud*12.+.5)/12.,.34);
-    c=mix(c,cloud,coverage*.90);
-    c=mix(c,vec3(1.,.86,.57),smoothstep(.9993,.99965,s)*(1.-coverage*.8));
+    cloud=mix(cloud,floor(cloud*10.+.5)/10.,.28);
+    c=mix(c,cloud,coverage*.92);
+    c=mix(c,vec3(1.,.88,.60),smoothstep(.99925,.99965,s)*(1.-coverage*.8));
     gl_FragColor=vec4(c,1.);
    }`});
   const sky=new T.Mesh(new T.SphereGeometry(4200,24,12),material);sky.frustumCulled=false;scene.add(sky);return {sky,uniforms};
@@ -329,7 +343,7 @@ function createSky(scene){
 function createWater(scene){
   const n=256,pixels=new Uint8Array(n*n);for(let z=0;z<n;z++)for(let x=0;x<n;x++)pixels[z*n+x]=Math.round(clamp((baseHeight(TERRAIN.minX+x/(n-1)*2950,TERRAIN.minZ+z/(n-1)*2000)+8)/32,0,1)*255);
   const depths=new T.DataTexture(pixels,n,n,T.RedFormat);depths.minFilter=depths.magFilter=T.LinearFilter;depths.needsUpdate=true;
-  const uniforms={time:{value:0}},material=new T.MeshPhongMaterial({color:0x457c84,specular:0xb5c5ab,shininess:48});
+  const uniforms={time:{value:0}},material=new T.MeshPhongMaterial({color:0x2e6472,specular:0xc8d8c0,shininess:64});
   material.onBeforeCompile=shader=>{
     shader.uniforms.uTime=uniforms.time;shader.uniforms.uCoast={value:depths};
     shader.vertexShader='uniform float uTime;varying vec3 vWater;\n'+shader.vertexShader;
@@ -340,25 +354,25 @@ function createWater(scene){
      vec2 coastUv=(vWater.xz-vec2(-1400.,-1000.))/vec2(2950.,2000.);
      float ground=texture2D(uCoast,coastUv).r*32.-8.;float depth=max(0.,vWater.y-ground);
      float swell=artField(vWater.xz*.012+vec2(uTime*.006,0.));
-     diffuseColor.rgb*=.86+swell*.25;
-     diffuseColor.rgb=mix(vec3(.16,.31,.25),diffuseColor.rgb,smoothstep(0.,8.,depth));
+     diffuseColor.rgb*=.85+swell*.26;
+     diffuseColor.rgb=mix(vec3(.13,.29,.27),diffuseColor.rgb,smoothstep(0.,8.5,depth));
      float wash=sin(depth*6.5-uTime*.9+artNoise(vWater.xz*.1)*2.);
-     float foam=(1.-smoothstep(.25,2.,depth))*smoothstep(.15,.9,wash);
-     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.55,.63,.48),foam*.62);
+     float foam=(1.-smoothstep(.25,2.2,depth))*smoothstep(.12,.9,wash);
+     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.62,.70,.58),foam*.68);
      float ripples=sin(vWater.x*.105+vWater.z*.31+uTime*.45+swell*6.);
-     float gleam=smoothstep(.94,1.,ripples)*smoothstep(.5,.72,swell);
-     diffuseColor.rgb+=vec3(.045,.06,.052)*gleam;
-     vec3 toEye=normalize(cameraPosition-vWater);float horizon=pow(1.-abs(toEye.y),5.);
-     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.29,.42,.43),horizon*.25);
+     float gleam=smoothstep(.92,1.,ripples)*smoothstep(.46,.72,swell);
+     diffuseColor.rgb+=vec3(.075,.09,.075)*gleam;
+     vec3 toEye=normalize(cameraPosition-vWater);float horizon=pow(1.-abs(toEye.y),4.2);
+     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.36,.50,.54),horizon*.38);
     `);
   };
   const water=new T.Mesh(new T.PlaneGeometry(8000,8000,200,200),material);water.rotation.x=-Math.PI/2;water.position.y=.2;scene.add(water);return uniforms;
 }
 export function createWorld(scene,data,{arrivalTreads=false}={}){
-  scene.background=new T.Color(0xb6c1b8);scene.fog=new T.Fog(0x899b9b,300,1500);
+  scene.background=new T.Color(0xaec4c8);scene.fog=new T.Fog(0x9cb3bb,85,920);
   const sky=createSky(scene),water=createWater(scene),kit=new Kit(scene);
-  const hemi=new T.HemisphereLight(0xc6d8df,0x556a59,.90);scene.add(hemi);
-  const sun=new T.DirectionalLight(0xffe2b0,2.2);sun.position.set(-700,850,250);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);Object.assign(sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:24,far:300});sun.shadow.bias=-.00025;sun.shadow.normalBias=.06;sun.shadow.autoUpdate=false;sun.shadow.needsUpdate=true;scene.add(sun,sun.target);let shadowAt=-Infinity,shadowX=NaN,shadowZ=NaN;
+  const hemi=new T.HemisphereLight(0xd0e4f0,0x626e65,1.02);scene.add(hemi);
+  const sun=new T.DirectionalLight(0xffdfb0,2.55);sun.position.set(-700,850,250);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);Object.assign(sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:24,far:300});sun.shadow.bias=-.00025;sun.shadow.normalBias=.06;sun.shadow.autoUpdate=false;sun.shadow.needsUpdate=true;scene.add(sun,sun.target);let shadowAt=-Infinity,shadowX=NaN,shadowZ=NaN;
   buildTerrain(scene);const accessVertices=accessSurface(data.accessPaths,terrainHeight,TERRAIN),accessGeometry=surface(accessVertices),accessUV=[];for(let i=0;i<accessVertices.length;i+=3)accessUV.push(accessVertices[i]/2,accessVertices[i+2]/2);accessGeometry.setAttribute('uv',new T.Float32BufferAttribute(accessUV,2));const accessMesh=new T.Mesh(accessGeometry,new T.MeshLambertMaterial({color:0xb0a17a,map:grain,flatShading:true}));accessMesh.receiveShadow=true;scene.add(accessMesh);buildRoads(scene,kit);for(const b of data.buildings){compileBuilding(kit,b,arrivalTreads);compilePieces(kit,cityForecourtPlan(b,groundHeight).pieces);}
   for(const t of data.trees)tree(kit,t.x,t.y,t.z,t.scale,t.kind,t.rotation);
   for(const r of data.rocks)kit.add('rock',r.x,r.y+r.s*.35,r.z,r.s,r.s*.7,r.s*.8,0x9da68e,r.r);
@@ -385,7 +399,7 @@ export function createWorld(scene,data,{arrivalTreads=false}={}){
   }
   const stats=kit.finish();stats.botany=botany;stats.routes=routes;addContactShadows(scene,data);const movingRoots=new Set([sky.sky,sun,sun.target,settlement.boat]);for(const root of scene.children)if(!root.isCamera&&!movingRoots.has(root))freezeLocalTransforms(root);const coastalMotion=createCoastalMotion(scene),life=createSettlementLife(scene,data);
   const birds=new T.Group();const birdMat=new T.MeshBasicMaterial({color:0x3e5754});for(let i=0;i<12;i++){const geo=surface([-1,0,0,0,.25,0,0,0,.3,0,.25,0,1,0,0,0,0,.3]);const bird=new T.Mesh(geo,birdMat);bird.userData.phase=i*.52;birds.add(bird);}scene.add(birds);
-  return {stats,sun,hemi,water,sky,coastalMotion,life,settlement,update(time,player,day=.64,relays=[],fov=60){const roomScale=Math.max(1,Math.min(2.4,Math.tan(Math.PI/6)/Math.tan(fov*Math.PI/360)));stats.update(player,roomScale);kit.material.userData.wind.value=time;life.update(time,player);settlement.update(time,player);water.time.value=time;sky.uniforms.time.value=time;sky.sky.position.copy(player);coastalMotion.update(time,relays);const light=.55+.45*Math.max(0,Math.sin(day*Math.PI));sun.intensity=2.55*light;hemi.intensity=.55+.25*light;const sx=Math.round(player.x),sz=Math.round(player.z),sy=groundHeight(sx,sz);sun.target.position.set(sx,sy,sz);sun.position.set(sx-110,sy+160,sz+65);// Keep the 2048px shadow pass at 30Hz; lighting and colour still draw every frame.
+  return {stats,sun,hemi,water,sky,coastalMotion,life,settlement,update(time,player,day=.64,relays=[],fov=60){const roomScale=Math.max(1,Math.min(2.4,Math.tan(Math.PI/6)/Math.tan(fov*Math.PI/360)));stats.update(player,roomScale);kit.material.userData.wind.value=time;life.update(time,player);settlement.update(time,player);water.time.value=time;sky.uniforms.time.value=time;sky.sky.position.copy(player);coastalMotion.update(time,relays);const light=.55+.45*Math.max(0,Math.sin(day*Math.PI));sun.intensity=2.65*light;hemi.intensity=.72+.30*light;const sx=Math.round(player.x),sz=Math.round(player.z),sy=groundHeight(sx,sz);sun.target.position.set(sx,sy,sz);sun.position.set(sx-110,sy+160,sz+65);// Keep the 2048px shadow pass at 30Hz; lighting and colour still draw every frame.
     // Teleports invalidate immediately; the cached map stays world anchored
     // between updates under the fixed sun direction.
     const shadowNow=performance.now();if(shadowNow-shadowAt>=59||!Number.isFinite(shadowX)||Math.hypot(sx-shadowX,sz-shadowZ)>12){sun.shadow.needsUpdate=true;shadowAt=shadowNow;shadowX=sx;shadowZ=sz;}for(let i=0;i<birds.children.length;i++){const b=birds.children[i],a=time*.06+i*.52;b.position.set(-490+Math.cos(a)*330,95+Math.sin(a*3)*12,30+Math.sin(a)*230);b.rotation.y=-a;b.scale.y=.6+Math.sin(time*3+i)*.4;}}};

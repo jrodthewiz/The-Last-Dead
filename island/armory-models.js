@@ -24,6 +24,7 @@ import {FIRST_PERSON_HOLD_POSES} from '../assets/survivor/viewmodel-hold-poses.j
 import {installFPSArms,advanceFPSClip,seatFPSArms} from '../assets/survivor/fps-arms.js';
 import {loadGlb} from '../assets/load-glb.js';
 import {consoleMaterial} from './retro-materials.js';
+import {paintWeaponHero} from './detail-materials.js';
 import {batchStaticWeaponMeshes} from '../weapon-batching.js';
 
 export async function createArmoryModels(camera,source=loadGlb(new URL('../assets/survivor/fps-arms-v5.glb',import.meta.url).href)){
@@ -61,7 +62,9 @@ export async function createArmoryModels(camera,source=loadGlb(new URL('../asset
  // rifle/bat map would treat it as missing and permanently remove it. Resolve
  // the models' existing resource promises before conversion and shader warmup.
  await resourcesReady;
- const materials=new Set();rig.traverse(o=>{o.layers.set(0);if(o.isMesh){o.castShadow=o.receiveShadow=false;for(const m of(Array.isArray(o.material)?o.material:[o.material]))materials.add(m);}});for(const m of materials){if(m.userData.surfaceRole==='authored-canvas')m.color.setHex(0x91aeb4);if(m.userData.surfaceRole==='authored-glove')m.color.setHex(0xa29674);consoleMaterial(m);}for(const group of groups)batchStaticWeaponMeshes(group);
+ const roleFor=key=>/^(steel|frame|iron|barrel|receiver|metal)$/.test(key)?'steel':/edge|blade/i.test(key)?'edge':key==='brass'?'brass':/wood|bone|horn/i.test(key)?'wood':/panel|black|dark|soot|rubber|accent|danger|red|ceramic|rust|leather/i.test(key)?'panel':null;
+ for(const model of models){const dict=model.userData.ossuary?.materials||model.userData.breach?.materials||model.userData.arc?.materials||model.userData.reliquary?.materials||model.userData.rifle?.materials||model.userData.melee?.materials;if(dict)for(const [k,m]of Object.entries(dict)){const r=roleFor(k);if(r&&m&&!m.userData.heroRole)m.userData.heroRole=r;}}
+ const materials=new Set();rig.traverse(o=>{o.layers.set(0);if(o.isMesh){o.castShadow=o.receiveShadow=false;for(const m of(Array.isArray(o.material)?o.material:[o.material]))materials.add(m);}});for(const m of materials){if(m.userData.surfaceRole==='authored-canvas')m.color.setHex(0x91aeb4);if(m.userData.surfaceRole==='authored-glove')m.color.setHex(0xa29674);consoleMaterial(m);const heroRole=m.userData.surfaceRole==='authored-canvas'?'cloth':m.userData.surfaceRole==='authored-glove'?'glove':m.userData.heroRole||(m.userData.weaponMicroDetail?(m.metalness>.5?'steel':'panel'):null);if(heroRole)paintWeaponHero(m,heroRole);}for(const group of groups)batchStaticWeaponMeshes(group);
  // Preserve the original skinned hands while giving the two magazine-fed
  // rifles a physical withdraw/insert/charge action in this runtime.
  const reloads=groups.map((group,i)=>i===4||i===5?createRifleReload(group,models[i],i):null);

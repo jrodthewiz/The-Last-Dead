@@ -2,6 +2,7 @@ import * as T from '../vendor/three.module.js';
 import {weaponResponse,weaponDraw,reloadWeight} from './weapon-response.js';
 import {createLookSway} from './look-sway.js';
 import {consoleMaterial} from './retro-materials.js';
+import {paintWeaponHero} from './detail-materials.js';
 
 // A small authored viewmodel: the wooden furniture has a continuous profile,
 // the action has a separate moving bolt, and the support hand owns the magazine.
@@ -18,6 +19,8 @@ export function makeRifle(camera){
   // Gouraud cloth shading keeps the low-sided silhouette without turning
   // the long forearm into a single hard planar blade.
   m.cloth.flatShading=false;m.cloth.needsUpdate=true;
+  paintWeaponHero(m.steel,'steel');paintWeaponHero(m.edge,'edge');paintWeaponHero(m.wood,'wood');
+  paintWeaponHero(m.end,'panel');paintWeaponHero(m.cloth,'cloth');paintWeaponHero(m.glove,'glove');paintWeaponHero(m.seam,'panel');
   function mesh(parent,geo,mat,x=0,y=0,z=0){const o=new T.Mesh(geo,m[mat]);o.position.set(x,y,z);parent.add(o);return o;}
   function box(parent,x,y,z,w,h,d,mat){return mesh(parent,new T.BoxGeometry(w,h,d),mat,x,y,z);}
   function profile(parent,points,width,mat){

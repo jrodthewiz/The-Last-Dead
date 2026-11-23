@@ -18,12 +18,20 @@ const server=await startServer({root,port:0});
 let browser;
 try{
  browser=await chromium.launch({
-  headless:process.env.HEADFUL!=='1',
+  headless:true,
   executablePath:process.env.CHROME_PATH,
   args:['--enable-unsafe-webgpu','--ignore-gpu-blocklist','--disable-background-timer-throttling','--disable-renderer-backgrounding',...(process.env.PERFORMANCE_UNCAPPED?['--disable-frame-rate-limit']:[])],
  });
  const context=await browser.newContext({viewport:{width:1280,height:720},deviceScaleFactor:1});
  const page=await context.newPage();
+ await page.addInitScript(()=>{
+  const noop=()=>Promise.resolve();
+  Element.prototype.requestPointerLock=noop;
+  if(typeof HTMLElement!=='undefined')HTMLElement.prototype.requestPointerLock=noop;
+  document.exitPointerLock=()=>{};
+  window.focus=()=>{};
+  if(navigator.keyboard?.lock)navigator.keyboard.lock=noop;
+ });
  const errors=[];
  page.on('pageerror',error=>errors.push('pageerror: '+error.message));
  page.on('console',message=>{if(message.type()==='error')errors.push('console: '+message.text());});
@@ -31,7 +39,7 @@ try{
 
  await page.goto(`http://127.0.0.1:${server.port}/?debug=1&world=${world}`,{waitUntil:'load',timeout:90000});
  await page.waitForSelector('#begin:not([disabled])',{timeout:120000});
- await page.click('#begin');
+ await page.evaluate(()=>document.getElementById('begin')?.click());
  await page.waitForFunction(()=>{
   const legacy=window.__DEAD_ARRIVAL__,island=window.__BLACKWATER__;
   return !!((legacy?.renderer&&legacy.screen==='play')||(island?.renderer&&island.mode==='playing'));

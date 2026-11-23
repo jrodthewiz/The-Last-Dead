@@ -10,7 +10,7 @@ export function createPresentation(renderer){
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
   fragmentShader:`uniform sampler2D picture;uniform vec2 texel;uniform float strength;uniform float glow;uniform float finish;varying vec2 vUv;
    float bayer(vec2 p){vec2 q=mod(floor(p),4.);float a=mod(q.x,2.)*2.+mod(q.y,2.);float b=floor(q.x/2.)*2.+floor(q.y/2.);return (mod(a*3.,4.)*4.+mod(b*3.,4.)+.5)/16.;}
-   vec3 highlight(vec2 offset){vec3 c=texture2D(picture,clamp(vUv+offset,texel*.5,1.-texel*.5)).rgb;float l=dot(c,vec3(.2126,.7152,.0722));return c*smoothstep(.9,2.1,l);}
+   vec3 highlight(vec2 offset){vec3 c=texture2D(picture,clamp(vUv+offset,texel*.5,1.-texel*.5)).rgb;float l=dot(c,vec3(.2126,.7152,.0722));return c*smoothstep(.95,2.2,l);}
    void main(){
     vec3 source=texture2D(picture,vUv).rgb;
     // Broad, low-gain halation comes only from bright light. Dark silhouettes,
@@ -24,17 +24,16 @@ export function createPresentation(renderer){
     #include <colorspace_fragment>
     vec3 c=gl_FragColor.rgb;
     float l=dot(c,vec3(.2126,.7152,.0722));
-    vec3 graded=mix(vec3(l),c,1.06);
-    // Split-tone only where the image has room for it: cool damp shadows,
-    // warm sunlit edges. The low-gain S-curve returns midtone separation that
-    // haze and the flat Lambert fill had compressed, without clipping signage.
-    graded+=(1.-smoothstep(.10,.55,l))*vec3(-.008,.001,.012);
-    graded+=smoothstep(.50,.94,l)*vec3(.022,.010,-.010);
-    graded=mix(graded,smoothstep(0.,1.,clamp(graded,0.,1.)),.12);
-    graded=(graded-.5)*1.09+.5;
-    graded+=.003;
+    vec3 graded=mix(vec3(l),c,1.08);
+    // Split-tone only where the image has room for it: cool slate shadows,
+    // warm amber sunlit highlights, leaving dark interiors legible.
+    graded+=(1.-smoothstep(.08,.52,l))*vec3(-.009,.004,.016);
+    graded+=smoothstep(.52,.94,l)*vec3(.024,.011,-.011);
+    graded=mix(graded,smoothstep(0.,1.,clamp(graded,0.,1.)),.10);
+    graded=(graded-.5)*1.06+.5;
+    graded+=.005;
     float edge=smoothstep(.25,.72,length(vUv-.5));
-    graded*=1.-edge*.075;
+    graded*=1.-edge*.070;
     // Fine, stationary grain: no crawling noise or thick scanline overlay.
     float grain=fract(sin(dot(floor(gl_FragCoord.xy),vec2(12.9898,78.233)))*43758.5453)-.5;
     graded+=grain*.0026;

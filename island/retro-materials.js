@@ -1,4 +1,5 @@
 import * as T from '../vendor/three.module.js';
+import {paintStylizedEntity} from './detail-materials.js';
 
 const textures=new WeakMap();
 // Keep authored UVs and palettes; use a small mipmapped atlas with the triangular
@@ -23,4 +24,4 @@ export function consoleMaterial(material,{textureSize=128}={}){
       #endif`);};material.customProgramCacheKey=()=>`console-surface-${w}-${h}`;
   }material.needsUpdate=true;return material;
 }
-export function stylizeModel(root,{emissive=false,textureSize=128}={}){const owned=new Map();root.traverse(o=>{if(!o.isMesh)return;o.castShadow=true;o.receiveShadow=true;const materials=Array.isArray(o.material)?o.material:[o.material];o.material=materials.map(m=>{if(!owned.has(m)){const copy=m.clone();if(!emissive){copy.emissive?.setHex(0);copy.emissiveMap=null;}consoleMaterial(copy,{textureSize});owned.set(m,copy);}return owned.get(m);});if(o.material.length===1)o.material=o.material[0];});return root;}
+export function stylizeModel(root,{emissive=false,textureSize=128,entity=null}={}){const owned=new Map();root.traverse(o=>{if(!o.isMesh)return;o.castShadow=true;o.receiveShadow=true;const materials=Array.isArray(o.material)?o.material:[o.material];o.material=materials.map(m=>{if(!owned.has(m)){const copy=m.clone();if(!emissive){copy.emissive?.setHex(0);copy.emissiveMap=null;}consoleMaterial(copy,{textureSize});if(entity)paintStylizedEntity(copy,entity);owned.set(m,copy);}return owned.get(m);});if(o.material.length===1)o.material=o.material[0];});return root;}

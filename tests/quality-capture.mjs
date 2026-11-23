@@ -25,13 +25,21 @@ const browser = await chromium.launch({
   args: ['--enable-unsafe-webgpu', '--ignore-gpu-blocklist', '--disable-background-timer-throttling'],
 });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+await page.addInitScript(() => {
+  const noop = () => Promise.resolve();
+  Element.prototype.requestPointerLock = noop;
+  if (typeof HTMLElement !== 'undefined') HTMLElement.prototype.requestPointerLock = noop;
+  document.exitPointerLock = () => {};
+  window.focus = () => {};
+  if (navigator.keyboard?.lock) navigator.keyboard.lock = noop;
+});
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
 
 await page.goto(`http://127.0.0.1:${server.port}/?debug=1&world=island`, { waitUntil: 'load', timeout: 90000 });
 await page.waitForSelector('#begin:not([disabled])', { timeout: 120000 });
-await page.click('#begin');
+await page.evaluate(() => document.getElementById('begin')?.click());
 await page.waitForFunction(() => window.__BLACKWATER__?.renderer, undefined, { timeout: 120000 });
 await page.evaluate(() => window.__BLACKWATER__.setTime?.(48));
 await page.waitForTimeout(2500);

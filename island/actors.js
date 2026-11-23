@@ -31,14 +31,14 @@ export async function loadActors(scene,data,onProgress){
   for(const [index,source] of data.enemies.entries()){
     const role=index%4===2?'runner':'shambler',variant=role==='runner'?2:index%3===1?1:0,{asset,bounds}=templates[variant],scale=(role==='runner'?1.85:1.95)/(bounds.max.y-bounds.min.y);
     const root=new T.Group(),model=clone(asset.scene);model.scale.setScalar(scale);model.position.set(-(bounds.min.x+bounds.max.x)*scale/2,-bounds.min.y*scale,-(bounds.min.z+bounds.max.z)*scale/2);model.rotation.y=0;
-    stylizeModel(model);model.traverse(o=>{if(o.isMesh)for(const m of(Array.isArray(o.material)?o.material:[o.material]))m.color?.multiply(new T.Color(role==='runner'?0xbcc3b3:0xc6c7b5));});model.traverse(o=>{if(o.isMesh)o.frustumCulled=false;});
+    stylizeModel(model,{entity:'zombie'});model.traverse(o=>{if(o.isMesh)for(const m of(Array.isArray(o.material)?o.material:[o.material]))m.color?.multiply(new T.Color(role==='runner'?0xbcc3b3:0xc6c7b5));});model.traverse(o=>{if(o.isMesh)o.frustumCulled=false;});
     root.add(model);sleepHiddenBranch(root);root.position.set(source.x,groundHeight(source.x,source.z),source.z);scene.add(root);
     const mixer=new T.AnimationMixer(model),actions={};for(const clip of asset.animations)actions[clip.name]=mixer.clipAction(clip);
     const enemy={...source,role,variant:['ash witness','drowned dockworker','fever runner'][variant],lastKnown:null,sightTimer:0,seesPlayer:false,attackYaw:0,root,model,mixer,actions,state:'',cooldown:0,notice:0,alive:true,home:{x:source.x,z:source.z},hit:0,path:[],navTimer:0,attackTimer:0};setEnemyAction(enemy,'idle');enemy.action.time=(source.phase%1)*enemy.action.getClip().duration;enemies.push(enemy);
   }
   function vehicle(template,x,z,angle,drive=false){
     const model=template.scene.clone(true),box=new T.Box3().setFromObject(model),s=4.8/Math.max(box.max.x-box.min.x,box.max.z-box.min.z);model.scale.setScalar(s);model.position.set(-(box.max.x+box.min.x)*s/2,-box.min.y*s,-(box.max.z+box.min.z)*s/2);
-    stylizeModel(model);const root=new T.Group();root.add(model);root.position.set(x,groundHeight(x,z)+.12,z);root.rotation.y=angle+Math.PI;scene.add(root);if(!drive)freezeLocalTransforms(root);return {root,x,z,angle,speed:0,drive,home:{x,z,angle}};
+    stylizeModel(model,{entity:'vehicle'});const root=new T.Group();root.add(model);root.position.set(x,groundHeight(x,z)+.12,z);root.rotation.y=angle+Math.PI;scene.add(root);if(!drive)freezeLocalTransforms(root);return {root,x,z,angle,speed:0,drive,home:{x,z,angle}};
   }
   const vehicles=[vehicle(truck,-690,260,1.76,true),vehicle(truck,752,76,Math.PI/2,true)];
   const parked=createParkedVehicleBatches(scene,sedan,[...data.wrecks.map(w=>({...w,wreck:true})),...data.parkedCars],groundHeight);

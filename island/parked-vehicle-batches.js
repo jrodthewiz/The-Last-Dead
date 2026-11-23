@@ -1,6 +1,7 @@
 import * as T from '../vendor/three.module.js';
 import {mergeGeometries} from '../vendor/utils/BufferGeometryUtils.js';
 import {stylizeModel} from './retro-materials.js';
+import {paintStylizedEntity} from './detail-materials.js';
 import {freezeLocalTransforms} from './render-lifecycle.js';
 
 // Parked sedans are rigid scenery. Keep the authored body, wheels and atlas,
@@ -26,11 +27,11 @@ export function createParkedVehicleBatches(scene,template,placements,floorAt){
  const geometry=mergeGeometries(pieces);
  for(const g of pieces)g.dispose();
  if(!geometry)return null;
- stylizeModel(model);let material;model.traverseVisible(mesh=>{if(mesh.isMesh)material=mesh.material;});
+ stylizeModel(model,{entity:'vehicle'});let material;model.traverseVisible(mesh=>{if(mesh.isMesh)material=mesh.material;});
  geometry.computeBoundingBox();geometry.computeBoundingSphere();
  // Separate the existing dark wreck material from intact cars. Merging rigid
  // geometry avoids introducing instancing shader variants during startup.
- const wreckMaterial=material.clone();wreckMaterial.color.multiplyScalar(.65);
+ const wreckMaterial=material.clone();wreckMaterial.color.multiplyScalar(.65);paintStylizedEntity(wreckMaterial,'wreck');
  const tiles=new Map();
  for(const p of placements){const x=Math.floor(p.x/192),z=Math.floor(p.z/192),key=x+','+z+':'+(p.wreck?'wreck':'parked');if(!tiles.has(key))tiles.set(key,{x,z,wreck:!!p.wreck,items:[]});tiles.get(key).items.push(p);}
  const dummy=new T.Object3D(),meshes=[];

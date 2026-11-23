@@ -8,7 +8,7 @@ import {dressSurvivor} from './character-craft.js';
 export function createFirstPersonBody(scene,gltf){
  const actor=createMeshySurvivor(gltf.scene,gltf.animations),rig=actor.userData;
  actor.name='Blackwater local survivor';
- stylizeModel(actor);dressSurvivor(actor);
+ stylizeModel(actor,{entity:'survivor'});dressSurvivor(actor);
  const bounds=new T.Box3().setFromObject(actor),scale=1.83/(bounds.max.y-bounds.min.y),base=-bounds.min.y*scale;
  // Tailor the upper jacket behind the eye, preserving hips, knees and boots.
  // Imported POSITION is in skin bind units, so deform through each vertex's
