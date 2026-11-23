@@ -12,8 +12,8 @@ export function retroTexture(source,size=128){
 }
 export function consoleMaterial(material,{textureSize=128}={}){
   if(material.userData.consoleSurface)return material;material.userData.consoleSurface=true;
-  material.flatShading=true;if('roughness'in material)material.roughness=1;if('metalness'in material)material.metalness=0;
-  material.normalMap=null;material.roughnessMap=null;material.metalnessMap=null;material.aoMap=null;material.envMap=null;
+  material.flatShading=true;if('roughness'in material)material.roughness=Math.min(material.roughness??1,.78);if('metalness'in material)material.metalness=Math.max(material.metalness??0,.04);
+  material.envMap=null;
   if(material.map&&!material.map.image){console.warn('Texture unavailable for '+(material.name||'an imported surface')+'; using its authored base colour.');material.map=null;}
   if(material.map){material.map=retroTexture(material.map,textureSize);const w=material.map.image.width,h=material.map.image.height,previous=material.onBeforeCompile;
     material.onBeforeCompile=function(shader,renderer){previous.call(this,shader,renderer);shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#ifdef USE_MAP

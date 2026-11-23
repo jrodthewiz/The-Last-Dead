@@ -142,5 +142,14 @@ Remaining high-impact:
 - The crate, bus and generator now read as grounded; the wall base and parked sedans still need coverage.
 - **Still 5/10, not 9/10.** Highest next: fix the 14 floating foliage/shoreline seam, add window light pools and wall-base contact, add facade bays/trim/composition, then replace the water smear.
 
+## R7 terrain/prop consistency update
+
+- Terrain moved to `MeshStandardMaterial` on the same PMREM/IBL path; the terrain shader keeps its road/soil/rock paint and detail normal.
+- `consoleMaterial` no longer flattens every imported GLB to roughness 1/metalness 0 or discards normal/roughness/metalness maps. Imported vehicles/props now retain their authored PBR response (roughness capped at 0.78).
+- `shader-r7-terrain`: 360 frames, median 16.7 ms, p95 16.8, p99 16.8, max 16.9, calls 221, triangles 805k, textures 299, no errors.
+- Agent scores: Codex 5.0/10; Gemini 4 Neon 4.5/10 on the texture candidate. Still no 9/10.
+- Remaining: 14 floating foliage/shoreline seam; 09 intersecting column; flat foliage/terrain silhouette; no window pools; water; composition.
+
+
 
 

@@ -13,6 +13,7 @@ float artField(vec2 p){return artNoise(p)*.62+artNoise(p*2.03+9.1)*.26+artNoise(
 const rgb=hex=>'vec3('+new T.Color(hex).toArray().map(v=>v.toFixed(5)).join(',')+')';
 
 export function paintTerrain(shader,segments,roadPaint,roadBounds){
+ const physical=shader.fragmentShader.includes('roughnessmap_fragment');
  shader.vertexShader='attribute float artSlope;varying float vSlope;varying vec3 vGround;varying vec3 vGroundWorld;varying vec3 vGroundNormal;\n'+shader.vertexShader;
  shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvGround=position;vSlope=artSlope;vGroundWorld=(modelMatrix*vec4(position,1.)).xyz;vGroundNormal=normalize(mat3(modelMatrix)*normal);');
  shader.uniforms.artRoadSegments={value:segments};
@@ -23,7 +24,15 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds){
  uniform vec4 artRoadSegments[${segments.length}];
  uniform vec4 artRoadPaint[${segments.length}];
  uniform int artRoadCount;\n`+DETAIL_PARS+noise+shader.fragmentShader;
- shader.fragmentShader=shader.fragmentShader.replace('#include <lights_lambert_pars_fragment>',toonLambertChunk);
+ if(!physical)shader.fragmentShader=shader.fragmentShader.replace('#include <lights_lambert_pars_fragment>',toonLambertChunk);
+ if(physical){
+  shader.fragmentShader=shader.fragmentShader.replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
+  roughnessFactor=clamp(artRough,.04,1.);
+  `);
+  shader.fragmentShader=shader.fragmentShader.replace('#include <metalnessmap_fragment>',`#include <metalnessmap_fragment>
+  metalnessFactor=0.;
+  `);
+ }
  shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
  vec3 artWorldNormal=normalize(vGroundNormal);
  float artRoad=0.;
@@ -92,6 +101,8 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds){
   if(uArtDebug>.5&&uArtDebug<1.5)outgoingLight=artWorldNormal*.5+.5;
   else if(uArtDebug>1.5&&uArtDebug<2.5)outgoingLight=vec3(pow(clamp(artRough,0.,1.),2.2));`);
  shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`#include <opaque_fragment>
+   if(uArtDebug>.5&&uArtDebug<1.5)gl_FragColor=vec4(artWorldNormal*.5+.5,1.);
+   else if(uArtDebug>1.5&&uArtDebug<2.5)gl_FragColor=vec4(vec3(clamp(artRough,0.,1.)),1.);
   if(artAsphalt>.5)gl_FragColor.a=.88-clamp(wet*(1.-smoothstep(80.,200.,artDist)),0.,1.)*.32;`);
 }
 

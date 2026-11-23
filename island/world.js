@@ -92,7 +92,7 @@ function buildTerrain(scene){
   }
   const geometry=surface(positions,colors),uv=[];for(let i=0;i<positions.length;i+=3)uv.push(positions[i]/12,positions[i+2]/12);geometry.setAttribute('uv',new T.Float32BufferAttribute(uv,2));
   geometry.setAttribute('artSlope',new T.Float32BufferAttribute(slopes,1));
-  const material=new T.MeshLambertMaterial({vertexColors:true,flatShading:true,map:grain});material.userData.artDebug=artDetailDebug;
+  const material=new T.MeshStandardMaterial({vertexColors:true,flatShading:true,map:grain,roughness:1,metalness:0,envMapIntensity:.55});material.userData.artDebug=artDetailDebug;
   // Paint the roads on their actual terrain triangles. Separate draped strips
   // fight the ground at grid diagonals and create ragged shoulders on hills.
   const f=n=>Number(n).toFixed(3),segments=[],roadPaint=[],roads=[...TRAILS,...ROADS];
