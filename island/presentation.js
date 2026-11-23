@@ -5,16 +5,26 @@ import * as T from '../vendor/three.module.js';
 export function createPresentation(renderer){
  const target=new T.WebGLRenderTarget(1,1,{type:T.HalfFloatType,minFilter:T.LinearFilter,magFilter:T.LinearFilter,depthBuffer:true,samples:Math.min(2,renderer.capabilities.maxSamples)});
  const scene=new T.Scene(),camera=new T.OrthographicCamera(-1,1,1,-1,0,1);
+ const bloomA=new T.WebGLRenderTarget(1,1,{type:T.HalfFloatType,minFilter:T.LinearFilter,magFilter:T.LinearFilter,depthBuffer:false});
+ const bloomB=new T.WebGLRenderTarget(1,1,{type:T.HalfFloatType,minFilter:T.LinearFilter,magFilter:T.LinearFilter,depthBuffer:false});
+ const passScene=new T.Scene(),passCamera=new T.OrthographicCamera(-1,1,1,-1,0,1);
+ const passQuad=new T.Mesh(new T.PlaneGeometry(2,2),null);passScene.add(passQuad);
+ const brightMat=new T.ShaderMaterial({uniforms:{picture:{value:null},dir:{value:new T.Vector2()},threshold:{value:1.10},knee:{value:.45}},depthTest:false,depthWrite:false,
+  vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
+  fragmentShader:`uniform sampler2D picture;uniform float threshold;uniform float knee;varying vec2 vUv;void main(){vec3 c=max(texture2D(picture,vUv).rgb,vec3(0.));float l=dot(c,vec3(.2126,.7152,.0722));gl_FragColor=vec4(c*smoothstep(threshold-knee,threshold+knee,l),1.);}`});
+ const blurMat=new T.ShaderMaterial({uniforms:{picture:{value:null},dir:{value:new T.Vector2()}},depthTest:false,depthWrite:false,
+  vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
+  fragmentShader:`uniform sampler2D picture;uniform vec2 dir;varying vec2 vUv;void main(){vec3 c=vec3(0.);float w=0.;for(int i=-4;i<=4;i++){float k=exp(-float(i*i)/10.);c+=texture2D(picture,vUv+dir*float(i)).rgb*k;w+=k;}gl_FragColor=vec4(c/max(w,.001),1.);}`});
  const dir=new T.Vector3();
- const uniforms={picture:{value:target.texture},texel:{value:new T.Vector2(1,1)},strength:{value:.10},glow:{value:.16},finish:{value:1},horizonY:{value:.5},reflEnable:{value:1},wetRefl:{value:1}};
+ const uniforms={picture:{value:target.texture},texel:{value:new T.Vector2(1,1)},strength:{value:.10},glow:{value:.16},finish:{value:1},horizonY:{value:.5},reflEnable:{value:1},wetRefl:{value:1},bloomTex:{value:bloomA.texture},bloomStrength:{value:.12}};
  const material=new T.ShaderMaterial({uniforms,depthTest:false,depthWrite:false,
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
-  fragmentShader:`uniform sampler2D picture;uniform vec2 texel;uniform float strength;uniform float glow;uniform float finish;uniform float horizonY;uniform float reflEnable;uniform float wetRefl;varying vec2 vUv;
+  fragmentShader:`uniform sampler2D picture;uniform vec2 texel;uniform float strength;uniform float glow;uniform float finish;uniform float horizonY;uniform float reflEnable;uniform float wetRefl;uniform sampler2D bloomTex;uniform float bloomStrength;varying vec2 vUv;
    float bayer(vec2 p){vec2 q=mod(floor(p),4.);float a=mod(q.x,2.)*2.+mod(q.y,2.);float b=floor(q.x/2.)*2.+floor(q.y/2.);return (mod(a*3.,4.)*4.+mod(b*3.,4.)+.5)/16.;}
    vec3 highlight(vec2 offset){vec3 c=texture2D(picture,clamp(vUv+offset,texel*.5,1.-texel*.5)).rgb;float l=dot(c,vec3(.2126,.7152,.0722));return c*smoothstep(.82,1.9,l);}
    void main(){
     vec4 srcSample=texture2D(picture,vUv);
-    vec3 source=srcSample.rgb;
+    vec3 source=srcSample.rgb+texture2D(bloomTex,vUv).rgb*bloomStrength;
     float wetMask=clamp((.80-srcSample.a)/.40,0.,1.);
     if(reflEnable>.5&&finish>.5&&wetMask>.02&&srcSample.a<.855&&vUv.y<horizonY){
      float below=max(horizonY-vUv.y,.004);
@@ -41,7 +51,8 @@ export function createPresentation(renderer){
      }
      float contactDist=max(hiY-vUv.y,0.);
      float reflY=2.*hiY-vUv.y;
-     float spread=mix(.009,.045,clamp(contactDist*3.5,0.,1.));
+     float waterMask=1.-smoothstep(.44,.54,srcSample.a);
+     float spread=mix(.009,.045,clamp(contactDist*3.5,0.,1.))+waterMask*.035;
      vec3 skyFall=vec3(.333,.442,.487)*.98;
      vec2 suv0=vec2(clamp(vUv.x+rip,texel.x,1.-texel.x),clamp(reflY,texel.y,1.-texel.y));
      vec2 suv1=vec2(clamp(vUv.x+rip*.7+.001,texel.x,1.-texel.x),clamp(reflY+spread,texel.y,1.-texel.y));
@@ -56,6 +67,7 @@ export function createPresentation(renderer){
      vec3 reflCol=(c0*w0+c1*w1+c2*w2)/max(w0+w1+w2,.001);
      float edgeFade=1.-smoothstep(.82,.96,reflY);
      reflCol=mix(skyFall,reflCol,edgeFade);
+     vec3 rawRefl=reflCol;
      // Keep dark building/tree silhouettes out of the street; wet asphalt mostly
      // catches sky and warm window light, not a perfect inverted world.
      float reflLum=dot(reflCol,vec3(.2126,.7152,.0722));
@@ -64,7 +76,10 @@ export function createPresentation(renderer){
      float fresnel=pow(clamp(1.-below*2.1,0.,1.),1.55);
      float edgeAA=smoothstep(.855,.805,srcSample.a);
      float reflMix=wetMask*mix(.01,.10,fresnel)*edgeAA*wetRefl;
-     source=mix(source,reflCol,reflMix);
+     // Water uses a lower scene alpha than asphalt; let it keep more of the
+     // reflected tree/building silhouette instead of the sky-weighted street look.
+     float waterMix=waterMask*.34*max(wetRefl,.35);
+     source=mix(source,mix(reflCol,rawRefl,waterMask*.72),max(reflMix,waterMix));
     }
     // Broad, low-gain halation comes only from bright light. Dark silhouettes,
     // signs and weapon details keep their sharp source sample.
@@ -94,7 +109,7 @@ export function createPresentation(renderer){
    }`});
  scene.add(new T.Mesh(new T.PlaneGeometry(2,2),material));renderer.info.autoReset=false;
  return {enabled:true,target,uniforms,
-  resize(quality='balanced'){const size=renderer.getDrawingBufferSize(new T.Vector2());target.setSize(size.x,size.y);uniforms.texel.value.set(1/Math.max(1,size.x),1/Math.max(1,size.y));uniforms.strength.value=quality==='retro'?.16:quality==='native'?.06:.10;},
+  resize(quality='balanced'){const size=renderer.getDrawingBufferSize(new T.Vector2());target.setSize(size.x,size.y);const bw=Math.max(1,Math.floor(size.x/4)),bh=Math.max(1,Math.floor(size.y/4));bloomA.setSize(bw,bh);bloomB.setSize(bw,bh);uniforms.texel.value.set(1/Math.max(1,size.x),1/Math.max(1,size.y));uniforms.strength.value=quality==='retro'?.16:quality==='native'?.06:.10;},
   render(world,view){renderer.info.reset();if(!this.enabled){renderer.setRenderTarget(null);renderer.render(world,view);return;}
    if(view&&view.isPerspectiveCamera&&view.far>=50){
     view.getWorldDirection(dir);
@@ -104,7 +119,7 @@ export function createPresentation(renderer){
     uniforms.horizonY.value=T.MathUtils.clamp(hy,-.5,1.5);
     uniforms.reflEnable.value=1;
    }else{uniforms.reflEnable.value=0;uniforms.horizonY.value=.5;}
-   renderer.setRenderTarget(target);renderer.render(world,view);renderer.setRenderTarget(null);renderer.render(scene,camera);
+   renderer.setRenderTarget(target);renderer.render(world,view);const bw=Math.max(1,bloomA.width),bh=Math.max(1,bloomA.height);passQuad.material=brightMat;brightMat.uniforms.picture.value=target.texture;renderer.setRenderTarget(bloomA);renderer.render(passScene,passCamera);passQuad.material=blurMat;blurMat.uniforms.picture.value=bloomA.texture;blurMat.uniforms.dir.value.set(1/bw,0);renderer.setRenderTarget(bloomB);renderer.render(passScene,passCamera);blurMat.uniforms.picture.value=bloomB.texture;blurMat.uniforms.dir.value.set(0,1/bh);renderer.setRenderTarget(bloomA);renderer.render(passScene,passCamera);renderer.setRenderTarget(null);renderer.render(scene,camera);
   }
  };
 }
