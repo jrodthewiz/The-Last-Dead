@@ -16,10 +16,10 @@ export function createPresentation(renderer){
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
   fragmentShader:`uniform sampler2D picture;uniform vec2 dir;varying vec2 vUv;void main(){vec3 c=vec3(0.);float w=0.;for(int i=-4;i<=4;i++){float k=exp(-float(i*i)/10.);c+=texture2D(picture,vUv+dir*float(i)).rgb*k;w+=k;}gl_FragColor=vec4(c/max(w,.001),1.);}`});
  const dir=new T.Vector3();
- const uniforms={picture:{value:target.texture},texel:{value:new T.Vector2(1,1)},strength:{value:.10},glow:{value:.16},finish:{value:1},horizonY:{value:.5},reflEnable:{value:1},wetRefl:{value:1},bloomTex:{value:bloomA.texture},bloomStrength:{value:.12}};
+ const uniforms={picture:{value:target.texture},texel:{value:new T.Vector2(1,1)},strength:{value:.10},glow:{value:.16},finish:{value:1},horizonY:{value:.5},reflEnable:{value:1},wetRefl:{value:1},bloomTex:{value:bloomA.texture},bloomStrength:{value:.12},sat:{value:1.04},contrast:{value:1.09},warm:{value:0},lift:{value:1}};
  const material=new T.ShaderMaterial({uniforms,depthTest:false,depthWrite:false,
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
-  fragmentShader:`uniform sampler2D picture;uniform vec2 texel;uniform float strength;uniform float glow;uniform float finish;uniform float horizonY;uniform float reflEnable;uniform float wetRefl;uniform sampler2D bloomTex;uniform float bloomStrength;varying vec2 vUv;
+  fragmentShader:`uniform sampler2D picture;uniform vec2 texel;uniform float strength;uniform float glow;uniform float finish;uniform float horizonY;uniform float reflEnable;uniform float wetRefl;uniform sampler2D bloomTex;uniform float bloomStrength;uniform float sat;uniform float contrast;uniform float warm;uniform float lift;varying vec2 vUv;
    float bayer(vec2 p){vec2 q=mod(floor(p),4.);float a=mod(q.x,2.)*2.+mod(q.y,2.);float b=floor(q.x/2.)*2.+floor(q.y/2.);return (mod(a*3.,4.)*4.+mod(b*3.,4.)+.5)/16.;}
    vec3 highlight(vec2 offset){vec3 c=texture2D(picture,clamp(vUv+offset,texel*.5,1.-texel*.5)).rgb;float l=dot(c,vec3(.2126,.7152,.0722));return c*smoothstep(.82,1.9,l);}
    void main(){
@@ -90,13 +90,14 @@ export function createPresentation(renderer){
     #include <colorspace_fragment>
     vec3 c=gl_FragColor.rgb;
     float l=dot(c,vec3(.2126,.7152,.0722));
-    vec3 graded=mix(vec3(l),c,1.04);
+    vec3 graded=mix(vec3(l),c,sat);
     // Overcast Atlantic & Wet Steel grade: cool slate shadows, crisp neutral-cool
     // clouds and fog, preserving fiery amber window glow from HDR emission.
-    graded+=(1.-smoothstep(.08,.52,l))*vec3(-.004,.005,.009);
-    graded+=smoothstep(.54,.95,l)*vec3(.006,.008,.010);
+    graded+=(1.-smoothstep(.08,.52,l))*vec3(-.004,.005,.009)*lift;
+    graded+=smoothstep(.54,.95,l)*vec3(.006,.008,.010)*(1.+warm*.45);
+    graded+=smoothstep(.55,.95,l)*vec3(.010,.006,.001)*warm;
     graded=mix(graded,smoothstep(0.,1.,clamp(graded,0.,1.)),.10);
-    graded=(graded-.5)*1.09+.5;
+    graded=(graded-.5)*contrast+.5;
     graded+=.003;
     float edge=smoothstep(.25,.74,length(vUv-.5));
     graded*=1.-edge*.085;
