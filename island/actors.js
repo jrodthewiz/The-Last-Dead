@@ -39,7 +39,7 @@ export async function loadActors(scene,data,onProgress){
   }
   function vehicle(template,x,z,angle,drive=false){
     const model=template.scene.clone(true),box=new T.Box3().setFromObject(model),s=4.8/Math.max(box.max.x-box.min.x,box.max.z-box.min.z);model.scale.setScalar(s);model.position.set(-(box.max.x+box.min.x)*s/2,-box.min.y*s,-(box.max.z+box.min.z)*s/2);
-    stylizeModel(model,{entity:'vehicle'});const root=new T.Group();root.add(model);root.add(contactShadow(5.4,2.5,.75));root.position.set(x,groundHeight(x,z)+.12,z);root.rotation.y=angle+Math.PI;scene.add(root);if(!drive)freezeLocalTransforms(root);return {root,x,z,angle,speed:0,drive,home:{x,z,angle}};
+    stylizeModel(model,{entity:'vehicle'});const root=new T.Group();root.add(model);root.add(contactShadow(5.4,2.5,.75));root.position.set(x,groundHeight(x,z)+.01,z);root.rotation.y=angle+Math.PI;scene.add(root);if(!drive)freezeLocalTransforms(root);return {root,x,z,angle,speed:0,drive,home:{x,z,angle}};
   }
   const vehicles=[vehicle(truck,-690,260,1.76,true),vehicle(truck,752,76,Math.PI/2,true)];
   const parked=createParkedVehicleBatches(scene,sedan,[...data.wrecks.map(w=>({...w,wreck:true})),...data.parkedCars],groundHeight);

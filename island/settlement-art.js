@@ -53,7 +53,7 @@ function frontages(k,data,sign,scene){
 }
 
 export function buildSettlement(scene,k,data,sign){
- frontages(k,data,sign,scene);const clock={value:0},cloths=[],ropes=[],material=new T.MeshLambertMaterial({vertexColors:true,flatShading:true,side:T.DoubleSide});
+ frontages(k,data,sign,scene);const clock={value:0},cloths=[],ropes=[],material=new T.MeshStandardMaterial({vertexColors:true,flatShading:true,side:T.DoubleSide,roughness:.76,metalness:.08,envMapIntensity:.9});
  const repair=new T.Mesh(boatGeometry(),material),ry=Math.max(...[[-538,175],[-536,181],[-538,181],[-536,175]].map(([x,z])=>terrainHeight(x,z)))+1;
  repair.position.set(-537,ry,178);repair.castShadow=repair.receiveShadow=true;repair.name='Dinghy on repair trestles';scene.add(repair);
  for(const z of [176,180]){k.box(-537,ry-.42,z,2.8,.18,.34,C.wood);for(const x of [-538,-536])k.rod([x,terrainHeight(x,z),z],[x,ry-.42,z],.11,C.dark);}

@@ -38,7 +38,7 @@ export function createParkedVehicleBatches(scene,template,placements,floorAt){
  for(const [key,{x,z,wreck,items}]of tiles){
   const surfaces=[];
   for(const p of items){
-   dummy.position.set(p.x-x*192,floorAt(p.x,p.z)+.12,p.z-z*192);dummy.rotation.set(0,p.angle+Math.PI,0);dummy.updateMatrix();
+   dummy.position.set(p.x-x*192,floorAt(p.x,p.z)-.015,p.z-z*192);dummy.rotation.set(0,p.angle+Math.PI,0);dummy.updateMatrix();
    surfaces.push(geometry.clone().applyMatrix4(dummy.matrix));
   }
   const merged=mergeGeometries(surfaces);for(const g of surfaces)g.dispose();
@@ -47,5 +47,20 @@ export function createParkedVehicleBatches(scene,template,placements,floorAt){
   merged.computeBoundingSphere();scene.add(mesh);freezeLocalTransforms(mesh);meshes.push(mesh);
  }
  geometry.dispose();
+ if(placements.length){
+  const c=document.createElement('canvas');c.width=c.height=64;
+  const ctx=c.getContext('2d'),g=ctx.createRadialGradient(32,32,2,32,32,32);
+  g.addColorStop(0,'rgba(8,12,10,.64)');g.addColorStop(.5,'rgba(8,12,10,.30)');g.addColorStop(1,'rgba(8,12,10,0)');
+  ctx.fillStyle=g;ctx.fillRect(0,0,64,64);
+  const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;
+  const sGeo=new T.PlaneGeometry(5.4,2.5).rotateX(-Math.PI/2);
+  const sMat=new T.MeshBasicMaterial({map:tex,transparent:true,opacity:.74,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2});
+  const sMesh=new T.InstancedMesh(sGeo,sMat,placements.length);
+  for(let i=0;i<placements.length;i++){
+   const p=placements[i];dummy.position.set(p.x,floorAt(p.x,p.z)+.012,p.z);dummy.rotation.set(0,p.angle+Math.PI,0);dummy.updateMatrix();
+   sMesh.setMatrixAt(i,dummy.matrix);
+  }
+  sMesh.instanceMatrix.needsUpdate=true;sMesh.computeBoundingSphere();sMesh.name='Parked sedan contact shadows';scene.add(sMesh);freezeLocalTransforms(sMesh);
+ }
  return {meshes,stats:{cars:placements.length,batches:meshes.length,sourcePieces:pieces.length,strategy:'merged'}};
 }

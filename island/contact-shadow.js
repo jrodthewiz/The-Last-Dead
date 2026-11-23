@@ -3,6 +3,7 @@ import * as T from '../vendor/three.module.js';
 let texture=null,geometry=null,material=null;
 function blobTexture(){
  if(texture)return texture;
+ if(typeof document==='undefined')return null;
  const c=document.createElement('canvas');c.width=c.height=64;
  const x=c.getContext('2d'),g=x.createRadialGradient(32,32,2,32,32,32);
  g.addColorStop(0,'rgba(8,12,10,.62)');g.addColorStop(.45,'rgba(8,12,10,.30)');g.addColorStop(1,'rgba(8,12,10,0)');

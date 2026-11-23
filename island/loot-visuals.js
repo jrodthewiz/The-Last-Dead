@@ -23,7 +23,7 @@ export function createLootVisuals(scene,containers){
  for(const r of [0,3]){const a=flapPoint(r,0),b=flapPoint(r,1),c=flapPoint(r,2),d=flapPoint(r,3);if(r===0)flapVertices.push(...a,...c,...b,...a,...d,...c);else flapVertices.push(...a,...b,...c,...a,...c,...d);}
  const clothFlap=new T.BufferGeometry();clothFlap.setAttribute('position',new T.Float32BufferAttribute(flapVertices,3));clothFlap.computeVertexNormals();
  for(const g of [box,bottle,clothBody,clothFlap])g.userData.sharedAsset=true;
- const mats=[0x8c7656,0x5d7660,0xc8bd91,0x446159,0x9b6250,0x243e31,0x795b3d,0x91aaa0].map(color=>new T.MeshLambertMaterial({color,flatShading:true}));
+ const mats=[0x8c7656,0x5d7660,0xc8bd91,0x446159,0x9b6250,0x243e31,0x795b3d,0x91aaa0].map(color=>new T.MeshStandardMaterial({color,flatShading:true,roughness:.75,metalness:.10,envMapIntensity:.9}));
  const piece=(parent,x,y,z,w,h,d,material=0,geometry=box)=>{const m=new T.Mesh(geometry,mats[material]);m.position.set(x,y,z);m.scale.set(w,h,d);m.castShadow=m.receiveShadow=true;parent.add(m);return m;};
  for(const c of containers){
   const group=new T.Group();group.position.set(c.x,c.y,c.z);group.rotation.y=c.yaw||0;scene.add(group);group.name=c.name;

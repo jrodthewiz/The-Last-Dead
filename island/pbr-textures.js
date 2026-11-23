@@ -11,7 +11,7 @@ const loader=new T.TextureLoader();
 const load=(file,srgb)=>{
  const t=loader.load(base+file,undefined,undefined,()=>{});
  t.wrapS=t.wrapT=T.RepeatWrapping;
- t.anisotropy=4;
+ t.anisotropy=8;
  if(srgb)t.colorSpace=T.SRGBColorSpace;
  return t;
 };
@@ -27,4 +27,5 @@ export function attachPbrUniforms(shader){
  shader.uniforms.uPlasterD=pbrTextures.plaster.diff;shader.uniforms.uPlasterN=pbrTextures.plaster.nor;shader.uniforms.uPlasterA=pbrTextures.plaster.arm;
  shader.uniforms.uBrickD=pbrTextures.brick.diff;shader.uniforms.uBrickN=pbrTextures.brick.nor;shader.uniforms.uBrickA=pbrTextures.brick.arm;
  shader.uniforms.uAsphaltD=pbrTextures.asphalt.diff;shader.uniforms.uAsphaltN=pbrTextures.asphalt.nor;shader.uniforms.uAsphaltA=pbrTextures.asphalt.arm;
+ shader.uniforms.uConcreteD=pbrTextures.concrete.diff;shader.uniforms.uConcreteN=pbrTextures.concrete.nor;shader.uniforms.uConcreteA=pbrTextures.concrete.arm;
 }

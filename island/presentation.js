@@ -9,26 +9,29 @@ export function createPresentation(renderer){
  const bloomB=new T.WebGLRenderTarget(1,1,{type:T.HalfFloatType,minFilter:T.LinearFilter,magFilter:T.LinearFilter,depthBuffer:false});
  const passScene=new T.Scene(),passCamera=new T.OrthographicCamera(-1,1,1,-1,0,1);
  const passQuad=new T.Mesh(new T.PlaneGeometry(2,2),null);passScene.add(passQuad);
- const brightMat=new T.ShaderMaterial({uniforms:{picture:{value:null},dir:{value:new T.Vector2()},threshold:{value:1.10},knee:{value:.45}},depthTest:false,depthWrite:false,
+ const brightMat=new T.ShaderMaterial({uniforms:{picture:{value:null},dir:{value:new T.Vector2()},threshold:{value:1.48},knee:{value:.30}},depthTest:false,depthWrite:false,
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
   fragmentShader:`uniform sampler2D picture;uniform float threshold;uniform float knee;varying vec2 vUv;void main(){vec3 c=max(texture2D(picture,vUv).rgb,vec3(0.));float l=dot(c,vec3(.2126,.7152,.0722));gl_FragColor=vec4(c*smoothstep(threshold-knee,threshold+knee,l),1.);}`});
  const blurMat=new T.ShaderMaterial({uniforms:{picture:{value:null},dir:{value:new T.Vector2()}},depthTest:false,depthWrite:false,
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
   fragmentShader:`uniform sampler2D picture;uniform vec2 dir;varying vec2 vUv;void main(){vec3 c=vec3(0.);float w=0.;for(int i=-4;i<=4;i++){float k=exp(-float(i*i)/10.);c+=texture2D(picture,vUv+dir*float(i)).rgb*k;w+=k;}gl_FragColor=vec4(c/max(w,.001),1.);}`});
  const dir=new T.Vector3();
- const uniforms={picture:{value:target.texture},texel:{value:new T.Vector2(1,1)},strength:{value:.035},glow:{value:.16},finish:{value:1},horizonY:{value:.5},reflEnable:{value:1},wetRefl:{value:1},bloomTex:{value:bloomA.texture},bloomStrength:{value:.12},raw:{value:0},sat:{value:1.04},contrast:{value:1.09},warm:{value:0},lift:{value:1}};
+ const uniforms={picture:{value:target.texture},texel:{value:new T.Vector2(1,1)},strength:{value:0},glow:{value:0},finish:{value:1},horizonY:{value:.5},reflEnable:{value:1},wetRefl:{value:1},bloomTex:{value:bloomA.texture},bloomStrength:{value:.13},raw:{value:0},sat:{value:1.05},contrast:{value:1.08},warm:{value:0},lift:{value:1}};
  const material=new T.ShaderMaterial({uniforms,depthTest:false,depthWrite:false,
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
   fragmentShader:`uniform sampler2D picture;uniform vec2 texel;uniform float strength;uniform float glow;uniform float finish;uniform float horizonY;uniform float reflEnable;uniform float wetRefl;uniform sampler2D bloomTex;uniform float bloomStrength;uniform float raw;uniform float sat;uniform float contrast;uniform float warm;uniform float lift;varying vec2 vUv;
    float bayer(vec2 p){vec2 q=mod(floor(p),4.);float a=mod(q.x,2.)*2.+mod(q.y,2.);float b=floor(q.x/2.)*2.+floor(q.y/2.);return (mod(a*3.,4.)*4.+mod(b*3.,4.)+.5)/16.;}
-   vec3 highlight(vec2 offset){vec3 c=texture2D(picture,clamp(vUv+offset,texel*.5,1.-texel*.5)).rgb;float l=dot(c,vec3(.2126,.7152,.0722));return c*smoothstep(.82,1.9,l);}
    void main(){
     vec4 srcSample=texture2D(picture,vUv);
     vec3 source=srcSample.rgb+texture2D(bloomTex,vUv).rgb*bloomStrength;
-    if(raw>.5){gl_FragColor=vec4(srcSample.rgb,1.);return;}\n    float wetMask=clamp((.80-srcSample.a)/.40,0.,1.);
+    if(raw>.5){gl_FragColor=vec4(srcSample.rgb,1.);return;}
+    float wetMask=clamp((.80-srcSample.a)/.40,0.,1.);
     if(reflEnable>.5&&finish>.5&&wetMask>.02&&srcSample.a<.855&&vUv.y<horizonY){
      float below=max(horizonY-vUv.y,.004);
-     float rip=(sin(vUv.x*115.+below*140.)*.55+sin(vUv.x*240.-below*210.)*.45)*smoothstep(.02,.15,below)*.0011;
+     float waterMask=1.-smoothstep(.44,.54,srcSample.a);
+     float ripStreet=(sin(vUv.x*115.+below*140.)*.55+sin(vUv.x*240.-below*210.)*.45)*smoothstep(.02,.15,below)*.0014;
+     float ripWater=(sin(vUv.x*65.+below*280.)*.55+sin(vUv.x*170.-below*420.)*.45)*smoothstep(.008,.10,below)*.0055;
+     float rip=mix(ripStreet,ripWater,waterMask);
      float probeX=clamp(vUv.x+rip*.35,texel.x,1.-texel.x);
      float maxSpan=max(.008,min(horizonY+.03,vUv.y+.26)-vUv.y);
      float loY=vUv.y,hiY=horizonY;
@@ -51,8 +54,7 @@ export function createPresentation(renderer){
      }
      float contactDist=max(hiY-vUv.y,0.);
      float reflY=2.*hiY-vUv.y;
-     float waterMask=1.-smoothstep(.44,.54,srcSample.a);
-     float spread=mix(.009,.045,clamp(contactDist*3.5,0.,1.))+waterMask*.035;
+     float spread=mix(.005,.028,clamp(contactDist*3.5,0.,1.))+waterMask*.022;
      vec3 skyFall=vec3(.333,.442,.487)*.98;
      vec2 suv0=vec2(clamp(vUv.x+rip,texel.x,1.-texel.x),clamp(reflY,texel.y,1.-texel.y));
      vec2 suv1=vec2(clamp(vUv.x+rip*.7+.001,texel.x,1.-texel.x),clamp(reflY+spread,texel.y,1.-texel.y));
@@ -61,38 +63,29 @@ export function createPresentation(renderer){
      vec3 c0=((t0.a<.855||t0.a>.945)&&reflY<.96)?t0.rgb:skyFall;
      vec3 c1=((t1.a<.855||t1.a>.945)&&reflY+spread<.96)?t1.rgb:skyFall;
      vec3 c2=((t2.a<.855||t2.a>.945)&&reflY+spread*1.7<.96)?t2.rgb:skyFall;
-     float w0=.5*(1.+smoothstep(.65,1.6,dot(c0,vec3(.2126,.7152,.0722)))*1.8);
-     float w1=.3*(1.+smoothstep(.65,1.6,dot(c1,vec3(.2126,.7152,.0722)))*1.8);
-     float w2=.2*(1.+smoothstep(.65,1.6,dot(c2,vec3(.2126,.7152,.0722)))*1.8);
+     float w0=.5*(1.+smoothstep(.60,1.5,dot(c0,vec3(.2126,.7152,.0722)))*2.0);
+     float w1=.3*(1.+smoothstep(.60,1.5,dot(c1,vec3(.2126,.7152,.0722)))*2.0);
+     float w2=.2*(1.+smoothstep(.60,1.5,dot(c2,vec3(.2126,.7152,.0722)))*2.0);
      vec3 reflCol=(c0*w0+c1*w1+c2*w2)/max(w0+w1+w2,.001);
      float edgeFade=1.-smoothstep(.82,.96,reflY);
      reflCol=mix(skyFall,reflCol,edgeFade);
      vec3 rawRefl=reflCol;
-     // Keep dark building/tree silhouettes out of the street; wet asphalt mostly
-     // catches sky and warm window light, not a perfect inverted world.
      float reflLum=dot(reflCol,vec3(.2126,.7152,.0722));
-     reflCol=mix(skyFall,reflCol,smoothstep(.015,.34,reflLum)*.82);
-     reflCol*=vec3(.88,.93,.98);
-     float fresnel=pow(clamp(1.-below*2.1,0.,1.),1.55);
+     reflCol=mix(skyFall*.88,reflCol,smoothstep(.02,.26,reflLum)*.86);
+     reflCol*=vec3(.90,.95,1.00);
+     float fresnel=pow(clamp(1.-below*2.0,0.,1.),1.50);
      float edgeAA=smoothstep(.855,.805,srcSample.a);
-     float reflMix=wetMask*mix(.01,.10,fresnel)*edgeAA*wetRefl;
-     // Water uses a lower scene alpha than asphalt; let it keep more of the
-     // reflected tree/building silhouette instead of the sky-weighted street look.
-     float waterMix=waterMask*.34*max(wetRefl,.35);
-     source=mix(source,mix(reflCol,rawRefl,waterMask*.72),max(reflMix,waterMix));
+     float streetMask=clamp((wetMask-.18)/.82,0.,1.);
+     float reflMix=streetMask*mix(.16,.58,fresnel)*edgeAA*wetRefl;
+     float waterMix=waterMask*mix(.08,.28,fresnel)*max(wetRefl,.35);
+     source=mix(source,mix(reflCol,rawRefl,waterMask*.65),max(reflMix,waterMix));
     }
-    // Broad, low-gain halation comes only from bright light. Dark silhouettes,
-    // signs and weapon details keep their sharp source sample.
-    vec2 r=texel*2.5;
-    vec3 halo=(highlight(r)+highlight(-r)+highlight(vec2(r.x,-r.y))+highlight(vec2(-r.x,r.y)))*.25;
-    gl_FragColor=vec4(source+halo*glow*finish,1.);
+    gl_FragColor=vec4(source,1.);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
     vec3 c=gl_FragColor.rgb;
     float l=dot(c,vec3(.2126,.7152,.0722));
     vec3 graded=mix(vec3(l),c,sat);
-    // Overcast Atlantic & Wet Steel grade: cool slate shadows, crisp neutral-cool
-    // clouds and fog, preserving fiery amber window glow from HDR emission.
     graded+=(1.-smoothstep(.08,.52,l))*vec3(-.004,.005,.009)*lift;
     graded+=smoothstep(.54,.95,l)*vec3(.006,.008,.010)*(1.+warm*.45);
     graded+=smoothstep(.55,.95,l)*vec3(.010,.006,.001)*warm;
@@ -101,16 +94,15 @@ export function createPresentation(renderer){
     graded+=.003;
     float edge=smoothstep(.25,.74,length(vUv-.5));
     graded*=1.-edge*.085;
-    // Fine, stationary grain: no crawling noise or thick scanline overlay.
     float grain=fract(sin(dot(floor(gl_FragCoord.xy),vec2(12.9898,78.233)))*43758.5453)-.5;
-    graded+=grain*.0026;
+    graded+=grain*.0020;
     c=mix(c,graded,finish);
     vec3 quantized=floor(clamp(c,0.,1.)*63.+bayer(gl_FragCoord.xy))/63.;
     gl_FragColor=vec4(clamp(mix(c,quantized,strength*finish),0.,1.),1.);
    }`});
  scene.add(new T.Mesh(new T.PlaneGeometry(2,2),material));renderer.info.autoReset=false;
  return {enabled:true,target,uniforms,
-  resize(quality='balanced'){const size=renderer.getDrawingBufferSize(new T.Vector2());target.setSize(size.x,size.y);const bw=Math.max(1,Math.floor(size.x/4)),bh=Math.max(1,Math.floor(size.y/4));bloomA.setSize(bw,bh);bloomB.setSize(bw,bh);uniforms.texel.value.set(1/Math.max(1,size.x),1/Math.max(1,size.y));uniforms.strength.value=quality==='retro'?.08:quality==='native'?.02:.035;},
+  resize(quality='balanced'){const size=renderer.getDrawingBufferSize(new T.Vector2());target.setSize(size.x,size.y);const bw=Math.max(1,Math.floor(size.x/4)),bh=Math.max(1,Math.floor(size.y/4));bloomA.setSize(bw,bh);bloomB.setSize(bw,bh);uniforms.texel.value.set(1/Math.max(1,size.x),1/Math.max(1,size.y));uniforms.strength.value=quality==='retro'?.05:0;},
   render(world,view){renderer.info.reset();if(!this.enabled){renderer.setRenderTarget(null);renderer.render(world,view);return;}
    if(view&&view.isPerspectiveCamera&&view.far>=50){
     view.getWorldDirection(dir);

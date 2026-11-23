@@ -26,6 +26,7 @@ page.on('console',message=>{if(message.type()==='error')errors.push(message.text
 const poses=[
  ['15-weapon-hero',{teleport:[590,7,Math.PI/2]}],
  ['02-oldtown',[590,16,7,635,16.5,-2]],
+ ['04-waterfront',[1174,16,235,1188,22,178]],
  ['09-generator',[1005,16,-289,1000,16,-302]],
  ['11-wall-close',[-590,21.9,105.0,-591,21.2,108.4]],
  ['12-road-close',[-80,17.2,3,-70,17.0,12]],

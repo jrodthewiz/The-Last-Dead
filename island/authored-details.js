@@ -65,7 +65,7 @@ export function authoredDetails(scene,kit,data,sign){
   for(const x of [604.5,611.5])for(const z of [-7.3,-4.7]){kit.rod([x,14.55,z-.12],[x,14.55,z+.12],.58,0x3d453b);}
   kit.box(602.94,15.85,-6,.10,.9,2.1,0x456962);for(const z of [-6.9,-5.1])kit.box(602.88,14.9,z,.14,.25,.35,0xd9c99a);
   for(let i=0;i<8;i++){kit.box(603+i*1.2,14.16,-10.2,.65,.3,.45,i%3?0x827254:0x627565);}
-  // Waterfront loading wharf: a horizontal silhouette and sheltered alleys.
+  // Waterfront loading wharf: a horizontal silhouette, dock edge dressing and sheltered alleys.
   for(const z of [170,360]){
     kit.box(1190,14.35,z,28,.7,45,0xa4a58a);
     for(const x of [1180,1200]){
@@ -77,6 +77,31 @@ export function authoredDetails(scene,kit,data,sign){
     }
     kit.box(1190,29,z-2,21,.8,.8,0x7e8a6c);kit.box(1190,29,z+2,21,.8,.8,0x7e8a6c);
     for(let j=0;j<6;j++){const x=1179+(j%3)*4,zz=z-12+Math.floor(j/3)*7;kit.box(x,15.4,zz,3,2.8,5,0x827658);kit.box(x,15.4,zz,.2,2.9,5.1,0x4f6254);}
+  }
+  // Apron quay bollards, painted hazard edge curbing, cargo stacks and wharf lamps.
+  for(let z=160;z<=244;z+=14){
+    kit.add('cylinder',1206,14.22,z,.32,.34,.32,0x364240,0,null,0);
+    kit.add('cylinder',1206,14.52,z,.17,.56,.17,0x3a4846,0,null,0);
+    kit.add('cylinder',1206,14.84,z,.23,.12,.23,0x485854,0,null,0);
+  }
+  for(let z=152,idx=0;z<=252;z+=4,idx++){
+    kit.box(1208,14.11,z,.55,.12,3.92,idx%2===0?0x9e8442:0x343d3b,0,8);
+  }
+  for(const [cx,cz] of [[1168,212],[1199,216]]){
+    kit.box(cx,14.70,cz,2.2,1.3,3.2,0x7d6c4d,0,3);
+    kit.box(cx+.15,15.80,cz-.3,1.5,.9,1.8,0x5a6e64,0,0);
+    kit.add('cylinder',cx-1.35,14.55,cz+.9,.38,.9,.38,0x8b4c39,0,null,0);
+    kit.add('cylinder',cx-1.35,14.55,cz-.8,.38,.9,.38,0x3e5954,0,null,0);
+  }
+  for(const [cx,cz] of [[1170,198],[1201,199]]){
+    kit.box(cx,14.32,cz,1.8,.55,3.8,0x746244,0,3);
+    kit.add('cylinder',cx,14.95,cz+1.1,.45,.75,.45,0x475952,0,null,0);
+    kit.add('dial',cx+1.2,14.72,cz-.7,.65,.65,.55,0x66563b,Math.PI/2,null,3);
+  }
+  for(const z of [222,196,172]){
+    kit.add('cylinder',1171,16.95,z,.11,5.8,.11,0x3b4946,0,null,0);
+    kit.box(1171.45,19.75,z,1.1,.14,.16,0x3b4946,0,0);
+    kit.box(1171.95,19.55,z,.55,.22,.42,0xead5a2,0,6);
   }
   // Long horizontal harbour sheds, stepped towers, colonnades and crooked
   // shopfronts give each district a different street-level rhythm.
@@ -108,8 +133,11 @@ export function authoredDetails(scene,kit,data,sign){
       for(let i=0;i<3;i++){const x=b.x-b.w/2+2+i*1.5;kit.box(x,y+.6,front+2,1.1,1.2,1.1,0x8b7551);kit.box(x,y+.65,front+2,.13,1.2,1.14,0x485e51);}
       if(b.seed%3===0)sign(scene,'ORIN FISH & FREIGHT',b.x,y+b.height-.5,front+.2,b.w-2);
     }else{
-      // Art deco piers visually carry the tower into its podium.
-      for(const x of [-b.w*.36,b.w*.36])kit.box(b.x+x,y+b.height/2,front+.2,.65,b.height,.55,0xbabca6);
+      // Art deco piers visually carry each tier into its setback without poking into upper floors.
+      for(const tier of b.tiers){
+        const ty=y+tier.y,tf=b.z+tier.d/2+.2;
+        for(const dx of [-tier.w*.36,tier.w*.36])kit.box(b.x+dx,ty+tier.h/2,tf,.62,tier.h,.50,0xbabca6,0,1);
+      }
       kit.box(b.x,y+4,front+1.4,b.w*.6,.5,3,0x4d6c63);
     }
     if(rng()>.7)for(let j=0;j<4;j++)kit.add('rock',b.x+b.w/2-1,y+.1,front+1+j*.4,.7,.16,.5,0x647b48);
