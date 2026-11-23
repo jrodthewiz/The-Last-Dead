@@ -134,4 +134,13 @@ Remaining high-impact:
 - Water is still the screen-space flip; the 04 waterfront reads as a slab and 14 has blocky ripples.
 - 6-bit dither is reduced, not removed; the sky still posterizes slightly.
 
+## R7 texture + grounding update
+
+- Codex GPT-6.2 Sol scored the PBR-texture candidate **5.0/10** (A5, B6, C4.5, D3, E5, F4.5, G6), up from 4.5 pre-texture. Gemini 4 Neon review is still running.
+- Added shared soft contact-shadow decals under loot crates, driven/parked vehicles and the hospital generator. Shared geometry/material avoids the earlier per-instance geometry growth.
+- `shader-r7-grounding2`: 361 frames, median 16.7 ms, p95 16.8, p99 16.8, max 17.0, calls 182, triangles 621k, textures 287, geometries 3571, no errors.
+- The crate, bus and generator now read as grounded; the wall base and parked sedans still need coverage.
+- **Still 5/10, not 9/10.** Highest next: fix the 14 floating foliage/shoreline seam, add window light pools and wall-base contact, add facade bays/trim/composition, then replace the water smear.
+
+
 

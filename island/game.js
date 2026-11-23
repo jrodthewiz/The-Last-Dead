@@ -28,6 +28,7 @@ import * as T from '../vendor/three.module.js';
 import {createWorldData,createColliders,SpatialGrid,LANDMARKS,SPAWN,regionAt,groundHeight,effectFloorHeight,clamp,SAVE_KEY,stationPosition,KEEPER_FUSE,HOSPITAL_GENERATOR} from './data.js';
 import {createWorld} from './world.js';
 import {createEnvironment} from './environment.js';
+import {contactShadow} from './contact-shadow.js';
 import {loadActors,updateEnemies,damageEnemy,Soundscape,setEnemyAction,resetNavigation,cullActorViews} from './actors.js';
 import {freshState,readSave,writeSave,stepPlayer,supportHeight,viewCeiling,objective,allRelaysRestored,restoredRelayCount,restoreRelay,rayBox,clearShot} from './simulation.js';
 import {makeRifle} from './carbine.js';
@@ -381,7 +382,7 @@ function bindControls(){
 async function init(){
   try{
     renderer=new T.WebGLRenderer({canvas,antialias:false,logarithmicDepthBuffer:true,powerPreference:'high-performance'});renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.03;scene=new T.Scene();scene.matrixAutoUpdate=false;camera=new T.PerspectiveCamera(74,innerWidth/innerHeight,.06,4800);scene.add(camera);createEnvironment(renderer,scene);presentation=createPresentation(renderer);resize();
-    data=createWorldData();grid=new SpatialGrid(createColliders(data));grid.floorAt=(x,z)=>supportHeight(data,x,z);grid.effectFloorAt=(x,z)=>effectFloorHeight(x,z,grid.floorAt(x,z));const effectsFloor=(x,z)=>effectFloorHeight(x,z,supportHeight(data,x,z));$('loading').textContent='Raising the island and Saint Orin';await new Promise(requestAnimationFrame);world=createWorld(scene,data,{arrivalTreads:params.get('art')==='arrival-treads'});rifle=makeRifle(camera);feedback=createFeedback(scene,effectsFloor);createInteractables();map=new FieldMap($('field-map'),data,setMapPin);
+    data=createWorldData();grid=new SpatialGrid(createColliders(data));grid.floorAt=(x,z)=>supportHeight(data,x,z);grid.effectFloorAt=(x,z)=>effectFloorHeight(x,z,grid.floorAt(x,z));const effectsFloor=(x,z)=>effectFloorHeight(x,z,supportHeight(data,x,z));$('loading').textContent='Raising the island and Saint Orin';await new Promise(requestAnimationFrame);world=createWorld(scene,data,{arrivalTreads:params.get('art')==='arrival-treads'});rifle=makeRifle(camera);feedback=createFeedback(scene,effectsFloor);createInteractables();const generatorShadow=contactShadow(5.6,4.4,.72);generatorShadow.position.set(HOSPITAL_GENERATOR.x,groundHeight(HOSPITAL_GENERATOR.x,HOSPITAL_GENERATOR.z)+.02,HOSPITAL_GENERATOR.z);scene.add(generatorShadow);map=new FieldMap($('field-map'),data,setMapPin);
     // Asset parsing and shader preparation own startup. Do not render partially
     // loaded rigs and synchronously compile their materials between fetches.
     $('loading').textContent='Unpacking the coast, survivor & expedition arsenal';

@@ -5,6 +5,7 @@ import {batchStaticWeaponMeshes} from '../weapon-batching.js';
 import {batchFieldWeapon} from './field-weapon-batches.js';
 import {sleepHiddenBranch} from './render-lifecycle.js';
 import {searchLidAngle} from './search-motion.js';
+import {contactShadow} from './contact-shadow.js';
 
 // The closed silhouette teaches the kind of find; the opened contents follow
 // the same saved inventory as the pack. All pieces are built once and batched
@@ -27,6 +28,7 @@ export function createLootVisuals(scene,containers){
  for(const c of containers){
   const group=new T.Group();group.position.set(c.x,c.y,c.z);group.rotation.y=c.yaw||0;scene.add(group);group.name=c.name;
   const bag=c.kind==='bag',crate=c.kind==='crate',trunk=c.kind==='trunk',width=bag?.72:1.05,depth=bag?.44:.65,mat=bag?1:trunk?0:crate?0:3;
+   group.add(contactShadow(width+.45,depth+.45,.72));
   if(bag){
    piece(group,0,0,0,1,1,1,mat,clothBody);
    for(const x of [-.21,.21]){piece(group,x,.24,.225,.045,.26,.018,2);piece(group,x,.14,.239,.075,.065,.018,6);piece(group,x,.14,.25,.035,.028,.012,2);}
