@@ -121,12 +121,17 @@ Panel:
 
 - Gemini 4 Neon rated the previous R6 3/10 overall (A2 B2 C3 D2 E3 F3 G4).
 - Claude Opus 5.5 and Claude Fable 5.2 review delegates failed due low API credit balance; no score was produced.
-- Neon and Codex R7 reviews are in flight. Do not mark R7 complete until their scores and the final 9/10 target are explicit.
+- Gemini 4 Neon rated R7 (pre-texture final2) **4/10** (A3 B4 C4 D3 E5 F3 G4).
+- Codex GPT-6.2 Sol rated R7 (pre-texture final2) **4.5/10** (A4.5 B5.5 C4.5 D3.5 E4.5 F4.5 G4).
+- Their G scores used `shader-r7-final2`, whose p99 was contaminated by a host stall (249.8/449.8 ms). The later `shader-r7-textures` run is the current performance evidence: 361 frames, p95 16.7, p99 16.8, max 16.8. The agents did not see the texture candidate.
+- **No 9/10.** Current honest range: 4–4.5/10.
 
 Remaining high-impact:
 
-- Contact shadows/light pools are still missing under crates, generators and wall bases; the raw debug still leaks raw albedo for props/foliage.
-- Facade composition is still repetitive and sparse; the geometry remains unbeveled kit boxes.
+- Visible geometry defects: floating ferns/trunk and shoreline seam in 14; giant beige column intersecting the right facade in 09; floating spawn crate; no curb/bevel/roof clutter.
+- Contact shadows/light pools are still missing under crates, generators and wall bases; the raw debug leaks raw albedo for props/foliage.
+- Facade composition is still repetitive and sparse; hero props/vehicles, trees and terrain remain Lambert/flat while the kit is PBR.
 - Water is still the screen-space flip; the 04 waterfront reads as a slab and 14 has blocky ripples.
 - 6-bit dither is reduced, not removed; the sky still posterizes slightly.
+
 
