@@ -220,14 +220,14 @@ export const toonLambertChunk = (() => {
 	float b2 = smoothstep( .36 - aa, .36 + aa, ndl );
 	float b3 = smoothstep( .70 - aa, .70 + aa, ndl );
 	float ramp = b1 * .42 + b2 * .34 + b3 * .28;
-	vec3 tint = mix( vec3( 1.07, .96, .82 ), vec3( 1.06, 1.01, .90 ), b2 * .65 + b3 * .35 );
+	vec3 tint = mix( vec3( .90, .95, 1.00 ), vec3( .99, 1.00, 1.02 ), b2 * .65 + b3 * .35 );
 	reflectedLight.directDiffuse += ramp * directLight.color * BRDF_Lambert( material.diffuseColor * tint );
 }`;
   const indirect = `void RE_IndirectDiffuse_Lambert( const in vec3 irradiance, const in vec3 geometryPosition, const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal, const in LambertMaterial material, inout ReflectedLight reflectedLight ) {
 	vec3 upView = normalize( ( viewMatrix * vec4( 0., 1., 0., 0. ) ).xyz );
 	float upness = clamp( dot( geometryNormal, upView ) * .5 + .5, 0., 1. );
-	vec3 hemiTint = mix( vec3( .95, .90, .82 ), vec3( .80, .93, 1.12 ), upness );
-	reflectedLight.indirectDiffuse += irradiance * 1.26 * BRDF_Lambert( material.diffuseColor * hemiTint );
+	vec3 hemiTint = mix( vec3( .80, .86, .92 ), vec3( .92, 1.00, 1.08 ), upness );
+	reflectedLight.indirectDiffuse += irradiance * 1.24 * BRDF_Lambert( material.diffuseColor * hemiTint );
 }`;
   return source
     .replace(/void RE_Direct_Lambert\([^)]*\) \{[\s\S]*?\n\}/, direct)
@@ -337,35 +337,41 @@ float wFres = pow(1. - saturate(dot(normal, wV)), 3.2);
 vec3 wUpView = normalize((viewMatrix * vec4(0., 1., 0., 0.)).xyz);
 vec3 wRefl = reflect(-wV, normal);
 float wSkyMix = clamp(dot(wRefl, wUpView) * .5 + .5, 0., 1.);
-vec3 wEnvColor = mix(vec3(.18, .21, .18), vec3(.58, .72, .78), wSkyMix);
-outgoingLight += wEnvColor * mix(diffuseColor.rgb, uWeaponSpecTint, .55) * wMetal * (1. - wRough * .72) * (.22 + .78 * wFres) * .52;
-outgoingLight += mix(vec3(.04, .05, .055), uWeaponSpecTint * .14, wMetal) * wFres;
+vec3 wEnvColor = mix(vec3(.14, .18, .21), vec3(.74, .84, .90), wSkyMix);
+outgoingLight += wEnvColor * mix(diffuseColor.rgb, uWeaponSpecTint, .55) * wMetal * (1. - wRough * .72) * (.22 + .78 * wFres) * .56;
+outgoingLight += mix(vec3(.04, .055, .065), uWeaponSpecTint * .18, wMetal) * wFres;
 #if NUM_DIR_LIGHTS > 0
 vec3 wL = normalize(directionalLights[0].direction);
 vec3 wH = normalize(wV + wL);
 float wNdl = saturate(dot(normal, wL));
 float wSpec = pow(saturate(dot(normal, wH)), mix(10., 68., 1. - wRough));
 float wBand = step(.22, wSpec) * .35 + step(.52, wSpec) * .40 + step(.80, wSpec) * .45;
-vec3 wSpecCol = mix(vec3(.32, .34, .34), uWeaponSpecTint * .95, wMetal);
+vec3 wSpecCol = mix(vec3(.32, .36, .38), uWeaponSpecTint * .98, wMetal);
 outgoingLight += directionalLights[0].color * wSpecCol * wBand * (.20 + .80 * wNdl) * (1. - wRough * .55) * mix(.45, 1.15, wMetal);
 #endif
 vec3 wNormalWorld = normalize((vec4(normal, 0.) * viewMatrix).xyz);
 if (uArtDebug > .5 && uArtDebug < 1.5) outgoingLight = wNormalWorld * .5 + .5;
 else if (uArtDebug > 1.5 && uArtDebug < 2.5) outgoingLight = vec3(pow(clamp(wRough, 0., 1.), 2.2));`
     );
+
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <opaque_fragment>',
+      `#include <opaque_fragment>
+gl_FragColor.a = .90;`
+    );
   };
 
-  const suffix = isPhysical ? '-weapon-hero-std-v1' : '-weapon-hero-lambert-v1';
+  const suffix = isPhysical ? '-weapon-hero-std-v2' : '-weapon-hero-lambert-v2';
   material.customProgramCacheKey = () => previousKey() + suffix;
   material.needsUpdate = true;
   return material;
 }
 
 const ENTITY_PRESETS = {
-  zombie:   { params: [.28, .46, .00, .88], rim: [.54, .76, .80] },
-  survivor: { params: [.26, .34, .00, .85], rim: [.76, .84, .78] },
-  vehicle:  { params: [.08, .20, .34, .30], rim: [.58, .70, .75] },
-  wreck:    { params: [.10, .15, .14, .64], rim: [.46, .54, .52] },
+  zombie:   { params: [.24, .56, .00, .88], rim: [.68, .80, .86] },
+  survivor: { params: [.24, .42, .00, .86], rim: [.76, .84, .88] },
+  vehicle:  { params: [.08, .28, .44, .22], rim: [.72, .80, .86] },
+  wreck:    { params: [.10, .18, .18, .60], rim: [.52, .60, .64] },
 };
 
 // Lightweight wrap/rim/clearcoat pass for characters and vehicles: no normal
