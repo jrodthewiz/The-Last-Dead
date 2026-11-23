@@ -150,6 +150,20 @@ Remaining high-impact:
 - Agent scores: Codex 5.0/10; Gemini 4 Neon 4.5/10 on the texture candidate. Still no 9/10.
 - Remaining: 14 floating foliage/shoreline seam; 09 intersecting column; flat foliage/terrain silhouette; no window pools; water; composition.
 
+## R8 composition/grounding pass
+
+- Added waterfront bollards, hazard curb strips, cargo stacks, dock lamps and grounded timber feet; the 04 waterfront now has a focal apron instead of one crane on an empty slab.
+- Added contact shadows for parked sedans; kept shared contact decals for loot/vehicles/generator.
+- Added a coastal fog chunk, terrain Standard/PMREM path, PBR map retention on imported props, and thinner overhead cables.
+- Tuned the sidewalk puddles and road lane sheen to remove the mirror-bright slab and rigid white lane stripes.
+- Restored the original 06/14 matched poses after the previous pass used nicer replacement angles that hid the keeper-house and canopy defects. The R8d board shows those defects rather than hiding them.
+- Unit tests: **29/29 pass**.
+- Clean uncapped run `shader-r8c-uncapped`: **78.2 fps, median 12.9 ms, p95 15.3, p99 16.2, max 17.2**, 807 calls, 1.290M triangles, 304 textures, 110 programs.
+- Matched-pose images: `output/playwright/quality/shader-r8d`; debug `shader-r8d-debug`; 10 s walk `shader-r8d-walk/shader-r8d-walk-10s.webm`. The R8d motion sample hit a host stall (p95 66.6/p99 216.5), so the R8c timing is the clean one.
+- External judges: Gemini 4 Neon hit its individual quota (resets in ~4h); Claude Opus/Fable have no balance. DeepSeek V4-Pro review is running. No 9/10 yet.
+- Remaining: 06 keeper house still reads as floating from the original water-side pose; 14 detached fern/trunk silhouettes; water is still flat/SSR; facade bays/trim/composition; no window light pools.
+
+
 
 
 
