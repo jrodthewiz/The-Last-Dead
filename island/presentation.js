@@ -3,7 +3,7 @@ import * as T from '../vendor/three.module.js';
 // Crisp low-poly geometry with a restrained film finish. The scene stays HDR
 // until this one output pass; the HUD is never blurred or colour-graded.
 export function createPresentation(renderer){
- const target=new T.WebGLRenderTarget(1,1,{type:T.HalfFloatType,minFilter:T.LinearFilter,magFilter:T.LinearFilter,depthBuffer:true,samples:Math.min(2,renderer.capabilities.maxSamples)});
+ const target=new T.WebGLRenderTarget(1,1,{type:T.HalfFloatType,minFilter:T.LinearFilter,magFilter:T.LinearFilter,depthBuffer:true,samples:Math.min(4,renderer.capabilities.maxSamples)});
  const scene=new T.Scene(),camera=new T.OrthographicCamera(-1,1,1,-1,0,1);
  const bloomA=new T.WebGLRenderTarget(1,1,{type:T.HalfFloatType,minFilter:T.LinearFilter,magFilter:T.LinearFilter,depthBuffer:false});
  const bloomB=new T.WebGLRenderTarget(1,1,{type:T.HalfFloatType,minFilter:T.LinearFilter,magFilter:T.LinearFilter,depthBuffer:false});
@@ -16,16 +16,16 @@ export function createPresentation(renderer){
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
   fragmentShader:`uniform sampler2D picture;uniform vec2 dir;varying vec2 vUv;void main(){vec3 c=vec3(0.);float w=0.;for(int i=-4;i<=4;i++){float k=exp(-float(i*i)/10.);c+=texture2D(picture,vUv+dir*float(i)).rgb*k;w+=k;}gl_FragColor=vec4(c/max(w,.001),1.);}`});
  const dir=new T.Vector3();
- const uniforms={picture:{value:target.texture},texel:{value:new T.Vector2(1,1)},strength:{value:.10},glow:{value:.16},finish:{value:1},horizonY:{value:.5},reflEnable:{value:1},wetRefl:{value:1},bloomTex:{value:bloomA.texture},bloomStrength:{value:.12},sat:{value:1.04},contrast:{value:1.09},warm:{value:0},lift:{value:1}};
+ const uniforms={picture:{value:target.texture},texel:{value:new T.Vector2(1,1)},strength:{value:.035},glow:{value:.16},finish:{value:1},horizonY:{value:.5},reflEnable:{value:1},wetRefl:{value:1},bloomTex:{value:bloomA.texture},bloomStrength:{value:.12},raw:{value:0},sat:{value:1.04},contrast:{value:1.09},warm:{value:0},lift:{value:1}};
  const material=new T.ShaderMaterial({uniforms,depthTest:false,depthWrite:false,
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
-  fragmentShader:`uniform sampler2D picture;uniform vec2 texel;uniform float strength;uniform float glow;uniform float finish;uniform float horizonY;uniform float reflEnable;uniform float wetRefl;uniform sampler2D bloomTex;uniform float bloomStrength;uniform float sat;uniform float contrast;uniform float warm;uniform float lift;varying vec2 vUv;
+  fragmentShader:`uniform sampler2D picture;uniform vec2 texel;uniform float strength;uniform float glow;uniform float finish;uniform float horizonY;uniform float reflEnable;uniform float wetRefl;uniform sampler2D bloomTex;uniform float bloomStrength;uniform float raw;uniform float sat;uniform float contrast;uniform float warm;uniform float lift;varying vec2 vUv;
    float bayer(vec2 p){vec2 q=mod(floor(p),4.);float a=mod(q.x,2.)*2.+mod(q.y,2.);float b=floor(q.x/2.)*2.+floor(q.y/2.);return (mod(a*3.,4.)*4.+mod(b*3.,4.)+.5)/16.;}
    vec3 highlight(vec2 offset){vec3 c=texture2D(picture,clamp(vUv+offset,texel*.5,1.-texel*.5)).rgb;float l=dot(c,vec3(.2126,.7152,.0722));return c*smoothstep(.82,1.9,l);}
    void main(){
     vec4 srcSample=texture2D(picture,vUv);
     vec3 source=srcSample.rgb+texture2D(bloomTex,vUv).rgb*bloomStrength;
-    float wetMask=clamp((.80-srcSample.a)/.40,0.,1.);
+    if(raw>.5){gl_FragColor=vec4(srcSample.rgb,1.);return;}\n    float wetMask=clamp((.80-srcSample.a)/.40,0.,1.);
     if(reflEnable>.5&&finish>.5&&wetMask>.02&&srcSample.a<.855&&vUv.y<horizonY){
      float below=max(horizonY-vUv.y,.004);
      float rip=(sin(vUv.x*115.+below*140.)*.55+sin(vUv.x*240.-below*210.)*.45)*smoothstep(.02,.15,below)*.0011;
@@ -110,7 +110,7 @@ export function createPresentation(renderer){
    }`});
  scene.add(new T.Mesh(new T.PlaneGeometry(2,2),material));renderer.info.autoReset=false;
  return {enabled:true,target,uniforms,
-  resize(quality='balanced'){const size=renderer.getDrawingBufferSize(new T.Vector2());target.setSize(size.x,size.y);const bw=Math.max(1,Math.floor(size.x/4)),bh=Math.max(1,Math.floor(size.y/4));bloomA.setSize(bw,bh);bloomB.setSize(bw,bh);uniforms.texel.value.set(1/Math.max(1,size.x),1/Math.max(1,size.y));uniforms.strength.value=quality==='retro'?.16:quality==='native'?.06:.10;},
+  resize(quality='balanced'){const size=renderer.getDrawingBufferSize(new T.Vector2());target.setSize(size.x,size.y);const bw=Math.max(1,Math.floor(size.x/4)),bh=Math.max(1,Math.floor(size.y/4));bloomA.setSize(bw,bh);bloomB.setSize(bw,bh);uniforms.texel.value.set(1/Math.max(1,size.x),1/Math.max(1,size.y));uniforms.strength.value=quality==='retro'?.08:quality==='native'?.02:.035;},
   render(world,view){renderer.info.reset();if(!this.enabled){renderer.setRenderTarget(null);renderer.render(world,view);return;}
    if(view&&view.isPerspectiveCamera&&view.far>=50){
     view.getWorldDirection(dir);

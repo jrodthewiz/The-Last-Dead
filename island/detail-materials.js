@@ -192,7 +192,7 @@ vec4 artDetailTap(vec3 p,vec3 n,float layer,float fade){
 }
 vec3 artApplyDetail(vec3 n,vec4 d,float strength){
  if(strength<=.001)return n;
- vec2 s=(d.xy*2.-1.)*.33*strength;
+ vec2 s=(d.xy*2.-1.)*.55*strength;
  vec3 a=abs(n);
  vec3 t;
  if(a.y>=a.x&&a.y>=a.z)t=vec3(n.y>=0.?1.:-1.,0.,0.);

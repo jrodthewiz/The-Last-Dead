@@ -1,5 +1,6 @@
 import * as T from '../vendor/three.module.js';
 import {DETAIL_PARS,attachDetailUniforms,artDetailDebug,toonLambertChunk} from './detail-materials.js';
+import {attachPbrUniforms} from './pbr-textures.js';
 
 // Printed three-band Lambert key light, one-tap dominant-axis surface detail,
 // semantic architectural crevice AO, wet coastal asphalt sheen and stepped specular.
@@ -57,7 +58,7 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds){
  float useMark=rw<3.?(.88+.12*artNoise(land*.35)):(.88+.12*artNoise(land*.8)-roadPatch*.08-wheel*.06);
  diffuseColor.rgb=mix(diffuseColor.rgb,rc*useMark,paving);}
  float artDist=length(cameraPosition-vGroundWorld);
- float artFade=1.-smoothstep(28.,44.,artDist);
+ float artFade=1.-smoothstep(42.,70.,artDist);
  float artLayer=artRoad>.5?2.:(exposed>.2?5.:7.);
  vec4 artDetail=artDetailTap(vGroundWorld,artWorldNormal,artLayer,artFade);
  float artDetailStrength=artFade*mix(.42,.95,max(exposed,artRoad));
@@ -95,12 +96,14 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds){
 }
 
 export function paintArchitecture(material){
+ const physical=!!material.isMeshStandardMaterial;
  const wind={value:0};material.userData.wind=wind;material.userData.artDebug=artDetailDebug;
  const previous=material.onBeforeCompile;
  const previousKey=material.customProgramCacheKey?material.customProgramCacheKey.bind(material):()=>'';
  material.onBeforeCompile=function(shader,renderer){
   previous.call(this,shader,renderer);
   attachDetailUniforms(shader);
+  attachPbrUniforms(shader);
   shader.uniforms.uArtWind=wind;
   shader.vertexShader='uniform float uArtWind;\nattribute float artRole;\nattribute float artAO;\nattribute vec4 artMeta;\nvarying float vArtRole;\nvarying float vArtAO;\nvarying vec4 vArtMeta;\nvarying float vArtInstHash;\nvarying vec3 vArtWorld;\nvarying vec3 vArtNormal;\nvarying vec2 vArtUv;\n'+shader.vertexShader;
   shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
@@ -117,8 +120,16 @@ export function paintArchitecture(material){
    vArtWorld=(modelMatrix*artPoint).xyz;
    vArtNormal=normalize(mat3(modelMatrix)*artNorm);
    if(artRole>3.5&&artRole<4.5){float wind=sin(uArtWind*1.25+vArtWorld.x*.08+vArtWorld.z*.06);transformed.x+=wind*.028*max(0.,position.y+.6);transformed.z+=sin(uArtWind*.9+vArtWorld.x*.09)*.016*max(0.,position.y+.6);}`);
-  shader.fragmentShader='varying float vArtRole;\nvarying float vArtAO;\nvarying vec4 vArtMeta;\nvarying float vArtInstHash;\nvarying vec3 vArtWorld;\nvarying vec3 vArtNormal;\nvarying vec2 vArtUv;\n'+DETAIL_PARS+noise+shader.fragmentShader;
-  shader.fragmentShader=shader.fragmentShader.replace('#include <lights_lambert_pars_fragment>',toonLambertChunk);
+  shader.fragmentShader='uniform sampler2D uPlasterD,uPlasterN,uPlasterA,uBrickD,uBrickN,uBrickA,uAsphaltD,uAsphaltN,uAsphaltA;\nvarying float vArtRole;\nvarying float vArtAO;\nvarying vec4 vArtMeta;\nvarying float vArtInstHash;\nvarying vec3 vArtWorld;\nvarying vec3 vArtNormal;\nvarying vec2 vArtUv;\n'+DETAIL_PARS+noise+shader.fragmentShader;
+  if(!physical)shader.fragmentShader=shader.fragmentShader.replace('#include <lights_lambert_pars_fragment>',toonLambertChunk);
+  if(physical){
+   shader.fragmentShader=shader.fragmentShader.replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
+   roughnessFactor=clamp(artRough,.04,1.);
+   `);
+   shader.fragmentShader=shader.fragmentShader.replace('#include <metalnessmap_fragment>',`#include <metalnessmap_fragment>
+   metalnessFactor=clamp(artMetal,0.,1.);
+   `);
+  }
   shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
   vec3 artWorldNormal=vec3(0.,1.,0.);float artRough=.80,artMetal=.02,artSemAO=1.,artCityWet=0.,artWetRefl=0.,artDist=0.,artInRoom=0.;
   float artTag=vArtMeta.z;
@@ -177,7 +188,8 @@ export function paintArchitecture(material){
     float skyGlint=smoothstep(.35,.86,vArtUv.y+(vArtUv.x-.5)*.35);
     diffuseColor.rgb*=mix(.38,1.,jamb)*lintel*(.88+skyGlint*.22);
     diffuseColor.rgb+=vec3(.028,.044,.054)*skyGlint*jamb;
-    artRough=mix(.58,.12,jamb);artMetal=.10;
+    diffuseColor.rgb=mix(vec3(.055,.080,.095),diffuseColor.rgb,jamb);
+    artRough=mix(.58,.07,jamb);artMetal=mix(.04,.86,jamb);
    }else if(vArtRole<6.5){
     vec2 wBez=min(vArtUv,1.-vArtUv);
     float jamb=smoothstep(0.,.065,wBez.x)*smoothstep(0.,.055,wBez.y);
@@ -186,7 +198,8 @@ export function paintArchitecture(material){
     float lintel=mix(.46,1.,smoothstep(0.,.22,1.-vArtUv.y));
     diffuseColor.rgb*=mix(.18,1.04,jamb*wMullion)*lintel;
     diffuseColor.rgb+=vec3(.028,.018,.006)*jamb*wMullion;
-    artRough=mix(.56,.14,jamb*wMullion);artMetal=.06;
+    diffuseColor.rgb=mix(vec3(.060,.085,.100),diffuseColor.rgb,jamb*wMullion);
+    artRough=mix(.56,.065,jamb*wMullion);artMetal=mix(.04,.88,jamb*wMullion);
    }else if(vArtRole<7.5){
     vec2 brick=uv*vec2(.8,2.);brick.x+=mod(floor(brick.y),2.)*.5;
     vec2 f=fract(brick),aa=max(fwidth(brick),vec2(.015));
@@ -202,7 +215,7 @@ export function paintArchitecture(material){
     diffuseColor.rgb*=mix(1.,.70,walkPuddle);
     artWetRefl=n.y>.7?walkPuddle*.55:0.;
     artCityWet=n.y>.7?walkPuddle*.65:0.;
-    artRough=mix(.70,.28,walkPuddle);artMetal=0.;
+    artRough=mix(.86,.42,walkPuddle);artMetal=0.;
    }else if(vArtRole>10.5){
     if(n.y>.7){
      vec2 plank=vArtRole<11.5?vArtWorld.xz:vArtWorld.zx;
@@ -238,14 +251,33 @@ export function paintArchitecture(material){
     diffuseColor.rgb*=.92+aggregate*.09-smoothstep(.68,.82,repair)*.10;
     diffuseColor.rgb*=1.-tracks*(.28+.05*tread);
     diffuseColor.rgb*=1.-artCityWet*.14;
-    artRough=mix(.78,.34,artCityWet);artMetal=0.;
+    artRough=mix(.80,.22,artCityWet);artMetal=0.;
+   }
+   float pbrOn=0.;
+   vec2 pbrUv=artDetailUv(vArtWorld,nWorld);
+   vec4 pbrD=vec4(1.),pbrN=vec4(.5,.5,1.,1.),pbrA=vec4(1.,.8,0.,1.);
+   if(vArtRole>6.5&&vArtRole<7.5){
+    pbrOn=1.;pbrUv*=.42;pbrD=texture2D(uBrickD,pbrUv);pbrN=texture2D(uBrickN,pbrUv);pbrA=texture2D(uBrickA,pbrUv);
+   }else if(vArtRole<9.5&&vArtRole>7.5){
+    pbrOn=1.;pbrUv*=.14;pbrD=texture2D(uAsphaltD,pbrUv);pbrN=texture2D(uAsphaltN,pbrUv);pbrA=texture2D(uAsphaltA,pbrUv);
+   }else if(vArtRole<1.5||(vArtRole>2.5&&vArtRole<4.5)||(vArtRole>7.5&&vArtRole<8.5)){
+    pbrOn=1.;pbrUv*=.24;pbrD=texture2D(uPlasterD,pbrUv);pbrN=texture2D(uPlasterN,pbrUv);pbrA=texture2D(uPlasterA,pbrUv);
+   }
+   if(pbrOn>.5){
+    float pbrLum=dot(pbrD.rgb,vec3(.333));
+    diffuseColor.rgb*=mix(1.,pbrLum*1.55,.42);
+    artRough=clamp(mix(artRough,pbrA.g,.40),.06,1.);
+    artMetal=clamp(mix(artMetal,pbrA.b,.30),0.,1.);
+    artSemAO*=mix(1.,pbrA.r,.50);
+    vec2 pbrSlope=(pbrN.xy*2.-1.)*.60;
+    artWorldNormal=artApplyDetail(artWorldNormal,vec4(pbrSlope*.5+.5,0.,0.),1.);
    }
    float artLayer=vArtRole<.5?7.:vArtRole<1.5?0.:vArtRole<2.5?4.:vArtRole<3.5?3.:vArtRole<4.5?7.:vArtRole<5.5?6.:vArtRole<6.5?6.:vArtRole<7.5?1.:vArtRole<8.5?6.:vArtRole<9.5?2.:vArtRole<10.5?5.:3.;
    artDist=length(cameraPosition-vArtWorld);
-   float artFade=1.-smoothstep(28.,44.,artDist);
+   float artFade=1.-smoothstep(42.,70.,artDist);
    bool hasNormalDetail=vArtRole<3.5||(vArtRole>6.5);
    vec4 artDetail=hasNormalDetail?artDetailTap(vArtWorld,nWorld,artLayer,artFade):vec4(.5,.5,artRough,.85);
-   if(hasNormalDetail)artWorldNormal=artApplyDetail(nWorld,artDetail,artFade*.90*(1.-artCityWet*.84));
+   if(hasNormalDetail)artWorldNormal=artApplyDetail(nWorld,artDetail,artFade*1.15*(1.-artCityWet*.84));
    artRough=clamp(artRough+(artDetail.b-.5)*.16,.08,.99);
    artMetal=clamp(artMetal*(.42+.58*artDetail.a),0.,1.);
    if(hasNormalDetail)diffuseColor.rgb*=.91+artDetail.a*.12;
@@ -282,6 +314,17 @@ export function paintArchitecture(material){
   shader.fragmentShader=shader.fragmentShader.replace('vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;',`vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;
    vec3 artV=normalize(vViewPosition);
    float artFres=pow(1.-saturate(dot(normal,artV)),3.4);
+   // Cheap sky/IBL term: the metal and glass now reflect the same overcast
+   // palette as the sky instead of reading as flat painted boxes.
+   vec3 artWorldV=normalize(cameraPosition-vArtWorld);
+   vec3 artRefl=reflect(-artWorldV,artWorldNormal);
+   vec3 artSunWorld=normalize((vec4(directionalLights[0].direction,0.)*viewMatrix).xyz);
+   float artSky=clamp(artRefl.y*.5+.5,0.,1.);
+   vec3 artEnvCol=mix(vec3(.10,.14,.17),vec3(.56,.65,.70),artSky);
+   artEnvCol+=directionalLights[0].color*pow(max(dot(artRefl,artSunWorld),0.),18.)*.30;
+   float artEnvSpec=pow(1.-clamp(artRough,0.,1.),2.2)*(.12+.88*artFres)*(.18+artMetal*1.7);
+   if(vArtRole>4.5&&vArtRole<6.5)artEnvSpec+=.10*(.30+.70*artFres);
+   outgoingLight+=artEnvCol*clamp(artEnvSpec,0.,.42);
    if(vArtRole>7.5&&vArtRole<9.5){
     float roadFres=pow(1.-saturate(dot(normal,artV)),4.2);
     float roadFade=1.-smoothstep(35.,110.,artDist);
@@ -311,6 +354,8 @@ export function paintArchitecture(material){
    if(uArtDebug>.5&&uArtDebug<1.5)outgoingLight=artWorldNormal*.5+.5;
    else if(uArtDebug>1.5&&uArtDebug<2.5)outgoingLight=vec3(pow(clamp(artRough,0.,1.),2.2));`);
   shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`#include <opaque_fragment>
+   if(uArtDebug>.5&&uArtDebug<1.5)gl_FragColor=vec4(artWorldNormal*.5+.5,1.);
+   else if(uArtDebug>1.5&&uArtDebug<2.5)gl_FragColor=vec4(vec3(clamp(artRough,0.,1.)),1.);
    if(vArtMeta.z<.3&&vArtRole>7.5&&vArtRole<9.5&&nWorld.y>.7){
     float artWetDist=clamp(artWetRefl*(1.-smoothstep(90.,220.,artDist)),0.,1.);
     gl_FragColor.a=.84-artWetDist*.30;

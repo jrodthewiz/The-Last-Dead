@@ -54,6 +54,7 @@ try{
      for(const material of materials)if(material?.userData?.artDebug&&!seen.has(material.userData.artDebug)){seen.add(material.userData.artDebug);material.userData.artDebug.value=value;}
     });
    },mode);
+   await page.evaluate(raw=>{window.__BLACKWATER__.presentation.uniforms.raw.value=raw;},mode===0?0:1);
    await page.waitForTimeout(250);
    await page.screenshot({path:`${out}/${name}-${suffix}.png`});
   }
@@ -63,6 +64,7 @@ try{
    const materials=Array.isArray(object.material)?object.material:[object.material];
    for(const material of materials)if(material?.userData?.artDebug)material.userData.artDebug.value=0;
   });
+  window.__BLACKWATER__.presentation.uniforms.raw.value=0;
  });
  const metrics=await page.evaluate(()=>{try{return window.__BLACKWATER__.metrics();}catch{return null;}});
  await writeFile(`${out}/debug.json`,JSON.stringify({label,poses:selected.map(p=>p[0]),metrics,errors:[...new Set(errors)].slice(0,8)},null,2));
