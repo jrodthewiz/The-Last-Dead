@@ -193,6 +193,8 @@ Remaining high-impact:
 - `shader-r9-final`: 361 frames, median 16.7 ms, p95 16.8, p99 16.8, max 17.2, 185 calls at the 14 pose, 621k triangles, 306 textures, no errors.
 - `shader-r9-final-uncapped`: 115.5 fps, median 7.9 ms, p95 13.2, p99 16.4, max 33.3, 809 calls, 1.3056M triangles, 306 textures, 111 programs.
 - Remaining: 06 keeper-house foundation and pale shoreline; 14 foreground still reads as a pale sand/water flat; water still lacks scene-aware reflections; facades/composition. No 9/10.
+- Approved `codex -p deepseek` review of R9 final (`deepseek-flash`, provider `deepseek`, **no OpenAI Codex credits**, read-only, 8,328 tokens): **4.7/10** — A5.0 B4.0 C4.0 D4.5 E5.0 F4.5 G4.5. Dusk/clearing/flashlight/teal water are real gains, but it calls the dusk mostly a palette change, flags the forest/city exposure mismatch, the flashlight’s hard warm/green split, plate-like keeper-house foreground and repeated façades. Still a stylized blockout, not a 9/10 horror presentation.
+
 
 
 
