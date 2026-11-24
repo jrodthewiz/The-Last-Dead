@@ -73,5 +73,5 @@ export async function loadScenery(scene,data){
    shadows.name='Prop contact shadows';shadows.instanceMatrix.needsUpdate=true;scene.add(shadows);freezeLocalTransforms(shadows);
   }
   for(const a of assets.values())a.geometry.dispose();assets.clear();tiles.clear();
-  return {items,colliders,footingPoints,stats:{assets:SCENERY_ASSETS.length,props:items.length,batches:meshes.length+(footings.length?1:0),footings:footings.length},update(camera){for(const m of meshes){const b=m.geometry.boundingSphere;m.visible=camera.distanceToSquared(b.center)<(m.userData.distance+b.radius)**2;}}};
+  return {items,colliders,footingPoints,meshes,stats:{assets:SCENERY_ASSETS.length,props:items.length,batches:meshes.length+(footings.length?1:0),footings:footings.length},update(camera){for(const m of meshes){const b=m.geometry.boundingSphere;m.visible=camera.distanceToSquared(b.center)<(m.userData.distance+b.radius)**2;}}};
 }

@@ -11,7 +11,8 @@ import {compileWorldLabels,worldBoardMaterial} from './world-labels.js';
 import {houseShell} from './house-shell.js';
 import {consoleMaterial} from './retro-materials.js';
 import {bakeLocalAO,bakeFoliageAO,artDetailDebug} from './detail-materials.js';
-import {paintArchitecture,paintTerrain,paintBridge,skyNoise} from './surface-art.js';
+import {paintArchitecture,paintTerrain,paintBridge,skyNoise,createWetCityMaterial} from './surface-art.js';
+import {planarReflUniforms} from './planar-reflection.js';
 import {createCapeGroundAtlas} from '../assets/forest-kit/ground-atlas.js';
 import {coastalBotany,streetCraft} from './visual-details.js';
 import {createCoastalMotion} from './coastal-motion.js';
@@ -33,7 +34,7 @@ function grainTexture(){const c=document.createElement('canvas');c.width=c.heigh
 const grain=grainTexture();
 class Kit {
   constructor(scene){this.scene=scene;this.parts=new Map();this.labels=[];this.surface=0;this.roomTag=0;this.geometries={box:new T.BoxGeometry(1,1,1),cone:new T.ConeGeometry(1,1,7),dial:new T.CylinderGeometry(1,1,1,12).rotateX(Math.PI/2),cylinder:new T.CylinderGeometry(1,1,1,7),basin:new T.LatheGeometry([[0,-.5],[.66,-.5],[.85,-.40],[1,.30],[1.02,.43],[.96,.50],[.88,.43],[.86,.27],[.65,-.22],[0,-.22]].map(([r,y])=>new T.Vector2(r,y)),10),mug:new T.LatheGeometry([[0,-.5],[.80,-.5],[.91,-.43],[1,.40],[1,.47],[.96,.50],[.82,.47],[.82,.37],[.75,-.31],[0,-.31]].map(([r,y])=>new T.Vector2(r,y)),8),rock:new T.IcosahedronGeometry(1,0),sphere:new T.IcosahedronGeometry(1,1)};for(const geometry of Object.values(this.geometries))bakeLocalAO(geometry);this.material=paintArchitecture(new T.MeshStandardMaterial({color:0xffffff,flatShading:true,roughness:1,metalness:0,envMapIntensity:1.05}));this.count=0;}
-  add(shape,x,y,z,sx,sy,sz,color,ry=0,q=null,role=this.surface,roomTag=this.roomTag){const foliage=shape==='fern'||shape==='tuft',interior=!!this.interior,tile=interior?90:foliage?72:180,distance=interior?96:shape==='tuft'?65:shape==='fern'?100:270,detail=interior||foliage||Math.max(sx,sy,sz)<2.1,key=interior?`room:${shape}:${this.interior}`:`world:${shape}:${Math.floor(x/tile)},${Math.floor(z/tile)}:${detail}`;if(!this.parts.has(key))this.parts.set(key,{shape,items:[],detail,distance,roomTile:this.interior||null});this.parts.get(key).items.push({x,y,z,sx,sy,sz,color,ry,q,role,roomTag});this.count++;}
+  add(shape,x,y,z,sx,sy,sz,color,ry=0,q=null,role=this.surface,roomTag=this.roomTag){const foliage=shape==='fern'||shape==='tuft',interior=!!this.interior,tile=interior?120:foliage?84:210,distance=interior?96:shape==='tuft'?30:shape==='fern'?65:215,detail=interior||foliage||Math.max(sx,sy,sz)<2.1,key=interior?`room:${shape}:${this.interior}`:`world:${shape}:${Math.floor(x/tile)},${Math.floor(z/tile)}:${detail}`;if(!this.parts.has(key))this.parts.set(key,{shape,items:[],detail,distance,roomTile:this.interior||null});this.parts.get(key).items.push({x,y,z,sx,sy,sz,color,ry,q,role,roomTag});this.count++;}
   label(p){this.labels.push({...p,roomTile:this.interior||null});this.count++;}
   box(x,y,z,w,h,d,c,r=0,role=this.surface,roomTag=this.roomTag){this.add('box',x,y,z,w,h,d,c,r,null,role,roomTag);}
   rod(a,b,r,c){const av=new T.Vector3(...a),bv=new T.Vector3(...b),d=bv.clone().sub(av),m=av.add(bv).multiplyScalar(.5);this.add('cylinder',m.x,m.y,m.z,r,d.length(),r,c,0,new T.Quaternion().setFromUnitVectors(up,d.normalize()));}
@@ -68,7 +69,7 @@ class Kit {
     // A plaque must never survive after its backing or partition disappears.
     for(const p of this.labels)if(p.roomTile){if(!roomBounds.has(p.roomTile))roomBounds.set(p.roomTile,new T.Sphere());roomBounds.get(p.roomTile).union(new T.Sphere(new T.Vector3(p.x,p.y,p.z),Math.hypot(p.w,p.h)/2));}
     this.parts.clear();for(const g of Object.values(this.geometries))g.dispose();const labels=compileWorldLabels(this.scene,this.labels,roomBounds);
-    return {modules:this.count,batches:calls+labels.batches,labels,update(camera,roomScale=1){labels.update(camera,roomScale);for(const {mesh,distance,bounds,room} of detailMeshes)mesh.visible=camera.distanceToSquared(bounds.center)<(distance*(room?roomScale:1)+bounds.radius)**2;}};
+    return {modules:this.count,batches:calls+labels.batches,detailRoots:detailMeshes.map(d=>d.mesh),labels,update(camera,roomScale=1){labels.update(camera,roomScale);for(const {mesh,distance,bounds,room} of detailMeshes)mesh.visible=camera.distanceToSquared(bounds.center)<(distance*(room?roomScale:1)+bounds.radius)**2;}};
   }
 }
 function surface(vertices,colors){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(vertices,3));if(colors)g.setAttribute('color',new T.Float32BufferAttribute(colors,3));g.computeVertexNormals();return g;}
@@ -125,15 +126,21 @@ function buildRoads(scene,kit){
   for(const road of ROADS){const points=[];for(let i=1;i<road.points.length;i++){const a=road.points[i-1],b=road.points[i],n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/2);for(let j=0;j<n;j++){const t=j/n,x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;points.push([x,terrainHeight(x,z),z]);}}const a=road.points.at(-1);points.push([a[0],terrainHeight(a[0],a[1]),a[1]]);
     if(road.width>=6)for(let i=0;i<points.length-1;i+=7){const a=points[i],b=points[i+1],angle=Math.atan2(b[0]-a[0],b[2]-a[2]);kit.box(a[0],a[1]+.24,a[2],.13,.025,2,0xd2c49a,angle);}
   }
-  const c=CITY_GROUND;kit.box(c.x,c.roadY-.03,c.z,c.w,.06,c.d,0x70786f,0,9);
+  const c=CITY_GROUND,wetCityGroup=new T.Group();
+  const roadMesh=new T.Mesh(new T.BoxGeometry(c.w,.06,c.d),createWetCityMaterial('road'));
+  roadMesh.position.set(c.x,c.roadY-.03,c.z);roadMesh.receiveShadow=true;wetCityGroup.add(roadMesh);
+  const walkGeo=new T.BoxGeometry(c.walkWidth,.16,c.walkWidth),walkMat=createWetCityMaterial('sidewalk');
+  const walks=new T.InstancedMesh(walkGeo,walkMat,c.blocksX*c.blocksZ);let wi=0;
   for(let col=0;col<=c.blocksX;col++)for(let row=0;row<=c.blocksZ;row++){
     const x=c.originX+col*c.spacing,z=c.originZ+row*c.spacing;
-    if(row<c.blocksZ&&col<c.blocksX)kit.box(x+c.spacing/2,c.walkY-.08,z+c.spacing/2,c.walkWidth,.16,c.walkWidth,0xb1b4a1,0,8);
-    if(row<12)for(let k=0;k<6;k++)kit.box(x,14.08,z+k*12+6,.2,.025,5,0xd4cba8);
-    if(col<10)for(let k=0;k<6;k++)kit.box(x+k*12+6,14.08,z,5,.025,.2,0xd4cba8);
+    if(row<c.blocksZ&&col<c.blocksX){dummy.position.set(x+c.spacing/2,c.walkY-.08,z+c.spacing/2);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();walks.setMatrixAt(wi++,dummy.matrix);}
+    if(row<12)for(let k=0;k<6;k++)kit.box(x,c.roadY+.015,z+k*12+6,.2,.025,5,0xd4cba8);
+    if(col<10)for(let k=0;k<6;k++)kit.box(x+k*12+6,c.roadY+.015,z,5,.025,.2,0xd4cba8);
     // Short, legible crosswalks. Empty road ownership is retained at junctions.
-    if(col<10&&row<12)for(let k=0;k<5;k++)kit.box(x+10,14.10,z-4+k*2,3,.025,.8,0xc8c9b0);
+    if(col<10&&row<12)for(let k=0;k<5;k++)kit.box(x+10,c.roadY+.022,z-4+k*2,3,.025,.8,0xc8c9b0);
   }
+  walks.instanceMatrix.needsUpdate=true;walks.computeBoundingSphere();walks.castShadow=true;walks.receiveShadow=true;
+  wetCityGroup.add(walks);scene.add(wetCityGroup);return wetCityGroup;
 }
 function gable(kit,b,y){const angle=Math.atan2(3.4,b.w*.5+1),length=Math.hypot(b.w*.5+1,3.4);for(const sign of [-1,1]){const q=new T.Quaternion().setFromEuler(new T.Euler(0,0,-sign*angle));kit.add('box',b.x+sign*(b.w*.25+.5),y+1.65,b.z,length,.5,b.d+2,b.accent,0,q,2);}kit.box(b.x,y+3.4,b.z,.5,.4,b.d+2,COLORS.darkwood);
   const positions=[];for(const sign of [-1,1])positions.push(b.x-b.w/2,y,b.z+sign*b.d/2,b.x+b.w/2,y,b.z+sign*b.d/2,b.x,y+3.4,b.z+sign*b.d/2);const caps=new T.Mesh(surface(positions),new T.MeshStandardMaterial({color:b.color,side:T.DoubleSide,roughness:.85,metalness:.02}));kit.scene.add(caps);
@@ -147,7 +154,7 @@ function compileBuilding(kit,b,arrivalTreads){
     const treadRole=arrivalTreads&&b.id==='arrival-house'?10:kit.surface;
     for(let i=0;i<b.entry.steps;i++){
       const z=b.entry.z+(i+.5)*b.entry.length/b.entry.steps;
-      const top=entranceHeight(b,b.x,z),bottom=terrainHeight(b.x,z)-.15;
+      const top=entranceHeight(b,b.x,z),bottom=terrainHeight(b.x,z)-.40;
       const treadColor=treadRole===10&&i>=b.entry.steps-4?0xb9b394:0xb3a789;
       kit.box(b.x,(top+bottom)/2,z,3,Math.max(.12,top-bottom),stepDepth,treadColor,0,treadRole);
     }
@@ -162,7 +169,7 @@ function compileBuilding(kit,b,arrivalTreads){
       const baseTag=oldtown?1.5:.5;
       kit.box(b.x,yy+.10,b.z,b.w,.2,b.d,floorColor,0,floorRole,baseTag);
       for(let floor=0;floor<roomHeight/3.4;floor++)for(const w of houseShell({...b,upper:floor>0}).walls){
-        const wallTag=oldtown&&floor===0?(w.w===.4?(w.x>0?4:5):(w.z>0?2:3)):0;
+        const wallTag=floor===0?(oldtown?(w.w===.4?(w.x>0?4:5):(w.z>0?2:3)):(w.w===.4?(w.x>0?8:9):(w.z>0?6:7))):0;
         kit.box(b.x+w.x,yy+w.y+w.h/2+floor*3.4,b.z+w.z,w.w,w.h,w.d,b.color,0,kit.surface,wallTag);
       }
       kit.box(b.x,yy+roomHeight-.08,b.z,b.w-.4,.16,b.d-.4,0xb8b496,0,kit.surface,baseTag);
@@ -194,7 +201,7 @@ function compileBuilding(kit,b,arrivalTreads){
         if(b.district==='oldtown'&&floor===1&&bay%2===0&&!(front&&FRONTAGES[b.id]))kit.box(wx,wy-.9,wz+(front?.55:back?-.55:0),side<2?2:.7,.18,side<2?.9:2,0x808c7a);
       }
     }
-    kit.box(b.x,yy+tier.h,b.z,tier.w+.65,.35,tier.d+.65,COLORS.cream);
+    kit.box(b.x,yy+tier.h+.05,b.z,tier.w+.65,.26,tier.d+.65,COLORS.cream);
     if(!b.enterable){
       for(const sign of [-1,1]){kit.box(b.x+sign*(tier.w/2-.35),yy+tier.h/2,b.z+tier.d/2+.12,.5,tier.h,.28,COLORS.cream);}
     }
@@ -249,6 +256,7 @@ export function sign(scene,text,x,y,z,width=6,rotation=0,dark=false,posts=false)
 }
 function tree(kit,x,y,z,s=1,kind='pine',rotation=0){
   kit.surface=3;kit.add('cylinder',x,y+4*s,z,.27*s,8*s,.27*s,0x695c42);
+  kit.add('cone',x,y+.38*s,z,.52*s,.78*s,.52*s,0x544834,rotation);
   if(kind==='pine'){
     for(let i=0;i<5;i++){const a=rotation+i*2.4,r=(3.1-i*.48)*s;kit.add('cone',x+Math.cos(a)*.4*s,y+(4.7+i*1.6)*s,z+Math.sin(a)*.4*s,r,(3.6-i*.15)*s,r*.82,[0x3f6045,0x517247,0x62814d,0x6b8c53,0x829655][i],a,null,4);}
     for(let i=0;i<3;i++){const a=rotation+i*2.1;kit.rod([x,y+3*s,z],[x+Math.cos(a)*2*s,y+4*s,z+Math.sin(a)*2*s],.10*s,0x695c42);}
@@ -304,7 +312,7 @@ function buildLandmarks(scene,kit){
   const hill=terrainHeight(-420,-280);for(const dx of [-3,3])for(const dz of [-3,3])kit.rod([-420+dx,hill,-280+dz],[-420+dx*.2,hill+31,-280+dz*.2],.2,COLORS.metal);
   for(let i=0;i<6;i++){const h=hill+i*5,w=3-i*.4;kit.rod([-420-w,h,-280-w],[-420+w-.4,h+5,-280-w+.4],.08,COLORS.metal);kit.box(-420,h,-280,2*w,.15,2*w,COLORS.metal);}kit.rod([-420,hill+30,-280],[-420,hill+39,-280],.16,0x86604a);
   // Civic garden: formal paths and a visible clock tower rather than another block.
-  kit.box(734,14.3,0,114,.35,130,0x7c925c);kit.box(734,14.52,0,8,.08,130,0xc4bb93);kit.box(734,14.52,0,114,.08,8,0xc4bb93);
+  kit.box(734,14.235,0,114,.48,130,0x7c925c);kit.box(734,14.52,0,8,.08,130,0xc4bb93);kit.box(734,14.52,0,114,.08,8,0xc4bb93);
   kit.add('cylinder',734,15,0,9,1.4,9,0xc2bca1);kit.add('cylinder',734,15.7,0,7,.2,7,0x719c99);kit.box(734,27,0,7,24,7,0xc9c1a2);kit.box(734,39.5,0,9,2,9,0xe0d7b2);kit.add('cone',734,45,0,7,10,7,0x53756c,Math.PI/4);
   for(const x of [690,778])for(let z=-54;z<=54;z+=27)tree(kit,x,14.4,z,.9,'broad');
   for(const side of [-1,1])sign(scene,'SAINT ORIN · 1894',734,18,side*3.55,6,side>0?0:Math.PI,true);
@@ -322,7 +330,7 @@ function buildLandmarks(scene,kit){
     if(p.type==='camp'){const gy=groundHeight(p.x,p.z);kit.add('cylinder',p.x,gy+.1,p.z,1.4,.2,1.4,0x686a57);for(let i=0;i<5;i++)kit.box(p.x+Math.cos(i*1.25)*.5,gy+.3,p.z+Math.sin(i*1.25)*.5,.3,.3,1.3,0x5a4a35,i);}
   }
 }
-function streetDetails(scene,kit,data){
+function streetDetails(scene,kit,data,lampSpots){
   const rng=random(843);
   const hasLamp=(col,row)=>col>=0&&col<10&&row>=0&&row<12&&!(Math.abs(400+col*76-740)<65&&Math.abs(-448+row*76)<90);
   const sagWire=(ax,az,bx,bz)=>{
@@ -336,6 +344,7 @@ function streetDetails(scene,kit,data){
     if(!hasLamp(col,row))continue;
     const x=400+col*76,z=-448+row*76;
     kit.add('cylinder',x,17.4,z,.12,6.6,.12,COLORS.metal);kit.box(x+1,20.65,z,2.4,.17,.2,COLORS.metal);kit.box(x+2,20.5,z,.8,.18,.5,0xead5a2,0,6);
+    lampSpots.push([x+2,20.4,z,6.1]);
     if((col+row)%2===0&&hasLamp(col+1,row))sagWire(x,z,x+76,z);
     if((col+row)%2===1&&hasLamp(col,row+1))sagWire(x,z,x,z+76);
     kit.box(x+9,14.8,z+2,1.1,1.5,1.1,0x5f776b);kit.box(x+13,14.7,z+2,3,.14,.9,0x876e4a);kit.box(x+13,15.1,z+2.4,3,.7,.12,0x876e4a);
@@ -352,49 +361,134 @@ function streetDetails(scene,kit,data){
   // house footprints and access paths. A second scenery grid grew into homes.
 }
 function createSky(scene){
-  const uniforms={time:{value:0},sun:{value:new T.Vector3(-160,100,90).normalize()},top:{value:new T.Color(0x1b2938)},bottom:{value:new T.Color(0x9a7c61)},cloudLight:{value:new T.Color(0xc8a483)},cloudShade:{value:new T.Color(0x36434c)}};
+  const uniforms={time:{value:0},sun:{value:new T.Vector3(-115,135,72).normalize()},top:{value:new T.Color(0x16222c)},bottom:{value:new T.Color(0x637680)},cloudLight:{value:new T.Color(0xaab8bf)},cloudShade:{value:new T.Color(0x24313b)}};
   const material=new T.ShaderMaterial({side:T.BackSide,depthWrite:false,uniforms,vertexShader:'varying vec3 vDir; void main(){vDir=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:`
    varying vec3 vDir;uniform float time;uniform vec3 sun,top,bottom,cloudLight,cloudShade;
    ${skyNoise}
    float fbm5(vec2 p){float a=.5,s=0.;for(int i=0;i<5;i++){s+=a*artNoise(p);p=p*2.04+vec2(7.3,-5.1);a*=.5;}return s;}
-   void main(){vec3 d=normalize(vDir);float h=pow(max(d.y,0.),.58),s=max(dot(d,sun),0.);
+   void main(){vec3 d=normalize(vDir);float h=pow(max(d.y,0.),.55),s=max(dot(d,sun),0.);
     vec3 c=mix(bottom,top,h);
-    c+=vec3(.16,.12,.07)*pow(s,6.)+vec3(.20,.14,.08)*pow(s,32.);
+    c+=vec3(.11,.10,.08)*pow(s,6.)+vec3(.12,.11,.09)*pow(s,32.);
     vec2 p=d.xz/max(.14,d.y+.22)*1.6+vec2(time*.0012,0.);
     float field=fbm5(p),ridge=fbm5(p*1.9+vec2(3.1,-2.7));
-    float coverage=smoothstep(.45,.74,field*.72+ridge*.28)*smoothstep(.01,.18,d.y);
-    float lit=clamp(.42+(fbm5(p+sun.xz*.16)-field)*4.2+d.y*.22,0.,1.);
+    float coverage=smoothstep(.34,.68,field*.70+ridge*.30)*smoothstep(.00,.16,d.y);
+    float lit=clamp(.36+(fbm5(p+sun.xz*.16)-field)*4.6+d.y*.18,0.,1.);
     vec3 cloud=mix(cloudShade,cloudLight,lit);
-    cloud+=vec3(.18,.13,.07)*pow(s,9.)*(1.-lit*.4);
-    float shelfY=smoothstep(.01,.14,d.y)*(1.-smoothstep(.18,.40,d.y));
-    float shelf=shelfY*smoothstep(.48,.72,fbm5(d.xz/max(.22,d.y+.32)*3.2+vec2(-time*.0006,time*.0004)));
-    c=mix(c,cloud,coverage*.86);
-    c=mix(c,mix(cloudShade*.84,cloudLight,.62),shelf*.45);
-    c=mix(c,vec3(.96,.95,.90),smoothstep(.9991,.9996,dot(d,sun))*(1.-coverage*.85));
-    c=mix(bottom,c,smoothstep(-.02,.10,d.y));
+    cloud+=vec3(.12,.11,.08)*pow(s,9.)*(1.-lit*.4);
+    float shelfY=smoothstep(.00,.14,d.y)*(1.-smoothstep(.20,.46,d.y));
+    float shelf=shelfY*smoothstep(.42,.68,fbm5(d.xz/max(.22,d.y+.32)*3.0+vec2(-time*.0006,time*.0004)));
+    c=mix(c,cloud,coverage*.90);
+    c=mix(c,mix(cloudShade*.80,cloudLight,.52),shelf*.55);
+    c=mix(c,vec3(.92,.91,.86),smoothstep(.9991,.9996,dot(d,sun))*(1.-coverage*.88));
+    c=mix(bottom,c,smoothstep(-.02,.08,d.y));
     gl_FragColor=vec4(c,1.);
    }`});
   const sky=new T.Mesh(new T.SphereGeometry(4200,24,12),material);sky.frustumCulled=false;scene.add(sky);return {sky,uniforms};
 }
+function createStormClouds(scene){
+  const rng=random(991),lobes=[[-.56,.03,-.06,.74,.58,.62],[0,.30,.02,.92,.78,.74],[.54,.04,-.04,.72,.58,.60],[.14,-.05,.38,.66,.52,.56],[-.26,-.06,-.36,.62,.48,.52],[.32,.14,.32,.56,.46,.50]];
+  const verts=[],cols=[],topCol=new T.Color(0x9aaab2),botCol=new T.Color(0x3a4852),col=new T.Color();
+  for(const [ox,oy,oz,sx,sy,sz] of lobes){
+    const g=new T.IcosahedronGeometry(1,1).toNonIndexed();
+    const pos=g.attributes.position;
+    for(let i=0;i<pos.count;i++){
+      const vx=pos.getX(i)*sx+ox,vy=pos.getY(i)*sy+oy,vz=pos.getZ(i)*sz+oz;
+      verts.push(vx,vy,vz);
+      const t=clamp((vy+.55)/1.25,0,1);
+      col.copy(botCol).lerp(topCol,t);
+      cols.push(col.r,col.g,col.b);
+    }
+    g.dispose();
+  }
+  const geo=surface(verts,cols),count=16;
+  const mat=new T.MeshStandardMaterial({vertexColors:true,roughness:.99,metalness:0,flatShading:true,envMapIntensity:.45,emissive:0x2b363e,emissiveIntensity:.25});
+  const mesh=new T.InstancedMesh(geo,mat,count);
+  let placed=0;
+  while(placed<count){
+    const x=-950+rng()*2350,z=-700+rng()*1400,y=258+rng()*75;
+    const w=85+rng()*55,h=16+rng()*12,d=70+rng()*45;
+    if(Math.hypot(x+900,z-520)<280)continue;
+    dummy.position.set(x,y,z);dummy.rotation.set(0,rng()*Math.PI*2,0);dummy.scale.set(w,h,d);dummy.updateMatrix();
+    mesh.setMatrixAt(placed++,dummy.matrix);
+  }
+  mesh.instanceMatrix.needsUpdate=true;mesh.frustumCulled=false;scene.add(mesh);
+  return {mesh,update(time){mesh.position.x=Math.sin(time*.014)*34;mesh.position.z=Math.cos(time*.011)*22;}};
+}
+function createCoastalRain(scene){
+  const count=1100,base=new T.PlaneGeometry(1,1);base.translate(0,.5,0);
+  const geo=new T.InstancedBufferGeometry();geo.index=base.index;geo.attributes.position=base.attributes.position;geo.attributes.uv=base.attributes.uv;
+  const off=new Float32Array(count*3),seed=new Float32Array(count),rng=random(409);
+  for(let i=0;i<count;i++){off[i*3]=(rng()-.5)*44;off[i*3+1]=rng()*28;off[i*3+2]=(rng()-.5)*44;seed[i]=rng();}
+  geo.setAttribute('aOff',new T.InstancedBufferAttribute(off,3));
+  geo.setAttribute('aSeed',new T.InstancedBufferAttribute(seed,1));
+  geo.instanceCount=count;
+  const uniforms={uTime:{value:0},uBox:{value:new T.Vector3(44,28,44)}};
+  const mat=new T.ShaderMaterial({uniforms,transparent:true,depthWrite:false,blending:T.AdditiveBlending,side:T.DoubleSide,
+   vertexShader:`attribute vec3 aOff;attribute float aSeed;uniform float uTime;uniform vec3 uBox;varying float vA;varying float vT;
+    void main(){
+     float sp=18.+aSeed*8.;
+     vec3 p=vec3(aOff.x+uTime*1.8,aOff.y-uTime*sp,aOff.z+uTime*.7);
+     p=mod(p-cameraPosition,uBox)-uBox*.5+cameraPosition;
+     vec3 right=vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]);
+     vec3 dir=normalize(vec3(.07,-1.,.03));
+     float len=.55+.45*aSeed;
+     vec3 wp=p+right*(position.x*.018)+dir*(position.y*len);
+     float d=length(wp.xz-cameraPosition.xz);
+     float altFade=1.-smoothstep(45.,85.,cameraPosition.y);
+     vA=(1.-smoothstep(10.,22.,d))*(.35+.65*aSeed)*altFade;vT=position.y;
+     gl_Position=projectionMatrix*viewMatrix*vec4(wp,1.);
+    }`,
+   fragmentShader:`varying float vA;varying float vT;void main(){float head=pow(clamp(vT,0.,1.),1.3);gl_FragColor=vec4(vec3(.55,.64,.70)*(.12*vA*head),1.);}`});
+  const mesh=new T.Mesh(geo,mat);mesh.frustumCulled=false;mesh.renderOrder=6;scene.add(mesh);base.dispose();
+  return {mesh,update(t){uniforms.uTime.value=t;}};
+}
+function createLampCones(scene,spots){
+  if(!spots.length)return null;
+  const geo=new T.ConeGeometry(2.7,1,14,1,true).translate(0,-.5,0);
+  const mat=new T.ShaderMaterial({transparent:true,depthWrite:false,blending:T.AdditiveBlending,side:T.DoubleSide,
+   vertexShader:`varying vec3 vWorld;varying vec3 vN;varying float vH;
+    void main(){
+     mat4 m=modelMatrix;
+     #ifdef USE_INSTANCING
+      m=modelMatrix*instanceMatrix;
+     #endif
+     vec4 wp=m*vec4(position,1.);vWorld=wp.xyz;vN=normalize(mat3(m)*normal);vH=uv.y;
+     gl_Position=projectionMatrix*viewMatrix*wp;
+    }`,
+   fragmentShader:`varying vec3 vWorld;varying vec3 vN;varying float vH;
+    void main(){
+     vec3 V=normalize(cameraPosition-vWorld);
+     float body=pow(abs(dot(normalize(vN),V)),1.7);
+     float yFade=pow(clamp(vH,0.,1.),1.45)*smoothstep(1.,0.76,vH);
+     float dFade=1.-smoothstep(55.,135.,distance(cameraPosition,vWorld));
+     float a=body*yFade*dFade*.16;
+     gl_FragColor=vec4(vec3(1.0,.72,.38)*a,1.);
+    }`});
+  const mesh=new T.InstancedMesh(geo,mat,spots.length);
+  spots.forEach(([x,y,z,h],i)=>{dummy.position.set(x,y,z);dummy.rotation.set(0,0,0);dummy.scale.set(1,h,1);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);});
+  mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();mesh.renderOrder=2;scene.add(mesh);
+  return mesh;
+}
 function createWater(scene){
   const n=256,pixels=new Uint8Array(n*n);for(let z=0;z<n;z++)for(let x=0;x<n;x++)pixels[z*n+x]=Math.round(clamp((baseHeight(TERRAIN.minX+x/(n-1)*2950,TERRAIN.minZ+z/(n-1)*2000)+8)/32,0,1)*255);
   const depths=new T.DataTexture(pixels,n,n,T.RedFormat);depths.minFilter=depths.magFilter=T.LinearFilter;depths.needsUpdate=true;
-  const uniforms={time:{value:0}},material=new T.MeshStandardMaterial({color:0x0f3036,roughness:.36,metalness:0,envMapIntensity:.30,transparent:true});
+  const uniforms={time:{value:0}},material=new T.MeshStandardMaterial({color:0x0d2830,roughness:.22,metalness:.05,envMapIntensity:.65});
   material.onBeforeCompile=shader=>{
     shader.uniforms.uTime=uniforms.time;shader.uniforms.uCoast={value:depths};
-    shader.vertexShader='uniform float uTime;varying vec3 vWater;\n'+shader.vertexShader;
+    shader.uniforms.tRefl=planarReflUniforms.tRefl;shader.uniforms.tReflBlur=planarReflUniforms.tReflBlur;shader.uniforms.uReflMatrix=planarReflUniforms.uReflMatrix;shader.uniforms.uReflEnabled=planarReflUniforms.uReflEnabled;
+    shader.vertexShader='uniform float uTime;uniform mat4 uReflMatrix;varying vec3 vWater;varying vec4 vWaterRefl;\n'+shader.vertexShader;
     shader.vertexShader=shader.vertexShader.replace('#include <beginnormal_vertex>','#include <beginnormal_vertex>\nobjectNormal=normalize(vec3(-cos(position.x*.022+uTime*.55)*.00924,-cos(position.y*.034-uTime*.4)*.00918,1.));');
-    shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ntransformed.z+=sin(position.x*.022+uTime*.55)*.42+sin(position.y*.034-uTime*.4)*.27;vWater=(modelMatrix*vec4(transformed,1.)).xyz;');
-    shader.fragmentShader='uniform float uTime;uniform sampler2D uCoast;varying vec3 vWater;\n'+skyNoise+shader.fragmentShader;
+    shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ntransformed.z+=sin(position.x*.022+uTime*.55)*.42+sin(position.y*.034-uTime*.4)*.27;vec4 wWp=modelMatrix*vec4(transformed,1.);vWater=wWp.xyz;vWaterRefl=uReflMatrix*wWp;');
+    shader.fragmentShader='uniform float uTime,uReflEnabled;uniform sampler2D uCoast,tRefl,tReflBlur;varying vec3 vWater;varying vec4 vWaterRefl;\n'+skyNoise+shader.fragmentShader;
     shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
      vec2 coastUv=(vWater.xz-vec2(-1400.,-1000.))/vec2(2950.,2000.);
      float ground=texture2D(uCoast,coastUv).r*32.-8.;float depth=max(0.,vWater.y-ground);
      float swell=artField(vWater.xz*.014+vec2(uTime*.006,0.));
      diffuseColor.rgb*=.86+swell*.18;
-     diffuseColor.rgb=mix(vec3(.022,.085,.10),diffuseColor.rgb,smoothstep(0.,7.0,depth));
+     diffuseColor.rgb=mix(vec3(.020,.072,.088),diffuseColor.rgb,smoothstep(0.,7.0,depth));
      float wash=sin(depth*7.2-uTime*1.05+artNoise(vWater.xz*.14)*2.4);
-     float foam=(1.-smoothstep(.15,1.8,depth))*smoothstep(.20,.92,wash);
-     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.72,.78,.78),foam*.52);
+     float foam=(1.-smoothstep(.15,2.0,depth))*smoothstep(.20,.92,wash);
+     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.74,.80,.82),foam*.52);
      vec3 toEye=normalize(cameraPosition-vWater);float horizon=pow(1.-abs(toEye.y),4.2);
      diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.24,.35,.38),horizon*.26);
     `);
@@ -407,21 +501,36 @@ function createWater(scene){
      vec3 wNorm=normalize(vec3(-(w1+w2+rn*.06),1.,-(w2+w3+rn*.06)));
      normal=normalize((viewMatrix*vec4(wNorm,0.)).xyz);
     `);
-    shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`#include <opaque_fragment>
-     gl_FragColor.a=mix(.92,.995,smoothstep(.2,3.2,depth));
+    shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`
+     if(cameraPosition.x<=340.&&uReflEnabled>.5){
+      vec2 ruv=vWaterRefl.xy/max(vWaterRefl.w,1e-4);
+      float wDist=length(cameraPosition-vWater);
+      vec2 jit=wNorm.xz*0.055;
+      vec3 rSharp=texture2D(tRefl,clamp(ruv+jit,0.002,0.998)).rgb;
+      vec3 rBlur=texture2D(tReflBlur,clamp(ruv+jit*0.5,0.002,0.998)).rgb;
+      vec3 wRefl=mix(rSharp,rBlur,smoothstep(40.,220.,wDist)*.65);
+      float fres=0.06+0.94*pow(1.-clamp(dot(toEye,wNorm),0.,1.),3.6);
+      float rAmt=fres*(1.-smoothstep(180.,620.,wDist))*.84*(1.-foam*.65);
+      outgoingLight=outgoingLight*(1.-rAmt*.55)+wRefl*rAmt;
+     }
+     #include <opaque_fragment>
     `);
   };
-  const water=new T.Mesh(new T.PlaneGeometry(8000,8000,200,200),material);water.rotation.x=-Math.PI/2;water.position.y=.2;scene.add(water);return uniforms;
+  const water=new T.Mesh(new T.PlaneGeometry(8000,8000,200,200),material);water.rotation.x=-Math.PI/2;water.position.y=.2;scene.add(water);return {water,uniforms};
 }
 export function createWorld(scene,data,{arrivalTreads=false}={}){
-  scene.background=new T.Color(0x6c7777);scene.fog=new T.Fog(0x6a7577,110,900);
-  const sky=createSky(scene),water=createWater(scene),kit=new Kit(scene);
-  const hemi=new T.HemisphereLight(0x8ea8ba,0x3b352c,.8);scene.add(hemi);const lighting={key:1.05,fill:1.25};
-  const sun=new T.DirectionalLight(0xffb177,1.2);sun.position.set(-700,850,250);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);Object.assign(sun.shadow.camera,{left:-56,right:56,top:56,bottom:-56,near:24,far:300});sun.shadow.bias=-.00025;sun.shadow.normalBias=.06;sun.shadow.autoUpdate=false;sun.shadow.needsUpdate=true;scene.add(sun,sun.target);const fill=new T.DirectionalLight(0x7fa8c2,.26);fill.position.set(620,210,-480);scene.add(fill);const sunDir=new T.Vector3(-160,100,90).normalize(),sunRot=new T.Matrix4().lookAt(new T.Vector3(),sunDir.clone().negate(),new T.Vector3(0,1,0)),sunInv=sunRot.clone().invert(),sunPoint=new T.Vector3(),sunTexel=112/1536;let shadowAt=-Infinity,shadowX=NaN,shadowZ=NaN;
-  buildTerrain(scene);const accessVertices=accessSurface(data.accessPaths,terrainHeight,TERRAIN),accessGeometry=surface(accessVertices),accessUV=[];for(let i=0;i<accessVertices.length;i+=3)accessUV.push(accessVertices[i]/2,accessVertices[i+2]/2);accessGeometry.setAttribute('uv',new T.Float32BufferAttribute(accessUV,2));const accessMesh=new T.Mesh(accessGeometry,new T.MeshStandardMaterial({color:0xb0a17a,map:grain,flatShading:true,roughness:.88,metalness:.02}));accessMesh.receiveShadow=true;scene.add(accessMesh);buildRoads(scene,kit);for(const b of data.buildings){compileBuilding(kit,b,arrivalTreads);compilePieces(kit,cityForecourtPlan(b,groundHeight).pieces);}
+  scene.background=new T.Color(0x637680);scene.fog=new T.Fog(0x637680,105,840);
+  const sky=createSky(scene),rain=createCoastalRain(scene),water=createWater(scene),kit=new Kit(scene),lampSpots=[];
+  const hemi=new T.HemisphereLight(0x88a4b4,0x27302c,.84);scene.add(hemi);const lighting={key:1.10,fill:1.0};
+  const sun=new T.DirectionalLight(0xffe7cf,1.38);sun.position.set(-700,850,250);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);Object.assign(sun.shadow.camera,{left:-56,right:56,top:56,bottom:-56,near:24,far:300});sun.shadow.bias=-.00025;sun.shadow.normalBias=.06;sun.shadow.autoUpdate=false;sun.shadow.needsUpdate=true;scene.add(sun,sun.target);const fill=new T.DirectionalLight(0x7296ae,.40);fill.position.set(620,210,-480);scene.add(fill);const sunDir=new T.Vector3(-115,135,72).normalize(),sunRot=new T.Matrix4().lookAt(new T.Vector3(),sunDir.clone().negate(),new T.Vector3(0,1,0)),sunInv=sunRot.clone().invert(),sunPoint=new T.Vector3(),sunTexel=112/1536;let shadowAt=-Infinity,shadowX=NaN,shadowZ=NaN;
+  const terrainMesh=buildTerrain(scene);const accessVertices=accessSurface(data.accessPaths,terrainHeight,TERRAIN),accessGeometry=surface(accessVertices),accessUV=[];for(let i=0;i<accessVertices.length;i+=3)accessUV.push(accessVertices[i]/2,accessVertices[i+2]/2);accessGeometry.setAttribute('uv',new T.Float32BufferAttribute(accessUV,2));const accessMesh=new T.Mesh(accessGeometry,new T.MeshStandardMaterial({color:0xb0a17a,map:grain,flatShading:true,roughness:.88,metalness:.02}));accessMesh.receiveShadow=true;scene.add(accessMesh);const wetCityGroup=buildRoads(scene,kit);for(const b of data.buildings){compileBuilding(kit,b,arrivalTreads);compilePieces(kit,cityForecourtPlan(b,groundHeight).pieces);}
   for(const t of data.trees)tree(kit,t.x,t.y,t.z,t.scale,t.kind,t.rotation);
   for(const r of data.rocks)kit.add('rock',r.x,r.y+r.s*.35,r.z,r.s,r.s*.7,r.s*.8,0x9da68e,r.r);
-  buildBridge(scene,kit);buildLandmarks(scene,kit);compilePieces(kit,civicCraftPlan().pieces);streetDetails(scene,kit,data);authoredDetails(scene,kit,data,sign);placeDetails(scene,kit,data,sign);streetCraft(kit,data);const botany=coastalBotany(kit,data);
+  buildBridge(scene,kit);buildLandmarks(scene,kit);compilePieces(kit,civicCraftPlan().pieces);streetDetails(scene,kit,data,lampSpots);authoredDetails(scene,kit,data,sign);placeDetails(scene,kit,data,sign);streetCraft(kit,data);const botany=coastalBotany(kit,data);
+  for(const z of [222,196,172])lampSpots.push([1171.95,19.45,z,5.4]);
+  lampSpots.push([HOSPITAL_GENERATOR.x,17.85,HOSPITAL_GENERATOR.z-3,3.8]);
+  createLampCones(scene,lampSpots);
+  const lampCones=scene.children.at(-1);
   const routes=routeCraft(kit,data);
   compilePieces(kit,domesticExteriorPlan(data,terrainHeight).pieces);
   const settlement=buildSettlement(scene,kit,data,sign);
@@ -430,7 +539,7 @@ export function createWorld(scene,data,{arrivalTreads=false}={}){
   for(let i=0;i<12;i++)kit.add('rock',-1600+i*280,-25,-1600,250+rng()*180,90+rng()*70,220,0x91afa7,rng()*6);
   // Grass patches and low coastal scrub share the same seed as the terrain.
   const arrivalHouse=data.buildings.find(b=>b.id==='arrival-house');
-  for(let i=0;i<12000;i++){
+  for(let i=0;i<4600;i++){
     const x=-1030+rng()*1100,z=-440+rng()*850,y=terrainHeight(x,z),r=roadAt(x,z);
     if(y<5||reservedPlace(x,z,.9)||settlementReserved(x,z,1.5)||accessReserved(data.accessPaths,x,z,1.3)||r.distance<r.width*.5+2||data.buildings.some(b=>Math.abs(x-b.x)<b.w*.5+3&&Math.abs(z-b.z)<b.d*.5+3))continue;
     const s=.48+rng()*.65;
@@ -442,42 +551,34 @@ export function createWorld(scene,data,{arrivalTreads=false}={}){
     }
     if(i%5===0&&(!arrivalHouse||entranceHeight(arrivalHouse,x,z)===null))kit.add('rock',x,y+.22,z,.6,.38,.6,0x738657);
   }
-  const stats=kit.finish();stats.botany=botany;stats.routes=routes;addContactShadows(scene,data);const movingRoots=new Set([sky.sky,sun,sun.target,settlement.boat]);for(const root of scene.children)if(!root.isCamera&&!movingRoots.has(root))freezeLocalTransforms(root);const coastalMotion=createCoastalMotion(scene),life=createSettlementLife(scene,data);
+  const stats=kit.finish();stats.botany=botany;stats.routes=routes;const contactShadows=addContactShadows(scene,data);const movingRoots=new Set([sky.sky,rain.mesh,sun,sun.target,settlement.boat]);for(const root of scene.children)if(!root.isCamera&&!movingRoots.has(root))freezeLocalTransforms(root);const coastalMotion=createCoastalMotion(scene),life=createSettlementLife(scene,data);
   const birds=new T.Group();const birdMat=new T.MeshBasicMaterial({color:0x3e5754});for(let i=0;i<12;i++){const geo=surface([-1,0,0,0,.25,0,0,0,.3,0,.25,0,1,0,0,0,0,.3]);const bird=new T.Mesh(geo,birdMat);bird.userData.phase=i*.52;birds.add(bird);}scene.add(birds);
-  return {stats,sun,hemi,lighting,fill,water,sky,coastalMotion,life,settlement,update(time,player,day=.80,relays=[],fov=60){const roomScale=Math.max(1,Math.min(2.4,Math.tan(Math.PI/6)/Math.tan(fov*Math.PI/360)));stats.update(player,roomScale);kit.material.userData.wind.value=time;life.update(time,player);settlement.update(time,player);water.time.value=time;sky.uniforms.time.value=time;sky.sky.position.copy(player);coastalMotion.update(time,relays);const light=.55+.45*Math.max(0,Math.sin(day*Math.PI));sun.intensity=1.60*light*lighting.key;hemi.intensity=(.94+.23*light)*lighting.fill;const sx=Math.round(player.x),sz=Math.round(player.z),sy=groundHeight(sx,sz);sunPoint.set(sx,sy,sz).applyMatrix4(sunInv);sunPoint.x=Math.round(sunPoint.x/sunTexel)*sunTexel;sunPoint.y=Math.round(sunPoint.y/sunTexel)*sunTexel;sunPoint.z=Math.round(sunPoint.z/sunTexel)*sunTexel;sunPoint.applyMatrix4(sunRot);sun.target.position.copy(sunPoint);sun.position.copy(sunPoint).addScaledVector(sunDir,220);sun.target.updateMatrixWorld();// Keep the 1536px shadow pass at 17Hz; lighting and colour still draw every frame.
+  const reflHide=[{obj:water.water},{obj:rain.mesh},{obj:lampCones},{obj:birds},{obj:wetCityGroup,cityOnly:true},{obj:terrainMesh,cityOnly:true},{obj:accessMesh,cityOnly:true},...contactShadows.map(obj=>({obj})),...stats.detailRoots.map(obj=>({obj}))];
+  const worldObj={stats,sun,hemi,lighting,fill,water:water.uniforms,sky,reflHide,shadowUpdated:false,coastalMotion,life,settlement,update(time,player,day=.62,relays=[],fov=60){const roomScale=Math.max(1,Math.min(2.4,Math.tan(Math.PI/6)/Math.tan(fov*Math.PI/360)));stats.update(player,roomScale);kit.material.userData.wind.value=time;life.update(time,player);settlement.update(time,player);water.uniforms.time.value=time;sky.uniforms.time.value=time;sky.sky.position.copy(player);rain.update(time);coastalMotion.update(time,relays);const light=.55+.45*Math.max(0,Math.sin(day*Math.PI));sun.intensity=1.42*light*lighting.key;hemi.intensity=(.78+.20*light)*lighting.fill;const sx=Math.round(player.x),sz=Math.round(player.z),sy=groundHeight(sx,sz);sunPoint.set(sx,sy,sz).applyMatrix4(sunInv);sunPoint.x=Math.round(sunPoint.x/sunTexel)*sunTexel;sunPoint.y=Math.round(sunPoint.y/sunTexel)*sunTexel;sunPoint.z=Math.round(sunPoint.z/sunTexel)*sunTexel;sunPoint.applyMatrix4(sunRot);sun.target.position.copy(sunPoint);sun.position.copy(sunPoint).addScaledVector(sunDir,220);sun.target.updateMatrixWorld();// Keep the 1536px shadow pass at 17Hz; lighting and colour still draw every frame.
     // Teleports invalidate immediately; the cached map stays world anchored
     // between updates under the fixed sun direction.
-    const shadowNow=performance.now();if(shadowNow-shadowAt>=59||!Number.isFinite(shadowX)||Math.hypot(sx-shadowX,sz-shadowZ)>12){sun.shadow.needsUpdate=true;shadowAt=shadowNow;shadowX=sx;shadowZ=sz;}for(let i=0;i<birds.children.length;i++){const b=birds.children[i],a=time*.06+i*.52;b.position.set(-490+Math.cos(a)*330,95+Math.sin(a*3)*12,30+Math.sin(a)*230);b.rotation.y=-a;b.scale.y=.6+Math.sin(time*3+i)*.4;}}};
+    const shadowNow=performance.now();const didShadow=shadowNow-shadowAt>=59||!Number.isFinite(shadowX)||Math.hypot(sx-shadowX,sz-shadowZ)>12;if(didShadow){sun.shadow.needsUpdate=true;shadowAt=shadowNow;shadowX=sx;shadowZ=sz;}worldObj.shadowUpdated=didShadow;for(let i=0;i<birds.children.length;i++){const b=birds.children[i],a=time*.06+i*.52;b.position.set(-490+Math.cos(a)*330,95+Math.sin(a*3)*12,30+Math.sin(a)*230);b.rotation.y=-a;b.scale.y=.6+Math.sin(time*3+i)*.4;}}};
+  return worldObj;
 }
 
 function addContactShadows(scene,data){
+  const shadows=[];
   const canvas=document.createElement('canvas');canvas.width=canvas.height=64;const c=canvas.getContext('2d'),gradient=c.createRadialGradient(32,32,2,32,32,32);gradient.addColorStop(0,'rgba(24,34,26,.36)');gradient.addColorStop(.45,'rgba(24,34,26,.18)');gradient.addColorStop(1,'rgba(24,34,26,0)');c.fillStyle=gradient;c.fillRect(0,0,64,64);const texture=new T.CanvasTexture(canvas),material=new T.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2});
   const urbanTrees=data.trees.filter(t=>t.urban);
   if(urbanTrees.length){
    const geometry=new T.PlaneGeometry(2,2);geometry.rotateX(-Math.PI/2);const mesh=new T.InstancedMesh(geometry,material,urbanTrees.length);
-   for(let i=0;i<urbanTrees.length;i++){const t=urbanTrees[i];dummy.position.set(t.x+.35,groundHeight(t.x,t.z)+.028,t.z);dummy.quaternion.identity();dummy.scale.set(t.scale*5,1,t.scale*4);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);}mesh.computeBoundingSphere();scene.add(mesh);
+   for(let i=0;i<urbanTrees.length;i++){const t=urbanTrees[i];dummy.position.set(t.x+.35,groundHeight(t.x,t.z)+.028,t.z);dummy.quaternion.identity();dummy.scale.set(t.scale*5,1,t.scale*4);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);}mesh.computeBoundingSphere();scene.add(mesh);shadows.push(mesh);
   }
   // Building base ambient-occlusion aprons (city decks sit at groundHeight >= 14.16, above terrainHeight).
   const bc=document.createElement('canvas');bc.width=bc.height=64;const bx=bc.getContext('2d'),bg=bx.createRadialGradient(32,32,8,32,32,32);bg.addColorStop(0,'rgba(12,18,16,.52)');bg.addColorStop(.68,'rgba(12,18,16,.34)');bg.addColorStop(1,'rgba(12,18,16,0)');bx.fillStyle=bg;bx.fillRect(0,0,64,64);const bTex=new T.CanvasTexture(bc),bMat=new T.MeshBasicMaterial({map:bTex,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2});
-  if(data.buildings.length){
-   const bGeo=new T.PlaneGeometry(1,1).rotateX(-Math.PI/2),bMesh=new T.InstancedMesh(bGeo,bMat,data.buildings.length);
-   for(let i=0;i<data.buildings.length;i++){const b=data.buildings[i],y=b.x>=355?Math.max(b.baseY,groundHeight(b.x,b.z)):terrainHeight(b.x,b.z);dummy.position.set(b.x,y+.024,b.z);dummy.quaternion.identity();dummy.scale.set(b.w+2.0,1,b.d+2.0);dummy.updateMatrix();bMesh.setMatrixAt(i,dummy.matrix);}bMesh.computeBoundingSphere();scene.add(bMesh);
-  }
-  // Grounded warm tungsten light pools under lit shopfronts, streetlamps, generator and wharf lights.
-  const lc=document.createElement('canvas');lc.width=lc.height=64;const lx=lc.getContext('2d'),lg=lx.createRadialGradient(32,32,1,32,32,32);lg.addColorStop(0,'rgba(255,198,118,.28)');lg.addColorStop(.45,'rgba(255,172,82,.12)');lg.addColorStop(1,'rgba(255,155,60,0)');lx.fillStyle=lg;lx.fillRect(0,0,64,64);const lTex=new T.CanvasTexture(lc);lTex.colorSpace=T.SRGBColorSpace;
-  const pools=[];
-  for(const b of data.buildings)if(b.district==='oldtown'||b.enterable){pools.push([b.x,groundHeight(b.x,b.z+b.d/2+2.4)+.035,b.z+b.d/2+2.4,Math.min(b.w*.7,12),5.5]);}
-  for(let col=0;col<10;col++)for(let row=0;row<12;row++){const x=402+col*76,z=-448+row*76;if(Math.abs(x-740)<65&&Math.abs(z)<90)continue;pools.push([x,groundHeight(x,z)+.035,z,9.5,9.5]);}
-  pools.push([HOSPITAL_GENERATOR.x,groundHeight(HOSPITAL_GENERATOR.x,HOSPITAL_GENERATOR.z)+.035,HOSPITAL_GENERATOR.z,10,9]);
-  for(const z of [222,196,172])pools.push([1172.2,groundHeight(1172.2,z)+.035,z,10,10]);
-  if(pools.length){
-   const lGeo=new T.PlaneGeometry(1,1).rotateX(-Math.PI/2),lMat=new T.MeshBasicMaterial({map:lTex,transparent:true,blending:T.AdditiveBlending,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3});
-   const lMesh=new T.InstancedMesh(lGeo,lMat,pools.length);
-   for(let i=0;i<pools.length;i++){const [x,y,z,sx,sz]=pools[i];dummy.position.set(x,y,z);dummy.quaternion.identity();dummy.scale.set(sx,1,sz);dummy.updateMatrix();lMesh.setMatrixAt(i,dummy.matrix);}
-   lMesh.computeBoundingSphere();scene.add(lMesh);
+  const cityBuildings=data.buildings.filter(b=>b.x>=355);
+  if(cityBuildings.length){
+   const bGeo=new T.PlaneGeometry(1,1).rotateX(-Math.PI/2),bMesh=new T.InstancedMesh(bGeo,bMat,cityBuildings.length);
+   for(let i=0;i<cityBuildings.length;i++){const b=cityBuildings[i],y=Math.max(b.baseY,groundHeight(b.x,b.z));dummy.position.set(b.x,y+.024,b.z);dummy.quaternion.identity();dummy.scale.set(b.w+2.0,1,b.d+2.0);dummy.updateMatrix();bMesh.setMatrixAt(i,dummy.matrix);}bMesh.computeBoundingSphere();scene.add(bMesh);shadows.push(bMesh);
   }
   // Natural trees span terrain folds; clip their decals to the same triangles
   // as the ground. One shared mesh/material replaces their tangent instances.
   const natural=treeContactShadowGeometry(data.trees,terrainHeight,TERRAIN);
-  if(natural.positions.length){const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(natural.positions,3));geometry.setAttribute('uv',new T.Float32BufferAttribute(natural.uvs,2));geometry.computeBoundingSphere();const mesh=new T.Mesh(geometry,material);mesh.name='Natural tree contact shadows';scene.add(mesh);}
+  if(natural.positions.length){const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(natural.positions,3));geometry.setAttribute('uv',new T.Float32BufferAttribute(natural.uvs,2));geometry.computeBoundingSphere();const mesh=new T.Mesh(geometry,material);mesh.name='Natural tree contact shadows';scene.add(mesh);shadows.push(mesh);}
+  return shadows;
 }

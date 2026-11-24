@@ -28,12 +28,14 @@ function tuftGeometry(){
 export function coastalBotany(kit,data){
  kit.geometries.fern=fernGeometry();kit.geometries.tuft=tuftGeometry();const rng=random(26016);let count=0,shrubs=0,saplings=0,deadfall=0;
  const ground=(x,z,margin=.7)=>{const y=terrainHeight(x,z),r=roadAt(x,z);if(y<4||y>85||reservedPlace(x,z,margin)||settlementReserved(x,z,margin)||accessReserved(data.accessPaths||[],x,z,margin)||r.distance<r.width/2+1.6+margin)return null;
-  if(Math.abs(terrainHeight(x+.5,z)-terrainHeight(x-.5,z))>.8||Math.abs(terrainHeight(x,z+.5)-terrainHeight(x,z-.5))>.8)return null;
+  if(Math.abs(terrainHeight(x+.5,z)-terrainHeight(x-.5,z))>.65||Math.abs(terrainHeight(x,z+.5)-terrainHeight(x,z-.5))>.65)return null;
   if(data.buildings.some(b=>Math.abs(x-b.x)<b.w/2+3+margin&&Math.abs(z-b.z)<b.d/2+4+margin))return null;
   return y;
  };
  const plant=(x,z,s)=>{const y=ground(x,z);if(y===null)return;
-  kit.add('fern',x,y-.025,z,s,s,s,[0x75894d,0x8f9757,0x55774a][count++%3],rng()*6.28,null,4);
+  const minY=Math.min(y,terrainHeight(x+.55,z),terrainHeight(x-.55,z),terrainHeight(x,z+.55),terrainHeight(x,z-.55));
+  if(y-minY>.35)return;
+  kit.add('fern',x,minY-.06,z,s,s,s,[0x75894d,0x8f9757,0x55774a][count++%3],rng()*6.28,null,4);
  };
  // Colonies follow actual canopy, with open trail edges and patchy gaps.
  // This is static instanced ground cover, not a per-frame particle carpet.

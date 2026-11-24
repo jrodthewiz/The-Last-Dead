@@ -193,6 +193,18 @@ Remaining high-impact:
 - `shader-r9-final`: 361 frames, median 16.7 ms, p95 16.8, p99 16.8, max 17.2, 185 calls at the 14 pose, 621k triangles, 306 textures, no errors.
 - `shader-r9-final-uncapped`: 115.5 fps, median 7.9 ms, p95 13.2, p99 16.4, max 33.3, 809 calls, 1.3056M triangles, 306 textures, 111 programs.
 - Remaining: 06 keeper-house foundation and pale shoreline; 14 foreground still reads as a pale sand/water flat; water still lacks scene-aware reflections; facades/composition. No 9/10.
+
+## R10 rain/planar/wet-city pass
+
+- Added a shared planar reflection pass for wet streets, sidewalks and coastal water (`island/planar-reflection.js`), storm rain, a darker overcast sky, wet-city shader breakup, waterfront containers/crane rails/staging, warmer interior falloff, and a 14 shoreline clearing.
+- Added a keeper-house pier: five driven piles, cross-bracing and a rock toe down the seaward face, replacing the unsupported black slab. The original 06/07/14 poses are restored; the 14 floating canopy/trunk remains removed.
+- Removed the grey storm-cloud blob instances; the painted storm sky is used without them.
+- 29/29 tests pass.
+- `shader-r10g`: 359 frames, median 16.7 ms, p95 16.8, p99 16.8, max 33.4; 172 calls at the 14 pose, 616k triangles, 309 textures, no errors.
+- Clean uncapped R10e: 130.0 fps, median 7.3 ms, p95 10.1, p99 14.5, 769 calls, 1.2798M triangles. R10f's uncapped rerun was contaminated by other machine benchmarks (61 fps/p95 33.4).
+- Approved `codex -p deepseek` review (`deepseek-flash`, provider `deepseek`, no OpenAI Codex credits, 5,734 tokens): **6.1/10, up from 5.0** — A7.5 storm sky/rain, B6.0 wet streets, C5.5 lighting/materials, D5.5 waterfront/shoreline, E5.0 keeper pier, F7.0 gameplay readability, G5.5 horror identity.
+- Reviewer's next fixes: make wetness physical (local puddle masks/ripples/splash), soften overcast shadows and desaturate foliage, and resolve the pier/waterfront geometry as real places. Still no 9/10.
+
 - Approved `codex -p deepseek` review of R9 final (`deepseek-flash`, provider `deepseek`, **no OpenAI Codex credits**, read-only, 8,328 tokens): **4.7/10** — A5.0 B4.0 C4.0 D4.5 E5.0 F4.5 G4.5. Dusk/clearing/flashlight/teal water are real gains, but it calls the dusk mostly a palette change, flags the forest/city exposure mismatch, the flashlight’s hard warm/green split, plate-like keeper-house foreground and repeated façades. Still a stylized blockout, not a 9/10 horror presentation.
 
 

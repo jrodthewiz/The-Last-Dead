@@ -122,7 +122,7 @@ export function buildingPlan(id,x,z,w,d,floors,district,seed) {
   // A linear triangle reaches its extrema at the clipped polygon's vertices.
   // Include intersections of cell diagonals with all four footprint edges.
   for(const xx of xs.slice(0,2))for(const zz of zs.slice(0,2))for(let k=-8;k<=8;k++){const diagonal=(Math.floor(xx/10)+Math.floor(zz/10)+k)*10;const zEdge=diagonal-xx,xEdge=diagonal-zz;if(zEdge>=z-d/2&&zEdge<=z+d/2)heights.push(terrainHeight(xx,zEdge));if(xEdge>=x-w/2&&xEdge<=x+w/2)heights.push(terrainHeight(xEdge,zz));}
-  b.baseY=Math.max(...heights)+(cottage?.08:0);b.foundationBottom=Math.min(...heights)-.25;
+  b.baseY=Math.max(...heights)+(cottage?.08:0);b.foundationBottom=Math.min(...heights)-.85;
   b.entry={x,z:z+d/2,length:cottage?12:2,width:3,steps:cottage?30:4};return b;
 }
 export function entranceHeight(b,x,z){const e=b.entry;if(!b.enterable||Math.abs(x-e.x)>e.width/2||z<e.z||z>e.z+e.length)return null;const t=Math.floor(clamp((z-e.z)/e.length,0,1)*e.steps)/e.steps;return Math.max(terrainHeight(x,z),lerp(b.baseY+.2,terrainHeight(e.x,e.z+e.length),t));}
