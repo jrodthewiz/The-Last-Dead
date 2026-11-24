@@ -180,6 +180,9 @@ Remaining high-impact:
 - `shader-r8h`: 358 frames, median 16.7 ms, p95 16.8, p99 16.8, max 33.4, 187 calls at the 14 pose, 622k triangles, 308 textures, no errors.
 - `shader-r8g-uncapped`: 107.7 fps, median 8.6 ms, p95 13.6, p99 15.5, max 33.1, 860 calls, 1.455M triangles, 308 textures, 111 programs. Calls/triangles are over the plan's 800/1.30M gate; the added pool/pad draws are only three, so the rest is spawn-view scene content and needs a separate draw audit.
 - Remaining: 06 water-side keeper house, 14 canopy silhouettes, water reflection, facade/composition. No 9/10.
+- Valid review via the approved `codex -p deepseek` profile (`deepseek-flash`, provider `deepseek`, read-only; **no OpenAI Codex credits**): **4.5/10** — A3.5 B4.5 C4.5 D2.5 E4.5 F4.5 G5.5 provisional. It calls out 06/14/11 structural integrity, then water, then repeated facades. It also flags the new lamp pools as painted orange ellipses, so they are a candidate for removal.
+- The earlier DeepSeek V4-Pro T3 delegate that spawned Codex GPT-6.2 Sol is invalid; it is not counted and no default Codex/OpenAI model will be used again.
+
 
 
 
