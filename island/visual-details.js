@@ -35,7 +35,7 @@ export function coastalBotany(kit,data){
  const plant=(x,z,s)=>{const y=ground(x,z);if(y===null)return;
   const minY=Math.min(y,terrainHeight(x+.55,z),terrainHeight(x-.55,z),terrainHeight(x,z+.55),terrainHeight(x,z-.55));
   if(y-minY>.35)return;
-  kit.add('fern',x,minY-.06,z,s,s,s,[0x75894d,0x8f9757,0x55774a][count++%3],rng()*6.28,null,4);
+  kit.add('fern',x,minY-.06,z,s,s,s,[0x6a7444,0x7d7f4c,0x4e5e3f][count++%3],rng()*6.28,null,4);
  };
  // Colonies follow actual canopy, with open trail edges and patchy gaps.
  // This is static instanced ground cover, not a per-frame particle carpet.

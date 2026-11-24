@@ -501,6 +501,24 @@ vec3 artWindowRoom(vec2 wf,vec3 vDir,vec3 nW,float seed,float isLit,float shopFl
     float under=clamp(-artWorldNormal.y,0.,1.);
     outgoingLight+=diffuseColor.rgb*(vec3(.070,.088,.058)+vec3(.085,.105,.065)*under+artFres*.22);
    }
+   #if NUM_DIR_LIGHTS > 0
+   // Fable 5.2's gouache material: three painted light steps, a dry-brush break-up,
+   // and a muted olive-bronze palette on leaves. Only built surfaces receive it;
+   // windows, glass, wet asphalt and the planar street stay on the PBR path.
+   float gRole=(vArtRole>-.5&&vArtRole<7.5&&!(vArtRole>5.5&&vArtRole<6.5))?1.:0.;
+   if(gRole>.5){
+    vec3 gL=normalize(directionalLights[0].direction);
+    float gW=saturate(dot(normal,gL)*.5+.5);
+    float gQ=floor(gW*3.)/3.+smoothstep(.42,.58,fract(gW*3.))*(1./3.);
+    vec3 gShadow=diffuseColor.rgb*vec3(.20,.24,.32);
+    vec3 gLit=diffuseColor.rgb*vec3(1.22,1.04,.84);
+    vec3 gPaint=mix(gShadow,gLit,gQ);
+    float gBrush=artField(vArtWorld.xz*3.4+artWorldNormal.xz*2.1+vec2(.7,-1.3))-.5;
+    gPaint*=1.+gBrush*.22;
+    if(vArtRole>3.5&&vArtRole<4.5){float gLum=dot(gPaint,vec3(.2126,.7152,.0722));gPaint=mix(vec3(gLum),gPaint,.55)*vec3(.60,.72,.55);}
+    outgoingLight=mix(outgoingLight,gPaint,(vArtRole>3.5&&vArtRole<4.5)?.72:.34);
+   }
+   #endif
    if(uArtDebug>.5&&uArtDebug<1.5)outgoingLight=artWorldNormal*.5+.5;
    else if(uArtDebug>1.5&&uArtDebug<2.5)outgoingLight=vec3(pow(clamp(artRough,0.,1.),2.2));`);
   shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`#include <opaque_fragment>

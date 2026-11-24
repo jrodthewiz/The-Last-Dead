@@ -205,6 +205,18 @@ Remaining high-impact:
 - Approved `codex -p deepseek` review (`deepseek-flash`, provider `deepseek`, no OpenAI Codex credits, 5,734 tokens): **6.1/10, up from 5.0** — A7.5 storm sky/rain, B6.0 wet streets, C5.5 lighting/materials, D5.5 waterfront/shoreline, E5.0 keeper pier, F7.0 gameplay readability, G5.5 horror identity.
 - Reviewer's next fixes: make wetness physical (local puddle masks/ripples/splash), soften overcast shadows and desaturate foliage, and resolve the pier/waterfront geometry as real places. Still no 9/10.
 
+## R11 Fable 5.2 painter/gouache pass
+
+- Reference studied: **What the Water Keeps** (Fable 5.2 / Kevin Ngo, reverse-engineered by dill-lk): https://github.com/dill-lk/What-the-Water-Keeps. The useful sources are `js/gouache.js` (three-step matte light ramp, dry-brush texture, local lights, caustics, rim/backlight) and `js/post.js` (generalised Kuwahara painter filter that keeps water/text crisp, paper tooth, filmic grade).
+- Applied a full-resolution Kuwahara painter pass with 8 wedges/3 taps, edge guard, screen-space water/street protection and paper tooth; crisp signs remain readable.
+- Added a three-step gouache light ramp and dry-brush modulation to built surfaces and foliage; muted the pine/broadleaf/fern palettes toward olive/bronze.
+- Re-lit the storm night as a warm/cool storm sunset (warm horizon, cool cloud shadows, exposure 1.02) and added a warm practical bulb in the Westlight shop interior.
+- `shader-r11b-painted`: 360 frames, median 16.7 ms, p95 17.3, p99 17.5, max 17.6; 215 calls, 848k triangles, 310 textures, no errors.
+- `shader-r11-painted-uncapped`: 155.5 fps, median 6.3 ms, p95 7.4, p99 8.2, max 9.5; 770 calls, 1.286M triangles, 310 textures, 117 programs.
+- Approved `codex -p deepseek` review of the first R11 frame (`deepseek-flash`, provider `deepseek`, no OpenAI Codex credits): **6.4/10, +0.3 vs 6.1** — painterly authenticity C+, ramp C, dry-brush C−, crisp text/water B−, palette/mood B, foliage C−, Fable-style finish C. It says the treatment is partly genuine, partly a screen filter; materials, shadows, interior and foliage still need hand-authored paint.
+- The final foliage palette and shop bulb are in the captured `r11b` images but were not re-scored. No 9/10.
+
+
 - Approved `codex -p deepseek` review of R9 final (`deepseek-flash`, provider `deepseek`, **no OpenAI Codex credits**, read-only, 8,328 tokens): **4.7/10** — A5.0 B4.0 C4.0 D4.5 E5.0 F4.5 G4.5. Dusk/clearing/flashlight/teal water are real gains, but it calls the dusk mostly a palette change, flags the forest/city exposure mismatch, the flashlight’s hard warm/green split, plate-like keeper-house foreground and repeated façades. Still a stylized blockout, not a 9/10 horror presentation.
 
 
