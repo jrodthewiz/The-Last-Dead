@@ -163,6 +163,26 @@ Remaining high-impact:
 - External judges: Gemini 4 Neon hit its individual quota (resets in ~4h); Claude Opus/Fable have no balance. DeepSeek V4-Pro review is running. No 9/10 yet.
 - Remaining: 06 keeper house still reads as floating from the original water-side pose; 14 detached fern/trunk silhouettes; water is still flat/SSR; facade bays/trim/composition; no window light pools.
 
+## R8f terrain ground-atlas pass
+
+- Wired the existing 1024 procedural `assets/forest-kit/ground-atlas.js` (pine needle, moss, leaf duff, mineral) into the Standard terrain shader. It adds albedo, roughness and normal relief at 2 m; moss is used on vegetation, mineral on roads/shore.
+- Forest eye pose now faces west into the trees rather than east into the hillside; the 06/14 photo poses and their defects were left untouched.
+- `shader-r8f`: 360 frames, median 16.7 ms, p95 17.1, p99 17.3, max 17.5, 185 calls, 622k triangles, 306 textures, no errors.
+- `shader-r8f-uncapped`: 116.3 fps, median 8.1 ms, p95 12.8, p99 15.1, max 32.2, 807 calls, 1.290M triangles, 306 textures, 109 programs.
+- 29/29 unit tests still pass (render-only change).
+- Judge caveat: the DeepSeek V4-Pro review delegate had no image input and used Codex GPT-6.2 Sol for pixel review despite the "no Codex judges" instruction. Its findings are useful but its **4.5/10 is not counted as a valid DeepSeek/Gemini/Claude panel score**. Gemini quota resets ~4h; Claude has no balance. Self-assessment remains ~5/10.
+
+## R8h lamp spill and generator pad
+
+- Added one instanced warm light-pool draw for the street-lamp grid and one for the three dock lamps; softened to .58 opacity after the first pass read as a bright ellipse.
+- Added a raised concrete pad under the hospital generator so it no longer sits on a lane stripe; the contact shadow sits on the pad.
+- Forest eye pose now faces west into the trees; the 06/14 photo poses and defects are unchanged.
+- `shader-r8h`: 358 frames, median 16.7 ms, p95 16.8, p99 16.8, max 33.4, 187 calls at the 14 pose, 622k triangles, 308 textures, no errors.
+- `shader-r8g-uncapped`: 107.7 fps, median 8.6 ms, p95 13.6, p99 15.5, max 33.1, 860 calls, 1.455M triangles, 308 textures, 111 programs. Calls/triangles are over the plan's 800/1.30M gate; the added pool/pad draws are only three, so the rest is spawn-view scene content and needs a separate draw audit.
+- Remaining: 06 water-side keeper house, 14 canopy silhouettes, water reflection, facade/composition. No 9/10.
+
+
+
 
 
 

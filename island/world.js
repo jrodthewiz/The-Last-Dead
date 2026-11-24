@@ -12,6 +12,8 @@ import {houseShell} from './house-shell.js';
 import {consoleMaterial} from './retro-materials.js';
 import {bakeLocalAO,bakeFoliageAO,artDetailDebug} from './detail-materials.js';
 import {paintArchitecture,paintTerrain,paintBridge,skyNoise} from './surface-art.js';
+import {createCapeGroundAtlas} from '../assets/forest-kit/ground-atlas.js';
+import {createLightPools} from './light-pools.js';
 import {coastalBotany,streetCraft} from './visual-details.js';
 import {createCoastalMotion} from './coastal-motion.js';
 import {createSettlementLife} from './settlement-life.js';
@@ -112,7 +114,8 @@ function buildTerrain(scene){
       roadPaint.push(paint);
     }
   }
-  material.onBeforeCompile=shader=>paintTerrain(shader,segments,roadPaint,roadBounds);
+  const groundAtlas=createCapeGroundAtlas();
+  material.onBeforeCompile=shader=>paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas);
   const mesh=new T.Mesh(geometry,material);mesh.receiveShadow=true;scene.add(mesh);return mesh;
 }
 function ribbon(scene,points,width,color,offset=.12,drape=true,finish){
@@ -321,7 +324,7 @@ function buildLandmarks(scene,kit){
   }
 }
 function streetDetails(scene,kit,data){
-  const rng=random(843);
+  const rng=random(843),lampPools=[];
   const hasLamp=(col,row)=>col>=0&&col<10&&row>=0&&row<12&&!(Math.abs(400+col*76-740)<65&&Math.abs(-448+row*76)<90);
   const sagWire=(ax,az,bx,bz)=>{
     const segs=3;let px=ax,py=20.6,pz=az;
@@ -334,11 +337,13 @@ function streetDetails(scene,kit,data){
     if(!hasLamp(col,row))continue;
     const x=400+col*76,z=-448+row*76;
     kit.add('cylinder',x,17.4,z,.12,6.6,.12,COLORS.metal);kit.box(x+1,20.65,z,2.4,.17,.2,COLORS.metal);kit.box(x+2,20.5,z,.8,.18,.5,0xead5a2,0,6);
+    lampPools.push({x:x+2,z,y:groundHeight(x+2,z)+.10,width:9.4,depth:5.3,rotation:0});
     if((col+row)%2===0&&hasLamp(col+1,row))sagWire(x,z,x+76,z);
     if((col+row)%2===1&&hasLamp(col,row+1))sagWire(x,z,x,z+76);
     kit.box(x+9,14.8,z+2,1.1,1.5,1.1,0x5f776b);kit.box(x+13,14.7,z+2,3,.14,.9,0x876e4a);kit.box(x+13,15.1,z+2.4,3,.7,.12,0x876e4a);
     if(rng()>.6){kit.box(x+3,14.6,z+17,1.6,1,1.3,0xad9b73);kit.box(x+4.5,14.4,z+18,1,.7,1,0x9c8a65);}
   }
+  createLightPools(scene,lampPools);
   const names=['ALDER GENERAL STORE','THE MARINER','POST OFFICE','FIELD SUPPLIES'];let i=0;
   for(const b of data.buildings.filter(b=>b.district==='village').slice(0,8)){sign(scene,names[i++%names.length],b.x,b.baseY+3.1,b.z+b.d/2+1.03,b.w*.73);}
   const shops=['ORIN PROVISIONS','THE RECORD ROOM','NORTH STAR PHARMACY','MORROW & SONS','ALDER BOOKSHOP','COASTAL HARDWARE','LAST LIGHT CAFÉ','SAINT ORIN POST'];i=0;

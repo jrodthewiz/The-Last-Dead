@@ -61,18 +61,20 @@ export function installCoastalFog(){
 #endif`;
 }
 
-export function paintTerrain(shader,segments,roadPaint,roadBounds){
+export function paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas){
  const physical=shader.fragmentShader.includes('roughnessmap_fragment');
  shader.vertexShader='attribute float artSlope;varying float vSlope;varying vec3 vGround;varying vec3 vGroundWorld;varying vec3 vGroundNormal;\n'+shader.vertexShader;
  shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvGround=position;vSlope=artSlope;vGroundWorld=(modelMatrix*vec4(position,1.)).xyz;vGroundNormal=normalize(mat3(modelMatrix)*normal);');
  shader.uniforms.artRoadSegments={value:segments};
  shader.uniforms.artRoadPaint={value:roadPaint};
  shader.uniforms.artRoadCount={value:segments.length};
+ shader.uniforms.uGroundAlbedo={value:groundAtlas.albedo};
+ shader.uniforms.uGroundNormal={value:groundAtlas.normal};
  attachDetailUniforms(shader);
  shader.fragmentShader=`varying float vSlope;varying vec3 vGround;varying vec3 vGroundWorld;varying vec3 vGroundNormal;
  uniform vec4 artRoadSegments[${segments.length}];
  uniform vec4 artRoadPaint[${segments.length}];
- uniform int artRoadCount;\n`+DETAIL_PARS+noise+shader.fragmentShader;
+ uniform int artRoadCount;uniform sampler2D uGroundAlbedo,uGroundNormal;\n`+DETAIL_PARS+noise+shader.fragmentShader;
  if(!physical)shader.fragmentShader=shader.fragmentShader.replace('#include <lights_lambert_pars_fragment>',toonLambertChunk);
  if(physical){
   shader.fragmentShader=shader.fragmentShader.replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
@@ -115,13 +117,24 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds){
  float wheel=1.-smoothstep(.035,.11,abs(abs(rd/max(rw,.001))-.58));
  float useMark=rw<3.?(.88+.12*artNoise(land*.35)):(.88+.12*artNoise(land*.8)-roadPatch*.08-wheel*.06);
  diffuseColor.rgb=mix(diffuseColor.rgb,rc*useMark,paving);}
+ vec2 gUv=fract(artDetailUv(vGroundWorld,artWorldNormal)*.5);
+ float gRole=(artRoad>.5||shore>.5)?3.:1.;
+ vec2 gOff=vec2(mod(gRole,2.)*.5,floor(gRole/2.)*.5);
+ vec2 gSample=gUv*.4375+vec2(.03125)+gOff;
+ vec4 gAlbedo=texture2D(uGroundAlbedo,gSample);
+ vec4 gNormal=texture2D(uGroundNormal,gSample);
+ diffuseColor.rgb=mix(diffuseColor.rgb,gAlbedo.rgb,.38);
+
+ vec2 gSlope=(gNormal.rg*2.-1.)*.48;
+ artWorldNormal=artApplyDetail(artWorldNormal,vec4(gSlope*.5+.5,0.,0.),1.);
+
  float artDist=length(cameraPosition-vGroundWorld);
  float artFade=1.-smoothstep(42.,70.,artDist);
  float artLayer=artRoad>.5?2.:(exposed>.2?5.:7.);
  vec4 artDetail=artDetailTap(vGroundWorld,artWorldNormal,artLayer,artFade);
  float artDetailStrength=artFade*mix(.42,.95,max(exposed,artRoad));
  artWorldNormal=artApplyDetail(artWorldNormal,artDetail,artDetailStrength);
- float artRough=clamp(.90+(artDetail.b-.5)*.16,.48,.99);
+ float artRough=clamp(.90+(artDetail.b-.5)*.16,.48,.99);artRough=mix(artRough,gNormal.a,.34);
  float wet=artAsphalt*smoothstep(.64,.84,artField(vGroundWorld.xz*.048));
  float wetSand=(1.-smoothstep(1.1,2.9,vGround.y))*(1.-artRoad);
  float artPuddle=clamp(wet+wetSand*.46,0.,1.);

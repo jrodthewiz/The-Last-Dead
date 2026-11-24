@@ -52,7 +52,7 @@ const eyePoses = [
   ['g1-street', [590, 7, Math.PI / 2]],
   ['g2-keeper-interior', [-795, -277, 0]],
   ['g3-waterfront', [1174, 235, Math.PI]],
-  ['g4-forest', [-870, 170, Math.PI / 2]],
+  ['g4-forest', [-870, 170, -Math.PI / 2]],
 ];
 for (const [name, [x, z, yaw]] of eyePoses) {
   await page.evaluate(([x, z, yaw]) => window.__BLACKWATER__.teleport(x, z, yaw), [x, z, yaw]);
