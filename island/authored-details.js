@@ -1,7 +1,6 @@
 import {terrainHeight,groundHeight,SIGNAL_STAIRS,HOSPITAL_GENERATOR,random,roadAt} from './data.js';
 import * as T from '../vendor/three.module.js';
 import {FRONTAGES} from './settlement-plan.js';
-import {createLightPools} from './light-pools.js';
 import {accessReserved} from './access-plan.js';
 
 export function authoredDetails(scene,kit,data,sign){
@@ -104,7 +103,6 @@ export function authoredDetails(scene,kit,data,sign){
     kit.box(1171.45,19.75,z,1.1,.14,.16,0x3b4946,0,0);
     kit.box(1171.95,19.55,z,.55,.22,.42,0xead5a2,0,6);
   }
-  createLightPools(scene,[222,196,172].map(z=>({x:1171.95,z,y:groundHeight(1171.95,z)+.10,width:9.0,depth:5.2,rotation:0})));
   // Long horizontal harbour sheds, stepped towers, colonnades and crooked
   // shopfronts give each district a different street-level rhythm.
   const rng=random(901);

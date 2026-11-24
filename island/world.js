@@ -13,7 +13,6 @@ import {consoleMaterial} from './retro-materials.js';
 import {bakeLocalAO,bakeFoliageAO,artDetailDebug} from './detail-materials.js';
 import {paintArchitecture,paintTerrain,paintBridge,skyNoise} from './surface-art.js';
 import {createCapeGroundAtlas} from '../assets/forest-kit/ground-atlas.js';
-import {createLightPools} from './light-pools.js';
 import {coastalBotany,streetCraft} from './visual-details.js';
 import {createCoastalMotion} from './coastal-motion.js';
 import {createSettlementLife} from './settlement-life.js';
@@ -324,7 +323,7 @@ function buildLandmarks(scene,kit){
   }
 }
 function streetDetails(scene,kit,data){
-  const rng=random(843),lampPools=[];
+  const rng=random(843);
   const hasLamp=(col,row)=>col>=0&&col<10&&row>=0&&row<12&&!(Math.abs(400+col*76-740)<65&&Math.abs(-448+row*76)<90);
   const sagWire=(ax,az,bx,bz)=>{
     const segs=3;let px=ax,py=20.6,pz=az;
@@ -337,13 +336,11 @@ function streetDetails(scene,kit,data){
     if(!hasLamp(col,row))continue;
     const x=400+col*76,z=-448+row*76;
     kit.add('cylinder',x,17.4,z,.12,6.6,.12,COLORS.metal);kit.box(x+1,20.65,z,2.4,.17,.2,COLORS.metal);kit.box(x+2,20.5,z,.8,.18,.5,0xead5a2,0,6);
-    lampPools.push({x:x+2,z,y:groundHeight(x+2,z)+.10,width:9.4,depth:5.3,rotation:0});
     if((col+row)%2===0&&hasLamp(col+1,row))sagWire(x,z,x+76,z);
     if((col+row)%2===1&&hasLamp(col,row+1))sagWire(x,z,x,z+76);
     kit.box(x+9,14.8,z+2,1.1,1.5,1.1,0x5f776b);kit.box(x+13,14.7,z+2,3,.14,.9,0x876e4a);kit.box(x+13,15.1,z+2.4,3,.7,.12,0x876e4a);
     if(rng()>.6){kit.box(x+3,14.6,z+17,1.6,1,1.3,0xad9b73);kit.box(x+4.5,14.4,z+18,1,.7,1,0x9c8a65);}
   }
-  createLightPools(scene,lampPools);
   const names=['ALDER GENERAL STORE','THE MARINER','POST OFFICE','FIELD SUPPLIES'];let i=0;
   for(const b of data.buildings.filter(b=>b.district==='village').slice(0,8)){sign(scene,names[i++%names.length],b.x,b.baseY+3.1,b.z+b.d/2+1.03,b.w*.73);}
   const shops=['ORIN PROVISIONS','THE RECORD ROOM','NORTH STAR PHARMACY','MORROW & SONS','ALDER BOOKSHOP','COASTAL HARDWARE','LAST LIGHT CAFÉ','SAINT ORIN POST'];i=0;
@@ -355,7 +352,7 @@ function streetDetails(scene,kit,data){
   // house footprints and access paths. A second scenery grid grew into homes.
 }
 function createSky(scene){
-  const uniforms={time:{value:0},sun:{value:new T.Vector3(-110,160,65).normalize()},top:{value:new T.Color(0x314b5b)},bottom:{value:new T.Color(0xa6b7bc)},cloudLight:{value:new T.Color(0xe0e8ec)},cloudShade:{value:new T.Color(0x526976)}};
+  const uniforms={time:{value:0},sun:{value:new T.Vector3(-160,100,90).normalize()},top:{value:new T.Color(0x1b2938)},bottom:{value:new T.Color(0x9a7c61)},cloudLight:{value:new T.Color(0xc8a483)},cloudShade:{value:new T.Color(0x36434c)}};
   const material=new T.ShaderMaterial({side:T.BackSide,depthWrite:false,uniforms,vertexShader:'varying vec3 vDir; void main(){vDir=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:`
    varying vec3 vDir;uniform float time;uniform vec3 sun,top,bottom,cloudLight,cloudShade;
    ${skyNoise}
@@ -382,7 +379,7 @@ function createSky(scene){
 function createWater(scene){
   const n=256,pixels=new Uint8Array(n*n);for(let z=0;z<n;z++)for(let x=0;x<n;x++)pixels[z*n+x]=Math.round(clamp((baseHeight(TERRAIN.minX+x/(n-1)*2950,TERRAIN.minZ+z/(n-1)*2000)+8)/32,0,1)*255);
   const depths=new T.DataTexture(pixels,n,n,T.RedFormat);depths.minFilter=depths.magFilter=T.LinearFilter;depths.needsUpdate=true;
-  const uniforms={time:{value:0}},material=new T.MeshStandardMaterial({color:0x163940,roughness:.14,metalness:.08,envMapIntensity:1.35});
+  const uniforms={time:{value:0}},material=new T.MeshStandardMaterial({color:0x0f3036,roughness:.36,metalness:0,envMapIntensity:.30,transparent:true});
   material.onBeforeCompile=shader=>{
     shader.uniforms.uTime=uniforms.time;shader.uniforms.uCoast={value:depths};
     shader.vertexShader='uniform float uTime;varying vec3 vWater;\n'+shader.vertexShader;
@@ -393,13 +390,13 @@ function createWater(scene){
      vec2 coastUv=(vWater.xz-vec2(-1400.,-1000.))/vec2(2950.,2000.);
      float ground=texture2D(uCoast,coastUv).r*32.-8.;float depth=max(0.,vWater.y-ground);
      float swell=artField(vWater.xz*.014+vec2(uTime*.006,0.));
-     diffuseColor.rgb*=.72+swell*.24;
-     diffuseColor.rgb=mix(vec3(.04,.13,.14),diffuseColor.rgb,smoothstep(0.,8.5,depth));
+     diffuseColor.rgb*=.86+swell*.18;
+     diffuseColor.rgb=mix(vec3(.022,.085,.10),diffuseColor.rgb,smoothstep(0.,7.0,depth));
      float wash=sin(depth*7.2-uTime*1.05+artNoise(vWater.xz*.14)*2.4);
      float foam=(1.-smoothstep(.15,1.8,depth))*smoothstep(.20,.92,wash);
-     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.62,.70,.72),foam*.36);
+     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.72,.78,.78),foam*.52);
      vec3 toEye=normalize(cameraPosition-vWater);float horizon=pow(1.-abs(toEye.y),4.2);
-     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.32,.43,.45),horizon*.22);
+     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.24,.35,.38),horizon*.26);
     `);
     shader.fragmentShader=shader.fragmentShader.replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
      vec2 wpW=vWater.xz;
@@ -411,16 +408,16 @@ function createWater(scene){
      normal=normalize((viewMatrix*vec4(wNorm,0.)).xyz);
     `);
     shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`#include <opaque_fragment>
-     gl_FragColor.a=.44;
+     gl_FragColor.a=mix(.92,.995,smoothstep(.2,3.2,depth));
     `);
   };
   const water=new T.Mesh(new T.PlaneGeometry(8000,8000,200,200),material);water.rotation.x=-Math.PI/2;water.position.y=.2;scene.add(water);return uniforms;
 }
 export function createWorld(scene,data,{arrivalTreads=false}={}){
-  scene.background=new T.Color(0x9cb0b8);scene.fog=new T.Fog(0x98aab2,130,1080);
+  scene.background=new T.Color(0x6c7777);scene.fog=new T.Fog(0x6a7577,110,900);
   const sky=createSky(scene),water=createWater(scene),kit=new Kit(scene);
-  const hemi=new T.HemisphereLight(0xa9c3d1,0x5c5240,1.15);scene.add(hemi);const lighting={key:1.75,fill:.95};
-  const sun=new T.DirectionalLight(0xffc98f,1.38);sun.position.set(-700,850,250);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);Object.assign(sun.shadow.camera,{left:-56,right:56,top:56,bottom:-56,near:24,far:300});sun.shadow.bias=-.00025;sun.shadow.normalBias=.06;sun.shadow.autoUpdate=false;sun.shadow.needsUpdate=true;scene.add(sun,sun.target);const fill=new T.DirectionalLight(0x9fc3d8,.38);fill.position.set(620,210,-480);scene.add(fill);const sunDir=new T.Vector3(-110,160,65).normalize(),sunRot=new T.Matrix4().lookAt(new T.Vector3(),sunDir.clone().negate(),new T.Vector3(0,1,0)),sunInv=sunRot.clone().invert(),sunPoint=new T.Vector3(),sunTexel=112/1536;let shadowAt=-Infinity,shadowX=NaN,shadowZ=NaN;
+  const hemi=new T.HemisphereLight(0x8ea8ba,0x3b352c,.8);scene.add(hemi);const lighting={key:1.05,fill:1.25};
+  const sun=new T.DirectionalLight(0xffb177,1.2);sun.position.set(-700,850,250);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);Object.assign(sun.shadow.camera,{left:-56,right:56,top:56,bottom:-56,near:24,far:300});sun.shadow.bias=-.00025;sun.shadow.normalBias=.06;sun.shadow.autoUpdate=false;sun.shadow.needsUpdate=true;scene.add(sun,sun.target);const fill=new T.DirectionalLight(0x7fa8c2,.26);fill.position.set(620,210,-480);scene.add(fill);const sunDir=new T.Vector3(-160,100,90).normalize(),sunRot=new T.Matrix4().lookAt(new T.Vector3(),sunDir.clone().negate(),new T.Vector3(0,1,0)),sunInv=sunRot.clone().invert(),sunPoint=new T.Vector3(),sunTexel=112/1536;let shadowAt=-Infinity,shadowX=NaN,shadowZ=NaN;
   buildTerrain(scene);const accessVertices=accessSurface(data.accessPaths,terrainHeight,TERRAIN),accessGeometry=surface(accessVertices),accessUV=[];for(let i=0;i<accessVertices.length;i+=3)accessUV.push(accessVertices[i]/2,accessVertices[i+2]/2);accessGeometry.setAttribute('uv',new T.Float32BufferAttribute(accessUV,2));const accessMesh=new T.Mesh(accessGeometry,new T.MeshStandardMaterial({color:0xb0a17a,map:grain,flatShading:true,roughness:.88,metalness:.02}));accessMesh.receiveShadow=true;scene.add(accessMesh);buildRoads(scene,kit);for(const b of data.buildings){compileBuilding(kit,b,arrivalTreads);compilePieces(kit,cityForecourtPlan(b,groundHeight).pieces);}
   for(const t of data.trees)tree(kit,t.x,t.y,t.z,t.scale,t.kind,t.rotation);
   for(const r of data.rocks)kit.add('rock',r.x,r.y+r.s*.35,r.z,r.s,r.s*.7,r.s*.8,0x9da68e,r.r);
@@ -447,7 +444,7 @@ export function createWorld(scene,data,{arrivalTreads=false}={}){
   }
   const stats=kit.finish();stats.botany=botany;stats.routes=routes;addContactShadows(scene,data);const movingRoots=new Set([sky.sky,sun,sun.target,settlement.boat]);for(const root of scene.children)if(!root.isCamera&&!movingRoots.has(root))freezeLocalTransforms(root);const coastalMotion=createCoastalMotion(scene),life=createSettlementLife(scene,data);
   const birds=new T.Group();const birdMat=new T.MeshBasicMaterial({color:0x3e5754});for(let i=0;i<12;i++){const geo=surface([-1,0,0,0,.25,0,0,0,.3,0,.25,0,1,0,0,0,0,.3]);const bird=new T.Mesh(geo,birdMat);bird.userData.phase=i*.52;birds.add(bird);}scene.add(birds);
-  return {stats,sun,hemi,lighting,fill,water,sky,coastalMotion,life,settlement,update(time,player,day=.64,relays=[],fov=60){const roomScale=Math.max(1,Math.min(2.4,Math.tan(Math.PI/6)/Math.tan(fov*Math.PI/360)));stats.update(player,roomScale);kit.material.userData.wind.value=time;life.update(time,player);settlement.update(time,player);water.time.value=time;sky.uniforms.time.value=time;sky.sky.position.copy(player);coastalMotion.update(time,relays);const light=.55+.45*Math.max(0,Math.sin(day*Math.PI));sun.intensity=1.60*light*lighting.key;hemi.intensity=(.94+.23*light)*lighting.fill;const sx=Math.round(player.x),sz=Math.round(player.z),sy=groundHeight(sx,sz);sunPoint.set(sx,sy,sz).applyMatrix4(sunInv);sunPoint.x=Math.round(sunPoint.x/sunTexel)*sunTexel;sunPoint.y=Math.round(sunPoint.y/sunTexel)*sunTexel;sunPoint.z=Math.round(sunPoint.z/sunTexel)*sunTexel;sunPoint.applyMatrix4(sunRot);sun.target.position.copy(sunPoint);sun.position.copy(sunPoint).addScaledVector(sunDir,220);sun.target.updateMatrixWorld();// Keep the 1536px shadow pass at 17Hz; lighting and colour still draw every frame.
+  return {stats,sun,hemi,lighting,fill,water,sky,coastalMotion,life,settlement,update(time,player,day=.80,relays=[],fov=60){const roomScale=Math.max(1,Math.min(2.4,Math.tan(Math.PI/6)/Math.tan(fov*Math.PI/360)));stats.update(player,roomScale);kit.material.userData.wind.value=time;life.update(time,player);settlement.update(time,player);water.time.value=time;sky.uniforms.time.value=time;sky.sky.position.copy(player);coastalMotion.update(time,relays);const light=.55+.45*Math.max(0,Math.sin(day*Math.PI));sun.intensity=1.60*light*lighting.key;hemi.intensity=(.94+.23*light)*lighting.fill;const sx=Math.round(player.x),sz=Math.round(player.z),sy=groundHeight(sx,sz);sunPoint.set(sx,sy,sz).applyMatrix4(sunInv);sunPoint.x=Math.round(sunPoint.x/sunTexel)*sunTexel;sunPoint.y=Math.round(sunPoint.y/sunTexel)*sunTexel;sunPoint.z=Math.round(sunPoint.z/sunTexel)*sunTexel;sunPoint.applyMatrix4(sunRot);sun.target.position.copy(sunPoint);sun.position.copy(sunPoint).addScaledVector(sunDir,220);sun.target.updateMatrixWorld();// Keep the 1536px shadow pass at 17Hz; lighting and colour still draw every frame.
     // Teleports invalidate immediately; the cached map stays world anchored
     // between updates under the fixed sun direction.
     const shadowNow=performance.now();if(shadowNow-shadowAt>=59||!Number.isFinite(shadowX)||Math.hypot(sx-shadowX,sz-shadowZ)>12){sun.shadow.needsUpdate=true;shadowAt=shadowNow;shadowX=sx;shadowZ=sz;}for(let i=0;i<birds.children.length;i++){const b=birds.children[i],a=time*.06+i*.52;b.position.set(-490+Math.cos(a)*330,95+Math.sin(a*3)*12,30+Math.sin(a)*230);b.rotation.y=-a;b.scale.y=.6+Math.sin(time*3+i)*.4;}}};

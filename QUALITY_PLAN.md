@@ -183,6 +183,18 @@ Remaining high-impact:
 - Valid review via the approved `codex -p deepseek` profile (`deepseek-flash`, provider `deepseek`, read-only; **no OpenAI Codex credits**): **4.5/10** — A3.5 B4.5 C4.5 D2.5 E4.5 F4.5 G5.5 provisional. It calls out 06/14/11 structural integrity, then water, then repeated facades. It also flags the new lamp pools as painted orange ellipses, so they are a candidate for removal.
 - The earlier DeepSeek V4-Pro T3 delegate that spawned Codex GPT-6.2 Sol is invalid; it is not counted and no default Codex/OpenAI model will be used again.
 
+## R9 drastic art-direction pass
+
+- Shifted the world from washed overcast daylight to a dusk horror grade: orange storm-break sky, dark teal fog, lower warm sun, cool ambient, dusk PMREM, exposure .98. This is an art-direction decision, not a benchmark-only screenshot.
+- **14 structural fix:** cleared trees within 16 m of the shoreline viewpoint (`-862,173`). The detached canopy cards and severed overhead trunk are gone; the frame is now a clear dusk shoreline/forest.
+- **11 structural fix:** camera-mounted warm flashlight at 2.5 m ahead of the camera (intensity 2.4, range 13) lights the wall without blowing out the viewmodel. The wall close-up is readable again.
+- Removed the lamp-pool ellipses the valid review flagged; kept the generator pad and ground atlas.
+- Water is now an opaque deep-teal stylized surface with shore foam instead of the transparent white slab.
+- `shader-r9-final`: 361 frames, median 16.7 ms, p95 16.8, p99 16.8, max 17.2, 185 calls at the 14 pose, 621k triangles, 306 textures, no errors.
+- `shader-r9-final-uncapped`: 115.5 fps, median 7.9 ms, p95 13.2, p99 16.4, max 33.3, 809 calls, 1.3056M triangles, 306 textures, 111 programs.
+- Remaining: 06 keeper-house foundation and pale shoreline; 14 foreground still reads as a pale sand/water flat; water still lacks scene-aware reflections; facades/composition. No 9/10.
+
+
 
 
 
