@@ -101,6 +101,8 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas){
  float shore=1.-smoothstep(2.6,7.0,vGround.y+field*1.1);
  vec3 sand=mix(${rgb(0x4d5752)},${rgb(0x7a7e72)},smoothstep(.2,3.6,vGround.y))*(.93+tuft*.12);
  soil=mix(soil,sand,shore*(1.-exposed*.5));
+ float umber=smoothstep(.52,.84,artField(land*.019+4.2));
+ soil=mix(soil,${rgb(0x5a4a33)},umber*.42*(1.-exposed*.35)*(1.-shore));
  diffuseColor.rgb=mix(diffuseColor.rgb,soil,.86);
  float artAsphalt=0.;
  if(vGround.x<110.&&${roadBounds}){float rd=9999.;float rw=0.;vec3 rc=vec3(0.);
@@ -142,9 +144,15 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas){
  float wet=artAsphalt*smoothstep(.54,.78,artField(vGroundWorld.xz*.048));
  float wetSand=(1.-smoothstep(1.1,2.9,vGround.y))*(1.-artRoad);
  float artPuddle=clamp(wet+wetSand*.46,0.,1.);
+ float dampSoil=smoothstep(.40,.74,artField(land*.071+7.31)+.22*artNoise(land*.29))*(1.-artRoad)*(1.-exposed*.15)*(1.-shore*.5);
+ diffuseColor.rgb*=1.-dampSoil*.34;
+ diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(.84,1.05,.88),dampSoil*.7);
+ artRough=mix(artRough,.58,dampSoil*.45);
  diffuseColor.rgb*=1.-wet*.28-wetSand*.12;
  artWorldNormal=mix(artWorldNormal,normalize(vGroundNormal),wet*.88);
  artRough=mix(artRough,.16,artPuddle*.82);
+ float midPatch=artField(land*.107+2.71)+.3*artNoise(land*.41);
+ diffuseColor.rgb*=.83+midPatch*.30;
  diffuseColor.rgb*=.92+artDetail.a*.12;
  `);
  shader.fragmentShader=shader.fragmentShader.replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
