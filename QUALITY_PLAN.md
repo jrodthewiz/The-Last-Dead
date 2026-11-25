@@ -308,6 +308,14 @@ Remaining high-impact:
 - Remaining gaps: figure materials (GLB), window-grid repetition at distance, canopy geometry (identity-bound). No 9/10 claim.
 
 
+## R24: organic tree geometry
+
+- Trees were neat geometric stacks reading as toys. Rebuilt `tree()` with deterministic per-position variation: leaning two-segment trunks, six pine layers with mid-canopy bulge and wind-side offsets growing with height, inverted canopy-skirt cone closing the underside gap, broadleaf canopy as 4-6 overlapping asymmetric puffs on angled limbs plus low droop and outboard satellite clusters. Instance count per tree up ~50% but draw calls unchanged (same instanced tiles).
+- Evidence: `r24-forest-compare.jpg`/`r24-spawn-compare.jpg` — pines read grown and varied, broadleafs read as mature clustered canopies; island aerial unchanged in character. Full regression zero errors.
+- Probe: first run city p95 16.0 ms — recheck 12.4 ms inside envelope (second noise confirmation this session; ALWAYS recheck before acting). Arrival 7.3/10.5.
+- Remaining: forest-floor scatter density, odd pale hexagonal water stones visible in island aerial, rock geometry. No 9/10 claim.
+
+
 
 - Approved `codex -p deepseek` review of R9 final (`deepseek-flash`, provider `deepseek`, **no OpenAI Codex credits**, read-only, 8,328 tokens): **4.7/10** — A5.0 B4.0 C4.0 D4.5 E5.0 F4.5 G4.5. Dusk/clearing/flashlight/teal water are real gains, but it calls the dusk mostly a palette change, flags the forest/city exposure mismatch, the flashlight’s hard warm/green split, plate-like keeper-house foreground and repeated façades. Still a stylized blockout, not a 9/10 horror presentation.
 

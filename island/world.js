@@ -256,14 +256,50 @@ export function sign(scene,text,x,y,z,width=6,rotation=0,dark=false,posts=false)
   return m;
 }
 function tree(kit,x,y,z,s=1,kind='pine',rotation=0){
-  kit.surface=3;kit.add('cylinder',x,y+4*s,z,.27*s,8*s,.27*s,0x5a4e39);
-  kit.add('cone',x,y+.38*s,z,.52*s,.78*s,.52*s,0x4b4030,rotation);
+  // Deterministic per-tree variation seeded by position: lean direction,
+  // canopy asymmetry and layer spread, so no two trees share a silhouette.
+  const h1=Math.abs(Math.sin(x*12.9898+z*78.233)*43758.5453)%1,h2=Math.abs(Math.sin(x*39.346+z*11.135)*24634.6345)%1,h3=Math.abs(Math.sin(x*7.177+z*53.731)*14023.8123)%1;
+  const leanA=rotation+h1*2.1,lean=(.3+h2*.55)*s;
+  const lx=Math.cos(leanA),lz=Math.sin(leanA);
+  kit.surface=3;
+  // Trunk in two slightly offset segments reads as grown, not lathed.
+  const bendX=lx*.35*s,bendZ=lz*.35*s;
+  kit.add('cylinder',x,y+2.1*s,z,.30*s,4.4*s,.34*s,0x554a35);
+  kit.add('cylinder',x+bendX,y+5.9*s,z+bendZ,.24*s,4.6*s,.27*s,0x5a4e39);
+  kit.add('cone',x,y+.38*s,z,.56*s,.82*s,.56*s,0x4b4030,rotation);
   if(kind==='pine'){
-    for(let i=0;i<5;i++){const a=rotation+i*2.4,r=(3.1-i*.48)*s;kit.add('cone',x+Math.cos(a)*.4*s,y+(4.7+i*1.6)*s,z+Math.sin(a)*.4*s,r,(3.6-i*.15)*s,r*.82,[0x364b3a,0x45583d,0x566344,0x626a48,0x74704b][i],a,null,4);}
-    for(let i=0;i<3;i++){const a=rotation+i*2.1;kit.rod([x,y+3*s,z],[x+Math.cos(a)*2*s,y+4*s,z+Math.sin(a)*2*s],.10*s,0x695c42);}
+    // Six irregular layers: mid-canopy bulge, wind-side offsets growing with
+    // height, varied rotations — a grown silhouette instead of a neat stack.
+    const pineCols=[0x33483a,0x41553c,0x4f5f41,0x5a6644,0x676c46,0x74704b];
+    const spread=.9+h3*.35;
+    for(let i=0;i<6;i++){
+      const a=rotation+i*2.4+h1;
+      const t=i/5;
+      const r=(3.3-i*.42+(i===2?.35:0)+(h2-.5)*.3)*s*spread;
+      const off=(0.35+t*1.15)*lean*(0.6+h3*.7);
+      const cy=y+(4.4+i*1.42+(h1-.5)*.5)*s;
+      kit.add('cone',x+lx*off+Math.cos(a)*.35*s,cy,z+lz*off+Math.sin(a)*.35*s,r,(3.5-i*.13)*s,r*(.78+h3*.1),pineCols[i],a,null,4);
+    }
+    // Canopy skirt: flattened inverted cone closing the underside gap.
+    kit.add('cone',x+lx*lean*.5,y+4.35*s,z+lz*lean*.5,2.5*s*spread,1.1*s,2.2*s*spread,0x2e4234,rotation+1.1,null,4);
+    for(let i=0;i<3;i++){const a=rotation+i*2.1+h2;kit.rod([x,y+3*s,z],[x+Math.cos(a)*2.2*s,y+(3.7+i*.4)*s,z+Math.sin(a)*2.2*s],.10*s,0x695c42);}
   }else{
-    const colors=rotation>3?[0x8c8450,0xa38d55,0x7c7d4a]:[0x5b6b45,0x727a4c,0x8a7d4f];
-    for(let i=0;i<3;i++){const a=rotation+i*2.1,dx=Math.cos(a)*2*s,dz=Math.sin(a)*2*s;kit.rod([x,y+3*s,z],[x+dx,y+6*s,z+dz],.16*s,0x726347);kit.add('sphere',x+dx,y+(6.6+i*.6)*s,z+dz,3.1*s,2.8*s,3*s,colors[i],a,null,4);}
+    // Broadleaf: trunk splits into angled limbs, canopy is overlapping
+    // asymmetric puffs — some drooping low, one satellite drifting outboard.
+    const colors=rotation>3?[0x8c8450,0xa38d55,0x7c7d4a,0x6f7443]:[0x55663f,0x687448,0x7a7a4b,0x8a7d4f];
+    const limbs=3+(h1>.5?1:0);
+    for(let i=0;i<limbs;i++){
+      const a=rotation+i*(6.28/limbs)+h2;
+      const dx=Math.cos(a)*(1.7+h3*.9)*s,dz=Math.sin(a)*(1.7+h1*.9)*s;
+      const topY=y+(5.6+((i*7+h1*13)%1)*1.8)*s;
+      kit.rod([x+bendX*.6,y+4.6*s,z+bendZ*.6],[x+dx,topY,z+dz],.15*s,0x6b5c43);
+      const puff=(2.5+((i*5+h2*11)%1)*1.1)*s;
+      kit.add('sphere',x+dx,topY+.7*s,z+dz,puff,puff*(.82+h3*.2),puff*.95,colors[i%4],a,null,4);
+    }
+    // Low droop puff and one outboard satellite break the symmetry.
+    const da=rotation+h3*6.28;
+    kit.add('sphere',x+Math.cos(da)*1.3*s,y+4.9*s,z+Math.sin(da)*1.3*s,1.9*s,1.6*s,1.8*s,colors[0],da,null,4);
+    kit.add('sphere',x+lx*lean*2.4+Math.cos(da+2.)*2.6*s,y+(6.2+h1)*s,z+lz*lean*2.4+Math.sin(da+2.)*2.6*s,1.7*s,1.5*s,1.65*s,colors[2],da+2.,null,4);
   }
   if(kind==='orchard')for(let i=0;i<5;i++){const a=rotation+i*2.4;kit.add('rock',x+Math.sin(a)*1.8*s,y+(5.3+i%2)*s,z+Math.cos(a)*1.8*s,.16*s,.2*s,.16*s,0xb59a57,a,null,4);}
   kit.surface=0;
