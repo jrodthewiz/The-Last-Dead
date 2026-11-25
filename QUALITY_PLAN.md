@@ -260,6 +260,14 @@ Remaining high-impact:
 - SWE-2.1 visual self-judge: the "flat brown earth" half of the forest/terrain gap is substantially improved in representative gameplay views. Remaining: foliage still reads toy-green at canopy scale, crisp modern signage/figures/HUD, broad waterfront mirror band. No 9/10 claim.
 
 
+## R18: canopy volume and foliage grading
+
+- Foliage role (4) in `paintArchitecture` gains canopy-volume shading: downward/interior-facing facets darken by `leafDown^2 * .34`, mild desaturation toward painterly olive (14%), wider per-instance hue/brightness jitter. Roughness unchanged in cost profile.
+- Evidence (`r18-final-20261125`): zero errors. Canopy layers read with more depth; undersides darken; foreground grasses less toy-saturated. Cone geometry limits the underside lever (cone side normals point outward/up); remaining toy-read is largely geometric, not shading.
+- Serialized GTX 1650 probe: zero errors; arrival median/p95 `6.722/8.937 ms`, city `10.872/12.245 ms` — no regression vs R17 (`8.075/10.804`, `11.808/13.376`), within probe variance.
+- Remaining gaps: crisp modern signage/figures/HUD, broad waterfront mirror band, canopy geometry simplicity (identity-bound). No 9/10 claim.
+
+
 
 - Approved `codex -p deepseek` review of R9 final (`deepseek-flash`, provider `deepseek`, **no OpenAI Codex credits**, read-only, 8,328 tokens): **4.7/10** — A5.0 B4.0 C4.0 D4.5 E5.0 F4.5 G4.5. Dusk/clearing/flashlight/teal water are real gains, but it calls the dusk mostly a palette change, flags the forest/city exposure mismatch, the flashlight’s hard warm/green split, plate-like keeper-house foreground and repeated façades. Still a stylized blockout, not a 9/10 horror presentation.
 

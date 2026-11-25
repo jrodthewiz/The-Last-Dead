@@ -326,10 +326,16 @@ vec3 artWindowRoom(vec2 wf,vec3 vDir,vec3 nW,float seed,float isLit,float shopFl
     diffuseColor.rgb*=.86+.22*artNoise(uv*vec2(3.,.18));
     artRough=.86;artMetal=0.;
    }else if(vArtRole<4.5){
-    vec3 hueShift=mix(vec3(.88,.94,.84),vec3(1.04,1.02,.88),vArtInstHash);
-    diffuseColor.rgb*=hueShift*(.92+.16*artNoise(vArtWorld.xz*.55));
+    vec3 hueShift=mix(vec3(.86,.93,.82),vec3(1.05,1.02,.88),vArtInstHash);
+    diffuseColor.rgb*=hueShift*(.90+.20*artNoise(vArtWorld.xz*.55));
+    // Canopy volume: undersides and interior-facing facets fall toward shadow,
+    // tops keep the sky light. This is what separates a canopy from a toy cone.
+    float leafDown=1.-clamp(artWorldNormal.y,0.,1.);
+    diffuseColor.rgb*=1.-leafDown*leafDown*.34;
+    float leafLum=dot(diffuseColor.rgb,vec3(.333));
+    diffuseColor.rgb=mix(vec3(leafLum),diffuseColor.rgb,.86);
     float leafWet=artNoise(vArtWorld.xz*.75+vArtWorld.y*.85);
-    artRough=clamp(.32+.44*leafWet+(1.-clamp(artWorldNormal.y,0.,1.))*.18,.24,.90);artMetal=0.;
+    artRough=clamp(.32+.44*leafWet+leafDown*.18,.24,.90);artMetal=0.;
    }else if(vArtRole<5.5){
     vec2 wBez=min(vArtUv,1.-vArtUv);
     float jamb=smoothstep(0.,.07,wBez.x)*smoothstep(0.,.06,wBez.y);
