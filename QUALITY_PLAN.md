@@ -316,6 +316,13 @@ Remaining high-impact:
 - Remaining: forest-floor scatter density, odd pale hexagonal water stones visible in island aerial, rock geometry. No 9/10 claim.
 
 
+## R25: forest-floor botany density
+
+- Fern colonies now under every tree (was every 2nd), 7-9 ferns spread wider, open-ground meadow patches near 1-in-5 trees, shrubs every 3rd tree. Marginal visual gain in sparse poses — real cover increase is under dense canopy.
+- Probe r25-final: zero errors, city `10.970/12.557 ms` — no regression.
+- NEXT BIG LEVER DESIGNED (not yet implemented): bake per-vertex forest-litter mask in buildTerrain — the terrain grid is built where data.trees positions are known; add artLitter attribute like artSlope, brown/darken floor within ~6m of non-urban trees in paintTerrain. This is the authentic pine-needle-floor win, cheaper than more scatter.
+
+
 
 - Approved `codex -p deepseek` review of R9 final (`deepseek-flash`, provider `deepseek`, **no OpenAI Codex credits**, read-only, 8,328 tokens): **4.7/10** — A5.0 B4.0 C4.0 D4.5 E5.0 F4.5 G4.5. Dusk/clearing/flashlight/teal water are real gains, but it calls the dusk mostly a palette change, flags the forest/city exposure mismatch, the flashlight’s hard warm/green split, plate-like keeper-house foreground and repeated façades. Still a stylized blockout, not a 9/10 horror presentation.
 

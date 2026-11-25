@@ -39,9 +39,13 @@ export function coastalBotany(kit,data){
  };
  // Colonies follow actual canopy, with open trail edges and patchy gaps.
  // This is static instanced ground cover, not a per-frame particle carpet.
- for(let i=0;i<data.trees.length;i+=2){const t=data.trees[i];if(t.urban)continue;const angle=rng()*6.28;
-  for(let j=0;j<5+(i%3);j++){const a=angle+j*2.4,r=1.5+rng()*4;plant(t.x+Math.cos(a)*r,t.z+Math.sin(a)*r,.85+rng()*1.05);}
-  if(i%4===0){const x=t.x+Math.cos(angle)*4.3,z=t.z+Math.sin(angle)*4.3,y=ground(x,z,1.4);if(y!==null){
+ for(let i=0;i<data.trees.length;i++){const t=data.trees[i];if(t.urban)continue;const angle=rng()*6.28;
+  for(let j=0;j<7+(i%3);j++){const a=angle+j*2.4,r=1.2+rng()*5.6;plant(t.x+Math.cos(a)*r,t.z+Math.sin(a)*r,.8+rng()*1.15);}
+  // Open-ground meadow patches near one tree in five knit the floor together
+  // instead of leaving cover only beneath canopies.
+  if(i%5===0){const mx=t.x+Math.cos(angle+1.7)*(8+rng()*7),mz=t.z+Math.sin(angle+1.7)*(8+rng()*7);
+   for(let j=0;j<5;j++){const a=angle+j*2.9,r=rng()*4.5;plant(mx+Math.cos(a)*r,mz+Math.sin(a)*r,.75+rng()*1.0);}}
+  if(i%3===0){const x=t.x+Math.cos(angle)*4.3,z=t.z+Math.sin(angle)*4.3,y=ground(x,z,1.4);if(y!==null){
    const s=.8+rng()*.5;
    for(let j=0;j<3;j++)kit.add('rock',x+Math.cos(j*2.4)*.45,y+.42*s,z+Math.sin(j*2.4)*.45,1.05*s,.70*s,.90*s,[0x557448,0x697f49,0x7c8b50][j],angle+j,null,4);
    shrubs++;
