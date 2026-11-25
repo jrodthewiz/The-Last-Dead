@@ -65,15 +65,15 @@ export function installCoastalFog(){
 
 export function paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas){
  const physical=shader.fragmentShader.includes('roughnessmap_fragment');
- shader.vertexShader='attribute float artSlope;varying float vSlope;varying vec3 vGround;varying vec3 vGroundWorld;varying vec3 vGroundNormal;\n'+shader.vertexShader;
- shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvGround=position;vSlope=artSlope;vGroundWorld=(modelMatrix*vec4(position,1.)).xyz;vGroundNormal=normalize(mat3(modelMatrix)*normal);');
+ shader.vertexShader='attribute float artSlope;attribute float artLitter;varying float vLitter;varying float vSlope;varying vec3 vGround;varying vec3 vGroundWorld;varying vec3 vGroundNormal;\n'+shader.vertexShader;
+ shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvGround=position;vSlope=artSlope;vLitter=artLitter;vGroundWorld=(modelMatrix*vec4(position,1.)).xyz;vGroundNormal=normalize(mat3(modelMatrix)*normal);');
  shader.uniforms.artRoadSegments={value:segments};
  shader.uniforms.artRoadPaint={value:roadPaint};
  shader.uniforms.artRoadCount={value:segments.length};
  shader.uniforms.uGroundAlbedo={value:groundAtlas.albedo};
  shader.uniforms.uGroundNormal={value:groundAtlas.normal};
  attachDetailUniforms(shader);
- shader.fragmentShader=`varying float vSlope;varying vec3 vGround;varying vec3 vGroundWorld;varying vec3 vGroundNormal;
+ shader.fragmentShader=`varying float vLitter;varying float vSlope;varying vec3 vGround;varying vec3 vGroundWorld;varying vec3 vGroundNormal;
  uniform vec4 artRoadSegments[${segments.length}];
  uniform vec4 artRoadPaint[${segments.length}];
  uniform int artRoadCount;uniform sampler2D uGroundAlbedo,uGroundNormal;\n`+DETAIL_PARS+noise+shader.fragmentShader;
@@ -133,6 +133,10 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas){
  vec4 gNormal=textureGrad(uGroundNormal,gSample,gDx,gDy);
  float atlasFade=(1.-artAsphalt)*(1.-smoothstep(18.,58.,artDist));
  diffuseColor.rgb=mix(diffuseColor.rgb,gAlbedo.rgb,.40*atlasFade);
+ float litterMask=smoothstep(.07,.62,vLitter+(artNoise(land*.53)-.5)*.40)*(1.-artRoad)*(1.-shore*.6)*(1.-exposed*.35);
+ vec3 litterCol=mix(${rgb(0x453824)},${rgb(0x5d4c2e)},artNoise(land*.83));
+ litterCol*=.86+artNoise(land*2.1)*.22+artNoise(land*.21)*.12;
+ diffuseColor.rgb=mix(diffuseColor.rgb,litterCol,litterMask*.86);
  vec2 gSlope=(gNormal.rg*2.-1.)*.52;
  artWorldNormal=artApplyDetail(artWorldNormal,vec4(gSlope*.5+.5,0.,0.),atlasFade);
  float artFade=1.-smoothstep(42.,70.,artDist);

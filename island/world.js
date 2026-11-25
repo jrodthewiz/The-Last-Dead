@@ -73,8 +73,21 @@ class Kit {
   }
 }
 function surface(vertices,colors){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(vertices,3));if(colors)g.setAttribute('color',new T.Float32BufferAttribute(colors,3));g.computeVertexNormals();return g;}
-function buildTerrain(scene){
-  const {minX,maxX,minZ,maxZ,step:s}=TERRAIN,positions=[],colors=[],slopes=[],color=new T.Color(),rng=random(711);
+function buildTerrain(scene,trees=[]){
+  const {minX,maxX,minZ,maxZ,step:s}=TERRAIN,positions=[],colors=[],slopes=[],litter=[],color=new T.Color(),rng=random(711);
+  // Forest-floor litter field: pine needles and leaf fall brown the ground
+  // beneath and around every non-urban tree. Baked per grid vertex with a
+  // spatial hash; the shader softens the edges with noise.
+  const treeHash=new Map();
+  for(const t of trees){if(t.urban)continue;const k=Math.floor(t.x/10)+','+Math.floor(t.z/10);if(!treeHash.has(k))treeHash.set(k,[]);treeHash.get(k).push(t);}
+  const litterField=(x,z)=>{
+    let best=0;const cx=Math.floor(x/10),cz=Math.floor(z/10);
+    for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){
+      const list=treeHash.get((cx+dx)+','+(cz+dz));if(!list)continue;
+      for(const t of list){const r=8.5*(t.scale||1),d=Math.hypot(t.x-x,t.z-z),v=Math.min(1,Math.max(0,1-(d-r*.32)/(r*.85)));best=1-(1-best)*(1-v);}
+    }
+    return best;
+  };
   const columns=Math.ceil((maxX-minX)/s),rows=Math.ceil((maxZ-minZ)/s),stride=columns+3;
   const heights=new Float64Array(stride*(rows+3));
   for(let row=-1;row<=rows+1;row++)for(let col=-1;col<=columns+1;col++)
@@ -89,11 +102,12 @@ function buildTerrain(scene){
       const y=(tri[0][1]+tri[1][1]+tri[2][1])/3;
       color.setHex(y<3.8?0xc4c199:y>62?0x8b9668:x>330?0x819875:0x718b4d);
       color.multiplyScalar(.93+rng()*.13);
-      for(const [px,py,pz,index] of tri){positions.push(px,py,pz);colors.push(color.r,color.g,color.b);slopes.push(slopeAt(index));}
+      for(const [px,py,pz,index] of tri){positions.push(px,py,pz);colors.push(color.r,color.g,color.b);slopes.push(slopeAt(index));litter.push(litterField(px,pz));}
     }
   }
   const geometry=surface(positions,colors),uv=[];for(let i=0;i<positions.length;i+=3)uv.push(positions[i]/12,positions[i+2]/12);geometry.setAttribute('uv',new T.Float32BufferAttribute(uv,2));
   geometry.setAttribute('artSlope',new T.Float32BufferAttribute(slopes,1));
+  geometry.setAttribute('artLitter',new T.Float32BufferAttribute(litter,1));
   const material=new T.MeshStandardMaterial({vertexColors:true,flatShading:true,map:grain,roughness:1,metalness:0,envMapIntensity:.55});material.userData.artDebug=artDetailDebug;
   // Paint the roads on their actual terrain triangles. Separate draped strips
   // fight the ground at grid diagonals and create ragged shoulders on hills.
@@ -603,7 +617,7 @@ export function createWorld(scene,data,{arrivalTreads=false}={}){
   const sky=createSky(scene),rain=createCoastalRain(scene),water=createWater(scene),kit=new Kit(scene),lampSpots=[];
   const hemi=new T.HemisphereLight(0x88a4b4,0x27302c,.84);scene.add(hemi);const lighting={key:1.10,fill:1.0};
   const sun=new T.DirectionalLight(0xffc18a,1.5);sun.position.set(-700,850,250);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);Object.assign(sun.shadow.camera,{left:-56,right:56,top:56,bottom:-56,near:24,far:300});sun.shadow.bias=-.00025;sun.shadow.normalBias=.06;sun.shadow.autoUpdate=false;sun.shadow.needsUpdate=true;scene.add(sun,sun.target);const fill=new T.DirectionalLight(0x7d9fb8,.55);fill.position.set(620,210,-480);scene.add(fill);const sunDir=new T.Vector3(-115,135,72).normalize(),sunRot=new T.Matrix4().lookAt(new T.Vector3(),sunDir.clone().negate(),new T.Vector3(0,1,0)),sunInv=sunRot.clone().invert(),sunPoint=new T.Vector3(),sunTexel=112/1536;let shadowAt=-Infinity,shadowX=NaN,shadowZ=NaN;
-  const terrainMesh=buildTerrain(scene);const accessVertices=accessSurface(data.accessPaths,terrainHeight,TERRAIN),accessGeometry=surface(accessVertices),accessUV=[];for(let i=0;i<accessVertices.length;i+=3)accessUV.push(accessVertices[i]/2,accessVertices[i+2]/2);accessGeometry.setAttribute('uv',new T.Float32BufferAttribute(accessUV,2));const accessMesh=new T.Mesh(accessGeometry,new T.MeshStandardMaterial({color:0xb0a17a,map:grain,flatShading:true,roughness:.88,metalness:.02}));accessMesh.receiveShadow=true;scene.add(accessMesh);const wetCityGroup=buildRoads(scene,kit);for(const b of data.buildings){compileBuilding(kit,b,arrivalTreads);compilePieces(kit,cityForecourtPlan(b,groundHeight).pieces);}
+  const terrainMesh=buildTerrain(scene,data.trees);const accessVertices=accessSurface(data.accessPaths,terrainHeight,TERRAIN),accessGeometry=surface(accessVertices),accessUV=[];for(let i=0;i<accessVertices.length;i+=3)accessUV.push(accessVertices[i]/2,accessVertices[i+2]/2);accessGeometry.setAttribute('uv',new T.Float32BufferAttribute(accessUV,2));const accessMesh=new T.Mesh(accessGeometry,new T.MeshStandardMaterial({color:0xb0a17a,map:grain,flatShading:true,roughness:.88,metalness:.02}));accessMesh.receiveShadow=true;scene.add(accessMesh);const wetCityGroup=buildRoads(scene,kit);for(const b of data.buildings){compileBuilding(kit,b,arrivalTreads);compilePieces(kit,cityForecourtPlan(b,groundHeight).pieces);}
   for(const t of data.trees)tree(kit,t.x,t.y,t.z,t.scale,t.kind,t.rotation);
   for(const r of data.rocks)kit.add('rock',r.x,r.y+r.s*.35,r.z,r.s,r.s*.7,r.s*.8,0x9da68e,r.r);
   buildBridge(scene,kit);buildLandmarks(scene,kit);compilePieces(kit,civicCraftPlan().pieces);streetDetails(scene,kit,data,lampSpots);authoredDetails(scene,kit,data,sign);placeDetails(scene,kit,data,sign);streetCraft(kit,data);const botany=coastalBotany(kit,data);

@@ -323,6 +323,14 @@ Remaining high-impact:
 - NEXT BIG LEVER DESIGNED (not yet implemented): bake per-vertex forest-litter mask in buildTerrain — the terrain grid is built where data.trees positions are known; add artLitter attribute like artSlope, brown/darken floor within ~6m of non-urban trees in paintTerrain. This is the authentic pine-needle-floor win, cheaper than more scatter.
 
 
+## R26: forest-floor litter field
+
+- Ground under forests was green lawn — real forest floors are brown needle/leaf litter. `buildTerrain` now bakes a per-vertex `artLitter` mask from actual tree positions (spatial hash, radius 8.5m*scale, overlapping trees accumulate), plumbed like `artSlope`; `paintTerrain` softens with noise and mixes toward umber litter color, suppressed on roads/shore/exposed rock.
+- Evidence: `r26b-spawn-road-compare.jpg` — ground under tree clusters reads as umber forest floor with soft noise-broken edges. Dense-forest poses underrepresented in fixed harness.
+- Probe environment degraded: machine had 2.8GB RAM free and 54 chrome processes; first run city `11.506/13.132 ms` (in envelope) but failed frame-count assertion; recheck passed with erratic hitching (p95 spikes) inconsistent with steady-state cost — documented as environmental. Shader cost is ~4 noise evals/terrain-pixel, same class as R17 which cost nothing measurable.
+- No 9/10 claim.
+
+
 
 - Approved `codex -p deepseek` review of R9 final (`deepseek-flash`, provider `deepseek`, **no OpenAI Codex credits**, read-only, 8,328 tokens): **4.7/10** — A5.0 B4.0 C4.0 D4.5 E5.0 F4.5 G4.5. Dusk/clearing/flashlight/teal water are real gains, but it calls the dusk mostly a palette change, flags the forest/city exposure mismatch, the flashlight’s hard warm/green split, plate-like keeper-house foreground and repeated façades. Still a stylized blockout, not a 9/10 horror presentation.
 
