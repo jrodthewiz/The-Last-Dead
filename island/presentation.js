@@ -43,7 +43,7 @@ export function createPresentation(renderer){
  const blurMat=new T.ShaderMaterial({uniforms:{picture:{value:null},dir:{value:new T.Vector2()}},depthTest:false,depthWrite:false,
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
   fragmentShader:`uniform sampler2D picture;uniform vec2 dir;varying vec2 vUv;void main(){vec3 c=vec3(0.);float w=0.;for(int i=-6;i<=6;i++){float k=exp(-float(i*i)/14.);vec3 s=texture2D(picture,vUv+dir*float(i)).rgb;if(any(isnan(s))||any(isinf(s)))s=vec3(0.);c+=clamp(s,vec3(0.),vec3(32.))*k;w+=k;}gl_FragColor=vec4(c/max(w,.001),1.);}`});
- const uniforms={picture:{value:target.texture},texel:{value:new T.Vector2(1,1)},strength:{value:0},glow:{value:0},finish:{value:1},horizonY:{value:.5},reflEnable:{value:1},wetRefl:{value:1},bloomTex:{value:bloomA.texture},bloomStrength:{value:.22},raw:{value:0},sat:{value:1.14},contrast:{value:1.14},warm:{value:.12},lift:{value:1}};
+ const uniforms={picture:{value:target.texture},texel:{value:new T.Vector2(1,1)},strength:{value:0},glow:{value:0},finish:{value:1},horizonY:{value:.5},reflEnable:{value:1},wetRefl:{value:1},bloomTex:{value:bloomA.texture},bloomStrength:{value:.22},raw:{value:0},sat:{value:1.07},contrast:{value:1.06},warm:{value:.12},lift:{value:1}};
  const material=new T.ShaderMaterial({uniforms,depthTest:false,depthWrite:false,
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
   fragmentShader:`uniform sampler2D picture;uniform vec2 texel;uniform float strength;uniform float glow;uniform float finish;uniform float horizonY;uniform float reflEnable;uniform float wetRefl;uniform sampler2D bloomTex;uniform float bloomStrength;uniform float raw;uniform float sat;uniform float contrast;uniform float warm;uniform float lift;varying vec2 vUv;
@@ -61,7 +61,7 @@ export function createPresentation(renderer){
     vec3 c=gl_FragColor.rgb;
     float l=dot(c,vec3(.2126,.7152,.0722));
     vec3 graded=mix(vec3(l),c,sat);
-    graded+=(1.-smoothstep(.08,.52,l))*vec3(-.006,.004,.012)*lift;
+    graded+=(1.-smoothstep(.08,.52,l))*vec3(-.012,.016,.038)*lift;
     graded+=smoothstep(.54,.95,l)*vec3(.006,.008,.009)*(1.+warm*.45);
     graded+=smoothstep(.55,.95,l)*vec3(.010,.006,.001)*warm;
     graded=mix(graded,smoothstep(0.,1.,clamp(graded,0.,1.)),.10);

@@ -233,6 +233,13 @@ Remaining high-impact:
 - Approved `codex -p deepseek` review: **7.3/10, up from 7.1** — A8.2 B6.9 C6.5 D6.7 E7.0 F6.1 G7.2. Material response is more specific, dry roads improved, but signs/vehicles/figures/HUD still feel crisp and modern; shadows/asphalt crush to near-black; the waterfront still has a pale reflection band.
 - Hydrogen/Antigravity judges remain quota-blocked; no OpenAI Codex credits used. No 9/10.
 
+## R15: atmosphere and shadow separation
+
+- Activated the existing height-fog path more assertively (`.0036/.70` to `.0068/.77`), strengthened the cool directional fill (`.35` to `.55`), softened the global grade (`1.14/1.14` to `1.06/1.07` contrast/saturation), and lifted shadow tails toward blue-green rather than red-black. No second reflection system, no photorealistic rewrite, and no removal of the Kuwahara/gouache identity.
+- An experimental procedural wet-lamp lattice was tried and removed before commit: it was too subtle visually to justify any full-screen wet-shader cost. Authored practical integration remains a separate follow-up.
+- SwiftShader fixed evidence (correctness/visuals only): zero page errors. Waterfront lower-half luminance mean `.1499` to `.2032`, p10 `.0037` to `.0533`, pixels under `.02` `.227` to `0`; spawn lower-half mean `.1768` to `.2063`, saturation `.148` to `.116`. The wet foreground remains moody but no longer mathematically crushed.
+- Serialized GTX 1650 probe, `r15-final-local-20261125`: zero errors; GPU timer arrival median/p95 `8.027/10.580 ms`, city `11.258/12.714 ms`. Same-harness clean R14 baseline was arrival `7.919/13.129`, city `15.152/18.081`, so R15 is not a regression, but the absolute 100 fps-class target is still unmet. Capped browser intervals remain 16.7 ms/vsync-dominated.
+- SWE-2.1 visual self-judge with pixel evidence: clarity 7.4, depth 7.1, material 6.7, consistency 6.4 (not comparable to the older deepseek scale). Gains are real in city depth/shadow readability; forest/terrain still dominates with flat brown earth and toy-green foliage, signs/figures/HUD remain crisp/modern, waterfront still has a broad mirror band, and practical lamps mostly read as emissive fixtures/reflections rather than light affecting the world. No 9/10.
 
 
 

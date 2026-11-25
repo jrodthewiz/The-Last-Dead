@@ -49,11 +49,11 @@ export function installCoastalFog(){
   float baseAmt = smoothstep(fogNear, fogFar, vFogDepth);
  #endif
  float hb = 0.044;
- float ha = 0.0036;
+ float ha = 0.0068;
  float dy = fdv.y;
  float hterm = abs(dy) > 0.05 ? (1.0 - exp(-hb * dy)) / (hb * dy) : 1.0;
  float hfog = ha * exp(-hb * max(cameraPosition.y, 0.0)) * min(fdist, 550.0) * hterm;
- float fogAmt = clamp(max(baseAmt, (1.0 - exp(-hfog)) * 0.70), 0.0, 1.0);
+ float fogAmt = clamp(max(baseAmt, (1.0 - exp(-hfog)) * 0.77), 0.0, 1.0);
  vec3 sunDir = vec3(-0.5999, 0.7042, 0.3756);
  float sunAmt = max(dot(fdir, sunDir), 0.0);
  vec3 fc = fogColor;
