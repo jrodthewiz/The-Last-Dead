@@ -285,6 +285,14 @@ Remaining high-impact:
 - Remaining gaps: crisp modern signage/figures/HUD, plaza/pavement paleness, canopy geometry simplicity (identity-bound). No 9/10 claim.
 
 
+## R21: painted-sign weathering
+
+- All signage (atlas labels + freestanding boards) gains canvas-time weathering via shared `weatherBoard()` in `world-labels.js`: paint-erosion flecks concentrated in the lettering band (deterministic mulberry32 per sign), grime streaks, speckle, edge vignette. Zero runtime cost — same textures, same draw calls.
+- Evidence: `r21b-ferry-sign.png` — letter strokes show visible paint wear, board surface mottled, sign reads painted-and-weathered rather than printed vector while staying legible. Boot correctness clean in focused captures (zero page errors).
+- No GPU probe: no shader or runtime cost change.
+- Remaining gaps: figures/HUD consistency, pale flat plaza walkways, canopy geometry simplicity (identity-bound). No 9/10 claim.
+
+
 
 - Approved `codex -p deepseek` review of R9 final (`deepseek-flash`, provider `deepseek`, **no OpenAI Codex credits**, read-only, 8,328 tokens): **4.7/10** — A5.0 B4.0 C4.0 D4.5 E5.0 F4.5 G4.5. Dusk/clearing/flashlight/teal water are real gains, but it calls the dusk mostly a palette change, flags the forest/city exposure mismatch, the flashlight’s hard warm/green split, plate-like keeper-house foreground and repeated façades. Still a stylized blockout, not a 9/10 horror presentation.
 

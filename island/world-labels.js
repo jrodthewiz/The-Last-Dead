@@ -1,4 +1,34 @@
 import * as T from '../vendor/three.module.js';
+// Painterly weathering for painted boards: paint erosion flecks, grime
+// streaks, speckle and an edge vignette, all at canvas time so signage reads
+// worn into the world rather than freshly printed. Deterministic per seed.
+export function weatherBoard(c,x,y,w,h,seed,base){
+ let a=seed>>>0;const rnd=()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+ c.fillStyle=base;
+ for(let i=0;i<150;i++){
+  // Flecks concentrate in the lettering band where painted strokes wear first.
+  const px=x+rnd()*w,py=y+h*(.14+rnd()*.72),r=.7+rnd()*3.4;
+  c.globalAlpha=.12+rnd()*.26;
+  c.beginPath();c.arc(px,py,r,0,Math.PI*2);c.fill();
+ }
+ for(let i=0;i<4;i++){
+  const sx=x+rnd()*w,sw=3+rnd()*9,sh=h*(.3+rnd()*.7);
+  const g=c.createLinearGradient(0,y,0,y+sh);
+  g.addColorStop(0,'rgba(30,32,24,.20)');g.addColorStop(1,'rgba(30,32,24,0)');
+  c.globalAlpha=1;c.fillStyle=g;c.fillRect(sx,y,sw,sh);
+ }
+ for(let i=0;i<70;i++){
+  const px=x+rnd()*w,py=y+rnd()*h;
+  c.globalAlpha=.05+rnd()*.08;
+  c.fillStyle=rnd()>.5?'#1c1e16':'#efe8c8';
+  c.fillRect(px,py,1+rnd()*1.6,1+rnd()*1.6);
+ }
+ c.globalAlpha=1;
+ const vg=c.createRadialGradient(x+w/2,y+h/2,h*.3,x+w/2,y+h/2,w*.62);
+ vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(20,22,16,.18)');
+ c.fillStyle=vg;c.fillRect(x,y,w,h);
+ c.globalAlpha=1;
+}
 // Freestanding boards have painted backs, never reversed lettering. Keep the
 // original texture and draw call; explicit two-faced waymarks own both fronts.
 export function worldBoardMaterial(texture,backColour=0x3d5550){
@@ -21,6 +51,7 @@ export function compileWorldLabels(scene,labels,roomBounds=new Map()){
   c.fillStyle='#'+new T.Color(p.colour||0x516b5c).getHexString();c.fillRect(x,y,cellW,cellH);
   c.strokeStyle='#c6c6a3';c.lineWidth=3;c.strokeRect(x+7,y+7,cellW-14,cellH-14);c.fillStyle='#f0e5bb';c.textAlign='center';c.textBaseline='middle';c.font=p.large?'900 49px Trebuchet MS, Arial':'900 28px Trebuchet MS, Arial';c.fillText(p.text,x+cellW/2,y+(p.subline?35:49),cellW-34);
   if(p.subline){c.fillStyle='#d5d9b8';c.font='700 15px Trebuchet MS, Arial';c.fillText(p.subline,x+cellW/2,y+66,cellW-34);}
+  weatherBoard(c,x,y,cellW,cellH,(p.index+1)*7919,'#'+new T.Color(p.colour||0x516b5c).getHexString());
  }
  const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;texture.magFilter=T.NearestFilter;texture.minFilter=T.LinearMipmapLinearFilter;
  const material=worldBoardMaterial(texture),groups=new Map(),meshes=[];
