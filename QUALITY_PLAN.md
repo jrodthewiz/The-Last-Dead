@@ -301,6 +301,13 @@ Remaining high-impact:
 - Next free role: 15. Remaining gaps: figures/HUD consistency, canopy geometry (identity-bound), window repetition at distance. No 9/10 claim.
 
 
+## R23: worn road markings
+
+- Center-line dashes and crosswalk stripes were crisp bright cream boxes reading as fresh paint. Dimmed toward faded tones and assigned role 14 (aggregate/damp wear) so markings read as weathered paint embedded in the wet street. Zero cost delta — same geometry, role branch probed in R22.
+- Evidence: `r23-marks-compare.jpg` — markings blend into the wet asphalt as worn paint. Boot correctness clean in focused captures.
+- Remaining gaps: figure materials (GLB), window-grid repetition at distance, canopy geometry (identity-bound). No 9/10 claim.
+
+
 
 - Approved `codex -p deepseek` review of R9 final (`deepseek-flash`, provider `deepseek`, **no OpenAI Codex credits**, read-only, 8,328 tokens): **4.7/10** — A5.0 B4.0 C4.0 D4.5 E5.0 F4.5 G4.5. Dusk/clearing/flashlight/teal water are real gains, but it calls the dusk mostly a palette change, flags the forest/city exposure mismatch, the flashlight’s hard warm/green split, plate-like keeper-house foreground and repeated façades. Still a stylized blockout, not a 9/10 horror presentation.
 

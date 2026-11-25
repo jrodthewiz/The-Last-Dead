@@ -134,10 +134,10 @@ function buildRoads(scene,kit){
   for(let col=0;col<=c.blocksX;col++)for(let row=0;row<=c.blocksZ;row++){
     const x=c.originX+col*c.spacing,z=c.originZ+row*c.spacing;
     if(row<c.blocksZ&&col<c.blocksX){dummy.position.set(x+c.spacing/2,c.walkY-.08,z+c.spacing/2);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();walks.setMatrixAt(wi++,dummy.matrix);}
-    if(row<12)for(let k=0;k<6;k++)kit.box(x,c.roadY+.015,z+k*12+6,.2,.025,5,0xd4cba8);
-    if(col<10)for(let k=0;k<6;k++)kit.box(x+k*12+6,c.roadY+.015,z,5,.025,.2,0xd4cba8);
+    if(row<12)for(let k=0;k<6;k++)kit.box(x,c.roadY+.015,z+k*12+6,.2,.025,5,0xc4bba0,0,14);
+    if(col<10)for(let k=0;k<6;k++)kit.box(x+k*12+6,c.roadY+.015,z,5,.025,.2,0xc4bba0,0,14);
     // Short, legible crosswalks. Empty road ownership is retained at junctions.
-    if(col<10&&row<12)for(let k=0;k<5;k++)kit.box(x+10,c.roadY+.022,z-4+k*2,3,.025,.8,0xc8c9b0);
+    if(col<10&&row<12)for(let k=0;k<5;k++)kit.box(x+10,c.roadY+.022,z-4+k*2,3,.025,.8,0xb4b5a0,0,14);
   }
   walks.instanceMatrix.needsUpdate=true;walks.computeBoundingSphere();walks.castShadow=true;walks.receiveShadow=true;
   wetCityGroup.add(walks);scene.add(wetCityGroup);return wetCityGroup;
