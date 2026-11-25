@@ -251,6 +251,15 @@ Remaining high-impact:
 - SWE-2.1 visual self-judge: practical lamps now read as light affecting the world at the waterfront and generator approaches (the R15 gap "fixtures not illumination" is substantially closed at lamp locations). Depth cue in night streets improved. Remaining gaps unchanged: forest/terrain flatness, crisp modern signage/figures/HUD, broad waterfront mirror band. No 9/10 claim.
 
 
+## R17: forest-floor and terrain depth
+
+- `paintTerrain` gains three painterly variation layers, all noise-driven and branch-free: (1) damp-soil patches that darken, green-shift, and gloss forest floor in the 8-20m range; (2) umber hue-variation patches in the soil blend; (3) wet-rock streaking on exposed slopes with strong darkening and roughness drop, plus a mid-frequency value layer across all terrain roles and roughness patchiness so variation survives ACES highlight compression.
+- Rationale recorded for future lines: on sunlit exposed slopes, albedo-only variation is crushed by direct warm light plus tonemap compression; roughness/specular contrast and stronger darkening are the levers that still read.
+- Evidence (`r17-final-20261125` local fixed views): zero errors. Spawn-road and island views show mottled damp forest floor replacing flat green carpet; the previously plaster-flat dusk-lit slope now reads as damp stone with visible patch variation.
+- Serialized GTX 1650 probe: zero errors; arrival median/p95 `8.075/10.804 ms`, city `11.808/13.376 ms` vs R16 `7.856/10.810`, `11.411/12.804` — sub-millisecond cost, same performance class. The 100 fps-class target remains unmet in absolute terms.
+- SWE-2.1 visual self-judge: the "flat brown earth" half of the forest/terrain gap is substantially improved in representative gameplay views. Remaining: foliage still reads toy-green at canopy scale, crisp modern signage/figures/HUD, broad waterfront mirror band. No 9/10 claim.
+
+
 
 - Approved `codex -p deepseek` review of R9 final (`deepseek-flash`, provider `deepseek`, **no OpenAI Codex credits**, read-only, 8,328 tokens): **4.7/10** — A5.0 B4.0 C4.0 D4.5 E5.0 F4.5 G4.5. Dusk/clearing/flashlight/teal water are real gains, but it calls the dusk mostly a palette change, flags the forest/city exposure mismatch, the flashlight’s hard warm/green split, plate-like keeper-house foreground and repeated façades. Still a stylized blockout, not a 9/10 horror presentation.
 

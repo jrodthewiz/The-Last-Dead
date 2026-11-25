@@ -153,6 +153,11 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas){
  artRough=mix(artRough,.16,artPuddle*.82);
  float midPatch=artField(land*.107+2.71)+.3*artNoise(land*.41);
  diffuseColor.rgb*=.83+midPatch*.30;
+ float wetRock=smoothstep(.38,.72,artField(land*.083+5.17)+.25*artNoise(land*.33))*exposed*(1.-artRoad);
+ diffuseColor.rgb*=1.-wetRock*.40;
+ diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(.88,.96,1.02),wetRock*.6);
+ artRough=mix(artRough,.34,wetRock*.55);
+ artRough=clamp(artRough+(midPatch-.62)*.20,.30,.99);
  diffuseColor.rgb*=.92+artDetail.a*.12;
  `);
  shader.fragmentShader=shader.fragmentShader.replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
