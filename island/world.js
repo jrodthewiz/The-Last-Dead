@@ -312,7 +312,7 @@ function buildLandmarks(scene,kit){
   const hill=terrainHeight(-420,-280);for(const dx of [-3,3])for(const dz of [-3,3])kit.rod([-420+dx,hill,-280+dz],[-420+dx*.2,hill+31,-280+dz*.2],.2,COLORS.metal);
   for(let i=0;i<6;i++){const h=hill+i*5,w=3-i*.4;kit.rod([-420-w,h,-280-w],[-420+w-.4,h+5,-280-w+.4],.08,COLORS.metal);kit.box(-420,h,-280,2*w,.15,2*w,COLORS.metal);}kit.rod([-420,hill+30,-280],[-420,hill+39,-280],.16,0x86604a);
   // Civic garden: formal paths and a visible clock tower rather than another block.
-  kit.box(734,14.235,0,114,.48,130,0x7c925c);kit.box(734,14.52,0,8,.08,130,0xc4bb93);kit.box(734,14.52,0,114,.08,8,0xc4bb93);
+  kit.box(734,14.235,0,114,.48,130,0x7c925c,0,13);kit.box(734,14.52,0,8,.08,130,0xc4bb93);kit.box(734,14.52,0,114,.08,8,0xc4bb93);
   kit.add('cylinder',734,15,0,9,1.4,9,0xc2bca1);kit.add('cylinder',734,15.7,0,7,.2,7,0x719c99);kit.box(734,27,0,7,24,7,0xc9c1a2);kit.box(734,39.5,0,9,2,9,0xe0d7b2);kit.add('cone',734,45,0,7,10,7,0x53756c,Math.PI/4);
   for(const x of [690,778])for(let z=-54;z<=54;z+=27)tree(kit,x,14.4,z,.9,'broad');
   for(const side of [-1,1])sign(scene,'SAINT ORIN · 1894',734,18,side*3.55,6,side>0?0:Math.PI,true);

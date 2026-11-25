@@ -276,6 +276,15 @@ Remaining high-impact:
 - Remaining gaps: civic lawn/plaza flat toy-green with tiling stripes, crisp modern signage/figures/HUD, canopy geometry simplicity (identity-bound). No 9/10 claim.
 
 
+## R20: civic lawn ground-cover role
+
+- The civic lawn was a flat 114x130m slab (`0x7c925c`) inheriting the wood/trunk role-3 treatment — its stretched noise produced the visible linear stripes and toy-green carpet reading. New dedicated role 13: multi-scale patch noise, worn yellow-brown patches, hue jitter toward olive, 10% desaturation, noise-driven roughness; detail layer 7 instead of wood grain.
+- Evidence: `r20-lawn-compare.jpg` — stripes gone, lawn reads as patchy worn ground cover; canopy volume from R18 also visible. Full 10-view regression `r20-final-20261125` zero errors.
+- Serialized GTX 1650 probe: arrival median/p95 `6.649/8.397 ms`, city `10.938/12.245 ms` — no regression.
+- Role inventory note: roles 0-12 were fully packed; planks occupy BOTH 11 and 12 (orientation split); next free role after 13 is 14. Insertion ordering in the role chain is comparison-dependent — `>12.5` must precede `>10.5`.
+- Remaining gaps: crisp modern signage/figures/HUD, plaza/pavement paleness, canopy geometry simplicity (identity-bound). No 9/10 claim.
+
+
 
 - Approved `codex -p deepseek` review of R9 final (`deepseek-flash`, provider `deepseek`, **no OpenAI Codex credits**, read-only, 8,328 tokens): **4.7/10** — A5.0 B4.0 C4.0 D4.5 E5.0 F4.5 G4.5. Dusk/clearing/flashlight/teal water are real gains, but it calls the dusk mostly a palette change, flags the forest/city exposure mismatch, the flashlight’s hard warm/green split, plate-like keeper-house foreground and repeated façades. Still a stylized blockout, not a 9/10 horror presentation.
 

@@ -384,6 +384,16 @@ vec3 artWindowRoom(vec2 wf,vec3 vDir,vec3 nW,float seed,float isLit,float shopFl
     artCityWet=n.y>.7?(walkDamp*.28+walkPuddle*.56):0.;
     artRough=mix(.84,.58,walkDamp);
     artRough=mix(artRough,.20,walkPuddle);artMetal=0.;
+   }else if(vArtRole>12.5){
+    float lawnPatch=artField(vArtWorld.xz*.041+3.3)+.3*artNoise(vArtWorld.xz*.23);
+    float lawnWorn=smoothstep(.58,.86,artField(vArtWorld.xz*.017+9.1));
+    vec3 lawnHue=mix(vec3(.92,1.02,.78),vec3(1.06,.98,.66),artNoise(vArtWorld.xz*.13));
+    diffuseColor.rgb*=lawnHue*(.80+lawnPatch*.26);
+    diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.02,.88,.62),lawnWorn*.5);
+    diffuseColor.rgb*=1.-lawnWorn*.18;
+    float lawnLum=dot(diffuseColor.rgb,vec3(.333));
+    diffuseColor.rgb=mix(vec3(lawnLum),diffuseColor.rgb,.90);
+    artRough=.82+artNoise(vArtWorld.xz*.6)*.10;artMetal=0.;
    }else if(vArtRole>10.5){
     if(n.y>.7){
      vec2 plank=vArtRole<11.5?vArtWorld.xz:vArtWorld.zx;
@@ -441,7 +451,7 @@ vec3 artWindowRoom(vec2 wf,vec3 vDir,vec3 nW,float seed,float isLit,float shopFl
     artSemAO*=mix(1.,pbrA.r,.52);
     artWorldNormal=artApplyDetail(artWorldNormal,pbrN,1.18*(1.-artCityWet*.78));
    }
-   float artLayer=vArtRole<.5?7.:vArtRole<1.5?0.:vArtRole<2.5?4.:vArtRole<3.5?3.:vArtRole<4.5?7.:vArtRole<5.5?6.:vArtRole<6.5?6.:vArtRole<7.5?1.:vArtRole<8.5?6.:vArtRole<9.5?2.:vArtRole<10.5?5.:3.;
+   float artLayer=vArtRole<.5?7.:vArtRole<1.5?0.:vArtRole<2.5?4.:vArtRole<3.5?3.:vArtRole<4.5?7.:vArtRole<5.5?6.:vArtRole<6.5?6.:vArtRole<7.5?1.:vArtRole<8.5?6.:vArtRole<9.5?2.:vArtRole<10.5?5.:vArtRole<12.5?3.:7.;
    artDist=length(cameraPosition-vArtWorld);
    float artFade=1.-smoothstep(42.,70.,artDist);
    bool hasNormalDetail=vArtRole<3.5||(vArtRole>6.5);
