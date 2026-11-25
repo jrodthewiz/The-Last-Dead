@@ -93,7 +93,7 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas){
  vec3 soil=mix(${rgb(0x354838)},${rgb(0x4c5d43)},smoothstep(.20,.78,field));
  soil=mix(soil,${rgb(0x5d6448)},smoothstep(.58,.86,heather)*.45);
  soil*=.92+tuft*.14;
- soil*=.94+artNoise(land*.63)*.10;
+ soil*=.94+artNoise(land*.63)*.10;soil*=1.+(artNoise(vec2(land.x*2.6,land.y*.36))-.5)*.10;
  float exposed=smoothstep(.025,.11,vSlope+(field-.5)*.035);
  float strata=sin(vGround.y*.65+artNoise(land*.045)*2.8);
  vec3 rock=mix(${rgb(0x3e494f)},${rgb(0x6d777b)},artField(land*.1))*(.90+strata*.14);
@@ -513,8 +513,8 @@ vec3 artWindowRoom(vec2 wf,vec3 vDir,vec3 nW,float seed,float isLit,float shopFl
     vec3 gShadow=diffuseColor.rgb*vec3(.20,.24,.32);
     vec3 gLit=diffuseColor.rgb*vec3(1.22,1.04,.84);
     vec3 gPaint=mix(gShadow,gLit,gQ);
-    float gBrush=artField(vArtWorld.xz*3.4+artWorldNormal.xz*2.1+vec2(.7,-1.3))-.5;
-    gPaint*=1.+gBrush*.32;
+    vec2 gBrushUv=(vArtRole>-.5&&vArtRole<3.5)?vec2(vArtWorld.x*2.2,vArtWorld.y*8.0):(vArtRole>6.5&&vArtRole<8.0)?vec2(vArtWorld.x*4.8,vArtWorld.z*1.2):vArtWorld.xz*3.4;\n    float gBrush=(artNoise(gBrushUv+vec2(.7,-1.3))*.70+artNoise(gBrushUv*2.7-vec2(1.7,.9))*.30)-.5;
+    gPaint*=1.+gBrush*.38;gPaint*=mix(.72,1.,artSemAO);if(vArtRole>3.5&&vArtRole<4.5){float facet=artNoise(vArtWorld.xz*1.9+artWorldNormal.xz*4.1);gPaint*=mix(.78,1.14,facet);}
     if(vArtRole>3.5&&vArtRole<4.5){float gLum=dot(gPaint,vec3(.2126,.7152,.0722));gPaint=mix(vec3(gLum),gPaint,.55)*vec3(.60,.72,.55);}
     outgoingLight=mix(outgoingLight,gPaint,(vArtRole>3.5&&vArtRole<4.5)?.82:.46);
    }
@@ -612,13 +612,13 @@ varying vec4 vReflUv;\n`+DETAIL_PARS+noise+wetRippleGLSL+shader.fragmentShader;
    float tracks=clamp(max(laneNS,laneEW)*(.45+.55*artNoise(warp*.14)),0.,1.);
    float curbNear=(1.-smoothstep(5.4,7.4,min(abs(rx),abs(rz))))*.09;
    wDamp=wUp*smoothstep(.28,.54,basin+tracks*.10+curbNear);
-   wPuddle=wUp*smoothstep(.58,.73,basin+tracks*.16+curbNear);
+   wPuddle=wUp*smoothstep(.70,.86,basin+tracks*.10+curbNear);
    diffuseColor.rgb*=mix(.70,.94,wear)*(.86+agg*.18-rep*.12)*mix(1.,pLum*1.48,.46);
    diffuseColor.rgb*=1.-tracks*.16;
    diffuseColor.rgb*=mix(1.,.66,wDamp)*mix(1.,.44,wPuddle);
    wRough=clamp(.46+(pA.g-.5)*.82,.26,.96);
    wRough=mix(wRough,clamp(.34+(pA.g-.5)*.45,.20,.58),wDamp);
-   wRough=mix(wRough,.05,wPuddle);
+   wRough=mix(wRough,.11,wPuddle);
    `:`
    vec2 slab=wp*.6;slab.x+=mod(floor(slab.y),2.)*.5;
    vec2 sf=fract(slab),saa=max(fwidth(slab),vec2(.012));
@@ -628,13 +628,13 @@ varying vec4 vReflUv;\n`+DETAIL_PARS+noise+wetRippleGLSL+shader.fragmentShader;
    float walkNoise=artField(wp*.088+vec2(4.1,1.7))*.58+artNoise(wp*.28)*.28+artNoise(wp*.68)*.14-slabTilt;
    float curbPool=(abs(rx)<9.4||abs(rz)<9.4)?.09:0.;
    wDamp=wUp*smoothstep(.30,.56,walkNoise+curbPool);
-   wPuddle=wUp*smoothstep(.61,.77,walkNoise+curbPool);
+   wPuddle=wUp*smoothstep(.74,.90,walkNoise+curbPool);
    diffuseColor.rgb*=mix(.84,1.,curbWear)*(.76+.12*artHash(floor(slab))-.22*joint)*mix(1.,pLum*1.44,.44);
    if(wUp<.5)diffuseColor.rgb*=.72;
    diffuseColor.rgb*=mix(1.,.74,wDamp)*mix(1.,.54,wPuddle);
    wRough=clamp(.64+(pA.g-.5)*.78,.32,.97);
    wRough=mix(wRough,clamp(.42+(pA.g-.5)*.46,.26,.68),wDamp);
-   wRough=mix(wRough,.08,wPuddle);
+   wRough=mix(wRough,.14,wPuddle);
    `}
    wWorldN=artApplyDetail(wWorldN,pN,2.10*(1.-wPuddle*.78));
    float ripFade=1.-smoothstep(18.,58.,wDist);

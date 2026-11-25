@@ -225,6 +225,15 @@ Remaining high-impact:
 - Approved `codex -p deepseek` review (`deepseek-flash`, provider `deepseek`, no OpenAI Codex credits, 20,708 tokens): **7.1/10, up from 6.4**. The reviewer calls the stronger dry-brush real but not fully material-aware; it still reads as a shared wash. Best views: gameplay B+, Old Town B−, Keeper House B−, Generator B−, Interior B, Canopy/Water C, Waterfront C+.
 - Next: material-aware directional strokes/edge pooling/roughness-sensitive breakup; tame the reflective roads and chalky white streaks; facet-aware foliage/terrain strokes and stronger contact AO. No 9/10.
 
+## R14: directional paint and localized puddles
+
+- Role-directional dry-brush: vertical strokes on walls, horizontal on brick/wood, world-space on foliage; stronger edge pooling with `artSemAO`; facet variation on foliage.
+- Localized puddles: road threshold `.70–.86`, sidewalk `.74–.90`; reflection max reduced to `.64/.56`; roughness raised. The broad white road streaks are gone in Old Town.
+- `shader-r14-painted`: 356 frames, median 16.7 ms, p95 16.8, p99 16.9, max 83.2 (one host stall); 173 calls, 617k triangles, 310 textures, no errors. The uncapped rerun was host-contended at 77.8 fps/p95 28; the clean R11b uncapped remains 155.5 fps.
+- Approved `codex -p deepseek` review: **7.3/10, up from 7.1** — A8.2 B6.9 C6.5 D6.7 E7.0 F6.1 G7.2. Material response is more specific, dry roads improved, but signs/vehicles/figures/HUD still feel crisp and modern; shadows/asphalt crush to near-black; the waterfront still has a pale reflection band.
+- Hydrogen/Antigravity judges remain quota-blocked; no OpenAI Codex credits used. No 9/10.
+
+
 
 
 - Approved `codex -p deepseek` review of R9 final (`deepseek-flash`, provider `deepseek`, **no OpenAI Codex credits**, read-only, 8,328 tokens): **4.7/10** — A5.0 B4.0 C4.0 D4.5 E5.0 F4.5 G4.5. Dusk/clearing/flashlight/teal water are real gains, but it calls the dusk mostly a palette change, flags the forest/city exposure mismatch, the flashlight’s hard warm/green split, plate-like keeper-house foreground and repeated façades. Still a stylized blockout, not a 9/10 horror presentation.
