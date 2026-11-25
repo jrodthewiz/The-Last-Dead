@@ -469,6 +469,49 @@ function createLampCones(scene,spots){
   mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();mesh.renderOrder=2;scene.add(mesh);
   return mesh;
 }
+// Warm pools of lamplight on the wet pavement: one instanced decal per lamp,
+// broken up painterly so no two read as the same painted ellipse. Cheap: a
+// single instanced draw, no per-pixel work on the road shader itself.
+function createLampPools(scene,spots){
+  if(!spots.length)return null;
+  // Painterly lamplight decals on the wet pavement. Uses the exact recipe the
+  // codebase's contact shadows prove on these roads: MeshBasicMaterial,
+  // canvas texture, polygonOffset, no depth write. The warm pool is baked
+  // into the texture with noise broken edges so no two read as one ellipse.
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=128;
+  const c=canvas.getContext('2d');
+  const g=c.createRadialGradient(64,64,3,64,64,64);
+  g.addColorStop(0,'rgba(255,196,110,.95)');
+  g.addColorStop(.28,'rgba(255,164,72,.55)');
+  g.addColorStop(.62,'rgba(230,128,44,.20)');
+  g.addColorStop(1,'rgba(210,110,36,0)');
+  c.fillStyle=g;c.fillRect(0,0,128,128);
+  // Painterly breakup: erase drifting holes and streaks so the pool edge is
+  // ragged like light on wet aggregate rather than a vector ellipse.
+  c.globalCompositeOperation='destination-out';
+  for(let i=0;i<46;i++){
+    const a=Math.random()*Math.PI*2,r=22+Math.random()*42,x=64+Math.cos(a)*r,y=64+Math.sin(a)*r;
+    const rad=2+Math.random()*8;
+    const hole=c.createRadialGradient(x,y,0,x,y,rad);
+    hole.addColorStop(0,'rgba(0,0,0,'+(.25+Math.random()*.5)+')');
+    hole.addColorStop(1,'rgba(0,0,0,0)');
+    c.fillStyle=hole;c.beginPath();c.arc(x,y,rad,0,Math.PI*2);c.fill();
+  }
+  c.globalCompositeOperation='source-over';
+  const texture=new T.CanvasTexture(canvas);
+  const mat=new T.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,blending:T.AdditiveBlending,polygonOffset:true,polygonOffsetFactor:-2});
+  const geo=new T.PlaneGeometry(1,1).rotateX(-Math.PI/2);
+  const mesh=new T.InstancedMesh(geo,mat,spots.length);
+  const poolY=CITY_GROUND.roadY+.06;
+  spots.forEach(([x,,z],i)=>{
+    const seed=fract(Math.sin(i*12.9898)*43758.5453);
+    const radius=9.5+seed*3.5;
+    dummy.position.set(x,poolY,z);dummy.quaternion.identity();dummy.rotation.set(0,seed*Math.PI*2,0);dummy.scale.set(radius,1,radius*(0.8+seed*0.3));dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);
+  });
+  mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();mesh.renderOrder=2;mesh.userData.lampPools=true;scene.add(mesh);
+  return mesh;
+}
+function fract(x){return x-Math.floor(x);}
 function createWater(scene){
   const n=256,pixels=new Uint8Array(n*n);for(let z=0;z<n;z++)for(let x=0;x<n;x++)pixels[z*n+x]=Math.round(clamp((baseHeight(TERRAIN.minX+x/(n-1)*2950,TERRAIN.minZ+z/(n-1)*2000)+8)/32,0,1)*255);
   const depths=new T.DataTexture(pixels,n,n,T.RedFormat);depths.minFilter=depths.magFilter=T.LinearFilter;depths.needsUpdate=true;
@@ -531,6 +574,8 @@ export function createWorld(scene,data,{arrivalTreads=false}={}){
   lampSpots.push([HOSPITAL_GENERATOR.x,17.85,HOSPITAL_GENERATOR.z-3,3.8]);
   createLampCones(scene,lampSpots);
   const lampCones=scene.children.at(-1);
+  createLampPools(scene,lampSpots);
+  const lampPools=scene.children.at(-1);
   const routes=routeCraft(kit,data);
   compilePieces(kit,domesticExteriorPlan(data,terrainHeight).pieces);
   const settlement=buildSettlement(scene,kit,data,sign);
@@ -553,7 +598,7 @@ export function createWorld(scene,data,{arrivalTreads=false}={}){
   }
   const stats=kit.finish();stats.botany=botany;stats.routes=routes;const contactShadows=addContactShadows(scene,data);const movingRoots=new Set([sky.sky,rain.mesh,sun,sun.target,settlement.boat]);for(const root of scene.children)if(!root.isCamera&&!movingRoots.has(root))freezeLocalTransforms(root);const coastalMotion=createCoastalMotion(scene),life=createSettlementLife(scene,data);
   const birds=new T.Group();const birdMat=new T.MeshBasicMaterial({color:0x3e5754});for(let i=0;i<12;i++){const geo=surface([-1,0,0,0,.25,0,0,0,.3,0,.25,0,1,0,0,0,0,.3]);const bird=new T.Mesh(geo,birdMat);bird.userData.phase=i*.52;birds.add(bird);}scene.add(birds);
-  const reflHide=[{obj:water.water},{obj:rain.mesh},{obj:lampCones},{obj:birds},{obj:wetCityGroup,cityOnly:true},{obj:terrainMesh,cityOnly:true},{obj:accessMesh,cityOnly:true},...contactShadows.map(obj=>({obj})),...stats.detailRoots.map(obj=>({obj}))];
+  const reflHide=[{obj:water.water},{obj:rain.mesh},{obj:lampCones},{obj:lampPools},{obj:birds},{obj:wetCityGroup,cityOnly:true},{obj:terrainMesh,cityOnly:true},{obj:accessMesh,cityOnly:true},...contactShadows.map(obj=>({obj})),...stats.detailRoots.map(obj=>({obj}))];
   const worldObj={stats,sun,hemi,lighting,fill,water:water.uniforms,sky,reflHide,shadowUpdated:false,coastalMotion,life,settlement,update(time,player,day=.68,relays=[],fov=60){const roomScale=Math.max(1,Math.min(2.4,Math.tan(Math.PI/6)/Math.tan(fov*Math.PI/360)));stats.update(player,roomScale);kit.material.userData.wind.value=time;life.update(time,player);settlement.update(time,player);water.uniforms.time.value=time;sky.uniforms.time.value=time;sky.sky.position.copy(player);rain.update(time);coastalMotion.update(time,relays);const light=.55+.45*Math.max(0,Math.sin(day*Math.PI));sun.intensity=1.42*light*lighting.key;hemi.intensity=(.78+.20*light)*lighting.fill;const sx=Math.round(player.x),sz=Math.round(player.z),sy=groundHeight(sx,sz);sunPoint.set(sx,sy,sz).applyMatrix4(sunInv);sunPoint.x=Math.round(sunPoint.x/sunTexel)*sunTexel;sunPoint.y=Math.round(sunPoint.y/sunTexel)*sunTexel;sunPoint.z=Math.round(sunPoint.z/sunTexel)*sunTexel;sunPoint.applyMatrix4(sunRot);sun.target.position.copy(sunPoint);sun.position.copy(sunPoint).addScaledVector(sunDir,220);sun.target.updateMatrixWorld();// Keep the 1536px shadow pass at 17Hz; lighting and colour still draw every frame.
     // Teleports invalidate immediately; the cached map stays world anchored
     // between updates under the fixed sun direction.

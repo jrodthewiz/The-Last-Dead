@@ -242,6 +242,15 @@ Remaining high-impact:
 - SWE-2.1 visual self-judge with pixel evidence: clarity 7.4, depth 7.1, material 6.7, consistency 6.4 (not comparable to the older deepseek scale). Gains are real in city depth/shadow readability; forest/terrain still dominates with flat brown earth and toy-green foliage, signs/figures/HUD remain crisp/modern, waterfront still has a broad mirror band, and practical lamps mostly read as emissive fixtures/reflections rather than light affecting the world. No 9/10.
 
 
+## R16: practical-light integration
+
+- Added `createLampPools` in `island/world.js`: one instanced additive decal per lamp spot (city grid, waterfront, hospital generator), warm radial pool baked into a canvas texture with noise-broken edges, per-instance rotation/scale variation, `renderOrder` 2, hidden from planar reflections. No per-pixel cost on the wet-road shader; a single instanced draw.
+- Rendering lesson recorded for future lines: a custom `ShaderMaterial` ground decal at road level failed to produce pixels at grazing angles in this pipeline despite correct instancing/bounds/compile; the codebase-proven recipe is `MeshBasicMaterial` + `CanvasTexture` + `polygonOffset(-2)` + `depthWrite:false` (the same pattern `addContactShadows` uses). Pools render correctly with it.
+- SwiftShader-free local evidence (`r16-lamppools-v2-20261125`): zero page errors, all 10 fixed views captured. Warm pools read as illumination under waterfront/generator/street lamps; wet asphalt texture shows through so they do not read as flat decals; figures standing in pools gain warm grounding.
+- Serialized GTX 1650 probe: zero errors; GPU timer arrival median/p95 `7.856/10.810 ms`, city `11.411/12.804 ms` — statistically even with R15 (`8.027/10.580`, `11.258/12.714`), so practical-light integration cost is negligible. The 100 fps-class target remains unmet in absolute terms.
+- SWE-2.1 visual self-judge: practical lamps now read as light affecting the world at the waterfront and generator approaches (the R15 gap "fixtures not illumination" is substantially closed at lamp locations). Depth cue in night streets improved. Remaining gaps unchanged: forest/terrain flatness, crisp modern signage/figures/HUD, broad waterfront mirror band. No 9/10 claim.
+
+
 
 - Approved `codex -p deepseek` review of R9 final (`deepseek-flash`, provider `deepseek`, **no OpenAI Codex credits**, read-only, 8,328 tokens): **4.7/10** — A5.0 B4.0 C4.0 D4.5 E5.0 F4.5 G4.5. Dusk/clearing/flashlight/teal water are real gains, but it calls the dusk mostly a palette change, flags the forest/city exposure mismatch, the flashlight’s hard warm/green split, plate-like keeper-house foreground and repeated façades. Still a stylized blockout, not a 9/10 horror presentation.
 
