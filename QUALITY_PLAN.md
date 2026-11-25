@@ -268,6 +268,14 @@ Remaining high-impact:
 - Remaining gaps: crisp modern signage/figures/HUD, broad waterfront mirror band, canopy geometry simplicity (identity-bound). No 9/10 claim.
 
 
+## R19: waterfront mirror-band breakup
+
+- Wet-shader reflection gains painterly breakup: ripple jitter amplitude raised (`0.046*wPuddle+0.014` from `0.028+0.010`), max reflection amount lowered (.88/.78 to .82/.72), and per-pixel patchiness `reflAmt *= .52+.48*artField(wp*.53+1.7)` so grazing-angle sky reflections break into streaks rather than a uniform mirror sheet.
+- Evidence: waterfront band crop compares — the bright reflection band now shows mottled bright/dark variation and reads as textured wet asphalt; full 10-view regression `r19-final-20261125` zero errors; no wet-surface regressions in civic/oldtown.
+- Serialized GTX 1650 probe: arrival median/p95 `7.178/8.847 ms`, city `11.055/12.690 ms` — even with R18 within probe variance.
+- Remaining gaps: civic lawn/plaza flat toy-green with tiling stripes, crisp modern signage/figures/HUD, canopy geometry simplicity (identity-bound). No 9/10 claim.
+
+
 
 - Approved `codex -p deepseek` review of R9 final (`deepseek-flash`, provider `deepseek`, **no OpenAI Codex credits**, read-only, 8,328 tokens): **4.7/10** — A5.0 B4.0 C4.0 D4.5 E5.0 F4.5 G4.5. Dusk/clearing/flashlight/teal water are real gains, but it calls the dusk mostly a palette change, flags the forest/city exposure mismatch, the flashlight’s hard warm/green split, plate-like keeper-house foreground and repeated façades. Still a stylized blockout, not a 9/10 horror presentation.
 

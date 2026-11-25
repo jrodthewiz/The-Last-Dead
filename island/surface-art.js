@@ -676,7 +676,7 @@ varying vec4 vReflUv;\n`+DETAIL_PARS+noise+wetRippleGLSL+shader.fragmentShader;
   shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`
    if(wUp>.5&&uReflEnabled>.5&&uArtDebug<.5){
     vec2 ruv=vReflUv.xy/max(vReflUv.w,1e-4);
-    vec2 gJit=(wN.xz)*(0.028*wPuddle+0.010);
+    vec2 gJit=(wN.xz)*(0.046*wPuddle+0.014);
     vec2 uvSharp=clamp(ruv+gJit,0.002,0.998);
     vec2 uvBlur=clamp(ruv+gJit*0.45,0.002,0.998);
     vec2 aa=vec2(.0018,.0030);
@@ -687,7 +687,8 @@ varying vec4 vReflUv;\n`+DETAIL_PARS+noise+wetRippleGLSL+shader.fragmentShader;
     float NoV=clamp(dot(normal,rV),0.,1.);
     float fres=0.06+0.94*pow(1.-NoV,3.2);
     float dFade=1.-smoothstep(90.,240.,wDist);
-    float reflAmt=mix(${isRoad?'.12':'.06'},${isRoad?'.88':'.78'},wPuddle)*mix(.32,1.,fres)*dFade;
+    float reflAmt=mix(${isRoad?'.12':'.06'},${isRoad?'.82':'.72'},wPuddle)*mix(.32,1.,fres)*dFade;
+    reflAmt*=.52+.48*artField(wp*.53+1.7);
     outgoingLight=outgoingLight*(1.-reflAmt*.48)+rCol*reflAmt;
    }
    #include <opaque_fragment>
