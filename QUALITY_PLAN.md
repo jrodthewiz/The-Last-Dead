@@ -216,6 +216,16 @@ Remaining high-impact:
 - Approved `codex -p deepseek` review of the first R11 frame (`deepseek-flash`, provider `deepseek`, no OpenAI Codex credits): **6.4/10, +0.3 vs 6.1** — painterly authenticity C+, ramp C, dry-brush C−, crisp text/water B−, palette/mood B, foliage C−, Fable-style finish C. It says the treatment is partly genuine, partly a screen filter; materials, shadows, interior and foliage still need hand-authored paint.
 - The final foliage palette and shop bulb are in the captured `r11b` images but were not re-scored. No 9/10.
 
+## R12/R13: reject the regression, restore the Fable look, push material paint
+
+- R12 briefly disabled the painter pass and reverted to a cold silver palette for performance; the result lost the 6.4 look and still measured 80 fps/p95 27.7. That trade was rejected.
+- R13 restored the R11b warm gouache/Kuwahara look, kept the KEEPER'S STORE sign and shop cord/cap, restored the original 06/07/14 poses, and strengthened the dry-brush (`gBrush *.32`) and three-step ramp mix (built `.46`, foliage `.82`).
+- `shader-r13-painted`: 353 frames, median 16.7 ms, p95 16.8, p99 33.2, max 100 (one host stall); 173 calls, 617k triangles, 310 textures, no errors. The uncapped rerun was host-contended (73.6 fps, p95 30.2); the clean R11b uncapped was 155.5 fps / 7.4 ms p95.
+- 29/29 unit tests pass.
+- Approved `codex -p deepseek` review (`deepseek-flash`, provider `deepseek`, no OpenAI Codex credits, 20,708 tokens): **7.1/10, up from 6.4**. The reviewer calls the stronger dry-brush real but not fully material-aware; it still reads as a shared wash. Best views: gameplay B+, Old Town B−, Keeper House B−, Generator B−, Interior B, Canopy/Water C, Waterfront C+.
+- Next: material-aware directional strokes/edge pooling/roughness-sensitive breakup; tame the reflective roads and chalky white streaks; facet-aware foliage/terrain strokes and stronger contact AO. No 9/10.
+
+
 
 - Approved `codex -p deepseek` review of R9 final (`deepseek-flash`, provider `deepseek`, **no OpenAI Codex credits**, read-only, 8,328 tokens): **4.7/10** — A5.0 B4.0 C4.0 D4.5 E5.0 F4.5 G4.5. Dusk/clearing/flashlight/teal water are real gains, but it calls the dusk mostly a palette change, flags the forest/city exposure mismatch, the flashlight’s hard warm/green split, plate-like keeper-house foreground and repeated façades. Still a stylized blockout, not a 9/10 horror presentation.
 

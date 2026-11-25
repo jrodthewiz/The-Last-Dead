@@ -9,7 +9,7 @@ export function authoredDetails(scene,kit,data,sign){
   let y=terrainHeight(36,16);
   kit.box(36,y+1.7,16,8,3.4,10,0xb7b39a);kit.box(36,y+3.6,16,9,.5,11,0x586b61);
   kit.box(31.94,y+2,16,.1,1.1,7,0x445f5c);kit.box(36,y+1.8,10.93,5,1.3,.12,0x526c65);
-  sign(scene,'LAST CROSSING Â· KEEP LEFT',20,groundHeight(20,0)+4.7,0,10,Math.PI/2);
+  sign(scene,'LAST CROSSING · KEEP LEFT',20,groundHeight(20,0)+4.7,0,10,Math.PI/2);
   for(const x of [-85,-60,-35,-10,30,385])for(const z of [-8.4,8.4]){
     const gy=groundHeight(x,z);kit.box(x,gy+.4,z,3.8,.8,.7,0x9da38b);
     for(let i=0;i<4;i++)kit.box(x-1.3+i*.8,gy+.5,z-.36,.30,.4,.025,0x6a7060);
@@ -28,7 +28,7 @@ export function authoredDetails(scene,kit,data,sign){
       kit.add('rock',x,terrainHeight(x,z)+.35,z,.75,.65,1.8,0x959c7a,j*.3);
     }
     const z=b.z+b.d/2+2.5;
-    for(const side of [-1,1]){const x=b.x+side*3.5;kit.box(x,terrainHeight(x,z)+.22,z,1.4,.42,1.2,0x615940);kit.add('sphere',x,terrainHeight(x,z)+.8,z,1,.65,.8,0x7e8e49);}
+    for(const side of [-1,1]){const x=b.x+side*3.5,gy=terrainHeight(x,z);kit.box(x,gy-.05,z,1.4,.96,1.2,0x544b36);kit.add('sphere',x,gy+.72,z,1,.65,.8,0x7e8e49);}
   }
   // Survey platform: thirty physical treads, posts and rails, with the same
   // heights used by movement. It gives the signal a visible journey of its own.
@@ -45,7 +45,7 @@ export function authoredDetails(scene,kit,data,sign){
   kit.rod([-400,top+1,-290],[-400,top+1,-282],.06,0x586958);
   // Keep the full board outside the three-metre stair corridor, including
   // its rotated half-width. The old edge passed through descending players.
-  sign(scene,'SIGNAL HILL Â· SURVEY ACCESS',-432,s.base+2.2,-291.6,7,Math.PI/2);
+  sign(scene,'SIGNAL HILL · SURVEY ACCESS',-432,s.base+2.2,-291.6,7,Math.PI/2);
   for(const z of [-294.8,-288.4]){const bottom=terrainHeight(-432,z),height=s.base+2.75-bottom;kit.box(-432,bottom+height/2,z,.14,height,.14,0x586958);}
   // A working-looking generator and sheltered service route at Northpoint.
   const g=HOSPITAL_GENERATOR;
@@ -57,7 +57,7 @@ export function authoredDetails(scene,kit,data,sign){
   for(const x of [997,1004])kit.box(x,16,-305,.16,4,.16,0x637363);
   kit.box(1000.5,18,-305,9,.2,7,0x657d70);kit.box(1000.5,17.86,g.z-3.6,.7,.16,.4,0xead5a2,0,6);
   sign(scene,'EMERGENCY POWER',1000,17,-301.3,7);
-  sign(scene,'KEEPERâ€™S STORE',-795,data.buildings.find(b=>b.id==='lightkeeper').baseY+2.8,-273.2,7);
+  sign(scene,'KEEPER’S STORE',-795,data.buildings.find(b=>b.id==='lightkeeper').baseY+4.25,-273.0,7);
 
 // The seaward face is a working pier, not a floating black slab: driven piles,
 // cross-bracing and a wet rock toe carry the keeper's house into the water.
@@ -77,7 +77,7 @@ export function authoredDetails(scene,kit,data,sign){
   for(const z of [-4.6,4.6]){kit.box(619.4,15.18,z,.24,.18,.24,0x3a423e,0,0);kit.box(619.4,15.32,z,.22,.22,.22,0xffad42,0,6);}
   for(const [bx,bz] of [[605.5,4.2],[615.2,-4.4],[614.2,5.6]]){kit.box(bx,14.32,bz,1.1,.52,.85,0x6e5f44,0,3);kit.box(bx+.2,14.72,bz,.7,.32,.6,0x4d6055,0,0);}
   for(const gz of [-7.35,7.35])for(const gx of [594,606,618]){kit.box(gx,14.057,gz,.90,.014,.46,0x465250,0,0);for(let s=-1.5;s<=1.5;s+=1)kit.box(gx+s*.19,14.065,gz,.05,.006,.38,0x62706d,0,0);}
-  sign(scene,'EVACUATION Â· USE NORTH ROAD',619,17.3,0,11,-Math.PI/2,false,true);
+  sign(scene,'EVACUATION · USE NORTH ROAD',619,17.3,0,11,-Math.PI/2,false,true);
   kit.box(608,15.3,-6,10,2.1,2.7,0xa6ad91);kit.box(608,14.5,-6,10,.45,2.75,0x496c61);kit.box(608,16.45,-6,10.2,.25,2.85,0x48665c);
   for(let i=0;i<7;i++)for(const z of [-7.38,-4.62])kit.box(604.4+i*1.2,15.9,z,.95,.8,.07,0x3c5753);
   for(const x of [604.5,611.5])for(const z of [-7.3,-4.7]){kit.rod([x,14.55,z-.12],[x,14.55,z+.12],.58,0x3d453b);}
@@ -127,11 +127,13 @@ export function authoredDetails(scene,kit,data,sign){
     [1160,192,2.5,6.1,2.6,0x2e585a,0],[1160,192,2.5,6.1,2.6,0x7d4537,0],
     [1163.2,193,2.5,6.1,2.6,0x967e46,.08],[1195,222,2.5,6.1,2.6,0x3b5b5c,-.06],
     [1198.2,223,2.5,6.1,2.6,0x7d4537,.04],[1201,188,2.5,6.1,2.6,0x49615a,0],
-    [1177,214,2.5,6.1,2.6,0x334e50,.12],[1180,224,2.5,6.1,2.6,0x85493a,-.08],
+    [1164,218,2.5,6.1,2.6,0x334e50,.10],
   ]){
     const stackY=cx===1160&&col===0x7d4537?16.65:15.35;
     kit.box(cx,stackY,cz,cw,ch,cd,col,rot,0);
-    for(let k=-2;k<=2;k++)kit.box(cx,stackY,cz+k*1.1,cw+.08,ch-.25,.14,0x263230,rot,0);
+    kit.box(cx,stackY+ch*.47,cz,cw+.08,.12,cd+.08,0x222c2b,rot,0);
+    kit.box(cx,stackY-ch*.47,cz,cw+.08,.12,cd+.08,0x222c2b,rot,0);
+    for(let k=-2;k<=2;k++)kit.box(cx,stackY,cz+k*1.02,cw+.08,ch-.24,.13,0x263230,rot,0);
   }
   for(const [px,pz] of [[1175,214],[1184,219],[1191,206],[1173,182]]){
     kit.box(px,14.20,pz,1.5,.28,1.5,0x766143,0,3);
@@ -139,7 +141,7 @@ export function authoredDetails(scene,kit,data,sign){
     kit.add('cylinder',px+.55,14.78,pz+.35,.26,.88,.26,0x7d4537,0,null,0);
     kit.add('cylinder',px+.55,14.78,pz-.35,.26,.88,.26,0x2e585a,0,null,0);
   }
-  sign(scene,'EAST DOCKS Â· BERTH 4',1175.5,17.2,196,6.5,Math.PI/2,false,true);
+  sign(scene,'EAST DOCKS · BERTH 4',1175.5,17.2,196,6.5,Math.PI/2,false,true);
   // Long horizontal harbour sheds, stepped towers, colonnades and crooked
   // shopfronts give each district a different street-level rhythm.
   const rng=random(901);

@@ -514,9 +514,9 @@ vec3 artWindowRoom(vec2 wf,vec3 vDir,vec3 nW,float seed,float isLit,float shopFl
     vec3 gLit=diffuseColor.rgb*vec3(1.22,1.04,.84);
     vec3 gPaint=mix(gShadow,gLit,gQ);
     float gBrush=artField(vArtWorld.xz*3.4+artWorldNormal.xz*2.1+vec2(.7,-1.3))-.5;
-    gPaint*=1.+gBrush*.22;
+    gPaint*=1.+gBrush*.32;
     if(vArtRole>3.5&&vArtRole<4.5){float gLum=dot(gPaint,vec3(.2126,.7152,.0722));gPaint=mix(vec3(gLum),gPaint,.55)*vec3(.60,.72,.55);}
-    outgoingLight=mix(outgoingLight,gPaint,(vArtRole>3.5&&vArtRole<4.5)?.72:.34);
+    outgoingLight=mix(outgoingLight,gPaint,(vArtRole>3.5&&vArtRole<4.5)?.82:.46);
    }
    #endif
    if(uArtDebug>.5&&uArtDebug<1.5)outgoingLight=artWorldNormal*.5+.5;
