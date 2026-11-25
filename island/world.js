@@ -313,7 +313,7 @@ function buildLandmarks(scene,kit){
   const hill=terrainHeight(-420,-280);for(const dx of [-3,3])for(const dz of [-3,3])kit.rod([-420+dx,hill,-280+dz],[-420+dx*.2,hill+31,-280+dz*.2],.2,COLORS.metal);
   for(let i=0;i<6;i++){const h=hill+i*5,w=3-i*.4;kit.rod([-420-w,h,-280-w],[-420+w-.4,h+5,-280-w+.4],.08,COLORS.metal);kit.box(-420,h,-280,2*w,.15,2*w,COLORS.metal);}kit.rod([-420,hill+30,-280],[-420,hill+39,-280],.16,0x86604a);
   // Civic garden: formal paths and a visible clock tower rather than another block.
-  kit.box(734,14.235,0,114,.48,130,0x7c925c,0,13);kit.box(734,14.52,0,8,.08,130,0xc4bb93);kit.box(734,14.52,0,114,.08,8,0xc4bb93);
+  kit.box(734,14.235,0,114,.48,130,0x7c925c,0,13);kit.box(734,14.52,0,8,.08,130,0xc4bb93,0,14);kit.box(734,14.52,0,114,.08,8,0xc4bb93,0,14);
   kit.add('cylinder',734,15,0,9,1.4,9,0xc2bca1);kit.add('cylinder',734,15.7,0,7,.2,7,0x719c99);kit.box(734,27,0,7,24,7,0xc9c1a2);kit.box(734,39.5,0,9,2,9,0xe0d7b2);kit.add('cone',734,45,0,7,10,7,0x53756c,Math.PI/4);
   for(const x of [690,778])for(let z=-54;z<=54;z+=27)tree(kit,x,14.4,z,.9,'broad');
   for(const side of [-1,1])sign(scene,'SAINT ORIN · 1894',734,18,side*3.55,6,side>0?0:Math.PI,true);
@@ -324,7 +324,7 @@ function buildLandmarks(scene,kit){
   kit.box(970,18.4,-319.02,13,1.60,.22,COLORS.metal);
   kit.label({x:970,y:18.4,z:-318.90,w:12.7,h:1.40,text:'NORTHPOINT HOSPITAL',subline:'EMERGENCY / WARD & ADMISSIONS',colour:COLORS.metal});
   // East ferry: pier, mooring posts, hull, cabins, and gangway.
-  kit.box(1211,13,300,86,2,24,0x9e9e82);for(let x=1174;x<1250;x+=8)kit.box(x,14.08,300,.15,.04,24,0x6b7465);
+  kit.box(1211,13,300,86,2,24,0x9e9e82,0,14);for(let x=1174;x<1250;x+=8)kit.box(x,14.08,300,.15,.04,24,0x6b7465);
   kit.box(1250,8,300,25,8,58,0x3d6667);kit.box(1250,12.2,300,26,.7,58,0xb5baa3);kit.box(1250,15,298,18,5,31,0xd6d0b0);kit.box(1250,18.1,298,20,1,34,0x647f77);kit.box(1250,21,289,13,5,11,0xd7d0af);kit.box(1250,21,283.4,11,2,.1,0x446b70);kit.box(1250,24.4,296,3,5,4,0x9d634a);
   sign(scene,'LAST FERRY',1180,19,292,9);
   for(const p of LANDMARKS){if(p.type==='relay'){const pos=stationPosition(p),gy=groundHeight(pos.x,pos.z);kit.box(pos.x,gy+1.05,pos.z,1.2,2.1,.8,0x5b736c);kit.box(pos.x,gy+1.5,pos.z+.43,.65,.5,.07,0xc69b61);kit.rod([pos.x,gy+2,pos.z],[pos.x,gy+5,pos.z],.045,COLORS.metal);}

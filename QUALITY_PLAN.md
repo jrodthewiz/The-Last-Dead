@@ -293,6 +293,14 @@ Remaining high-impact:
 - Remaining gaps: figures/HUD consistency, pale flat plaza walkways, canopy geometry simplicity (identity-bound). No 9/10 claim.
 
 
+## R22: aggregate-stone role for pale flat surfaces
+
+- Civic garden paths and the ferry pier deck were flat pale slabs inheriting unsuitable roles — the paths showed a garish glossy sheen. New role 14: aggregate grain, large-scale tonal patches, damp darkening with roughness drop. Assigned to both path strips and the pier deck.
+- Evidence: `r22-paths-compare.jpg` — the plastic-like sheen is gone, paths read as worn matte stone; pier deck gains mottling. Full regression `r22-final`/`r22-recheck` zero errors.
+- Probe note: first run read city p95 17.0 ms; immediate recheck read 13.2 ms — inside the R17-R20 noise envelope (12.2-13.4). Arrival p95 variance matches R17's own 10.8 ms reading. Verdict: probe noise, no real regression. Probe variance on this machine is +/-2 ms and single elevated runs should always be rechecked before acting.
+- Next free role: 15. Remaining gaps: figures/HUD consistency, canopy geometry (identity-bound), window repetition at distance. No 9/10 claim.
+
+
 
 - Approved `codex -p deepseek` review of R9 final (`deepseek-flash`, provider `deepseek`, **no OpenAI Codex credits**, read-only, 8,328 tokens): **4.7/10** — A5.0 B4.0 C4.0 D4.5 E5.0 F4.5 G4.5. Dusk/clearing/flashlight/teal water are real gains, but it calls the dusk mostly a palette change, flags the forest/city exposure mismatch, the flashlight’s hard warm/green split, plate-like keeper-house foreground and repeated façades. Still a stylized blockout, not a 9/10 horror presentation.
 
