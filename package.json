@@ -61,6 +61,7 @@
     "test:blackwater:impact-motion": "node tests/blackwater-impact-motion.mjs"
   },
   "devDependencies": {
+    "@gltf-transform/cli": "^4.5.1",
     "esbuild": "0.25.12",
     "three": "0.184.0",
     "vgpu": "0.5.0"
