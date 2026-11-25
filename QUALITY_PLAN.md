@@ -343,3 +343,6 @@ Remaining high-impact:
 
 
 
+## R27: terrain surface read — quilt reduction + smooth normals
+- Per-triangle brightness jitter narrowed (`.93+.13` → `.965+.05`): the quilted brightness patchwork was breaking surface continuity on slopes; smaller range keeps organic variation without the patchwork artifact.
+- Terrain normals replaced with heightfield-derived smooth vertex normals (flat shading off): macro lighting now rolls continuously across hills and scree slopes, while the shader's atlas detail, grain, wet streaks, and litter coloring still carry close-range texture. Trees, rocks, and structures remain flat-shaded — the soft-terrain/faceted-object contrast is the painterly read.

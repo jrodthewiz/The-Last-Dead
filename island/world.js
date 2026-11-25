@@ -95,20 +95,23 @@ function buildTerrain(scene,trees=[]){
   // Interpolate a shared slope field across grid edges; material transitions
   // should follow a bank rather than expose each triangle's separate normal.
   const slopeAt=i=>{const dx=(heights[i+1]-heights[i-1])/(2*s),dz=(heights[i+stride]-heights[i-stride])/(2*s);return 1-1/Math.sqrt(1+dx*dx+dz*dz);};
+  const smoothNormals=[];
+  const normalAt=i=>{const dx=(heights[i+1]-heights[i-1])/(2*s),dz=(heights[i+stride]-heights[i-stride])/(2*s),len=Math.hypot(dx,1,dz);return [-dx/len,1/len,-dz/len];};
   for(let row=0;row<rows;row++)for(let col=0;col<columns;col++){
     const x=minX+col*s,z=minZ+row*s,i=(row+1)*stride+col+1;
     const a=[x,heights[i],z,i],b=[x+s,heights[i+1],z,i+1],c=[x,heights[i+stride],z+s,i+stride],d=[x+s,heights[i+stride+1],z+s,i+stride+1];
     for(const tri of [[a,c,b],[b,c,d]]){
       const y=(tri[0][1]+tri[1][1]+tri[2][1])/3;
       color.setHex(y<3.8?0xc4c199:y>62?0x8b9668:x>330?0x819875:0x718b4d);
-      color.multiplyScalar(.93+rng()*.13);
-      for(const [px,py,pz,index] of tri){positions.push(px,py,pz);colors.push(color.r,color.g,color.b);slopes.push(slopeAt(index));litter.push(litterField(px,pz));}
+      color.multiplyScalar(.965+rng()*.05);
+      for(const [px,py,pz,index] of tri){positions.push(px,py,pz);colors.push(color.r,color.g,color.b);slopes.push(slopeAt(index));litter.push(litterField(px,pz));smoothNormals.push(...normalAt(index));}
     }
   }
   const geometry=surface(positions,colors),uv=[];for(let i=0;i<positions.length;i+=3)uv.push(positions[i]/12,positions[i+2]/12);geometry.setAttribute('uv',new T.Float32BufferAttribute(uv,2));
+  geometry.setAttribute('normal',new T.Float32BufferAttribute(smoothNormals,3));
   geometry.setAttribute('artSlope',new T.Float32BufferAttribute(slopes,1));
   geometry.setAttribute('artLitter',new T.Float32BufferAttribute(litter,1));
-  const material=new T.MeshStandardMaterial({vertexColors:true,flatShading:true,map:grain,roughness:1,metalness:0,envMapIntensity:.55});material.userData.artDebug=artDetailDebug;
+  const material=new T.MeshStandardMaterial({vertexColors:true,flatShading:false,map:grain,roughness:1,metalness:0,envMapIntensity:.55});material.userData.artDebug=artDetailDebug;
   // Paint the roads on their actual terrain triangles. Separate draped strips
   // fight the ground at grid diagonals and create ragged shoulders on hills.
   const f=n=>Number(n).toFixed(3),segments=[],roadPaint=[],roads=[...TRAILS,...ROADS];
