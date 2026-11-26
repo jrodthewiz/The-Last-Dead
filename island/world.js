@@ -634,7 +634,12 @@ export function createWorld(scene,data,{arrivalTreads=false}={}){
   compilePieces(kit,domesticExteriorPlan(data,terrainHeight).pieces);
   const settlement=buildSettlement(scene,kit,data,sign);
   // Broken coastline is framed by offshore rock stacks and distant silhouettes.
-  const rng=random(6);for(let i=0;i<50;i++){const a=i/50*Math.PI*2,x=-490+Math.cos(a)*700,z=Math.sin(a)*600;if(x>20&&Math.abs(z)<220)continue;kit.add('rock',x,-4,z,12+rng()*25,9+rng()*18,15+rng()*20,0x87998b,rng()*6);}
+  const rng=random(6);for(let i=0;i<50;i++){const a=i/50*Math.PI*2,x=-490+Math.cos(a)*700,z=Math.sin(a)*600;if(x>20&&Math.abs(z)<220)continue;
+    // Offshore rocks read as sea stacks: tall and narrow enough to break the
+    // surface as vertical stone, not submerged pancakes. One in four becomes
+    // a low reef shelf instead, so the ring has rhythm rather than uniformity.
+    const reef=i%4===0,sx=reef?10+rng()*14:6+rng()*8,sy=reef?4+rng()*4:14+rng()*20,sz=reef?10+rng()*14:6+rng()*9;
+    kit.add('rock',x,-3+sy*.22,z,sx,sy,sz,reef?0x74857a:0x6b7d70,rng()*6);}
   for(let i=0;i<12;i++)kit.add('rock',-1600+i*280,-25,-1600,250+rng()*180,90+rng()*70,220,0x91afa7,rng()*6);
   // Grass patches and low coastal scrub share the same seed as the terrain.
   const arrivalHouse=data.buildings.find(b=>b.id==='arrival-house');

@@ -350,3 +350,5 @@ Remaining high-impact:
 - Tuft geometry replaced: 12 thin short blades arching outward (height .30–.57, lean .30–.50) instead of 7 tall near-vertical paddles up to 1.0 before scale — the old silhouette read as giant agave blocking the near-camera view in every ground-level frame.
 - Tuft placement scale capped (`.48+.65` → `.42+.45`).
 - Fern geometry redesigned alongside: 11 narrower fronds (half the old paddle width) with a stronger outward droop, and colony/meadow planting scale capped so ferns stay underfoot rather than chest-high.
+## R29: offshore sea stacks
+- The 50-rock offshore ring was oversized detail-0 icosahedra submerged at y=-4: only flat facet tops broke the surface, reading as a curve of pale floating hexagonal pancakes in every coastal aerial. Restructured into tall narrow sea stacks (6–14 wide, 14–34 tall) with one-in-four low reef shelves for rhythm, raised so stone breaks the surface vertically, and darkened toward wet coastal rock.
