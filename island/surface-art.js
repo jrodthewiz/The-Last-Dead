@@ -415,6 +415,12 @@ vec3 artWindowRoom(vec2 wf,vec3 vDir,vec3 nW,float seed,float isLit,float shopFl
     diffuseColor.rgb*=1.-lawnWorn*.18;
     float lawnLum=dot(diffuseColor.rgb,vec3(.333));
     diffuseColor.rgb=mix(vec3(lawnLum),diffuseColor.rgb,.90);
+    // The slab sides are a cut soil edge, not grass: vertical faces fall to
+    // dark earth so the rim never reads as a bright lime strip catching sun.
+    if(n.y<.65){
+     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.135,.105,.072),smoothstep(.65,.25,n.y)*.92);
+     diffuseColor.rgb*=.86+artNoise(vArtWorld.xz*1.4+vArtWorld.y*2.2)*.18;
+    }
     artRough=.82+artNoise(vArtWorld.xz*.6)*.10;artMetal=0.;
    }else if(vArtRole>10.5){
     if(n.y>.7){

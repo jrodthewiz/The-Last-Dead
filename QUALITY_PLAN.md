@@ -359,3 +359,5 @@ Remaining high-impact:
 - Meadow grassland read as uniform green carpet at gameplay distance: existing heather variation was crushed into a narrow visible range by warm lighting and tonemap. Strengthened heather mix, added a large-scale dry olive-gold patch layer and a moist dark-green counter-layer — grassland now reads as painterly meadow mosaic at both ground level and aerial distance without breaking the muted palette.
 ## R32: facade weathering strength
 - Building facades already had patina/runoff/grime treatment but it was calibrated for close range and compressed to invisibility at the 40–80m gameplay distances. Strengthened the plaster tonal patching, widened and deepened runoff streaking, and darkened the base grime course so city walls read as rain-weathered plaster at real gameplay range.
+## R33: lawn slab soil edge
+- The civic lawn is a raised box slab and its vertical side faces caught the low warm sun as a continuous bright lime strip — one of the most artificial artifacts in the civic view. Role-13 vertical faces now fall to dark earth with soil noise: the rim reads as a cut turf edge. Shader-branch-only, zero measurable cost.
