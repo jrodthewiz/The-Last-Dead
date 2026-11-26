@@ -114,12 +114,12 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas){
  }
  float edge=artNoise(land*1.7)*.16;float shoulder=1.-smoothstep(rw+.55,rw+.85,rd+edge);
  float paving=1.-smoothstep(rw-.07,rw+.07,rd+edge*.35);artRoad=paving;
- if(rw>=3.)artAsphalt=paving;
+ artAsphalt=paving;
  diffuseColor.rgb=mix(diffuseColor.rgb,${rgb(0x4c5448)},shoulder);
  float asphalt=artNoise(land*.16);
  float roadPatch=smoothstep(.70,.86,asphalt);
  float wheel=1.-smoothstep(.035,.11,abs(abs(rd/max(rw,.001))-.58));
- float useMark=rw<3.?(.88+.12*artNoise(land*.35)):(.76+.14*artNoise(land*.8)-roadPatch*.10-wheel*.08);
+ float useMark=.80+.13*artNoise(land*.5)-roadPatch*.09-wheel*.12;
  diffuseColor.rgb=mix(diffuseColor.rgb,rc*useMark,paving);}
  float artDist=length(cameraPosition-vGroundWorld);
  vec2 gRawUv=artDetailUv(vGroundWorld,artWorldNormal)*.5;
@@ -131,7 +131,7 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas){
  vec2 gSample=gUv*.4375+vec2(.03125)+gOff;
  vec4 gAlbedo=textureGrad(uGroundAlbedo,gSample,gDx,gDy);
  vec4 gNormal=textureGrad(uGroundNormal,gSample,gDx,gDy);
- float atlasFade=(1.-artAsphalt)*(1.-smoothstep(18.,58.,artDist));
+ float atlasFade=(1.-artAsphalt*.7)*(1.-smoothstep(18.,58.,artDist));
  diffuseColor.rgb=mix(diffuseColor.rgb,gAlbedo.rgb,.40*atlasFade);
  float litterMask=smoothstep(.07,.62,vLitter+(artNoise(land*.53)-.5)*.40)*(1.-artRoad)*(1.-shore*.6)*(1.-exposed*.35);
  vec3 litterCol=mix(${rgb(0x453824)},${rgb(0x5d4c2e)},artNoise(land*.83));
@@ -145,7 +145,7 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas){
  float artDetailStrength=artFade*mix(.42,.95,max(exposed,artRoad));
  artWorldNormal=artApplyDetail(artWorldNormal,artDetail,artDetailStrength);
  float artRough=clamp(.90+(artDetail.b-.5)*.16,.48,.99);artRough=mix(artRough,gNormal.a,.34*atlasFade);
- float wet=artAsphalt*smoothstep(.54,.78,artField(vGroundWorld.xz*.048));
+ float wet=artAsphalt*smoothstep(.46,.72,artField(vGroundWorld.xz*.048));
  float wetSand=(1.-smoothstep(1.1,2.9,vGround.y))*(1.-artRoad);
  float artPuddle=clamp(wet+wetSand*.46,0.,1.);
  float dampSoil=smoothstep(.40,.74,artField(land*.071+7.31)+.22*artNoise(land*.29))*(1.-artRoad)*(1.-exposed*.15)*(1.-shore*.5);

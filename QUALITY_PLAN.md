@@ -352,3 +352,6 @@ Remaining high-impact:
 - Fern geometry redesigned alongside: 11 narrower fronds (half the old paddle width) with a stronger outward droop, and colony/meadow planting scale capped so ferns stay underfoot rather than chest-high.
 ## R29: offshore sea stacks
 - The 50-rock offshore ring was oversized detail-0 icosahedra submerged at y=-4: only flat facet tops broke the surface, reading as a curve of pale floating hexagonal pancakes in every coastal aerial. Restructured into tall narrow sea stacks (6–14 wide, 14–34 tall) with one-in-four low reef shelves for rhythm, raised so stone breaks the surface vertically, and darkened toward wet coastal rock.
+## R30: rural road wear and wet
+- Narrow rural roads fell in a treatment gap: excluded from damp soil by `artRoad` and from asphalt wetness because `artAsphalt` only engaged for wide roads — totally dry, no wheel tracks, no patch wear, reading as flat uniform bands in the most-seen gameplay view.
+- All paved roads now count as asphalt for the wet-patch system; wheel-track darkening and patch wear apply at every width; asphalt keeps 30% of the ground-atlas grain instead of being flattened to zero; wet-patch coverage widened so rural roads read rain-damp.
