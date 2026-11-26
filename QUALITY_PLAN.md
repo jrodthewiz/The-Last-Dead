@@ -346,3 +346,7 @@ Remaining high-impact:
 ## R27: terrain surface read — quilt reduction + smooth normals
 - Per-triangle brightness jitter narrowed (`.93+.13` → `.965+.05`): the quilted brightness patchwork was breaking surface continuity on slopes; smaller range keeps organic variation without the patchwork artifact.
 - Terrain normals replaced with heightfield-derived smooth vertex normals (flat shading off): macro lighting now rolls continuously across hills and scree slopes, while the shader's atlas detail, grain, wet streaks, and litter coloring still carry close-range texture. Trees, rocks, and structures remain flat-shaded — the soft-terrain/faceted-object contrast is the painterly read.
+## R28: grass tuft + fern redesign
+- Tuft geometry replaced: 12 thin short blades arching outward (height .30–.57, lean .30–.50) instead of 7 tall near-vertical paddles up to 1.0 before scale — the old silhouette read as giant agave blocking the near-camera view in every ground-level frame.
+- Tuft placement scale capped (`.48+.65` → `.42+.45`).
+- Fern geometry redesigned alongside: 11 narrower fronds (half the old paddle width) with a stronger outward droop, and colony/meadow planting scale capped so ferns stay underfoot rather than chest-high.

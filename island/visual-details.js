@@ -6,20 +6,25 @@ import {accessReserved} from './access-plan.js';
 
 function fernGeometry(){
  const points=[],tri=(a,b,c)=>points.push(...a,...b,...c,...c,...b,...a);
- for(let j=0;j<7;j++){
-  const a=j*2.39996,dx=Math.cos(a),dz=Math.sin(a),length=.74+(j%3)*.11;
-  const at=(t,side=0)=>[dx*t*length-dz*side,Math.sin(t*2.2)*.46,dz*t*length+dx*side];
-  for(let s=1;s<=5;s++){const t=s*.16,w=.18*(1-t)+.025;for(const side of [-1,1])tri(at(t-.11),at(t+.1,side*w),at(t+.14));}
-  tri(at(.75,-.025),at(1.05),at(.75,.025));
+ for(let j=0;j<11;j++){
+  const a=j*2.39996,dx=Math.cos(a),dz=Math.sin(a),length=.68+(j%3)*.09;
+  // Narrow blades that arch out then droop: half the old paddle width,
+  // and the frond tip falls back toward the ground like real forest ferns.
+  const at=(t,side=0)=>[dx*t*length-dz*side,Math.sin(t*2.6)*.40*(1-t*.28),dz*t*length+dx*side];
+  for(let s=1;s<=5;s++){const t=s*.16,w=.085*(1-t)+.018;for(const side of [-1,1])tri(at(t-.11),at(t+.1,side*w),at(t+.14));}
+  tri(at(.75,-.018),at(1.05),at(.75,.018));
  }
  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(points,3));g.computeVertexNormals();return g;
 }
 
 function tuftGeometry(){
+ // Grass tufts: many thin short blades that arch outward instead of a few
+ // tall vertical paddles — the old silhouette read as agave, not grass.
  const p=[];
- for(let i=0;i<7;i++){
-  const a=i*2.39996,dx=Math.cos(a),dz=Math.sin(a),r=(i%3)*.16,h=.58+(i%4)*.14,w=.065;
-  const a0=[dx*r-dz*w,0,dz*r+dx*w],b=[dx*r+dz*w,0,dz*r-dx*w],c=[dx*(r+.16),h,dz*(r+.16)];
+ for(let i=0;i<12;i++){
+  const a=i*2.39996,dx=Math.cos(a),dz=Math.sin(a),r=(i%3)*.13,h=.30+(i%4)*.09,w=.042;
+  const lean=.30+(i%3)*.10;
+  const a0=[dx*r-dz*w,0,dz*r+dx*w],b=[dx*r+dz*w,0,dz*r-dx*w],c=[dx*(r+lean),h,dz*(r+lean)];
   p.push(...a0,...b,...c,...c,...b,...a0);
  }
  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(p,3));g.computeVertexNormals();return g;
@@ -40,11 +45,11 @@ export function coastalBotany(kit,data){
  // Colonies follow actual canopy, with open trail edges and patchy gaps.
  // This is static instanced ground cover, not a per-frame particle carpet.
  for(let i=0;i<data.trees.length;i++){const t=data.trees[i];if(t.urban)continue;const angle=rng()*6.28;
-  for(let j=0;j<7+(i%3);j++){const a=angle+j*2.4,r=1.2+rng()*5.6;plant(t.x+Math.cos(a)*r,t.z+Math.sin(a)*r,.8+rng()*1.15);}
+  for(let j=0;j<7+(i%3);j++){const a=angle+j*2.4,r=1.2+rng()*5.6;plant(t.x+Math.cos(a)*r,t.z+Math.sin(a)*r,.7+rng()*.75);}
   // Open-ground meadow patches near one tree in five knit the floor together
   // instead of leaving cover only beneath canopies.
   if(i%5===0){const mx=t.x+Math.cos(angle+1.7)*(8+rng()*7),mz=t.z+Math.sin(angle+1.7)*(8+rng()*7);
-   for(let j=0;j<5;j++){const a=angle+j*2.9,r=rng()*4.5;plant(mx+Math.cos(a)*r,mz+Math.sin(a)*r,.75+rng()*1.0);}}
+   for(let j=0;j<5;j++){const a=angle+j*2.9,r=rng()*4.5;plant(mx+Math.cos(a)*r,mz+Math.sin(a)*r,.65+rng()*.7);}}
   if(i%3===0){const x=t.x+Math.cos(angle)*4.3,z=t.z+Math.sin(angle)*4.3,y=ground(x,z,1.4);if(y!==null){
    const s=.8+rng()*.5;
    for(let j=0;j<3;j++)kit.add('rock',x+Math.cos(j*2.4)*.45,y+.42*s,z+Math.sin(j*2.4)*.45,1.05*s,.70*s,.90*s,[0x557448,0x697f49,0x7c8b50][j],angle+j,null,4);

@@ -641,7 +641,7 @@ export function createWorld(scene,data,{arrivalTreads=false}={}){
   for(let i=0;i<4600;i++){
     const x=-1030+rng()*1100,z=-440+rng()*850,y=terrainHeight(x,z),r=roadAt(x,z);
     if(y<5||reservedPlace(x,z,.9)||settlementReserved(x,z,1.5)||accessReserved(data.accessPaths,x,z,1.3)||r.distance<r.width*.5+2||data.buildings.some(b=>Math.abs(x-b.x)<b.w*.5+3&&Math.abs(z-b.z)<b.d*.5+3))continue;
-    const s=.48+rng()*.65;
+    const s=.42+rng()*.45;
     for(let j=0;j<3;j++){
       const a=j*2.4,x1=x+Math.cos(a)*.65,z1=z+Math.sin(a)*.65;
       const rotation=rng()*6;
