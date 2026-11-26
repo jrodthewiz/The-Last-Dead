@@ -591,20 +591,31 @@ function createWater(scene){
      diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.74,.80,.82),foam*.52);
      vec3 toEye=normalize(cameraPosition-vWater);float horizon=pow(1.-abs(toEye.y),4.2);
      diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.24,.35,.38),horizon*.26);
+     // Wind-rippled water breaks into painterly tonal dabs even outside the
+     // sun path — without this the shallows read as flat milk. Distance-faded
+     // for temporal stability.
+     float wDistC=length(cameraPosition-vWater);
+     float dab=artNoise(vWater.xz*.9+vec2(uTime*.35,-uTime*.25))-.5;
+     float dab2=artNoise(vWater.xz*.23-vec2(uTime*.18,uTime*.1))-.5;
+     diffuseColor.rgb*=1.+(dab*.13+dab2*.10)*(1.-smoothstep(28.,130.,wDistC));
     `);
     shader.fragmentShader=shader.fragmentShader.replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
      vec2 wpW=vWater.xz;
-     float w1=cos(wpW.x*.28+wpW.y*.14+uTime*.90)*.045;
-     float w2=cos(wpW.x*-.19+wpW.y*.37-uTime*1.15)*.038;
-     float w3=cos(wpW.x*.75+wpW.y*-.62+uTime*1.65)*.024;
-     float rn=artNoise(wpW*.9+vec2(uTime*.35,-uTime*.25))-.5;
+     // Regular wave cosines alias into a moire checker at distance — attenuate
+     // amplitudes with range (subpixel waves integrate flat), keeping a floor
+     // so the sun-glitter path keeps some sparkle.
+     float wDist=length(cameraPosition-vWater);
+     float wAtt=mix(1.,.28,smoothstep(70.,420.,wDist));
+     float w1=cos(wpW.x*.28+wpW.y*.14+uTime*.90)*.068*wAtt;
+     float w2=cos(wpW.x*-.19+wpW.y*.37-uTime*1.15)*.056*wAtt;
+     float w3=cos(wpW.x*.75+wpW.y*-.62+uTime*1.65)*.024*wAtt;
+     float rn=(artNoise(wpW*.9+vec2(uTime*.35,-uTime*.25))-.5)*wAtt;
      vec3 wNorm=normalize(vec3(-(w1+w2+rn*.06),1.,-(w2+w3+rn*.06)));
      normal=normalize((viewMatrix*vec4(wNorm,0.)).xyz);
     `);
     shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`
      if(cameraPosition.x<=340.&&uReflEnabled>.5){
       vec2 ruv=vWaterRefl.xy/max(vWaterRefl.w,1e-4);
-      float wDist=length(cameraPosition-vWater);
       vec2 jit=wNorm.xz*0.055;
       vec3 rSharp=texture2D(tRefl,clamp(ruv+jit,0.002,0.998)).rgb;
       vec3 rBlur=texture2D(tReflBlur,clamp(ruv+jit*0.5,0.002,0.998)).rgb;
