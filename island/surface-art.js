@@ -312,8 +312,15 @@ vec3 artWindowRoom(vec2 wf,vec3 vDir,vec3 nW,float seed,float isLit,float shopFl
    float baseGrime=1.-smoothstep(.04,.26,vArtUv.y);
    float patina=artField(uv*.22);
    if(vArtRole<.5){
-    diffuseColor.rgb*=.88+artNoise(vArtWorld.xz*1.1)*.13;
-    artRough=.48;artMetal=.45;
+    // Coastal metal weathers: vertical rust runoff, broad patina variation,
+    // and roughness that follows the corrosion. Shared across outdoor metal —
+    // containers, rails, cranes, posts — which all live in the same wet air.
+    float rust=smoothstep(.52,.84,artNoise(vec2(uv.x*.9,uv.y*.07)));
+    float metalPat=artField(uv*.14+2.2);
+    diffuseColor.rgb*=.86+artNoise(vArtWorld.xz*1.1)*.14;
+    diffuseColor.rgb*=1.-smoothstep(.55,.85,metalPat)*.12;
+    diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.30,.17,.10),rust*.42);
+    artRough=.48+rust*.3;artMetal=.45-rust*.28;
    }else if(vArtRole<1.5){
     vec2 bCell=floor(vArtWorld.xz/18.);
     float bTone=artHash(bCell);
