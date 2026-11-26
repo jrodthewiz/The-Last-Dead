@@ -423,14 +423,14 @@ function createSky(scene){
    void main(){vec3 d=normalize(vDir);float h=pow(max(d.y,0.),.55),s=max(dot(d,sun),0.);
     vec3 c=mix(bottom,top,h);
     c+=vec3(.11,.10,.08)*pow(s,6.)+vec3(.12,.11,.09)*pow(s,32.);
-    vec2 p=d.xz/max(.14,d.y+.22)*1.6+vec2(time*.0012,0.);
+    vec2 p=d.xz/max(.20,d.y+.26)*1.05+vec2(time*.0012,0.);
     float field=fbm5(p),ridge=fbm5(p*1.9+vec2(3.1,-2.7));
-    float coverage=smoothstep(.34,.68,field*.70+ridge*.30)*smoothstep(.00,.16,d.y);
+    float coverage=smoothstep(.32,.74,field*.70+ridge*.30)*smoothstep(.00,.16,d.y);
     float lit=clamp(.36+(fbm5(p+sun.xz*.16)-field)*4.6+d.y*.18,0.,1.);
     vec3 cloud=mix(cloudShade,cloudLight,lit);
     cloud+=vec3(.12,.11,.08)*pow(s,9.)*(1.-lit*.4);
     float shelfY=smoothstep(.00,.14,d.y)*(1.-smoothstep(.20,.46,d.y));
-    float shelf=shelfY*smoothstep(.42,.68,fbm5(d.xz/max(.22,d.y+.32)*3.0+vec2(-time*.0006,time*.0004)));
+    float shelf=shelfY*smoothstep(.40,.72,fbm5(d.xz/max(.30,d.y+.38)*2.1+vec2(-time*.0006,time*.0004)));
     c=mix(c,cloud,coverage*.90);
     c=mix(c,mix(cloudShade*.80,cloudLight,.52),shelf*.55);
     c=mix(c,vec3(.92,.91,.86),smoothstep(.9991,.9996,dot(d,sun))*(1.-coverage*.88));
