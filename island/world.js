@@ -141,7 +141,7 @@ function ribbon(scene,points,width,color,offset=.12,drape=true,finish){
 }
 function buildRoads(scene,kit){
   for(const road of ROADS){const points=[];for(let i=1;i<road.points.length;i++){const a=road.points[i-1],b=road.points[i],n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/2);for(let j=0;j<n;j++){const t=j/n,x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;points.push([x,terrainHeight(x,z),z]);}}const a=road.points.at(-1);points.push([a[0],terrainHeight(a[0],a[1]),a[1]]);
-    if(road.width>=6)for(let i=0;i<points.length-1;i+=7){const a=points[i],b=points[i+1],angle=Math.atan2(b[0]-a[0],b[2]-a[2]);kit.box(a[0],a[1]+.24,a[2],.13,.025,2,0xd2c49a,angle);}
+    if(road.width>=6)for(let i=0;i<points.length-1;i+=7){const a=points[i],b=points[i+1],angle=Math.atan2(b[0]-a[0],b[2]-a[2]);kit.box(a[0],a[1]+.02,a[2],.13,.025,2,0xb0a282,angle);}
   }
   const c=CITY_GROUND,wetCityGroup=new T.Group();
   const roadMesh=new T.Mesh(new T.BoxGeometry(c.w,.06,c.d),createWetCityMaterial('road'));

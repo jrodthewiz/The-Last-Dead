@@ -99,8 +99,9 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas){
  soil=mix(soil,${rgb(0x42583f)},smoothstep(.55,.85,artField(land*.017+2.9))*.30);
  soil*=.92+tuft*.14;
  soil*=.94+artNoise(land*.63)*.10;soil*=1.+(artNoise(vec2(land.x*2.6,land.y*.36))-.5)*.10;
- float exposed=smoothstep(.025,.11,vSlope+(field-.5)*.035);
- float strata=sin(vGround.y*.65+artNoise(land*.045)*2.8);
+ float seamWarp=(artField(land*.06+5.3)-.5)*.055+(artNoise(land*.41)-.5)*.018;
+ float exposed=smoothstep(.025,.11,vSlope+(field-.5)*.035+seamWarp);
+ float strata=sin(vGround.y*.65+artNoise(land*.045)*2.8+artNoise(land*.11+2.2)*4.2);
  vec3 rock=mix(${rgb(0x3e494f)},${rgb(0x6d777b)},artField(land*.1))*(.90+strata*.14);
  soil=mix(soil,rock,exposed);
  float shore=1.-smoothstep(2.6,7.0,vGround.y+field*1.1);
@@ -156,7 +157,7 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas){
  float dampSoil=smoothstep(.40,.74,artField(land*.071+7.31)+.22*artNoise(land*.29))*(1.-artRoad)*(1.-exposed*.15)*(1.-shore*.5);
  diffuseColor.rgb*=1.-dampSoil*.34;
  diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(.84,1.05,.88),dampSoil*.7);
- artRough=mix(artRough,.58,dampSoil*.45);
+ artRough=mix(artRough,.74,dampSoil*.30);
  diffuseColor.rgb*=1.-wet*.28-wetSand*.12;
  artWorldNormal=mix(artWorldNormal,normalize(vGroundNormal),wet*.88);
  artRough=mix(artRough,.16,artPuddle*.82);
@@ -165,7 +166,7 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas){
  float wetRock=smoothstep(.38,.72,artField(land*.083+5.17)+.25*artNoise(land*.33))*exposed*(1.-artRoad);
  diffuseColor.rgb*=1.-wetRock*.40;
  diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(.88,.96,1.02),wetRock*.6);
- artRough=mix(artRough,.34,wetRock*.55);
+ artRough=mix(artRough,.52,wetRock*.45);
  artRough=clamp(artRough+(midPatch-.62)*.20,.30,.99);
  diffuseColor.rgb*=.92+artDetail.a*.12;
  `);
