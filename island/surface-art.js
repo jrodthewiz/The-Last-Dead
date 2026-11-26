@@ -322,8 +322,13 @@ vec3 artWindowRoom(vec2 wf,vec3 vDir,vec3 nW,float seed,float isLit,float shopFl
     float runoff=artNoise(vec2(uv.x*.65,uv.y*.085));
     float floorBand=vArtMeta.w>3.2&&n.y<.65?(1.-.26*(1.-smoothstep(0.,.32,fract(yMeters/3.4)))):1.;
     float cornerAO=n.y<.65?mix(.80,1.,smoothstep(0.,.055,min(vArtUv.x,1.-vArtUv.x))):1.;
-    diffuseColor.rgb*=bShift*(.86+patina*.15)*(1.-baseGrime*.14)*floorBand*cornerAO;
-    diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(.68,.74,.74),smoothstep(.64,.86,runoff)*.24);
+    // Rain-weathered plaster: bold tonal patching, visible runoff streaking and
+    // a damp base course — the treatment has to survive warm-light compression
+    // at 40-80m, so it is deliberately stronger than a close-up material would be.
+    float plasterPatch=artField(uv*.062+4.7);
+    diffuseColor.rgb*=bShift*(.82+patina*.22)*(1.-baseGrime*.22)*floorBand*cornerAO;
+    diffuseColor.rgb*=1.-smoothstep(.56,.84,plasterPatch)*.13;
+    diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(.66,.73,.75),smoothstep(.58,.86,runoff)*.38);
     artRough=.84;artMetal=.02;
    }else if(vArtRole<2.5){
     vec2 tile=vArtWorld.xz*vec2(1.8,2.5);tile.x+=mod(floor(tile.y),2.)*.5;

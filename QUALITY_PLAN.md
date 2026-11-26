@@ -357,3 +357,5 @@ Remaining high-impact:
 - All paved roads now count as asphalt for the wet-patch system; wheel-track darkening and patch wear apply at every width; asphalt keeps 30% of the ground-atlas grain instead of being flattened to zero; wet-patch coverage widened so rural roads read rain-damp.
 ## R31: meadow hue variation
 - Meadow grassland read as uniform green carpet at gameplay distance: existing heather variation was crushed into a narrow visible range by warm lighting and tonemap. Strengthened heather mix, added a large-scale dry olive-gold patch layer and a moist dark-green counter-layer — grassland now reads as painterly meadow mosaic at both ground level and aerial distance without breaking the muted palette.
+## R32: facade weathering strength
+- Building facades already had patina/runoff/grime treatment but it was calibrated for close range and compressed to invisibility at the 40–80m gameplay distances. Strengthened the plaster tonal patching, widened and deepened runoff streaking, and darkened the base grime course so city walls read as rain-weathered plaster at real gameplay range.
