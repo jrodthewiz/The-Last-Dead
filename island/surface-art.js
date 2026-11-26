@@ -91,7 +91,12 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas){
  float artRoad=0.;
  vec2 land=vGround.xz;float field=artField(land*.022),tuft=artNoise(land*.37),heather=artField(land*.065+3.7);
  vec3 soil=mix(${rgb(0x354838)},${rgb(0x4c5d43)},smoothstep(.20,.78,field));
- soil=mix(soil,${rgb(0x5d6448)},smoothstep(.58,.86,heather)*.45);
+ soil=mix(soil,${rgb(0x5d6448)},smoothstep(.52,.86,heather)*.62);
+ // Dry meadow patches: large-scale olive-gold hue variation is what makes
+ // grassland read as painterly meadow instead of uniform carpet at distance.
+ float dry=smoothstep(.50,.82,artField(land*.013+8.4));
+ soil=mix(soil,${rgb(0x6d6a3c)},dry*.38);
+ soil=mix(soil,${rgb(0x42583f)},smoothstep(.55,.85,artField(land*.017+2.9))*.30);
  soil*=.92+tuft*.14;
  soil*=.94+artNoise(land*.63)*.10;soil*=1.+(artNoise(vec2(land.x*2.6,land.y*.36))-.5)*.10;
  float exposed=smoothstep(.025,.11,vSlope+(field-.5)*.035);
