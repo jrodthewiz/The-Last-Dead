@@ -469,7 +469,7 @@ function createStormClouds(scene){
   return {mesh,update(time){mesh.position.x=Math.sin(time*.014)*34;mesh.position.z=Math.cos(time*.011)*22;}};
 }
 function createCoastalRain(scene){
-  const count=1100,base=new T.PlaneGeometry(1,1);base.translate(0,.5,0);
+  const count=1500,base=new T.PlaneGeometry(1,1);base.translate(0,.5,0);
   const geo=new T.InstancedBufferGeometry();geo.index=base.index;geo.attributes.position=base.attributes.position;geo.attributes.uv=base.attributes.uv;
   const off=new Float32Array(count*3),seed=new Float32Array(count),rng=random(409);
   for(let i=0;i<count;i++){off[i*3]=(rng()-.5)*44;off[i*3+1]=rng()*28;off[i*3+2]=(rng()-.5)*44;seed[i]=rng();}
@@ -486,13 +486,16 @@ function createCoastalRain(scene){
      vec3 right=vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]);
      vec3 dir=normalize(vec3(.07,-1.,.03));
      float len=.55+.45*aSeed;
-     vec3 wp=p+right*(position.x*.018)+dir*(position.y*len);
+     vec3 wp=p+right*(position.x*.026)+dir*(position.y*len);
      float d=length(wp.xz-cameraPosition.xz);
      float altFade=1.-smoothstep(45.,85.,cameraPosition.y);
-     vA=(1.-smoothstep(10.,22.,d))*(.35+.65*aSeed)*altFade;vT=position.y;
+     // Drops centimetres from the lens otherwise fill the frame as bright
+     // vertical bars — fade them out inside two metres.
+     float nearFade=smoothstep(.6,2.2,length(wp-cameraPosition));
+     vA=(1.-smoothstep(10.,22.,d))*(.35+.65*aSeed)*altFade*nearFade;vT=position.y;
      gl_Position=projectionMatrix*viewMatrix*vec4(wp,1.);
     }`,
-   fragmentShader:`varying float vA;varying float vT;void main(){float head=pow(clamp(vT,0.,1.),1.3);gl_FragColor=vec4(vec3(.55,.64,.70)*(.12*vA*head),1.);}`});
+   fragmentShader:`varying float vA;varying float vT;void main(){float head=pow(clamp(vT,0.,1.),1.3);gl_FragColor=vec4(vec3(.55,.64,.70)*(.19*vA*head),1.);}`});
   const mesh=new T.Mesh(geo,mat);mesh.frustumCulled=false;mesh.renderOrder=6;scene.add(mesh);base.dispose();
   return {mesh,update(t){uniforms.uTime.value=t;}};
 }
