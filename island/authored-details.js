@@ -66,6 +66,13 @@ export function authoredDetails(scene,kit,data,sign){
   if(keeper){
     const zf=keeper.z-keeper.d/2-.55,y1=keeper.baseY-.15;
     for(const x of [keeper.x-4.4,keeper.x-2.2,keeper.x,keeper.x+2.2,keeper.x+4.4])kit.add('cylinder',x,(.45+y1)/2,zf,.17,y1-.45,.17,0x3f3a2c,0,null,0);
+    // R45 waterline: tide-stained dark bands at the pile feet plus a lighter
+    // wet-sheen collar just above the water — piles no longer read as clean
+    // toothpicks spearing the water.
+    for(const x of [keeper.x-4.4,keeper.x-2.2,keeper.x,keeper.x+2.2,keeper.x+4.4]){
+      kit.add('cylinder',x,1.05,zf,.185,1.3,.185,0x24271e,0,null,0);
+      kit.add('cylinder',x,1.95,zf,.178,.7,.178,0x4a4a38,0,null,0);
+    }
     kit.rod([keeper.x-4.4,.95,zf],[keeper.x+4.4,y1-.75,zf],.10,0x4f4736);
     kit.rod([keeper.x-4.4,y1-.75,zf],[keeper.x+4.4,.95,zf],.10,0x4f4736);
     for(const x of [keeper.x-3.3,keeper.x+3.3])kit.add('rock',x,.10,zf-.6,2.4,1.8,2.2,0x66705e,.4,null,3);

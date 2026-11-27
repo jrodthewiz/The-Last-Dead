@@ -63,6 +63,17 @@ export function installCoastalFog(){
 #endif`;
 }
 
+// R41 analytic streetlamp lighting: static lamps packed into shared uniform
+// arrays, nearest-12 re-sorted as the camera moves. Diffuse pools use the
+// windowed inverse-square falloff from Moving Frostbite to PBR; the wet
+// specular streak only appears where the road/puddle wetness masks say the
+// surface is rain-slick. Replaces the additive decal pools, which physically
+// cannot produce a wet reflection streak.
+export const lampUniforms={
+ posRad:{value:Array.from({length:12},()=>new T.Vector4(0,-999,0,1))},
+ colorInt:{value:Array.from({length:12},()=>new T.Vector3(0,0,0))},
+ count:{value:0},
+};
 export function paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas){
  const physical=shader.fragmentShader.includes('roughnessmap_fragment');
  shader.vertexShader='attribute float artSlope;attribute float artLitter;varying float vLitter;varying float vSlope;varying vec3 vGround;varying vec3 vGroundWorld;varying vec3 vGroundNormal;\n'+shader.vertexShader;
@@ -70,10 +81,14 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas){
  shader.uniforms.artRoadSegments={value:segments};
  shader.uniforms.artRoadPaint={value:roadPaint};
  shader.uniforms.artRoadCount={value:segments.length};
+ shader.uniforms.uLampPosRad=lampUniforms.posRad;
+ shader.uniforms.uLampColorInt=lampUniforms.colorInt;
+ shader.uniforms.uLampCount=lampUniforms.count;
  shader.uniforms.uGroundAlbedo={value:groundAtlas.albedo};
  shader.uniforms.uGroundNormal={value:groundAtlas.normal};
  attachDetailUniforms(shader);
- shader.fragmentShader=`varying float vLitter;varying float vSlope;varying vec3 vGround;varying vec3 vGroundWorld;varying vec3 vGroundNormal;
+ shader.fragmentShader=`uniform vec4 uLampPosRad[12];uniform vec3 uLampColorInt[12];uniform int uLampCount;
+varying float vLitter;varying float vSlope;varying vec3 vGround;varying vec3 vGroundWorld;varying vec3 vGroundNormal;
  uniform vec4 artRoadSegments[${segments.length}];
  uniform vec4 artRoadPaint[${segments.length}];
  uniform int artRoadCount;uniform sampler2D uGroundAlbedo,uGroundNormal;\n`+DETAIL_PARS+noise+shader.fragmentShader;
@@ -101,7 +116,13 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas){
  soil*=.94+artNoise(land*.63)*.10;soil*=1.+(artNoise(vec2(land.x*2.6,land.y*.36))-.5)*.10;
  float seamWarp=(artField(land*.06+5.3)-.5)*.055+(artNoise(land*.41)-.5)*.018;
  float exposed=smoothstep(.025,.11,vSlope+(field-.5)*.035+seamWarp);
- float strata=sin(vGround.y*.65+artNoise(land*.045)*2.8+artNoise(land*.11+2.2)*4.2);
+ // R46 band-limiting: when the strata phase changes faster than ~1 cycle per
+ // pixel the sine aliases into herringbone moire on steep cuts. Attenuate the
+ // amplitude toward zero as fwidth(phase) approaches Nyquist instead — the
+ // bands dissolve into the painterly mass rather than zebra-striping.
+ float strataPhase=vGround.y*.65+artNoise(land*.045)*2.8+artNoise(land*.11+2.2)*4.2;
+ float strataWidth=fwidth(strataPhase);
+ float strata=sin(strataPhase)*(1.-smoothstep(1.6,4.2,strataWidth));
  vec3 rock=mix(${rgb(0x3e494f)},${rgb(0x6d777b)},artField(land*.1))*(.90+strata*.14);
  soil=mix(soil,rock,exposed);
  float shore=1.-smoothstep(2.6,7.0,vGround.y+field*1.1);
@@ -178,7 +199,26 @@ export function paintTerrain(shader,segments,roadPaint,roadBounds,groundAtlas){
   vec3 smoothViewN=normalize((viewMatrix*vec4(normalize(vGroundNormal),0.)).xyz);
   float artFres=pow(1.-saturate(dot(smoothViewN,artV)),4.5);
   float artFresFade=1.-smoothstep(28.,85.,artDist);
-  outgoingLight+=vec3(.32,.40,.46)*artFres*artPuddle*.10*artFresFade;${physical?'':`
+  outgoingLight+=vec3(.32,.40,.46)*artFres*artPuddle*.10*artFresFade;
+ {
+  float lampWet=saturate(artRoad*.85+artPuddle*1.2+wetSand*.4);
+  vec3 lampDiffuse=vec3(0.),lampSpec=vec3(0.);
+  for(int li=0;li<12;li++){
+   if(li>=uLampCount)break;
+   vec3 lp=uLampPosRad[li].xyz;float lr=uLampPosRad[li].w;
+   vec3 ld=lp-vGroundWorld;float d2=dot(ld,ld);float d=sqrt(d2);
+   float dr=saturate(1.-pow(d/lr,4.));float atten=dr*dr/(d2+1.);
+   if(atten<.0004)continue;
+   vec3 ldir=ld/max(d,.001);
+   float ndl=saturate(dot(artWorldNormal,ldir));
+   lampDiffuse+=uLampColorInt[li]*atten*ndl;
+   vec3 lh=normalize(artV+ldir);
+   float lspec=pow(saturate(dot(normal,lh)),mix(24.,120.,1.-artRough));
+   lampSpec+=uLampColorInt[li]*atten*lspec*lampWet;
+  }
+  outgoingLight+=lampDiffuse*diffuseColor.rgb*.85;
+  outgoingLight+=lampSpec*vec3(1.,.88,.72)*.85;
+ }${physical?'':`
   #if NUM_DIR_LIGHTS > 0
   vec3 artL=normalize(directionalLights[0].direction);
   vec3 artH=normalize(artV+artL);
@@ -316,7 +356,15 @@ vec3 artWindowRoom(vec2 wf,vec3 vDir,vec3 nW,float seed,float isLit,float shopFl
     // Coastal metal weathers: vertical rust runoff, broad patina variation,
     // and roughness that follows the corrosion. Shared across outdoor metal —
     // containers, rails, cranes, posts — which all live in the same wet air.
-    float rust=smoothstep(.52,.84,artNoise(vec2(uv.x*.9,uv.y*.07)));
+    // R44 gravity streaks: rust runs down in warped vertical drips rather
+    // than blotching. Strong x-warp at low frequency makes streaks meander;
+    // the y-squashed noise keeps them elongated. A second finer streak layer
+    // adds the thin dark drip lines water actually leaves.
+    float rustWarp=(artNoise(vec2(uv.x*.31,uv.y*.05))-.5)*2.6;
+    float rustCol=artNoise(vec2(uv.x*1.35+rustWarp*.30,uv.y*.045));
+    float rustDrip=artNoise(vec2(uv.x*3.1+rustWarp*.55,uv.y*.028));
+    float rust=smoothstep(.48,.80,rustCol)*.75+smoothstep(.62,.90,rustDrip)*.45;
+    rust=saturate(rust);
     float metalPat=artField(uv*.14+2.2);
     diffuseColor.rgb*=.86+artNoise(vArtWorld.xz*1.1)*.14;
     diffuseColor.rgb*=1.-smoothstep(.55,.85,metalPat)*.12;
