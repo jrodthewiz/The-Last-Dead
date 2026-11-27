@@ -388,3 +388,32 @@ Gemini Hydrogen frame critique (paid tier, saved `.codex-temp/gemini-hydrogen-r3
 - Harness lessons: SwiftShader mid-compile frames read solid black/white — pose wait now 5s+rAF. probe-boot/probe-pose scripts on box are the fast diagnostics.
 - Deployed: worker version e9b5e3ef-b754-4ec5-87e0-8dd083ae370f, all four core files byte-verified live.
 - Pending: zombie close-up validation (R43), final Neon+Hydrogen review, further hill-climbing.
+
+## R47-R51 — Hydrogen-review-driven overhaul batch (2026-11-27)
+
+Gemini Hydrogen frame review scored the R40-R46 state at 5.0/10 (down 1pt),
+exposing foundational gaps the micro-polish had missed. This batch implements
+its top-5 roadmap:
+
+- **R47 zombie material overhaul** — linear albedo floor 0.045 vs the ACES
+  black-crush, hemisphere sky/ground fill, rim tightened pow 2.8→4.5 at reduced
+  weight (kills the "neon trousers" grazing rim), per-zombie blob contact
+  shadow. Zombie went from black cutout to readable interior detail.
+- **R48 shared analytic streetlamps** — the nearest-12 lamp uniform block now
+  lights terrain + architecture/props + characters through one shared
+  world-space loop (circular import detail-materials↔surface-art by design,
+  runtime-only usage). Spec capped per-lamp so pools saturate amber through
+  ACES instead of blowing white.
+- **R49 water foam shore-lock** — foam is now the strict product of a
+  0.04-0.55m shore band (zero in open shallows — cow-spots eliminated) with
+  shore-parallel ripple bands; Beer-Lambert absorption strengthened.
+- **R50 terrain splat feathering** — wider noise-warped splat edges (MS-Paint
+  cutout fix), rural asphalt baseline damp + stronger grazing sky-sheen,
+  grass tufts slope-rejected (floating-spiders-on-mud fix), quieter strata.
+- **R51 sign back-face** — weathered wood brown-grey replaces the dark teal
+  that read as a black void on the keeper gable.
+
+Validation: r50 box captures confirmed zombie readability, foam shore-lock,
+and splat improvement. Deferred: keeper boardwalk fascia geometry, stilt
+thickening. The zombie T-pose in captures is a harness freeze artifact —
+in-game rigs animate the hunched shamble.

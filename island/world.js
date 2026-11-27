@@ -258,7 +258,7 @@ export function sign(scene,text,x,y,z,width=6,rotation=0,dark=false,posts=false)
   const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;const c=canvas.getContext('2d');c.fillStyle=dark?'#d6d0ae':'#3d5550';c.fillRect(0,0,512,96);c.strokeStyle=dark?'#4b6255':'#c8c6a5';c.lineWidth=3;c.strokeRect(7,7,498,82);c.fillStyle=dark?'#3d5550':'#e2d8af';c.font='600 36px Georgia';c.textAlign='center';c.textBaseline='middle';c.fillText(text,256,48,475);
   weatherBoard(c,0,0,512,96,[...text].reduce((s,ch)=>s+ch.charCodeAt(0),0)+7,dark?'#d6d0ae':'#3d5550');
   const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;texture.minFilter=T.LinearFilter;
-  const m=new T.Mesh(new T.PlaneGeometry(width,width*96/512),worldBoardMaterial(texture,dark?0xd6d0ae:0x3d5550));m.position.set(x,y,z);m.rotation.y=rotation;scene.add(m);
+  const m=new T.Mesh(new T.PlaneGeometry(width,width*96/512),worldBoardMaterial(texture,dark?0xd6d0ae:0x554a38));m.position.set(x,y,z);m.rotation.y=rotation;scene.add(m);
   // Free-standing road signs need their own supports; building-mounted signs do
   // not. Posts land on the actual ground and stop just under the board so the
   // sign never reads as a floating slab.
@@ -519,7 +519,7 @@ export function updateLampUniforms(lamps,camPos,force=false){
   if(i<sorted.length){
    const l=sorted[i];
    u.x=l.x;u.y=l.y;u.z=l.z;u.w=l.radius;
-   const intensity=2.9;
+   const intensity=15.;
    c.x=l.color[0]*intensity;c.y=l.color[1]*intensity;c.z=l.color[2]*intensity;
   }else{
    u.y=-999;c.x=c.y=c.z=0;
@@ -617,15 +617,22 @@ function createWater(scene){
      // as murky olive-silt and deep water as brooding slate-teal (Finch,
      // GPU Gems ch.1; Schlick 1994 fresnel below). Depth-dependent absorption
      // replaces the single flat deep-color mix that read as bright grey milk.
-     vec3 absorb=exp(-depth*vec3(.34,.16,.11));
+     vec3 absorb=exp(-depth*vec3(.62,.30,.20));
      vec3 siltBody=vec3(.050,.054,.042);
      vec3 deepBody=vec3(.010,.026,.034);
      vec3 waterBody=mix(deepBody,siltBody,absorb);
      diffuseColor.rgb=mix(waterBody,diffuseColor.rgb,.35);
-     float wash=sin(depth*9.5-uTime*1.35+artNoise(vWater.xz*.14)*3.6+artNoise(vWater.xz*.52+3.1)*1.8);
-     float foam=(1.-smoothstep(.10,1.6,depth))*smoothstep(.28,.88,wash);
+     // R49 shore-locked foam: the old wash noise phase-scrambled with depth
+     // and its band reached 1.6m deep, so foam blobs peppered open shallows
+     // as cow-spots. Foam is now the PRODUCT of the shore band — strictly zero
+     // beyond ~0.55m depth — with shore-parallel ripple bands and only mild
+     // noise breakup, per the GPU Gems ch.1 shoreline treatment.
+     float shoreBand=1.-smoothstep(.04,.55,depth);
+     float wash=sin(depth*22.-uTime*1.9+artNoise(vWater.xz*.14)*1.1)*.5+.5;
+     float foamN=artNoise(vWater.xz*2.2+vec2(uTime*.06,0.));
+     float foam=smoothstep(.55,.85,shoreBand*(.52+.38*wash+.42*foamN));
      float foamFade=1.-smoothstep(60.,150.,length(cameraPosition-vWater));
-     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.60,.66,.66),foam*.58*foamFade);
+     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.55,.60,.58),foam*.72*foamFade);
      vec3 toEye=normalize(cameraPosition-vWater);float horizon=pow(1.-abs(toEye.y),4.2);
      diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.24,.35,.38),horizon*.26);
      // Wind-rippled water breaks into painterly tonal dabs even outside the
@@ -705,7 +712,11 @@ export function createWorld(scene,data,{arrivalTreads=false}={}){
   const arrivalHouse=data.buildings.find(b=>b.id==='arrival-house');
   for(let i=0;i<4600;i++){
     const x=-1030+rng()*1100,z=-440+rng()*850,y=terrainHeight(x,z),r=roadAt(x,z);
-    if(y<5||reservedPlace(x,z,.9)||settlementReserved(x,z,1.5)||accessReserved(data.accessPaths,x,z,1.3)||r.distance<r.width*.5+2||data.buildings.some(b=>Math.abs(x-b.x)<b.w*.5+3&&Math.abs(z-b.z)<b.d*.5+3))continue;
+    // R50: reject steep banks — the terrain shader paints those as exposed
+    // rock/mud, and isolated tufts on the barren splat read as floating
+    // spiders. Finite-difference slope approximates the shader's mask.
+    const slopeT=Math.hypot(terrainHeight(x+1.2,z)-terrainHeight(x-1.2,z),terrainHeight(x,z+1.2)-terrainHeight(x,z-1.2))/2.4;
+    if(y<5||slopeT>.42||reservedPlace(x,z,.9)||settlementReserved(x,z,1.5)||accessReserved(data.accessPaths,x,z,1.3)||r.distance<r.width*.5+2||data.buildings.some(b=>Math.abs(x-b.x)<b.w*.5+3&&Math.abs(z-b.z)<b.d*.5+3))continue;
     const s=.42+rng()*.45;
     for(let j=0;j<3;j++){
       const a=j*2.4,x1=x+Math.cos(a)*.65,z1=z+Math.sin(a)*.65;

@@ -1,4 +1,7 @@
 import * as T from '../vendor/three.module.js';
+// Circular with surface-art.js by design: both modules only dereference the
+// bindings inside runtime function bodies, never at module evaluation time.
+import {lampUniforms} from './surface-art.js';
 
 // One 256²×8 RGBA array serves every modular world surface: RG = normal.xy,
 // B = roughness, A = wear/micro-AO. Dominant-axis projection means one tap,
@@ -457,7 +460,7 @@ reflectedLight.directDiffuse *= mix(.72, 1., vmAO);`
 }
 
 const ENTITY_PRESETS = {
-  zombie:   { params: [.24, .56, .00, .88], rim: [.68, .80, .86] },
+  zombie:   { params: [.44, .34, .00, .80], rim: [.68, .80, .86] },
   survivor: { params: [.24, .42, .00, .86], rim: [.76, .84, .88] },
   vehicle:  { params: [.08, .28, .44, .22], rim: [.72, .80, .86] },
   wreck:    { params: [.10, .18, .18, .60], rim: [.52, .60, .64] },
@@ -483,8 +486,35 @@ export function paintStylizedEntity(material, mode = 'zombie') {
     const er = this.userData.entityRimColor || preset.rim;
     shader.uniforms.uEntityParams = { value: new T.Vector4(ep[0], ep[1], ep[2], ep[3]) };
     shader.uniforms.uEntityRimColor = { value: new T.Vector3(er[0], er[1], er[2]) };
+    shader.uniforms.uLampPosRad = lampUniforms.posRad;
+    shader.uniforms.uLampColorInt = lampUniforms.colorInt;
+    shader.uniforms.uLampCount = lampUniforms.count;
 
-    shader.fragmentShader = 'uniform vec4 uEntityParams;\nuniform vec3 uEntityRimColor;\n' + shader.fragmentShader;
+    // World-space position/normal varyings for the analytic lamp loop. Injected
+    // after fog_vertex so skinning/instancing transforms are already final.
+    shader.vertexShader = 'varying vec3 vEntWPos;\nvarying vec3 vEntWN;\n' + shader.vertexShader;
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <fog_vertex>',
+      `#include <fog_vertex>
+#ifdef USE_INSTANCING
+vEntWPos = (modelMatrix * instanceMatrix * vec4(transformed, 1.)).xyz;
+vEntWN = normalize(mat3(modelMatrix) * (mat3(instanceMatrix) * objectNormal));
+#else
+vEntWPos = (modelMatrix * vec4(transformed, 1.)).xyz;
+vEntWN = normalize(mat3(modelMatrix) * objectNormal);
+#endif`
+    );
+
+    shader.fragmentShader = 'uniform vec4 uEntityParams;\nuniform vec3 uEntityRimColor;\nuniform vec4 uLampPosRad[12];\nuniform vec3 uLampColorInt[12];\nuniform int uLampCount;\nvarying vec3 vEntWPos;\nvarying vec3 vEntWN;\n' + shader.fragmentShader;
+
+    // R47 albedo floor: linear values below ~0.04 collapse to pure black under
+    // ACES, erasing all interior detail on dark cloth. The floor keeps the
+    // horror-corpse palette while preserving fold/separation readability.
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <color_fragment>',
+      `#include <color_fragment>
+diffuseColor.rgb = max(diffuseColor.rgb, vec3(.045));`
+    );
     const outTarget = isPhysical
       ? 'vec3 outgoingLight = totalDiffuse + totalSpecular + totalEmissiveRadiance;'
       : 'vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;';
@@ -493,24 +523,58 @@ export function paintStylizedEntity(material, mode = 'zombie') {
       outTarget,
       `${outTarget}
 vec3 eV = normalize(vViewPosition);
-float eFres = pow(1. - saturate(dot(normal, eV)), 2.8);
+vec3 eWN = normalize(vEntWN);
+// Hemisphere sky/ground fill — storm-cloud ambient from above, dark olive
+// bounce from below. Lifts interior detail out of the ACES black crush
+// without flattening the silhouette edge.
+vec3 eHemi = mix(vec3(.040,.045,.035), vec3(.105,.115,.135), eWN.y * .5 + .5);
+outgoingLight += eHemi * diffuseColor.rgb * 2.4;
 #if NUM_DIR_LIGHTS > 0
 vec3 eL = normalize(directionalLights[0].direction);
 float eWrap = saturate(dot(normal, eL) * .5 + .5);
-float eRimMask = mix(.45, 1., saturate(dot(normal, eL) * .5 + .5));
 outgoingLight += directionalLights[0].color * diffuseColor.rgb * eWrap * uEntityParams.x * .34;
-outgoingLight += uEntityRimColor * eFres * eRimMask * uEntityParams.y * .42;
+// R47 rim correction: the broad pow-2.8 fresnel read as neon edging on dark
+// trousers. Tight grazing-only rim at reduced weight — cloth edge separation
+// without the glow.
+float eFres = pow(1. - saturate(dot(normal, eV)), 4.5);
+float eRimMask = mix(.45, 1., saturate(dot(normal, eL) * .5 + .5));
+outgoingLight += uEntityRimColor * eFres * eRimMask * uEntityParams.y * .30;
 if (uEntityParams.z > .01) {
  vec3 eH = normalize(eV + eL);
  float eSpec = pow(saturate(dot(normal, eH)), mix(12., 56., 1. - uEntityParams.w));
  float eBand = step(.28, eSpec) * .45 + step(.64, eSpec) * .55;
  outgoingLight += directionalLights[0].color * vec3(.84, .90, .92) * eBand * uEntityParams.z * (.25 + .75 * saturate(dot(normal, eL)));
 }
-#endif`
+#endif
+// R48 shared analytic streetlamps: the same nearest-12 uniform block the
+// terrain receives, evaluated in world space so a character standing beside
+// a lit pole actually sits inside its amber pool. Height-compensated falloff
+// matches the terrain; specular is a faint damp-cloth sheen capped so ACES
+// keeps the amber hue instead of blowing white.
+{
+ vec3 lampD = vec3(0.), lampS = vec3(0.);
+ vec3 eVW = normalize(cameraPosition - vEntWPos);
+ for (int li = 0; li < 12; li++) {
+  if (li >= uLampCount) break;
+  vec3 lp = uLampPosRad[li].xyz; float lr = uLampPosRad[li].w;
+  vec3 ld = lp - vEntWPos;
+  float d2 = dot(ld.xz, ld.xz) + 36.; float d = sqrt(d2);
+  float dr = saturate(1. - pow(d / lr, 4.)); float atten = dr * dr / (d2 + 1.);
+  if (atten < .0004) continue;
+  vec3 ldir = ld / max(d, .001);
+  float ndl = saturate(dot(eWN, ldir));
+  lampD += uLampColorInt[li] * atten * ndl;
+  vec3 lh = normalize(eVW + ldir);
+  float lsp = pow(saturate(dot(eWN, lh)), 32.);
+  lampS += uLampColorInt[li] * min(atten * lsp, 1.2);
+ }
+ outgoingLight += lampD * diffuseColor.rgb * .9;
+ outgoingLight += lampS * .10;
+}`
     );
   };
 
-  const suffix = isPhysical ? '-stylized-entity-std-v1' : '-stylized-entity-lambert-v1';
+  const suffix = isPhysical ? '-stylized-entity-std-v2' : '-stylized-entity-lambert-v2';
   material.customProgramCacheKey = () => previousKey() + suffix;
   material.needsUpdate = true;
   return material;

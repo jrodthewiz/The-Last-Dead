@@ -114,8 +114,11 @@ varying float vLitter;varying float vSlope;varying vec3 vGround;varying vec3 vGr
  soil=mix(soil,${rgb(0x42583f)},smoothstep(.55,.85,artField(land*.017+2.9))*.30);
  soil*=.92+tuft*.14;
  soil*=.94+artNoise(land*.63)*.10;soil*=1.+(artNoise(vec2(land.x*2.6,land.y*.36))-.5)*.10;
- float seamWarp=(artField(land*.06+5.3)-.5)*.055+(artNoise(land*.41)-.5)*.018;
- float exposed=smoothstep(.025,.11,vSlope+(field-.5)*.035+seamWarp);
+ // R50 splat feathering: slope-space smoothsteps compress to razor edges in
+ // world space on fast banks — the MS-Paint cutout look. Wider bands plus
+ // stronger noise warp break the contour into a painterly feathered edge.
+ float seamWarp=(artField(land*.06+5.3)-.5)*.11+(artNoise(land*.41)-.5)*.045;
+ float exposed=smoothstep(.015,.21,vSlope+(field-.5)*.085+seamWarp);
  // R46 band-limiting: when the strata phase changes faster than ~1 cycle per
  // pixel the sine aliases into herringbone moire on steep cuts. Attenuate the
  // amplitude toward zero as fwidth(phase) approaches Nyquist instead — the
@@ -123,12 +126,12 @@ varying float vLitter;varying float vSlope;varying vec3 vGround;varying vec3 vGr
  float strataPhase=vGround.y*.65+artNoise(land*.045)*2.8+artNoise(land*.11+2.2)*4.2;
  float strataWidth=fwidth(strataPhase);
  float strata=sin(strataPhase)*(1.-smoothstep(1.6,4.2,strataWidth));
- vec3 rock=mix(${rgb(0x3e494f)},${rgb(0x6d777b)},artField(land*.1))*(.90+strata*.14);
+ vec3 rock=mix(${rgb(0x3e494f)},${rgb(0x6d777b)},artField(land*.1))*(.90+strata*.10);
  soil=mix(soil,rock,exposed);
  float shore=1.-smoothstep(2.6,7.0,vGround.y+field*1.1);
  vec3 sand=mix(${rgb(0x4d5752)},${rgb(0x7a7e72)},smoothstep(.2,3.6,vGround.y))*(.93+tuft*.12);
  soil=mix(soil,sand,shore*(1.-exposed*.5));
- float umber=smoothstep(.52,.84,artField(land*.019+4.2));
+ float umber=smoothstep(.46,.94,artField(land*.019+4.2)+(artNoise(land*.31)-.5)*.14);
  soil=mix(soil,${rgb(0x5a4a33)},umber*.42*(1.-exposed*.35)*(1.-shore));
  diffuseColor.rgb=mix(diffuseColor.rgb,soil,.86);
  float artAsphalt=0.;
@@ -172,7 +175,10 @@ varying float vLitter;varying float vSlope;varying vec3 vGround;varying vec3 vGr
  float artDetailStrength=artFade*mix(.42,.95,max(exposed,artRoad));
  artWorldNormal=artApplyDetail(artWorldNormal,artDetail,artDetailStrength);
  float artRough=clamp(.90+(artDetail.b-.5)*.16,.48,.99);artRough=mix(artRough,gNormal.a,.34*atlasFade);
- float wet=artAsphalt*smoothstep(.46,.72,artField(vGroundWorld.xz*.048));
+ // R50: in a rainstorm the whole asphalt ribbon is damp — the old noise gate
+ // left most of the rural road bone-dry. Baseline damp everywhere, patchy
+ // deeper puddles on top.
+ float wet=artAsphalt*clamp(.40+.62*smoothstep(.40,.68,artField(vGroundWorld.xz*.048)),0.,1.);
  float wetSand=(1.-smoothstep(1.1,2.9,vGround.y))*(1.-artRoad);
  float artPuddle=clamp(wet+wetSand*.46,0.,1.);
  float dampSoil=smoothstep(.40,.74,artField(land*.071+7.31)+.22*artNoise(land*.29))*(1.-artRoad)*(1.-exposed*.15)*(1.-shore*.5);
@@ -199,14 +205,18 @@ varying float vLitter;varying float vSlope;varying vec3 vGround;varying vec3 vGr
   vec3 smoothViewN=normalize((viewMatrix*vec4(normalize(vGroundNormal),0.)).xyz);
   float artFres=pow(1.-saturate(dot(smoothViewN,artV)),4.5);
   float artFresFade=1.-smoothstep(28.,85.,artDist);
-  outgoingLight+=vec3(.32,.40,.46)*artFres*artPuddle*.10*artFresFade;
+  outgoingLight+=vec3(.32,.40,.46)*artFres*artPuddle*.17*artFresFade;
  {
   float lampWet=saturate(artRoad*.85+artPuddle*1.2+wetSand*.4);
   vec3 lampDiffuse=vec3(0.),lampSpec=vec3(0.);
   for(int li=0;li<12;li++){
    if(li>=uLampCount)break;
    vec3 lp=uLampPosRad[li].xyz;float lr=uLampPosRad[li].w;
-   vec3 ld=lp-vGroundWorld;float d2=dot(ld,ld);float d=sqrt(d2);
+   vec3 ld=lp-vGroundWorld;
+   // Height-compensated falloff: the high-mast heads sit ~20m up, where true
+   // inverse-square crushes the pool to nothing. Painterly cheat — attenuate
+   // as if the source were 6m up, but keep the true direction for ndl/spec.
+   float d2=dot(ld.xz,ld.xz)+36.;float d=sqrt(d2);
    float dr=saturate(1.-pow(d/lr,4.));float atten=dr*dr/(d2+1.);
    if(atten<.0004)continue;
    vec3 ldir=ld/max(d,.001);
@@ -214,10 +224,12 @@ varying float vLitter;varying float vSlope;varying vec3 vGround;varying vec3 vGr
    lampDiffuse+=uLampColorInt[li]*atten*ndl;
    vec3 lh=normalize(artV+ldir);
    float lspec=pow(saturate(dot(normal,lh)),mix(24.,120.,1.-artRough));
-   lampSpec+=uLampColorInt[li]*atten*lspec*lampWet;
+   // R48: cap each lamp's specular so the highlight saturates amber through
+   // ACES instead of blowing to white (high linear intensities desaturate).
+   lampSpec+=uLampColorInt[li]*min(atten*lspec,1.35)*lampWet;
   }
   outgoingLight+=lampDiffuse*diffuseColor.rgb*.85;
-  outgoingLight+=lampSpec*vec3(1.,.88,.72)*.85;
+  outgoingLight+=lampSpec*vec3(1.,.80,.52)*.85;
  }${physical?'':`
   #if NUM_DIR_LIGHTS > 0
   vec3 artL=normalize(directionalLights[0].direction);
@@ -242,6 +254,9 @@ export function paintArchitecture(material){
   previous.call(this,shader,renderer);
   attachDetailUniforms(shader);
   attachPbrUniforms(shader);
+  shader.uniforms.uLampPosRad=lampUniforms.posRad;
+  shader.uniforms.uLampColorInt=lampUniforms.colorInt;
+  shader.uniforms.uLampCount=lampUniforms.count;
   shader.uniforms.uArtWind=wind;
   shader.vertexShader='uniform float uArtWind;\nattribute float artRole;\nattribute float artAO;\nattribute vec4 artMeta;\nvarying float vArtRole;\nvarying float vArtAO;\nvarying vec4 vArtMeta;\nvarying float vArtInstHash;\nvarying vec3 vArtWorld;\nvarying vec3 vArtNormal;\nvarying vec2 vArtUv;\n'+shader.vertexShader;
   shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
@@ -259,6 +274,7 @@ export function paintArchitecture(material){
    vArtNormal=normalize(mat3(modelMatrix)*artNorm);
    if(artRole>3.5&&artRole<4.5){float wind=sin(uArtWind*1.25+vArtWorld.x*.08+vArtWorld.z*.06);transformed.x+=wind*.028*max(0.,position.y+.6);transformed.z+=sin(uArtWind*.9+vArtWorld.x*.09)*.016*max(0.,position.y+.6);}`);
   shader.fragmentShader=`uniform sampler2D uPlasterD,uPlasterN,uPlasterA,uBrickD,uBrickN,uBrickA;
+uniform vec4 uLampPosRad[12];uniform vec3 uLampColorInt[12];uniform int uLampCount;
 varying float vArtRole;
 varying float vArtAO;
 varying vec4 vArtMeta;
@@ -578,6 +594,25 @@ vec3 artWindowRoom(vec2 wf,vec3 vDir,vec3 nW,float seed,float isLit,float shopFl
   shader.fragmentShader=shader.fragmentShader.replace(archOutTarget,`${archOutTarget}
    vec3 artV=normalize(vViewPosition);
    float artFres=pow(1.-saturate(dot(normal,artV)),3.4);
+   // R48 shared analytic streetlamps on props/architecture: container walls,
+   // crate stacks and building faces beside a lit pole now catch its amber
+   // pool. Diffuse-only loop for cost — the wet-specular streak stays a
+   // ground effect; height-compensated falloff matches the terrain.
+   {
+    vec3 aLampD=vec3(0.);
+    for(int li=0;li<12;li++){
+     if(li>=uLampCount)break;
+     vec3 lp=uLampPosRad[li].xyz;float lr=uLampPosRad[li].w;
+     vec3 ld=lp-vArtWorld;
+     float d2=dot(ld.xz,ld.xz)+36.;float d=sqrt(d2);
+     float dr=saturate(1.-pow(d/lr,4.));float atten=dr*dr/(d2+1.);
+     if(atten<.0004)continue;
+     vec3 ldir=ld/max(d,.001);
+     float ndl=saturate(dot(artWorldNormal,ldir));
+     aLampD+=uLampColorInt[li]*atten*ndl;
+    }
+    outgoingLight+=aLampD*diffuseColor.rgb*.85;
+   }
    if(!${physical}){
     vec3 artWorldV=normalize(cameraPosition-vArtWorld);
     vec3 artRefl=reflect(-artWorldV,artWorldNormal);
@@ -675,6 +710,9 @@ export function createWetCityMaterial(kind='road'){
  const spacing=CITY_GROUND.spacing;
  material.onBeforeCompile=function(shader){
   attachDetailUniforms(shader);
+  shader.uniforms.uLampPosRad=lampUniforms.posRad;
+  shader.uniforms.uLampColorInt=lampUniforms.colorInt;
+  shader.uniforms.uLampCount=lampUniforms.count;
   const set=isRoad?pbrTextures.asphalt:pbrTextures.concrete;
   shader.uniforms.uCityD=set.diff;
   shader.uniforms.uCityN=set.nor;
@@ -697,6 +735,7 @@ export function createWetCityMaterial(kind='road'){
    vReflUv=uReflMatrix*cityWp;`);
 
   shader.fragmentShader=`uniform sampler2D uCityD,uCityN,uCityA,tRefl,tReflBlur;
+uniform vec4 uLampPosRad[12];uniform vec3 uLampColorInt[12];uniform int uLampCount;
 uniform float uReflTime,uReflEnabled;
 varying vec3 vWPos;
 varying vec3 vWNorm;
@@ -764,6 +803,30 @@ varying vec4 vReflUv;\n`+DETAIL_PARS+noise+wetRippleGLSL+shader.fragmentShader;
   `);
   const outTarget='vec3 outgoingLight = totalDiffuse + totalSpecular + totalEmissiveRadiance;';
   shader.fragmentShader=shader.fragmentShader.replace(outTarget,`${outTarget}
+   // R48: the harbor/city wet asphalt is where lamp streaks matter most — this
+   // surface is modular city mesh, not terrain, so it needs its own loop.
+   // Diffuse pools plus the wet-mirror streak, capped amber through ACES.
+   {
+    vec3 cLampD=vec3(0.),cLampS=vec3(0.);
+    vec3 cVW=normalize(cameraPosition-vWPos);
+    float lampWet=saturate(wDamp*.7+wPuddle*1.3)*wUp;
+    for(int li=0;li<12;li++){
+     if(li>=uLampCount)break;
+     vec3 lp=uLampPosRad[li].xyz;float lr=uLampPosRad[li].w;
+     vec3 ld=lp-vWPos;
+     float d2=dot(ld.xz,ld.xz)+36.;float d=sqrt(d2);
+     float dr=saturate(1.-pow(d/lr,4.));float atten=dr*dr/(d2+1.);
+     if(atten<.0004)continue;
+     vec3 ldir=ld/max(d,.001);
+     float ndl=saturate(dot(wN,ldir));
+     cLampD+=uLampColorInt[li]*atten*ndl;
+     vec3 lh=normalize(cVW+ldir);
+     float lsp=pow(saturate(dot(wN,lh)),mix(24.,120.,1.-wRough));
+     cLampS+=uLampColorInt[li]*min(atten*lsp,1.5)*lampWet;
+    }
+    outgoingLight+=cLampD*diffuseColor.rgb*.85;
+    outgoingLight+=cLampS*vec3(1.,.80,.52)*.9;
+   }
    if(uArtDebug>.5&&uArtDebug<1.5)outgoingLight=wN*.5+.5;
    else if(uArtDebug>1.5&&uArtDebug<2.5)outgoingLight=vec3(pow(clamp(wRough,0.,1.),2.2));
   `);

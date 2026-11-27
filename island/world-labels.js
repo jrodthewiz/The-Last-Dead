@@ -31,7 +31,10 @@ export function weatherBoard(c,x,y,w,h,seed,base){
 }
 // Freestanding boards have painted backs, never reversed lettering. Keep the
 // original texture and draw call; explicit two-faced waymarks own both fronts.
-export function worldBoardMaterial(texture,backColour=0x3d5550){
+// R51: the dark teal default read as a pure-black void against lit walls at
+// dusk (the keeper gable "hole"). Weathered wood brown-grey reads as an
+// intentional painted backing board instead.
+export function worldBoardMaterial(texture,backColour=0x554a38){
  const material=new T.MeshBasicMaterial({map:texture,side:T.DoubleSide});
  material.onBeforeCompile=shader=>{
   shader.uniforms.uBoardBack={value:new T.Color(backColour)};

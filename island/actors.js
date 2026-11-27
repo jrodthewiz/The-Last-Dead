@@ -33,7 +33,10 @@ export async function loadActors(scene,data,onProgress){
     const role=index%4===2?'runner':'shambler',variant=role==='runner'?2:index%3===1?1:0,{asset,bounds}=templates[variant],scale=(role==='runner'?1.85:1.95)/(bounds.max.y-bounds.min.y);
     const root=new T.Group(),model=clone(asset.scene);model.scale.setScalar(scale);model.position.set(-(bounds.min.x+bounds.max.x)*scale/2,-bounds.min.y*scale,-(bounds.min.z+bounds.max.z)*scale/2);model.rotation.y=0;
     stylizeModel(model,{entity:'zombie'});model.traverse(o=>{if(o.isMesh)for(const m of(Array.isArray(o.material)?o.material:[o.material]))m.color?.multiply(new T.Color(role==='runner'?0xbcc3b3:0xc6c7b5));});model.traverse(o=>{if(o.isMesh)o.frustumCulled=false;});
-    root.add(model);sleepHiddenBranch(root);root.position.set(source.x,groundHeight(source.x,source.z),source.z);scene.add(root);
+    // R47 grounding: a soft blob shadow travels with the infected (the rig
+    // root tracks terrain height as it walks), sealing the feet to the ground
+    // instead of the slight hover they read with no contact response.
+    root.add(model);root.add(contactShadow(1.55,1.55));sleepHiddenBranch(root);root.position.set(source.x,groundHeight(source.x,source.z),source.z);scene.add(root);
     const mixer=new T.AnimationMixer(model),actions={};for(const clip of asset.animations)actions[clip.name]=mixer.clipAction(clip);
     const enemy={...source,role,variant:['ash witness','drowned dockworker','fever runner'][variant],lastKnown:null,sightTimer:0,seesPlayer:false,attackYaw:0,root,model,mixer,actions,state:'',cooldown:0,notice:0,alive:true,home:{x:source.x,z:source.z},hit:0,path:[],navTimer:0,attackTimer:0};setEnemyAction(enemy,'idle');enemy.action.time=(source.phase%1)*enemy.action.getClip().duration;enemies.push(enemy);
   }
