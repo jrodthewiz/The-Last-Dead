@@ -513,7 +513,7 @@ vEntWN = normalize(mat3(modelMatrix) * objectNormal);
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <color_fragment>',
       `#include <color_fragment>
-diffuseColor.rgb = max(diffuseColor.rgb, vec3(.045));`
+diffuseColor.rgb = max(diffuseColor.rgb, vec3(.075));`
     );
     const outTarget = isPhysical
       ? 'vec3 outgoingLight = totalDiffuse + totalSpecular + totalEmissiveRadiance;'
@@ -562,11 +562,16 @@ if (uEntityParams.z > .01) {
   float dr = saturate(1. - pow(d / lr, 4.)); float atten = dr * dr / (d2 + 1.);
   if (atten < .0004) continue;
   vec3 ldir = ld / max(d, .001);
-  float ndl = saturate(dot(eWN, ldir));
+  // Half-Lambert wrap so the pool bends around the body instead of slamming
+  // to zero at the terminator, plus a lamp-driven grazing rim that carves
+  // the amber edge the pole beside it should cast.
+  float ndl = clamp(dot(eWN, ldir) * .65 + .35, 0., 1.);
   lampD += uLampColorInt[li] * atten * ndl;
   vec3 lh = normalize(eVW + ldir);
   float lsp = pow(saturate(dot(eWN, lh)), 32.);
   lampS += uLampColorInt[li] * min(atten * lsp, 1.2);
+  float lampRim = pow(1. - saturate(dot(eWN, eVW)), 3.2) * clamp(dot(eWN, ldir) * .5 + .5, 0., 1.);
+  lampS += uLampColorInt[li] * atten * lampRim * .45;
  }
  outgoingLight += lampD * diffuseColor.rgb * .9;
  outgoingLight += lampS * .10;

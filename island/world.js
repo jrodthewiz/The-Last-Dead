@@ -621,10 +621,12 @@ function createWater(scene){
      // as murky olive-silt and deep water as brooding slate-teal (Finch,
      // GPU Gems ch.1; Schlick 1994 fresnel below). Depth-dependent absorption
      // replaces the single flat deep-color mix that read as bright grey milk.
-     vec3 absorb=exp(-depth*vec3(.62,.30,.20));
+     vec3 absorb=exp(-depth*vec3(.45,.22,.15));
      vec3 siltBody=vec3(.050,.054,.042);
      vec3 deepBody=vec3(.010,.026,.034);
      vec3 waterBody=mix(deepBody,siltBody,absorb);
+     vec3 wetSandEdge=vec3(.072,.068,.052);
+     waterBody=mix(wetSandEdge,waterBody,smoothstep(0.,.22,depth));
      diffuseColor.rgb=mix(waterBody,diffuseColor.rgb,.35);
      // R49 shore-locked foam: the old wash noise phase-scrambled with depth
      // and its band reached 1.6m deep, so foam blobs peppered open shallows
@@ -643,9 +645,12 @@ function createWater(scene){
      // sun path — without this the shallows read as flat milk. Distance-faded
      // for temporal stability.
      float wDistC=length(cameraPosition-vWater);
-     float dab=artNoise(vWater.xz*.9+vec2(uTime*.35,-uTime*.25))-.5;
+     float dab=artNoise(vWater.xz*.55+vec2(uTime*.35,-uTime*.25))-.5;
      float dab2=artNoise(vWater.xz*.23-vec2(uTime*.18,uTime*.1))-.5;
-     diffuseColor.rgb*=1.+(dab*.13+dab2*.10)*(1.-smoothstep(28.,130.,wDistC));
+     // Shallows keep their translucency: high-contrast dabs only belong on
+     // deeper water — in the shore band they aliased into gravel speckle.
+     float dabDepth=smoothstep(.15,.9,depth);
+     diffuseColor.rgb*=1.+(dab*.08+dab2*.10)*mix(.35,1.,dabDepth)*(1.-smoothstep(28.,130.,wDistC));
     `);
     shader.fragmentShader=shader.fragmentShader.replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
      vec2 wpW=vWater.xz;
@@ -654,6 +659,13 @@ function createWater(scene){
      // so the sun-glitter path keeps some sparkle.
      float wDist=length(cameraPosition-vWater);
      float wAtt=mix(1.,.28,smoothstep(70.,420.,wDist));
+     // Neon/Hydrogen convergence: high-frequency wave normals in the shallows
+     // aliased into gravel stipple. Calm the normals where the water is thin
+     // and let the bed read through a smooth refractive surface instead.
+     float groundW=texture2D(uCoast,coastUv).r*32.-8.;
+     float depthW=max(0.,vWater.y-groundW);
+     float shallowCalm=smoothstep(.05,1.25,depthW);
+     wAtt*=mix(.25,1.,shallowCalm);
      float w1=cos(wpW.x*.28+wpW.y*.14+uTime*.90)*.068*wAtt;
      float w2=cos(wpW.x*-.19+wpW.y*.37-uTime*1.15)*.056*wAtt;
      float w3=cos(wpW.x*.75+wpW.y*-.62+uTime*1.65)*.024*wAtt;
@@ -670,7 +682,7 @@ function createWater(scene){
       vec3 wRefl=mix(rSharp,rBlur,smoothstep(40.,220.,wDist)*.65);
       float fres=0.02+0.98*pow(1.-clamp(dot(toEye,wNorm),0.,1.),5.0);
       float rAmt=fres*(1.-smoothstep(180.,620.,wDist))*.84*(1.-foam*.65);
-      outgoingLight=outgoingLight*(1.-rAmt*.55)+wRefl*rAmt;
+      wRefl*=vec3(1.,.94,.84);outgoingLight=outgoingLight*(1.-rAmt*.55)+wRefl*rAmt;
      }
      #include <opaque_fragment>
     `);

@@ -118,7 +118,8 @@ varying float vLitter;varying float vSlope;varying vec3 vGround;varying vec3 vGr
  // world space on fast banks — the MS-Paint cutout look. Wider bands plus
  // stronger noise warp break the contour into a painterly feathered edge.
  float seamWarp=(artField(land*.06+5.3)-.5)*.11+(artNoise(land*.41)-.5)*.045;
- float exposed=smoothstep(.015,.21,vSlope+(field-.5)*.085+seamWarp);
+ float microW=(artNoise(land*1.45)-.5)*.16;
+ float exposed=smoothstep(.015,.21,vSlope+(field-.5)*.085+seamWarp+microW);
  // R46 band-limiting: when the strata phase changes faster than ~1 cycle per
  // pixel the sine aliases into herringbone moire on steep cuts. Attenuate the
  // amplitude toward zero as fwidth(phase) approaches Nyquist instead — the
@@ -131,7 +132,7 @@ varying float vLitter;varying float vSlope;varying vec3 vGround;varying vec3 vGr
  float shore=1.-smoothstep(2.6,7.0,vGround.y+field*1.1);
  vec3 sand=mix(${rgb(0x4d5752)},${rgb(0x7a7e72)},smoothstep(.2,3.6,vGround.y))*(.93+tuft*.12);
  soil=mix(soil,sand,shore*(1.-exposed*.5));
- float umber=smoothstep(.46,.94,artField(land*.019+4.2)+(artNoise(land*.31)-.5)*.14);
+ float umber=smoothstep(.46,.94,artField(land*.019+4.2)+(artNoise(land*.31)-.5)*.14+(artNoise(land*1.3+2.7)-.5)*.22);
  soil=mix(soil,${rgb(0x5a4a33)},umber*.42*(1.-exposed*.35)*(1.-shore));
  diffuseColor.rgb=mix(diffuseColor.rgb,soil,.86);
  float artAsphalt=0.;
@@ -205,7 +206,7 @@ varying float vLitter;varying float vSlope;varying vec3 vGround;varying vec3 vGr
   vec3 smoothViewN=normalize((viewMatrix*vec4(normalize(vGroundNormal),0.)).xyz);
   float artFres=pow(1.-saturate(dot(smoothViewN,artV)),4.5);
   float artFresFade=1.-smoothstep(28.,85.,artDist);
-  outgoingLight+=vec3(.32,.40,.46)*artFres*artPuddle*.17*artFresFade;
+  outgoingLight+=vec3(.38,.38,.34)*artFres*artPuddle*.17*artFresFade;
  {
   float lampWet=saturate(artRoad*.85+artPuddle*1.2+wetSand*.4);
   vec3 lampDiffuse=vec3(0.),lampSpec=vec3(0.);
@@ -223,7 +224,8 @@ varying float vLitter;varying float vSlope;varying vec3 vGround;varying vec3 vGr
    float ndl=saturate(dot(artWorldNormal,ldir));
    lampDiffuse+=uLampColorInt[li]*atten*ndl;
    vec3 lh=normalize(artV+ldir);
-   float lspec=pow(saturate(dot(normal,lh)),mix(24.,120.,1.-artRough));
+   // Neon: roughness floor keeps smooth puddles catching a broad warm pool directly beneath the pole instead of a sub-pixel dot — the donut fix.
+   float lspec=pow(saturate(dot(normal,lh)),mix(24.,90.,1.-min(artRough,.76)));
    // R48: cap each lamp's specular so the highlight saturates amber through
    // ACES instead of blowing to white (high linear intensities desaturate).
    lampSpec+=uLampColorInt[li]*min(atten*lspec,1.35)*lampWet;
