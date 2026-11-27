@@ -15,8 +15,8 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // Canonical hostname is thelastdead.jrod.download. lastdead still answers
-    // here and 308s to the canonical name; blackwater is detached and handled
+    // Canonical hostname is thelastdead.jrod.download. lastdead was detached
+    // 2026-11-27 (NXDOMAIN like blackwater); this 308 remains as defense-in-depth
     // by a jrod-hub route if its DNS is ever restored.
     if (url.hostname === 'blackwater.jrod.download' || url.hostname === 'lastdead.jrod.download') {
       const target = `https://thelastdead.jrod.download${url.pathname}${url.search}`;
