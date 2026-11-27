@@ -635,10 +635,13 @@ function createWater(scene){
      // noise breakup, per the GPU Gems ch.1 shoreline treatment.
      float shoreBand=1.-smoothstep(.04,.55,depth);
      float wash=sin(depth*22.-uTime*1.9+artNoise(vWater.xz*.14)*1.1)*.5+.5;
-     float foamN=artNoise(vWater.xz*2.2+vec2(uTime*.06,0.));
-     float foam=smoothstep(.55,.85,shoreBand*(.52+.38*wash+.42*foamN));
+     // R52 review convergence: 2.2/m noise with a narrow threshold window was
+     // the salt-and-pepper stipple — broad undulating fbm with a wide window
+     // reads as foam sheets, muted cool-cream instead of bright static.
+     float foamN=artNoise(vWater.xz*.85+vec2(uTime*.06,0.));
+     float foam=smoothstep(.48,.82,shoreBand*(.52+.38*wash+.42*foamN));
      float foamFade=1.-smoothstep(60.,150.,length(cameraPosition-vWater));
-     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.55,.60,.58),foam*.72*foamFade);
+     diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.45,.48,.46),foam*.55*foamFade);
      vec3 toEye=normalize(cameraPosition-vWater);float horizon=pow(1.-abs(toEye.y),4.2);
      diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.24,.35,.38),horizon*.26);
      // Wind-rippled water breaks into painterly tonal dabs even outside the

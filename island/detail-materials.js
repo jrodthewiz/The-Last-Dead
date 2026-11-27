@@ -566,7 +566,7 @@ if (uEntityParams.z > .01) {
   // to zero at the terminator, plus a lamp-driven grazing rim that carves
   // the amber edge the pole beside it should cast.
   float ndl = clamp(dot(eWN, ldir) * .65 + .35, 0., 1.);
-  lampD += uLampColorInt[li] * atten * ndl;
+  lampD += uLampColorInt[li] * atten * ndl * 2.2;
   vec3 lh = normalize(eVW + ldir);
   float lsp = pow(saturate(dot(eWN, lh)), 32.);
   lampS += uLampColorInt[li] * min(atten * lsp, 1.2);
