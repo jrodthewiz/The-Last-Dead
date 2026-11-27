@@ -377,3 +377,14 @@ Two coupled water surface fixes, box-validated on keeper/island poses: (1) shall
 
 ## R38 — road/terrain surface artifacts (Hydrogen critique #1)
 Gemini Hydrogen frame critique (paid tier, saved `.codex-temp/gemini-hydrogen-r38/reply.md`) ranked rural road/terrain top impact: cyan specular smudge on grass slopes (damp/wetRock roughness floors too low — raised .58->.74 dampSoil/.30 mix, .34->.52 wetRock/.45), herringbone slope banding (strata domain warp added), sawtooth dirt/grass seam (noise-warped exposed threshold), rural centerline dashes floating 24cm as 3D dominoes (world.js:144 sunk to +.02, worn tone). Box-validated: smudge gone, banding reduced, dashes flush.
+
+## R39-R46 batch (2026-11-27) — Gemini-driven AAA push
+- R39 `b400b92` viewmodel cavity AO + edge wear + wet film: vertex-baked concavity/convexity meta on the hero carbine. Box-validated spawn.
+- R40 water Beer-Lambert depth absorption + Schlick fresnel + distance-faded foam: milky cow-spotted shallows became brooding slate body. Box-validated keeper.
+- R41 analytic streetlamp lighting in ground shader (nearest-12 windowed falloff diffuse + wet specular streaks); additive pool decals retired. Waterfront lamp glow validated; amplified intensity 1.6->2.9 after first capture read too subtle.
+- R42 contact grounding: rounded-rect shadow aprons for civic solids, scale-capped radial decals for rocks. Two iteration bugs found+fixed on box (opaque slab texture; rural rock decal carpet).
+- R44 gravity-streaked rust (warped anisotropic drip noise). R46 fwidth band-limited strata — herringbone gone on spawn-road capture.
+- R45 partial: keeper pile waterline staining. Boardwalk fascia/planter/siding deferred to post-review prioritization.
+- Harness lessons: SwiftShader mid-compile frames read solid black/white — pose wait now 5s+rAF. probe-boot/probe-pose scripts on box are the fast diagnostics.
+- Deployed: worker version e9b5e3ef-b754-4ec5-87e0-8dd083ae370f, all four core files byte-verified live.
+- Pending: zombie close-up validation (R43), final Neon+Hydrogen review, further hill-climbing.
