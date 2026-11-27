@@ -417,3 +417,11 @@ Validation: r50 box captures confirmed zombie readability, foam shore-lock,
 and splat improvement. Deferred: keeper boardwalk fascia geometry, stilt
 thickening. The zombie T-pose in captures is a harness freeze artifact —
 in-game rigs animate the hunched shamble.
+
+### Harness hardening notes (2026-11-27)
+- Compile-storm artifacts: solid-color frames now auto-retried (filesize heuristic —
+  real frames are hundreds of KB, solid frames ~4.7KB).
+- Solid-WHITE frames are WebGL context loss under box memory pressure, not
+  compile storms — capture when the box load is low.
+- The keeper gable "black void" root cause: unlit MeshBasicMaterial sign boards
+  in dark teal crushing black through ACES — fixed with a sage-cream palette.
