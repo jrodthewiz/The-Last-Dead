@@ -367,6 +367,95 @@ gl_FragColor.a = .90;`
   return material;
 }
 
+// R39 viewmodel weathering: chains after paintWeaponHero on hero first-person
+// materials. Adds vertex-baked cavity AO + edge wear + constant-drizzle wet
+// film (Blackwater always rains). Opt-in: only materials whose geometry was
+// baked with bakeWeaponVertexMeta should use it.
+export function bakeWeaponVertexMeta(root, radius = .022) {
+  root.traverse(o => {
+    if (!o.isMesh) return;
+    const geo = o.geometry;
+    if (!geo?.attributes?.position || geo.attributes.aVmMeta) return;
+    if (!geo.attributes.normal) geo.computeVertexNormals();
+    const pos = geo.attributes.position, norm = geo.attributes.normal;
+    const count = pos.count;
+    const cell = radius, map = new Map();
+    const key = (x, y, z) => Math.floor(x / cell) + ',' + Math.floor(y / cell) + ',' + Math.floor(z / cell);
+    for (let i = 0; i < count; i++) {
+      const k = key(pos.getX(i), pos.getY(i), pos.getZ(i));
+      if (!map.has(k)) map.set(k, []);
+      map.get(k).push(i);
+    }
+    const meta = new Float32Array(count * 2);
+    for (let i = 0; i < count; i++) {
+      const px = pos.getX(i), py = pos.getY(i), pz = pos.getZ(i);
+      const nx = norm.getX(i), ny = norm.getY(i), nz = norm.getZ(i);
+      const cx = Math.floor(px / cell), cy = Math.floor(py / cell), cz = Math.floor(pz / cell);
+      let cav = 0, con = 0, wsum = 0;
+      for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) {
+        const arr = map.get((cx + dx) + ',' + (cy + dy) + ',' + (cz + dz));
+        if (!arr) continue;
+        for (const j of arr) {
+          if (j === i) continue;
+          const ddx = pos.getX(j) - px, ddy = pos.getY(j) - py, ddz = pos.getZ(j) - pz;
+          const dist = Math.sqrt(ddx * ddx + ddy * ddy + ddz * ddz);
+          if (dist < 1e-6 || dist > radius) continue;
+          const w = 1 - dist / radius;
+          const dot = (ddx * nx + ddy * ny + ddz * nz) / dist;
+          if (dot > 0) cav += dot * w; else con -= dot * w;
+          wsum += w;
+        }
+      }
+      if (wsum > 0) { cav /= wsum; con /= wsum; }
+      meta[i * 2] = Math.max(.32, 1 - cav * 2.1);
+      meta[i * 2 + 1] = Math.min(1, con * 2.4);
+    }
+    geo.setAttribute('aVmMeta', new T.BufferAttribute(meta, 2));
+  });
+}
+
+export function paintViewmodelWeathering(material) {
+  if (!material || material.userData.vmWeathered) return material;
+  material.userData.vmWeathered = true;
+  const previous = material.onBeforeCompile;
+  const previousKey = material.customProgramCacheKey ? material.customProgramCacheKey.bind(material) : () => '';
+  material.onBeforeCompile = function (shader, renderer) {
+    previous.call(this, shader, renderer);
+    shader.vertexShader = 'attribute vec2 aVmMeta;varying vec2 vVmMeta;\n' + shader.vertexShader;
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <begin_vertex>',
+      '#include <begin_vertex>\nvVmMeta = aVmMeta;'
+    );
+    shader.fragmentShader = 'varying vec2 vVmMeta;\n' + shader.fragmentShader;
+    // Worn edges polish and lighten toward bare material; rain film halves
+    // effective roughness so the existing env/spec terms read as wet sheen.
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <color_fragment>',
+      `#include <color_fragment>
+float vmWear = smoothstep(.30, .82, vVmMeta.y);
+diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 1.30 + vec3(.026, .024, .020), vmWear * .42);`
+    );
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <roughnessmap_fragment>',
+      `#include <roughnessmap_fragment>
+roughnessFactor = mix(roughnessFactor, roughnessFactor * .58, .55);`
+    );
+    // Lambert path has no roughnessmap chunk; drop the film roughness boost
+    // into the hero paint's wRough pipeline instead by scaling after the fact
+    // is impossible here — Lambert weapons get AO + wear only.
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <aomap_fragment>',
+      `#include <aomap_fragment>
+float vmAO = mix(1., vVmMeta.x, .85);
+reflectedLight.indirectDiffuse *= vmAO;
+reflectedLight.directDiffuse *= mix(.72, 1., vmAO);`
+    );
+  };
+  material.customProgramCacheKey = () => previousKey() + '-vm-weather-r39';
+  material.needsUpdate = true;
+  return material;
+}
+
 const ENTITY_PRESETS = {
   zombie:   { params: [.24, .56, .00, .88], rim: [.68, .80, .86] },
   survivor: { params: [.24, .42, .00, .86], rim: [.76, .84, .88] },

@@ -2,7 +2,7 @@ import * as T from '../vendor/three.module.js';
 import {weaponResponse,weaponDraw,reloadWeight} from './weapon-response.js';
 import {createLookSway} from './look-sway.js';
 import {consoleMaterial} from './retro-materials.js';
-import {paintWeaponHero} from './detail-materials.js';
+import {paintWeaponHero,paintViewmodelWeathering,bakeWeaponVertexMeta} from './detail-materials.js';
 
 // A small authored viewmodel: the wooden furniture has a continuous profile,
 // the action has a separate moving bolt, and the support hand owns the magazine.
@@ -21,6 +21,7 @@ export function makeRifle(camera){
   m.cloth.flatShading=false;m.cloth.needsUpdate=true;
   paintWeaponHero(m.steel,'steel');paintWeaponHero(m.edge,'edge');paintWeaponHero(m.wood,'wood');
   paintWeaponHero(m.end,'panel');paintWeaponHero(m.cloth,'cloth');paintWeaponHero(m.glove,'glove');paintWeaponHero(m.seam,'panel');
+  for(const key of ['steel','edge','wood','end','skin','glove','cloth','seam'])paintViewmodelWeathering(m[key]);
   function mesh(parent,geo,mat,x=0,y=0,z=0){const o=new T.Mesh(geo,m[mat]);o.position.set(x,y,z);parent.add(o);return o;}
   function box(parent,x,y,z,w,h,d,mat){return mesh(parent,new T.BoxGeometry(w,h,d),mat,x,y,z);}
   function profile(parent,points,width,mat){
@@ -124,5 +125,5 @@ export function makeRifle(camera){
       bolt.position.z=reloading?charge:(shotSequence===null?recoil:firePose.pulse)*.04;
       flash.visible=shotSequence===null?recoil>.78:shotAge<.035;
     }
-  };api.update(0,false,0,0,-1,true);return api;
+  };bakeWeaponVertexMeta(gun);api.update(0,false,0,0,-1,true);return api;
 }
