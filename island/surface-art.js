@@ -178,14 +178,14 @@ varying float vLitter;varying float vSlope;varying vec3 vGround;varying vec3 vGr
  // R50: in a rainstorm the whole asphalt ribbon is damp — the old noise gate
  // left most of the rural road bone-dry. Baseline damp everywhere, patchy
  // deeper puddles on top.
- float wet=artAsphalt*clamp(.40+.62*smoothstep(.40,.68,artField(vGroundWorld.xz*.048)),0.,1.);
+ float wet=artAsphalt*clamp(.34+.86*smoothstep(.34,.62,artField(vGroundWorld.xz*.048)),0.,1.);
  float wetSand=(1.-smoothstep(1.1,2.9,vGround.y))*(1.-artRoad);
  float artPuddle=clamp(wet+wetSand*.46,0.,1.);
  float dampSoil=smoothstep(.40,.74,artField(land*.071+7.31)+.22*artNoise(land*.29))*(1.-artRoad)*(1.-exposed*.15)*(1.-shore*.5);
  diffuseColor.rgb*=1.-dampSoil*.34;
  diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(.84,1.05,.88),dampSoil*.7);
  artRough=mix(artRough,.74,dampSoil*.30);
- diffuseColor.rgb*=1.-wet*.28-wetSand*.12;
+ diffuseColor.rgb*=1.-wet*.38-wetSand*.12;
  artWorldNormal=mix(artWorldNormal,normalize(vGroundNormal),wet*.88);
  artRough=mix(artRough,.16,artPuddle*.82);
  float midPatch=artField(land*.107+2.71)+.3*artNoise(land*.41);
